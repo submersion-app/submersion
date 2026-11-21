@@ -13812,6 +13812,12 @@ abstract class AppLocalizations {
   /// **'This dive has no profile to point at. Type the time instead.'**
   String get diveLog_annotation_noProfile;
 
+  /// Error under the Notes editor when the diver has broken the markup of an annotation link, which Save would read as the annotation removed; Save is held until it is fixed
+  ///
+  /// In en, this message translates to:
+  /// **'An annotation\'s link here is broken, so saving would delete the annotation. Mend the link, or delete all of it to remove the annotation.'**
+  String get diveLog_annotation_brokenLink;
+
   /// Primary button of the annotation sheet when the words were selected in the notes
   ///
   /// In en, this message translates to:
@@ -33721,6 +33727,24 @@ abstract class AppLocalizations {
   /// **'Seek video position'**
   String get media_photoViewer_seekVideoLabel;
 
+  /// No description provided for @media_photoViewer_muteVideoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute video'**
+  String get media_photoViewer_muteVideoLabel;
+
+  /// No description provided for @media_photoViewer_unmuteVideoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute video'**
+  String get media_photoViewer_unmuteVideoLabel;
+
+  /// No description provided for @media_photoViewer_videoVolumeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Video volume'**
+  String get media_photoViewer_videoVolumeLabel;
+
   /// No description provided for @media_photoViewer_shareTooltip.
   ///
   /// In en, this message translates to:
@@ -38148,6 +38172,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drag items to reorder the sidebar. Home always stays at the top.'**
   String get settings_navCustomization_descriptionDesktop;
+
+  /// Note on the navigation layout page, shown on both the phone and desktop tabs: the layout is a per-device setting that does not sync to the user's other devices (#2947, #4454).
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device only. Your other devices keep their own layout.'**
+  String get settings_navCustomization_deviceOnlyNote;
 
   /// Segmented-button label for editing the phone navigation order.
   ///
@@ -46659,6 +46689,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This downloads {size} and keeps it on this device. You can remove it at any time.'**
   String settings_speciesId_downloadConfirmBody(String size);
+
+  /// No description provided for @settings_speciesId_downloadConfirmBodyHardware.
+  ///
+  /// In en, this message translates to:
+  /// **'This downloads {size} and keeps it on this device. Windows may also download an engine for your graphics card or NPU from Microsoft. You can remove the model at any time.'**
+  String settings_speciesId_downloadConfirmBodyHardware(String size);
 
   /// No description provided for @settings_speciesId_downloadFailed.
   ///

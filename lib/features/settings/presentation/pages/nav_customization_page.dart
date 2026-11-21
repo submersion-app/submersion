@@ -78,6 +78,14 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
+            // Both surfaces stay on this device (#2947), which a diver with
+            // several devices otherwise reads as a sync bug (#4454).
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: _DeviceOnlyNote(
+                text: l10n.settings_navCustomization_deviceOnlyNote,
+              ),
+            ),
             const Divider(height: 1),
             alwaysHideLabelsAsync.when(
               data: (alwaysHideLabels) => SwitchListTile(
@@ -114,6 +122,49 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Says the layout is saved on this device only: an info icon beside [text]
+/// on a pale primary-coloured panel, shaped like `SafetyNote` but informative
+/// rather than a warning.
+class _DeviceOnlyNote extends StatelessWidget {
+  const _DeviceOnlyNote({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(
+            child: Icon(
+              Icons.info_outline,
+              size: 20,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

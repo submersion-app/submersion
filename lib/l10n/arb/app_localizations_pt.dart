@@ -8800,6 +8800,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este mergulho não tem perfil para apontar. Digite o tempo em vez disso.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'O link de uma marcação está quebrado aqui, então salvar apagaria a marcação. Conserte o link ou apague-o inteiro para remover a marcação.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Marcar';
 
   @override
@@ -21397,6 +21401,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Buscar posição do vídeo';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Silenciar vídeo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Ativar som do vídeo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volume do vídeo';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Compartilhar foto';
 
   @override
@@ -24176,6 +24189,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'Arraste os itens para reordenar a barra lateral. O Início fica sempre no topo.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Guardado apenas neste dispositivo. Os seus outros dispositivos mantêm o próprio layout.';
 
   @override
   String get settings_navCustomization_scopePhone => 'Telefone';
@@ -29325,6 +29342,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'Isso baixa $size e mantém neste dispositivo. Você pode removê-lo a qualquer momento.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Isso baixa $size e mantém neste dispositivo. O Windows também pode baixar da Microsoft um mecanismo para sua placa de vídeo ou NPU. Você pode remover o modelo a qualquer momento.';
   }
 
   @override

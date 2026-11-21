@@ -8355,6 +8355,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_annotation_noProfile => '此次潜水没有可指向的轮廓。请改为输入时间。';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      '此处某个标注的链接已损坏，保存会删除该标注。请修复链接，或将其整个删除以移除该标注。';
+
+  @override
   String get diveLog_annotation_action_annotate => '标注';
 
   @override
@@ -20334,6 +20338,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => '调整视频位置';
 
   @override
+  String get media_photoViewer_muteVideoLabel => '静音视频';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => '取消视频静音';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => '视频音量';
+
+  @override
   String get media_photoViewer_shareTooltip => '分享照片';
 
   @override
@@ -22943,6 +22956,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       '拖动项目以重新排列侧边栏。主页始终位于顶部。';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      '仅保存在此设备上。您的其他设备会保留各自的布局。';
 
   @override
   String get settings_navCustomization_scopePhone => '手机';
@@ -27675,6 +27692,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return '这将下载 $size 并保存在此设备上。你可以随时移除它。';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return '这将下载 $size 并保存在此设备上。Windows 还可能从 Microsoft 下载适用于你的显卡或 NPU 的引擎。你可以随时移除该模型。';
   }
 
   @override

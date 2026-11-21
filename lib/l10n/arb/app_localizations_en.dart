@@ -8667,6 +8667,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This dive has no profile to point at. Type the time instead.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'An annotation\'s link here is broken, so saving would delete the annotation. Mend the link, or delete all of it to remove the annotation.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annotate';
 
   @override
@@ -21082,6 +21086,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Seek video position';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Mute video';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Unmute video';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Video volume';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Share photo';
 
   @override
@@ -23824,6 +23837,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'Drag items to reorder the sidebar. Home always stays at the top.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Saved on this device only. Your other devices keep their own layout.';
 
   @override
   String get settings_navCustomization_scopePhone => 'Phone';
@@ -28849,6 +28866,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'This downloads $size and keeps it on this device. You can remove it at any time.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'This downloads $size and keeps it on this device. Windows may also download an engine for your graphics card or NPU from Microsoft. You can remove the model at any time.';
   }
 
   @override

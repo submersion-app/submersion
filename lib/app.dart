@@ -27,6 +27,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/display_zoom.dart';
 import 'package:submersion/core/theme/display_zoom_shortcuts.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/core/ui/app_actions.dart';
 import 'package:submersion/features/gps_log/presentation/dive_mark_action_bridge.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
@@ -836,6 +837,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ...AppLocalizations.localizationsDelegates,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
+      actions: appActions(),
       routerConfig: router,
       builder: (context, child) {
         Intl.defaultLocale = Localizations.localeOf(context).toLanguageTag();

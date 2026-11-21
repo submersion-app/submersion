@@ -5284,6 +5284,10 @@
   "@diveLog_annotation_noProfile": {
     "description": "Shown on the annotation sheet in place of the small profile when the dive has no profile samples"
   },
+  "diveLog_annotation_brokenLink": "An annotation's link here is broken, so saving would delete the annotation. Mend the link, or delete all of it to remove the annotation.",
+  "@diveLog_annotation_brokenLink": {
+    "description": "Error under the Notes editor when the diver has broken the markup of an annotation link, which Save would read as the annotation removed; Save is held until it is fixed"
+  },
   "diveLog_annotation_action_annotate": "Annotate",
   "@diveLog_annotation_action_annotate": {
     "description": "Primary button of the annotation sheet when the words were selected in the notes"
@@ -12939,6 +12943,9 @@
   "media_photoViewer_playPauseVideoLabel": "Play or pause video",
   "media_photoViewer_previousTooltip": "Previous media",
   "media_photoViewer_seekVideoLabel": "Seek video position",
+  "media_photoViewer_muteVideoLabel": "Mute video",
+  "media_photoViewer_unmuteVideoLabel": "Unmute video",
+  "media_photoViewer_videoVolumeLabel": "Video volume",
   "media_photoViewer_shareTooltip": "Share photo",
   "media_photoViewer_toggleOverlayLabel": "Toggle photo overlay",
   "media_photoViewer_videoFileNotFound": "Video file not found",
@@ -15349,6 +15356,10 @@
   "@settings_navCustomization_descriptionDesktop": {
     "description": "Help text shown when arranging the wide-screen navigation rail."
   },
+  "settings_navCustomization_deviceOnlyNote": "Saved on this device only. Your other devices keep their own layout.",
+  "@settings_navCustomization_deviceOnlyNote": {
+    "description": "Note on the navigation layout page, shown on both the phone and desktop tabs: the layout is a per-device setting that does not sync to the user's other devices (#2947, #4454)."
+  },
   "settings_navCustomization_scopePhone": "Phone",
   "@settings_navCustomization_scopePhone": {
     "description": "Segmented-button label for editing the phone navigation order."
@@ -17285,6 +17296,8 @@
   "settings_speciesId_downloadConfirmTitle": "Download the model?",
   "settings_speciesId_downloadConfirmBody": "This downloads {size} and keeps it on this device. You can remove it at any time.",
   "@settings_speciesId_downloadConfirmBody": {"placeholders": {"size": {"type": "String"}}},
+  "settings_speciesId_downloadConfirmBodyHardware": "This downloads {size} and keeps it on this device. Windows may also download an engine for your graphics card or NPU from Microsoft. You can remove the model at any time.",
+  "@settings_speciesId_downloadConfirmBodyHardware": {"placeholders": {"size": {"type": "String"}}},
   "settings_speciesId_downloadFailed": "The download did not finish. Try again to continue where it stopped.",
   "settings_speciesId_downloadNoSpace": "There is not enough free space on this device.",
   "settings_speciesId_needsAppUpdate": "This model needs a newer version of Submersion.",

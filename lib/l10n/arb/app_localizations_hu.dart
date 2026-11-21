@@ -8777,6 +8777,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ennek a merülésnek nincs profilja, amire mutatni lehetne. Írd be helyette az időt.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'Itt egy jelölés hivatkozása sérült, ezért a mentés törölné a jelölést. Javítsd ki a hivatkozást, vagy töröld teljesen a jelölés eltávolításához.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Megjelölés';
 
   @override
@@ -21327,6 +21331,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Videó pozíció keresése';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Videó némítása';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel =>
+      'Videó némításának feloldása';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Videó hangereje';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Fotó megosztása';
 
   @override
@@ -24101,6 +24115,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'Húzza az elemeket az oldalsáv átrendezéséhez. A Kezdőlap mindig felül marad.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Csak ezen az eszközön van mentve. A többi eszköze megtartja a saját elrendezését.';
 
   @override
   String get settings_navCustomization_scopePhone => 'Telefon';
@@ -29205,6 +29223,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'Ez $size adatot tölt le, és ezen az eszközön tárolja. Bármikor eltávolíthatod.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Ez $size adatot tölt le, és ezen az eszközön tárolja. A Windows a Microsofttól a videokártyádhoz vagy NPU-dhoz való motort is letölthet. A modellt bármikor eltávolíthatod.';
   }
 
   @override

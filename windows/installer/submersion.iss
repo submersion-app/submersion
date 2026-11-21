@@ -31,7 +31,9 @@ AppSupportURL=https://github.com/submersion-app/submersion/issues
 AppUpdatesURL=https://github.com/submersion-app/submersion/releases
 DefaultDirName={autopf}\Submersion
 DefaultGroupName=Submersion
-LicenseFile=..\..\LICENSE
+; The GPL, then Microsoft's terms for the Windows ML files the build ships
+; (test/core/platform/windows_installer_license_test.dart keeps it current).
+LicenseFile=license.txt
 SetupIconFile=..\runner\resources\app_icon.ico
 UninstallDisplayIcon={app}\submersion.exe
 OutputDir=..\..\build\windows\installer

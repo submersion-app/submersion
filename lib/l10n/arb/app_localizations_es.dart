@@ -8802,6 +8802,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esta inmersión no tiene perfil que señalar. Escribe la hora en su lugar.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'El enlace de una anotación está roto aquí, así que guardar eliminaría la anotación. Arregla el enlace o bórralo entero para quitar la anotación.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Anotar';
 
   @override
@@ -21387,6 +21391,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Buscar posición del video';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Silenciar vídeo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Activar sonido del vídeo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volumen del vídeo';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Compartir foto';
 
   @override
@@ -24176,6 +24189,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'Arrastra los elementos para reordenar la barra lateral. Inicio siempre permanece arriba.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Se guarda solo en este dispositivo. Tus otros dispositivos mantienen su propio diseño.';
 
   @override
   String get settings_navCustomization_scopePhone => 'Teléfono';
@@ -29352,6 +29369,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'Se descargarán $size y se guardarán en este dispositivo. Puedes eliminarlo cuando quieras.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Se descargarán $size y se guardarán en este dispositivo. Windows también puede descargar de Microsoft un motor para tu tarjeta gráfica o NPU. Puedes eliminar el modelo cuando quieras.';
   }
 
   @override

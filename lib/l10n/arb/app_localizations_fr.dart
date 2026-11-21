@@ -8823,6 +8823,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette plongée n\'a pas de profil à pointer. Saisissez l\'heure à la place.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'Le lien d\'une annotation est cassé ici : enregistrer supprimerait l\'annotation. Réparez le lien, ou supprimez-le entièrement pour retirer l\'annotation.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annoter';
 
   @override
@@ -21456,6 +21460,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Déplacer la position de la vidéo';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Couper le son de la vidéo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel =>
+      'Rétablir le son de la vidéo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volume de la vidéo';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Partager la photo';
 
   @override
@@ -24241,6 +24255,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'Faites glisser les éléments pour réorganiser la barre latérale. Accueil reste toujours en haut.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Enregistrée sur cet appareil uniquement. Vos autres appareils conservent leur propre disposition.';
 
   @override
   String get settings_navCustomization_scopePhone => 'Téléphone';
@@ -29415,6 +29433,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'Cela télécharge $size et les conserve sur cet appareil. Vous pouvez le supprimer à tout moment.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Cela télécharge $size et les conserve sur cet appareil. Windows peut aussi télécharger depuis Microsoft un moteur pour votre carte graphique ou votre NPU. Vous pouvez supprimer le modèle à tout moment.';
   }
 
   @override

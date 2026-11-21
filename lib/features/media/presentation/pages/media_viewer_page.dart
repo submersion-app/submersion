@@ -36,6 +36,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/set_time_seed.dart';
+import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
@@ -204,6 +205,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// come and go as gallery pages initialize/dispose.
   final Map<String, VideoPlayerController> _videoControllers = {};
 
+  /// The videos' sound, muted on open, for as long as the viewer is (#4817).
+  final _audio = ViewerAudio();
+
   void _onVideoControllerChanged(
     String mediaId,
     VideoPlayerController? controller,
@@ -272,6 +276,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   void dispose() {
     disposePhotoEditing();
     _pageController.dispose();
+    _audio.dispose();
     // Restore system UI
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
@@ -536,6 +541,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         onSetOverlay: _onSetOverlay,
                         onVideoHoldChanged: videoHoldChanged,
                         onVideoControllerChanged: _onVideoControllerChanged,
+                        audio: _audio,
                         currentIndex: currentIndex,
                         people: peopleSession,
                         identificationsEditable: !photoLocked,

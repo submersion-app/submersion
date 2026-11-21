@@ -21,6 +21,9 @@ class _PhotoGallery extends ConsumerStatefulWidget {
   onVideoHoldChanged;
   final void Function(String mediaId, VideoPlayerController? controller)
   onVideoControllerChanged;
+
+  /// The viewer's sound, which every video page plays at (issue #4817).
+  final ViewerAudio audio;
   final int currentIndex;
 
   /// The viewer's people tag mode (issue #1745).
@@ -53,6 +56,7 @@ class _PhotoGallery extends ConsumerStatefulWidget {
     required this.onSetOverlay,
     required this.onVideoHoldChanged,
     required this.onVideoControllerChanged,
+    required this.audio,
     required this.currentIndex,
     required this.people,
     this.pagingLocked = false,
@@ -157,6 +161,7 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
               onSetOverlay: widget.onSetOverlay,
               onHoldChanged: widget.onVideoHoldChanged,
               onControllerChanged: widget.onVideoControllerChanged,
+              audio: widget.audio,
               people: people,
               identificationsEditable: widget.identificationsEditable,
               hideIdentifications: widget.hideIdentifications,

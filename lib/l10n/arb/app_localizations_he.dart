@@ -8613,6 +8613,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לצלילה זו אין פרופיל להצביע עליו. הזינו את הזמן במקום זאת.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'הקישור של אחד הסימונים כאן פגום, ולכן שמירה תמחק את הסימון. תקנו את הקישור, או מחקו אותו כולו כדי להסיר את הסימון.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'סימון';
 
   @override
@@ -20928,6 +20932,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'דלג למיקום בסרטון';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'השתק את הסרטון';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'בטל את השתקת הסרטון';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'עוצמת הקול של הסרטון';
+
+  @override
   String get media_photoViewer_shareTooltip => 'שתף תמונה';
 
   @override
@@ -23650,6 +23663,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'גררו פריטים כדי לסדר מחדש את סרגל הצד. דף הבית תמיד נשאר למעלה.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'נשמרת במכשיר הזה בלבד. המכשירים האחרים שלך שומרים על פריסה משלהם.';
 
   @override
   String get settings_navCustomization_scopePhone => 'טלפון';
@@ -28610,6 +28627,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'פעולה זו תוריד $size ותשמור אותם במכשיר הזה. אפשר להסיר את המודל בכל עת.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'פעולה זו תוריד $size ותשמור אותם במכשיר הזה. ייתכן ש-Windows יוריד גם מנוע לכרטיס הגרפי או ל-NPU שלך מ-Microsoft. אפשר להסיר את המודל בכל עת.';
   }
 
   @override

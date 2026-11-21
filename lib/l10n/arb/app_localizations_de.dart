@@ -8796,6 +8796,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieser Tauchgang hat kein Profil zum Antippen. Gib stattdessen die Zeit ein.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'Der Link einer Anmerkung ist hier beschädigt, deshalb würde Speichern die Anmerkung löschen. Repariere den Link oder lösche ihn ganz, um die Anmerkung zu entfernen.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Anmerken';
 
   @override
@@ -21376,6 +21380,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Videoposition suchen';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Video stummschalten';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel =>
+      'Stummschaltung des Videos aufheben';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Videolautstärke';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Foto teilen';
 
   @override
@@ -24145,6 +24159,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'Elemente ziehen, um die Seitenleiste neu zu ordnen. Startseite bleibt immer oben.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Nur auf diesem Gerät gespeichert. Deine anderen Geräte behalten ihr eigenes Layout.';
 
   @override
   String get settings_navCustomization_scopePhone => 'Telefon';
@@ -29277,6 +29295,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'Dabei werden $size heruntergeladen und auf diesem Gerät gespeichert. Du kannst es jederzeit entfernen.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Dabei werden $size heruntergeladen und auf diesem Gerät gespeichert. Windows lädt eventuell zusätzlich eine Engine für deine Grafikkarte oder NPU von Microsoft herunter. Du kannst das Modell jederzeit entfernen.';
   }
 
   @override

@@ -56,6 +56,18 @@ abstract class VisionEngine {
   Future<void> excludeFromBackup(String directory);
 }
 
+/// An engine that can fetch a hardware engine for this device's GPU or NPU
+/// (Windows ML on Windows), as part of the pack's download and never at
+/// another time, so the confirmation can say so.
+abstract interface class HardwareEngineSource {
+  /// Whether the pack's download would also fetch an engine.
+  Future<bool> offersEngineToFetch();
+
+  /// Fetches it; true when one became ready. Never fails the download: the
+  /// models still run on DirectML or the processor without it.
+  Future<bool> fetchEngine();
+}
+
 /// A failure the native engine reported.
 class VisionEngineException implements Exception {
   const VisionEngineException(this.code, [this.message]);

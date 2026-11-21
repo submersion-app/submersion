@@ -8748,6 +8748,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze duik heeft geen profiel om aan te wijzen. Typ in plaats daarvan de tijd.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'De link van een annotatie is hier kapot, dus opslaan zou de annotatie verwijderen. Herstel de link, of verwijder hem helemaal om de annotatie te verwijderen.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annoteren';
 
   @override
@@ -21264,6 +21268,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Videopositie zoeken';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Video dempen';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Dempen van video opheffen';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Videovolume';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Foto delen';
 
   @override
@@ -24032,6 +24045,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Alleen op dit apparaat opgeslagen. Je andere apparaten houden hun eigen indeling.';
 
   @override
   String get settings_navCustomization_scopePhone => 'Telefoon';
@@ -29153,6 +29170,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'Hiermee wordt $size gedownload en op dit apparaat bewaard. Je kunt het op elk moment verwijderen.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Hiermee wordt $size gedownload en op dit apparaat bewaard. Windows kan ook een engine voor je videokaart of NPU van Microsoft downloaden. Je kunt het model op elk moment verwijderen.';
   }
 
   @override

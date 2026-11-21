@@ -8936,6 +8936,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد ملف غوصة للإشارة إليه في هذه الغوصة. أدخل الوقت بدلًا من ذلك.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'رابط أحد التعليقات هنا معطوب، وسيؤدي الحفظ إلى حذف التعليق. أصلح الرابط، أو احذفه بالكامل لإزالة التعليق.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'تعليق';
 
   @override
@@ -21746,6 +21750,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'تحريك موضع الفيديو';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'كتم صوت الفيديو';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'إلغاء كتم صوت الفيديو';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'مستوى صوت الفيديو';
+
+  @override
   String get media_photoViewer_shareTooltip => 'مشاركة الصورة';
 
   @override
@@ -24545,6 +24558,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'يُحفظ على هذا الجهاز فقط. تحتفظ أجهزتك الأخرى بتخطيطها الخاص.';
 
   @override
   String get settings_navCustomization_scopePhone => 'الهاتف';
@@ -29627,6 +29644,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'سيؤدي هذا إلى تنزيل $size والاحتفاظ به على هذا الجهاز. يمكنك إزالته في أي وقت.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'سيؤدي هذا إلى تنزيل $size والاحتفاظ به على هذا الجهاز. قد يقوم Windows أيضًا بتنزيل محرك لبطاقة الرسومات أو وحدة NPU من Microsoft. يمكنك إزالة النموذج في أي وقت.';
   }
 
   @override
