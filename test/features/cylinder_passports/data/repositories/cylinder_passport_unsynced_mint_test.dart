@@ -178,6 +178,24 @@ void main() {
       expect(await repo.getPassportId('eq-2'), isNull);
     });
 
+    test('an item out of service gives its unsynced label up', () async {
+      await (db.update(db.equipment)..where((t) => t.id.equals('eq-reg')))
+          .write(const EquipmentCompanion(status: Value('retired')));
+      await repo.assignPassportId(
+        equipmentId: 'eq-2',
+        passportId: mintFor('eq-reg'),
+        diverId: 'd1',
+      );
+      expect(await repo.getPassportId('eq-2'), mintFor('eq-reg'));
+      expect(
+        (await repo.findHolderByPassportId(
+          mintFor('eq-reg'),
+          diverId: 'd1',
+        ))?.equipmentId,
+        'eq-2',
+      );
+    });
+
     test('fittedHolderOf names the item that mints the id', () async {
       expect(
         await repo.fittedHolderOf(
