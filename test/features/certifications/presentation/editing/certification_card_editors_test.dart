@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_card_editors.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -55,6 +56,78 @@ void main() {
     expect(session.working.cardNumber, '456');
     expect(session.working.name, 'X');
     expect(session.working.additionalCredentials, hasLength(1));
+  });
+
+  // A stored name that only repeats the agency and level (the old form
+  // filled it in until 2026-08) shows blank, so the hint offers the
+  // derived title instead of repeating it.
+  group('a derived title', () {
+    Certification derived() => cert().copyWith(name: 'PADI : Open Water');
+
+    String titleText(WidgetTester tester) => tester
+        .widget<TextField>(find.byKey(const ValueKey('cert-edit-title')))
+        .controller!
+        .text;
+
+    testWidgets('shows blank, and opening it changes nothing', (tester) async {
+      final session = EditSession(derived());
+      addTearDown(session.dispose);
+      await pumpEditor(
+        tester,
+        CertificationDetailsCardEditor(session: session),
+      );
+
+      expect(titleText(tester), isEmpty);
+      expect(session.isDirty, isFalse);
+    });
+
+    testWidgets('a custom title still shows', (tester) async {
+      final session = EditSession(cert());
+      addTearDown(session.dispose);
+      await pumpEditor(
+        tester,
+        CertificationDetailsCardEditor(session: session),
+      );
+
+      expect(titleText(tester), 'My card');
+    });
+
+    testWidgets('is cleared with the agency it repeated', (tester) async {
+      final session = EditSession(derived());
+      addTearDown(session.dispose);
+      await pumpEditor(
+        tester,
+        CertificationDetailsCardEditor(session: session),
+      );
+
+      tester
+          .widget<CertificationAgencyDropdown>(
+            find.byKey(const ValueKey('cert-edit-agency-0')),
+          )
+          .onChanged('ssi');
+      await tester.pumpAndSettle();
+
+      expect(session.working.agency, 'ssi');
+      expect(session.working.name, isEmpty);
+      expect(titleText(tester), isEmpty);
+    });
+
+    testWidgets('stays as stored when only a recognition is added', (
+      tester,
+    ) async {
+      final session = EditSession(derived());
+      addTearDown(session.dispose);
+      await pumpEditor(
+        tester,
+        CertificationDetailsCardEditor(session: session),
+      );
+
+      await tester.tap(find.byKey(const ValueKey('cert-edit-add-recognition')));
+      await tester.pumpAndSettle();
+
+      expect(session.working.name, 'PADI : Open Water');
+      expect(titleText(tester), isEmpty);
+    });
   });
 
   testWidgets('Instructor sets only Instructor', (tester) async {

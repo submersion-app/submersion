@@ -8,6 +8,7 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_level_dialog.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_edit_fields.dart';
@@ -45,10 +46,13 @@ class CertificationDetailsCardEditor extends ConsumerStatefulWidget {
 
 class _CertificationDetailsCardEditorState
     extends ConsumerState<CertificationDetailsCardEditor> {
+  // A name that only repeats the agency and level (the old form filled it
+  // in until 2026-08) shows blank, so the hint offers the derived title
+  // instead of repeating it.
   late final _title = _bindText<String>(
     widget.session,
     certificationTitleField,
-    (v) => v,
+    (v) => _repeatsCredentials(_session.working.copyWith(name: v)) ? '' : v,
   );
   late final _cardNumber = _bindText<String?>(
     widget.session,
@@ -66,8 +70,20 @@ class _CertificationDetailsCardEditorState
   List<CertificationCredential> get _rows =>
       _session.valueOf(certificationCredentialsField);
 
-  void _setRows(List<CertificationCredential> rows) =>
-      _session.set(certificationCredentialsField, rows);
+  /// Whether [cert]'s name only repeats its agency and level.
+  bool _repeatsCredentials(Certification cert) =>
+      hasDerivedName(cert, catalog: context.certificationCatalog);
+
+  /// Sets the recognitions. A name that repeated the old agency and level
+  /// is cleared with them, as the old form's blank field saved it: kept, it
+  /// would read as a custom title on the new one.
+  void _setRows(List<CertificationCredential> rows) {
+    final repeated = _repeatsCredentials(_session.working);
+    _session.set(certificationCredentialsField, rows);
+    if (repeated && !_repeatsCredentials(_session.working)) {
+      _session.set(certificationTitleField, '');
+    }
+  }
 
   @override
   void dispose() {
