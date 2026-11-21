@@ -115,7 +115,7 @@ device that ends the app twice in a row while a model opens on it or first
 runs there, at the first load or in a fallback after a failed run, is skipped
 from then on (`device_crash_guard.dart`: the worker notes each device before
 opening or first running a model there; one strike is forgiven, since closing
-the app mid-load leaves the same note, and a run that returns clears it; never
+the app mid-load leaves the same note, and a run that returns on a device clears its strike; never
 the processor), so one bad driver cannot make the app close at every launch.
 
 Devices need 8 GB at launch (`androidMinimumMemoryBytes` and

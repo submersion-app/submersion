@@ -117,6 +117,20 @@ class OnnxVisionEngine
   /// Whether a run has returned on the current worker ([_ran]).
   bool _ranOnWorker = false;
 
+  /// The device the models last loaded on, from the worker's description.
+  OrtDevice? _loadedOn;
+
+  /// The device a worker's description names: `hardware: ...`, `directMl`
+  /// or `cpu` ([OrtModelSession.device]).
+  static OrtDevice? _deviceNamed(String? description) => description == null
+      ? null
+      : OrtDevice.values
+            .where(
+              (d) =>
+                  description == d.name || description.startsWith('${d.name}:'),
+            )
+            .firstOrNull;
+
   final Future<OnnxWorkerHandle> Function()? _customWorker;
   final _log = LoggerService.forClass(OnnxVisionEngine);
   final Future<RgbaImage> Function(Uint8List encoded) _decode;
@@ -172,6 +186,7 @@ class OnnxVisionEngine
     _loaded = null;
     final device = await _fromWorker((await _workerHandle()).load(models));
     _log.info('Marine life models open on ${device ?? 'an unknown device'}');
+    _loadedOn = _deviceNamed(device);
     _loaded = models;
     _observe();
   });
@@ -440,9 +455,12 @@ class OnnxVisionEngine
   /// comes after it.
   Future<T> _ran<T>(Future<T> call) async {
     final result = await _fromWorker(call);
+    final device = _loadedOn;
     if (!_ranOnWorker) {
       _ranOnWorker = true;
-      if (_customWorker == null) await _crashGuard?.ranSafely();
+      if (_customWorker == null && device != null) {
+        await _crashGuard?.ranSafely(device);
+      }
     }
     return result;
   }

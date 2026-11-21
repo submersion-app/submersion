@@ -55,10 +55,12 @@ class FakeHardware implements HardwareEngines {
   }
 }
 
-/// A worker that loads anything and reports the processor.
+/// A worker that loads anything, on the hardware engine as a worker
+/// describes it.
 class QuietWorker implements OnnxWorkerHandle {
   @override
-  Future<String?> load(VisionModels models) async => 'cpu';
+  Future<String?> load(VisionModels models) async =>
+      'hardware: TestExecutionProvider on gpu 10de:2684';
 
   @override
   Future<PipelineResult> analyze(RgbaImage image) async => const PipelineResult(
@@ -241,6 +243,24 @@ void main() {
       expect(seenDevices, all);
     });
 
+    test(
+      'a returned run clears only the strike of the device it ran on',
+      () async {
+        final guard = DeviceCrashGuard(guardDir);
+        endedOn(OrtDevice.directMl);
+        await guard.devicesFor(all);
+        final e = engine(TargetPlatform.windows, FakeHardware());
+        await e.load(_models);
+        await e.analyze(bytes: Uint8List(1));
+        endedOn(OrtDevice.directMl);
+
+        expect(await guard.devicesFor(all), [
+          OrtDevice.hardware,
+          OrtDevice.cpu,
+        ]);
+      },
+    );
+
     test('a crash on the first run after a load that completed is still '
         'skipped at the second', () async {
       // The engine opens fine and ends the app on its first run, every
@@ -279,7 +299,7 @@ void main() {
       note.opening(OrtDevice.hardware);
       note.finished();
       expect(await guard.devicesFor(all), all);
-      await guard.ranSafely();
+      await guard.ranSafely(OrtDevice.hardware);
       await guard.forgive(OrtDevice.hardware);
     });
 
