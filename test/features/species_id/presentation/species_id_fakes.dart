@@ -50,10 +50,21 @@ class RecordingIdentificationService extends MediaIdentificationService {
   var requestsWait = false;
   final _waiting = <String>{};
 
+  /// How each request was asked: by hand, and fresh (issue #4825).
+  final byHand = <bool>[];
+  final fresh = <bool>[];
+
   @override
-  Future<void> request(MediaItem item, {GeoPoint? location}) async {
+  Future<void> request(
+    MediaItem item, {
+    GeoPoint? location,
+    bool byHand = false,
+    bool fresh = false,
+  }) async {
     requested.add(item.id);
     locations.add(location);
+    this.byHand.add(byHand);
+    this.fresh.add(fresh);
     if (requestsWait) _waiting.add(item.id);
   }
 
