@@ -7,76 +7,15 @@ import 'package:sqlite3/common.dart' as sqlite3;
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
+import 'package:submersion/core/services/database_migration_models.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/same_folder_probe.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
-/// Result of a database migration operation
-class MigrationResult {
-  final bool success;
-  final String? errorMessage;
-  final String? oldPath;
-  final String? newPath;
-  final String? backupPath;
-
-  const MigrationResult._({
-    required this.success,
-    this.errorMessage,
-    this.oldPath,
-    this.newPath,
-    this.backupPath,
-  });
-
-  factory MigrationResult.success({
-    required String oldPath,
-    required String newPath,
-    String? backupPath,
-  }) {
-    return MigrationResult._(
-      success: true,
-      oldPath: oldPath,
-      newPath: newPath,
-      backupPath: backupPath,
-    );
-  }
-
-  factory MigrationResult.failure(String errorMessage) {
-    return MigrationResult._(success: false, errorMessage: errorMessage);
-  }
-}
-
-/// Information about an existing database found at a location
-class ExistingDatabaseInfo {
-  final String path;
-  final int userCount;
-  final int diveCount;
-  final int siteCount;
-  final int tripCount;
-  final int buddyCount;
-  final int fileSize;
-  final DateTime? lastModified;
-
-  const ExistingDatabaseInfo({
-    required this.path,
-    required this.userCount,
-    required this.diveCount,
-    required this.siteCount,
-    required this.tripCount,
-    required this.buddyCount,
-    required this.fileSize,
-    this.lastModified,
-  });
-
-  String get formattedFileSize {
-    if (fileSize < 1024) return '$fileSize B';
-    if (fileSize < 1024 * 1024) {
-      return '${(fileSize / 1024).toStringAsFixed(1)} KB';
-    }
-    return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
-  }
-}
+export 'package:submersion/core/services/database_migration_models.dart';
 
 /// Service for safely migrating the database between storage locations
 ///
@@ -92,6 +31,13 @@ class DatabaseMigrationService {
   static const Duration _functionalCheckTimeout = Duration(seconds: 10);
   static const Duration _infoQueryTimeout = Duration(seconds: 5);
   static const Duration _checkpointTimeout = Duration(seconds: 10);
+  static const String _alreadyHere = 'Database is already at this location';
+
+  /// Whether [folderPath] is the folder the open database lives in, under
+  /// any name (see [isSameFolder]). Nothing may open or copy the live file
+  /// through a second name for it (issue #4834).
+  Future<bool> _isCurrentFolder(String currentPath, String folderPath) =>
+      isSameFolder(p.dirname(currentPath), folderPath);
 
   Future<T> _withTimeout<T>(
     Future<T> future,
@@ -119,7 +65,7 @@ class DatabaseMigrationService {
 
     try {
       final currentPath = await _dbService.databasePath;
-      if (currentPath == dbPath) {
+      if (await _isCurrentFolder(currentPath, folderPath)) {
         return await getCurrentDatabaseInfo();
       }
 
@@ -235,9 +181,10 @@ class DatabaseMigrationService {
       DatabaseLocationService.databaseFilename,
     );
 
-    // Don't migrate if paths are the same
-    if (currentPath == newPath) {
-      return MigrationResult.failure('Database is already at this location');
+    // Don't migrate onto the database itself, however the folder is named:
+    // the copy would overwrite the very file it reads from.
+    if (await _isCurrentFolder(currentPath, folderPath)) {
+      return MigrationResult.failure(_alreadyHere);
     }
 
     // Verify destination folder is writable
@@ -541,6 +488,9 @@ class DatabaseMigrationService {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     // This is essentially the same as migrateToCustomFolder,
     // but it will overwrite the existing database
+    if (await _isCurrentFolder(await _dbService.databasePath, folderPath)) {
+      return MigrationResult.failure(_alreadyHere);
+    }
     final newPath = p.join(
       folderPath,
       DatabaseLocationService.databaseFilename,
