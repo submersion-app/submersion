@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
 import 'package:submersion/features/documents/data/services/document_page_capture.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/document_file_gate.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_fields.dart';
 import 'package:submersion/features/documents/presentation/editing/document_pages_card_editor.dart';
@@ -58,17 +60,22 @@ void main() {
   });
   tearDown(() => session.dispose());
 
-  Future<void> pump(WidgetTester tester) => tester.pumpWidget(
-    ProviderScope(
-      overrides: [documentPageCaptureProvider.overrideWithValue(captureOne())],
-      child: MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: DocumentPagesCardEditor(session: session)),
-      ),
-    ),
-  );
+  Future<void> pump(WidgetTester tester, {DocumentPageCapture? capture}) =>
+      tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            documentPageCaptureProvider.overrideWithValue(
+              capture ?? captureOne(),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: DocumentPagesCardEditor(session: session)),
+          ),
+        ),
+      );
 
   testWidgets('adding a page is a change of Pages', (tester) async {
     await pump(tester);
@@ -92,6 +99,84 @@ void main() {
 
     expect(session.valueOf(documentPagesField), isEmpty);
     expect(session.changedCardIds, {'pages'});
+  });
+
+  /// Opens the add sheet from [slot] (a slot's label or Add) and takes a
+  /// file.
+  Future<void> addFile(WidgetTester tester, String slot) async {
+    await tester.tap(find.text(slot));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.documents_pages_addFile));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('an insurance has Front and Back slots; a permit has none', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(find.text(l.documents_pages_front), findsNothing);
+    expect(find.text(l.documents_pages_back), findsNothing);
+
+    session.set(documentTypeField, DocumentType.insurance);
+    await tester.pumpAndSettle();
+    expect(find.text(l.documents_pages_front), findsOneWidget);
+    expect(find.text(l.documents_pages_back), findsOneWidget);
+  });
+
+  testWidgets('card faces are kept Front then Back, whatever order they are '
+      'added in', (tester) async {
+    session.set(documentTypeField, DocumentType.insurance);
+    await pump(tester);
+
+    await addFile(tester, l.documents_pages_back);
+    await addFile(tester, l.documents_pages_front);
+
+    expect(
+      [for (final p in session.valueOf(documentPagesField)) p.side],
+      [DocumentPageSide.front, DocumentPageSide.back, null],
+    );
+  });
+
+  testWidgets('a file over the limit says so and adds nothing', (tester) async {
+    await pump(
+      tester,
+      capture: DocumentPageCapture(
+        pickFile: (_) async =>
+            (bytes: Uint8List(kMaxDocumentPageBytes + 1), name: 'big.pdf'),
+        pickImage: (_) async => null,
+        encode: (p) async => (outcome: ImageEncodeOutcome.encoded, bytes: null),
+      ),
+    );
+
+    await addFile(tester, l.documents_pages_add);
+
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(
+      find.text(
+        l.documents_pages_tooLarge(formatBytes(kMaxDocumentPageBytes + 1)),
+      ),
+      findsOneWidget,
+    );
+    expect(session.isDirty, isFalse);
+  });
+
+  testWidgets('an unsupported file names its type and adds nothing', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      capture: DocumentPageCapture(
+        pickFile: (_) async =>
+            (bytes: Uint8List.fromList([1]), name: 'route.gpx'),
+        pickImage: (_) async => null,
+        encode: (p) async => (outcome: ImageEncodeOutcome.encoded, bytes: null),
+      ),
+    );
+
+    await addFile(tester, l.documents_pages_add);
+
+    expect(find.text(l.documents_pages_unsupported('gpx')), findsOneWidget);
+    expect(session.isDirty, isFalse);
   });
 
   test('reordering back is no change', () {
