@@ -33504,27 +33504,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_appBar_add => '添加旅行';
 
   @override
-  String get trips_edit_appBar_edit => '编辑旅行';
-
-  @override
-  String get trips_edit_button_cancel => '取消';
-
-  @override
-  String get trips_edit_button_save => '保存';
-
-  @override
-  String get trips_edit_dialog_discard => '丢弃';
-
-  @override
-  String get trips_edit_dialog_discardContent => '您有未保存的更改。确定要离开吗?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => '丢弃更改？';
-
-  @override
-  String get trips_edit_dialog_keepEditing => '继续编辑';
-
-  @override
   String trips_edit_durationDays(int days) {
     return '$days 天';
   }
@@ -33582,30 +33561,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => '旅行名称 *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => '旅行日期';
-
-  @override
-  String get trips_edit_sectionTitle_location => '位置';
-
-  @override
-  String get trips_edit_sectionTitle_notes => '备注';
-
-  @override
-  String get trips_edit_semanticLabel_save => '保存旅行';
-
-  @override
-  String get trips_edit_snackBar_added => '旅行添加成功';
-
-  @override
-  String get trips_edit_snackBar_errorLoading => '无法加载旅行，请重试。';
-
-  @override
-  String get trips_edit_snackBar_errorSaving => '无法保存旅行，请重试。';
-
-  @override
-  String get trips_edit_snackBar_updated => '旅行更新成功';
 
   @override
   String get trips_edit_validation_nameRequired => '请输入旅行名称';
@@ -33895,9 +33850,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_type_description_shore => '一天或多天的岸潜';
 
   @override
-  String get trips_edit_sectionTitle_vessel => '船只详情';
-
-  @override
   String get trips_edit_label_vesselName => '船只名称 *';
 
   @override
@@ -33920,9 +33872,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => '乘客容量';
-
-  @override
-  String get trips_edit_sectionTitle_planning => '计划';
 
   @override
   String get trips_edit_label_diversSharing => '共用气瓶的潜水员';
@@ -34446,9 +34395,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => '自定义';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark => '上船/下船';
 
   @override
   String get trips_edit_label_embarkPort => '登船港口';

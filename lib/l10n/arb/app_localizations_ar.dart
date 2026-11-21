@@ -36000,28 +36000,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_appBar_add => 'إضافة رحلة';
 
   @override
-  String get trips_edit_appBar_edit => 'تعديل الرحلة';
-
-  @override
-  String get trips_edit_button_cancel => 'إلغاء';
-
-  @override
-  String get trips_edit_button_save => 'حفظ';
-
-  @override
-  String get trips_edit_dialog_discard => 'تجاهل';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'تجاهل التغييرات؟';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'متابعة التعديل';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -36088,32 +36066,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'اسم الرحلة *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'تواريخ الرحلة';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'الموقع';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'ملاحظات';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'حفظ الرحلة';
-
-  @override
-  String get trips_edit_snackBar_added => 'تمت إضافة الرحلة بنجاح';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'تعذّر تحميل الرحلة. حاول مرة أخرى.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'تعذّر حفظ الرحلة. حاول مرة أخرى.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'تم تحديث الرحلة بنجاح';
 
   @override
   String get trips_edit_validation_nameRequired => 'يرجى إدخال اسم الرحلة';
@@ -36434,9 +36386,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'غطسات من الشاطئ على مدى يوم أو أكثر';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'تفاصيل السفينة';
-
-  @override
   String get trips_edit_label_vesselName => 'اسم السفينة *';
 
   @override
@@ -36459,9 +36408,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'سعة الركاب';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'التخطيط';
 
   @override
   String get trips_edit_label_diversSharing =>
@@ -37050,9 +36996,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'مخصص';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark => 'الصعود / النزول';
 
   @override
   String get trips_edit_label_embarkPort => 'ميناء الصعود';

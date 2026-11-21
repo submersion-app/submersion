@@ -34719,28 +34719,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_appBar_add => 'הוסף טיול';
 
   @override
-  String get trips_edit_appBar_edit => 'ערוך טיול';
-
-  @override
-  String get trips_edit_button_cancel => 'ביטול';
-
-  @override
-  String get trips_edit_button_save => 'שמירה';
-
-  @override
-  String get trips_edit_dialog_discard => 'מחיקה';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'לבטל שינויים?';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'המשך עריכה';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -34806,32 +34784,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'שם הטיול *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'תאריכי הטיול';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'מיקום';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'הערות';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'שמור טיול';
-
-  @override
-  String get trips_edit_snackBar_added => 'הטיול נוסף בהצלחה';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'לא ניתן לטעון את הטיול. נסו שוב.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'לא ניתן לשמור את הטיול. נסו שוב.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'הטיול עודכן בהצלחה';
 
   @override
   String get trips_edit_validation_nameRequired => 'נא להזין שם טיול';
@@ -35131,9 +35083,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_type_description_shore => 'צלילות חוף ביום אחד או יותר';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'פרטי הספינה';
-
-  @override
   String get trips_edit_label_vesselName => 'שם הספינה *';
 
   @override
@@ -35156,9 +35105,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'קיבולת נוסעים';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'תכנון';
 
   @override
   String get trips_edit_label_diversSharing => 'צוללים החולקים מכלים';
@@ -35708,9 +35654,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'מותאם אישית';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark => 'עלייה / ירידה';
 
   @override
   String get trips_edit_label_embarkPort => 'נמל העלייה';

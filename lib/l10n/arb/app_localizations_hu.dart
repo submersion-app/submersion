@@ -35418,28 +35418,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_appBar_add => 'Út hozzáadása';
 
   @override
-  String get trips_edit_appBar_edit => 'Út szerkesztése';
-
-  @override
-  String get trips_edit_button_cancel => 'Mégse';
-
-  @override
-  String get trips_edit_button_save => 'Mentés';
-
-  @override
-  String get trips_edit_dialog_discard => 'Elvetés';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'Nem mentett változtatásai vannak. Biztosan el akar távozni?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'Változtatások elvetése?';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'Szerkesztés folytatása';
-
-  @override
   String trips_edit_durationDays(int days) {
     return '$days nap';
   }
@@ -35498,32 +35476,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'Út neve *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'Út dátumai';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'Helyszín';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'Jegyzetek';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'Út mentése';
-
-  @override
-  String get trips_edit_snackBar_added => 'Út sikeresen hozzáadva';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'Nem sikerült betölteni az utat. Próbáld újra.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'Nem sikerült menteni az utat. Próbáld újra.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'Út sikeresen frissítve';
 
   @override
   String get trips_edit_validation_nameRequired =>
@@ -35825,9 +35777,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Partról indított merülések egy vagy több napon';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'Hajó adatai';
-
-  @override
   String get trips_edit_label_vesselName => 'Hajó neve *';
 
   @override
@@ -35850,9 +35799,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Utaskapacitás';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'Tervezés';
 
   @override
   String get trips_edit_label_diversSharing => 'Palackokon osztozó búvárok';
@@ -36407,9 +36353,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'Egyéni';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark => 'Beszállás / Kiszállás';
 
   @override
   String get trips_edit_label_embarkPort => 'Beszállási kikötő';

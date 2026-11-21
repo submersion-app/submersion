@@ -9,7 +9,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 
@@ -44,8 +45,7 @@ void main() {
         editor,
         GoRoute(
           path: '/trips/new',
-          builder: (context, state) =>
-              TripEditPage(draft: state.extra as TripDraft?),
+          builder: (context, state) => newTripPage(state.extra),
         ),
       ],
     );
@@ -93,8 +93,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  TripDraft draftOnScreen(WidgetTester tester) =>
-      tester.widget<TripEditPage>(find.byType(TripEditPage)).draft!;
+  TripDraft draftOnScreen(WidgetTester tester) => tester
+      .widget<TripDetailPage>(find.byType(TripDetailPage))
+      .newTrip!
+      .draft!;
   testWidgets('bulk edit\'s form spans the selected dives', (tester) async {
     await dives.createDive(dive('a', DateTime.utc(2025, 3, 10, 9)));
     await dives.createDive(dive('b', DateTime.utc(2025, 3, 14, 9)));

@@ -81,8 +81,6 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/site_scape/presentation/site_feature_sheet.dart':
         'MarkdownNotesField(',
-    'lib/features/trips/presentation/pages/trip_edit_page.dart':
-        'MarkdownNotesField(',
     'lib/features/trips/presentation/widgets/itinerary_day_edit_sheet.dart':
         'MarkdownNotesField(',
   };

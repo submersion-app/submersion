@@ -56088,48 +56088,6 @@ abstract class AppLocalizations {
   /// **'Add Trip'**
   String get trips_edit_appBar_add;
 
-  /// No description provided for @trips_edit_appBar_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Trip'**
-  String get trips_edit_appBar_edit;
-
-  /// No description provided for @trips_edit_button_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get trips_edit_button_cancel;
-
-  /// No description provided for @trips_edit_button_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get trips_edit_button_save;
-
-  /// No description provided for @trips_edit_dialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get trips_edit_dialog_discard;
-
-  /// No description provided for @trips_edit_dialog_discardContent.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to leave?'**
-  String get trips_edit_dialog_discardContent;
-
-  /// No description provided for @trips_edit_dialog_discardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get trips_edit_dialog_discardTitle;
-
-  /// No description provided for @trips_edit_dialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get trips_edit_dialog_keepEditing;
-
   /// No description provided for @trips_edit_durationDays.
   ///
   /// In en, this message translates to:
@@ -56243,54 +56201,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trip Name *'**
   String get trips_edit_label_tripName;
-
-  /// No description provided for @trips_edit_sectionTitle_dates.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip Dates'**
-  String get trips_edit_sectionTitle_dates;
-
-  /// No description provided for @trips_edit_sectionTitle_location.
-  ///
-  /// In en, this message translates to:
-  /// **'Location'**
-  String get trips_edit_sectionTitle_location;
-
-  /// No description provided for @trips_edit_sectionTitle_notes.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get trips_edit_sectionTitle_notes;
-
-  /// No description provided for @trips_edit_semanticLabel_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save trip'**
-  String get trips_edit_semanticLabel_save;
-
-  /// No description provided for @trips_edit_snackBar_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip added successfully'**
-  String get trips_edit_snackBar_added;
-
-  /// No description provided for @trips_edit_snackBar_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t load the trip. Try again.'**
-  String get trips_edit_snackBar_errorLoading;
-
-  /// No description provided for @trips_edit_snackBar_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t save the trip. Try again.'**
-  String get trips_edit_snackBar_errorSaving;
-
-  /// No description provided for @trips_edit_snackBar_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip updated successfully'**
-  String get trips_edit_snackBar_updated;
 
   /// No description provided for @trips_edit_validation_nameRequired.
   ///
@@ -56730,12 +56640,6 @@ abstract class AppLocalizations {
   /// **'Shore dives over one or more days'**
   String get trips_type_description_shore;
 
-  /// No description provided for @trips_edit_sectionTitle_vessel.
-  ///
-  /// In en, this message translates to:
-  /// **'Vessel Details'**
-  String get trips_edit_sectionTitle_vessel;
-
   /// No description provided for @trips_edit_label_vesselName.
   ///
   /// In en, this message translates to:
@@ -56783,12 +56687,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passenger Capacity'**
   String get trips_edit_label_capacity;
-
-  /// No description provided for @trips_edit_sectionTitle_planning.
-  ///
-  /// In en, this message translates to:
-  /// **'Planning'**
-  String get trips_edit_sectionTitle_planning;
 
   /// No description provided for @trips_edit_label_diversSharing.
   ///
@@ -57565,12 +57463,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Custom'**
   String get trips_cylinders_edit_presetCustom;
-
-  /// No description provided for @trips_edit_sectionTitle_embarkDisembark.
-  ///
-  /// In en, this message translates to:
-  /// **'Embark / Disembark'**
-  String get trips_edit_sectionTitle_embarkDisembark;
 
   /// No description provided for @trips_edit_label_embarkPort.
   ///

@@ -34997,28 +34997,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_appBar_add => 'Add Trip';
 
   @override
-  String get trips_edit_appBar_edit => 'Edit Trip';
-
-  @override
-  String get trips_edit_button_cancel => 'Cancel';
-
-  @override
-  String get trips_edit_button_save => 'Save';
-
-  @override
-  String get trips_edit_dialog_discard => 'Discard';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'You have unsaved changes. Are you sure you want to leave?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'Discard Changes?';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'Keep Editing';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -35083,32 +35061,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'Trip Name *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'Trip Dates';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'Location';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'Notes';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'Save trip';
-
-  @override
-  String get trips_edit_snackBar_added => 'Trip added successfully';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'Couldn\'t load the trip. Try again.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'Couldn\'t save the trip. Try again.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'Trip updated successfully';
 
   @override
   String get trips_edit_validation_nameRequired => 'Please enter a trip name';
@@ -35408,9 +35360,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Shore dives over one or more days';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'Vessel Details';
-
-  @override
   String get trips_edit_label_vesselName => 'Vessel Name *';
 
   @override
@@ -35433,9 +35382,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passenger Capacity';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'Planning';
 
   @override
   String get trips_edit_label_diversSharing => 'Divers sharing cylinders';
@@ -35986,9 +35932,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'Custom';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override
   String get trips_edit_label_embarkPort => 'Embark Port';

@@ -35626,28 +35626,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_edit_appBar_add => 'Agregar viaje';
 
   @override
-  String get trips_edit_appBar_edit => 'Editar viaje';
-
-  @override
-  String get trips_edit_button_cancel => 'Cancelar';
-
-  @override
-  String get trips_edit_button_save => 'Guardar';
-
-  @override
-  String get trips_edit_dialog_discard => 'Descartar';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'Tienes cambios sin guardar. Estás seguro de que deseas salir?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'Descartar cambios?';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'Seguir editando';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -35713,32 +35691,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'Nombre del viaje *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'Fechas del viaje';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'Ubicación';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'Notas';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'Guardar viaje';
-
-  @override
-  String get trips_edit_snackBar_added => 'Viaje agregado correctamente';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'No se pudo cargar el viaje. Inténtalo de nuevo.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'No se pudo guardar el viaje. Inténtalo de nuevo.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'Viaje actualizado correctamente';
 
   @override
   String get trips_edit_validation_nameRequired =>
@@ -36042,9 +35994,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Inmersiones desde la costa durante uno o varios días';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'Detalles de la embarcación';
-
-  @override
   String get trips_edit_label_vesselName => 'Nombre de la embarcación *';
 
   @override
@@ -36067,9 +36016,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Capacidad de pasajeros';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'Planificación';
 
   @override
   String get trips_edit_label_diversSharing =>
@@ -36625,10 +36571,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'Personalizada';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark =>
-      'Embarque / Desembarque';
 
   @override
   String get trips_edit_label_embarkPort => 'Puerto de embarque';
