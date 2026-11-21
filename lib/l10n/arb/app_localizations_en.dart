@@ -3375,9 +3375,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_action_sortTitle => 'Sort Buddies';
 
   @override
-  String get buddies_action_update => 'Update Buddy';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return 'View All ($count)';
   }
@@ -3670,9 +3667,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_linkedProfile_notNow => 'Not now';
 
   @override
-  String get buddies_linkedProfile_openBuddy => 'Open buddy';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => 'Link to a profile';
 
   @override
@@ -3694,9 +3688,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'These buddies are linked to different profiles. Merge the profiles first.';
 
   @override
-  String get buddies_message_added => 'Buddy added successfully';
-
-  @override
   String get buddies_message_contactImportUnavailable =>
       'Contact import is not available on this platform';
 
@@ -3710,11 +3701,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return 'Error importing contact: $error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return 'Error loading buddy: $error';
   }
 
   @override
@@ -3736,9 +3722,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => 'Preparing export...';
-
-  @override
-  String get buddies_message_updated => 'Buddy updated successfully';
 
   @override
   String get buddies_picker_add => 'Add';
@@ -3872,9 +3855,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_title_add => 'Add Buddy';
-
-  @override
-  String get buddies_title_edit => 'Edit Buddy';
 
   @override
   String get buddies_title_singular => 'Buddy';
@@ -4444,21 +4424,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_edit_appBar_add => 'Add Certification';
 
   @override
-  String get certifications_edit_appBar_edit => 'Edit Certification';
-
-  @override
-  String get certifications_edit_button_add => 'Add Certification';
-
-  @override
-  String get certifications_edit_button_cancel => 'Cancel';
-
-  @override
-  String get certifications_edit_button_save => 'Save';
-
-  @override
-  String get certifications_edit_button_update => 'Update Certification';
-
-  @override
   String get certifications_edit_certification_notSpecified => 'Not specified';
 
   @override
@@ -4468,19 +4433,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get certifications_edit_datePicker_tapToSelect => 'Tap to select';
-
-  @override
-  String get certifications_edit_dialog_discard => 'Discard';
-
-  @override
-  String get certifications_edit_dialog_discardContent =>
-      'You have unsaved changes. Are you sure you want to leave?';
-
-  @override
-  String get certifications_edit_dialog_discardTitle => 'Discard Changes?';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => 'Keep Editing';
 
   @override
   String get certifications_edit_group_progression => 'Progression';
@@ -4710,40 +4662,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => 'Take Photo';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos => 'Card Photos';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => 'Dates';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo =>
-      'Instructor Information';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => 'Notes';
-
-  @override
-  String get certifications_edit_snackBar_added =>
-      'Certification added successfully';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return 'Error loading certification: $error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return 'Error picking photo: $error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return 'Error saving certification: $error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated =>
-      'Certification updated successfully';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -6828,16 +6749,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_action_clearRating => 'Clear';
 
   @override
-  String get diveCenters_action_gettingLocation => 'Getting...';
-
-  @override
   String get diveCenters_action_import => 'Import';
 
   @override
   String get diveCenters_action_importToMyCenters => 'Import to My Centers';
-
-  @override
-  String get diveCenters_action_lookingUp => 'Looking up...';
 
   @override
   String get diveCenters_action_lookupFromAddress => 'Lookup from Address';
@@ -6894,19 +6809,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => 'Delete Dive Center';
 
   @override
-  String get diveCenters_dialog_discard => 'Discard';
-
-  @override
-  String get diveCenters_dialog_discardMessage =>
-      'You have unsaved changes. Are you sure you want to discard them?';
-
-  @override
-  String get diveCenters_dialog_discardTitle => 'Discard Changes?';
-
-  @override
-  String get diveCenters_dialog_keepEditing => 'Keep Editing';
-
-  @override
   String get diveCenters_empty_button => 'Add Your First Dive Center';
 
   @override
@@ -6947,11 +6849,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => 'Dive center not found';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return 'Error saving dive center: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => 'Unknown error';
@@ -7143,25 +7040,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_tag_closed => 'Closed';
 
   @override
-  String get diveCenters_section_address => 'Address';
-
-  @override
-  String get diveCenters_section_affiliations => 'Affiliations';
-
-  @override
-  String get diveCenters_section_basicInfo => 'Basic Information';
-
-  @override
   String get diveCenters_editCard_map => 'Map';
 
   @override
   String get diveCenters_section_contact => 'Contact';
-
-  @override
-  String get diveCenters_section_contactInfo => 'Contact Information';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'GPS Coordinates';
 
   @override
   String get diveCenters_section_fillHours => 'Fill hours';
@@ -7193,25 +7075,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_section_notes => 'Notes';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'Coordinates found from address';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'Imported \"$name\"';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => 'Location captured';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return 'Location captured (±${accuracy}m)';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap =>
-      'Location selected from map';
 
   @override
   String get diveCenters_sort_title => 'Sort Dive Centers';
@@ -7268,9 +7134,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => 'Add Dive Center';
-
-  @override
-  String get diveCenters_title_edit => 'Edit Dive Center';
 
   @override
   String get diveCenters_title_import => 'Import Dive Center';

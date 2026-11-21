@@ -3415,9 +3415,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_action_sortTitle => 'Tauchpartner sortieren';
 
   @override
-  String get buddies_action_update => 'Tauchpartner aktualisieren';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return 'Alle anzeigen ($count)';
   }
@@ -3716,9 +3713,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_linkedProfile_notNow => 'Später';
 
   @override
-  String get buddies_linkedProfile_openBuddy => 'Tauchpartner öffnen';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => 'Mit einem Profil verknüpfen';
 
   @override
@@ -3740,9 +3734,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Tauchpartner sind mit verschiedenen Profilen verknüpft. Führe zuerst die Profile zusammen.';
 
   @override
-  String get buddies_message_added => 'Tauchpartner erfolgreich hinzugefügt';
-
-  @override
   String get buddies_message_contactImportUnavailable =>
       'Kontaktimport ist auf dieser Plattform nicht verfügbar';
 
@@ -3756,11 +3747,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return 'Fehler beim Importieren des Kontakts: $error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return 'Fehler beim Laden des Tauchpartners: $error';
   }
 
   @override
@@ -3783,9 +3769,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => 'Export wird vorbereitet...';
-
-  @override
-  String get buddies_message_updated => 'Tauchpartner erfolgreich aktualisiert';
 
   @override
   String get buddies_picker_add => 'Hinzufügen';
@@ -3921,9 +3904,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_title_add => 'Tauchpartner hinzufügen';
-
-  @override
-  String get buddies_title_edit => 'Tauchpartner bearbeiten';
 
   @override
   String get buddies_title_singular => 'Tauchpartner';
@@ -4506,22 +4486,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_appBar_add => 'Zertifizierung hinzufügen';
 
   @override
-  String get certifications_edit_appBar_edit => 'Zertifizierung bearbeiten';
-
-  @override
-  String get certifications_edit_button_add => 'Zertifizierung hinzufügen';
-
-  @override
-  String get certifications_edit_button_cancel => 'Abbrechen';
-
-  @override
-  String get certifications_edit_button_save => 'Speichern';
-
-  @override
-  String get certifications_edit_button_update =>
-      'Zertifizierung aktualisieren';
-
-  @override
   String get certifications_edit_certification_notSpecified =>
       'Nicht angegeben';
 
@@ -4533,19 +4497,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get certifications_edit_datePicker_tapToSelect =>
       'Zum Auswählen tippen';
-
-  @override
-  String get certifications_edit_dialog_discard => 'Verwerfen';
-
-  @override
-  String get certifications_edit_dialog_discardContent =>
-      'Du hast ungespeicherte Änderungen. Bist du sicher, dass du die Seite verlassen möchtest?';
-
-  @override
-  String get certifications_edit_dialog_discardTitle => 'Änderungen verwerfen?';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => 'Weiter bearbeiten';
 
   @override
   String get certifications_edit_group_progression => 'Ausbildungsstufen';
@@ -4779,40 +4730,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => 'Foto aufnehmen';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos => 'Kartenfotos';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => 'Daten';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo =>
-      'Instructor-Informationen';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => 'Notizen';
-
-  @override
-  String get certifications_edit_snackBar_added =>
-      'Zertifizierung erfolgreich hinzugefügt';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return 'Fehler beim Laden der Zertifizierung: $error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return 'Fehler beim Auswählen des Fotos: $error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return 'Fehler beim Speichern der Zertifizierung: $error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated =>
-      'Zertifizierung erfolgreich aktualisiert';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -6936,17 +6856,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_action_clearRating => 'Löschen';
 
   @override
-  String get diveCenters_action_gettingLocation => 'Wird abgerufen...';
-
-  @override
   String get diveCenters_action_import => 'Importieren';
 
   @override
   String get diveCenters_action_importToMyCenters =>
       'Zu Meine Center importieren';
-
-  @override
-  String get diveCenters_action_lookingUp => 'Wird gesucht...';
 
   @override
   String get diveCenters_action_lookupFromAddress => 'Von Adresse nachschlagen';
@@ -7005,19 +6919,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => 'Tauchcenter löschen';
 
   @override
-  String get diveCenters_dialog_discard => 'Verwerfen';
-
-  @override
-  String get diveCenters_dialog_discardMessage =>
-      'Du hast nicht gespeicherte Änderungen. Möchtest du diese wirklich verwerfen?';
-
-  @override
-  String get diveCenters_dialog_discardTitle => 'Änderungen verwerfen?';
-
-  @override
-  String get diveCenters_dialog_keepEditing => 'Weiter bearbeiten';
-
-  @override
   String get diveCenters_empty_button => 'Erstes Tauchcenter hinzufügen';
 
   @override
@@ -7059,11 +6960,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => 'Tauchcenter nicht gefunden';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return 'Fehler beim Speichern des Tauchcenters: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => 'Unbekannter Fehler';
@@ -7256,25 +7152,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_tag_closed => 'Geschlossen';
 
   @override
-  String get diveCenters_section_address => 'Adresse';
-
-  @override
-  String get diveCenters_section_affiliations => 'Verbindungen';
-
-  @override
-  String get diveCenters_section_basicInfo => 'Grundinformationen';
-
-  @override
   String get diveCenters_editCard_map => 'Karte';
 
   @override
   String get diveCenters_section_contact => 'Kontakt';
-
-  @override
-  String get diveCenters_section_contactInfo => 'Kontaktinformationen';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'GPS-Koordinaten';
 
   @override
   String get diveCenters_section_fillHours => 'Füllzeiten';
@@ -7307,25 +7188,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_section_notes => 'Notizen';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'Koordinaten aus Adresse gefunden';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '\"$name\" importiert';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => 'Standort erfasst';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return 'Standort erfasst (±${accuracy}m)';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap =>
-      'Standort von Karte ausgewählt';
 
   @override
   String get diveCenters_sort_title => 'Tauchcenter sortieren';
@@ -7382,9 +7247,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => 'Tauchcenter hinzufügen';
-
-  @override
-  String get diveCenters_title_edit => 'Tauchcenter bearbeiten';
 
   @override
   String get diveCenters_title_import => 'Tauchcenter importieren';

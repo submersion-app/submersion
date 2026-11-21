@@ -3421,9 +3421,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_action_sortTitle => 'Ordenar Compañeros';
 
   @override
-  String get buddies_action_update => 'Actualizar Compañero';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return 'Ver Todos ($count)';
   }
@@ -3719,9 +3716,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_linkedProfile_notNow => 'Ahora no';
 
   @override
-  String get buddies_linkedProfile_openBuddy => 'Abrir compañero';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => 'Vincular a un perfil';
 
   @override
@@ -3743,9 +3737,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Estos compañeros están vinculados a perfiles distintos. Fusiona primero los perfiles.';
 
   @override
-  String get buddies_message_added => 'Compañero agregado exitosamente';
-
-  @override
   String get buddies_message_contactImportUnavailable =>
       'La importación de contactos no está disponible en esta plataforma';
 
@@ -3759,11 +3750,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return 'Error al importar contacto: $error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return 'Error al cargar compañero: $error';
   }
 
   @override
@@ -3786,9 +3772,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => 'Preparando exportación...';
-
-  @override
-  String get buddies_message_updated => 'Compañero actualizado exitosamente';
 
   @override
   String get buddies_picker_add => 'Agregar';
@@ -3924,9 +3907,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddies_title_add => 'Agregar Compañero';
-
-  @override
-  String get buddies_title_edit => 'Editar Compañero';
 
   @override
   String get buddies_title_singular => 'Compañero';
@@ -4510,21 +4490,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_edit_appBar_add => 'Agregar certificación';
 
   @override
-  String get certifications_edit_appBar_edit => 'Editar certificación';
-
-  @override
-  String get certifications_edit_button_add => 'Agregar certificación';
-
-  @override
-  String get certifications_edit_button_cancel => 'Cancelar';
-
-  @override
-  String get certifications_edit_button_save => 'Guardar';
-
-  @override
-  String get certifications_edit_button_update => 'Actualizar certificación';
-
-  @override
   String get certifications_edit_certification_notSpecified =>
       'No especificado';
 
@@ -4536,19 +4501,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get certifications_edit_datePicker_tapToSelect =>
       'Toca para seleccionar';
-
-  @override
-  String get certifications_edit_dialog_discard => 'Descartar';
-
-  @override
-  String get certifications_edit_dialog_discardContent =>
-      'Tienes cambios sin guardar. Estás seguro de que deseas salir?';
-
-  @override
-  String get certifications_edit_dialog_discardTitle => 'Descartar cambios?';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => 'Seguir editando';
 
   @override
   String get certifications_edit_group_progression => 'Progresión';
@@ -4783,41 +4735,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => 'Tomar foto';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos =>
-      'Fotos de la tarjeta';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => 'Fechas';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo =>
-      'Información del instructor';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => 'Notas';
-
-  @override
-  String get certifications_edit_snackBar_added =>
-      'Certificación agregada exitosamente';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return 'Error al cargar la certificación: $error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return 'Error al seleccionar la foto: $error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return 'Error al guardar la certificación: $error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated =>
-      'Certificación actualizada correctamente';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -6942,16 +6862,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_action_clearRating => 'Limpiar';
 
   @override
-  String get diveCenters_action_gettingLocation => 'Obteniendo...';
-
-  @override
   String get diveCenters_action_import => 'Importar';
 
   @override
   String get diveCenters_action_importToMyCenters => 'Importar a Mis Centros';
-
-  @override
-  String get diveCenters_action_lookingUp => 'Buscando...';
 
   @override
   String get diveCenters_action_lookupFromAddress => 'Buscar desde Dirección';
@@ -7010,19 +6924,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => 'Eliminar Centro de Buceo';
 
   @override
-  String get diveCenters_dialog_discard => 'Descartar';
-
-  @override
-  String get diveCenters_dialog_discardMessage =>
-      'Tienes cambios sin guardar. ¿Estás seguro de que deseas descartarlos?';
-
-  @override
-  String get diveCenters_dialog_discardTitle => '¿Descartar Cambios?';
-
-  @override
-  String get diveCenters_dialog_keepEditing => 'Seguir Editando';
-
-  @override
   String get diveCenters_empty_button => 'Agrega tu primer centro de buceo';
 
   @override
@@ -7064,11 +6965,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => 'Centro de buceo no encontrado';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return 'Error al guardar centro de buceo: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => 'Error desconocido';
@@ -7260,25 +7156,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_tag_closed => 'Cerrado';
 
   @override
-  String get diveCenters_section_address => 'Dirección';
-
-  @override
-  String get diveCenters_section_affiliations => 'Afiliaciones';
-
-  @override
-  String get diveCenters_section_basicInfo => 'Información Básica';
-
-  @override
   String get diveCenters_editCard_map => 'Mapa';
 
   @override
   String get diveCenters_section_contact => 'Contacto';
-
-  @override
-  String get diveCenters_section_contactInfo => 'Información de Contacto';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'Coordenadas GPS';
 
   @override
   String get diveCenters_section_fillHours => 'Horario de llenado';
@@ -7310,25 +7191,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_section_notes => 'Notas';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'Coordenadas encontradas desde dirección';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'Importado \"$name\"';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => 'Ubicación capturada';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return 'Ubicación capturada (±${accuracy}m)';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap =>
-      'Ubicación seleccionada del mapa';
 
   @override
   String get diveCenters_sort_title => 'Ordenar Centros de Buceo';
@@ -7385,9 +7250,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => 'Agregar Centro de Buceo';
-
-  @override
-  String get diveCenters_title_edit => 'Editar Centro de Buceo';
 
   @override
   String get diveCenters_title_import => 'Importar Centro de Buceo';

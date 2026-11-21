@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
-import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -21,8 +20,9 @@ import '../../../../helpers/test_database.dart';
 const _switchLabel = 'Leave out of buddy rankings';
 const _detailLine = 'Left out of buddy rankings';
 
-/// Issue #3624: the form sets the rankings exclusion and the detail page says
-/// when it is on.
+/// Issue #3624: a merge starts with the rankings exclusion its buddies
+/// share, and the detail page says when it is on. Setting it on a buddy is
+/// the Statistics card's (buddy_detail_page_unlock_test.dart).
 void main() {
   late BuddyRepository buddyRepo;
   late SharedPreferences prefs;
@@ -61,11 +61,7 @@ void main() {
         ),
       );
 
-  Widget form({
-    String? buddyId,
-    List<Buddy>? mergeBuddies,
-    void Function(String)? onSaved,
-  }) => ProviderScope(
+  Widget merge(List<Buddy> buddies) => ProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -74,11 +70,7 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      home: Scaffold(
-        body: mergeBuddies != null
-            ? BuddyMergeForm(buddies: mergeBuddies)
-            : BuddyEditPage(buddyId: buddyId, embedded: true, onSaved: onSaved),
-      ),
+      home: Scaffold(body: BuddyMergeForm(buddies: buddies)),
     ),
   );
 
@@ -87,86 +79,13 @@ void main() {
   bool switchValue(WidgetTester tester) =>
       tester.widget<SwitchListTile>(rankingSwitch()).value;
 
-  Future<void> flip(WidgetTester tester) async {
-    await tester.ensureVisible(rankingSwitch());
-    await tester.pumpAndSettle();
-    await tester.tap(rankingSwitch());
-    await tester.pump();
-  }
-
-  /// Bounded pumps until the page reports completion, as the linked profile
-  /// tests do: pumpAndSettle would wait out the success snackbar's timer.
-  Future<void> save(WidgetTester tester, ValueGetter<bool> done) async {
-    await tester.tap(find.text('Save'));
-    for (var i = 0; i < 30 && !done(); i++) {
-      await tester.pump(const Duration(milliseconds: 50));
-    }
-  }
-
-  group('the form', () {
-    testWidgets('a new buddy starts ranked and can be excluded', (
-      tester,
-    ) async {
-      String? savedId;
-      await tester.pumpWidget(form(onSaved: (id) => savedId = id));
-      await tester.pumpAndSettle();
-
-      expect(switchValue(tester), isFalse);
-
-      await tester.enterText(find.byType(TextFormField).first, 'Unknown');
-      await flip(tester);
-      expect(switchValue(tester), isTrue);
-      await save(tester, () => savedId != null);
-
-      final saved = await tester.runAsync(
-        () => buddyRepo.getBuddyById(savedId!),
-      );
-      expect(saved?.excludedFromRankings, isTrue);
-    });
-
-    testWidgets('an unrelated edit keeps the exclusion', (tester) async {
-      final buddy = await buddyNamed('Unknown', excluded: true);
-      String? savedId;
-      await tester.pumpWidget(
-        form(buddyId: buddy.id, onSaved: (id) => savedId = id),
-      );
-      await tester.pumpAndSettle();
-
-      expect(switchValue(tester), isTrue);
-
-      await tester.enterText(find.byType(TextFormField).first, 'Unknown 2');
-      await save(tester, () => savedId != null);
-
-      final saved = await tester.runAsync(
-        () => buddyRepo.getBuddyById(buddy.id),
-      );
-      expect(saved?.name, 'Unknown 2');
-      expect(saved?.excludedFromRankings, isTrue);
-    });
-
-    testWidgets('turning it off ranks the buddy again', (tester) async {
-      final buddy = await buddyNamed('Anna', excluded: true);
-      String? savedId;
-      await tester.pumpWidget(
-        form(buddyId: buddy.id, onSaved: (id) => savedId = id),
-      );
-      await tester.pumpAndSettle();
-
-      await flip(tester);
-      await save(tester, () => savedId != null);
-
-      final saved = await tester.runAsync(
-        () => buddyRepo.getBuddyById(buddy.id),
-      );
-      expect(saved?.excludedFromRankings, isFalse);
-    });
-
+  group('the merge', () {
     testWidgets('a merge starts ranked when any buddy is ranked', (
       tester,
     ) async {
       final anna = await buddyNamed('Anna');
       final unknown = await buddyNamed('Unknown', excluded: true);
-      await tester.pumpWidget(form(mergeBuddies: [unknown, anna]));
+      await tester.pumpWidget(merge([unknown, anna]));
       await tester.pumpAndSettle();
 
       expect(switchValue(tester), isFalse);
@@ -177,7 +96,7 @@ void main() {
     ) async {
       final one = await buddyNamed('Unknown', excluded: true);
       final two = await buddyNamed('No Name', excluded: true);
-      await tester.pumpWidget(form(mergeBuddies: [one, two]));
+      await tester.pumpWidget(merge([one, two]));
       await tester.pumpAndSettle();
 
       expect(switchValue(tester), isTrue);

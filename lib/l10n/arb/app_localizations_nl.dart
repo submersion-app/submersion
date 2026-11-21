@@ -3399,9 +3399,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_action_sortTitle => 'Buddies sorteren';
 
   @override
-  String get buddies_action_update => 'Buddy bijwerken';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return 'Alles bekijken ($count)';
   }
@@ -3695,9 +3692,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_linkedProfile_notNow => 'Niet nu';
 
   @override
-  String get buddies_linkedProfile_openBuddy => 'Buddy openen';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => 'Koppelen aan een profiel';
 
   @override
@@ -3719,9 +3713,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze buddy\'s zijn aan verschillende profielen gekoppeld. Voeg eerst de profielen samen.';
 
   @override
-  String get buddies_message_added => 'Buddy succesvol toegevoegd';
-
-  @override
   String get buddies_message_contactImportUnavailable =>
       'Contacten importeren is niet beschikbaar op dit platform';
 
@@ -3735,11 +3726,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return 'Fout bij importeren contact: $error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return 'Fout bij laden buddy: $error';
   }
 
   @override
@@ -3762,9 +3748,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => 'Export voorbereiden...';
-
-  @override
-  String get buddies_message_updated => 'Buddy succesvol bijgewerkt';
 
   @override
   String get buddies_picker_add => 'Toevoegen';
@@ -3900,9 +3883,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_title_add => 'Buddy toevoegen';
-
-  @override
-  String get buddies_title_edit => 'Buddy bewerken';
 
   @override
   String get buddies_title_singular => 'Buddy';
@@ -4481,21 +4461,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_edit_appBar_add => 'Certificering toevoegen';
 
   @override
-  String get certifications_edit_appBar_edit => 'Certificering bewerken';
-
-  @override
-  String get certifications_edit_button_add => 'Certificering toevoegen';
-
-  @override
-  String get certifications_edit_button_cancel => 'Annuleren';
-
-  @override
-  String get certifications_edit_button_save => 'Opslaan';
-
-  @override
-  String get certifications_edit_button_update => 'Certificering bijwerken';
-
-  @override
   String get certifications_edit_certification_notSpecified => 'Niet opgegeven';
 
   @override
@@ -4506,20 +4471,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get certifications_edit_datePicker_tapToSelect =>
       'Tik om te selecteren';
-
-  @override
-  String get certifications_edit_dialog_discard => 'Verwerpen';
-
-  @override
-  String get certifications_edit_dialog_discardContent =>
-      'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?';
-
-  @override
-  String get certifications_edit_dialog_discardTitle =>
-      'Wijzigingen verwerpen?';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => 'Verder bewerken';
 
   @override
   String get certifications_edit_group_progression => 'Opleidingslijn';
@@ -4754,40 +4705,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => 'Foto maken';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos => 'Kaartfoto\'s';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => 'Datums';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo =>
-      'Instructeurinformatie';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => 'Notities';
-
-  @override
-  String get certifications_edit_snackBar_added =>
-      'Certificering succesvol toegevoegd';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return 'Fout bij laden van certificering: $error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return 'Fout bij kiezen van foto: $error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return 'Fout bij opslaan van certificering: $error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated =>
-      'Certificering succesvol bijgewerkt';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -6892,17 +6812,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_action_clearRating => 'Wissen';
 
   @override
-  String get diveCenters_action_gettingLocation => 'Ophalen...';
-
-  @override
   String get diveCenters_action_import => 'Importeren';
 
   @override
   String get diveCenters_action_importToMyCenters =>
       'Importeren naar mijn centra';
-
-  @override
-  String get diveCenters_action_lookingUp => 'Opzoeken...';
 
   @override
   String get diveCenters_action_lookupFromAddress => 'Opzoeken vanaf adres';
@@ -6959,19 +6873,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => 'Duikcentrum verwijderen';
 
   @override
-  String get diveCenters_dialog_discard => 'Verwerpen';
-
-  @override
-  String get diveCenters_dialog_discardMessage =>
-      'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je deze wilt verwerpen?';
-
-  @override
-  String get diveCenters_dialog_discardTitle => 'Wijzigingen verwerpen?';
-
-  @override
-  String get diveCenters_dialog_keepEditing => 'Doorgaan met bewerken';
-
-  @override
   String get diveCenters_empty_button => 'Voeg je eerste duikcentrum toe';
 
   @override
@@ -7012,11 +6913,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => 'Duikcentrum niet gevonden';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return 'Fout bij opslaan duikcentrum: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => 'Onbekende fout';
@@ -7208,25 +7104,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_tag_closed => 'Gesloten';
 
   @override
-  String get diveCenters_section_address => 'Adres';
-
-  @override
-  String get diveCenters_section_affiliations => 'Aangesloten bij';
-
-  @override
-  String get diveCenters_section_basicInfo => 'Basisinformatie';
-
-  @override
   String get diveCenters_editCard_map => 'Kaart';
 
   @override
   String get diveCenters_section_contact => 'Contact';
-
-  @override
-  String get diveCenters_section_contactInfo => 'Contactinformatie';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'GPS coördinaten';
 
   @override
   String get diveCenters_section_fillHours => 'Vultijden';
@@ -7259,25 +7140,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_section_notes => 'Notities';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'Coördinaten gevonden via adres';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '\"$name\" geïmporteerd';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => 'Locatie vastgelegd';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return 'Locatie vastgelegd (±${accuracy}m)';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap =>
-      'Locatie geselecteerd op kaart';
 
   @override
   String get diveCenters_sort_title => 'Duikcentra sorteren';
@@ -7334,9 +7199,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => 'Duikcentrum toevoegen';
-
-  @override
-  String get diveCenters_title_edit => 'Duikcentrum bewerken';
 
   @override
   String get diveCenters_title_import => 'Duikcentrum importeren';

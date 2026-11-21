@@ -73,8 +73,6 @@ void main() {
           'latitude/longitude, validated by the coordinate fields',
       'lib/features/dive_sites/presentation/pages/site_merge_page_location.dart':
           'latitude/longitude, validated by the coordinate fields',
-      'lib/features/dive_centers/presentation/pages/dive_center_edit_page.dart':
-          'latitude/longitude, validated by the coordinate fields',
       // A site's Location card edited in place (issue #4527).
       'lib/features/dive_sites/presentation/editing/site_coordinate_rows.dart':
           'latitude/longitude, validated by the coordinate fields',

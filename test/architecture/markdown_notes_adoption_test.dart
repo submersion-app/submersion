@@ -25,20 +25,14 @@ void main() {
     // The merge of two or more buddies (issue #4527).
     'lib/features/buddies/presentation/pages/buddy_merge_page_fields.dart':
         'MarkdownNotesField(',
-    'lib/features/buddies/presentation/pages/buddy_edit_page.dart':
-        'MarkdownNotesField(',
     // A certification's Notes card edited in place (issue #4527).
     'lib/features/certifications/presentation/editing/certification_card_editors.dart':
-        'MarkdownNotesField(',
-    'lib/features/certifications/presentation/pages/certification_edit_page.dart':
         'MarkdownNotesField(',
     // A course's Notes card edited in place (issue #4527).
     'lib/features/courses/presentation/editing/course_card_editors.dart':
         'MarkdownNotesField(',
     // A dive centre's Notes card edited in place (issue #4527).
     'lib/features/dive_centers/presentation/editing/dive_center_edit_cards.dart':
-        'MarkdownNotesField(',
-    'lib/features/dive_centers/presentation/pages/dive_center_edit_page.dart':
         'MarkdownNotesField(',
     // The bulk notes field.
     'lib/features/dive_log/presentation/pages/bulk_dive_edit_page_form.dart':
