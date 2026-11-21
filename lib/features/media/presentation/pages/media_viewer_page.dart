@@ -75,7 +75,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
+import 'package:submersion/features/species_id/presentation/widgets/identification_labels.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
+import 'package:submersion/features/species_id/presentation/widgets/photo_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_playhead_reporter.dart';
 
@@ -541,8 +543,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       ),
                     ),
 
-                    // Transparent tap target to toggle overlays (photos only)
-                    // Videos handle their own tap gestures for play/pause
+                    // A photo's tap layer; a video takes its own taps.
                     if (!currentItem.isVideo)
                       Positioned.fill(
                         child: Semantics(
@@ -550,23 +551,21 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                               context.l10n.media_photoViewer_toggleOverlayLabel,
                           child: GestureDetector(
                             behavior: HitTestBehavior.translucent,
-                            onTap: pickingWhite || taggingPeople
+                            onTapUp: taggingPeople && !pickingWhite
                                 ? null
-                                : isFullscreen
-                                ? toggleFullscreenControls
-                                : () {
-                                    cancelVideoOverlayClock();
-                                    setState(
-                                      () => _showOverlay = !_showOverlay,
-                                    );
-                                  },
-                            onTapUp: pickingWhite
-                                ? (details) => _pickWhiteAt(
+                                : _photoTapUp(
                                     currentItem,
-                                    details.localPosition,
-                                    context.size ?? Size.zero,
-                                  )
-                                : null,
+                                    () => context.size ?? Size.zero,
+                                    isFullscreen
+                                        ? toggleFullscreenControls
+                                        : () {
+                                            cancelVideoOverlayClock();
+                                            setState(
+                                              () =>
+                                                  _showOverlay = !_showOverlay,
+                                            );
+                                          },
+                                  ),
                             child: const SizedBox.expand(),
                           ),
                         ),

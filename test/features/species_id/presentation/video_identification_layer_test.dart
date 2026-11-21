@@ -292,7 +292,13 @@ void main() {
     testWidgets('a tap sent to a label runs it and says so', (tester) async {
       await pumpLabels(tester, holdIn: openSitting());
       final context = tester.element(find.byType(IdentificationLabels));
-      expect(identificationLabelTap(context, tester.getCenter(dotAt)), isTrue);
+      expect(
+        identificationLabelTap(
+          View.of(context).viewId,
+          tester.getCenter(dotAt),
+        ),
+        isTrue,
+      );
       await tester.pumpAndSettle();
       expect(find.byType(SpeciesPickerSheet), findsOneWidget);
     });
@@ -302,7 +308,7 @@ void main() {
       final context = tester.element(find.byType(IdentificationLabels));
       expect(
         identificationLabelTap(
-          context,
+          View.of(context).viewId,
           tester.getCenter(dotAt) - const Offset(150, 150),
         ),
         isFalse,
@@ -314,7 +320,13 @@ void main() {
     testWidgets('see-only labels are not found', (tester) async {
       await pumpLabels(tester);
       final context = tester.element(find.byType(IdentificationLabels));
-      expect(identificationLabelTap(context, tester.getCenter(dotAt)), isFalse);
+      expect(
+        identificationLabelTap(
+          View.of(context).viewId,
+          tester.getCenter(dotAt),
+        ),
+        isFalse,
+      );
     });
 
     testWidgets('a marker label is announced as a button and can be '

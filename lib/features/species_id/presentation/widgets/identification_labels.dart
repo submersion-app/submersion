@@ -28,19 +28,17 @@ class LabelTap {
   final VoidCallback onTap;
 }
 
-/// Runs the label under [globalPosition], if there is one that takes taps.
-/// Returns whether one was run.
+/// Runs the label under [globalPosition] in the view [viewId], if there is
+/// one that takes taps. Returns whether one was run.
 ///
 /// For a photo (issue #4825): the viewer's own tap layer lies over the
 /// photo and takes every tap, so it asks here first. Looking the label up
-/// by a hit test finds it wherever the photo is zoomed or moved to.
-bool identificationLabelTap(BuildContext context, Offset globalPosition) {
+/// by a hit test finds it wherever the photo is zoomed or moved to. The
+/// view is passed in, not looked up: a tap can land once the layer that
+/// took it has left the tree.
+bool identificationLabelTap(int viewId, Offset globalPosition) {
   final result = HitTestResult();
-  WidgetsBinding.instance.hitTestInView(
-    result,
-    globalPosition,
-    View.of(context).viewId,
-  );
+  WidgetsBinding.instance.hitTestInView(result, globalPosition, viewId);
   for (final entry in result.path) {
     final target = entry.target;
     if (target is RenderMetaData) {

@@ -1,7 +1,7 @@
 part of 'media_viewer_page.dart';
 
 /// The photo/video gallery using PhotoView for zoom support on photos.
-class _PhotoGallery extends ConsumerWidget {
+class _PhotoGallery extends ConsumerStatefulWidget {
   final List<MediaItem> mediaList;
   final PageController pageController;
   final ValueChanged<int> onPageChanged;
@@ -61,13 +61,58 @@ class _PhotoGallery extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PhotoGallery> createState() => _PhotoGalleryState();
+}
+
+class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
+  /// Each photo page's zoom, by media id (issue #4825): the labels on a
+  /// photo read it to keep their size on screen. Made when a page is first
+  /// built, and let go once no page shows that photo.
+  final _zooms = <String, PhotoViewController>{};
+
+  /// How many mounted photo pages show each media id.
+  final _showing = <String, int>{};
+
+  PhotoViewController _zoomOf(String mediaId) =>
+      _zooms.putIfAbsent(mediaId, PhotoViewController.new);
+
+  void _shown(String mediaId) =>
+      _showing[mediaId] = (_showing[mediaId] ?? 0) + 1;
+
+  void _gone(String mediaId) {
+    final left = (_showing[mediaId] ?? 1) - 1;
+    if (left > 0) {
+      _showing[mediaId] = left;
+      return;
+    }
+    _showing.remove(mediaId);
+    // After the frame: a page built for the photo again in this frame has
+    // been handed the same controller, and keeps it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_showing.containsKey(mediaId)) return;
+      _zooms.remove(mediaId)?.dispose();
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final zoom in _zooms.values) {
+      zoom.dispose();
+    }
+    _zooms.clear();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaList = widget.mediaList;
+    final people = widget.people;
     return PhotoViewGallery.builder(
       // Tag mode holds the page still, so dragging a box never swipes.
-      scrollPhysics: people.active || pagingLocked
+      scrollPhysics: people.active || widget.pagingLocked
           ? const NeverScrollableScrollPhysics()
           : const BouncingScrollPhysics(),
-      pageController: pageController,
+      pageController: widget.pageController,
       // Build the page either side of the current one, so the next photo has
       // resolved and decoded before a swipe or arrow press brings it in.
       // Built on demand, it slid in empty and popped in afterwards (#3298).
@@ -75,7 +120,7 @@ class _PhotoGallery extends ConsumerWidget {
       // neighbour costs one viewport-sized bitmap, not an original.
       allowImplicitScrolling: true,
       itemCount: mediaList.length,
-      onPageChanged: onPageChanged,
+      onPageChanged: widget.onPageChanged,
       backgroundDecoration: const BoxDecoration(color: Colors.black),
       builder: (context, index) {
         final item = mediaList[index];
@@ -93,9 +138,9 @@ class _PhotoGallery extends ConsumerWidget {
               child: _ConnectorVideoItem(
                 item: item,
                 sitting: people.sitting,
-                fullscreen: fullscreen,
-                showControls: showOverlay,
-                onFullscreenTap: onFullscreenTap,
+                fullscreen: widget.fullscreen,
+                showControls: widget.showOverlay,
+                onFullscreenTap: widget.onFullscreenTap,
               ),
             );
           }
@@ -104,16 +149,16 @@ class _PhotoGallery extends ConsumerWidget {
             maxScale: PhotoViewComputedScale.contained, // No zoom for videos
             child: _VideoItem(
               item: item,
-              isCurrent: index == currentIndex,
-              showOverlay: showOverlay,
-              fullscreen: fullscreen,
-              onSetOverlay: onSetOverlay,
-              onHoldChanged: onVideoHoldChanged,
-              onControllerChanged: onVideoControllerChanged,
+              isCurrent: index == widget.currentIndex,
+              showOverlay: widget.showOverlay,
+              fullscreen: widget.fullscreen,
+              onSetOverlay: widget.onSetOverlay,
+              onHoldChanged: widget.onVideoHoldChanged,
+              onControllerChanged: widget.onVideoControllerChanged,
               people: people,
-              identificationsEditable: identificationsEditable,
-              hideIdentifications: hideIdentifications,
-              controlsInset: videoControlsInset,
+              identificationsEditable: widget.identificationsEditable,
+              hideIdentifications: widget.hideIdentifications,
+              controlsInset: widget.videoControlsInset,
             ),
           );
         }
@@ -124,7 +169,18 @@ class _PhotoGallery extends ConsumerWidget {
           // Tag mode owns the gestures; a zoom already set stays, and the
           // editor inside the child maps taps through it.
           disableGestures: people.active,
-          child: _PhotoItem(item: item, showBoxes: showOverlay, people: people),
+          controller: _zoomOf(item.id),
+          child: _PhotoItem(
+            item: item,
+            showBoxes: widget.showOverlay,
+            people: people,
+            zoom: _zoomOf(item.id),
+            isCurrent: index == widget.currentIndex,
+            identificationsEditable: widget.identificationsEditable,
+            hideIdentifications: widget.hideIdentifications,
+            onShown: _shown,
+            onGone: _gone,
+          ),
         );
       },
       loadingBuilder: (context, event) =>
@@ -155,21 +211,88 @@ MediaItem _withLiveRow(WidgetRef ref, MediaItem item) {
   );
 }
 
-class _PhotoItem extends ConsumerWidget {
+class _PhotoItem extends ConsumerStatefulWidget {
   final MediaItem item;
 
   /// Whether the face boxes show: they follow the viewer's controls.
   final bool showBoxes;
   final PeopleTagSession people;
 
+  /// The page's zoom, which the labels on the photo follow (issue #4825).
+  final PhotoViewController zoom;
+
+  /// Whether this is the page on screen: only it draws labels.
+  final bool isCurrent;
+
+  /// Whether the labels take taps: not on a locked photo.
+  final bool identificationsEditable;
+
+  /// Whether the labels are hidden: while picking a white point.
+  final bool hideIdentifications;
+
+  /// The page shows [item], and no longer does: the gallery keeps the
+  /// photo's zoom while a page shows it.
+  final ValueChanged<String> onShown;
+  final ValueChanged<String> onGone;
+
   const _PhotoItem({
     required this.item,
     required this.showBoxes,
     required this.people,
+    required this.zoom,
+    required this.isCurrent,
+    required this.identificationsEditable,
+    required this.hideIdentifications,
+    required this.onShown,
+    required this.onGone,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PhotoItem> createState() => _PhotoItemState();
+}
+
+class _PhotoItemState extends ConsumerState<_PhotoItem> {
+  /// How far the photo is zoomed in, 1 when it shows whole.
+  final _zoom = ValueNotifier<double>(1);
+  StreamSubscription<PhotoViewControllerValue>? _zoomChanges;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.onShown(widget.item.id);
+    _follow(widget.zoom);
+  }
+
+  @override
+  void didUpdateWidget(_PhotoItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.id != widget.item.id) {
+      widget.onShown(widget.item.id);
+      oldWidget.onGone(oldWidget.item.id);
+    }
+    if (oldWidget.zoom != widget.zoom) _follow(widget.zoom);
+  }
+
+  void _follow(PhotoViewController zoom) {
+    unawaited(_zoomChanges?.cancel());
+    _zoom.value = zoom.scale ?? 1;
+    _zoomChanges = zoom.outputStateStream.listen(
+      (value) => _zoom.value = value.scale ?? 1,
+    );
+  }
+
+  @override
+  void dispose() {
+    unawaited(_zoomChanges?.cancel());
+    _zoom.dispose();
+    widget.onGone(widget.item.id);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final people = widget.people;
     final imageSize = people.imageSizeOf(item);
     // Inside the PhotoView child, so the boxes zoom with the photo and a
     // tag-mode tap lands in the photo's own coordinates.
@@ -202,7 +325,17 @@ class _PhotoItem extends ConsumerWidget {
             sitting: people.sitting,
             mediaId: item.id,
             imageSize: imageSize,
-            visible: showBoxes,
+            visible: widget.showBoxes,
+          ),
+        // Name pills and dots on the animals (issue #4825). Out of tag mode
+        // and white-point picking, which take the taps.
+        if (widget.isCurrent && !people.active && !widget.hideIdentifications)
+          PhotoIdentificationLayer(
+            item: item,
+            imageSize: imageSize,
+            zoom: _zoom,
+            sitting: people.sitting,
+            editable: widget.identificationsEditable,
           ),
       ],
     );

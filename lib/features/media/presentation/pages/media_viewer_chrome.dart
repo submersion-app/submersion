@@ -97,6 +97,26 @@ extension _ViewerChrome on _MediaViewerPageState {
           ),
   );
 
+  /// What a tap on a photo does: a white point while one is being picked,
+  /// else the label on the photo under it (issue #4825), else [toggle] the
+  /// controls. The view is read now; [size] only for a white point: a tap
+  /// can land once the tap layer has left the tree.
+  GestureTapUpCallback _photoTapUp(
+    MediaItem item,
+    Size Function() size,
+    VoidCallback toggle,
+  ) {
+    final viewId = View.of(context).viewId;
+    return (details) {
+      if (pickingWhite) {
+        _pickWhiteAt(item, details.localPosition, size());
+        return;
+      }
+      if (identificationLabelTap(viewId, details.globalPosition)) return;
+      toggle();
+    };
+  }
+
   /// Steps [delta] photos; while unlocked, through the check, so the next
   /// photo opens locked.
   void _step(int delta) => unawaited(stepGuarded(delta, _stepPage));
