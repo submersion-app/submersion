@@ -7568,6 +7568,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Queste immersioni provengono dallo stesso computer subacqueo e non possono essere unite in questo modo.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'Una di queste immersioni è già contenuta nell\'altra, registrata dallo stesso computer subacqueo. I suoi dati grezzi vengono conservati come fonte dell\'altra immersione, senza copiare nulla due volte.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'Una registrazione non ha un profilo di profondità da confrontare, quindi il suo inizio viene allineato a quello del principale.';
 

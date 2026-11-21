@@ -2487,6 +2487,7 @@
   "diveLog_consolidate_error_generic": "تعذّر دمج الغوصات. لم يتغيّر أي شيء.",
   "diveLog_consolidate_error_notOverlapping": "هاتان الغوصتان لا تتداخلان زمنيًا، لذا لا يمكن دمجهما كغوصة واحدة.",
   "diveLog_consolidate_error_sameComputer": "هاتان الغوصتان من نفس كمبيوتر الغوص ولا يمكن دمجهما بهذه الطريقة.",
+  "diveLog_combine_duplicateHint": "إحدى هاتين الغطستين مضمّنة بالفعل في الأخرى، وقد سجّلها حاسوب الغوص نفسه. تُحفظ بياناتها الخام كمصدر للغطسة الأخرى، دون نسخ أي شيء مرتين.",
   "diveLog_consolidate_selectPrimary": "كمبيوتر الغوص الأساسي",
   "diveLog_consolidate_snackbar": "تم دمج الغوصة كجهاز كمبيوتر إضافي.",
   "diveLog_consolidate_undoError": "تعذّر التراجع عن الدمج.",

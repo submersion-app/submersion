@@ -66,6 +66,31 @@ class DiveConsolidationService {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
+  /// How far apart, in seconds, two events of one type can sit and still be
+  /// the same event once an exact copy is placed on the target's clock.
+  static const int _duplicateEventToleranceSeconds = 2;
+
+  /// The target's own event that [secondaryEvent], shifted by [offset], repeats:
+  /// the same type, the same computer, within
+  /// [_duplicateEventToleranceSeconds]. Null when it is new to the target.
+  DiveProfileEvent? _matchingTargetEvent(
+    List<DiveProfileEvent> allEvents,
+    String targetDiveId,
+    DiveProfileEvent secondaryEvent,
+    int offset,
+  ) {
+    for (final e in allEvents) {
+      if (e.diveId != targetDiveId) continue;
+      if (e.eventType != secondaryEvent.eventType) continue;
+      if (e.computerId != secondaryEvent.computerId) continue;
+      if ((e.timestamp - (secondaryEvent.timestamp + offset)).abs() <=
+          _duplicateEventToleranceSeconds) {
+        return e;
+      }
+    }
+    return null;
+  }
+
   /// Folds [secondaryDiveIds] into [targetDiveId] as additional computer
   /// sources. Throws [ArgumentError] (with the ConsolidationInvalidReason in
   /// the message) when the selection cannot be consolidated. All-or-nothing:
@@ -141,6 +166,9 @@ class DiveConsolidationService {
     // Service-level same-computer guard on the FK itself (the builder can
     // only see serials).
     for (final id in secondaryDiveIds) {
+      // An exact copy of a stretch of the target is the one same-computer
+      // record the builder lets through; the FK is checked for the rest.
+      if (plan.duplicateIds.contains(id)) continue;
       final row = snapshot.diveRows.firstWhere((r) => r.id == id);
       if (row.computerId != null && row.computerId == targetRow.computerId) {
         throw ArgumentError('sameComputer: $id shares ${row.computerId}');
@@ -148,6 +176,14 @@ class DiveConsolidationService {
     }
 
     final foldedEventIds = <String, String>{}; // old event id -> id on target
+    // What the target already holds of the stretch an exact copy repeats:
+    // pressure series per cylinder, read before anything is written.
+    final targetTankSeriesTankIds = plan.duplicateIds.isEmpty
+        ? const <String>{}
+        : {
+            for (final s in await _tankSeries.getSeriesForDive(targetDiveId))
+              s.tankId,
+          };
     await _db.transaction(() async {
       await _diveRepo.backfillPrimaryDataSource(targetDiveId);
 
@@ -479,8 +515,12 @@ class DiveConsolidationService {
         // (both null computerId) would be indistinguishable on the
         // merged dive. Read before the delete below removes the secondary
         // dive (and, with it, ownership of these rows).
+        // An exact copy of a stretch of the target adds no profile: the
+        // target's own trace already holds those samples, and its raw bytes
+        // travel on the source row copied above.
+        final isDuplicate = plan.duplicateIds.contains(secondary.id);
         for (final s in await _profileSeries.getSeriesForDive(secondary.id)) {
-          if (s.samples.isEmpty || noReadings) continue;
+          if (s.samples.isEmpty || noReadings || isDuplicate) continue;
           await _profileSeries.insertSeries(
             diveId: targetDiveId,
             computerId: s.computerId ?? secRow.computerId,
@@ -496,6 +536,11 @@ class DiveConsolidationService {
         for (final s in await _tankSeries.getSeriesForDive(secondary.id)) {
           final mappedTank = tankIdMap[s.tankId];
           if (mappedTank == null || s.samples.isEmpty) continue;
+          // An exact copy repeats the pressures the cylinder already has on
+          // the target; only a cylinder with none gets them.
+          if (isDuplicate && targetTankSeriesTankIds.contains(mappedTank)) {
+            continue;
+          }
           // A source that is none of the secondary's own tells no more than
           // no source at all, so such a series follows the unattributed rule.
           final copiedSourceId = s.sourceId == null
@@ -526,6 +571,19 @@ class DiveConsolidationService {
         for (final row in snapshot.eventRows.where(
           (r) => r.diveId == secondary.id,
         )) {
+          if (isDuplicate) {
+            final already = _matchingTargetEvent(
+              snapshot.eventRows,
+              targetDiveId,
+              row,
+              offset,
+            );
+            if (already != null) {
+              // Notes that link this event now link the target's own.
+              foldedEventIds[row.id] = already.id;
+              continue;
+            }
+          }
           final eventId = _uuid.v4();
           foldedEventIds[row.id] = eventId;
           await _db
@@ -567,6 +625,16 @@ class DiveConsolidationService {
         )) {
           final newTankId = tankIdMap[row.tankId];
           if (newTankId == null) continue;
+          if (isDuplicate &&
+              snapshot.gasSwitchRows.any(
+                (g) =>
+                    g.diveId == targetDiveId &&
+                    g.tankId == newTankId &&
+                    (g.timestamp - (row.timestamp + offset)).abs() <=
+                        _duplicateEventToleranceSeconds,
+              )) {
+            continue;
+          }
           final switchId = _uuid.v4();
           await _db
               .into(_db.gasSwitches)

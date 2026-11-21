@@ -31,6 +31,7 @@ class ConsolidationReady extends DiveConsolidationClassification {
     this.realignedIds = const {},
     this.clockMismatchIds = const {},
     this.overlapFits = const {},
+    this.duplicateIds = const {},
   });
   final Dive primary;
 
@@ -54,6 +55,14 @@ class ConsolidationReady extends DiveConsolidationClassification {
   /// the fit [clockMismatchIds] was judged by. Kept so `build` does not
   /// repeat the search.
   final Map<String, ProfileAlignmentResult> overlapFits;
+
+  /// The secondaries recorded by the primary's own computer whose trace sits
+  /// inside the primary's, sample for sample: the second half of a dive the
+  /// computer split in two entries, or a re-download, after the primary was
+  /// already combined or imported with that stretch in it. They are folded in
+  /// for their source rows (the raw bytes), not as a second computer, so what
+  /// the primary already holds is not copied a second time.
+  final Set<String> duplicateIds;
 }
 
 /// Everything the consolidation service needs to persist the merge.
@@ -65,6 +74,7 @@ class DiveConsolidationPlan {
     required this.tankMerges,
     required this.previewSeries,
     this.alignments = const {},
+    this.duplicateIds = const {},
   });
 
   final Dive primary;
@@ -85,6 +95,10 @@ class DiveConsolidationPlan {
   /// Realigned secondary id -> where the alignment placed it and how well
   /// its profile matches the primary's. Empty without an alignment mode.
   final Map<String, ProfileAlignmentResult> alignments;
+
+  /// Secondaries that are an exact copy of a stretch of the primary, made by
+  /// the primary's own computer; see [ConsolidationReady.duplicateIds].
+  final Set<String> duplicateIds;
 }
 
 class DiveConsolidationBuilder {
@@ -99,6 +113,17 @@ class DiveConsolidationBuilder {
   /// the two computers' clocks are judged to disagree. Wide enough for clocks
   /// set by hand a few minutes apart.
   static const Duration clockTolerance = Duration(minutes: 5);
+
+  /// How much of a same-computer secondary has to lie inside the primary's
+  /// span, and how closely its depths have to follow the primary's there, for
+  /// it to count as a copy of that stretch. Far stricter than
+  /// [ProfileAlignmentResult.isStrongMatch], which accepts two computers
+  /// reading the same dive: one computer's own samples reappear unchanged.
+  static const double duplicateMinOverlap = 0.98;
+  static const double duplicateMaxRmsMeters = 0.25;
+
+  /// How far a copy's first or last sample may stray outside the primary's span.
+  static const int duplicateEdgeSeconds = 10;
 
   /// The segment's occupied span: declared runtime or last profile sample,
   /// whichever is later (same rule as DiveMergeBuilder._segmentExtent).
@@ -163,6 +188,52 @@ class DiveConsolidationBuilder {
         .isStrongMatch;
   }
 
+  /// Whether [a] and [b] came from one physical computer, judged by serial and
+  /// by the linked computer since either can be missing. The service
+  /// re-checks the computerId FK on the raw rows before writing.
+  bool _sameComputer(Dive a, Dive b) {
+    final aSerial = a.diveComputerSerial;
+    final bSerial = b.diveComputerSerial;
+    if (aSerial != null && aSerial.isNotEmpty && aSerial == bSerial) {
+      return true;
+    }
+    final aId = a.computerId;
+    return aId != null && aId == b.computerId;
+  }
+
+  /// Whether [secondary] is a copy of a stretch of [primary]: its trace,
+  /// placed where the two entry times put it, lies inside the primary's and
+  /// follows it within [duplicateMaxRmsMeters]. The clock offset is the right
+  /// placement because both came from one clock; an offset search would only
+  /// add ways to match by accident.
+  bool _isContainedDuplicate(Dive primary, Dive secondary) {
+    final byClock = secondary.effectiveEntryTime
+        .difference(primary.effectiveEntryTime)
+        .inSeconds;
+    final fit = const ProfileAligner().scoreAt(
+      primary.profile,
+      secondary.profile,
+      byClock,
+    );
+    final rms = fit.rmsDepthError;
+    if (fit.usedFallback ||
+        rms == null ||
+        fit.overlapFraction < duplicateMinOverlap ||
+        rms > duplicateMaxRmsMeters) {
+      return false;
+    }
+    // The fit is measured against the shorter trace, so it holds just as well
+    // when the primary is the one inside the secondary. Only the copy may sit
+    // inside the primary's span, never the other way round.
+    int first(Dive d) =>
+        d.profile.map((p) => p.timestamp).reduce((a, b) => a < b ? a : b);
+    int last(Dive d) =>
+        d.profile.map((p) => p.timestamp).reduce((a, b) => a > b ? a : b);
+    return first(secondary) + byClock >=
+            first(primary) - duplicateEdgeSeconds &&
+        last(secondary) + byClock <= last(primary) + duplicateEdgeSeconds;
+  }
+
   /// [alignment] null rejects a secondary that does not overlap the primary
   /// in time. With a mode, that secondary is accepted and listed in
   /// [ConsolidationReady.realignedIds] for `build` to align. An overlapping
@@ -178,22 +249,6 @@ class DiveConsolidationBuilder {
     }
     if (dives.map((d) => d.diverId).toSet().length > 1) {
       return const ConsolidationInvalid(ConsolidationInvalidReason.mixedDivers);
-    }
-    // Two records from the same physical computer are a re-download or a
-    // dive it split in two, not a second computer. Judged by serial and by
-    // the linked computer, since either can be missing; the service
-    // re-checks the computerId FK on the raw rows before writing.
-    final serials = <String>{};
-    final computerIds = <String>{};
-    for (final d in dives) {
-      final serial = d.diveComputerSerial;
-      final computerId = d.computerId;
-      if ((serial != null && serial.isNotEmpty && !serials.add(serial)) ||
-          (computerId != null && !computerIds.add(computerId))) {
-        return const ConsolidationInvalid(
-          ConsolidationInvalidReason.sameComputer,
-        );
-      }
     }
     final sorted = [...dives]
       ..sort((a, b) => a.effectiveEntryTime.compareTo(b.effectiveEntryTime));
@@ -212,6 +267,27 @@ class DiveConsolidationBuilder {
       for (final d in sorted)
         if (d.id != primary.id) d,
     ];
+    // Two records from the same physical computer are a re-download or a
+    // dive it split in two, not a second computer, so they are not folded in
+    // as one. The exception is a record that is nothing but a copy of a
+    // stretch of the primary: a half the primary already contains, imported
+    // again on its own. That folds in for its raw bytes and adds nothing else
+    // (#1913's duplicates from before the import started recognising them).
+    final duplicates = <String>{};
+    for (final s in secondaries) {
+      if (_sameComputer(primary, s)) {
+        if (!_isContainedDuplicate(primary, s)) {
+          return const ConsolidationInvalid(
+            ConsolidationInvalidReason.sameComputer,
+          );
+        }
+        duplicates.add(s.id);
+      } else if (secondaries.any((o) => o.id != s.id && _sameComputer(o, s))) {
+        return const ConsolidationInvalid(
+          ConsolidationInvalidReason.sameComputer,
+        );
+      }
+    }
     final realigned = <String>{};
     final clockMismatch = <String>{};
     final overlapFits = <String, ProfileAlignmentResult>{};
@@ -240,6 +316,7 @@ class DiveConsolidationBuilder {
       realignedIds: realigned,
       clockMismatchIds: clockMismatch,
       overlapFits: overlapFits,
+      duplicateIds: duplicates,
     );
   }
 
@@ -400,6 +477,7 @@ class DiveConsolidationBuilder {
       tankMerges: tankMerges,
       previewSeries: preview,
       alignments: alignments,
+      duplicateIds: classification.duplicateIds,
     );
   }
 

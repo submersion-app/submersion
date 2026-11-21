@@ -2361,6 +2361,7 @@
   "diveLog_consolidate_error_generic": "Impossibile unire le immersioni. Non è stato modificato nulla.",
   "diveLog_consolidate_error_notOverlapping": "Queste immersioni non si sovrappongono nel tempo, quindi non possono essere unite come la stessa immersione.",
   "diveLog_consolidate_error_sameComputer": "Queste immersioni provengono dallo stesso computer subacqueo e non possono essere unite in questo modo.",
+  "diveLog_combine_duplicateHint": "Una di queste immersioni è già contenuta nell'altra, registrata dallo stesso computer subacqueo. I suoi dati grezzi vengono conservati come fonte dell'altra immersione, senza copiare nulla due volte.",
   "diveLog_consolidate_selectPrimary": "Computer subacqueo principale",
   "diveLog_consolidate_snackbar": "Immersione unita come computer aggiuntivo.",
   "diveLog_consolidate_undoError": "Impossibile annullare l'unione.",

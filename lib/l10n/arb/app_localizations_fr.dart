@@ -7585,6 +7585,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ces plongées proviennent du même ordinateur de plongée et ne peuvent pas être fusionnées de cette façon.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'L\'une de ces plongées est déjà contenue dans l\'autre, enregistrée par le même ordinateur. Ses données brutes sont conservées comme source de l\'autre plongée, sans rien copier en double.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'Un enregistrement n\'a pas de profil de profondeur à comparer, son début est donc aligné sur celui du principal.';
 

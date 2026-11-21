@@ -2361,6 +2361,7 @@
   "diveLog_consolidate_error_generic": "Impossible de fusionner les plongées. Rien n'a été modifié.",
   "diveLog_consolidate_error_notOverlapping": "Ces plongées ne se chevauchent pas dans le temps et ne peuvent donc pas être fusionnées en une seule plongée.",
   "diveLog_consolidate_error_sameComputer": "Ces plongées proviennent du même ordinateur de plongée et ne peuvent pas être fusionnées de cette façon.",
+  "diveLog_combine_duplicateHint": "L'une de ces plongées est déjà contenue dans l'autre, enregistrée par le même ordinateur. Ses données brutes sont conservées comme source de l'autre plongée, sans rien copier en double.",
   "diveLog_consolidate_selectPrimary": "Ordinateur de plongée principal",
   "diveLog_consolidate_snackbar": "Plongée fusionnée en tant qu'ordinateur supplémentaire.",
   "diveLog_consolidate_undoError": "Impossible d'annuler la fusion.",

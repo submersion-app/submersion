@@ -104,6 +104,181 @@ void main() {
       );
     });
 
+    group('a record by the primary\'s own computer', () {
+      /// The second half of a dive a computer split in two entries, after the
+      /// primary was already combined with that half in it: [from] seconds in,
+      /// as the computer logged it on its own entry, so its own clock starts
+      /// at zero.
+      List<DiveProfilePoint> secondHalf(
+        List<DiveProfilePoint> whole,
+        int from, {
+        double depthShift = 0,
+      }) => [
+        for (final p in whole)
+          if (p.timestamp >= from)
+            DiveProfilePoint(
+              timestamp: p.timestamp - from,
+              depth: p.depth == 0 ? 0 : p.depth + depthShift,
+            ),
+      ];
+
+      test('that is an exact copy of a stretch of the primary is folded in '
+          'as a duplicate', () {
+        final whole = reefProfile();
+        final result = builder.classify([
+          makeDive('a', entry: t, serial: 'SAME', profile: whole),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(seconds: 1300)),
+            runtimeMin: 25,
+            serial: 'SAME',
+            profile: secondHalf(whole, 1300),
+          ),
+        ]);
+
+        expect(result, isA<ConsolidationReady>());
+        final ready = result as ConsolidationReady;
+        expect(ready.duplicateIds, {'b'});
+        expect(ready.realignedIds, isEmpty);
+      });
+
+      test('the plan places the copy by its entry time and carries the '
+          'duplicate ids', () {
+        final whole = reefProfile();
+        final dives = [
+          makeDive('a', entry: t, computerId: 'comp-1', profile: whole),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(seconds: 1300)),
+            runtimeMin: 25,
+            computerId: 'comp-1',
+            profile: secondHalf(whole, 1300),
+          ),
+        ];
+
+        final plan = builder.build(dives);
+
+        expect(plan.duplicateIds, {'b'});
+        expect(plan.offsetsSeconds['b'], 1300);
+      });
+
+      test('whose depths differ from the primary\'s is still rejected', () {
+        final whole = reefProfile();
+        final result = builder.classify([
+          makeDive('a', entry: t, serial: 'SAME', profile: whole),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(seconds: 1300)),
+            runtimeMin: 25,
+            serial: 'SAME',
+            profile: secondHalf(whole, 1300, depthShift: 3),
+          ),
+        ]);
+
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.sameComputer,
+        );
+      });
+
+      test('that runs past the end of the primary is still rejected', () {
+        final whole = reefProfile();
+        final result = builder.classify([
+          makeDive(
+            'a',
+            entry: t,
+            serial: 'SAME',
+            profile: [
+              for (final p in whole)
+                if (p.timestamp <= 1700) p,
+            ],
+          ),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(seconds: 1300)),
+            runtimeMin: 25,
+            serial: 'SAME',
+            profile: secondHalf(whole, 1300),
+          ),
+        ]);
+
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.sameComputer,
+        );
+      });
+
+      test('with no profile to compare is still rejected', () {
+        final result = builder.classify([
+          makeDive('a', entry: t, serial: 'SAME', profile: reefProfile()),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(minutes: 5)),
+            serial: 'SAME',
+          ),
+        ]);
+
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.sameComputer,
+        );
+      });
+
+      test('is a duplicate beside a second computer\'s record of the same '
+          'dive', () {
+        final whole = reefProfile();
+        final result = builder.classify([
+          makeDive('a', entry: t, serial: 'MINE', profile: whole),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(seconds: 1300)),
+            runtimeMin: 25,
+            serial: 'MINE',
+            profile: secondHalf(whole, 1300),
+          ),
+          makeDive('c', entry: t, serial: 'BUDDY', profile: whole),
+        ]);
+
+        expect(result, isA<ConsolidationReady>());
+        expect((result as ConsolidationReady).duplicateIds, {'b'});
+      });
+
+      test('two records sharing a computer that is not the primary\'s are '
+          'still rejected', () {
+        final whole = reefProfile();
+        final result = builder.classify([
+          makeDive('a', entry: t, serial: 'MINE', profile: whole),
+          makeDive('b', entry: t, serial: 'BUDDY', profile: whole),
+          makeDive('c', entry: t, serial: 'BUDDY', profile: whole),
+        ]);
+
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.sameComputer,
+        );
+      });
+
+      test('the copy cannot be the primary: the longer dive is not a copy of '
+          'the shorter', () {
+        final whole = reefProfile();
+        final result = builder.classify([
+          makeDive('a', entry: t, serial: 'SAME', profile: whole),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(seconds: 1300)),
+            runtimeMin: 25,
+            serial: 'SAME',
+            profile: secondHalf(whole, 1300),
+          ),
+        ], primaryDiveId: 'b');
+
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.sameComputer,
+        );
+      });
+    });
+
     test('dive entirely after the other is not overlapping', () {
       final result = builder.classify([
         makeDive('a', entry: t, runtimeMin: 30),

@@ -2361,6 +2361,7 @@
   "diveLog_consolidate_error_generic": "לא ניתן היה למזג את הצלילות. שום דבר לא השתנה.",
   "diveLog_consolidate_error_notOverlapping": "הצלילות האלה אינן חופפות בזמן, ולכן לא ניתן למזג אותן כצלילה אחת.",
   "diveLog_consolidate_error_sameComputer": "הצלילות האלה מגיעות מאותו מחשב צלילה ולא ניתן למזג אותן בדרך זו.",
+  "diveLog_combine_duplicateHint": "אחת הצלילות כבר כלולה בשנייה, ונרשמה על ידי אותו מחשב צלילה. הנתונים הגולמיים שלה נשמרים כמקור של הצלילה האחרת, בלי להעתיק דבר פעמיים.",
   "diveLog_consolidate_selectPrimary": "מחשב הצלילה הראשי",
   "diveLog_consolidate_snackbar": "הצלילה מוזגה כמחשב נוסף.",
   "diveLog_consolidate_undoError": "לא ניתן היה לבטל את המיזוג.",

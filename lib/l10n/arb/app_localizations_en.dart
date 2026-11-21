@@ -7450,6 +7450,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'These dives are from the same dive computer and can\'t be merged this way.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'One of these dives is already contained in the other, recorded by the same dive computer. Its raw data is kept as a source of the other dive, and nothing is copied twice.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'A record has no depth profile to match, so its start is lined up with the primary\'s.';
 

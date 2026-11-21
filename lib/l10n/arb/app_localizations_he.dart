@@ -7407,6 +7407,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצלילות האלה מגיעות מאותו מחשב צלילה ולא ניתן למזג אותן בדרך זו.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'אחת הצלילות כבר כלולה בשנייה, ונרשמה על ידי אותו מחשב צלילה. הנתונים הגולמיים שלה נשמרים כמקור של הצלילה האחרת, בלי להעתיק דבר פעמיים.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'לאחת הרשומות אין פרופיל עומק להתאמה, ולכן ההתחלה שלה מיושרת להתחלה של הראשי.';
 

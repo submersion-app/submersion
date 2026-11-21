@@ -11823,6 +11823,12 @@ abstract class AppLocalizations {
   /// **'These dives are from the same dive computer and can\'t be merged this way.'**
   String get diveLog_consolidate_error_sameComputer;
 
+  /// No description provided for @diveLog_combine_duplicateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One of these dives is already contained in the other, recorded by the same dive computer. Its raw data is kept as a source of the other dive, and nothing is copied twice.'**
+  String get diveLog_combine_duplicateHint;
+
   /// No description provided for @diveLog_consolidate_noProfileFallback.
   ///
   /// In en, this message translates to:
