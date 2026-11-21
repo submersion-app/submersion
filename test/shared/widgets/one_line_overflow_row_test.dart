@@ -138,6 +138,31 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('a screen reader follows the line when it widens', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, items: 5);
+    expect(find.bySemanticsLabel('item 3'), findsNothing);
+    await pump(tester, items: 5, width: 600);
+    expect(find.bySemanticsLabel('item 3'), findsOneWidget);
+    await pump(tester, items: 5);
+    expect(find.bySemanticsLabel('item 3'), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('a screen reader follows a child that narrows on the same '
+      'line', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, items: 5);
+    expect(find.bySemanticsLabel('item 2'), findsNothing);
+    // The first child shrinks: one more now fits before the count.
+    await pump(tester, items: 5, itemWidth: (k) => k == 0 ? 50 : 100);
+    expect(_painted(tester, item(2)), isTrue);
+    expect(find.bySemanticsLabel('item 2'), findsOneWidget);
+    semantics.dispose();
+  });
+
   testWidgets('nothing to show draws nothing', (tester) async {
     await pump(tester, items: 0);
     expect(tester.getSize(find.byType(OneLineOverflowRow)).height, 0);

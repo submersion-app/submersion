@@ -31,6 +31,14 @@ void main() {
     isBuiltIn: false,
   );
 
+  const appTag = SpeciesTagChip(
+    speciesId: 'sp_rock_beauty',
+    storedName: 'Rock Beauty',
+    category: SpeciesCategory.fish,
+    isBuiltIn: false,
+    unconfirmed: true,
+  );
+
   Future<void> pump(
     WidgetTester tester, {
     MediaType type = MediaType.photo,
@@ -64,7 +72,9 @@ void main() {
         locale: const Locale('en'),
         overrides: [
           ...overrides,
-          mediaTagChipsProvider('p1').overrideWith((ref) async => const [tang]),
+          mediaTagChipsProvider(
+            'p1',
+          ).overrideWith((ref) async => const [tang, appTag]),
           mediaSuggestionsProvider('p1').overrideWith(
             (ref) async => <SpeciesSuggestion>[
               suggestion(chromis, score: 0.71),
@@ -112,5 +122,14 @@ void main() {
       ),
     );
     expect(chip.onPressed, isNull);
+  });
+
+  testWidgets('a tag the app applied opens its species page too', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Rock Beauty'));
+    await tester.pumpAndSettle();
+    expect(find.text('DETAIL sp_rock_beauty'), findsOneWidget);
   });
 }

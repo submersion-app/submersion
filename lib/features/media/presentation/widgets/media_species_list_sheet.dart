@@ -65,7 +65,13 @@ class _MediaSpeciesList extends ConsumerWidget {
           Wrap(
             spacing: 8,
             runSpacing: 4,
-            children: speciesChipWidgets(context, ref, item.id, sitting),
+            children: speciesChipWidgets(
+              context,
+              ref,
+              item.id,
+              sitting,
+              openUnconfirmed: true,
+            ),
           ),
         ],
       ),

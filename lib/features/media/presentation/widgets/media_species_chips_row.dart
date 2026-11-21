@@ -94,13 +94,15 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
 /// The chips for [mediaId]'s species, in the order the viewer shows them:
 /// the diver's tags, the app's tags not yet confirmed, then the app's
 /// suggestions. A tag opens its species page; the others call
-/// [onSuggestionTap], and are inert without it.
+/// [onSuggestionTap], and are inert without it. [openUnconfirmed] has the
+/// app's tags open their species page instead, as the diver's do.
 List<Widget> speciesChipWidgets(
   BuildContext context,
   WidgetRef ref,
   String mediaId,
   EditSession<PhotoRecord>? sitting, {
   VoidCallback? onSuggestionTap,
+  bool openUnconfirmed = false,
 }) {
   final l10n = context.l10n;
   final chips = speciesChipsShown(ref, mediaId, sitting);
@@ -125,7 +127,12 @@ List<Widget> speciesChipWidgets(
     // Tags the app applied, not yet confirmed (issue #4727).
     for (final chip in chips)
       if (chip.unconfirmed)
-        _UnconfirmedChip(chip: chip, onTap: onSuggestionTap),
+        _UnconfirmedChip(
+          chip: chip,
+          onTap: openUnconfirmed
+              ? () => context.push('/species/${chip.speciesId}')
+              : onSuggestionTap,
+        ),
     for (final s in suggestions)
       ActionChip(
         key: ValueKey('media_suggested_chip_${s.top.candidate.gbifKey}'),
