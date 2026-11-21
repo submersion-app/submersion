@@ -303,14 +303,26 @@ void main() {
 
     test('notes stored already broken do not hold Save while left so, but a '
         'second break does', () async {
+      // A stored break whose annotation is gone, beside the turtle's link.
       final broken = dive.copyWith(
-        notes: '${dive.notes.substring(0, dive.notes.length - 1)} more',
+        notes: '${dive.notes}\n\n[x](annotation:gone',
       );
       final session = EditSession<Dive>(broken);
-      addTearDown(session.dispose);
+      addTearDown(() {
+        if (!session.isDisposed) session.dispose();
+      });
+      loadDiveAnnotations(session, container.read);
+      await session.settled();
       expect(annotationLinksIntact(session), isTrue);
 
-      session.set(diveNotesField, '${broken.notes} [x](annotation:abc');
+      session.set(diveNotesField, '${broken.notes} more');
+      expect(annotationLinksIntact(session), isTrue);
+
+      // The turtle's link loses its closing parenthesis.
+      session.set(
+        diveNotesField,
+        broken.notes.replaceFirst('$storedId)', storedId),
+      );
       expect(annotationLinksIntact(session), isFalse);
     });
 
