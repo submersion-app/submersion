@@ -42,7 +42,28 @@ void main() {
     expect(seed.endDate, DateTime(2026, 3, 17, 9, 30));
     expect(seed.durationDays, 8);
     expect(seed.isShared, isTrue);
+    // No plan yet: the planning numbers are none, one diver per cylinder.
+    expect(seed.expectedDives, isNull);
+    expect(seed.expectedRuntimeMinutes, isNull);
+    expect(seed.divesPerDayTarget, isNull);
+    expect(seed.diversSharingCylinders, 1);
     expect(EditSession(seed, isNew: true).isDirty, isFalse);
+  });
+
+  // A week holding a change of clock (New York falls back on 1 November
+  // 2026), opened just after midnight: seven calendar days on, not seven
+  // days of elapsed time, which would end the evening before. CI runs this
+  // file under America/New_York in its Timezone Tests job.
+  test('a seed opened just after midnight in a week the clocks change is '
+      'eight calendar days', () async {
+    final now = DateTime(2026, 10, 26, 0, 30);
+    final seed = await withClock(
+      Clock.fixed(now),
+      () => newTripSeed(container(shared: true).read, id: 'n1'),
+    );
+
+    expect(seed.endDate, DateTime(2026, 11, 2, 0, 30));
+    expect(seed.durationDays, 8);
   });
 
   test('sharing by default arrives before the sitting opens', () async {
