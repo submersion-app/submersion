@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion_vision/onnx_runtime.dart';
 
 import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
@@ -196,39 +197,50 @@ void main() {
     expect(hardware.asked, isEmpty);
   });
 
-  group('a device the app ended on while opening models', () {
+  group('a device the app ended on while using it', () {
     const all = [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu];
 
-    test('is skipped the next time', () async {
-      // The worker's note, left behind because the app ended mid-open.
-      OpeningNote(
-        DeviceCrashGuard(guardDir).openingNotePath,
-      ).opening(OrtDevice.hardware);
+    /// As if the app ended while [device] was opening or running a model.
+    void endedOn(OrtDevice device) =>
+        OpeningNote(DeviceCrashGuard(guardDir).openingNotePath).opening(device);
+
+    test('once is forgiven: closing the app mid-load is not a crash', () async {
+      endedOn(OrtDevice.hardware);
 
       await engine(TargetPlatform.windows, FakeHardware()).load(_models);
 
-      expect(seenDevices, [OrtDevice.directMl, OrtDevice.cpu]);
+      expect(seenDevices, all);
     });
 
-    test(
-      'the device named is the one skipped, and never the processor',
-      () async {
-        final guard = DeviceCrashGuard(guardDir);
-        final note = OpeningNote(guard.openingNotePath);
+    test('twice in a row is skipped from then on', () async {
+      final guard = DeviceCrashGuard(guardDir);
+      endedOn(OrtDevice.hardware);
+      expect(await guard.devicesFor(all), all);
+      endedOn(OrtDevice.hardware);
+      expect(await guard.devicesFor(all), [OrtDevice.directMl, OrtDevice.cpu]);
+      expect(await guard.devicesFor(all), [OrtDevice.directMl, OrtDevice.cpu]);
+    });
 
-        note.opening(OrtDevice.directMl);
-        expect(await guard.devicesFor(all), [
-          OrtDevice.hardware,
-          OrtDevice.cpu,
-        ]);
-        note.opening(OrtDevice.hardware);
-        expect(await guard.devicesFor(all), [OrtDevice.cpu]);
-        note.opening(OrtDevice.cpu);
-        expect(await guard.devicesFor(all), [OrtDevice.cpu]);
-      },
-    );
+    test('a load that completes clears a single strike', () async {
+      endedOn(OrtDevice.hardware);
+      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+      endedOn(OrtDevice.hardware);
 
-    test('the worker is told where to note each open', () async {
+      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+
+      expect(seenDevices, all);
+    });
+
+    test('the processor is never skipped', () async {
+      final guard = DeviceCrashGuard(guardDir);
+      for (final device in [...all, ...all]) {
+        endedOn(device);
+        await guard.devicesFor(all);
+      }
+      expect(await guard.devicesFor(all), [OrtDevice.cpu]);
+    });
+
+    test('the worker is told where to note each open and first run', () async {
       await engine(TargetPlatform.windows, FakeHardware()).load(_models);
 
       expect(seenNote, DeviceCrashGuard(guardDir).openingNotePath);
@@ -236,32 +248,53 @@ void main() {
 
     test('notes that cannot be written never fail anything', () async {
       // A file where the guard's folder should be: every note fails.
-      final blocked = File('${guardDir.path}${Platform.pathSeparator}blocked')
+      final blocked = File(p.join(guardDir.path, 'blocked'))
         ..writeAsStringSync('in the way');
       final guard = DeviceCrashGuard(Directory(blocked.path));
       final note = OpeningNote(guard.openingNotePath);
 
       note.opening(OrtDevice.hardware);
-      note.opened();
+      note.finished();
       expect(await guard.devicesFor(all), all);
-      await guard.reset();
+      await guard.loaded();
+      await guard.forgive(OrtDevice.hardware);
     });
 
-    test('a newly fetched engine gets another chance', () async {
-      OpeningNote(
-        DeviceCrashGuard(guardDir).openingNotePath,
-      ).opening(OrtDevice.hardware);
+    test(
+      'a strike that cannot be saved keeps its note for the next start',
+      () async {
+        final guard = DeviceCrashGuard(guardDir);
+        endedOn(OrtDevice.hardware);
+        // A folder where the strikes file belongs: saving it fails.
+        Directory(p.join(guardDir.path, 'onnx_device_strikes')).createSync();
+
+        await guard.devicesFor(all);
+
+        expect(File(guard.openingNotePath).existsSync(), isTrue);
+      },
+    );
+
+    test('a newly fetched engine gets another chance, and only it', () async {
+      final guard = DeviceCrashGuard(guardDir);
+      for (final device in [OrtDevice.hardware, OrtDevice.hardware]) {
+        endedOn(device);
+        await guard.devicesFor(all);
+      }
+      for (final device in [OrtDevice.directMl, OrtDevice.directMl]) {
+        endedOn(device);
+        await guard.devicesFor(all);
+      }
       final e = engine(
         TargetPlatform.windows,
         FakeHardware(fetched: const [_nv]),
       );
       await e.load(_models);
-      expect(seenDevices, isNot(contains(OrtDevice.hardware)));
+      expect(seenDevices, [OrtDevice.cpu]);
 
       await e.fetchEngine();
       await e.load(_models);
 
-      expect(seenDevices, all);
+      expect(seenDevices, [OrtDevice.hardware, OrtDevice.cpu]);
     });
   });
 }

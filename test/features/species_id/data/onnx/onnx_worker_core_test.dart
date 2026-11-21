@@ -164,6 +164,32 @@ void main() {
     expect(File(path).existsSync(), isFalse);
   });
 
+  test('the first run after each open is watched while it runs, a '
+      'fallback included, and later runs are not', () {
+    final watched = <String>[];
+    failToRun = {OrtDevice.hardware};
+    final c = OnnxWorkerCore(
+      devices: devices,
+      open: (path, device) {
+        final model = FakeModel(path, device, () => failToRun.contains(device));
+        opened.add(model);
+        return model;
+      },
+      firstRuns: _Watcher(watched),
+    );
+
+    c.load(_models);
+    c.analyze(image);
+    c.analyze(image);
+
+    expect(watched, [
+      'starting hardware',
+      'finished',
+      'starting directMl',
+      'finished',
+    ]);
+  });
+
   test('failing on DirectML too lands on the processor', () {
     failToRun = {OrtDevice.hardware, OrtDevice.directMl};
     final c = core()..load(_models);
@@ -216,4 +242,16 @@ void main() {
       ),
     );
   });
+}
+
+class _Watcher implements FirstRunWatcher {
+  _Watcher(this.calls);
+
+  final List<String> calls;
+
+  @override
+  void starting(OrtDevice device) => calls.add('starting ${device.name}');
+
+  @override
+  void finished() => calls.add('finished');
 }

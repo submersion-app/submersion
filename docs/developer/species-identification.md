@@ -111,10 +111,12 @@ ONNX Runtime's own prefer-GPU policy does it on a PC without a display driver
 (`docs/design/findings/2026-11-20-windows-ml-unpackaged.md`). A vendor engine
 that is not on the PC is fetched once, as part of the pack's download; an
 installed one is prepared again at each launch, which downloads nothing. A
-device that ends the app while a model opens on it, at the first load or in a
-fallback after a failed run, is skipped from then on (`device_crash_guard.dart`:
-the worker notes each device before opening a model there; never the
-processor), so one bad driver cannot make the app close at every launch.
+device that ends the app twice in a row while a model opens on it or first
+runs there, at the first load or in a fallback after a failed run, is skipped
+from then on (`device_crash_guard.dart`: the worker notes each device before
+opening or first running a model there; one strike is forgiven, since closing
+the app mid-load leaves the same note, and a completed load clears it; never
+the processor), so one bad driver cannot make the app close at every launch.
 
 Devices need 8 GB at launch (`androidMinimumMemoryBytes` and
 `pcMinimumMemoryBytes` in `device_memory.dart`, 6.5 GiB as reported). A build

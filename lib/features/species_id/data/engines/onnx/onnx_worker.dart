@@ -158,7 +158,9 @@ class OnnxWorker implements OnnxWorkerHandle {
     if (device != null && _device != null && device != _device) {
       _log.info('Marine life models moved to $device');
     }
-    if (device != null) _device = device;
+    // A reply with no device means the models closed; the next load is
+    // logged by the engine, not as a move.
+    _device = device;
     return value;
   }
 
@@ -259,8 +261,9 @@ void _workerMain(
       ),
     ),
   );
-  if (notePath != null) open = noteOpens(open, OpeningNote(notePath));
-  final core = OnnxWorkerCore(open: open, devices: devices);
+  final note = notePath == null ? null : OpeningNote(notePath);
+  if (note != null) open = noteOpens(open, note);
+  final core = OnnxWorkerCore(open: open, devices: devices, firstRuns: note);
   final requests = ReceivePort();
   ready.send(requests.sendPort);
   requests.listen((message) {

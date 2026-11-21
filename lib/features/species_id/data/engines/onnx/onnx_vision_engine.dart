@@ -169,6 +169,8 @@ class OnnxVisionEngine
     _loaded = null;
     final device = await _fromWorker((await _workerHandle()).load(models));
     _log.info('Marine life models open on ${device ?? 'an unknown device'}');
+    // The app got through a load: a single strike was not a crash.
+    if (_customWorker == null) await _crashGuard?.loaded();
     _loaded = models;
     _observe();
   });
@@ -411,7 +413,7 @@ class OnnxVisionEngine
     if (!_runsHere || !_onWindows) return false;
     final arrived = await _hardware.fetchEngine();
     if (arrived) {
-      await _crashGuard?.reset();
+      await _crashGuard?.forgive(OrtDevice.hardware);
       await _serial(() async {
         _loaded = null;
         _dropWorker();
