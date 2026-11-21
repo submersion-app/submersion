@@ -56139,7 +56139,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get speciesReview_resume => 'Hervatten';
 
   @override
-  String get speciesReview_allChecked => 'Alle foto\'s gecontroleerd';
+  String get speciesReview_checkAgain => 'Opnieuw controleren';
+
+  @override
+  String get speciesReview_checkAgainTitle => 'Deze duik opnieuw controleren?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'Alle foto\'s en video\'s van deze duik worden opnieuw geanalyseerd. Je soortlabels blijven behouden. Suggesties die je hebt genegeerd komen terug.';
 
   @override
   String speciesReview_count(int count) {

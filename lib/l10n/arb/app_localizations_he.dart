@@ -55308,7 +55308,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get speciesReview_resume => 'המשך';
 
   @override
-  String get speciesReview_allChecked => 'כל התמונות נבדקו';
+  String get speciesReview_checkAgain => 'בדיקה חוזרת';
+
+  @override
+  String get speciesReview_checkAgainTitle => 'לבדוק את הצלילה הזו שוב?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'כל התמונות והסרטונים בצלילה הזו ינותחו מחדש. תגיות המינים שלך נשמרות. הצעות שדחית יחזרו.';
 
   @override
   String speciesReview_count(int count) {

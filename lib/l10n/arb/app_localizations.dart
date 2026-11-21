@@ -88571,11 +88571,23 @@ abstract class AppLocalizations {
   /// **'Resume'**
   String get speciesReview_resume;
 
-  /// No description provided for @speciesReview_allChecked.
+  /// No description provided for @speciesReview_checkAgain.
   ///
   /// In en, this message translates to:
-  /// **'All photos checked'**
-  String get speciesReview_allChecked;
+  /// **'Check again'**
+  String get speciesReview_checkAgain;
+
+  /// No description provided for @speciesReview_checkAgainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check this dive again?'**
+  String get speciesReview_checkAgainTitle;
+
+  /// No description provided for @speciesReview_checkAgainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive is analysed again. Your species tags stay. Suggestions you dismissed come back.'**
+  String get speciesReview_checkAgainBody;
 
   /// No description provided for @speciesReview_count.
   ///

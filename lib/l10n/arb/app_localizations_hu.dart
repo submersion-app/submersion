@@ -56189,7 +56189,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get speciesReview_resume => 'Folytatás';
 
   @override
-  String get speciesReview_allChecked => 'Minden fotó ellenőrizve';
+  String get speciesReview_checkAgain => 'Ellenőrzés újra';
+
+  @override
+  String get speciesReview_checkAgainTitle => 'Újra ellenőrzi ezt a merülést?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'A merülés minden fotóját és videóját újra elemzi az alkalmazás. A fajcímkék megmaradnak. Az elvetett javaslatok visszatérnek.';
 
   @override
   String speciesReview_count(int count) {

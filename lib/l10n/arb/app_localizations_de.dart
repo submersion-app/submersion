@@ -56362,7 +56362,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get speciesReview_resume => 'Fortsetzen';
 
   @override
-  String get speciesReview_allChecked => 'Alle Fotos geprüft';
+  String get speciesReview_checkAgain => 'Erneut prüfen';
+
+  @override
+  String get speciesReview_checkAgainTitle => 'Diesen Tauchgang erneut prüfen?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'Alle Fotos und Videos dieses Tauchgangs werden erneut analysiert. Deine Arten-Tags bleiben erhalten. Verworfene Vorschläge erscheinen wieder.';
 
   @override
   String speciesReview_count(int count) {

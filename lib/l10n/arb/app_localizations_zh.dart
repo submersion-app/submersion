@@ -52970,7 +52970,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get speciesReview_resume => '继续';
 
   @override
-  String get speciesReview_allChecked => '所有照片均已检查';
+  String get speciesReview_checkAgain => '再次检查';
+
+  @override
+  String get speciesReview_checkAgainTitle => '再次检查此次潜水？';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      '此次潜水的所有照片和视频将重新分析。你的物种标签会保留。你忽略的建议将重新出现。';
 
   @override
   String speciesReview_count(int count) {

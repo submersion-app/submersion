@@ -57289,7 +57289,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get speciesReview_resume => 'استئناف';
 
   @override
-  String get speciesReview_allChecked => 'تم فحص جميع الصور';
+  String get speciesReview_checkAgain => 'التحقق مرة أخرى';
+
+  @override
+  String get speciesReview_checkAgainTitle =>
+      'هل تريد التحقق من هذه الغطسة مرة أخرى؟';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'سيُعاد تحليل كل الصور ومقاطع الفيديو في هذه الغطسة. تبقى وسوم الأنواع كما هي. الاقتراحات التي رفضتها ستعود للظهور.';
 
   @override
   String speciesReview_count(int count) {

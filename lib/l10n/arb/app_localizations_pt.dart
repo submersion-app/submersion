@@ -56480,7 +56480,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get speciesReview_resume => 'Retomar';
 
   @override
-  String get speciesReview_allChecked => 'Todas as fotos verificadas';
+  String get speciesReview_checkAgain => 'Verificar novamente';
+
+  @override
+  String get speciesReview_checkAgainTitle =>
+      'Verificar este mergulho novamente?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'Todas as fotos e vídeos deste mergulho são analisados novamente. Suas etiquetas de espécies permanecem. As sugestões que você dispensou voltam a aparecer.';
 
   @override
   String speciesReview_count(int count) {

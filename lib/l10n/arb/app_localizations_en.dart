@@ -55615,7 +55615,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get speciesReview_resume => 'Resume';
 
   @override
-  String get speciesReview_allChecked => 'All photos checked';
+  String get speciesReview_checkAgain => 'Check again';
+
+  @override
+  String get speciesReview_checkAgainTitle => 'Check this dive again?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'Every photo and video on this dive is analysed again. Your species tags stay. Suggestions you dismissed come back.';
 
   @override
   String speciesReview_count(int count) {
