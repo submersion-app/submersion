@@ -52851,6 +52851,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_listLocked => '解锁后可添加或忽略';
 
   @override
+  String get media_labels_action => '海洋生物标签';
+
+  @override
+  String get media_labels_names => '名称';
+
+  @override
+  String get media_labels_allLife => '所有生物';
+
+  @override
+  String get media_labels_off => '关闭';
+
+  @override
+  String get media_labels_analyse => '分析';
+
+  @override
+  String get media_labels_analyseAgain => '重新分析';
+
+  @override
+  String get media_labels_statusNoModel => '未安装物种模型';
+
+  @override
+  String get media_labels_statusNotAnalysed => '尚未分析';
+
+  @override
+  String get media_labels_statusAnalysing => '正在分析...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return '正在分析，$percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '发现 $count 个',
+      zero: '未发现任何内容',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => '可能的匹配';
 
   @override

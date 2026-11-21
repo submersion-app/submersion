@@ -56243,6 +56243,50 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zum Hinzufügen oder Verwerfen entsperren';
 
   @override
+  String get media_labels_action => 'Meereslebewesen-Beschriftungen';
+
+  @override
+  String get media_labels_names => 'Namen';
+
+  @override
+  String get media_labels_allLife => 'Alle Lebewesen';
+
+  @override
+  String get media_labels_off => 'Aus';
+
+  @override
+  String get media_labels_analyse => 'Analysieren';
+
+  @override
+  String get media_labels_analyseAgain => 'Erneut analysieren';
+
+  @override
+  String get media_labels_statusNoModel => 'Kein Artenmodell installiert';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Noch nicht analysiert';
+
+  @override
+  String get media_labels_statusAnalysing => 'Wird analysiert...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Wird analysiert, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gefunden',
+      one: '$count gefunden',
+      zero: 'Nichts gefunden',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Mögliche Treffer';
 
   @override

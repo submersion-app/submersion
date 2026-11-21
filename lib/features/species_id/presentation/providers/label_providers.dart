@@ -11,7 +11,11 @@ import 'package:submersion/features/species_id/data/services/media_identificatio
 import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
+import 'package:submersion/features/species_id/domain/services/labels_menu_model.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+
+export 'package:submersion/features/species_id/domain/services/labels_menu_model.dart'
+    show MediaAnalysisState;
 
 /// What the viewer draws over photos and videos for the animals the app
 /// found (issue #4825): one choice on this device, for both.
@@ -99,22 +103,6 @@ class AnalysisTarget extends Equatable {
 
   @override
   List<Object?> get props => [item.id, item.mediaType, location];
-}
-
-/// How far the app has looked at a photo or video.
-enum MediaAnalysisState {
-  /// No species model is installed.
-  noModel,
-
-  /// Never looked at.
-  notAnalysed,
-
-  /// Looked at, but not as the installed model would leave it: by another
-  /// model, for another place, or a video scanned only in part.
-  partial,
-
-  /// Looked at; analysing it would find nothing to do.
-  analysed,
 }
 
 /// A photo or video's analysis, and how many animals it holds (those the

@@ -57167,6 +57167,53 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_listLocked => 'افتح القفل للإضافة أو الرفض';
 
   @override
+  String get media_labels_action => 'تسميات الحياة البحرية';
+
+  @override
+  String get media_labels_names => 'الأسماء';
+
+  @override
+  String get media_labels_allLife => 'كل الكائنات';
+
+  @override
+  String get media_labels_off => 'إيقاف';
+
+  @override
+  String get media_labels_analyse => 'تحليل';
+
+  @override
+  String get media_labels_analyseAgain => 'التحليل مرة أخرى';
+
+  @override
+  String get media_labels_statusNoModel => 'لا يوجد نموذج أنواع مثبت';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'لم يُحلَّل بعد';
+
+  @override
+  String get media_labels_statusAnalysing => 'جارٍ التحليل...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'جارٍ التحليل، $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عُثر على $count',
+      many: 'عُثر على $count',
+      few: 'عُثر على $count',
+      two: 'عُثر على اثنين',
+      one: 'عُثر على واحد',
+      zero: 'لم يُعثر على شيء',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
 
   @override

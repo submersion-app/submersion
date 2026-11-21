@@ -55190,6 +55190,50 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_listLocked => 'בטל את הנעילה כדי להוסיף או לדחות';
 
   @override
+  String get media_labels_action => 'תוויות חיים ימיים';
+
+  @override
+  String get media_labels_names => 'שמות';
+
+  @override
+  String get media_labels_allLife => 'כל היצורים';
+
+  @override
+  String get media_labels_off => 'כבוי';
+
+  @override
+  String get media_labels_analyse => 'ניתוח';
+
+  @override
+  String get media_labels_analyseAgain => 'ניתוח מחדש';
+
+  @override
+  String get media_labels_statusNoModel => 'לא מותקן מודל מינים';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'עדיין לא נותח';
+
+  @override
+  String get media_labels_statusAnalysing => 'מנתח...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'מנתח, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נמצאו $count',
+      one: 'נמצא אחד',
+      zero: 'לא נמצא דבר',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'התאמות אפשריות';
 
   @override

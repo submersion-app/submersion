@@ -56071,6 +56071,50 @@ class AppLocalizationsHu extends AppLocalizations {
       'Oldja fel a hozzáadáshoz vagy elvetéshez';
 
   @override
+  String get media_labels_action => 'Tengeri élővilág címkéi';
+
+  @override
+  String get media_labels_names => 'Nevek';
+
+  @override
+  String get media_labels_allLife => 'Minden élőlény';
+
+  @override
+  String get media_labels_off => 'Ki';
+
+  @override
+  String get media_labels_analyse => 'Elemzés';
+
+  @override
+  String get media_labels_analyseAgain => 'Újraelemzés';
+
+  @override
+  String get media_labels_statusNoModel => 'Nincs telepítve fajmodell';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Még nincs elemezve';
+
+  @override
+  String get media_labels_statusAnalysing => 'Elemzés folyamatban...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Elemzés folyamatban, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count találat',
+      one: '$count találat',
+      zero: 'Nincs találat',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';
 
   @override

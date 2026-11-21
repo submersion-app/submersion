@@ -123,4 +123,16 @@ void main() {
     expect(pill, findsNothing);
     expect(dot, findsNothing);
   });
+
+  testWidgets('the toolbar\'s labels button opens the menu, and a mode '
+      'picked there is drawn', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(const ValueKey('viewer_marine_life_labels')));
+    await settleViewer(tester);
+    expect(find.byKey(const ValueKey('labels_menu_names')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('labels_menu_off')));
+    await settleViewer(tester);
+    expect(pill, findsNothing);
+    expect(dot, findsNothing);
+  });
 }

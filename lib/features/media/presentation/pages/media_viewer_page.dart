@@ -78,6 +78,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_labels.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
+import 'package:submersion/features/species_id/presentation/widgets/labels_menu.dart';
 import 'package:submersion/features/species_id/presentation/widgets/photo_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_playhead_reporter.dart';
@@ -503,7 +504,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 },
                 child: Stack(
                   children: [
-                    // Photo/video gallery
                     RepaintBoundary(
                       key: galleryBoundaryKey,
                       child: _PhotoGallery(
@@ -597,9 +597,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       location: _photoLocation(currentItem, diveAsync.value),
                     ),
 
-                    // Overlay controls (app bar and metadata)
-                    // While unlocked the bar never hides: it holds Cancel and
-                    // Save.
+                    // The controls; while unlocked the bar never hides: it
+                    // holds Cancel and Save.
                     if ((_showOverlay || photoUnlocked) &&
                         !isFullscreen &&
                         !pickingWhite) ...[
@@ -614,6 +613,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         perdixToggleAvailable: perdixToggleAvailable,
                         perdixEnabled: settings.perdixOverlayEnabled,
                         storedPhoto: storedPhoto,
+                        location: _photoLocation(currentItem, diveAsync.value),
                       ),
 
                       // What colour correction the item is drawn with.

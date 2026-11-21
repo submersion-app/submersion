@@ -56020,6 +56020,50 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ontgrendel om toe te voegen of te negeren';
 
   @override
+  String get media_labels_action => 'Labels voor zeeleven';
+
+  @override
+  String get media_labels_names => 'Namen';
+
+  @override
+  String get media_labels_allLife => 'Al het leven';
+
+  @override
+  String get media_labels_off => 'Uit';
+
+  @override
+  String get media_labels_analyse => 'Analyseren';
+
+  @override
+  String get media_labels_analyseAgain => 'Opnieuw analyseren';
+
+  @override
+  String get media_labels_statusNoModel => 'Geen soortenmodel geïnstalleerd';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Nog niet geanalyseerd';
+
+  @override
+  String get media_labels_statusAnalysing => 'Bezig met analyseren...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Bezig met analyseren, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gevonden',
+      one: '$count gevonden',
+      zero: 'Niets gevonden',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';
 
   @override

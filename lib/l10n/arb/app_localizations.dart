@@ -88379,6 +88379,72 @@ abstract class AppLocalizations {
   /// **'Unlock to add or dismiss'**
   String get media_species_listLocked;
 
+  /// No description provided for @media_labels_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine life labels'**
+  String get media_labels_action;
+
+  /// No description provided for @media_labels_names.
+  ///
+  /// In en, this message translates to:
+  /// **'Names'**
+  String get media_labels_names;
+
+  /// No description provided for @media_labels_allLife.
+  ///
+  /// In en, this message translates to:
+  /// **'All life'**
+  String get media_labels_allLife;
+
+  /// No description provided for @media_labels_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get media_labels_off;
+
+  /// No description provided for @media_labels_analyse.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyse'**
+  String get media_labels_analyse;
+
+  /// No description provided for @media_labels_analyseAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyse again'**
+  String get media_labels_analyseAgain;
+
+  /// No description provided for @media_labels_statusNoModel.
+  ///
+  /// In en, this message translates to:
+  /// **'No species model installed'**
+  String get media_labels_statusNoModel;
+
+  /// No description provided for @media_labels_statusNotAnalysed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not analysed yet'**
+  String get media_labels_statusNotAnalysed;
+
+  /// No description provided for @media_labels_statusAnalysing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing...'**
+  String get media_labels_statusAnalysing;
+
+  /// No description provided for @media_labels_statusAnalysingPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing, {percent}'**
+  String media_labels_statusAnalysingPercent(String percent);
+
+  /// No description provided for @media_labels_statusFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}'**
+  String media_labels_statusFound(int count);
+
   /// No description provided for @media_species_possibleMatches.
   ///
   /// In en, this message translates to:

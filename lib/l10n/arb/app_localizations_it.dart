@@ -56372,6 +56372,51 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_species_listLocked => 'Sblocca per aggiungere o ignorare';
 
   @override
+  String get media_labels_action => 'Etichette della vita marina';
+
+  @override
+  String get media_labels_names => 'Nomi';
+
+  @override
+  String get media_labels_allLife => 'Tutta la vita';
+
+  @override
+  String get media_labels_off => 'Disattivate';
+
+  @override
+  String get media_labels_analyse => 'Analizza';
+
+  @override
+  String get media_labels_analyseAgain => 'Analizza di nuovo';
+
+  @override
+  String get media_labels_statusNoModel =>
+      'Nessun modello di specie installato';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Non ancora analizzato';
+
+  @override
+  String get media_labels_statusAnalysing => 'Analisi in corso...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Analisi in corso, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trovati',
+      one: '$count trovato',
+      zero: 'Niente trovato',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Possibili corrispondenze';
 
   @override
