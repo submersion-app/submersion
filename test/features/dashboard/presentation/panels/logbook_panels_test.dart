@@ -355,4 +355,31 @@ void main() {
     );
     expect(find.textContaining(RegExp(r'^18\.4')), findsOneWidget);
   });
+
+  testWidgets('a recent dive row reads as Dive N at its site', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pumpPanel(
+      tester,
+      const RecentDivesPanel(),
+      width: 900,
+      overrides: [
+        recentDivesProvider.overrideWith(
+          (ref) async => [
+            Dive(
+              id: 'd412',
+              diveNumber: 412,
+              dateTime: DateTime.utc(2026, 11, 8),
+              site: const DiveSite(id: 's', name: 'Salt Pier'),
+            ),
+          ],
+        ),
+      ],
+    );
+    final row = find.bySemanticsLabel('Dive 412 at Salt Pier');
+    expect(row, findsOneWidget);
+    final data = tester.getSemantics(row).getSemanticsData();
+    expect(data.hasAction(SemanticsAction.tap), isTrue);
+    expect(data.flagsCollection.isButton, isTrue);
+    handle.dispose();
+  });
 }

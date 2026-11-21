@@ -93,7 +93,26 @@ class RecentDivesPanel extends ConsumerWidget {
             ], head),
             for (final d in list) ...[
               Divider(height: 1, color: theme.colorScheme.outlineVariant),
-              row(cells(d), cell, onTap: () => context.push('/dives/${d.id}')),
+              // One button per dive, read as "Dive 412 at Salt Pier" as the
+              // dive list and buddy pages read their rows.
+              Semantics(
+                container: true,
+                button: true,
+                excludeSemantics: true,
+                label: switch (d.diveNumber) {
+                  final number? => l10n.diveLog_listPage_semanticsDiveAtSite(
+                    number,
+                    d.site?.name ?? d.name ?? '',
+                  ),
+                  null => d.site?.name ?? d.name ?? '',
+                },
+                onTap: () => context.push('/dives/${d.id}'),
+                child: row(
+                  cells(d),
+                  cell,
+                  onTap: () => context.push('/dives/${d.id}'),
+                ),
+              ),
             ],
           ],
         ),
