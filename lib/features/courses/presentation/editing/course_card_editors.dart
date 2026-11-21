@@ -14,7 +14,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 
 /// The course page's card editors (issue #4527, phase 3). Each sets only
-/// its own card's values, with the edit form's widgets and rules.
+/// its own card's values, with the old edit form's widgets and rules.
 
 /// A text binding of [field], whose blank text is a value (none, for an
 /// optional one).

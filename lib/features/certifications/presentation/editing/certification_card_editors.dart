@@ -23,7 +23,7 @@ import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart
 /// The certification's card editors (issue #4527, phase 3), over any
 /// sitting on a certification: the certification page's, and the dialog a
 /// buddy's certification is edited in. Each sets only its own card's
-/// values, with the edit form's widgets and rules.
+/// values, with the old edit form's widgets and rules.
 
 /// A text binding of [field], whose blank text is a value (none, for an
 /// optional one).
@@ -74,18 +74,23 @@ class _CertificationDetailsCardEditorState
   bool _repeatsCredentials(Certification cert) =>
       hasDerivedName(cert, catalog: context.certificationCatalog);
 
-  /// Sets the recognitions. A stored name that repeated the old agency and
-  /// level is cleared with them, as the old form's blank field saved it:
-  /// kept, it would read as a custom title on the new one. A title typed in
-  /// this sitting is the diver's own, and stays.
+  /// Sets the recognitions. A stored name that only repeats the stored
+  /// agency and level, which the field shows blank, follows them: cleared
+  /// once they change, as the old form's blank field saved it (kept, it
+  /// would read as a custom title on the new ones), and back when they
+  /// return, so a change undone leaves nothing to save. A title the diver
+  /// can see, stored or typed in this sitting, is theirs and stays.
   void _setRows(List<CertificationCredential> rows) {
-    final working = _session.working;
-    final repeated =
-        working.name == _session.stored.name && _repeatsCredentials(working);
+    final stored = _session.stored;
+    final title = _session.valueOf(certificationTitleField);
+    final follows =
+        (title == stored.name || title.isEmpty) && _repeatsCredentials(stored);
     _session.set(certificationCredentialsField, rows);
-    if (repeated && !_repeatsCredentials(_session.working)) {
-      _session.set(certificationTitleField, '');
-    }
+    if (!follows) return;
+    final repeats = _repeatsCredentials(
+      _session.working.copyWith(name: stored.name),
+    );
+    _session.set(certificationTitleField, repeats ? stored.name : '');
   }
 
   @override

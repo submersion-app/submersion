@@ -325,6 +325,64 @@ void main() {
       expect(session.working.name, 'PADI : Open Water');
       expect(titleText(tester), isEmpty);
     });
+
+    // The menu opens on the selected level, scrolled: the one to pick may
+    // be out of its view.
+    Future<void> pickLevel(WidgetTester tester, String level) async {
+      await tester.tap(levelField(0));
+      await tester.pumpAndSettle();
+      final item = find.text(level).last;
+      await tester.ensureVisible(item);
+      await tester.pumpAndSettle();
+      await tester.tap(item);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('comes back with the level it repeats, leaving nothing to '
+        'save', (tester) async {
+      final session = EditSession(derived());
+      addTearDown(session.dispose);
+      await pumpEditor(
+        tester,
+        CertificationDetailsCardEditor(session: session),
+      );
+
+      await pickLevel(tester, 'Advanced Open Water');
+      expect(session.working.name, isEmpty);
+      await pickLevel(tester, 'Open Water');
+
+      expect(session.working.name, 'PADI : Open Water');
+      expect(session.isDirty, isFalse);
+      expect(titleText(tester), isEmpty);
+    });
+
+    // Only a title shown blank follows the credentials: one the diver can
+    // see is theirs, even while a level picked on the way repeats it.
+    testWidgets('a custom title shown stays when the level passes through '
+        'one it repeats', (tester) async {
+      final session = EditSession(
+        Certification(
+          id: 'c1',
+          name: 'Open Water',
+          agency: 'padi',
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+      );
+      addTearDown(session.dispose);
+      await pumpEditor(
+        tester,
+        CertificationDetailsCardEditor(session: session),
+      );
+      expect(titleText(tester), 'Open Water');
+
+      await pickLevel(tester, 'Open Water');
+      await pickLevel(tester, 'Advanced Open Water');
+
+      expect(session.working.level, 'advancedOpenWater');
+      expect(session.working.name, 'Open Water');
+      expect(titleText(tester), 'Open Water');
+    });
   });
 
   testWidgets('Instructor sets only Instructor', (tester) async {
