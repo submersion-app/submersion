@@ -273,4 +273,42 @@ void main() {
       ['c5'],
     );
   });
+
+  testWidgets('a report once the editor has gone holds nothing', (
+    tester,
+  ) async {
+    late EditSession<Course> session;
+    late List<Certification> all;
+    await tester.runAsync(() async {
+      session = EditSession(await stored());
+      await courseCertificationsList.load(session);
+      all = await certifications.getAllCertifications();
+    });
+    addTearDown(session.dispose);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          certificationListNotifierProvider.overrideWith(
+            (ref) => _CertListNotifier(all),
+          ),
+        ],
+        child: Scaffold(
+          body: CourseEarnedCertificationsEditor(session: session),
+        ),
+      ),
+    );
+    await tester.pump();
+    final reportFromSheet = tester
+        .widget<CertificationMultiSelectField>(
+          find.byType(CertificationMultiSelectField),
+        )
+        .onChanged;
+
+    // The course page closed while the new certification's page was open.
+    await tester.pumpWidget(const SizedBox.shrink());
+    reportFromSheet(['c1']);
+
+    expect(courseCertificationsList.current(session), isEmpty);
+  });
 }
