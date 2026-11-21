@@ -13812,6 +13812,12 @@ abstract class AppLocalizations {
   /// **'This dive has no profile to point at. Type the time instead.'**
   String get diveLog_annotation_noProfile;
 
+  /// Error under the Notes editor when the diver has broken the markup of an annotation link, which Save would read as the annotation removed; Save is held until it is fixed
+  ///
+  /// In en, this message translates to:
+  /// **'An annotation\'s link here is broken, so saving would delete the annotation. Mend the link, or delete all of it to remove the annotation.'**
+  String get diveLog_annotation_brokenLink;
+
   /// Primary button of the annotation sheet when the words were selected in the notes
   ///
   /// In en, this message translates to:

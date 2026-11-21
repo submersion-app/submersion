@@ -2966,6 +2966,7 @@
   "diveLog_annotation_time_outsideDive": "Muss innerhalb des Tauchgangs liegen",
   "diveLog_annotation_pickOnProfile": "Oder tippe auf das Profil, um sie zu platzieren",
   "diveLog_annotation_noProfile": "Dieser Tauchgang hat kein Profil zum Antippen. Gib stattdessen die Zeit ein.",
+  "diveLog_annotation_brokenLink": "Der Link einer Anmerkung ist hier beschädigt, deshalb würde Speichern die Anmerkung löschen. Repariere den Link oder lösche ihn ganz, um die Anmerkung zu entfernen.",
   "diveLog_annotation_action_annotate": "Anmerken",
   "diveLog_annotation_action_add": "Hinzufügen",
   "diveLog_annotation_add": "Anmerkung hinzufügen",

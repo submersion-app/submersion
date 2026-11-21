@@ -8748,6 +8748,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze duik heeft geen profiel om aan te wijzen. Typ in plaats daarvan de tijd.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'De link van een annotatie is hier kapot, dus opslaan zou de annotatie verwijderen. Herstel de link, of verwijder hem helemaal om de annotatie te verwijderen.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annoteren';
 
   @override

@@ -8613,6 +8613,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לצלילה זו אין פרופיל להצביע עליו. הזינו את הזמן במקום זאת.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'הקישור של אחד הסימונים כאן פגום, ולכן שמירה תמחק את הסימון. תקנו את הקישור, או מחקו אותו כולו כדי להסיר את הסימון.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'סימון';
 
   @override

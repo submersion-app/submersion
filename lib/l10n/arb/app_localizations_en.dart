@@ -8667,6 +8667,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This dive has no profile to point at. Type the time instead.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'An annotation\'s link here is broken, so saving would delete the annotation. Mend the link, or delete all of it to remove the annotation.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annotate';
 
   @override

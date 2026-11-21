@@ -2940,6 +2940,7 @@
   "diveLog_annotation_time_outsideDive": "Deve estar dentro do mergulho",
   "diveLog_annotation_pickOnProfile": "Ou toque no perfil para posicionar",
   "diveLog_annotation_noProfile": "Este mergulho não tem perfil para apontar. Digite o tempo em vez disso.",
+  "diveLog_annotation_brokenLink": "O link de uma marcação está quebrado aqui, então salvar apagaria a marcação. Conserte o link ou apague-o inteiro para remover a marcação.",
   "diveLog_annotation_action_annotate": "Marcar",
   "diveLog_annotation_action_add": "Adicionar",
   "diveLog_annotation_add": "Adicionar marcação",

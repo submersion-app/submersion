@@ -8823,6 +8823,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette plongée n\'a pas de profil à pointer. Saisissez l\'heure à la place.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'Le lien d\'une annotation est cassé ici : enregistrer supprimerait l\'annotation. Réparez le lien, ou supprimez-le entièrement pour retirer l\'annotation.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annoter';
 
   @override

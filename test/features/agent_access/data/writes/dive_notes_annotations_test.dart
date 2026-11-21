@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -54,5 +55,48 @@ void main() {
     await h.apply(plan);
 
     expect((await event(turtle))!.description, 'Green turtle');
+  });
+
+  // A link damaged rather than dropped would be read as the annotation
+  // removed, so the plan refuses it, as the dive page holds Save (#4815).
+  group('a damaged link', () {
+    test('a link that lost its closing parenthesis is refused, and the '
+        'annotation stays', () async {
+      final stored = await notes();
+      final plan = await h.preview([
+        updateOp('dives', 'd1', {
+          'notes': stored.substring(0, stored.length - 1),
+        }),
+      ]);
+
+      final block = plan.items.single.block;
+      expect(block?.reason, BlockReason.invalidValue);
+      expect(block?.detail, contains('notes'));
+      expect(block?.detail, contains(turtle));
+      expect(await event(turtle), isNotNull);
+    });
+
+    test('a link whose id was edited is refused', () async {
+      final stored = await notes();
+      final plan = await h.preview([
+        updateOp('dives', 'd1', {
+          'notes': stored.replaceFirst(turtle, turtle.substring(0, 8)),
+        }),
+      ]);
+
+      expect(plan.items.single.block?.reason, BlockReason.invalidValue);
+    });
+
+    test('a link to an annotation the dive does not hold loses nothing and '
+        'is planned', () async {
+      final stored = await notes();
+      final plan = await h.preview([
+        updateOp('dives', 'd1', {
+          'notes': '$stored\n\n[Shark](annotation:from-another-dive)',
+        }),
+      ]);
+
+      expect(plan.items.single.block, isNull);
+    });
   });
 }

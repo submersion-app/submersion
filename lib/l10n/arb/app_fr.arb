@@ -2814,6 +2814,7 @@
   "diveLog_annotation_time_outsideDive": "Doit être dans la plongée",
   "diveLog_annotation_pickOnProfile": "Ou touchez le profil pour la placer",
   "diveLog_annotation_noProfile": "Cette plongée n'a pas de profil à pointer. Saisissez l'heure à la place.",
+  "diveLog_annotation_brokenLink": "Le lien d'une annotation est cassé ici : enregistrer supprimerait l'annotation. Réparez le lien, ou supprimez-le entièrement pour retirer l'annotation.",
   "diveLog_annotation_action_annotate": "Annoter",
   "diveLog_annotation_action_add": "Ajouter",
   "diveLog_annotation_add": "Ajouter une annotation",

@@ -2814,6 +2814,7 @@
   "diveLog_annotation_time_outsideDive": "A merülésen belül kell lennie",
   "diveLog_annotation_pickOnProfile": "Vagy koppints a profilra az elhelyezéshez",
   "diveLog_annotation_noProfile": "Ennek a merülésnek nincs profilja, amire mutatni lehetne. Írd be helyette az időt.",
+  "diveLog_annotation_brokenLink": "Itt egy jelölés hivatkozása sérült, ezért a mentés törölné a jelölést. Javítsd ki a hivatkozást, vagy töröld teljesen a jelölés eltávolításához.",
   "diveLog_annotation_action_annotate": "Megjelölés",
   "diveLog_annotation_action_add": "Hozzáadás",
   "diveLog_annotation_add": "Jelölés hozzáadása",

@@ -8796,6 +8796,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieser Tauchgang hat kein Profil zum Antippen. Gib stattdessen die Zeit ein.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'Der Link einer Anmerkung ist hier beschädigt, deshalb würde Speichern die Anmerkung löschen. Repariere den Link oder lösche ihn ganz, um die Anmerkung zu entfernen.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Anmerken';
 
   @override
