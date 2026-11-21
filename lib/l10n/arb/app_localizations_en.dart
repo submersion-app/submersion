@@ -5930,9 +5930,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courses_action_addRequirement => 'Add requirement';
 
   @override
-  String get courses_action_create => 'Create Course';
-
-  @override
   String get courses_action_deleteRequirement => 'Delete requirement';
 
   @override
@@ -5955,12 +5952,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'Retry';
-
-  @override
-  String get courses_action_saveChanges => 'Save Changes';
-
-  @override
-  String get courses_action_saveSemantic => 'Save course';
 
   @override
   String get courses_action_sort => 'Sort';
@@ -6070,11 +6061,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'Start Date';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'Error saving course: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6242,9 +6228,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$shown of $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'Edit Course';
 
   @override
   String get courses_title_new => 'New Course';
@@ -19531,14 +19514,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'Add Species';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return 'Added \"$name\"';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'Back';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'Category';
 
   @override
@@ -19546,56 +19521,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please enter a common name';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint =>
-      'e.g., Ocellaris Clownfish';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'Common Name';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint =>
-      'Brief description of the species...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => 'Description';
 
   @override
-  String get marineLife_speciesEdit_editTitle => 'Edit Species';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'Error loading species: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'Error saving species: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'This species no longer exists.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'Save';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'e.g., Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => 'Scientific Name';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'e.g., Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'Taxonomy Class';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return 'Updated \"$name\"';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'All';
@@ -27660,9 +27595,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documents_edit_newTitle => 'New document';
 
   @override
-  String get documents_edit_editTitle => 'Edit document';
-
-  @override
   String get documents_field_type => 'Type';
 
   @override
@@ -27774,14 +27706,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get documents_deleted => 'Document deleted';
-
-  @override
-  String get documents_saved => 'Document saved';
-
-  @override
-  String documents_error_save(String error) {
-    return 'Couldn\'t save the document: $error';
-  }
 
   @override
   String documents_error_load(String error) {

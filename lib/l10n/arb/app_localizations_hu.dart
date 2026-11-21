@@ -6006,9 +6006,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_action_addRequirement => 'Követelmény hozzáadása';
 
   @override
-  String get courses_action_create => 'Tanfolyam létrehozása';
-
-  @override
   String get courses_action_deleteRequirement => 'Követelmény törlése';
 
   @override
@@ -6031,12 +6028,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'Újra';
-
-  @override
-  String get courses_action_saveChanges => 'Módosítások mentése';
-
-  @override
-  String get courses_action_saveSemantic => 'Tanfolyam mentése';
 
   @override
   String get courses_action_sort => 'Rendezés';
@@ -6149,11 +6140,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'Kezdés dátuma';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'Hiba a tanfolyam mentésekor: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6323,9 +6309,6 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$shown / $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'Tanfolyam szerkesztése';
 
   @override
   String get courses_title_new => 'Új tanfolyam';
@@ -19763,14 +19746,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'Faj hozzáadása';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return '\"$name\" hozzáadva';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'Vissza';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'Kategória';
 
   @override
@@ -19778,54 +19753,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kérem, adja meg a köznapi nevet';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => 'pl. Bohóchal';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'Köznapi név';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint => 'A faj rövid leírása...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => 'Leírás';
 
   @override
-  String get marineLife_speciesEdit_editTitle => 'Faj szerkesztése';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'Hiba a faj betöltésekor: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'Hiba a faj mentésekor: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'Ez a faj már nem létezik.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'Mentés';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'pl. Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => 'Tudományos név';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'pl. Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'Taxonómiai osztály';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return '\"$name\" frissítve';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'Mind';
@@ -28006,9 +27943,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get documents_edit_newTitle => 'Új dokumentum';
 
   @override
-  String get documents_edit_editTitle => 'Dokumentum szerkesztése';
-
-  @override
   String get documents_field_type => 'Típus';
 
   @override
@@ -28120,14 +28054,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get documents_deleted => 'Dokumentum törölve';
-
-  @override
-  String get documents_saved => 'Dokumentum mentve';
-
-  @override
-  String documents_error_save(String error) {
-    return 'A dokumentum mentése nem sikerült: $error';
-  }
 
   @override
   String documents_error_load(String error) {

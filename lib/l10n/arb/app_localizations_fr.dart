@@ -6035,9 +6035,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get courses_action_addRequirement => 'Ajouter une exigence';
 
   @override
-  String get courses_action_create => 'Créer un cours';
-
-  @override
   String get courses_action_deleteRequirement => 'Supprimer l\'exigence';
 
   @override
@@ -6061,12 +6058,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'Réessayer';
-
-  @override
-  String get courses_action_saveChanges => 'Enregistrer les modifications';
-
-  @override
-  String get courses_action_saveSemantic => 'Enregistrer le cours';
 
   @override
   String get courses_action_sort => 'Trier';
@@ -6179,11 +6170,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'Date de début';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'Erreur lors de l\'enregistrement du cours : $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6353,9 +6339,6 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$shown sur $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'Modifier le cours';
 
   @override
   String get courses_title_new => 'Nouveau cours';
@@ -19881,14 +19864,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'Ajouter une espèce';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return '\"$name\" ajoutée';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'Retour';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'Catégorie';
 
   @override
@@ -19896,56 +19871,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Veuillez entrer un nom commun';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint =>
-      'ex. Poisson-clown à trois bandes';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'Nom commun';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint =>
-      'Breve description de l\'espèce...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => 'Description';
 
   @override
-  String get marineLife_speciesEdit_editTitle => 'Modifier l\'espèce';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'Erreur lors du chargement de l\'espèce : $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'Erreur lors de l\'enregistrement de l\'espèce : $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'Cette espèce n\'existe plus.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'Enregistrer';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'ex. Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => 'Nom scientifique';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'ex. Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'Classe taxonomique';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return '\"$name\" mise à jour';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'Tout';
@@ -28211,9 +28146,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get documents_edit_newTitle => 'Nouveau document';
 
   @override
-  String get documents_edit_editTitle => 'Modifier le document';
-
-  @override
   String get documents_field_type => 'Type';
 
   @override
@@ -28326,14 +28258,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get documents_deleted => 'Document supprimé';
-
-  @override
-  String get documents_saved => 'Document enregistré';
-
-  @override
-  String documents_error_save(String error) {
-    return 'Impossible d\'enregistrer le document : $error';
-  }
 
   @override
   String documents_error_load(String error) {

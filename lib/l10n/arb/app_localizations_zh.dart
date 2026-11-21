@@ -5693,9 +5693,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_action_addRequirement => '添加要求';
 
   @override
-  String get courses_action_create => '创建课程';
-
-  @override
   String get courses_action_deleteRequirement => '删除要求';
 
   @override
@@ -5718,12 +5715,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_action_retry => '重试';
-
-  @override
-  String get courses_action_saveChanges => '保存更改';
-
-  @override
-  String get courses_action_saveSemantic => '保存课程';
 
   @override
   String get courses_action_sort => '排序';
@@ -5831,11 +5822,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_label_startDate => '开始日期';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return '保存课程时出错：$error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6001,9 +5987,6 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$shown / $_temp0';
   }
-
-  @override
-  String get courses_title_edit => '编辑课程';
 
   @override
   String get courses_title_new => '新课程';
@@ -18844,67 +18827,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => '添加物种';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return '已添加 \"$name\"';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => '返回';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => '类别';
 
   @override
   String get marineLife_speciesEdit_commonNameError => '请输入常用名';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => '例如，公子小丑鱼';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => '常用名';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint => '物种的简要描述...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => '描述';
 
   @override
-  String get marineLife_speciesEdit_editTitle => '编辑物种';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return '加载物种出错：$error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return '保存物种出错：$error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage => '该物种已不存在。';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => '保存';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      '例如 Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => '学名';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => '例如 Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => '分类纲';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return '已更新\"$name\"';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => '全部';
@@ -26523,9 +26461,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get documents_edit_newTitle => '新建文档';
 
   @override
-  String get documents_edit_editTitle => '编辑文档';
-
-  @override
   String get documents_field_type => '类型';
 
   @override
@@ -26635,14 +26570,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get documents_deleted => '文档已删除';
-
-  @override
-  String get documents_saved => '文档已保存';
-
-  @override
-  String documents_error_save(String error) {
-    return '无法保存文档：$error';
-  }
 
   @override
   String documents_error_load(String error) {

@@ -6021,9 +6021,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_action_addRequirement => 'Anforderung hinzufügen';
 
   @override
-  String get courses_action_create => 'Kurs erstellen';
-
-  @override
   String get courses_action_deleteRequirement => 'Anforderung löschen';
 
   @override
@@ -6047,12 +6044,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'Wiederholen';
-
-  @override
-  String get courses_action_saveChanges => 'Änderungen speichern';
-
-  @override
-  String get courses_action_saveSemantic => 'Kurs speichern';
 
   @override
   String get courses_action_sort => 'Sortieren';
@@ -6164,11 +6155,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'Startdatum';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'Fehler beim Speichern des Kurses: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6339,9 +6325,6 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$shown von $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'Kurs bearbeiten';
 
   @override
   String get courses_title_new => 'Neuer Kurs';
@@ -19798,14 +19781,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'Art hinzufügen';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return '\"$name\" hinzugefügt';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'Zurück';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'Kategorie';
 
   @override
@@ -19813,57 +19788,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bitte gib einen allgemeinen Namen ein';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint =>
-      'z.B. Falscher Clownfisch';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'Allgemeiner Name';
 
   @override
-  String get marineLife_speciesEdit_descriptionHint =>
-      'Kurze Beschreibung der Art...';
-
-  @override
   String get marineLife_speciesEdit_descriptionLabel => 'Beschreibung';
-
-  @override
-  String get marineLife_speciesEdit_editTitle => 'Art bearbeiten';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'Fehler beim Laden der Art: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'Fehler beim Speichern der Art: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'Diese Art existiert nicht mehr.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'Speichern';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'z.B. Amphiprion ocellaris';
 
   @override
   String get marineLife_speciesEdit_scientificNameLabel =>
       'Wissenschaftlicher Name';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'z.B. Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'Taxonomische Klasse';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return '\"$name\" aktualisiert';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'Alle';
@@ -28077,9 +28012,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get documents_edit_newTitle => 'Neues Dokument';
 
   @override
-  String get documents_edit_editTitle => 'Dokument bearbeiten';
-
-  @override
   String get documents_field_type => 'Art';
 
   @override
@@ -28192,14 +28124,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get documents_deleted => 'Dokument gelöscht';
-
-  @override
-  String get documents_saved => 'Dokument gespeichert';
-
-  @override
-  String documents_error_save(String error) {
-    return 'Das Dokument konnte nicht gespeichert werden: $error';
-  }
 
   @override
   String documents_error_load(String error) {

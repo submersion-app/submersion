@@ -5888,9 +5888,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_action_addRequirement => 'הוסף דרישה';
 
   @override
-  String get courses_action_create => 'צור קורס';
-
-  @override
   String get courses_action_deleteRequirement => 'מחק דרישה';
 
   @override
@@ -5913,12 +5910,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'נסה שוב';
-
-  @override
-  String get courses_action_saveChanges => 'שמור שינויים';
-
-  @override
-  String get courses_action_saveSemantic => 'שמור קורס';
 
   @override
   String get courses_action_sort => 'מיין';
@@ -6027,11 +6018,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'תאריך התחלה';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'שגיאה בשמירת קורס: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6198,9 +6184,6 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$shown מתוך $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'ערוך קורס';
 
   @override
   String get courses_title_new => 'קורס חדש';
@@ -19393,68 +19376,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'הוסף מין';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return 'נוסף \"$name\"';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'חזרה';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'קטגוריה';
 
   @override
   String get marineLife_speciesEdit_commonNameError => 'נא להזין שם נפוץ';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => 'לדוגמה, דג ליצן';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'שם נפוץ';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint => 'תיאור קצר של המין...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => 'תיאור';
 
   @override
-  String get marineLife_speciesEdit_editTitle => 'ערוך מין';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'שגיאה בטעינת מין: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'שגיאה בשמירת מין: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage => 'מין זה כבר אינו קיים.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'שמירה';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'לדוגמה, Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => 'שם מדעי';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint =>
-      'לדוגמה, Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'מחלקה טקסונומית';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return 'עודכן \"$name\"';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'הכל';
@@ -27426,9 +27363,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get documents_edit_newTitle => 'מסמך חדש';
 
   @override
-  String get documents_edit_editTitle => 'עריכת מסמך';
-
-  @override
   String get documents_field_type => 'סוג';
 
   @override
@@ -27540,14 +27474,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get documents_deleted => 'המסמך נמחק';
-
-  @override
-  String get documents_saved => 'המסמך נשמר';
-
-  @override
-  String documents_error_save(String error) {
-    return 'לא ניתן לשמור את המסמך: $error';
-  }
 
   @override
   String documents_error_load(String error) {

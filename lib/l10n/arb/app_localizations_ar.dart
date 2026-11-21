@@ -6127,9 +6127,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_action_addRequirement => 'إضافة متطلب';
 
   @override
-  String get courses_action_create => 'إنشاء دورة';
-
-  @override
   String get courses_action_deleteRequirement => 'حذف المتطلب';
 
   @override
@@ -6152,12 +6149,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'إعادة المحاولة';
-
-  @override
-  String get courses_action_saveChanges => 'حفظ التغييرات';
-
-  @override
-  String get courses_action_saveSemantic => 'حفظ الدورة';
 
   @override
   String get courses_action_sort => 'ترتيب';
@@ -6267,11 +6258,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'تاريخ البدء';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'خطأ في حفظ الدورة: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6444,9 +6430,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$shown من $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'تعديل الدورة';
 
   @override
   String get courses_title_new => 'دورة جديدة';
@@ -20074,14 +20057,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'إضافة نوع';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return 'تمت إضافة \"$name\"';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'رجوع';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'الفئة';
 
   @override
@@ -20089,54 +20064,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'يرجى إدخال الاسم الشائع';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => 'مثال: سمكة المهرج';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'الاسم الشائع';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint => 'وصف مختصر للنوع...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => 'الوصف';
 
   @override
-  String get marineLife_speciesEdit_editTitle => 'تعديل النوع';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'خطأ في تحميل النوع: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'خطأ في حفظ النوع: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'لم يعد هذا النوع موجودًا.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'حفظ';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'مثال: Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => 'الاسم العلمي';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'مثال: Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'الصنف التصنيفي';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return 'تم تحديث \"$name\"';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'الكل';
@@ -28417,9 +28354,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get documents_edit_newTitle => 'مستند جديد';
 
   @override
-  String get documents_edit_editTitle => 'تعديل المستند';
-
-  @override
   String get documents_field_type => 'النوع';
 
   @override
@@ -28534,14 +28468,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get documents_deleted => 'تم حذف المستند';
-
-  @override
-  String get documents_saved => 'تم حفظ المستند';
-
-  @override
-  String documents_error_save(String error) {
-    return 'تعذّر حفظ المستند: $error';
-  }
 
   @override
   String documents_error_load(String error) {

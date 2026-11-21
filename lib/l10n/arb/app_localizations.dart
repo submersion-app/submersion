@@ -9390,12 +9390,6 @@ abstract class AppLocalizations {
   /// **'Add requirement'**
   String get courses_action_addRequirement;
 
-  /// No description provided for @courses_action_create.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Course'**
-  String get courses_action_create;
-
   /// No description provided for @courses_action_deleteRequirement.
   ///
   /// In en, this message translates to:
@@ -9443,18 +9437,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get courses_action_retry;
-
-  /// No description provided for @courses_action_saveChanges.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get courses_action_saveChanges;
-
-  /// No description provided for @courses_action_saveSemantic.
-  ///
-  /// In en, this message translates to:
-  /// **'Save course'**
-  String get courses_action_saveSemantic;
 
   /// No description provided for @courses_action_sort.
   ///
@@ -9653,12 +9635,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Date'**
   String get courses_label_startDate;
-
-  /// No description provided for @courses_message_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving course: {error}'**
-  String courses_message_errorSaving(Object error);
 
   /// No description provided for @courses_message_exportFailed.
   ///
@@ -9917,12 +9893,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{shown} of {total, plural, =1{{total} course} other{{total} courses}}'**
   String courses_list_countFiltered(int shown, int total);
-
-  /// No description provided for @courses_title_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Course'**
-  String get courses_title_edit;
 
   /// No description provided for @courses_title_new.
   ///
@@ -31608,18 +31578,6 @@ abstract class AppLocalizations {
   /// **'Add Species'**
   String get marineLife_speciesEdit_addTitle;
 
-  /// No description provided for @marineLife_speciesEdit_addedSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Added \"{name}\"'**
-  String marineLife_speciesEdit_addedSnackbar(Object name);
-
-  /// No description provided for @marineLife_speciesEdit_backTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get marineLife_speciesEdit_backTooltip;
-
   /// No description provided for @marineLife_speciesEdit_categoryLabel.
   ///
   /// In en, this message translates to:
@@ -31632,23 +31590,11 @@ abstract class AppLocalizations {
   /// **'Please enter a common name'**
   String get marineLife_speciesEdit_commonNameError;
 
-  /// No description provided for @marineLife_speciesEdit_commonNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Ocellaris Clownfish'**
-  String get marineLife_speciesEdit_commonNameHint;
-
   /// No description provided for @marineLife_speciesEdit_commonNameLabel.
   ///
   /// In en, this message translates to:
   /// **'Common Name'**
   String get marineLife_speciesEdit_commonNameLabel;
-
-  /// No description provided for @marineLife_speciesEdit_descriptionHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Brief description of the species...'**
-  String get marineLife_speciesEdit_descriptionHint;
 
   /// No description provided for @marineLife_speciesEdit_descriptionLabel.
   ///
@@ -31656,65 +31602,17 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get marineLife_speciesEdit_descriptionLabel;
 
-  /// No description provided for @marineLife_speciesEdit_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Species'**
-  String get marineLife_speciesEdit_editTitle;
-
-  /// No description provided for @marineLife_speciesEdit_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading species: {error}'**
-  String marineLife_speciesEdit_errorLoading(Object error);
-
-  /// No description provided for @marineLife_speciesEdit_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving species: {error}'**
-  String marineLife_speciesEdit_errorSaving(Object error);
-
-  /// No description provided for @marineLife_speciesEdit_notFoundMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'This species no longer exists.'**
-  String get marineLife_speciesEdit_notFoundMessage;
-
-  /// No description provided for @marineLife_speciesEdit_saveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get marineLife_speciesEdit_saveButton;
-
-  /// No description provided for @marineLife_speciesEdit_scientificNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Amphiprion ocellaris'**
-  String get marineLife_speciesEdit_scientificNameHint;
-
   /// No description provided for @marineLife_speciesEdit_scientificNameLabel.
   ///
   /// In en, this message translates to:
   /// **'Scientific Name'**
   String get marineLife_speciesEdit_scientificNameLabel;
 
-  /// No description provided for @marineLife_speciesEdit_taxonomyClassHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Actinopterygii'**
-  String get marineLife_speciesEdit_taxonomyClassHint;
-
   /// No description provided for @marineLife_speciesEdit_taxonomyClassLabel.
   ///
   /// In en, this message translates to:
   /// **'Taxonomy Class'**
   String get marineLife_speciesEdit_taxonomyClassLabel;
-
-  /// No description provided for @marineLife_speciesEdit_updatedSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Updated \"{name}\"'**
-  String marineLife_speciesEdit_updatedSnackbar(Object name);
 
   /// No description provided for @marineLife_speciesManage_allFilter.
   ///
@@ -44644,12 +44542,6 @@ abstract class AppLocalizations {
   /// **'New document'**
   String get documents_edit_newTitle;
 
-  /// No description provided for @documents_edit_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit document'**
-  String get documents_edit_editTitle;
-
   /// No description provided for @documents_field_type.
   ///
   /// In en, this message translates to:
@@ -44841,18 +44733,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Document deleted'**
   String get documents_deleted;
-
-  /// No description provided for @documents_saved.
-  ///
-  /// In en, this message translates to:
-  /// **'Document saved'**
-  String get documents_saved;
-
-  /// No description provided for @documents_error_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t save the document: {error}'**
-  String documents_error_save(String error);
 
   /// No description provided for @documents_error_load.
   ///

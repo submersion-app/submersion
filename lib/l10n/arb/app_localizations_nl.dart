@@ -5986,9 +5986,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_action_addRequirement => 'Vereiste toevoegen';
 
   @override
-  String get courses_action_create => 'Cursus aanmaken';
-
-  @override
   String get courses_action_deleteRequirement => 'Vereiste verwijderen';
 
   @override
@@ -6011,12 +6008,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'Opnieuw proberen';
-
-  @override
-  String get courses_action_saveChanges => 'Wijzigingen opslaan';
-
-  @override
-  String get courses_action_saveSemantic => 'Cursus opslaan';
 
   @override
   String get courses_action_sort => 'Sorteren';
@@ -6128,11 +6119,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'Startdatum';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'Fout bij opslaan cursus: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6302,9 +6288,6 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$shown van $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'Cursus bewerken';
 
   @override
   String get courses_title_new => 'Nieuwe cursus';
@@ -19703,14 +19686,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'Soort toevoegen';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return '\"$name\" toegevoegd';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'Terug';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'Categorie';
 
   @override
@@ -19718,56 +19693,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voer een gewone naam in';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => 'bijv. Valse clownvis';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'Gewone naam';
 
   @override
-  String get marineLife_speciesEdit_descriptionHint =>
-      'Korte beschrijving van de soort...';
-
-  @override
   String get marineLife_speciesEdit_descriptionLabel => 'Beschrijving';
-
-  @override
-  String get marineLife_speciesEdit_editTitle => 'Soort bewerken';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'Fout bij laden van soort: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'Fout bij opslaan van soort: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'Deze soort bestaat niet meer.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'Opslaan';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'bijv. Amphiprion ocellaris';
 
   @override
   String get marineLife_speciesEdit_scientificNameLabel =>
       'Wetenschappelijke naam';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'bijv. Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'Taxonomische klasse';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return '\"$name\" bijgewerkt';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'Alle';
@@ -27957,9 +27893,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get documents_edit_newTitle => 'Nieuw document';
 
   @override
-  String get documents_edit_editTitle => 'Document bewerken';
-
-  @override
   String get documents_field_type => 'Soort';
 
   @override
@@ -28072,14 +28005,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get documents_deleted => 'Document verwijderd';
-
-  @override
-  String get documents_saved => 'Document opgeslagen';
-
-  @override
-  String documents_error_save(String error) {
-    return 'Het document kon niet worden opgeslagen: $error';
-  }
 
   @override
   String documents_error_load(String error) {

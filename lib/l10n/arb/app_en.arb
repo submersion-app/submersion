@@ -3692,7 +3692,6 @@
   "courses_action_add": "Add Course",
   "courses_action_addFromTemplate": "Add from template",
   "courses_action_addRequirement": "Add requirement",
-  "courses_action_create": "Create Course",
   "courses_action_deleteRequirement": "Delete requirement",
   "courses_action_editRequirement": "Edit requirement",
   "courses_action_exportTrainingLog": "Export Training Log",
@@ -3701,8 +3700,6 @@
   "courses_action_unlinkDive": "Unlink dive",
   "courses_action_moreOptions": "More options",
   "courses_action_retry": "Retry",
-  "courses_action_saveChanges": "Save Changes",
-  "courses_action_saveSemantic": "Save course",
   "courses_action_sort": "Sort",
   "courses_action_sortTitle": "Sort Courses",
   "courses_card_instructor": "Instructor: {name}",
@@ -3739,7 +3736,6 @@
   "courses_label_location": "Location",
   "courses_label_name": "Name",
   "courses_label_startDate": "Start Date",
-  "courses_message_errorSaving": "Error saving course: {error}",
   "courses_message_exportFailed": "Failed to export training log: {error}",
   "courses_picker_active": "Active",
   "courses_picker_createCourse": "Create Course",
@@ -3823,7 +3819,6 @@
       }
     }
   },
-  "courses_title_edit": "Edit Course",
   "courses_title_new": "New Course",
   "courses_title_singular": "Course",
   "courses_validation_nameRequired": "Please enter a course name",
@@ -3849,13 +3844,6 @@
     }
   },
   "@courses_error_generic": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@courses_message_errorSaving": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -11993,24 +11981,12 @@
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesEdit_addTitle": "Add Species",
-  "marineLife_speciesEdit_addedSnackbar": "Added \"{name}\"",
-  "marineLife_speciesEdit_backTooltip": "Back",
   "marineLife_speciesEdit_categoryLabel": "Category",
   "marineLife_speciesEdit_commonNameError": "Please enter a common name",
-  "marineLife_speciesEdit_commonNameHint": "e.g., Ocellaris Clownfish",
   "marineLife_speciesEdit_commonNameLabel": "Common Name",
-  "marineLife_speciesEdit_descriptionHint": "Brief description of the species...",
   "marineLife_speciesEdit_descriptionLabel": "Description",
-  "marineLife_speciesEdit_editTitle": "Edit Species",
-  "marineLife_speciesEdit_errorLoading": "Error loading species: {error}",
-  "marineLife_speciesEdit_errorSaving": "Error saving species: {error}",
-  "marineLife_speciesEdit_notFoundMessage": "This species no longer exists.",
-  "marineLife_speciesEdit_saveButton": "Save",
-  "marineLife_speciesEdit_scientificNameHint": "e.g., Amphiprion ocellaris",
   "marineLife_speciesEdit_scientificNameLabel": "Scientific Name",
-  "marineLife_speciesEdit_taxonomyClassHint": "e.g., Actinopterygii",
   "marineLife_speciesEdit_taxonomyClassLabel": "Taxonomy Class",
-  "marineLife_speciesEdit_updatedSnackbar": "Updated \"{name}\"",
   "marineLife_speciesManage_allFilter": "All",
   "marineLife_speciesManage_appBarTitle": "Species",
   "marineLife_speciesManage_backTooltip": "Back",
@@ -12423,34 +12399,6 @@
   "@marineLife_speciesDetail_taxonomyClassLabel": {
     "placeholders": {
       "className": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_addedSnackbar": {
-    "placeholders": {
-      "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_errorLoading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_errorSaving": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_updatedSnackbar": {
-    "placeholders": {
-      "name": {
         "type": "Object"
       }
     }
@@ -16774,7 +16722,6 @@
   "documents_section_title": "Documents",
   "documents_section_empty": "No documents attached",
   "documents_edit_newTitle": "New document",
-  "documents_edit_editTitle": "Edit document",
   "documents_field_type": "Type",
   "documents_field_title": "Title",
   "documents_field_issuer": "Issued by",
@@ -16841,15 +16788,6 @@
   "documents_delete_title": "Delete document?",
   "documents_delete_content": "This deletes the document and all its pages on every synced device.",
   "documents_deleted": "Document deleted",
-  "documents_saved": "Document saved",
-  "documents_error_save": "Couldn't save the document: {error}",
-  "@documents_error_save": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "documents_error_load": "Couldn't load documents: {error}",
   "@documents_error_load": {
     "placeholders": {

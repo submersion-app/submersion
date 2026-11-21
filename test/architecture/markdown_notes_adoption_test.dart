@@ -35,8 +35,6 @@ void main() {
     // A course's Notes card edited in place (issue #4527).
     'lib/features/courses/presentation/editing/course_card_editors.dart':
         'MarkdownNotesField(',
-    'lib/features/courses/presentation/pages/course_edit_page.dart':
-        'MarkdownNotesField(',
     // A dive centre's Notes card edited in place (issue #4527).
     'lib/features/dive_centers/presentation/editing/dive_center_edit_cards.dart':
         'MarkdownNotesField(',
@@ -69,8 +67,6 @@ void main() {
         'markdown: true',
     'lib/features/documents/presentation/editing/document_details_card_editor.dart':
         'MarkdownNotesField(',
-    'lib/features/documents/presentation/pages/document_edit_page.dart':
-        'MarkdownNotesField(',
     // A gear item's Notes card edited in place (issue #4527).
     'lib/features/equipment/presentation/editing/gear_item_edit_cards.dart':
         'MarkdownNotesField(',
@@ -84,8 +80,6 @@ void main() {
     'lib/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart':
         'MarkdownNotesField(',
     'lib/features/marine_life/presentation/editing/species_edit_cards.dart':
-        'MarkdownNotesField(',
-    'lib/features/marine_life/presentation/pages/species_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/rules/presentation/widgets/rule_action_editor.dart':
         'MarkdownNotesField(',
