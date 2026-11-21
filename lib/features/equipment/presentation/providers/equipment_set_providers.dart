@@ -284,7 +284,7 @@ class EquipmentSetListNotifier
     _ref.invalidate(equipmentSetSelectionInputsProvider);
     // Promoting one set demotes the previous default, so the hydrated
     // isDefault flag on more than one family instance is now stale. Invalidate
-    // the whole family so open detail/edit pages re-read the correct badge.
+    // the whole family so open detail pages re-read the correct badge.
     _ref.invalidate(equipmentSetProvider);
   }
 

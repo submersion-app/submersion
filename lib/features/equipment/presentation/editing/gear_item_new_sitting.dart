@@ -77,7 +77,7 @@ typedef GearCloneSource = ({
 });
 
 /// A new gear item's starting record under [id]: the active diver's, a
-/// regulator, active, in the diver's default currency, as the form starts
+/// regulator, active, in the diver's default currency, as the form started
 /// one. A diver that cannot be read leaves none, for Save to take.
 Future<EquipmentItem> newGearItemSeed(
   RecordSeedRead read, {

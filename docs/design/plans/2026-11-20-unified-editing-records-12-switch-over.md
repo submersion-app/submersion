@@ -823,7 +823,7 @@ Commits named below: 6270934 (set tests), fb5b5c2 (clone read fix and the item's
 | a Wanted item saved under the default view offers the Wanted view | Added | `equipment_detail_page_new_test` "a new item's Save asks whether the list will show it"; `equipment_edit_routes_test` "Show moves the list to that view and marks the item" (9209b06); the view: `equipment/presentation/helpers/saved_equipment_visibility_test` "a wanted item saved under the default view needs the Wanted view" |
 | an Active item the default view shows gets no hint | Pinned | `equipment_detail_page_unlock_test` "a pane Save the view still shows says nothing" |
 | a master-detail edit to Wanted offers the Wanted view | Pinned | `equipment_detail_page_unlock_test` "a pane Save that hides the item offers its view" |
-| a routed edit returns to the item, so it just confirms | Added | `equipment_detail_page_unlock_test` "a full page Save of an item the view hides offers nothing" (9209b06) and "a full page Save stays on the item". "Equipment updated" on a full page is form only: the page locks |
+| a routed edit returns to the item, so it just confirms | Added | `equipment/presentation/pages/equipment_detail_page_full_save_view_test` "a full page Save of an item the view hides offers nothing" (9209b06, moved to its own file in the review) and `equipment_detail_page_unlock_test` "a full page Save stays on the item". "Equipment updated" on a full page is form only: the page locks |
 | a new item under a Service Due view offers the default view | Added | The new item case above (9209b06); the view: `saved_equipment_visibility_test` "an item hidden by another axis falls back to the default view" |
 | a failed visibility check still saves and confirms | Added | `equipment_edit_routes_test` "a visibility check that fails still confirms the Save" (9209b06) |
 
@@ -864,7 +864,7 @@ Commits named below: 6270934 (set tests), fb5b5c2 (clone read fix and the item's
 | while the stored tags are still loading: a read that fails leaves the field locked and the stored tags untouched | Added | `gear_item_header_editor_test` "a tag read that failed says so and offers to read again" now checks the field is inert and nothing is held (70b355d) |
 | while the stored tags are still loading: a save leaves the stored tags alone | Pinned | `gear_item_header_editor_test` "the held tags: untouched tags are not written" |
 | suggestions list equipment tags only | Pinned | `gear_item_header_editor_test` "tag suggestions are equipment tags only" |
-| a tag typed on a new item applies everywhere and is saved with it | Added | `gear_item_new_sitting_test` "a tag typed on a new item is written with it" (fb5b5c2); the scope: `tags/tag_scope_equipment_test` "a tag created from the equipment picker applies everywhere (#4407)" |
+| a tag typed on a new item applies everywhere and is saved with it | Added | `gear_item_new_sitting_test` "a tag typed on a new item is written with it" (fb5b5c2); the scope: `tags/data/repositories/tag_scope_equipment_test` "a tag created from the equipment picker applies everywhere (#4407)" |
 
 #### `equipment/presentation/pages/equipment_edit_type_order_test.dart` (deleted)
 

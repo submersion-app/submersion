@@ -83,7 +83,7 @@ mixin _EquipmentDetailPageCreating
   }
 
   /// What the list does after a write, and the offer of the list's view
-  /// that shows the item when the current one hides it, as the form does.
+  /// that shows the item when the current one hides it, as the form did.
   @override
   Future<void> Function(EquipmentItem created) captureAfterRecordCreated() {
     final container = ProviderScope.containerOf(context, listen: false);

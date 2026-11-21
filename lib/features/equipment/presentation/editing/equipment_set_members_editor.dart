@@ -60,7 +60,7 @@ List<EquipmentItem>? setItemsShownFrom(
 }
 
 /// The Members card's editor (issue #4527, phase 3): the diver's active
-/// gear grouped by type, folding, each a checkbox, as the set form lists it
+/// gear grouped by type, folding, each a checkbox, as the set form listed it
 /// (Call 3). An assembly's parts wait behind a switch unless ticked or
 /// touched (#2514); members no longer shared stay, listed without a
 /// checkbox (#2046). The Figure card above is the live figure, so the rows

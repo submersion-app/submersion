@@ -646,25 +646,6 @@ void main() {
       expect(find.text(l.equipment_edit_snackbar_hiddenByView), findsOneWidget);
     });
 
-    // A full page stays on the item, so the list's view is not its
-    // business.
-    testWidgets('a full page Save of an item the view hides offers nothing', (
-      tester,
-    ) async {
-      final wanted = apex.copyWith(
-        status: EquipmentStatus.wanted,
-        isActive: false,
-      );
-      await EquipmentRepository().createEquipment(wanted);
-      await pumpGearPage(tester, item: wanted, openUnlocked: true);
-      sessionOf(tester).set(gearNotesField, 'Rinse');
-      await tester.pumpAndSettle();
-
-      await save(tester);
-
-      expect(find.text(l.equipment_edit_snackbar_hiddenByView), findsNothing);
-    });
-
     testWidgets('a pane Save the view still shows says nothing', (
       tester,
     ) async {
