@@ -251,4 +251,42 @@ void main() {
       expect(strayAnnotationAddresses('Calm (annotation: see below)'), isEmpty);
     });
   });
+
+  // The rule the dive page and agent writes share (#4815).
+  group('AnnotationLinkBaseline.damagedBy', () {
+    const stored = '[Turtle](annotation:t1)\n\n[Ray](annotation:r1)';
+    final baseline = AnnotationLinkBaseline.of(stored);
+    const holding = {'t1', 'r1'};
+
+    test('names the annotation whose link lost its parenthesis', () {
+      expect(
+        baseline.damagedBy(
+          '[Turtle](annotation:t1\n\n[Ray](annotation:r1)',
+          holding,
+        ),
+        {'t1'},
+      );
+    });
+
+    test('a link deleted whole is a removal, not damage', () {
+      expect(baseline.damagedBy('[Ray](annotation:r1)', holding), isEmpty);
+    });
+
+    test('an id edited inside a whole link names the annotation lost', () {
+      expect(
+        baseline.damagedBy(
+          '[Turtle](annotation:t2)\n\n[Ray](annotation:r1)',
+          holding,
+        ),
+        {'t1'},
+      );
+    });
+
+    test('a link to an annotation not held loses nothing', () {
+      expect(
+        baseline.damagedBy('$stored\n\n[Shark](annotation:s9)', holding),
+        isEmpty,
+      );
+    });
+  });
 }

@@ -363,22 +363,17 @@ void removeSittingAnnotation(EditSession<Dive> session, String id) {
 /// annotation as it always has.
 ///
 /// Checked only when Save would settle the annotations: the notes changed,
-/// or an annotation was placed, moved or removed. Only an annotation the
-/// sitting holds whose link is gone is at risk; it is a removal unless the
-/// notes show the link was damaged rather than deleted: its address still
-/// there out of any link, a stray address the stored notes did not have, or
-/// a link to an id the sitting does not know (its id edited). A link that
-/// names no annotation this dive holds loses nothing and holds nothing, nor
-/// do notes stored already broken while they are left as they are.
+/// or an annotation was placed, moved or removed. What counts as damage is
+/// [AnnotationLinkBaseline.damagedBy]'s, against the stored notes, for the
+/// annotations the sitting holds. Notes stored already broken hold nothing
+/// while they are left as they are.
 bool annotationLinksIntact(EditSession<Dive> session) {
   final notes = session.valueOf(diveNotesField);
   final held = sittingAnnotations(session);
   if (notes == session.stored.notes && !(held?.isTouched ?? false)) {
     return true;
   }
-  if (!mayLinkAnnotations(notes)) return true;
-  final stored = _storedLinks(session);
-  final linked = annotationIdsInNotes(notes);
+  final stored = _baseline(session);
   final holding = {
     // Before the read answers, or after it failed, the stored notes' links,
     // whole or broken, stand for the rows.
@@ -388,71 +383,20 @@ bool annotationLinksIntact(EditSession<Dive> session) {
         if (!held.removed.contains(event.id)) event.id,
     for (final pin in held?.placed ?? const <PendingAnnotation>[]) pin.id,
   };
-  final lost = holding.difference(linked);
-  if (lost.isEmpty) return true;
-  // Its address still there, out of any link.
-  final lower = notes.toLowerCase();
-  if (lost.any(
-    (id) => lower.contains('$annotationLinkScheme:${id.toLowerCase()}'),
-  )) {
-    return false;
-  }
-  // Part of its address left behind, or its link's markup broken.
-  if (!_withinStored(
-    strayAnnotationAddresses(notes, linked: linked),
-    stored.strayCounts,
-  )) {
-    return false;
-  }
-  // Its id edited inside a link that still reads as one.
-  return {...stored.linked, ...stored.strayIds, ...holding}.containsAll(linked);
+  return stored.damagedBy(notes, holding).isEmpty;
 }
 
-/// Whether every one of [addresses] is counted in [allowed], each use
-/// taking one.
-bool _withinStored(List<String> addresses, Map<String, int> allowed) {
-  if (addresses.isEmpty) return true;
-  final used = <String, int>{};
-  for (final address in addresses) {
-    final n = (used[address] ?? 0) + 1;
-    if (n > (allowed[address] ?? 0)) return false;
-    used[address] = n;
-  }
-  return true;
-}
-
-const String _storedLinksKey = 'annotations.storedLinks';
-
-typedef _StoredLinks = ({
-  String notes,
-  Set<String> linked,
-  Map<String, int> strayCounts,
-  Set<String> strayIds,
-});
+const String _baselineKey = 'annotations.baseline';
 
 /// The stored notes' links and stray addresses, read again only when the
 /// stored notes change: the check runs on every keystroke.
-_StoredLinks _storedLinks(EditSession<Dive> session) {
+AnnotationLinkBaseline _baseline(EditSession<Dive> session) {
   final notes = session.stored.notes;
-  final kept = session.recall<_StoredLinks>(_storedLinksKey);
+  final kept = session.recall<AnnotationLinkBaseline>(_baselineKey);
   if (kept != null && kept.notes == notes) return kept;
-  final linked = annotationIdsInNotes(notes);
-  final strayCounts = <String, int>{};
-  final strayIds = <String>{};
-  for (final address in strayAnnotationAddresses(notes, linked: linked)) {
-    strayCounts[address] = (strayCounts[address] ?? 0) + 1;
-    // A stored break mended links its id again, which is no edit of it.
-    final id = annotationIdFromHref(address);
-    if (id != null) strayIds.add(id);
-  }
-  final links = (
-    notes: notes,
-    linked: linked,
-    strayCounts: strayCounts,
-    strayIds: strayIds,
-  );
-  session.remember(_storedLinksKey, links);
-  return links;
+  final baseline = AnnotationLinkBaseline.of(notes);
+  session.remember(_baselineKey, baseline);
+  return baseline;
 }
 
 /// The earliest and latest second an annotation may fall on: from the

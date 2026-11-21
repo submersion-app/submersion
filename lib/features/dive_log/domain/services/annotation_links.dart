@@ -132,6 +132,84 @@ List<String> strayAnnotationAddresses(String notes, {Set<String>? linked}) {
   ];
 }
 
+/// What a dive's stored Notes hold of its annotation links, against which
+/// an edit of them is judged (#4815): the ids they link and the addresses
+/// they already leave stray.
+class AnnotationLinkBaseline {
+  AnnotationLinkBaseline._(
+    this.notes,
+    this.linked,
+    this._strayCounts,
+    this.strayIds,
+  );
+
+  factory AnnotationLinkBaseline.of(String notes) {
+    final linked = annotationIdsInNotes(notes);
+    final strayCounts = <String, int>{};
+    final strayIds = <String>{};
+    for (final address in strayAnnotationAddresses(notes, linked: linked)) {
+      strayCounts[address] = (strayCounts[address] ?? 0) + 1;
+      // A stored break mended links its id again, which is no edit of it.
+      final id = annotationIdFromHref(address);
+      if (id != null) strayIds.add(id);
+    }
+    return AnnotationLinkBaseline._(notes, linked, strayCounts, strayIds);
+  }
+
+  /// The stored Notes this baseline was read from.
+  final String notes;
+
+  /// The ids the stored Notes link.
+  final Set<String> linked;
+
+  /// The stored Notes' stray addresses, by how often each appears.
+  final Map<String, int> _strayCounts;
+
+  /// The ids the stored Notes name in stray addresses: links already
+  /// broken when stored.
+  final Set<String> strayIds;
+
+  /// The ids of [holding], the annotations whose rows a save keeps only
+  /// while [edited] links them, that [edited] would lose through a damaged
+  /// link rather than a deleted one. Empty when nothing is lost, or only
+  /// links deleted whole, address and all, which removes an annotation.
+  ///
+  /// A lost annotation was damaged when its address is still there out of
+  /// any link, when a stray address appears that the stored Notes did not
+  /// have (part of an id, or a link's markup broken), or when [edited]
+  /// links an id neither the stored Notes nor [holding] know (an id
+  /// edited). A link that names no annotation in [holding] loses nothing.
+  Set<String> damagedBy(String edited, Set<String> holding) {
+    if (!mayLinkAnnotations(edited)) return const {};
+    final linkedNow = annotationIdsInNotes(edited);
+    final lost = holding.difference(linkedNow);
+    if (lost.isEmpty) return const {};
+    final lower = edited.toLowerCase();
+    final standing = {
+      for (final id in lost)
+        if (lower.contains('$annotationLinkScheme:${id.toLowerCase()}')) id,
+    };
+    if (standing.isNotEmpty) return standing;
+    if (!_withinStored(strayAnnotationAddresses(edited, linked: linkedNow))) {
+      return lost;
+    }
+    final known = {...linked, ...strayIds, ...holding};
+    return known.containsAll(linkedNow) ? const {} : lost;
+  }
+
+  /// Whether every one of [addresses] was stray in the stored Notes, each
+  /// stored one standing for one use.
+  bool _withinStored(List<String> addresses) {
+    final used = <String, int>{};
+    for (final address in addresses) {
+      final n = (used[address] ?? 0) + 1;
+      if (n > (_strayCounts[address] ?? 0)) return false;
+      used[address] = n;
+    }
+    return true;
+  }
+}
+
 /// [notes] with each annotation link's id replaced by its entry in [ids]. A
 /// link to any other id is left as it is.
 String renameAnnotationLinks(String notes, Map<String, String> ids) {
