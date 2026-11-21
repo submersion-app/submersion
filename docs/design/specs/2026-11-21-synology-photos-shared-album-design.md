@@ -179,7 +179,17 @@ The URL tab's manifest mode is the entry point; nothing new in navigation.
   the panel then shows a password field and a "Save password and fetch"
   button, which saves the `synologyShare` credential for the host and fetches
   again.
-- From there the existing flow applies: preview, Subscribe, review, Import.
+- From there: preview, Subscribe, Import. A share link skips the per-row
+  import review: it links every photo with a confident dive match (the same
+  rule the poller applies) and leaves the rest for later polls. The review
+  page asks for one suggestion per row and rebuilds as each arrives; with
+  several hundred rows that froze the app for minutes in the prototype test,
+  and nobody wants to tick hundreds of rows by hand.
+- Review rows and the network thumbnail widget paint Synology's `sm`
+  rendition instead of downloading originals.
+- `ManifestEntry.filename` carries the original file name: shown in review
+  lists and stored in `media.original_filename` (the poller fills it in for
+  rows that have none), never as the user-facing caption.
 
 Strings follow the panel's existing hard-coded English with `TODO(media):
 l10n` markers; localisation comes with the real feature.
@@ -226,6 +236,34 @@ l10n` markers; localisation comes with the real feature.
 | Do extra query parameters break the API? | No; download and thumbnail ignore unknown parameters (checked). | Store `id` and `cache_key` on the original URL. |
 | Can a burst of thumbnails trigger many logins? | Yes, and each login ends the previous session. | One in-flight login per share; invalidate only the failing sid. |
 | Does the first import download every original? | Yes, without GPS the pipeline extracts each entry. | `ManifestEntry.metadataComplete` skips extraction. |
+
+## Prototype test in the app (Windows hot build, real share)
+
+Run against a password-protected condition album of several hundred items
+(photos, videos, live photos) and a copy of a real logbook of about a thousand
+dives, in an isolated database.
+
+| # | Scenario | Result |
+|---|---|---|
+| 1 | Paste the share link, Fetch, no password saved | Password form appears |
+| 2 | Wrong password | Form again, with "The share did not accept the password" |
+| 3 | Right password | Preview lists exactly the album's photos; videos and live photos skipped; capture times correct |
+| 4 | Subscribe and Import | Photos with a confident match linked to their dives within about 40 s; app stays responsive; spot check: a photo 29 min before entry lands on that dive |
+| 5 | Media library | Synology photos paint with thumbnails from the NAS |
+| 6 | Full-screen view | Original loads; depth, temperature and profile overlay derived from the dive |
+| 7 | Poll now | No duplicates, no orphans, file names filled in, poll time recorded |
+| 8 | Scan all network media | Every imported item reported reachable |
+| 9 | Another client logs in to the share, then new images are shown after the validation interval | Session renewed, images load |
+| 10 | Another client logs in, then Poll now at once | Album source renews the session itself; poll succeeds |
+
+Found and fixed during the test: import froze on the per-row review (now
+skipped for shares), review rows showed `entry.cgi` and no thumbnails (now
+file name and `sm` rendition), the network scan counted Synology's JSON error
+as reachable (now inconclusive), and a wrong password gave no feedback.
+
+Seen, not changed (existing behaviour): the subscription card shows the
+format chip "JSON" for a share and only refreshes "last polled" after the page
+is reopened; the first import does not count as a poll.
 
 ## Testing
 

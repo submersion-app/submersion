@@ -122,6 +122,47 @@ void main() {
     ).called(1);
   });
 
+  // A Synology share answers every error (a lost session, a deleted item) as
+  // HTTP 200 with a JSON body, so that 200 confirms nothing.
+  test('a JSON answer from a Synology share is inconclusive', () async {
+    const shareUrl =
+        'https://nas.example.com/mo/sharing/webapi/entry.cgi'
+        '?api=SYNO.Foto.Download&_sharing_id=code1&id=1&cache_key=1_1';
+    when(
+      mockRepo.getAllBySourceType(MediaSourceType.networkUrl),
+    ).thenAnswer((_) async => []);
+    when(mockRepo.getAllBySourceType(MediaSourceType.manifestEntry)).thenAnswer(
+      (_) async => [
+        row(id: 's', type: MediaSourceType.manifestEntry, url: shareUrl),
+      ],
+    );
+
+    final client = MockClient(
+      (req) async => http.Response(
+        '{"success":false,"error":{"code":119}}',
+        200,
+        headers: {'content-type': 'application/json; charset="UTF-8"'},
+      ),
+    );
+    final svc = NetworkScanService(
+      repository: mockRepo,
+      credentials: mockCreds,
+      subscriptions: mockSubs,
+      rateLimiter: limiter,
+      httpClientFactory: () => client,
+    );
+
+    final events = await svc.scanAll().toList();
+    expect(events.last.available, 0);
+    verifyNever(
+      mockRepo.stampVerification(
+        any,
+        verifiedAt: anyNamed('verifiedAt'),
+        isOrphaned: anyNamed('isOrphaned'),
+      ),
+    );
+  });
+
   test('marks 404 responses as orphaned', () async {
     when(mockRepo.getAllBySourceType(MediaSourceType.networkUrl)).thenAnswer(
       (_) async => [
