@@ -387,6 +387,31 @@ void main() {
       expect(again.reopened, isTrue);
     });
 
+    test('a video that cannot be read is followed by no auto-apply', () async {
+      oneFish();
+      await service.request(video());
+      expect(settled, 1);
+      await service.dispose();
+      service = MediaIdentificationService(
+        engine: engine,
+        loadPack: () async => installed,
+        identifications: identifications,
+        embeddings: embeddings,
+        crops: crops,
+        resolveImage: (_) async => null,
+        resolveVideo: (_) async => null,
+        taggedSpecies: (_) async => tagged,
+        enabled: () => enabled,
+        databaseGeneration: () => generation,
+        now: () => DateTime.utc(2026, 11, 21),
+        newId: () => 'id-${ids++}',
+        idleUnload: const Duration(milliseconds: 50),
+        onItemSettled: (_, _) async => settled++,
+      );
+      await service.request(video(), fresh: true);
+      expect(settled, 1);
+    });
+
     test('is followed by no auto-apply', () async {
       oneFish();
       await service.request(video());

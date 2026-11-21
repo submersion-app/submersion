@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -195,6 +196,16 @@ void main() {
         find.textContaining('Striped species').evaluate().length + hidden,
         16,
       );
+      semantics.dispose();
+    });
+
+    testWidgets('with nothing to open, the count is not announced as a '
+        'button', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpMany(tester);
+      final node = tester.getSemantics(more);
+      expect(node.flagsCollection.isButton, isFalse);
+      expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isFalse);
       semantics.dispose();
     });
 

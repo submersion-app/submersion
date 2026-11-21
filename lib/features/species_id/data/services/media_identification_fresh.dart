@@ -26,7 +26,9 @@ extension _FreshRuns on MediaIdentificationService {
   /// A run's items are left to the run, which applies them together, and
   /// nothing is applied after a fresh request (issue #4825).
   Future<void> _settled(_Job job) async {
-    if (job.fromRun || job.wasFresh) return;
+    // Still fresh: it stopped before its fresh start (a file that cannot
+    // be read); it was asked for fresh all the same.
+    if (job.fromRun || job.fresh || job.wasFresh) return;
     final item = job.item;
     try {
       await _onItemSettled(item, job.generation);

@@ -74,7 +74,8 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
             key: const ValueKey('media_species_more'),
             container: true,
             label: l10n.media_species_moreChips(hidden),
-            button: true,
+            // A button only when it opens something.
+            button: onMoreTap != null,
             excludeSemantics: true,
             onTap: onMoreTap,
             child: ActionChip(
