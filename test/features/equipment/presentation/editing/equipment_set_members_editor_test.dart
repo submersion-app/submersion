@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -78,6 +80,7 @@ void main() {
     required List<EquipmentItem> members,
     List<EquipmentItem> gear = const [reg, first, second, zeagle, fins],
     bool grouped = false,
+    EquipmentTypeOrder? typeOrder,
     List<EquipmentItem>? visible,
     bool gearFails = false,
   }) async {
@@ -97,7 +100,10 @@ void main() {
           allEquipmentProvider.overrideWith((ref) async => visible ?? gear),
           equipmentSetsProvider.overrideWith((ref) async => const []),
           equipmentArrangementProvider.overrideWithValue(
-            EquipmentArrangement.defaults.copyWith(groupByType: grouped),
+            EquipmentArrangement.defaults.copyWith(
+              groupByType: grouped,
+              typeOrder: typeOrder,
+            ),
           ),
           equipmentComponentsIndexProvider.overrideWithValue(
             AsyncValue.data(
@@ -230,6 +236,41 @@ void main() {
     });
   });
 
+  // The groups follow the diver's type order, not the order the gear was
+  // added in (#1486, #1576), and a tick is held by id across the reorder.
+  testWidgets('the groups follow the type order, and a tick after the '
+      'reorder is held by id', (tester) async {
+    const tank = EquipmentItem(
+      id: 'tank',
+      name: 'Faber',
+      type: EquipmentType.tank,
+    );
+    final session = await pumpEditor(
+      tester,
+      members: const [zeagle, tank, reg],
+      gear: const [zeagle, tank, reg],
+      grouped: true,
+      typeOrder: EquipmentTypeOrder.headToToe,
+    );
+
+    expect(
+      [
+        for (final h in tester.widgetList<EquipmentTypeFoldHeader>(
+          find.byType(EquipmentTypeFoldHeader),
+        ))
+          h.type,
+      ],
+      [EquipmentType.tank, EquipmentType.regulator, EquipmentType.bcd],
+    );
+
+    await tester.tap(row('Cold Water Reg'));
+    await tester.pumpAndSettle();
+
+    expect(session.working.equipmentIds, unorderedEquals(['bcd', 'tank']));
+    expect(ticked(tester, 'Faber'), isTrue);
+    expect(ticked(tester, 'Zeagle'), isTrue);
+  });
+
   testWidgets('a member no longer shared is listed without a checkbox and '
       'kept', (tester) async {
     final session = await pumpEditor(
@@ -239,6 +280,7 @@ void main() {
     );
 
     expect(find.text('Borrowed light'), findsOneWidget);
+    expect(find.text('No longer shared'), findsOneWidget);
     expect(row('Borrowed light'), findsNothing);
     await tester.tap(row('Jet fins'));
     await tester.pumpAndSettle();

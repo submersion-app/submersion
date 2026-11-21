@@ -13,6 +13,7 @@ import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'equipment_set_detail_page_unlock_harness.dart';
@@ -276,6 +277,32 @@ void main() {
     expect((await storedSet(tester)).includedSetIds, ['s2']);
   });
 
+  testWidgets('a weight preset chosen in the Bundle editor is written at '
+      'Save', (tester) async {
+    final preset = (await tester.runAsync(
+      () => WeightPresetRepository().createPreset(
+        diverId: 'd1',
+        displayName: 'Cold 8 kg',
+        entries: const [],
+      ),
+    ))!;
+    await pumpSetPage(tester);
+    await unlock(tester);
+    final chip = inStrip(bundle);
+    await tester.ensureVisible(chip);
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('set-bundle-add-presets')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('set-bundle-option-${preset.id}')));
+    await tester.pumpAndSettle();
+    expect((await storedSet(tester)).weightPresetIds, isEmpty);
+
+    await save(tester);
+
+    expect((await storedSet(tester)).weightPresetIds, [preset.id]);
+  });
+
   testWidgets('auto-apply on shows its row in the header', (tester) async {
     await DatabaseService.instance.database.customStatement(
       "UPDATE equipment_sets SET auto_apply_on_computer_import = 1 "
@@ -498,6 +525,30 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(figureShown(tester)!.title, 'Cold water');
+    });
+
+    // The figure is drawn on the closed card; the open one is its editor.
+    testWidgets("the Figure editor's switch hides and shows the figure", (
+      tester,
+    ) async {
+      await pumpSetPage(tester);
+      await unlock(tester);
+      final toggle = find.byKey(const ValueKey('set-edit-show-figure'));
+
+      await openCard(tester, figure);
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await closeCards(tester);
+      expect(figureShown(tester), isNull);
+
+      final chip = inStrip(figure);
+      await tester.ensureVisible(chip);
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await closeCards(tester);
+      expect(figureShown(tester), isNotNull);
     });
 
     testWidgets('untick every member and the Figure card goes', (tester) async {
