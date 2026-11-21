@@ -41,18 +41,14 @@ class TripChecklistBlock extends ConsumerWidget {
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
 
-  /// Shows the checklist without changing it: no reorder, ticks, item
-  /// edits, Add item or section editing, and a menu that only saves it as a
-  /// template, which makes a record of its own (a trip page that edits in
-  /// place, locked, issue #4527).
-  final bool readOnly;
-
   /// The checklists a trip page's sitting holds: this one's items and
   /// sections are drawn from it rather than from what is stored.
   final TripChecklistsHeld? held;
 
-  /// Where this block's changes go; null writes each at once through the
-  /// repositories.
+  /// Where this block's changes go: the trip page's sitting. Null shows the
+  /// checklist without changing it: no reorder, ticks, item edits, Add item
+  /// or section editing, and a menu that only saves it as a template, which
+  /// makes a record of its own (the page is locked, issue #4527).
   final TripChecklistWrites? writes;
 
   const TripChecklistBlock({
@@ -62,18 +58,11 @@ class TripChecklistBlock extends ConsumerWidget {
     this.initiallyExpanded = false,
     this.onMoveUp,
     this.onMoveDown,
-    this.readOnly = false,
     this.held,
     this.writes,
   });
 
-  TripChecklistWrites _writesOf(WidgetRef ref) =>
-      writes ??
-      RepositoryTripChecklistWrites(
-        trip: trip,
-        checklists: ref.read(tripChecklistsRepositoryProvider),
-        items: ref.read(tripChecklistRepositoryProvider),
-      );
+  bool get readOnly => writes == null;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -209,7 +198,7 @@ class TripChecklistBlock extends ConsumerWidget {
                 context: context,
                 checklistId: checklist.id,
                 categorySuggestions: sectionTitles,
-                writes: writes,
+                writes: writes!,
               ),
             ),
           ),
@@ -227,7 +216,7 @@ class TripChecklistBlock extends ConsumerWidget {
     List<domain.TripChecklistSection>? sections,
   ) => showSaveAsTemplateDialog(
     context: context,
-    trip: _writesOf(ref).trip,
+    trip: writes?.trip ?? trip,
     checklistId: checklist.id,
     initialName: checklist.name,
     rows: held == null ? null : (sections: sections ?? const [], items: items),
@@ -322,7 +311,7 @@ class TripChecklistBlock extends ConsumerWidget {
 
     // Read now, not when the menu opened: a sync can fill the checklist while
     // the picker is up, and this decides whether the diver gets warned.
-    final repository = _writesOf(ref);
+    final repository = writes!;
     final isEmpty = await repository.isChecklistEmpty(checklist.id);
     if (!context.mounted) return;
 
@@ -380,7 +369,7 @@ class TripChecklistBlock extends ConsumerWidget {
   ) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final repository = _writesOf(ref);
+    final repository = writes!;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -418,7 +407,7 @@ class TripChecklistBlock extends ConsumerWidget {
       ),
     );
     if (name == null || !context.mounted) return;
-    await _writesOf(ref).renameChecklist(checklist.id, name);
+    await writes!.renameChecklist(checklist.id, name);
   }
 
   Future<void> _deleteChecklist(BuildContext context, WidgetRef ref) async {
@@ -441,7 +430,7 @@ class TripChecklistBlock extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await _writesOf(ref).deleteChecklist(checklist.id);
+    await writes!.deleteChecklist(checklist.id);
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -465,7 +454,9 @@ class TripChecklistBlock extends ConsumerWidget {
     List<domain.TripChecklistSection> sections,
     List<String> sectionTitles,
   ) {
-    final repository = _writesOf(ref);
+    // Null while locked: the callbacks below that use it are offered only
+    // with writes.
+    final repository = writes;
     final itemsBySection = <String, List<TripChecklistItem>>{
       for (final s in sections) s.id: [],
     };
@@ -496,7 +487,7 @@ class TripChecklistBlock extends ConsumerWidget {
         showOverdue: trip.isUpcoming,
         onToggle: readOnly
             ? null
-            : (value) => repository.toggleDone(item.id, isDone: value),
+            : (value) => repository!.toggleDone(item.id, isDone: value),
         onEdit: readOnly
             ? null
             : () => showChecklistItemEditSheet(
@@ -505,7 +496,7 @@ class TripChecklistBlock extends ConsumerWidget {
                 item: item,
                 categorySuggestions: sectionTitles,
                 currentSectionTitle: sectionTitle,
-                writes: writes,
+                writes: writes!,
               ),
       );
     }
@@ -523,22 +514,23 @@ class TripChecklistBlock extends ConsumerWidget {
       newSectionTitle: context.l10n.sectionEditor_newSectionTitle,
       noSectionLabel: context.l10n.sectionEditor_noSection,
       onAddSection: (title) async {
-        await repository.createSection(checklistId: checklist.id, title: title);
+        await repository!.createSection(
+          checklistId: checklist.id,
+          title: title,
+        );
       },
-      onRenameSection: (id, title) => repository.renameSection(id, title),
+      onRenameSection: (id, title) => repository!.renameSection(id, title),
       onReorderSections: (orderedIds) =>
-          repository.reorderSections(checklist.id, orderedIds),
-      onDeleteSection: (id, {moveItemsToSectionId}) => repository.deleteSection(
-        id,
-        moveItemsToSectionId: moveItemsToSectionId,
-      ),
-      onMoveItem: (itemId, targetSectionId, orderedIds) => repository.moveItem(
+          repository!.reorderSections(checklist.id, orderedIds),
+      onDeleteSection: (id, {moveItemsToSectionId}) => repository!
+          .deleteSection(id, moveItemsToSectionId: moveItemsToSectionId),
+      onMoveItem: (itemId, targetSectionId, orderedIds) => repository!.moveItem(
         checklistId: checklist.id,
         itemId: itemId,
         targetSectionId: targetSectionId,
         orderedIds: orderedIds,
       ),
-      onDeleteItem: (item) => repository.deleteItem(item.id),
+      onDeleteItem: (item) => repository!.deleteItem(item.id),
     );
   }
 }

@@ -1086,8 +1086,8 @@ class EquipmentRepository {
         _db.equipment,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
       // Wanted gear is not owned yet (#2025): reactivating would leave a
-      // wishlist row flagged active. Buying it goes through
-      // markEquipmentPurchased instead.
+      // wishlist row flagged active. Buying it is the header block's Mark
+      // purchased, saved with the item's sitting.
       if (current == null || current.status == EquipmentStatus.wanted.name) {
         return;
       }
@@ -1112,49 +1112,6 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to reactivate equipment: $id',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Turns a Wanted item into owned, active gear (#2025): status active,
-  /// isActive true, and the purchase date set to [today] (date only) unless
-  /// one was already entered on the wishlist. Everything else is kept. A
-  /// row that is not Wanted is left alone.
-  Future<void> markEquipmentPurchased(String id, {DateTime? today}) async {
-    try {
-      final current = await (_db.select(
-        _db.equipment,
-      )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (current == null || current.status != EquipmentStatus.wanted.name) {
-        return;
-      }
-      final now = DateTime.now();
-      final day = today ?? now;
-      final ts = now.millisecondsSinceEpoch;
-      await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
-        EquipmentCompanion(
-          isActive: const Value(true),
-          status: Value(EquipmentStatus.active.name),
-          purchaseDate: current.purchaseDate == null
-              ? Value(
-                  DateTime(day.year, day.month, day.day).millisecondsSinceEpoch,
-                )
-              : const Value.absent(),
-          updatedAt: Value(ts),
-        ),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'equipment',
-        recordId: id,
-        localUpdatedAt: ts,
-      );
-      SyncEventBus.notifyLocalChange();
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to mark equipment as purchased: $id',
         error: e,
         stackTrace: stackTrace,
       );

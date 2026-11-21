@@ -52,25 +52,6 @@ void main() {
     'zh': ('1 天', '3 天'),
   });
 
-  const linkedPhotos = {
-    'en': ('Linked 1 photo', 'Linked 3 photos'),
-    'ar': ('تم ربط صورة واحدة', 'تم ربط 3 صور'),
-    'de': ('1 Foto verknüpft', '3 Fotos verknüpft'),
-    'es': ('Se vinculó 1 foto', 'Se vincularon 3 fotos'),
-    'fr': ('1 photo associée', '3 photos associées'),
-    'he': ('קושרה תמונה אחת', 'קושרו 3 תמונות'),
-    'hu': ('1 fotó csatolva', '3 fotó csatolva'),
-    'it': ('Collegata 1 foto', 'Collegate 3 foto'),
-    'nl': ('1 foto gekoppeld', "3 foto's gekoppeld"),
-    'pt': ('1 foto vinculada', '3 fotos vinculadas'),
-    'zh': ('已关联 1 照片', '已关联 3 照片'),
-  };
-  check(
-    'trips_detail_scan_linkedPhotos',
-    (l, n) => l.trips_detail_scan_linkedPhotos(n),
-    linkedPhotos,
-  );
-
   check('trips_diveScan_addButton', (l, n) => l.trips_diveScan_addButton(n), {
     'en': ('Add 1 Dive', 'Add 3 Dives'),
     'ar': ('إضافة غوصة واحدة', 'إضافة 3 غوصات'),

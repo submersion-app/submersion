@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
@@ -10,20 +9,6 @@ import 'package:submersion/features/equipment/presentation/widgets/service_sched
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
-
-class _RecordingScheduleRepository implements ServiceScheduleRepository {
-  final void Function(ServiceSchedule) onSaved;
-  _RecordingScheduleRepository(this.onSaved);
-
-  @override
-  Future<void> updateSchedule(
-    ServiceSchedule schedule, {
-    bool notify = true,
-  }) async => onSaved(schedule);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
 
 /// No service records: the override dialog reads them to decide whether the
 /// stored baseline is still the one the clock counts from.
@@ -68,9 +53,6 @@ void main() {
           serviceRecordRepositoryProvider.overrideWithValue(
             _NoServiceRecords(),
           ),
-          serviceScheduleRepositoryProvider.overrideWithValue(
-            _RecordingScheduleRepository((s) => saved = s),
-          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -85,6 +67,7 @@ void main() {
                     ref,
                     schedule: schedule,
                     kind: kind,
+                    onHold: (s) => saved = s,
                   ),
                   child: const Text('open'),
                 ),

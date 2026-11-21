@@ -264,7 +264,6 @@ class _CourseDetailContent extends ConsumerWidget {
               CourseCardId.requirements,
               CourseRequirementsSection(
                 courseId: course.id,
-                readOnly: true,
                 shown: host.maybeEditController?.session,
               ),
               topGap: 16,

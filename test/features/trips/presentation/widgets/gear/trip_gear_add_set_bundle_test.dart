@@ -16,10 +16,15 @@ import 'package:submersion/features/equipment/data/repositories/equipment_set_re
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
+import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
@@ -27,7 +32,9 @@ import '../../../../../helpers/test_database.dart';
 /// Adding a set to a trip through the gear tab's Add sheet also slots the
 /// cylinders the set carries and lists its lead on the trip's checklist
 /// (issue #4525). The data function under it has its own test; this drives
-/// the sheet, the checklist question and the message.
+/// the sheet, the checklist question and the message. The tab acts in the
+/// trip page's sitting (issue #4527): it holds the slots and the lead item,
+/// and Save writes them.
 void main() {
   late AppDatabase db;
   final now = DateTime(2026, 11, 1);
@@ -93,7 +100,21 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<void> addSet(WidgetTester tester, {String named = 'Reef rig'}) async {
+  final board = tripCylindersList(
+    cylinders: TripCylinderRepository(),
+    copier: TripFillPassportCopier(),
+  );
+  final checklists = tripChecklistsList(
+    checklists: TripChecklistsRepository(),
+    items: TripChecklistRepository(),
+  );
+
+  /// Opens the trip page's sitting with the packed gear, the board and the
+  /// checklists read, then adds the set [named] from the tab's Add sheet.
+  Future<EditSession<Trip>> addSet(
+    WidgetTester tester, {
+    String named = 'Reef rig',
+  }) async {
     tester.view.physicalSize = const Size(800, 1400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -106,6 +127,15 @@ void main() {
       createdAt: today,
       updatedAt: today,
     );
+    final session = EditSession<Trip>(trip);
+    addTearDown(session.dispose);
+    // Nothing is packed for the trip yet.
+    await tripPackedGearList(
+      read: (_) async => const [],
+      packs: TripEquipmentRepository(),
+    ).load(session);
+    await board.load(session);
+    await checklists.load(session);
     final base = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
@@ -121,7 +151,9 @@ void main() {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (_, _) => Scaffold(body: TripGearTab(trip: trip)),
+                builder: (_, _) => Scaffold(
+                  body: TripGearTab(trip: trip, editing: session),
+                ),
               ),
             ],
           ),
@@ -135,6 +167,18 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text(named).last);
     await tester.pumpAndSettle();
+    return session;
+  }
+
+  /// The titles of the items the sitting holds on [checklistId], or on
+  /// every checklist.
+  List<String> heldLead(EditSession<Trip> session, {String? checklistId}) {
+    final held = heldChecklistsOf(session, checklists)!;
+    return [
+      for (final checklist in held.checklists)
+        if (checklistId == null || checklist.id == checklistId)
+          for (final item in held.itemsOf(checklist.id)) item.title,
+    ];
   }
 
   Future<List<String>> leadItems({String? checklistId}) async {
@@ -150,15 +194,30 @@ void main() {
       tripId: 'trip1',
       name: 'Dive gear',
     );
-    await addSet(tester);
+    final session = await addSet(tester);
 
+    final held = heldCylindersOf(session, board)!.slots;
+    expect(held.single.label, 'EAN32');
+    expect(held.single.volume, closeTo(11.1, 1e-9));
+    // In the diver's weight unit, kilograms by default.
+    expect(heldLead(session), ['Lead: 4.0 kg']);
+    // The regulator, the cylinder slot and the lead item.
+    expect(find.text('Packed 3 items from Reef rig'), findsOneWidget);
+    // Nothing is written before Save.
+    expect(
+      await TripCylinderRepository().getCylindersForTrip('trip1'),
+      isEmpty,
+    );
+    expect(await leadItems(), isEmpty);
+
+    await session.runHeldWrites();
     final slots = await TripCylinderRepository().getCylindersForTrip('trip1');
     expect(slots.single.label, 'EAN32');
     expect(slots.single.volume, closeTo(11.1, 1e-9));
-    // In the diver's weight unit, kilograms by default.
     expect(await leadItems(), ['Lead: 4.0 kg']);
-    // The regulator, the cylinder slot and the lead item.
-    expect(find.text('Packed 3 items from Reef rig'), findsOneWidget);
+    expect(await TripEquipmentRepository().equipmentIdsForTrip('trip1'), [
+      'reg',
+    ]);
   });
 
   // The lead is the one thing this set puts on the trip, so the message
@@ -181,10 +240,12 @@ void main() {
       tripId: 'trip1',
       name: 'Dive gear',
     );
-    await addSet(tester, named: 'Lead only');
+    final session = await addSet(tester, named: 'Lead only');
 
-    expect(await leadItems(), ['Lead: 4.0 kg']);
+    expect(heldLead(session), ['Lead: 4.0 kg']);
     expect(find.text('Packed 1 item from Lead only'), findsOneWidget);
+    await session.runHeldWrites();
+    expect(await leadItems(), ['Lead: 4.0 kg']);
   });
 
   testWidgets('with several checklists it asks which one takes the lead', (
@@ -196,11 +257,14 @@ void main() {
       tripId: 'trip1',
       name: 'Dive gear',
     );
-    await addSet(tester);
+    final session = await addSet(tester);
 
     expect(find.text('Add the lead to which checklist?'), findsOneWidget);
     await tester.tap(find.byKey(Key('trip-lead-checklist-${gear.id}')));
     await tester.pumpAndSettle();
+    expect(heldLead(session, checklistId: gear.id), ['Lead: 4.0 kg']);
+    expect(heldLead(session), hasLength(1));
+    await session.runHeldWrites();
     expect(await leadItems(checklistId: gear.id), ['Lead: 4.0 kg']);
     expect(await leadItems(), hasLength(1));
   });
@@ -208,14 +272,17 @@ void main() {
   testWidgets('with no checklist the message says the lead was left off', (
     tester,
   ) async {
-    await addSet(tester);
+    final session = await addSet(tester);
 
-    expect(await leadItems(), isEmpty);
+    expect(heldLead(session), isEmpty);
     expect(
       find.textContaining('Lead was not added: this trip has no checklist.'),
       findsOneWidget,
     );
     // The cylinder is still slotted.
+    expect(heldCylindersOf(session, board)!.slots, hasLength(1));
+    await session.runHeldWrites();
+    expect(await leadItems(), isEmpty);
     expect(
       await TripCylinderRepository().getCylindersForTrip('trip1'),
       hasLength(1),

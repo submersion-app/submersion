@@ -1315,11 +1315,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_components_totalsSection => '合计';
 
   @override
-  String equipment_documents_removeError(String error) {
-    return '无法移除文档：$error';
-  }
-
-  @override
   String get settings_oauth_connect_copyFailed => '无法复制链接。';
 
   @override
@@ -1796,9 +1791,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_story_openGallery => '打开行程照片';
-
-  @override
-  String get trips_story_generateItineraryError => '无法生成行程，请重试。';
 
   @override
   String get trips_dayType_diveDay => '潜水日';
@@ -4113,17 +4105,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_currency_history => '记录';
-
-  @override
-  String get certifications_currency_deleteEvent_title => '删除此记录？';
-
-  @override
-  String certifications_currency_deleteEvent_content(
-    String event,
-    String date,
-  ) {
-    return '这将删除 $date 记录的$event。';
-  }
 
   @override
   String get certifications_currency_eventDialog_title => '记录复习或续证';
@@ -16746,16 +16727,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_location_return_confirm => '标记为已归还';
 
   @override
-  String equipment_location_returned(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '已归还 $count 件装备',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String equipment_location_withBuddy(String name) {
     return '在 $name 处';
   }
@@ -17145,15 +17116,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_serviceDialog_categoryLabel => '类别';
 
   @override
-  String get equipment_serviceDialog_snackbar_added => '维护记录已添加';
-
-  @override
   String equipment_serviceDialog_snackbar_error(Object error) {
     return '错误： $error';
   }
-
-  @override
-  String get equipment_serviceDialog_snackbar_updated => '维护记录已更新';
 
   @override
   String get equipment_serviceDialog_updateButton => '更新';
@@ -17190,20 +17155,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_service_addButton => '添加';
-
-  @override
-  String get equipment_service_deleteDialog_cancel => '取消';
-
-  @override
-  String get equipment_service_deleteDialog_confirm => '删除';
-
-  @override
-  String equipment_service_deleteDialog_content(Object serviceType) {
-    return '确定要删除此 $serviceType 记录吗？';
-  }
-
-  @override
-  String get equipment_service_deleteDialog_title => '删除维护记录?';
 
   @override
   String get equipment_service_deleteMenuItem => '删除';
@@ -17498,9 +17449,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_scheduleDialog_defaultCurrencyLabel => '此装备的货币';
 
   @override
-  String get equipment_service_snackbar_deleted => '维护记录已删除';
-
-  @override
   String equipment_service_totalCostLabel(String currency) {
     return '维护总费用 ($currency)';
   }
@@ -17662,9 +17610,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_snackbar_reactivated => '装备已重新启用';
-
-  @override
-  String get equipment_snackbar_purchased => '已移至在用装备';
 
   @override
   String get equipment_snackbar_retired => '装备已停用';
@@ -19060,28 +19005,6 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '还有 $count 张照片',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importAdded(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '已添加 $count 张照片',
-      one: '已添加 1 张照片',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importSkipped(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '跳过 $count 张',
-      one: '跳过 1 张',
     );
     return '$_temp0';
   }
@@ -33721,23 +33644,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_scan_addDivesFirst => '请先添加潜水以关联照片';
 
   @override
-  String get trips_detail_scan_errorLinking => '无法关联照片，请重试。';
-
-  @override
   String get trips_detail_scan_errorScanning => '无法扫描照片，请重试。';
-
-  @override
-  String trips_detail_scan_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '已关联 $count 照片',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_detail_scan_linkingPhotos => '正在关联照片...';
 
   @override
   String get trips_detail_sectionTitle_notes => '备注';
@@ -34976,9 +34883,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_itinerary_error_loading => '无法加载行程。';
-
-  @override
-  String get trips_itinerary_daySaveError => '无法保存日程，请重试。';
 
   @override
   String get trips_itinerary_empty => '还没有行程。根据旅行日期生成一个。';
@@ -49813,15 +49717,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_documents_linkedSubtitle => '文件过大，或文档无法保存该格式';
-
-  @override
-  String get equipment_documents_removeTitle => '移除文档？';
-
-  @override
-  String get equipment_documents_removeContent => '它将不再附加到此装备。您的原始文件不会被改动。';
-
-  @override
-  String get equipment_documents_removed => '文档已移除';
 
   @override
   String equipment_documents_loadError(String error) {

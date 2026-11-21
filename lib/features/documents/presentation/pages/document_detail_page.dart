@@ -360,7 +360,6 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
                 entry: entry,
                 forceOpen: isSittingOpen,
                 frame: _framedDetails,
-                showReminder: true,
                 pencil: _detailsPencil(),
                 tags: _heldTags(),
               ),
@@ -377,7 +376,6 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
     final card = DocumentDetailsCard(
       document: doc,
       ownerLabel: owner,
-      showReminder: true,
       pencil: _detailsPencil(),
       tags: _heldTags(),
     );

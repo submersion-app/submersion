@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center_gear_note.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_gear_note_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -23,10 +25,24 @@ void main() {
         updatedAt: DateTime(2026, 1, 1),
       );
 
+  /// A sitting on the centre, for the open Rental gear card.
+  EditSession<DiveCenter> sitting() {
+    final session = EditSession(
+      DiveCenter(
+        id: 'c1',
+        name: 'Reef Divers',
+        createdAt: DateTime(2020),
+        updatedAt: DateTime(2020),
+      ),
+    );
+    addTearDown(session.dispose);
+    return session;
+  }
+
   Future<void> pump(
     WidgetTester tester,
     List<DiveCenterGearNote> notes, {
-    bool readOnly = false,
+    EditSession<DiveCenter>? editing,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -40,7 +56,7 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
-              child: RentalGearSection(centerId: 'c1', readOnly: readOnly),
+              child: RentalGearSection(centerId: 'c1', editing: editing),
             ),
           ),
         ),
@@ -64,36 +80,41 @@ void main() {
     // Regulators come before fins in the canonical order.
     expect(reg14.dy, lessThan(fins.dy));
     expect(reg9.dy, lessThan(fins.dy));
-    expect(find.byIcon(Icons.add), findsOneWidget);
   });
 
-  testWidgets('with no notes shows the empty line and the add button', (
-    tester,
-  ) async {
-    await pump(tester, const []);
+  testWidgets('with no notes the open card shows the empty line and the add '
+      'button', (tester) async {
+    await pump(tester, const [], editing: sitting());
     expect(find.text('Rental gear'), findsOneWidget);
     expect(find.text('No rental notes for this center yet.'), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
   });
 
   testWidgets('the add button opens the sheet', (tester) async {
-    await pump(tester, const []);
+    await pump(tester, const [], editing: sitting());
     await tester.tap(find.byIcon(Icons.add));
     await tester.pumpAndSettle();
     expect(find.text('New rental note'), findsOneWidget);
   });
 
   testWidgets('a tapped note opens its editor', (tester) async {
-    await pump(tester, [note('n1', EquipmentType.fins, label: 'fins')]);
+    await pump(tester, [
+      note('n1', EquipmentType.fins, label: 'fins'),
+    ], editing: sitting());
     await tester.tap(find.text('fins'));
     await tester.pumpAndSettle();
     expect(find.text('Edit rental note'), findsOneWidget);
   });
 
-  testWidgets('locked with the switch on, no add is offered', (tester) async {
-    await pump(tester, const [], readOnly: true);
+  testWidgets('locked, no add is offered and a note opens nothing', (
+    tester,
+  ) async {
+    await pump(tester, [note('n1', EquipmentType.fins, label: 'fins')]);
 
     expect(find.byKey(const ValueKey('rental_gear_add')), findsNothing);
     expect(find.byIcon(Icons.add), findsNothing);
+    await tester.tap(find.text('fins'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit rental note'), findsNothing);
   });
 }

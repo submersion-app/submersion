@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
@@ -8,12 +9,16 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_se
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_block.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
 import '../../../../helpers/test_app.dart';
 
 /// Split from trip_checklist_block_real_db_test.dart (which covers the same
 /// widget against a real database) to keep both files under the project's
-/// 800-line cap; this file covers rendering against stubbed providers.
+/// 800-line cap; this file covers rendering against stubbed providers, as a
+/// locked trip page shows a checklist, and against rows a sitting holds.
 
 Trip _trip({required bool upcoming}) {
   final now = DateTime.now();
@@ -76,7 +81,34 @@ Future<void> _expand(WidgetTester tester, {String title = 'Checklist'}) async {
   await tester.pumpAndSettle();
 }
 
+/// A sitting over [trip] holding [rows], with nothing stored behind it:
+/// what an unlocked trip page hands its blocks (issue #4527).
+Future<({TripChecklistsHeld held, HeldTripChecklistWrites writes})> _sitting(
+  Trip trip,
+  TripChecklistsHeld rows,
+) async {
+  final session = EditSession<Trip>(trip);
+  addTearDown(session.dispose);
+  final list = SittingList<Trip, TripChecklistsHeld>(
+    key: 'trip.checklists',
+    cardId: 'checklists',
+    read: (trip) async => [rows],
+    write: (trip, loaded, current) async => null,
+  );
+  await list.load(session);
+  return (
+    held: heldChecklistsOf(session, list)!,
+    writes: HeldTripChecklistWrites(
+      session: session,
+      list: list,
+      templates: ChecklistTemplateRepository(),
+    ),
+  );
+}
+
 void main() {
+  /// The block with no sitting: a locked trip page's, drawn from the
+  /// stubbed providers.
   Widget pumpBlock({
     required bool upcoming,
     List<dynamic> overrides = const [],
@@ -261,15 +293,23 @@ void main() {
     );
   });
 
-  testWidgets('a brand new checklist still offers "+ Add section" alongside '
-      'the planning invitation', (tester) async {
+  testWidgets('in a sitting, a brand new checklist still offers "+ Add '
+      'section" alongside the planning invitation', (tester) async {
+    final trip = _trip(upcoming: true);
+    final sitting = await _sitting(
+      trip,
+      TripChecklistsHeld(checklists: [_checklist()]),
+    );
     await tester.pumpWidget(
-      pumpBlock(
-        upcoming: true,
-        overrides: [
-          tripChecklistProvider('c1').overrideWith((ref) async => []),
-          tripChecklistSectionsProvider('c1').overrideWith((ref) async => []),
-        ],
+      testApp(
+        child: SingleChildScrollView(
+          child: TripChecklistBlock(
+            trip: trip,
+            checklist: _checklist(),
+            held: sitting.held,
+            writes: sitting.writes,
+          ),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -284,6 +324,78 @@ void main() {
     // sections yet must not hide it behind the empty-state message (issue
     // #3360).
     expect(find.text('Add section'), findsOneWidget);
+  });
+
+  testWidgets('in a sitting, the block shows the rows the sitting holds, '
+      'not the stored ones', (tester) async {
+    final trip = _trip(upcoming: true);
+    final sitting = await _sitting(
+      trip,
+      TripChecklistsHeld(
+        checklists: [_checklist()],
+        items: [_item(id: 'i2', title: 'Held mask')],
+      ),
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          tripChecklistProvider(
+            'c1',
+          ).overrideWith((ref) async => [_item(title: 'Stored fins')]),
+          tripChecklistSectionsProvider('c1').overrideWith((ref) async => []),
+        ],
+        child: SingleChildScrollView(
+          child: TripChecklistBlock(
+            trip: trip,
+            checklist: _checklist(),
+            held: sitting.held,
+            writes: sitting.writes,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _expand(tester);
+
+    expect(find.text('Held mask'), findsOneWidget);
+    expect(find.text('Stored fins'), findsNothing);
+    expect(find.text('Add item'), findsOneWidget);
+  });
+
+  testWidgets('locked, a checklist shows its items and offers no change but '
+      'Save as template', (tester) async {
+    await tester.pumpWidget(
+      pumpBlock(
+        upcoming: true,
+        overrides: [
+          tripChecklistProvider('c1').overrideWith(
+            (ref) async => [
+              _item(id: 'i1', title: 'Service regulator', sectionId: 'gear'),
+            ],
+          ),
+          tripChecklistSectionsProvider(
+            'c1',
+          ).overrideWith((ref) async => [_section(id: 'gear', title: 'Gear')]),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _expand(tester);
+
+    expect(find.text('Gear'), findsOneWidget);
+    expect(find.text('Service regulator'), findsOneWidget);
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).onChanged, isNull);
+    expect(find.text('Add item'), findsNothing);
+    expect(find.text('Add section'), findsNothing);
+    expect(find.byIcon(Icons.keyboard_arrow_up), findsNothing);
+    expect(find.byIcon(Icons.keyboard_arrow_down), findsNothing);
+    expect(find.byIcon(Icons.delete_outline), findsNothing);
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PopupMenuItem<String>), findsOneWidget);
+    expect(find.text('Save as template...'), findsOneWidget);
   });
 
   testWidgets('a sections-provider failure shows the error, not a spinner', (

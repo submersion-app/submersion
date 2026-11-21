@@ -664,13 +664,6 @@ class EquipmentListNotifier
     await _repository.setStatusForMany(ids, status);
     await refresh();
   }
-
-  /// Wishlist gear bought (#2025). The detail page's item provider watches
-  /// the equipment table, so it reloads on its own.
-  Future<void> markPurchased(String id) async {
-    await _repository.markEquipmentPurchased(id);
-    await refresh();
-  }
 }
 
 final equipmentListNotifierProvider =
@@ -704,15 +697,6 @@ final serviceRecordsForEquipmentProvider =
       return repository.getRecordsForEquipment(equipmentId);
     });
 
-/// Single service record provider
-final serviceRecordByIdProvider = FutureProvider.family<ServiceRecord?, String>(
-  (ref, id) async {
-    final repository = ref.watch(serviceRecordRepositoryProvider);
-    ref.invalidateSelfWhen(repository.watchServiceRecordsChanges());
-    return repository.getRecordById(id);
-  },
-);
-
 /// Most recent service record for equipment
 final mostRecentServiceRecordProvider =
     FutureProvider.family<ServiceRecord?, String>((ref, equipmentId) async {
@@ -731,7 +715,7 @@ final serviceRecordCountProvider = FutureProvider.family<int, String>((
   return repository.getRecordCount(equipmentId);
 });
 
-/// Service record notifier for mutations
+/// An item's service records, refreshed after a sitting writes them.
 class ServiceRecordNotifier
     extends StateNotifier<AsyncValue<List<ServiceRecord>>> {
   static final _log = LoggerService.forClass(ServiceRecordNotifier);
@@ -791,26 +775,6 @@ class ServiceRecordNotifier
         stackTrace: stackTrace,
       );
     }
-  }
-
-  Future<ServiceRecord> addRecord(ServiceRecord record) async {
-    // A newer service takes a clock over from its baseline by the shared
-    // rule (clockAnchorFromServices) without the baseline being erased, so
-    // deleting that service later hands the clock back to the baseline.
-    final newRecord = await _repository.createRecord(record);
-    await refresh();
-    return newRecord;
-  }
-
-  Future<void> updateRecord(ServiceRecord record) async {
-    await _repository.updateRecord(record);
-    await refresh();
-    _ref.invalidate(serviceRecordByIdProvider(record.id));
-  }
-
-  Future<void> deleteRecord(String id) async {
-    await _repository.deleteRecord(id);
-    await refresh();
   }
 }
 

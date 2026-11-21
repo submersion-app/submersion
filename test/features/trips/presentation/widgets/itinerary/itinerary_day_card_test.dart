@@ -54,7 +54,6 @@ void main() {
                         cloudCover: CloudCover.partlyCloudy,
                       ),
                     ],
-                    tripId: 'trip-1',
                     isLiveaboard: false,
                     kind: TripStoryDayKind.today,
                   ),
@@ -83,7 +82,6 @@ void main() {
             body: ItineraryDayCard(
               day: _day,
               dives: const [],
-              tripId: 'trip-1',
               isLiveaboard: false,
               kind: TripStoryDayKind.past,
               photoCount: 1,
@@ -110,7 +108,6 @@ void main() {
               body: ItineraryDayCard(
                 day: _day.copyWith(dayType: type, portName: 'Kralendijk'),
                 dives: const [],
-                tripId: 'trip-1',
                 isLiveaboard: true,
                 kind: TripStoryDayKind.future,
               ),

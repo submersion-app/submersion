@@ -101,10 +101,6 @@ const _guardedHandlers = <(String, String)>[
     'Future<void> scanGalleryInSitting(',
   ),
   (
-    'lib/features/trips/presentation/helpers/trip_scan_actions.dart',
-    'Future<void> scanGalleryForTripPhotos(',
-  ),
-  (
     // A trip page's Photos card holds the scanned photos until its Save.
     'lib/features/trips/presentation/helpers/trip_scan_in_sitting.dart',
     'Future<void> scanTripPhotosInSitting(',

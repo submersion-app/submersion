@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -82,21 +81,18 @@ Future<bool> _ask(
         false);
 
 /// Moves [items]: the sheet, then the parts and status prompts, then a
-/// SnackBar. With [lendTo] the sheet opens on that buddy. Returns how many
-/// items moved, or null when cancelled or when the move failed (a SnackBar
-/// says so).
+/// SnackBar. Returns how many items moved, or null when cancelled or when
+/// the move failed (a SnackBar says so).
 Future<int?> showMoveEquipmentFlow(
   BuildContext context,
   WidgetRef ref, {
   required List<EquipmentItem> items,
-  Buddy? lendTo,
 }) async {
   if (items.isEmpty) return null;
   final draft = await showMoveEquipmentSheet(
     context,
     ref,
     itemCount: items.length,
-    initialPick: lendTo == null ? null : BuddyPick(lendTo),
   );
   if (draft == null || !context.mounted) return null;
   final l10n = context.l10n;

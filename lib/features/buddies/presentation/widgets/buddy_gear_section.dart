@@ -25,20 +25,16 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// links here, loaned or in everyday family use. Builds nothing, its spacing
 /// included, when there is none, so most buddies show no trace of it.
 ///
-/// On the buddy's page (issue #4527, phase 3) it offers nothing
-/// while locked ([readOnly]); in the page's sitting ([editing]) Lend gear,
-/// All returned and Returned are asked about at once and held until Save,
-/// and the rows show the gear as the sitting holds it.
+/// It offers nothing outside the open Gear card (issue #4527, phase 3); in
+/// the page's sitting ([editing]) Lend gear, All returned and Returned are
+/// asked about at once and held until Save, and the rows show the gear as
+/// the sitting holds it.
 class BuddyGearSection extends ConsumerWidget {
   final Buddy buddy;
 
   /// The sitting its moves are held in: it is the Gear card's editor,
   /// drawn inside the open card.
   final EditSession<Buddy>? editing;
-
-  /// Offers no action: the page edits in place and is locked, or its
-  /// card is closed.
-  final bool readOnly;
 
   /// The sitting whose rows a closed card shows, without offering its
   /// actions.
@@ -48,7 +44,6 @@ class BuddyGearSection extends ConsumerWidget {
     super.key,
     required this.buddy,
     this.editing,
-    this.readOnly = false,
     this.shown,
   });
 
@@ -65,10 +60,9 @@ class BuddyGearSection extends ConsumerWidget {
   Future<void> _lend(
     BuildContext context,
     WidgetRef ref,
-    EditSession<Buddy>? editing,
+    EditSession<Buddy> editing,
     List<BuddyGearRow> rows,
   ) async {
-    if (editing == null) return showLendGearFlow(context, ref, buddy);
     final held = heldBuddyGearMoves(editing);
     final lend = await planLendGear(
       context,
@@ -93,19 +87,10 @@ class BuddyGearSection extends ConsumerWidget {
   Future<void> _return(
     BuildContext context,
     WidgetRef ref,
-    EditSession<Buddy>? editing,
+    EditSession<Buddy> editing,
     List<BuddyGearRow> rows,
   ) async {
     final items = [for (final row in rows) row.gear.item];
-    if (editing == null) {
-      await showEquipmentReturnFlow(
-        context,
-        ref,
-        items: items,
-        buddyId: buddy.id,
-      );
-      return;
-    }
     final returned = await planEquipmentReturn(
       context,
       ref,
@@ -117,19 +102,19 @@ class BuddyGearSection extends ConsumerWidget {
     }
   }
 
-  /// What a row's Returned does: nothing while locked; for an item a lend
-  /// the sitting holds, takes that item out of the lend, and for one of its
-  /// parts nothing, since a part follows its item; otherwise returns the
-  /// item.
+  /// What a row's Returned does: nothing outside the open card; for an
+  /// item a lend the sitting holds, takes that item out of the lend, and for
+  /// one of its parts nothing, since a part follows its item; otherwise
+  /// returns the item.
   VoidCallback? _onReturned(
     BuildContext context,
     WidgetRef ref,
     EditSession<Buddy>? editing,
     BuddyGearRow row,
   ) {
-    if (readOnly) return null;
+    if (editing == null) return null;
     final index = row.heldIndex;
-    if (editing != null && index != null) {
+    if (index != null) {
       final id = row.gear.item.id;
       final lend = heldBuddyGearMoves(editing)[index].lend;
       if (lend == null || !lend.items.any((i) => i.id == id)) return null;
@@ -180,7 +165,7 @@ class BuddyGearSection extends ConsumerWidget {
     final title = l10n.buddies_gear_title(buddy.name);
 
     final content = <Widget>[
-      if (!readOnly)
+      if (editing != null)
         Wrap(
           spacing: 8,
           children: [
@@ -252,10 +237,9 @@ class BuddyGearSection extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  if (readOnly)
-                    RecordCardPencil(
-                      cardTitle: BuddyCardId.gear.localizedDisplayName(l10n),
-                    ),
+                  RecordCardPencil(
+                    cardTitle: BuddyCardId.gear.localizedDisplayName(l10n),
+                  ),
                 ],
               ),
               ...content,

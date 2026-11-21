@@ -1371,11 +1371,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_components_totalsSection => 'Summe';
 
   @override
-  String equipment_documents_removeError(String error) {
-    return 'Dokument konnte nicht entfernt werden: $error';
-  }
-
-  @override
   String get settings_oauth_connect_copyFailed =>
       'Der Link konnte nicht kopiert werden.';
 
@@ -1867,10 +1862,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_story_openGallery => 'Reisefotos öffnen';
-
-  @override
-  String get trips_story_generateItineraryError =>
-      'Der Reiseplan konnte nicht erstellt werden. Versuche es erneut.';
 
   @override
   String get trips_dayType_diveDay => 'Tauchtag';
@@ -4348,17 +4339,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get certifications_currency_history => 'Verlauf';
-
-  @override
-  String get certifications_currency_deleteEvent_title => 'Eintrag löschen?';
-
-  @override
-  String certifications_currency_deleteEvent_content(
-    String event,
-    String date,
-  ) {
-    return 'Damit wird $event vom $date entfernt.';
-  }
 
   @override
   String get certifications_currency_eventDialog_title =>
@@ -17564,17 +17544,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_location_return_confirm => 'Als zurückgegeben markieren';
 
   @override
-  String equipment_location_returned(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Teile zurückgegeben',
-      one: '$count Teil zurückgegeben',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String equipment_location_withBuddy(String name) {
     return 'Bei $name';
   }
@@ -17993,17 +17962,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_serviceDialog_categoryLabel => 'Kategorie';
 
   @override
-  String get equipment_serviceDialog_snackbar_added =>
-      'Wartungseintrag hinzugefügt';
-
-  @override
   String equipment_serviceDialog_snackbar_error(Object error) {
     return 'Fehler: $error';
   }
-
-  @override
-  String get equipment_serviceDialog_snackbar_updated =>
-      'Wartungseintrag aktualisiert';
 
   @override
   String get equipment_serviceDialog_updateButton => 'Aktualisieren';
@@ -18040,20 +18001,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_service_addButton => 'Hinzufügen';
-
-  @override
-  String get equipment_service_deleteDialog_cancel => 'Abbrechen';
-
-  @override
-  String get equipment_service_deleteDialog_confirm => 'Löschen';
-
-  @override
-  String equipment_service_deleteDialog_content(Object serviceType) {
-    return 'Bist du sicher, dass du diesen $serviceType-Eintrag löschen möchtest?';
-  }
-
-  @override
-  String get equipment_service_deleteDialog_title => 'Wartungseintrag löschen?';
 
   @override
   String get equipment_service_deleteMenuItem => 'Löschen';
@@ -18370,9 +18317,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Währung für dieses Teil';
 
   @override
-  String get equipment_service_snackbar_deleted => 'Wartungseintrag gelöscht';
-
-  @override
   String equipment_service_totalCostLabel(String currency) {
     return 'Gesamte Wartungskosten ($currency)';
   }
@@ -18545,10 +18489,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_snackbar_reactivated => 'Ausrüstung reaktiviert';
-
-  @override
-  String get equipment_snackbar_purchased =>
-      'In deine aktive Ausrüstung verschoben';
 
   @override
   String get equipment_snackbar_retired => 'Ausrüstung ausgemustert';
@@ -20032,28 +19972,6 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count weitere Fotos',
       one: '$count weiteres Foto',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importAdded(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Fotos hinzugefügt',
-      one: '1 Foto hinzugefügt',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importSkipped(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count übersprungen',
-      one: '1 übersprungen',
     );
     return '$_temp0';
   }
@@ -35748,26 +35666,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Füge zuerst Tauchgänge hinzu, um Fotos zu verknüpfen';
 
   @override
-  String get trips_detail_scan_errorLinking =>
-      'Die Fotos konnten nicht verknüpft werden. Versuche es erneut.';
-
-  @override
   String get trips_detail_scan_errorScanning =>
       'Die Fotos konnten nicht gescannt werden. Versuche es erneut.';
-
-  @override
-  String trips_detail_scan_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Fotos verknüpft',
-      one: '$count Foto verknüpft',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_detail_scan_linkingPhotos => 'Fotos werden verknüpft...';
 
   @override
   String get trips_detail_sectionTitle_notes => 'Notizen';
@@ -37082,10 +36982,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get trips_itinerary_error_loading =>
       'Der Reiseplan konnte nicht geladen werden.';
-
-  @override
-  String get trips_itinerary_daySaveError =>
-      'Der Tag konnte nicht gespeichert werden. Versuche es erneut.';
 
   @override
   String get trips_itinerary_empty =>
@@ -52918,16 +52814,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipment_documents_linkedSubtitle =>
       'Zu groß oder ein Format, das Dokumente nicht aufnehmen kann';
-
-  @override
-  String get equipment_documents_removeTitle => 'Dokument entfernen?';
-
-  @override
-  String get equipment_documents_removeContent =>
-      'Es ist dann nicht mehr an diesen Artikel angehängt. Deine Originaldatei bleibt unberührt.';
-
-  @override
-  String get equipment_documents_removed => 'Dokument entfernt';
 
   @override
   String equipment_documents_loadError(String error) {

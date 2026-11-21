@@ -334,7 +334,7 @@ void main() {
         await repository.createBuddy(
           createTestBuddy(id: 'fav', name: 'Favorite Buddy'),
         );
-        await repository.toggleFavorite('fav');
+        await repository.setFavorite('fav', true);
 
         final results = await repository.getAllBuddiesWithDiveCount();
         final fav = results.firstWhere((r) => r.buddy.id == 'fav');
@@ -357,19 +357,6 @@ void main() {
     });
 
     group('favorites (issue #638)', () {
-      test('toggleFavorite flips false to true and back', () async {
-        final buddy = await repository.createBuddy(
-          createTestBuddy(name: 'Toggle Buddy'),
-        );
-        expect(buddy.isFavorite, isFalse);
-
-        await repository.toggleFavorite(buddy.id);
-        expect((await repository.getBuddyById(buddy.id))!.isFavorite, isTrue);
-
-        await repository.toggleFavorite(buddy.id);
-        expect((await repository.getBuddyById(buddy.id))!.isFavorite, isFalse);
-      });
-
       test('setFavorite sets the flag explicitly', () async {
         final buddy = await repository.createBuddy(
           createTestBuddy(name: 'Set Favorite Buddy'),
@@ -386,16 +373,6 @@ void main() {
         'setFavorite on an unknown id leaves no pending sync record',
         () async {
           await repository.setFavorite('does-not-exist', true);
-
-          final pending = await db.select(db.syncRecords).get();
-          expect(pending, isEmpty);
-        },
-      );
-
-      test(
-        'toggleFavorite on an unknown id leaves no pending sync record',
-        () async {
-          await repository.toggleFavorite('does-not-exist');
 
           final pending = await db.select(db.syncRecords).get();
           expect(pending, isEmpty);

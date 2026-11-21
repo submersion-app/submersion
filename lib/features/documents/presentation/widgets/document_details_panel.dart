@@ -29,9 +29,6 @@ class DocumentDetailsPanel extends ConsumerStatefulWidget {
   /// Wraps the panel as the page's Details card, framed for editing.
   final Widget Function(Widget details)? frame;
 
-  /// Passed to [DocumentDetailsCard.showReminder].
-  final bool showReminder;
-
   /// The Details card's pencil, shown in the header in place of the fold
   /// arrow while [forceOpen].
   final Widget? pencil;
@@ -44,7 +41,6 @@ class DocumentDetailsPanel extends ConsumerStatefulWidget {
     required this.entry,
     this.forceOpen = false,
     this.frame,
-    this.showReminder = false,
     this.pencil,
     this.tags,
   });
@@ -78,7 +74,6 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
                 document: doc,
                 ownerLabel: owner,
                 flat: true,
-                showReminder: widget.showReminder,
                 tags: widget.tags,
               ),
             ),
@@ -102,7 +97,6 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
                   document: doc,
                   ownerLabel: owner,
                   flat: true,
-                  showReminder: widget.showReminder,
                   tags: widget.tags,
                 ),
               ],
@@ -172,11 +166,6 @@ class DocumentDetailsCard extends ConsumerWidget {
   /// True inside [DocumentDetailsPanel], which is already a card.
   final bool flat;
 
-  /// Shows the expiry reminder when it is set and not the default, which
-  /// the page showed nowhere before it edited in place (issue #4527,
-  /// phase 3).
-  final bool showReminder;
-
   /// The Details card's pencil and changed dot, at its top while the page
   /// is unlocked.
   final Widget? pencil;
@@ -190,7 +179,6 @@ class DocumentDetailsCard extends ConsumerWidget {
     required this.document,
     required this.ownerLabel,
     this.flat = false,
-    this.showReminder = false,
     this.pencil,
     this.tags,
   });
@@ -250,7 +238,9 @@ class DocumentDetailsCard extends ConsumerWidget {
             value: units.formatDate(expiry),
             trailing: DocumentExpiryBadge(status: status),
           ),
-        if (showReminder && doc.expiryDate != null)
+        // The expiry reminder when it is set and not the default (issue
+        // #4527, phase 3).
+        if (doc.expiryDate != null)
           if (doc.reminderLeadDays case final days?)
             _DetailRow(
               icon: Icons.notifications_outlined,

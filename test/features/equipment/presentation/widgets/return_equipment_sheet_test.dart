@@ -7,7 +7,6 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/return_equipment_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -21,8 +20,10 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   final recorded = <(String?, DateTime, String)>[];
 
   @override
-  Future<List<EquipmentLocationMove>> getMovesFor(String equipmentId) async =>
-      history[equipmentId] ?? const [];
+  Future<List<EquipmentLocationMove>> getMovesFor(String equipmentId) async {
+    if (failing) throw StateError('no');
+    return history[equipmentId] ?? const [];
+  }
 
   @override
   Future<Map<String, EquipmentStatus>> partsOf(Iterable<String> ids) async =>
@@ -36,32 +37,15 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
     List<MoveGroup> groups, {
     String note = '',
   }) async {
-    if (failing) throw StateError('no');
     for (final g in groups) {
       recorded.add((g.locationId, g.movedAt, note));
     }
   }
 }
 
-class _StatusNotifier extends StateNotifier<AsyncValue<List<EquipmentItem>>>
-    implements EquipmentListNotifier {
-  _StatusNotifier({this.failing = false}) : super(const AsyncValue.data([]));
-  final bool failing;
-  final statuses = <EquipmentStatus>[];
-
-  @override
-  Future<void> setStatusForMany(
-    List<String> ids,
-    EquipmentStatus status,
-  ) async {
-    if (failing) throw StateError('no');
-    statuses.add(status);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
+/// The return sheet on a buddy's page in its sitting (issue #3790; held
+/// until Save since issue #4527, phase 3): it asks everything now and
+/// writes nothing.
 void main() {
   EquipmentLocation place(
     String id,
@@ -117,15 +101,15 @@ void main() {
 
   final confirm = find.byKey(const ValueKey('return_equipment_confirm'));
 
-  Future<({_FakeMoves moves, _StatusNotifier status})> pump(
+  /// Opens the sheet; [held] is what the flow handed back once it ends.
+  Future<({_FakeMoves moves, List<HeldReturn?> held})> pump(
     WidgetTester tester,
     List<EquipmentItem> items,
     Map<String, List<EquipmentLocationMove>> history, {
     bool failing = false,
-    bool statusFails = false,
   }) async {
     final moves = _FakeMoves(history, failing: failing);
-    final status = _StatusNotifier(failing: statusFails);
+    final held = <HeldReturn?>[];
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
@@ -133,15 +117,16 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           equipmentLocationMoveRepositoryProvider.overrideWithValue(moves),
           allEquipmentLocationsByIdProvider.overrideWith((ref) async => places),
-          equipmentListNotifierProvider.overrideWith((ref) => status),
         ],
         child: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => showEquipmentReturnFlow(
-              context,
-              ref,
-              items: items,
-              buddyId: 'b1',
+            onPressed: () async => held.add(
+              await planEquipmentReturn(
+                context,
+                ref,
+                items: items,
+                buddyId: 'b1',
+              ),
             ),
             child: const Text('open'),
           ),
@@ -150,7 +135,7 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    return (moves: moves, status: status);
+    return (moves: moves, held: held);
   }
 
   testWidgets('one destination is named', (tester) async {
@@ -179,9 +164,8 @@ void main() {
     expect(find.text('Each item goes back where it was'), findsOneWidget);
   });
 
-  testWidgets('confirming returns today, with the note, then offers Active', (
-    tester,
-  ) async {
+  testWidgets('confirming holds a return today, with the note, asks about '
+      'Active, and writes nothing', (tester) async {
     final fakes = await pump(
       tester,
       [wet],
@@ -194,19 +178,18 @@ void main() {
     );
     await tester.tap(confirm);
     await tester.pumpAndSettle();
-
-    final (locationId, movedAt, note) = fakes.moves.recorded.single;
-    expect(locationId, 'shelf');
-    expect(note, 'rinsed');
-    expect(DateTime.now().difference(movedAt).inMinutes, lessThan(1));
-
     await tester.tap(find.text('Update'));
     await tester.pumpAndSettle();
-    expect(fakes.status.statuses, [EquipmentStatus.active]);
-    expect(find.text('1 item returned'), findsOneWidget);
+
+    final plan = fakes.held.single!.plan;
+    expect(plan.items.keys, ['wet']);
+    expect(plan.note, 'rinsed');
+    expect(plan.setActive, isTrue);
+    expect(DateTime.now().difference(plan.movedAt).inMinutes, lessThan(1));
+    expect(fakes.moves.recorded, isEmpty);
   });
 
-  testWidgets('a picked day is the day recorded, at noon', (tester) async {
+  testWidgets('a picked day is the day held, at noon', (tester) async {
     final fakes = await pump(
       tester,
       [wet],
@@ -222,38 +205,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(confirm);
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Keep status'));
+    await tester.pumpAndSettle();
 
     final now = DateTime.now();
     expect(
-      fakes.moves.recorded.single.$2,
+      fakes.held.single!.plan.movedAt,
       DateTime(now.year, now.month - 1, 15, 12),
     );
   });
 
-  testWidgets('a failed status write says so, and the return still counts', (
-    tester,
-  ) async {
-    final fakes = await pump(
-      tester,
-      [wet],
-      {'wet': historyFrom('wet', 'shelf')},
-      statusFails: true,
-    );
-
-    await tester.tap(confirm);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Update'));
-    await tester.pumpAndSettle();
-
-    expect(tester.takeException(), isNull);
-    expect(fakes.moves.recorded, hasLength(1));
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('dismissing writes nothing', (tester) async {
+  testWidgets('dismissing holds nothing', (tester) async {
     final fakes = await pump(
       tester,
       [wet],
@@ -263,22 +225,20 @@ void main() {
     await tester.tapAt(const Offset(20, 20));
     await tester.pumpAndSettle();
 
+    expect(fakes.held.single, isNull);
     expect(fakes.moves.recorded, isEmpty);
-    expect(fakes.status.statuses, isEmpty);
   });
 
-  testWidgets('a failed return says so', (tester) async {
-    await pump(
+  testWidgets('a failed read says so and holds nothing', (tester) async {
+    final fakes = await pump(
       tester,
       [wet],
       {'wet': historyFrom('wet', 'shelf')},
       failing: true,
     );
 
-    await tester.tap(confirm);
-    await tester.pumpAndSettle();
-
     expect(tester.takeException(), isNull);
+    expect(fakes.held.single, isNull);
     expect(
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,

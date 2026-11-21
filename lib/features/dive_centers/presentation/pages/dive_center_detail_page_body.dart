@@ -82,7 +82,6 @@ extension _DiveCenterDetailPageBody on _DiveCenterDetailPageState {
             DiveCenterCardId.rentalGear,
             RentalGearSection(
               centerId: stored.id,
-              readOnly: true,
               shown: maybeEditController?.session,
             ),
           ),

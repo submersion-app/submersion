@@ -175,23 +175,11 @@ Future<void> _evictTrack(Ref ref, String id, {bool rereadTrack = true}) async {
   if (rereadTrack) ref.invalidate(gpsTrackDetailProvider(id));
 }
 
-/// Trims a track and drops its cached geometry.
-///
-/// Cache invalidation lives here rather than in the repository so the data
-/// layer stays unaware of the presentation cache.
-final trimTrackProvider = Provider(
-  (ref) => (String id, {int? startMs, int? endMs}) async {
-    await ref
-        .read(gpsTrackRepositoryProvider)
-        .setTrimBounds(id, startMs: startMs, endMs: endMs);
-    await _evictTrack(ref, id);
-  },
-);
-
 /// Drops a track's cached geometry after its page saved a sitting that
 /// changed the trim (issue #4527): the save writes through the repository,
-/// which knows nothing of the presentation cache. The page reads the track
-/// back itself, so the decoded track is left for it.
+/// which knows nothing of the presentation cache, so the eviction lives
+/// here. The page reads the track back itself, so the decoded track is left
+/// for it.
 final evictGpsTrackProvider = Provider(
   (ref) =>
       (String id) => _evictTrack(ref, id, rereadTrack: false),
