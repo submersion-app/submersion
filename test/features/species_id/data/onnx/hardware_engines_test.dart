@@ -13,6 +13,7 @@ class FakeCatalogue implements WinMlCatalogue {
     this.refuse = const {},
     this.hang = const {},
     this.broken = false,
+    this.readsBeforeBreaking,
   });
 
   List<WinMlEngine> _engines;
@@ -21,11 +22,19 @@ class FakeCatalogue implements WinMlCatalogue {
   /// Engines whose preparing never finishes (a stalled download).
   final Set<String> hang;
   final bool broken;
+
+  /// Reads that work before every later one fails.
+  int? readsBeforeBreaking;
   final prepared = <String>[];
 
   @override
   Future<List<WinMlEngine>> engines() async {
     if (broken) throw StateError('Windows ML failed opening the catalogue');
+    final left = readsBeforeBreaking;
+    if (left != null) {
+      if (left == 0) throw StateError('Windows ML failed listing engines');
+      readsBeforeBreaking = left - 1;
+    }
     return _engines;
   }
 
@@ -166,6 +175,40 @@ void main() {
       expect(await engines.readyProviderLibraries(), isEmpty);
     });
   });
+
+  test('one deadline covers the whole fetch, not each engine', () async {
+    final catalogue = FakeCatalogue(
+      [
+        _absent,
+        const WinMlEngine(
+          name: 'MIGraphXExecutionProvider',
+          state: WinMlReadyState.notPresent,
+          libraryPath: '',
+        ),
+      ],
+      hang: {'OpenVINOExecutionProvider', 'MIGraphXExecutionProvider'},
+    );
+    final engines = WindowsMlEngines(
+      catalogue,
+      fetchTimeout: const Duration(milliseconds: 30),
+    );
+
+    expect(await engines.fetchEngine(), isFalse);
+    expect(catalogue.prepared, ['OpenVINOExecutionProvider']);
+  });
+
+  test(
+    'a failed second read keeps the engines that were already ready',
+    () async {
+      final engines = WindowsMlEngines(
+        FakeCatalogue([_ready, _installed], readsBeforeBreaking: 1),
+      );
+
+      expect(await engines.readyProviderLibraries(), [
+        (name: 'NvTensorRTRTXExecutionProvider', path: 'C:\\engines\\nv.dll'),
+      ]);
+    },
+  );
 
   test('NoHardwareEngines offers and registers nothing', () async {
     const none = NoHardwareEngines();

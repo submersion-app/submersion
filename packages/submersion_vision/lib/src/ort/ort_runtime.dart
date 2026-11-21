@@ -310,6 +310,16 @@ class OrtRuntime {
         .asFunction<
           Pointer<OrtHardwareDevice> Function(Pointer<OrtEpDevice>)
         >()(device);
+    // A device with no hardware record is never chosen, rather than read
+    // through a null pointer.
+    if (hardware == nullptr) {
+      return const OrtEpDeviceInfo(
+        engine: '',
+        kind: OrtHardwareKind.cpu,
+        vendorId: 0,
+        deviceId: 0,
+      );
+    }
     final type = api.ref.HardwareDevice_Type
         .asFunction<int Function(Pointer<OrtHardwareDevice>)>()(hardware);
     final name = api.ref.EpDevice_EpName

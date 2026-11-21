@@ -55,8 +55,8 @@ class WindowsMlEngines implements HardwareEngines {
 
   final WinMlCatalogue _catalogue;
 
-  /// How long a vendor engine's download may take before the install goes
-  /// on without it (about 200 MB on a slow line).
+  /// How long the engines' downloads may take, together, before the
+  /// install goes on without them (about 200 MB each on a slow line).
   final Duration fetchTimeout;
 
   /// How long preparing an installed engine may take.
@@ -70,10 +70,16 @@ class WindowsMlEngines implements HardwareEngines {
 
   @override
   Future<bool> fetchEngine() async {
+    final deadline = DateTime.now().add(fetchTimeout);
     var anyReady = false;
     for (final engine in await _engines()) {
       if (engine.state != WinMlReadyState.notPresent) continue;
-      anyReady = await _prepare(engine.name, fetchTimeout) || anyReady;
+      final left = deadline.difference(DateTime.now());
+      if (left <= Duration.zero) {
+        _log.warning('No time left to fetch Windows ML engine ${engine.name}');
+        break;
+      }
+      anyReady = await _prepare(engine.name, left) || anyReady;
     }
     return anyReady;
   }
@@ -89,7 +95,8 @@ class WindowsMlEngines implements HardwareEngines {
       for (final name in installed) {
         await _prepare(name, prepareTimeout);
       }
-      engines = await _engines();
+      // A read that fails keeps the engines already known to be ready.
+      engines = await _engines(orElse: engines);
     }
     return [
       for (final engine in engines)
@@ -114,12 +121,14 @@ class WindowsMlEngines implements HardwareEngines {
     return false;
   }
 
-  Future<List<WinMlEngine>> _engines() async {
+  Future<List<WinMlEngine>> _engines({
+    List<WinMlEngine> orElse = const [],
+  }) async {
     try {
       return await _catalogue.engines();
     } on Object catch (e) {
       _log.warning('Windows ML catalogue unreadable', error: e);
-      return const [];
+      return orElse;
     }
   }
 }
