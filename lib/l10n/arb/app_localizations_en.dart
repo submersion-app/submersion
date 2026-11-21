@@ -23826,6 +23826,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Drag items to reorder the sidebar. Home always stays at the top.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Saved on this device only. Your other devices keep their own layout.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'Phone';
 
   @override

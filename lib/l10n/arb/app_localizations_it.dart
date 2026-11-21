@@ -24181,6 +24181,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Trascina gli elementi per riordinare la barra laterale. Home resta sempre in alto.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Salvato solo su questo dispositivo. Gli altri tuoi dispositivi mantengono il proprio layout.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'Telefono';
 
   @override

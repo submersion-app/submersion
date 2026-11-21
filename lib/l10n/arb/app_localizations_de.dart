@@ -24147,6 +24147,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Elemente ziehen, um die Seitenleiste neu zu ordnen. Startseite bleibt immer oben.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Nur auf diesem Gerät gespeichert. Deine anderen Geräte behalten ihr eigenes Layout.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'Telefon';
 
   @override

@@ -6934,6 +6934,7 @@
   "settings_navCustomization_title": "Navigationslayout",
   "settings_navCustomization_description": "Elemente ziehen, um sie neu zu ordnen. Die obersten Elemente erscheinen in der unteren Navigationsleiste; wie viele, hängt von der Bildschirmgröße ab, nicht von der Ausrichtung.",
   "settings_navCustomization_descriptionDesktop": "Elemente ziehen, um die Seitenleiste neu zu ordnen. Startseite bleibt immer oben.",
+  "settings_navCustomization_deviceOnlyNote": "Nur auf diesem Gerät gespeichert. Deine anderen Geräte behalten ihr eigenes Layout.",
   "settings_navCustomization_scopePhone": "Telefon",
   "settings_navCustomization_scopeDesktop": "Desktop",
   "settings_navCustomization_alwaysHideLabels_title": "Beschriftungen immer ausblenden",

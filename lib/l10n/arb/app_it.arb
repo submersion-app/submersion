@@ -6675,6 +6675,7 @@
   "settings_navCustomization_title": "Layout di navigazione",
   "settings_navCustomization_description": "Trascina gli elementi per riordinarli. I primi compaiono nella barra di navigazione inferiore; quanti dipende dalle dimensioni dello schermo, non dal suo orientamento.",
   "settings_navCustomization_descriptionDesktop": "Trascina gli elementi per riordinare la barra laterale. Home resta sempre in alto.",
+  "settings_navCustomization_deviceOnlyNote": "Salvato solo su questo dispositivo. Gli altri tuoi dispositivi mantengono il proprio layout.",
   "settings_navCustomization_scopePhone": "Telefono",
   "settings_navCustomization_scopeDesktop": "Desktop",
   "settings_navCustomization_alwaysHideLabels_title": "Nascondi sempre le etichette",
