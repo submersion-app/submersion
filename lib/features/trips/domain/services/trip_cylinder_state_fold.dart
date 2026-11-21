@@ -74,7 +74,7 @@ TripCylinderState foldCylinderState({
   };
   final unmeasuredDives = {
     for (final u in uses)
-      if (!u.measuresGasUse) u.diveId,
+      if (!u.endPressureIsGasLeft) u.diveId,
   };
   final items =
       <_Item>[

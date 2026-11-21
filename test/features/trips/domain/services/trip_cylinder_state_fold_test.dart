@@ -60,7 +60,7 @@ void main() {
     String tankId = 'k',
     double? end = 60,
     double o2 = 32,
-    bool measuresGasUse = true,
+    bool endPressureIsGasLeft = true,
   }) => TripCylinderTankUse(
     tankId: '$tankId$minutes',
     diveId: '$diveId$minutes',
@@ -68,7 +68,7 @@ void main() {
     startPressure: 200,
     endPressure: end,
     gasMix: GasMix(o2: o2),
-    measuresGasUse: measuresGasUse,
+    endPressureIsGasLeft: endPressureIsGasLeft,
   );
 
   TripCylinderState fold({
@@ -446,7 +446,7 @@ void main() {
       int minutes, {
       String tankId = 'h',
       double? end = 210,
-    }) => dive(minutes, tankId: tankId, end: end, measuresGasUse: false);
+    }) => dive(minutes, tankId: tankId, end: end, endPressureIsGasLeft: false);
 
     test('its end pressure leaves the slot used, pressure unknown', () {
       final s = fold(events: [fill(0)], uses: [hydro(60)]);

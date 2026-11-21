@@ -659,9 +659,11 @@ class TripCylinderRepository {
           he: r.read<double>('he_percent'),
         ),
         siteName: r.readNullable<String>('site_name'),
-        measuresGasUse: TankRole.fromName(
+        // A Hydrotank only: a suit inflation bottle's end pressure is still
+        // the gas left in it, though no gas calculation counts it.
+        endPressureIsGasLeft: !TankRole.fromName(
           r.readNullable<String>('tank_role'),
-        ).pressureMeasuresGasUse,
+        ).isUnmeasuredBreathingGas,
       );
       (out[r.read<String>('trip_cylinder_id')] ??= []).add(use);
     }

@@ -440,7 +440,7 @@ void main() {
     expect(uses[a.id]!.single.tankId, 't1');
   });
 
-  test('a Hydrotank use says its pressure is not the gas in it', () async {
+  test('only a Hydrotank use says its end pressure is not gas left', () async {
     // Issue #4666: the board must not read an Avelo Hydrotank's end
     // pressure as the gas left in the slot.
     final a = await repository.createCylinder(slot(label: 'A'));
@@ -459,12 +459,24 @@ void main() {
       cylinderId: a.id,
       end: 90,
     );
+    await insertDiveWithTank(
+      diveId: 'd3',
+      tankId: 't3',
+      entryMillis: t0 + 7200000,
+      cylinderId: a.id,
+      end: 150,
+    );
     await db.customUpdate(
       "UPDATE dive_tanks SET tank_role = 'hydrotank' WHERE id = 't1'",
     );
+    // A suit inflation bottle's pressure is no gas breathed, but its end
+    // pressure is still what is left in it.
+    await db.customUpdate(
+      "UPDATE dive_tanks SET tank_role = 'suitInflation' WHERE id = 't3'",
+    );
 
     final uses = (await repository.getTankUsesForTrip(tripId))[a.id]!;
-    expect(uses.map((u) => u.measuresGasUse), [false, true]);
+    expect(uses.map((u) => u.endPressureIsGasLeft), [false, true, true]);
   });
 
   test('a tank use is timed by the dive entry time when it has one', () async {
