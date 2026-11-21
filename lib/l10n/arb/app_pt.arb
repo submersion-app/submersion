@@ -8351,6 +8351,7 @@
   "settings_speciesId_downloading": "Baixando {percent}%",
   "settings_speciesId_downloadConfirmTitle": "Baixar o modelo?",
   "settings_speciesId_downloadConfirmBody": "Isso baixa {size} e mantém neste dispositivo. Você pode removê-lo a qualquer momento.",
+  "settings_speciesId_downloadConfirmBodyHardware": "Isso baixa {size} e mantém neste dispositivo. O Windows também pode baixar da Microsoft um mecanismo para sua placa de vídeo ou NPU. Você pode remover o modelo a qualquer momento.",
   "settings_speciesId_downloadFailed": "O download não terminou. Tente novamente para continuar de onde parou.",
   "settings_speciesId_downloadNoSpace": "Não há espaço livre suficiente neste dispositivo.",
   "settings_speciesId_needsAppUpdate": "Este modelo requer uma versão mais recente do Submersion.",

@@ -28419,6 +28419,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'פעולה זו תוריד $size ותשמור אותם במכשיר הזה. ייתכן ש-Windows יוריד גם מנוע לכרטיס הגרפי או ל-NPU שלך מ-Microsoft. אפשר להסיר את המודל בכל עת.';
+  }
+
+  @override
   String get settings_speciesId_downloadFailed =>
       'ההורדה לא הסתיימה. נסו שוב כדי להמשיך מהמקום שבו נעצרה.';
 

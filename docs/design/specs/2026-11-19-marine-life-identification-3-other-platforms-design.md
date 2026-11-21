@@ -414,9 +414,15 @@ Runtime calls are the same as on Android and Linux. What Windows adds:
 - **Finding an engine.** Before creating sessions, the engine asks Windows
   ML's catalogue (its C interface, `WinMLEpCatalog.h`, through FFI) for the
   hardware engines Windows offers for this PC, and registers each one that is
-  ready with ONNX Runtime's environment. Session options then ask ONNX
-  Runtime to prefer the GPU, then an NPU, then the processor. DirectML and
-  the processor come with Windows ML and are always there.
+  ready with ONNX Runtime's environment. A session then attaches a hardware
+  engine's GPU devices (else its NPU devices) explicitly, then DirectML by
+  name, then the processor. DirectML and the processor come with Windows ML
+  and are always there. *(Amended 2026-11-20 after the spike: the first
+  design let ONNX Runtime's selection policy prefer the GPU, but on a PC
+  whose only graphics device is Windows' software renderer that policy, and
+  any explicit attach of that device, ends the process. The engine picks
+  devices itself and never the software renderer;
+  [findings](../findings/2026-11-20-windows-ml-unpackaged.md).)*
 - **Which engines.** Any engine Windows offers is used, whether or not it
   has been checked against the bars **(decided)**. The debug log records
   which engine ran each session.
@@ -441,7 +447,9 @@ Runtime calls are the same as on Android and Linux. What Windows adds:
   what it needs itself, is the builder's call; either way the app keeps
   working on Windows 10, with DirectML and the processor only. The first step
   of building this is a spike that proves the catalogue works from the app as
-  it is packaged today, an unpackaged Win32 app.
+  it is packaged today, an unpackaged Win32 app. *(Settled 2026-11-20 by the
+  spike: the app carries Windows ML's three libraries beside the executable,
+  with no Windows App SDK runtime or bootstrapper.)*
 
 The accuracy gate (section 6) covers the processor path, which every
 Windows PC can fall back to. The GPU and NPU paths are not gated

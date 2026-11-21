@@ -8485,6 +8485,7 @@
   "settings_speciesId_downloading": "Wird heruntergeladen: {percent} %",
   "settings_speciesId_downloadConfirmTitle": "Modell herunterladen?",
   "settings_speciesId_downloadConfirmBody": "Dabei werden {size} heruntergeladen und auf diesem Gerät gespeichert. Du kannst es jederzeit entfernen.",
+  "settings_speciesId_downloadConfirmBodyHardware": "Dabei werden {size} heruntergeladen und auf diesem Gerät gespeichert. Windows lädt eventuell zusätzlich eine Engine für deine Grafikkarte oder NPU von Microsoft herunter. Du kannst das Modell jederzeit entfernen.",
   "settings_speciesId_downloadFailed": "Der Download wurde nicht abgeschlossen. Versuche es erneut, um dort weiterzumachen, wo er aufgehört hat.",
   "settings_speciesId_downloadNoSpace": "Auf diesem Gerät ist nicht genug Speicherplatz frei.",
   "settings_speciesId_needsAppUpdate": "Dieses Modell erfordert eine neuere Version von Submersion.",

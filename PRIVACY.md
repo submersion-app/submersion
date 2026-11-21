@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **App:** Submersion
-**Last Updated:** 2026-09-19
+**Last Updated:** 2026-11-20
 
 ## Data Collection
 
@@ -176,6 +176,17 @@ GitHub whether a species model is available, and choosing Download fetches it
 you or your diving; GitHub sees a request from your IP address. Identifying
 species in your photos and videos then happens on your device, and they are
 not sent anywhere for it.
+
+### Marine life identification on Windows
+
+On Windows, marine life identification runs through Microsoft's Windows ML,
+which comes with the app and lets your PC's graphics card or NPU do the work.
+When you download the model, Windows may also download an engine for your
+graphics card or NPU from Microsoft; the download's confirmation says so.
+Microsoft's terms for Windows ML say it may collect information about its use
+and send it to Microsoft, as described in
+[Microsoft's privacy statement](https://aka.ms/privacy). Submersion sends
+Microsoft nothing itself, and your photos and videos stay on your PC.
 
 ### Services you connect yourself
 

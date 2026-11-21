@@ -46324,6 +46324,12 @@ abstract class AppLocalizations {
   /// **'This downloads {size} and keeps it on this device. You can remove it at any time.'**
   String settings_speciesId_downloadConfirmBody(String size);
 
+  /// No description provided for @settings_speciesId_downloadConfirmBodyHardware.
+  ///
+  /// In en, this message translates to:
+  /// **'This downloads {size} and keeps it on this device. Windows may also download an engine for your graphics card or NPU from Microsoft. You can remove the model at any time.'**
+  String settings_speciesId_downloadConfirmBodyHardware(String size);
+
   /// No description provided for @settings_speciesId_downloadFailed.
   ///
   /// In en, this message translates to:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/shared/widgets/forms/discard_dialog.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/tab_visibility.dart';
 
 /// Ends a sitting without saving, asking first when it has unsaved changes.
 ///
@@ -52,34 +53,43 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       child: child,
-      builder: (context, child) => PopScope(
-        canPop: !controller.isDirty && !controller.isBusy,
-        onPopInvokedWithResult: (didPop, _) async {
-          if (didPop) {
-            controller.lock();
-            return;
-          }
-          if (controller.isBusy) return;
-          // Back closes the page's own step first; the sitting stays.
-          if (backsOutFirst?.call() ?? false) return;
-          // With nothing to save this guard let the pop through: a scope
-          // inside the page refused it for a step of its own (the photo
-          // viewer leaving fullscreen first), and the page stays.
-          if (!controller.isDirty) return;
-          final navigator = Navigator.of(context);
-          if (!await cancelSitting(context, controller)) return;
-          // A page with nothing under it (the list pane's, its tab's first
-          // page) locks and stays: there is nowhere to go back to.
-          if (navigator.canPop()) navigator.pop();
-        },
-        // Both stay in the tree, so a save starting or ending never
-        // rebuilds the page beneath them. Excluding focus also takes it
-        // from a field that has it, which closes the keyboard.
-        child: AbsorbPointer(
-          absorbing: controller.isBusy,
-          child: ExcludeFocus(excluding: controller.isBusy, child: child!),
-        ),
-      ),
+      builder: (context, child) {
+        // A kept-alive tab that is hidden (Training, Media and Documents)
+        // lets Back through and asks nothing: the tab on screen answers
+        // it, and the page leaves with this one's sitting, as the old forms
+        // did (#3437).
+        final shown = TabVisibility.isVisible(context);
+        return PopScope(
+          canPop: !controller.isBusy && (!controller.isDirty || !shown),
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) {
+              controller.lock();
+              return;
+            }
+            // A route tells every scope of a Back another refused: hidden,
+            // this one has nothing to ask.
+            if (!shown || controller.isBusy) return;
+            // Back closes the page's own step first; the sitting stays.
+            if (backsOutFirst?.call() ?? false) return;
+            // With nothing to save this guard let the pop through: a scope
+            // inside the page refused it for a step of its own (the photo
+            // viewer leaving fullscreen first), and the page stays.
+            if (!controller.isDirty) return;
+            final navigator = Navigator.of(context);
+            if (!await cancelSitting(context, controller)) return;
+            // A page with nothing under it (the list pane's, its tab's first
+            // page) locks and stays: there is nowhere to go back to.
+            if (navigator.canPop()) navigator.pop();
+          },
+          // Both stay in the tree, so a save starting or ending never
+          // rebuilds the page beneath them. Excluding focus also takes it
+          // from a field that has it, which closes the keyboard.
+          child: AbsorbPointer(
+            absorbing: controller.isBusy,
+            child: ExcludeFocus(excluding: controller.isBusy, child: child!),
+          ),
+        );
+      },
     );
   }
 }

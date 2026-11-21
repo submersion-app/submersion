@@ -68,7 +68,10 @@ class VideoFrames private constructor(
      * [bitmap] fitted within [maxSide] and turned as the player shows it.
      * The retriever turns frames itself; a quarter-turned video whose frame
      * still has the stored shape is turned here, so either way the frame
-     * matches the player.
+     * matches the player. A half turn (180) is left to the retriever, which
+     * applies every angle (AOSP's android_media_MediaMetadataRetriever.cpp
+     * rotates by the frame's mRotationAngle): its shape cannot show whether
+     * it was turned, and turning it here again would show it upside down.
      */
     private fun shown(bitmap: Bitmap, maxSide: Int): Bitmap {
         val landscapeShown = shownWidth >= shownHeight
