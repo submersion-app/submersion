@@ -21,8 +21,12 @@ import 'package:submersion/features/media/presentation/editing/photo_edit_fields
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/services/track_labels.dart';
+import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/identification_labels.dart';
 import 'package:submersion/features/species_id/presentation/widgets/track_label_view.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -115,6 +119,7 @@ void main() {
     bool editable = true,
     EditSession<PhotoRecord>? sitting,
     double bottomInset = 0,
+    LabelMode mode = LabelMode.names,
   }) async {
     playerTaps = 0;
     playback.value = playback.value.copyWith(isPlaying: playing);
@@ -136,6 +141,9 @@ void main() {
           speciesTaggingServiceProvider.overrideWithValue(tagging),
           suggestionAcceptorProvider.overrideWithValue(FakeAcceptor()),
           identificationCropFileProvider.overrideWith((ref, key) async => null),
+          labelModeProvider.overrideWith(
+            (ref) => LabelModeNotifier.unstored(mode),
+          ),
         ],
         child: Center(
           child: SizedBox.square(
@@ -181,6 +189,164 @@ void main() {
 
   Finder pill(String id) => find.byKey(ValueKey('video_label_pill_$id'));
   Finder dot(String id) => find.byKey(ValueKey('video_label_dot_$id'));
+
+  group('by labels mode (issue #4825)', () {
+    testWidgets('all life dots an unnamed fish while the video plays', (
+      tester,
+    ) async {
+      await pump(tester, playing: true, mode: LabelMode.allLife);
+      expect(pill('a'), findsOneWidget);
+      expect(pill('b'), findsOneWidget);
+      expect(dot('c'), findsOneWidget);
+    });
+
+    testWidgets('all life dots a fish that looks like nothing in '
+        'particular', (tester) async {
+      final vague = at(
+        track('c', suggestable: false, confident: false, specific: false),
+        0.7,
+      );
+      // Names leaves it alone ('a dot needs a crop that looks like
+      // something', below).
+      await pump(tester, tracks: [vague], mode: LabelMode.allLife);
+      expect(dot('c'), findsOneWidget);
+    });
+
+    testWidgets('off draws no label', (tester) async {
+      await pump(tester, mode: LabelMode.off, sitting: openSitting());
+      expect(find.byType(TrackPill), findsNothing);
+      expect(find.byType(TrackDot), findsNothing);
+    });
+
+    testWidgets('more than six fish are all labelled', (tester) async {
+      await pump(
+        tester,
+        tracks: [
+          for (var k = 0; k < 8; k++)
+            track('t$k').copyWith(
+              path: [
+                for (final s in track('t$k').path)
+                  s.copyWith(
+                    box: IdentificationBox(
+                      x: k * 0.12,
+                      y: 0.4,
+                      width: 0.08,
+                      height: 0.08,
+                    ),
+                  ),
+              ],
+            ),
+        ],
+      );
+      expect(find.byType(TrackPill), findsNWidgets(8));
+    });
+  });
+
+  group('labels found by a marker (issue #4825)', () {
+    final unnamed = at(track('c', suggestable: false, confident: false), 0.7);
+
+    Future<void> pumpLabels(
+      WidgetTester tester, {
+      EditSession<PhotoRecord>? holdIn,
+    }) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            mediaTagChipsProvider('v1').overrideWith((ref) => const []),
+            allSpeciesProvider.overrideWith((ref) async => const [_rockBeauty]),
+            mediaIdentificationServiceProvider.overrideWithValue(service),
+            speciesTaggingServiceProvider.overrideWithValue(tagging),
+            suggestionAcceptorProvider.overrideWithValue(FakeAcceptor()),
+          ],
+          child: Center(
+            child: SizedBox.square(
+              dimension: 400,
+              child: IdentificationLabels(
+                labels: [
+                  TrackLabel(
+                    identificationId: 'c',
+                    kind: TrackLabelKind.dot,
+                    box: unnamed.box,
+                  ),
+                ],
+                byId: {'c': unnamed},
+                species: const {},
+                item: testMediaItem(id: 'v1', mediaType: MediaType.video),
+                picture: const Rect.fromLTWH(0, 0, 400, 400),
+                holdIn: holdIn,
+                keyPrefix: 'photo_label',
+                tapsByMarker: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    final dotAt = find.byKey(const ValueKey('photo_label_dot_c'));
+
+    testWidgets('a tap sent to a label runs it and says so', (tester) async {
+      await pumpLabels(tester, holdIn: openSitting());
+      final context = tester.element(find.byType(IdentificationLabels));
+      expect(
+        identificationLabelTap(
+          View.of(context).viewId,
+          tester.getCenter(dotAt),
+        ),
+        isTrue,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(SpeciesPickerSheet), findsOneWidget);
+    });
+
+    testWidgets('a tap away from every label runs nothing', (tester) async {
+      await pumpLabels(tester, holdIn: openSitting());
+      final context = tester.element(find.byType(IdentificationLabels));
+      expect(
+        identificationLabelTap(
+          View.of(context).viewId,
+          tester.getCenter(dotAt) - const Offset(150, 150),
+        ),
+        isFalse,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(SpeciesPickerSheet), findsNothing);
+    });
+
+    testWidgets('see-only labels are not found', (tester) async {
+      await pumpLabels(tester);
+      final context = tester.element(find.byType(IdentificationLabels));
+      expect(
+        identificationLabelTap(
+          View.of(context).viewId,
+          tester.getCenter(dotAt),
+        ),
+        isFalse,
+      );
+    });
+
+    testWidgets('a marker label is announced as a button and can be '
+        'activated', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpLabels(tester, holdIn: openSitting());
+      final node = tester.getSemantics(
+        find.bySemanticsLabel('Unnamed fish, tap to name'),
+      );
+      expect(
+        node,
+        matchesSemantics(
+          isButton: true,
+          hasTapAction: true,
+          label: 'Unnamed fish, tap to name',
+        ),
+      );
+      semantics.dispose();
+    });
+  });
 
   testWidgets('playing shows confident and suggestion pills, no dots '
       '(issue #4709)', (tester) async {

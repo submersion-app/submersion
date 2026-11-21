@@ -171,38 +171,80 @@ class _DiveFindSpeciesPanelState extends ConsumerState<DiveFindSpeciesPanel> {
     final runCanApply =
         ref.watch(autoApplyProvider) && naming != null && packCanApply(naming);
     final checked = upToDate && (toReview == 0 || !runCanApply);
+    // A dive a run would do nothing on can still be checked again, from the
+    // start (issue #4825).
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: OutlinedButton.icon(
-        key: const ValueKey('dive_species_find'),
+        key: ValueKey(
+          checked ? 'dive_species_check_again' : 'dive_species_find',
+        ),
         icon: const Icon(Icons.travel_explore_outlined),
         label: Text(
-          checked ? l10n.speciesReview_allChecked : l10n.speciesReview_find,
+          checked ? l10n.speciesReview_checkAgain : l10n.speciesReview_find,
         ),
-        onPressed: checked ? null : () => _start(context, ref),
+        onPressed: () => _start(context, ref, fresh: checked),
       ),
     );
   }
 
-  Future<void> _start(BuildContext context, WidgetRef ref) async {
+  Future<void> _start(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool fresh,
+  }) async {
     if (_asking) return;
     _asking = true;
     try {
-      await _countAndStart(context, ref);
+      if (fresh && !await _confirmCheckAgain(context)) return;
+      if (!context.mounted) return;
+      await _countAndStart(context, ref, fresh: fresh);
     } finally {
       _asking = false;
     }
   }
 
-  Future<void> _countAndStart(BuildContext context, WidgetRef ref) async {
+  /// Checking again brings dismissed suggestions back: the diver agrees
+  /// first.
+  Future<bool> _confirmCheckAgain(BuildContext context) async {
+    final l10n = context.l10n;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.speciesReview_checkAgainTitle),
+        content: Text(l10n.speciesReview_checkAgainBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            key: const ValueKey('dive_species_check_again_confirm'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.speciesReview_checkAgain),
+          ),
+        ],
+      ),
+    );
+    return go ?? false;
+  }
+
+  Future<void> _countAndStart(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool fresh,
+  }) async {
     final media = [
       for (final m in await ref.read(mediaForDiveProvider(dive.id).future))
         if (m.mediaType == MediaType.photo || m.mediaType == MediaType.video) m,
     ];
-    // Only what the run will open: media up to date is not read again.
+    // Only what the run will open: media up to date is not read again,
+    // except by a fresh run, which opens it all.
     final missing = await notOnDeviceCount(
       media,
-      checked: await ref.read(diveMediaUpToDateProvider(dive.id).future),
+      checked: fresh
+          ? const {}
+          : await ref.read(diveMediaUpToDateProvider(dive.id).future),
       libraryOriginalHere: ref.read(libraryOriginalHereProvider),
     );
     if (missing > 0) {
@@ -228,7 +270,9 @@ class _DiveFindSpeciesPanelState extends ConsumerState<DiveFindSpeciesPanel> {
       if (go != true) return;
     }
     // Not awaited: the run outlives the tap; its own start dedups.
-    unawaited(ref.read(diveSpeciesRunProvider.notifier).start(dive.id));
+    unawaited(
+      ref.read(diveSpeciesRunProvider.notifier).start(dive.id, fresh: fresh),
+    );
   }
 
   void _showSummary(BuildContext context, WidgetRef ref) {

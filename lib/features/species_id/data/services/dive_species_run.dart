@@ -21,11 +21,15 @@ typedef DiveLocation = ({bool exists, GeoPoint? site, GeoPoint? entry});
 /// cancelled, another logbook is opened, or the dive is deleted. What it
 /// found is applied (confident matches tagged, when the setting is on) all
 /// together when it ends, as one History entry.
+///
+/// A fresh run (Check again, issue #4825) looks at every item again from
+/// the start, brings the diver's dismissals back, and applies nothing.
 class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   DiveSpeciesRun({
     required Future<List<MediaItem>> Function(String diveId) mediaForDive,
     required Future<DiveLocation> Function(String diveId) diveLocation,
     required Future<RunItemOutcome> Function(MediaItem, GeoPoint?) request,
+    Future<RunItemOutcome> Function(MediaItem, GeoPoint?)? requestFresh,
     required void Function(String mediaId) cancel,
     required Future<int> Function(List<RunAppliedItem> items, int generation)
     applyAll,
@@ -34,6 +38,7 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   }) : _mediaForDive = mediaForDive,
        _diveLocation = diveLocation,
        _request = request,
+       _requestFresh = requestFresh ?? request,
        _cancelItem = cancel,
        _applyAll = applyAll,
        _generation = databaseGeneration,
@@ -43,6 +48,9 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   final Future<List<MediaItem>> Function(String) _mediaForDive;
   final Future<DiveLocation> Function(String) _diveLocation;
   final Future<RunItemOutcome> Function(MediaItem, GeoPoint?) _request;
+
+  /// How a fresh run asks for an item.
+  final Future<RunItemOutcome> Function(MediaItem, GeoPoint?) _requestFresh;
   final void Function(String) _cancelItem;
   final Future<int> Function(List<RunAppliedItem>, int) _applyAll;
   final int Function() _generation;
@@ -54,6 +62,9 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
 
   final _log = LoggerService.forClass(DiveSpeciesRun);
   final _queue = Queue<String>();
+
+  /// The queued or running dives whose run is a fresh one.
+  final _fresh = <String>{};
   final _finished = <String, Completer<void>>{};
   String? _current;
   String? _currentItem;
@@ -67,13 +78,15 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   DiveSpeciesRunState? stateOf(String diveId) => state[diveId];
 
   /// Starts a run for [diveId], or queues it behind the one running.
-  /// Completes when that dive's run ends.
-  Future<void> start(String diveId) {
+  /// Completes when that dive's run ends. [fresh] is Check again (issue
+  /// #4825); a dive whose run is already queued or going keeps that run.
+  Future<void> start(String diveId, {bool fresh = false}) {
     final existing = _finished[diveId];
     if (existing != null && !existing.isCompleted) return existing.future;
     final done = Completer<void>();
     _finished[diveId] = done;
     _queue.add(diveId);
+    if (fresh) _fresh.add(diveId);
     _set(DiveSpeciesRunState(diveId: diveId));
     if (_current == null) unawaited(_drain());
     return done.future;
@@ -83,6 +96,7 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   /// has not started.
   void cancel(String diveId) {
     if (_queue.remove(diveId)) {
+      _fresh.remove(diveId);
       _set(state[diveId]!.copyWith(phase: DiveRunPhase.cancelled));
       _finished[diveId]?.complete();
       return;
@@ -156,6 +170,7 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   }
 
   Future<void> _run(String diveId) async {
+    final fresh = _fresh.remove(diveId);
     final generation = _generation();
     var where = await _diveLocation(diveId);
     final all = await _mediaForDive(diveId);
@@ -174,6 +189,9 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     );
     _set(s);
     final looked = <RunAppliedItem>[];
+    // A fresh run asks each item afresh once: one refused for heat or the
+    // background is asked again where it stopped, not from the start.
+    final askedFresh = <String>{};
     // Deleted before the first item, or another logbook opened while its
     // media were read: nothing is looked at.
     var stoppedFor = _generation() != generation
@@ -187,7 +205,8 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
       if (stoppedFor != _Stop.none) break;
       final item = items[index];
       _currentItem = item.id;
-      final outcome = await _request(
+      final ask = fresh && askedFresh.add(item.id) ? _requestFresh : _request;
+      final outcome = await ask(
         item,
         mediaLocation(
           item,
@@ -258,8 +277,10 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     // The place read after the last item may have seen another logbook open.
     if (_generation() != generation) stoppedFor = _Stop.logbook;
     var tagged = 0;
-    // Another logbook, or a dive that is gone, has nothing left to tag.
-    if (looked.isNotEmpty &&
+    // Another logbook, or a dive that is gone, has nothing left to tag; a
+    // fresh run tags nothing (issue #4825).
+    if (!fresh &&
+        looked.isNotEmpty &&
         stoppedFor != _Stop.logbook &&
         stoppedFor != _Stop.diveGone &&
         !_disposed) {

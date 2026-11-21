@@ -12,6 +12,7 @@ void main() {
   late Map<String, List<MediaItem>> media;
   late Set<String> dives;
   late List<String> asked;
+  late List<String> askedFresh;
   late Map<String, List<RunItemOutcome>> outcomes;
   late List<List<String>> applied;
   late List<String> cancelled;
@@ -40,6 +41,7 @@ void main() {
     };
     dives = {'d1', 'd2'};
     asked = [];
+    askedFresh = [];
     outcomes = {};
     applied = [];
     cancelled = [];
@@ -63,6 +65,14 @@ void main() {
       },
       request: (item, location) async {
         asked.add(item.id);
+        await gate?.future;
+        final queue = outcomes[item.id];
+        return queue == null || queue.isEmpty
+            ? RunItemOutcome.done
+            : queue.removeAt(0);
+      },
+      requestFresh: (item, location) async {
+        askedFresh.add(item.id);
         await gate?.future;
         final queue = outcomes[item.id];
         return queue == null || queue.isEmpty
@@ -305,5 +315,83 @@ void main() {
     await run.start('d1');
     expect(state('d1').summary.photos, 1);
     expect(applied.single, ['p1', 'v1']);
+  });
+
+  group('a fresh run (issue #4825)', () {
+    test('asks for every item afresh and tags nothing', () async {
+      await run.start('d1', fresh: true);
+      expect(askedFresh, ['p1', 'p2', 'v1']);
+      expect(asked, isEmpty);
+      expect(applied, isEmpty);
+      expect(state('d1').phase, DiveRunPhase.finished);
+      expect(state('d1').summary.photos, 2);
+      expect(state('d1').summary.videos, 1);
+      expect(state('d1').summary.speciesTagged, 0);
+    });
+
+    test('an item refused for heat is asked again where it stopped, not '
+        'from the start', () async {
+      outcomes['v1'] = [RunItemOutcome.tooHot];
+      final finished = run.start('d1', fresh: true);
+      await pumpEventQueue();
+      run.resume('d1');
+      await finished;
+      expect(askedFresh, ['p1', 'p2', 'v1']);
+      expect(asked, ['v1']);
+      expect(applied, isEmpty);
+    });
+
+    test('an item refused in the background is asked again where it '
+        'stopped', () async {
+      outcomes['p2'] = [RunItemOutcome.notForeground];
+      await run.start('d1', fresh: true);
+      expect(askedFresh, ['p1', 'p2', 'v1']);
+      expect(asked, ['p2']);
+    });
+
+    test('does not make the dive\'s next run fresh', () async {
+      await run.start('d1', fresh: true);
+      await run.start('d1');
+      expect(asked, ['p1', 'p2', 'v1']);
+      expect(applied, hasLength(1));
+    });
+
+    test('queued behind another dive\'s run stays fresh, and that one '
+        'ordinary', () async {
+      gate = Completer<void>();
+      final first = run.start('d1');
+      final second = run.start('d2', fresh: true);
+      await pumpEventQueue();
+      gate!.complete();
+      gate = null;
+      await first;
+      await second;
+      expect(asked, ['p1', 'p2', 'v1']);
+      expect(askedFresh, ['q1']);
+      expect(applied, [
+        ['p1', 'p2', 'v1'],
+      ]);
+    });
+
+    test('without its own way to ask, asks as an ordinary run does', () async {
+      final plain = DiveSpeciesRun(
+        mediaForDive: (diveId) async => media[diveId] ?? const [],
+        diveLocation: (_) async => (exists: true, site: null, entry: null),
+        request: (item, location) async {
+          asked.add(item.id);
+          return RunItemOutcome.done;
+        },
+        cancel: (_) {},
+        applyAll: (items, generation) async {
+          applied.add([for (final i in items) i.mediaId]);
+          return items.length;
+        },
+        databaseGeneration: () => 0,
+      );
+      addTearDown(plain.dispose);
+      await plain.start('d2', fresh: true);
+      expect(asked, ['q1']);
+      expect(applied, isEmpty);
+    });
   });
 }

@@ -55292,6 +55292,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'Unnamed fish';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more species',
+      one: '$count more species',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked => 'Unlock to add or dismiss';
+
+  @override
+  String get media_labels_action => 'Marine life labels';
+
+  @override
+  String get media_labels_names => 'Names';
+
+  @override
+  String get media_labels_allLife => 'All life';
+
+  @override
+  String get media_labels_off => 'Off';
+
+  @override
+  String get media_labels_analyse => 'Analyse';
+
+  @override
+  String get media_labels_analyseAgain => 'Analyse again';
+
+  @override
+  String get media_labels_statusNoModel => 'No species model installed';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Not analysed yet';
+
+  @override
+  String get media_labels_statusAnalysing => 'Analysing...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Analysing, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count found',
+      one: '$count found',
+      zero: 'Nothing found',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Possible matches';
 
   @override
@@ -55424,7 +55482,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get speciesReview_resume => 'Resume';
 
   @override
-  String get speciesReview_allChecked => 'All photos checked';
+  String get speciesReview_checkAgain => 'Check again';
+
+  @override
+  String get speciesReview_checkAgainTitle => 'Check this dive again?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'Every photo and video on this dive is analysed again. Your species tags stay. Suggestions you dismissed come back.';
 
   @override
   String speciesReview_count(int count) {

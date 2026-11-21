@@ -622,6 +622,52 @@ turn the setting on. The new version is what makes media already analysed
 be named again, which sets their stored `confident` flags; they are then
 applied the next time they are opened or a run reaches them.
 
+## In the viewer: labels, modes and analysing by hand
+
+Issue #4825, spec
+[2026-11-20-marine-life-viewer-labels-design.md](../design/specs/2026-11-20-marine-life-viewer-labels-design.md).
+
+- **Labels.** Photos and videos share one painter (`IdentificationLabels`).
+  `VideoIdentificationLayer` feeds it `labelsAt` at the playhead;
+  `PhotoIdentificationLayer`, mounted inside the photo's `PhotoView` child,
+  feeds it `photoLabels`. A photo's labels are laid out at the zoomed size
+  and scaled back down, so they keep their size on screen; the zoom comes
+  from a `PhotoViewController` the gallery keeps per media id while a page
+  shows it. The viewer's tap layer lies over the photo, so a photo's labels
+  mark their taps (`LabelTap`) and the tap layer asks
+  `identificationLabelTap` first.
+- **Modes.** `LabelMode` (`names`, `allLife`, `off`) is a device preference,
+  `species_id_label_mode`, read through `labelModeProvider`. `labelKind`
+  holds the rules: All life dots every stored detection that has no pill;
+  Names keeps the guarded dot (open-score floor, and on video the one-second
+  minimum while paused). A photo's tag fills the pill only on a detection
+  the app could suggest or the diver named (a claim); the stored tag
+  matching is unchanged.
+- **The labels menu** (`showMarineLifeLabelsMenu`, toolbar action
+  `marine_life_labels`) switches the mode and offers Analyse (a request by
+  hand: `request(byHand: true)`, which ignores identify-on-open and carries
+  on a part-scanned video) or, once the item is up to date, Analyse again
+  (`request(fresh: true)`). The dive card's Check again is a fresh run
+  (`DiveSpeciesRun.start(fresh: true)`, `requestFromRun(fresh: true)`).
+  A Lightroom-linked video gets no labels action: only its poster is on the
+  device. The menu's status line says what was found on any item looked
+  at, even in part ("Nothing found" included); "Not analysed yet" is only
+  for one never looked at.
+- **A fresh request** analyses the photo or scans the video from 0
+  whatever the refresh rules say, and reopens the item's dismissals
+  (`reopenDismissed`: undecided, `decidedAt` kept, so `reopened` is true):
+  a photo's once its new analysis is in hand, so one whose analysis fails
+  keeps them, and a video's once its file opens. A reopened row is carried through later analyses like a
+  decision, and `identificationsToApply` never takes it; nothing is
+  auto-applied after a fresh request at all. The fresh flag is consumed when
+  the fresh start is stored, so a job put back in the queue resumes.
+- **Progress** is the tint of `ScannedRanges` on the scrub bar
+  (`VideoAnalysedStretches`, while the scan is incomplete) and a ring on the
+  labels icon (`ToolbarRing`) while the item is busy.
+- **The species list** under the viewer is one line (`OneLineOverflowRow`),
+  with a "+N" chip that opens the species sheet, or a read-only list
+  (`showMediaSpeciesListSheet`) on a locked item.
+
 ## Video
 
 Opening a video in the viewer scans it, after the same dwell as a photo,

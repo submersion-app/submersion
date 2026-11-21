@@ -37,7 +37,9 @@ class SpeciesToApply {
 /// What auto-apply tags on one media item: undecided identifications the
 /// app was confident of when they were named, one entry per species, less
 /// species already tagged. Decided ones are never reconsidered, so a
-/// species the diver removed is never applied again there.
+/// species the diver removed is never applied again there; nor is one a
+/// re-analysis the diver asked for brought back from a dismissal
+/// ([MediaIdentification.reopened], issue #4825).
 ///
 /// On a video only tracks the app could suggest count, and only once the
 /// whole video has been scanned ([scanComplete]): live naming renames a
@@ -56,6 +58,7 @@ List<SpeciesToApply> identificationsToApply(
     if (top == null ||
         !i.confident ||
         i.decision != IdentificationDecision.undecided ||
+        i.reopened ||
         (isVideo && (!i.isTrack || !i.suggestable)) ||
         tagged.any((t) => candidateMatches(top.candidate, t))) {
       continue;

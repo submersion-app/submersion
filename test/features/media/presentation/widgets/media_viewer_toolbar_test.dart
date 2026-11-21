@@ -74,6 +74,9 @@ void main() {
       bool editing = false,
       bool canSave = false,
       double dockedPanel = 0,
+      bool labels = false,
+      bool goToDive = true,
+      ToolbarRing? ring,
     }) async {
       tester.view.physicalSize = Size(width, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -120,7 +123,13 @@ void main() {
                           perdixEnabled: false,
                           onTogglePerdix: () => calls.add('perdix'),
                           onOpenInLightroom: () => calls.add('lightroom'),
-                          onGoToDive: () => calls.add('go_to_dive'),
+                          onGoToDive: goToDive
+                              ? () => calls.add('go_to_dive')
+                              : null,
+                          onMarineLifeLabels: labels
+                              ? (_) => calls.add('marine_life_labels')
+                              : null,
+                          marineLifeRing: ring,
                           onReupload: (_) => calls.add('reupload'),
                           onAdjustColor: () => calls.add('adjust_color'),
                           onUnlock: unlockable
@@ -185,6 +194,85 @@ void main() {
       expect(find.byKey(const ValueKey('viewer_share')), findsOneWidget);
       expect(find.byKey(const ValueKey('viewer_info')), findsNothing);
       expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+    });
+
+    group('the marine life labels action (issue #4825)', () {
+      final labelsKey = find.byKey(const ValueKey('viewer_marine_life_labels'));
+      final infoKey = find.byKey(const ValueKey('viewer_info'));
+
+      testWidgets('on a dive\'s phone viewer it takes the slot Info had', (
+        tester,
+      ) async {
+        await pumpFull(
+          tester,
+          390,
+          unlockable: true,
+          labels: true,
+          goToDive: false,
+        );
+        expect(find.byKey(const ValueKey('viewer_unlock')), findsOneWidget);
+        expect(find.byKey(const ValueKey('viewer_share')), findsOneWidget);
+        expect(labelsKey, findsOneWidget);
+        expect(infoKey, findsNothing);
+        expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+      });
+
+      testWidgets('unlocked on a phone, it stays on the bar beside Share', (
+        tester,
+      ) async {
+        await pumpFull(
+          tester,
+          390,
+          editing: true,
+          labels: true,
+          goToDive: false,
+        );
+        expect(find.byKey(const ValueKey('viewer_share')), findsOneWidget);
+        expect(labelsKey, findsOneWidget);
+        expect(infoKey, findsNothing);
+      });
+
+      testWidgets('is offered while locked and in a read-only browser', (
+        tester,
+      ) async {
+        await pumpFull(
+          tester,
+          1024,
+          browser: true,
+          writeControls: false,
+          labels: true,
+        );
+        expect(labelsKey, findsOneWidget);
+      });
+
+      testWidgets('fires its own callback', (tester) async {
+        final calls = await pumpFull(tester, 1280, labels: true);
+        await tester.tap(labelsKey);
+        expect(calls, ['marine_life_labels']);
+      });
+
+      testWidgets('draws a ring round its icon while analysing', (
+        tester,
+      ) async {
+        await pumpFull(
+          tester,
+          1280,
+          labels: true,
+          ring: const ToolbarRing(0.42),
+        );
+        final ring = tester.widget<CircularProgressIndicator>(
+          find.descendant(
+            of: labelsKey,
+            matching: find.byType(CircularProgressIndicator),
+          ),
+        );
+        expect(ring.value, 0.42);
+      });
+
+      testWidgets('no labels action without a callback', (tester) async {
+        await pumpFull(tester, 1280);
+        expect(labelsKey, findsNothing);
+      });
     });
 
     testWidgets('a 412 px phone shows three icons and the menu', (

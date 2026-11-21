@@ -55868,6 +55868,65 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'Névtelen hal';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'még $count faj',
+      one: 'még $count faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked =>
+      'Oldja fel a hozzáadáshoz vagy elvetéshez';
+
+  @override
+  String get media_labels_action => 'Tengeri élővilág címkéi';
+
+  @override
+  String get media_labels_names => 'Nevek';
+
+  @override
+  String get media_labels_allLife => 'Minden élőlény';
+
+  @override
+  String get media_labels_off => 'Ki';
+
+  @override
+  String get media_labels_analyse => 'Elemzés';
+
+  @override
+  String get media_labels_analyseAgain => 'Újraelemzés';
+
+  @override
+  String get media_labels_statusNoModel => 'Nincs telepítve fajmodell';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Még nincs elemezve';
+
+  @override
+  String get media_labels_statusAnalysing => 'Elemzés folyamatban...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Elemzés folyamatban, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count találat',
+      one: '$count találat',
+      zero: 'Nincs találat',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';
 
   @override
@@ -56001,7 +56060,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get speciesReview_resume => 'Folytatás';
 
   @override
-  String get speciesReview_allChecked => 'Minden fotó ellenőrizve';
+  String get speciesReview_checkAgain => 'Ellenőrzés újra';
+
+  @override
+  String get speciesReview_checkAgainTitle => 'Újra ellenőrzi ezt a merülést?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'A merülés minden fotóját és videóját újra elemzi az alkalmazás. A fajcímkék megmaradnak. Az elvetett javaslatok visszatérnek.';
 
   @override
   String speciesReview_count(int count) {
