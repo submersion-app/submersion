@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -58,6 +59,9 @@ Future<NewTripHarness> pumpNewTripPage(
   List<DiveCandidate> candidates = const [],
   String? activeDiverId = 'd1',
   Size size = const Size(600, 1600),
+  List<Diver>? divers,
+  bool shareByDefault = false,
+  List<Object> extraOverrides = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -105,7 +109,9 @@ Future<NewTripHarness> pumpNewTripPage(
         validatedCurrentDiverIdProvider.overrideWith(
           (ref) async => ref.watch(newTripPageDiverProvider),
         ),
-        shareByDefaultProvider.overrideWith((ref) async => false),
+        shareByDefaultProvider.overrideWith((ref) async => shareByDefault),
+        if (divers != null)
+          allDiversProvider.overrideWith((ref) async => divers),
         tripRepositoryProvider.overrideWithValue(harness.tripDives),
         liveaboardDetailsRepositoryProvider.overrideWithValue(harness.vessels),
         itemSharesRepositoryProvider.overrideWithValue(harness.shares),
@@ -114,6 +120,7 @@ Future<NewTripHarness> pumpNewTripPage(
           (ref) =>
               harness.save = FakeTripSave(ref.watch(_createdProvider.notifier)),
         ),
+        ...extraOverrides,
       ].cast(),
       child: MaterialApp.router(
         theme: AppThemeRegistry.resolveTheme(

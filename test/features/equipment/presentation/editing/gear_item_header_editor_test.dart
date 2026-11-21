@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/scoped_tags_field.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
@@ -49,6 +50,7 @@ void main() {
     EquipmentItem item = apex,
     Future<bool> Function()? hasDevice,
     Locale locale = const Locale('en'),
+    List<EquipmentItem> active = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 1600);
@@ -63,7 +65,7 @@ void main() {
           equipmentHasDeviceProvider(
             item.id,
           ).overrideWith((ref) => hasDevice?.call() ?? Future.value(false)),
-          activeEquipmentProvider.overrideWith((ref) async => const []),
+          activeEquipmentProvider.overrideWith((ref) async => active),
         ].cast(),
         child: MaterialApp(
           locale: locale,
@@ -92,6 +94,52 @@ void main() {
 
     expect(gearItemTagsList.failed(session), isTrue);
     expect(find.byType(SittingLoadFailed), findsOneWidget);
+    // Nothing can be typed over tags it never read, and none are written.
+    expect(
+      tester.widget<ScopedTagsField>(find.byType(ScopedTagsField)).enabled,
+      isFalse,
+    );
+    expect(session.isHeld(gearItemTagsList.key), isFalse);
+  });
+
+  testWidgets('a type its host cannot hold drops the host', (tester) async {
+    const computer = EquipmentItem(
+      id: 'dc1',
+      name: 'Perdix',
+      type: EquipmentType.computer,
+    );
+    final session = await pumpEditor(
+      tester,
+      item: const EquipmentItem(
+        id: 'g1',
+        name: 'Cell',
+        type: EquipmentType.battery,
+        parentEquipmentId: 'dc1',
+      ),
+      active: const [computer],
+    );
+
+    typeDropdown(tester).onChanged!(EquipmentType.o2Cell);
+    await tester.pumpAndSettle();
+
+    expect(session.working.type, EquipmentType.o2Cell);
+    expect(session.working.parentEquipmentId, isNull);
+  });
+
+  testWidgets("a tag chip's remove holds the tags without it", (tester) async {
+    final session = await pumpEditor(tester);
+
+    await tester.tap(
+      find.descendant(
+        of: find.widgetWithText(TagChip, 'Travel kit'),
+        matching: find.byIcon(Icons.close),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.isHeld(gearItemTagsList.key), isTrue);
+    expect(gearItemTagsList.current(session), isEmpty);
+    expect(session.changedCardIds, {'header'});
   });
 
   testWidgets('the type is locked for an item a computer names', (

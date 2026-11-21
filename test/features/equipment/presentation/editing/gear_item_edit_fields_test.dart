@@ -44,8 +44,18 @@ void main() {
 
         expect(session.working.isActive, isFalse);
         expect(session.working.status, status);
+        // The values a Wanted item hides are kept, not cleared.
+        expect(session.working.serialNumber, 'A1');
       });
     }
+
+    test('a purchase date stays while the item is Wanted', () {
+      final session = EditSession(
+        regulator.copyWith(purchaseDate: DateTime(2020, 5, 1)),
+      )..set(gearStatusField, EquipmentStatus.wanted);
+
+      expect(session.working.purchaseDate, DateTime(2020, 5, 1));
+    });
 
     test('an owned status stores the item active', () {
       final session = EditSession(
@@ -62,6 +72,11 @@ void main() {
         EquipmentStatus.sold,
       );
       expect(gearShownStatus(item()), EquipmentStatus.active);
+      // A Wanted row is inactive by design, and stays Wanted.
+      expect(
+        gearShownStatus(item(status: EquipmentStatus.wanted, isActive: false)),
+        EquipmentStatus.wanted,
+      );
     });
 
     test('an untouched legacy status is not written', () {
@@ -173,6 +188,49 @@ void main() {
 
       expect(custom.single.key, EquipmentAttrKeys.color);
       expect(custom.single.isCustom, isTrue);
+    });
+
+    test('a stray colour saved after a custom field edit is one custom '
+        'field', () {
+      final battery = item(
+        type: EquipmentType.battery,
+        attributes: [curated(EquipmentAttrKeys.color, text: '#FF0000')],
+      );
+      final session = EditSession(battery);
+      session.set(gearCustomFieldsField, [
+        ...session.valueOf(gearCustomFieldsField),
+        const EquipmentAttribute(
+          id: 'c-note',
+          equipmentId: 'g1',
+          key: 'Note',
+          isCustom: true,
+          valueText: 'spare',
+          sortOrder: 1,
+        ),
+      ]);
+
+      final saved = gearItemToSave(battery, session.applyTo(battery));
+
+      final colours = saved.attributes.where(
+        (a) => a.key == EquipmentAttrKeys.color,
+      );
+      expect(colours, hasLength(1));
+      expect(colours.single.isCustom, isTrue);
+      expect(colours.single.valueText, '#FF0000');
+      expect(saved.attributes.where((a) => a.key == 'Note'), hasLength(1));
+    });
+
+    test('an attribute set to none is gone from the saved item', () {
+      final wetsuit = item(
+        type: EquipmentType.wetsuit,
+        attributes: [curated('buoyancy_kg', number: 5)],
+      );
+      final session = EditSession(wetsuit)
+        ..set(gearAttributeField('buoyancy_kg'), null);
+
+      final saved = gearItemToSave(wetsuit, session.applyTo(wetsuit));
+
+      expect(saved.attrNum('buoyancy_kg'), isNull);
     });
 
     test('one catalogue attribute set leaves the others as stored', () {

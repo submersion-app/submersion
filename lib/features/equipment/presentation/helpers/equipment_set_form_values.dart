@@ -114,21 +114,6 @@ class EquipmentSetFormValues extends Equatable {
     lists: SetBundleListValues.of(set),
   );
 
-  /// These values with only the members [keep] accepts, for when the form
-  /// drops gear deleted while it is open: the diver did not remove it, so it
-  /// must not count as their change.
-  EquipmentSetFormValues retainingEquipment(bool Function(String id) keep) =>
-      EquipmentSetFormValues(
-        name: name,
-        description: description,
-        equipmentIds: equipmentIds.where(keep).toSet(),
-        isDefault: isDefault,
-        autoApplyOnComputerImport: autoApplyOnComputerImport,
-        showFigure: showFigure,
-        geofences: geofences,
-        lists: lists,
-      );
-
   @override
   List<Object?> get props => [
     name.trim(),

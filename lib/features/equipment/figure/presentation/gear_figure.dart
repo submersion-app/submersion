@@ -9,7 +9,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// [DiverFigure] with the app's strings: the summary named by [title], each
 /// label read as "3, BCD, Hollis SMS75" ("BCD, Hollis SMS75" without
 /// [showNumbers]), the switch counts, and the tray heading. The set page,
-/// the set edit page, and the dive card all use it.
+/// its Figure card while it is edited, and the dive card all use it.
 class GearFigure extends StatelessWidget {
   const GearFigure({
     super.key,

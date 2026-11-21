@@ -45,13 +45,13 @@ enum AttributeGroup {
   purchase,
 
   /// How the item looks: its colour, which tints its artwork on the diver
-  /// figure (issue #2326). Rendered as its own block of the edit form and
+  /// figure (issue #2326). Rendered as its own block of the Details editor and
   /// as its own row on the detail page.
   appearance,
 
   /// Written by the app, never by a form: identifiers a feature owns, such
   /// as a cylinder's passport id (issue #2334). No form section renders this
-  /// group, and the detail page's spec rows skip it, but the edit page save
+  /// group, and the detail page's spec rows skip it, but an item's save
   /// keeps it because it is in the type's catalog.
   system,
 }

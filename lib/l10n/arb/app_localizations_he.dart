@@ -16578,16 +16578,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'שכפול ציוד';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'ערוך ציוד';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'ציוד חדש';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'שמור';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip => 'שמור שינויי ציוד';
 
   @override
   String get equipment_edit_brandLabel => 'מותג';
@@ -16606,49 +16597,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'כבה את כל ההתראות עבור פריט זה';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'מחק';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing => 'המשך עריכה';
-
-  @override
-  String get equipment_edit_discardDialog_title => 'למחוק שינויים?';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'ביטול';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle => 'ערוך ציוד';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'ציוד חדש';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'שמור';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'שמור שינויי ציוד';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new => 'הוסף ציוד חדש';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'שגיאה: $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'שגיאה';
-
-  @override
-  String get equipment_edit_loadingTitle => 'טוען...';
-
-  @override
   String get equipment_edit_modelLabel => 'דגם';
 
   @override
@@ -16661,26 +16609,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_nameValidation => 'נא להזין שם';
 
   @override
-  String get equipment_edit_notFoundMessage => 'פריט ציוד זה כבר לא קיים.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'הציוד לא נמצא';
-
-  @override
   String get equipment_edit_notesHint => 'הערות נוספות על ציוד זה...';
 
   @override
   String get equipment_edit_notesLabel => 'הערות';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'עקוף הגדרות התראה גלובליות עבור פריט זה';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'התראות (אופציונלי)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'תאריך רכישה';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'פרטי רכישה';
@@ -16705,14 +16637,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'מספר סידורי';
-
-  @override
-  String get equipment_edit_snackbar_added => 'הציוד נוסף';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'שגיאה בשמירת ציוד: $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17187,16 +17111,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'כותרת אחת לכל מקום, רק בעמוד זה';
 
   @override
-  String get equipment_edit_locationLabel => 'מיקום';
-
-  @override
-  String get equipment_edit_locationNone => 'לא הוגדר';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'נשמר, אך לא ניתן היה להגדיר את המיקום. השתמש בהעברה בפריט כדי להגדיר אותו.';
-
-  @override
   String get equipment_locations_title => 'מיקומים';
 
   @override
@@ -17292,13 +17206,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (עותק)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'שוכפל, אך לא ניתן היה להעתיק חלק משעוני הטיפולים, הסטים או המסמכים.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'הציוד שוכפל';
 
   @override
   String get equipment_menu_clone => 'שכפול';
@@ -17910,9 +17817,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוסף ציוד תחילה לפני יצירת סט.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'ערוך סט';
-
-  @override
   String get equipment_setEdit_appBar_newTitle => 'סט ציוד חדש';
 
   @override
@@ -17930,12 +17834,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'שגיאה';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'טוען...';
-
-  @override
   String get equipment_setEdit_nameHint => 'לדוגמה, סט למים חמים';
 
   @override
@@ -17948,37 +17846,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_noEquipmentAvailable => 'אין ציוד זמין';
 
   @override
-  String get equipment_setEdit_notFoundMessage => 'סט ציוד זה כבר לא קיים.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'הסט לא נמצא';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit => 'שמור שינויי סט ציוד';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new => 'צור סט ציוד חדש';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'בחר את פריטי הציוד לכלול בסט זה.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle => 'בחר ציוד';
-
-  @override
-  String get equipment_setEdit_snackbar_created => 'סט הציוד נוצר';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned => 'סט הציוד שוכפל';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'שגיאה בשמירת סט ציוד: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated => 'סט הציוד עודכן';
 
   @override
   String get equipment_sets_appBar_title => 'סטי ציוד';
@@ -34854,28 +34723,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_appBar_add => 'הוסף טיול';
 
   @override
-  String get trips_edit_appBar_edit => 'ערוך טיול';
-
-  @override
-  String get trips_edit_button_cancel => 'ביטול';
-
-  @override
-  String get trips_edit_button_save => 'שמירה';
-
-  @override
-  String get trips_edit_dialog_discard => 'מחיקה';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'לבטל שינויים?';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'המשך עריכה';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -34941,32 +34788,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'שם הטיול *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'תאריכי הטיול';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'מיקום';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'הערות';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'שמור טיול';
-
-  @override
-  String get trips_edit_snackBar_added => 'הטיול נוסף בהצלחה';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'לא ניתן לטעון את הטיול. נסו שוב.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'לא ניתן לשמור את הטיול. נסו שוב.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'הטיול עודכן בהצלחה';
 
   @override
   String get trips_edit_validation_nameRequired => 'נא להזין שם טיול';
@@ -35266,9 +35087,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_type_description_shore => 'צלילות חוף ביום אחד או יותר';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'פרטי הספינה';
-
-  @override
   String get trips_edit_label_vesselName => 'שם הספינה *';
 
   @override
@@ -35291,9 +35109,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'קיבולת נוסעים';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'תכנון';
 
   @override
   String get trips_edit_label_diversSharing => 'צוללים החולקים מכלים';
@@ -35843,9 +35658,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'מותאם אישית';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark => 'עלייה / ירידה';
 
   @override
   String get trips_edit_label_embarkPort => 'נמל העלייה';
@@ -40246,9 +40058,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'משקל גוף';
-
-  @override
-  String get equipment_edit_advanced_title => 'מתקדם';
 
   @override
   String get planner_gearWeights_accept => 'השתמש כמשקל מתוכנן';

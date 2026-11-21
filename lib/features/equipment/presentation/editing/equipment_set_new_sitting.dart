@@ -13,7 +13,7 @@ import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 /// clone's copy put on as changes.
 
 /// A new set's starting record under [id]: the active diver's, with no
-/// name, showing the diver figure, as the form starts one.
+/// name, showing the diver figure, as the form started one.
 Future<EquipmentSet> newEquipmentSetSeed(
   RecordSeedRead read, {
   required String id,

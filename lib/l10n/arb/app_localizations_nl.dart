@@ -16816,17 +16816,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'Uitrusting dupliceren';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'Uitrusting bewerken';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'Nieuwe uitrusting';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'Opslaan';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip =>
-      'Wijzigingen in uitrusting opslaan';
 
   @override
   String get equipment_edit_brandLabel => 'Merk';
@@ -16845,50 +16835,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle meldingen voor dit onderdeel uitschakelen';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'Verwerpen';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing => 'Verder bewerken';
-
-  @override
-  String get equipment_edit_discardDialog_title => 'Wijzigingen verwerpen?';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'Annuleren';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle => 'Uitrusting bewerken';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'Nieuwe uitrusting';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'Opslaan';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'Wijzigingen in uitrusting opslaan';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'Nieuwe uitrusting toevoegen';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'Fout: $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'Fout';
-
-  @override
-  String get equipment_edit_loadingTitle => 'Laden...';
-
-  @override
   String get equipment_edit_modelLabel => 'Model';
 
   @override
@@ -16901,28 +16847,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_edit_nameValidation => 'Voer een naam in';
 
   @override
-  String get equipment_edit_notFoundMessage =>
-      'Dit uitrustingsonderdeel bestaat niet meer.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'Uitrusting niet gevonden';
-
-  @override
   String get equipment_edit_notesHint =>
       'Extra notities over deze uitrusting...';
 
   @override
   String get equipment_edit_notesLabel => 'Notities';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'Overschrijf globale meldingsinstellingen voor dit onderdeel';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'Meldingen (optioneel)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'Aankoopdatum';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'Aankoopinformatie';
@@ -16947,14 +16876,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'Serienummer';
-
-  @override
-  String get equipment_edit_snackbar_added => 'Uitrusting toegevoegd';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'Fout bij opslaan van uitrusting: $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17434,16 +17355,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Eén kop per plek, alleen op deze pagina';
 
   @override
-  String get equipment_edit_locationLabel => 'Locatie';
-
-  @override
-  String get equipment_edit_locationNone => 'Niet ingesteld';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'Opgeslagen, maar de locatie kon niet worden ingesteld. Gebruik Verplaatsen bij het item om die in te stellen.';
-
-  @override
   String get equipment_locations_title => 'Locaties';
 
   @override
@@ -17541,13 +17452,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (kopie)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'Gedupliceerd, maar sommige serviceintervallen, sets of documenten konden niet worden gekopieerd.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'Uitrusting gedupliceerd';
 
   @override
   String get equipment_menu_clone => 'Dupliceren';
@@ -18182,9 +18086,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voeg eerst uitrusting toe voordat je een set maakt.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'Set bewerken';
-
-  @override
   String get equipment_setEdit_appBar_newTitle => 'Nieuwe uitrustingsset';
 
   @override
@@ -18202,12 +18103,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'Fout';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'Laden...';
-
-  @override
   String get equipment_setEdit_nameHint => 'bijv. Warm water opstelling';
 
   @override
@@ -18221,40 +18116,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen uitrusting beschikbaar';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'Deze uitrustingsset bestaat niet meer.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'Set niet gevonden';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit =>
-      'Wijzigingen in uitrustingsset opslaan';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new =>
-      'Nieuwe uitrustingsset aanmaken';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'Kies de uitrustingsonderdelen om in deze set op te nemen.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle => 'Selecteer uitrusting';
-
-  @override
-  String get equipment_setEdit_snackbar_created => 'Uitrustingsset aangemaakt';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned => 'Uitrustingsset gedupliceerd';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'Fout bij opslaan van uitrustingsset: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated => 'Uitrustingsset bijgewerkt';
 
   @override
   String get equipment_sets_appBar_title => 'Uitrustingssets';
@@ -35500,28 +35363,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_edit_appBar_add => 'Reis toevoegen';
 
   @override
-  String get trips_edit_appBar_edit => 'Reis bewerken';
-
-  @override
-  String get trips_edit_button_cancel => 'Annuleren';
-
-  @override
-  String get trips_edit_button_save => 'Opslaan';
-
-  @override
-  String get trips_edit_dialog_discard => 'Verwerpen';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'Wijzigingen verwerpen?';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'Verder bewerken';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -35586,32 +35427,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'Reisnaam *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'Reisdata';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'Locatie';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'Notities';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'Reis opslaan';
-
-  @override
-  String get trips_edit_snackBar_added => 'Reis succesvol toegevoegd';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'Kan de reis niet laden. Probeer het opnieuw.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'Kan de reis niet opslaan. Probeer het opnieuw.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'Reis succesvol bijgewerkt';
 
   @override
   String get trips_edit_validation_nameRequired => 'Voer een reisnaam in';
@@ -35911,9 +35726,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_type_description_shore => 'Kantduiken op een of meer dagen';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'Scheepsgegevens';
-
-  @override
   String get trips_edit_label_vesselName => 'Naam schip *';
 
   @override
@@ -35936,9 +35748,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Passagierscapaciteit';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'Planning';
 
   @override
   String get trips_edit_label_diversSharing => 'Duikers die flessen delen';
@@ -36492,10 +36301,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'Aangepast';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark =>
-      'Inscheping / Ontscheping';
 
   @override
   String get trips_edit_label_embarkPort => 'Haven van inscheping';
@@ -40979,9 +40784,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'Lichaamsgewicht';
-
-  @override
-  String get equipment_edit_advanced_title => 'Geavanceerd';
 
   @override
   String get planner_gearWeights_accept => 'Gebruik als gepland lood';

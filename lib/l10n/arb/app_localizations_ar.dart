@@ -17157,16 +17157,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'استنساخ المعدات';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'تعديل المعدات';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'معدات جديدة';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'حفظ';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip => 'حفظ تغييرات المعدات';
 
   @override
   String get equipment_edit_brandLabel => 'العلامة التجارية';
@@ -17185,50 +17176,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'إيقاف جميع الإشعارات لهذا العنصر';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'تجاهل';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing => 'متابعة التعديل';
-
-  @override
-  String get equipment_edit_discardDialog_title => 'تجاهل التغييرات؟';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'إلغاء';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle => 'تعديل المعدات';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'معدات جديدة';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'حفظ';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'حفظ تغييرات المعدات';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'إضافة معدات جديدة';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'خطأ: $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'خطأ';
-
-  @override
-  String get equipment_edit_loadingTitle => 'جارٍ التحميل...';
-
-  @override
   String get equipment_edit_modelLabel => 'الطراز';
 
   @override
@@ -17241,27 +17188,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_nameValidation => 'يرجى إدخال اسم';
 
   @override
-  String get equipment_edit_notFoundMessage =>
-      'عنصر المعدات هذا لم يعد موجوداً.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'المعدات غير موجودة';
-
-  @override
   String get equipment_edit_notesHint => 'ملاحظات إضافية عن هذه المعدات...';
 
   @override
   String get equipment_edit_notesLabel => 'ملاحظات';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'تجاوز إعدادات الإشعارات العامة لهذا العنصر';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'الإشعارات (اختياري)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'تاريخ الشراء';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'معلومات الشراء';
@@ -17286,14 +17216,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'الرقم التسلسلي';
-
-  @override
-  String get equipment_edit_snackbar_added => 'تمت إضافة المعدات';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'خطأ في حفظ المعدات: $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17810,16 +17732,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'عنوان لكل مكان، في هذه الصفحة فقط';
 
   @override
-  String get equipment_edit_locationLabel => 'الموقع';
-
-  @override
-  String get equipment_edit_locationNone => 'غير محدد';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'تم الحفظ، لكن تعذّر تعيين موقعه. استخدم «نقل» على العنصر لتعيينه.';
-
-  @override
   String get equipment_locations_title => 'المواقع';
 
   @override
@@ -17916,13 +17828,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (نسخة)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'تم الاستنساخ، لكن تعذّر نسخ بعض عدادات الصيانة أو المجموعات أو المستندات.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'تم استنساخ المعدات';
 
   @override
   String get equipment_menu_clone => 'استنساخ';
@@ -18571,9 +18476,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'أضف معدات أولاً قبل إنشاء مجموعة.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'تعديل المجموعة';
-
-  @override
   String get equipment_setEdit_appBar_newTitle => 'مجموعة معدات جديدة';
 
   @override
@@ -18591,12 +18493,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'خطأ';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'جارٍ التحميل...';
-
-  @override
   String get equipment_setEdit_nameHint => 'مثال: إعداد المياه الدافئة';
 
   @override
@@ -18609,38 +18505,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_noEquipmentAvailable => 'لا توجد معدات متاحة';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'مجموعة المعدات هذه لم تعد موجودة.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'المجموعة غير موجودة';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit => 'حفظ تغييرات مجموعة المعدات';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new => 'إنشاء مجموعة معدات جديدة';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'اختر عناصر المعدات لتضمينها في هذه المجموعة.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle => 'اختيار المعدات';
-
-  @override
-  String get equipment_setEdit_snackbar_created => 'تم إنشاء مجموعة المعدات';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned => 'تم استنساخ مجموعة المعدات';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'خطأ في حفظ مجموعة المعدات: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated => 'تم تحديث مجموعة المعدات';
 
   @override
   String get equipment_sets_appBar_title => 'مجموعات المعدات';
@@ -36138,28 +36004,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_appBar_add => 'إضافة رحلة';
 
   @override
-  String get trips_edit_appBar_edit => 'تعديل الرحلة';
-
-  @override
-  String get trips_edit_button_cancel => 'إلغاء';
-
-  @override
-  String get trips_edit_button_save => 'حفظ';
-
-  @override
-  String get trips_edit_dialog_discard => 'تجاهل';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'تجاهل التغييرات؟';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'متابعة التعديل';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -36226,32 +36070,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'اسم الرحلة *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'تواريخ الرحلة';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'الموقع';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'ملاحظات';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'حفظ الرحلة';
-
-  @override
-  String get trips_edit_snackBar_added => 'تمت إضافة الرحلة بنجاح';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'تعذّر تحميل الرحلة. حاول مرة أخرى.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'تعذّر حفظ الرحلة. حاول مرة أخرى.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'تم تحديث الرحلة بنجاح';
 
   @override
   String get trips_edit_validation_nameRequired => 'يرجى إدخال اسم الرحلة';
@@ -36572,9 +36390,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'غطسات من الشاطئ على مدى يوم أو أكثر';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'تفاصيل السفينة';
-
-  @override
   String get trips_edit_label_vesselName => 'اسم السفينة *';
 
   @override
@@ -36597,9 +36412,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'سعة الركاب';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'التخطيط';
 
   @override
   String get trips_edit_label_diversSharing =>
@@ -37188,9 +37000,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'مخصص';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark => 'الصعود / النزول';
 
   @override
   String get trips_edit_label_embarkPort => 'ميناء الصعود';
@@ -41837,9 +41646,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'وزن الجسم';
-
-  @override
-  String get equipment_edit_advanced_title => 'متقدم';
 
   @override
   String get planner_gearWeights_accept => 'استخدام كوزن مخطط';

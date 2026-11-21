@@ -34,7 +34,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 /// item is itself a part of other assemblies, a "Part of" section lists them
 /// above its own parts, which then sit under a "Contains" caption.
 ///
-/// Lives on the detail page, not the edit form, like every other cross-item
+/// Lives on the detail page, not in a card editor, like every other cross-item
 /// edge (service clocks, documents, unit configurations): a new item has no
 /// id until it is saved.
 class ComponentsCard extends ConsumerWidget {

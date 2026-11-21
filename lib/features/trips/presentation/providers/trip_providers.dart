@@ -511,20 +511,6 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
     }
   }
 
-  Future<Trip> addTrip(Trip trip) async {
-    // Get fresh validated diver ID before creating
-    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
-
-    // Always set diverId to the current validated diver for new trips
-    // This ensures the trip's diverId matches the filter used to display it
-    final tripWithDiver = validatedId != null
-        ? trip.copyWith(diverId: validatedId)
-        : trip;
-    final newTrip = await _repository.createTrip(tripWithDiver);
-    await refresh();
-    return newTrip;
-  }
-
   Future<void> updateTrip(Trip trip) async {
     final actingDiverId = await _ref.read(
       validatedCurrentDiverIdProvider.future,

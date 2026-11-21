@@ -17,7 +17,7 @@ final Map<TripCardId, EditCard<Trip>> tripEditCards = {
     id: TripCardId.header.name,
     title: (context) => TripCardId.header.localizedDisplayName(context.l10n),
     isEmpty: (_) => false,
-    // A name, as the form's validator has it.
+    // A name, as the form's validator had it.
     isValid: (session) => tripNameValid(session.working.name),
     editorBuilder: (context, session) => TripHeaderCardEditor(session: session),
   ),
@@ -36,7 +36,7 @@ final Map<TripCardId, EditCard<Trip>> tripEditCards = {
     title: (context) => TripCardId.vessel.localizedDisplayName(context.l10n),
     // On the page while the trip is a liveaboard, details or not.
     isEmpty: (_) => false,
-    // A liveaboard needs a vessel name, as the form's validator has it.
+    // A liveaboard needs a vessel name, as the form's validator had it.
     isValid: (session) => tripVesselValid(tripVesselState, session),
     editorBuilder: (context, session) => TripVesselCardEditor(session: session),
   ),

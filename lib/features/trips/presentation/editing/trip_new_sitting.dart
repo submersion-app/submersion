@@ -16,8 +16,8 @@ const _log = LoggerService('TripNewSitting');
 
 /// A new trip's starting record under [id] (issue #4527, phase 3, plan 11,
 /// call 4): the active diver's, a shore trip from now to seven days on, as
-/// the form starts one, shared as every new trip is. A diver or default
-/// that cannot be read leaves none, as the form does.
+/// the form started one, shared as every new trip is. A diver or default
+/// that cannot be read leaves none, as the form did.
 Future<Trip> newTripSeed(RecordSeedRead read, {required String id}) async {
   final diverId = await newRecordDiverId(read, record: 'trip');
   var shared = false;
@@ -30,7 +30,7 @@ Future<Trip> newTripSeed(RecordSeedRead read, {required String id}) async {
       stackTrace: stackTrace,
     );
   }
-  // Read once, as the form reads it: two reads could straddle midnight.
+  // Read once, as the form read it: two reads could straddle midnight.
   final now = clock.now();
   return Trip(
     id: id,

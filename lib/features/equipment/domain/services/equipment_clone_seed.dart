@@ -16,7 +16,7 @@ const _perItemAttrKeys = {
 /// no serial number, none of the frozen legacy service fields, and without
 /// the per-item attributes above, nor any system attribute: a passport id
 /// names one physical item, so a clone starts untagged (issue #2652).
-/// Everything else on the form is kept.
+/// Everything else is kept.
 ///
 /// Every attribute leaves the source's rows behind: saveAttributes upserts a
 /// custom field by its id, so a kept id would move the original's field onto

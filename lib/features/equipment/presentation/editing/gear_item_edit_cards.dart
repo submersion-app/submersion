@@ -34,7 +34,7 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     title: (context) =>
         GearItemCardId.header.localizedDisplayName(context.l10n),
     isEmpty: (_) => false,
-    // A name, as the form's validator has it.
+    // A name, as the form's validator had it.
     isValid: (session) => gearNameValid(session.working.name),
     editorBuilder: (context, session) => GearItemHeaderEditor(session: session),
   ),
@@ -52,7 +52,7 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     title: (context) =>
         GearItemCardId.details.localizedDisplayName(context.l10n),
     isEmpty: (_) => false,
-    // A readable price, as the form's validator has it.
+    // A readable price, as the form's validator had it.
     isValid: gearDetailsValid,
     editorBuilder: (context, session) =>
         GearItemDetailsEditor(session: session),

@@ -7,20 +7,18 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
-import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/mock_providers.dart';
 
 /// Equipment sets list the same gear as a dive does, so they follow the same
-/// arrangement (#1486, #1576). The edit page already grouped by type but
-/// ordered neither the groups nor the items inside them.
+/// arrangement (#1486, #1576). The Members editor's groups follow it too:
+/// equipment_set_members_editor_test.dart.
 void main() {
   const zeagle = EquipmentItem(
     id: 'bcd-1',
@@ -81,14 +79,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  // The set detail page keeps plain headings; the editor's fold (#3364).
+  // The set detail page keeps plain headings.
   List<EquipmentType> detailHeaders(WidgetTester tester) => tester
       .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
-      .map((h) => h.type)
-      .toList();
-
-  List<EquipmentType> headers(WidgetTester tester) => tester
-      .widgetList<EquipmentTypeFoldHeader>(find.byType(EquipmentTypeFoldHeader))
       .map((h) => h.type)
       .toList();
 
@@ -108,61 +101,5 @@ void main() {
       EquipmentType.regulator,
       EquipmentType.bcd,
     ]);
-  });
-
-  testWidgets('set edit orders its groups instead of using insertion order', (
-    tester,
-  ) async {
-    await pumpPage(
-      tester,
-      const EquipmentSetEditPage(setId: 'set-1'),
-      arrangement: EquipmentArrangement.defaults.copyWith(
-        typeOrder: EquipmentTypeOrder.headToToe,
-      ),
-    );
-
-    expect(headers(tester), [
-      EquipmentType.tank,
-      EquipmentType.regulator,
-      EquipmentType.bcd,
-    ]);
-  });
-
-  testWidgets('set edit keeps selection keyed by id across the reorder', (
-    tester,
-  ) async {
-    // The editor tracks membership in a Set of ids, so reordering the render
-    // must not disturb what is ticked. This is the check that a reorder did
-    // not reintroduce index-keyed access.
-    await pumpPage(
-      tester,
-      const EquipmentSetEditPage(setId: 'set-1'),
-      arrangement: EquipmentArrangement.defaults.copyWith(
-        typeOrder: EquipmentTypeOrder.headToToe,
-      ),
-    );
-
-    final apeksTile = find.ancestor(
-      of: find.text('Apeks'),
-      matching: find.byType(CheckboxListTile),
-    );
-    expect(tester.widget<CheckboxListTile>(apeksTile).value, isTrue);
-
-    await tester.tap(apeksTile);
-    await tester.pumpAndSettle();
-
-    expect(tester.widget<CheckboxListTile>(apeksTile).value, isFalse);
-    // Untouched neighbours keep their state.
-    expect(
-      tester
-          .widget<CheckboxListTile>(
-            find.ancestor(
-              of: find.text('Faber'),
-              matching: find.byType(CheckboxListTile),
-            ),
-          )
-          .value,
-      isTrue,
-    );
   });
 }

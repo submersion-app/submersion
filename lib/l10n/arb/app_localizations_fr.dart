@@ -16964,17 +16964,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'Dupliquer l\'équipement';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'Modifier l\'équipement';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'Nouvel équipement';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'Enregistrer';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip =>
-      'Enregistrer les modifications de l\'équipement';
 
   @override
   String get equipment_edit_brandLabel => 'Marque';
@@ -16993,52 +16983,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Désactiver toutes les notifications pour cet élément';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'Tu as des modifications non enregistrées. Es-tu sûr de vouloir quitter ?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'Abandonner';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing => 'Continuer l\'édition';
-
-  @override
-  String get equipment_edit_discardDialog_title =>
-      'Abandonner les modifications ?';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'Annuler';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle =>
-      'Modifier l\'équipement';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'Nouvel équipement';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'Enregistrer';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'Enregistrer les modifications de l\'équipement';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'Ajouter un nouvel équipement';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'Erreur : $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'Erreur';
-
-  @override
-  String get equipment_edit_loadingTitle => 'Chargement...';
-
-  @override
   String get equipment_edit_modelLabel => 'Modèle';
 
   @override
@@ -17051,27 +16995,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_edit_nameValidation => 'Veuillez entrer un nom';
 
   @override
-  String get equipment_edit_notFoundMessage => 'Cet équipement n\'existe plus.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'Équipement introuvable';
-
-  @override
   String get equipment_edit_notesHint =>
       'Notes supplémentaires sur cet équipement...';
 
   @override
   String get equipment_edit_notesLabel => 'Notes';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'Remplacer les paramètres de notification globaux pour cet élément';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'Notifications (optionnel)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'Date d\'achat';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'Informations d\'achat';
@@ -17096,14 +17024,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'Numéro de série';
-
-  @override
-  String get equipment_edit_snackbar_added => 'Équipement ajouté';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'Erreur d\'enregistrement de l\'équipement : $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17583,16 +17503,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un titre par lieu, sur cette page uniquement';
 
   @override
-  String get equipment_edit_locationLabel => 'Emplacement';
-
-  @override
-  String get equipment_edit_locationNone => 'Non défini';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'Enregistré, mais son emplacement n\'a pas pu être défini. Utilisez Déplacer sur l\'élément pour le définir.';
-
-  @override
   String get equipment_locations_title => 'Emplacements';
 
   @override
@@ -17692,13 +17602,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (copie)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'Dupliqué, mais certains compteurs d\'entretien, ensembles ou documents n\'ont pas pu être copiés.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'Équipement dupliqué';
 
   @override
   String get equipment_menu_clone => 'Dupliquer';
@@ -18340,9 +18243,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajoute d\'abord de l\'équipement avant de créer un ensemble.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'Modifier l\'ensemble';
-
-  @override
   String get equipment_setEdit_appBar_newTitle =>
       'Nouvel ensemble d\'équipement';
 
@@ -18362,12 +18262,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'Erreur';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'Chargement...';
-
-  @override
   String get equipment_setEdit_nameHint => 'ex. Configuration eaux chaudes';
 
   @override
@@ -18381,44 +18275,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun équipement disponible';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'Cet ensemble d\'équipement n\'existe plus.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'Ensemble introuvable';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit =>
-      'Enregistrer les modifications de l\'ensemble';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new =>
-      'Créer un nouvel ensemble d\'équipement';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'Choisis les équipements à inclure dans cet ensemble.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle =>
-      'Sélectionner l\'équipement';
-
-  @override
-  String get equipment_setEdit_snackbar_created =>
-      'Ensemble d\'équipement créé';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned =>
-      'Ensemble d\'équipement dupliqué';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'Erreur d\'enregistrement de l\'ensemble : $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated =>
-      'Ensemble d\'équipement mis à jour';
 
   @override
   String get equipment_sets_appBar_title => 'Ensembles d\'équipement';
@@ -35849,28 +35707,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_edit_appBar_add => 'Ajouter un voyage';
 
   @override
-  String get trips_edit_appBar_edit => 'Modifier le voyage';
-
-  @override
-  String get trips_edit_button_cancel => 'Annuler';
-
-  @override
-  String get trips_edit_button_save => 'Enregistrer';
-
-  @override
-  String get trips_edit_dialog_discard => 'Abandonner';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'Tu as des modifications non enregistrées. Veux-tu vraiment quitter ?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'Abandonner les modifications ?';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'Continuer à modifier';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -35935,32 +35771,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'Nom du voyage *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'Dates du voyage';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'Lieu';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'Notes';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'Enregistrer le voyage';
-
-  @override
-  String get trips_edit_snackBar_added => 'Voyage ajouté avec succès';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'Impossible de charger le voyage. Réessayez.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'Impossible d\'enregistrer le voyage. Réessayez.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'Voyage mis à jour avec succès';
 
   @override
   String get trips_edit_validation_nameRequired =>
@@ -36265,9 +36075,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Plongées du bord sur un ou plusieurs jours';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'Vessel Détails';
-
-  @override
   String get trips_edit_label_vesselName => 'Nom du navire *';
 
   @override
@@ -36290,9 +36097,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Capacité passagers';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'Planification';
 
   @override
   String get trips_edit_label_diversSharing => 'Plongeurs partageant les blocs';
@@ -36846,10 +36650,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'Personnalisé';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark =>
-      'Embarquement / Débarquement';
 
   @override
   String get trips_edit_label_embarkPort => 'Port d\'embarquement';
@@ -41368,9 +41168,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'Poids corporel';
-
-  @override
-  String get equipment_edit_advanced_title => 'Avancé';
 
   @override
   String get planner_gearWeights_accept => 'Utiliser comme lestage prévu';

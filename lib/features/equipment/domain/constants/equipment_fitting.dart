@@ -1,7 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 
 /// Types whose detail page shows the children card: the parents a cell
-/// or a battery can be installed in. The edit page's parent picker offers
+/// or a battery can be installed in. The Details editor's parent picker offers
 /// a battery exactly this set, so a host the picker allows always shows the
 /// battery it holds.
 const childHostTypes = {

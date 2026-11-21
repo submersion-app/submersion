@@ -73,7 +73,7 @@ class SetBundleSections extends ConsumerWidget {
     final presetsById = {for (final p in presets) p.id: p};
     final configsById = {for (final c in configs) c.id: c};
 
-    // The set as the form would save it, to resolve what it applies.
+    // The set as the sitting would save it, to resolve what it applies.
     final now = DateTime.now();
     final draft = EquipmentSet(
       id: setId,

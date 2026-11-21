@@ -115,9 +115,13 @@ class _GearItemHeaderEditorState extends ConsumerState<GearItemHeaderEditor> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final id = _session.stored.id;
+    // Kept loaded for [_pickType]: with only this card open, nothing else
+    // reads the active gear, and a type change would keep a host it cannot
+    // be fitted to.
+    ref.watch(activeEquipmentProvider);
     // Locked until the lookup answers, so the field is never briefly
     // editable on a device's item. An item not yet created has no device
-    // (issue #4527, plan 11), as the form never locks a new item.
+    // (issue #4527, plan 11), as the form never locked one.
     final typeLocked =
         !_session.isNew &&
         (ref.watch(equipmentHasDeviceProvider(id)).value ?? true);

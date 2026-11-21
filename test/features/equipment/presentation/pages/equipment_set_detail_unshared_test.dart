@@ -10,14 +10,14 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
-import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 /// A set keeps a member whose share was removed and marks it "No longer
-/// shared" (issue #2046).
+/// shared" (issue #2046). The Members editor does the same:
+/// equipment_set_members_editor_test.dart.
 void main() {
   setUp(() async {
     await setUpTestDatabase();
@@ -63,38 +63,6 @@ void main() {
     );
   });
   tearDown(tearDownTestDatabase);
-
-  Future<void> pumpPage(WidgetTester tester, Widget page) async {
-    tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = const Size(800, 2400);
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    final overrides = await getBaseOverrides();
-    overrides.add(
-      validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
-    );
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: overrides,
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: page,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-  }
-
-  testWidgets('the edit page lists a member no longer shared, unchecked', (
-    tester,
-  ) async {
-    await pumpPage(tester, const EquipmentSetEditPage(setId: 'a'));
-    expect(find.text('Their Reg'), findsOneWidget);
-    expect(find.text('No longer shared'), findsOneWidget);
-  });
 
   testWidgets('a member no longer shared is kept and marked', (tester) async {
     final overrides = await getBaseOverrides();

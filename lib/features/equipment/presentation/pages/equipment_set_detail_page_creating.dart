@@ -43,7 +43,7 @@ mixin _EquipmentSetDetailPageCreating
   Future<void> applyNewRecordPrefill(EditSession<EquipmentSet> session) async =>
       applyNewEquipmentSetPrefill(session, _clone);
 
-  /// A profile switched before Save drops a clone, as the form does: a set
+  /// A profile switched before Save drops a clone, as the form did: a set
   /// is its owner's alone, and the clone was read for the profile before.
   void _dropCloneOnProfileSwitch() {
     ref.listen(validatedCurrentDiverIdProvider, (previous, next) {

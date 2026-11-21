@@ -245,7 +245,7 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
               // The item's colour (issue #2326): its own row with a swatch,
               // only when the stored value is a colour code and the type has
               // a colour. On a type without one it shows as a custom field
-              // (issue #2520), the way the edit form keeps it.
+              // (issue #2520), the way the Details editor keeps it.
               if (EquipmentAttributeCatalog.hasColor(equipment.type))
                 if (normalizeEquipmentColor(
                       equipment.attrText(EquipmentAttrKeys.color),

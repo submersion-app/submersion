@@ -64,6 +64,14 @@ void main() {
     expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
   });
 
+  testWidgets('unlocked, the bar names the trip it is editing', (tester) async {
+    await pumpTripPage(tester);
+
+    await unlock(tester);
+
+    expect(find.text(l.recordEdit_editingTitle('Red Sea')), findsOneWidget);
+  });
+
   testWidgets('the pane header has the lock and no Edit pencil', (
     tester,
   ) async {

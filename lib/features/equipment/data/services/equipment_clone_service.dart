@@ -92,7 +92,7 @@ class EquipmentCloneService {
     };
     for (final schedule in source) {
       final kind = kinds[schedule.serviceKindId];
-      // A kind that does not fit the clone's type (the form's Type was
+      // A kind that does not fit the clone's type (the clone's type was
       // changed) would only nag with reminders that make no sense for it.
       if (kind == null || !kind.appliesTo(cloneType)) continue;
       final existing = onClone[schedule.serviceKindId];
