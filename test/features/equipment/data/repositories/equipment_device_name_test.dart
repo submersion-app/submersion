@@ -86,4 +86,40 @@ void main() {
       'equipment',
     ]);
   });
+
+  // A device's item keeps its type (issue #3676): the item page locks the
+  // type of an item a computer or a transmitter names.
+  test('an item a computer or a transmitter names has a device; another '
+      'does not', () async {
+    final computer = await item(EquipmentType.computer);
+    final transmitter = await item(EquipmentType.transmitter);
+    final mask = await item(EquipmentType.mask);
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: 'c1',
+            name: 'Old',
+            equipmentId: Value(computer.id),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 'tx1',
+            label: 'Old',
+            tankRole: 'backGas',
+            transmitterEquipmentId: Value(transmitter.id),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+
+    expect(await repo.hasDeviceRecord(computer.id), isTrue);
+    expect(await repo.hasDeviceRecord(transmitter.id), isTrue);
+    expect(await repo.hasDeviceRecord(mask.id), isFalse);
+  });
 }

@@ -4,18 +4,36 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/twin_set_card.dart';
+import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'equipment_detail_page_unlock_harness.dart';
+
+/// A query runner whose queries all fail.
+class _FailingRunner extends QueryIdSetRunner {
+  _FailingRunner() : super(DatabaseService.instance.database);
+
+  @override
+  Future<Set<String>> ids(
+    CompiledQuery compiled, {
+    QueryScope? scope,
+    QueryCte? cte,
+  }) => Future.error(StateError('query failed'));
+}
 
 /// A new gear item and a clone open on the item page, already unlocked
 /// (issue #4527, phase 3, plan 11).
@@ -199,5 +217,74 @@ void main() {
 
     expect(find.text(l.equipment_detail_notFoundMessage), findsOneWidget);
     expect(find.byType(RecordEditBar), findsNothing);
+  });
+
+  // The list may hide what was just made (a Wanted item under the default
+  // view); a new item's Save asks it, as a pane's Save does. A check that
+  // fails says the item was saved.
+  testWidgets("a new item's Save asks whether the list will show it", (
+    tester,
+  ) async {
+    final harness = await pumpNewGearItemPage(
+      tester,
+      extraOverrides: [
+        queryIdSetRunnerProvider.overrideWithValue(_FailingRunner()),
+      ],
+    );
+    await typeName(tester, 'Backup reg');
+
+    await tester.tap(find.text(l.forms_save));
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.pumpAndSettle();
+
+    expect(harness.save.creates, hasLength(1));
+    expect(find.text(l.equipment_edit_snackbar_updated), findsOneWidget);
+  });
+
+  // The source is read once, as the clone opens: the clone is the diver's
+  // from then on, and its source going away or failing to read again does
+  // not close it or undo what was typed.
+  testWidgets('a clone keeps its form when the source goes away mid-edit', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => EquipmentRepository().createEquipment(
+        const EquipmentItem(
+          id: 'src',
+          diverId: 'd1',
+          name: 'Steel 12',
+          type: EquipmentType.tank,
+        ),
+      ),
+    );
+    final harness = await pumpNewGearItemPage(
+      tester,
+      request: const NewGearItemRequest(cloneFromId: 'src'),
+    );
+    await typeName(tester, 'Steel 12 spare');
+
+    await tester.runAsync(() => EquipmentRepository().deleteEquipment('src'));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RecordEditBar)),
+    );
+    container
+      ..invalidate(equipmentItemProvider('src'))
+      ..invalidate(cloneSourceProvider('src'));
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text('Steel 12 spare'), findsOneWidget);
+    expect(harness.poppedAtAll, isFalse);
   });
 }
