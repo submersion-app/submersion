@@ -21264,6 +21264,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Videopositie zoeken';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Video dempen';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Dempen van video opheffen';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Videovolume';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Foto delen';
 
   @override

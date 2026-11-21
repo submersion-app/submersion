@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
+import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 import 'package:video_player/video_player.dart';
 
 import 'video_controls_bar_test_harness.dart';
@@ -579,5 +582,92 @@ void main() {
     expect(controller.value.position, const Duration(seconds: 20));
     await finishBar(tester, controller);
     semantics.dispose();
+  });
+
+  // Issue #4817: the mute button and volume slider ride on the bar.
+  testWidgets('the bar shows the volume control when given audio', (
+    tester,
+  ) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    final audio = ViewerAudio();
+    addTearDown(audio.dispose);
+    await tester.pumpWidget(
+      barApp(
+        VideoControlsBar(controller: controller, mediaId: 'm1', audio: audio),
+      ),
+    );
+    expect(find.byType(VideoVolumeControl), findsOneWidget);
+    await finishBar(tester, controller);
+  });
+
+  testWidgets('keyboard focus in the volume control holds the controls', (
+    tester,
+  ) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    final audio = ViewerAudio();
+    addTearDown(audio.dispose);
+    final holds = <bool>[];
+    await tester.pumpWidget(
+      barApp(
+        VideoControlsBar(
+          controller: controller,
+          mediaId: 'm1',
+          audio: audio,
+          onHoldChanged: holds.add,
+        ),
+      ),
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pumpAndSettle();
+    expect(holds.last, isTrue);
+    // On to the slider: still inside, still held.
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pumpAndSettle();
+    expect(holds.last, isTrue);
+    FocusManager.instance.primaryFocus!.unfocus();
+    await tester.pumpAndSettle();
+    expect(holds.last, isFalse);
+    await finishBar(tester, controller);
+  });
+
+  // The fullscreen fish labels keep VideoControlsBar.height clear above the
+  // bar, so the mute button must not make it taller (on a touch screen a
+  // Material button pads itself to 48).
+  testWidgets(
+    'the volume control keeps the bar at its own height',
+    (tester) async {
+      useBarPlatform();
+      final controller = (await tester.runAsync(readyController))!;
+      final audio = ViewerAudio();
+      addTearDown(audio.dispose);
+      await tester.pumpWidget(
+        barApp(
+          VideoControlsBar(controller: controller, mediaId: 'm1', audio: audio),
+        ),
+      );
+      expect(
+        tester.getSize(find.byType(VideoControlsBar)).height,
+        VideoControlsBar.height,
+      );
+      await finishBar(tester, controller);
+    },
+    variant: const TargetPlatformVariant({
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+    }),
+  );
+
+  testWidgets('the bar shows no volume control without audio', (tester) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    await tester.pumpWidget(
+      barApp(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+    expect(find.byType(VideoVolumeControl), findsNothing);
+    await finishBar(tester, controller);
   });
 }

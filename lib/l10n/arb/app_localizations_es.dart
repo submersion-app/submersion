@@ -21387,6 +21387,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Buscar posición del video';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Silenciar vídeo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Activar sonido del vídeo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volumen del vídeo';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Compartir foto';
 
   @override

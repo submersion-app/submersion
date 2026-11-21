@@ -17,20 +17,44 @@ import 'package:submersion/features/media/data/streaming/video_playback_plan.dar
 /// from a fresh link at the same position and play state, once: a second
 /// failure before playback moves past the resume point moves on to the next
 /// candidate, and with none left the caller is told there is nothing.
+///
+/// Every player it opens, a reopened one included, takes [volume] before it
+/// can play, so a muted viewer never plays a moment of sound (issue #4817).
 class VideoPlaybackOpener {
   VideoPlaybackOpener(
     this.playback, {
     required void Function(VideoPlayerController controller) release,
     VideoPlayerController Function(Uri url)? network,
     VideoPlayerController Function(String path)? file,
+    double Function()? volume,
   }) : _release = release,
-       _network = network ?? VideoPlayerController.networkUrl,
-       _file = file ?? ((path) => VideoPlayerController.file(File(path)));
+       _volume = volume,
+       _network =
+           network ??
+           ((url) => VideoPlayerController.networkUrl(
+             url,
+             videoPlayerOptions: _options,
+           )),
+       _file =
+           file ??
+           ((path) => VideoPlayerController.file(
+             File(path),
+             videoPlayerOptions: _options,
+           ));
+
+  /// Players mix with other audio rather than take it over: a dive video
+  /// opens muted, and opening one must not stop the diver's music or podcast
+  /// (issue #4817). An unmuted video plays over that audio too.
+  static final _options = VideoPlayerOptions(mixWithOthers: true);
 
   final VideoPlayback playback;
   final void Function(VideoPlayerController controller) _release;
   final VideoPlayerController Function(Uri url) _network;
   final VideoPlayerController Function(String path) _file;
+
+  /// The volume a player opens at, read at each open; null leaves the
+  /// player's own default.
+  final double Function()? _volume;
 
   static const _log = LoggerService(
     'VideoPlaybackOpener',
@@ -65,7 +89,7 @@ class VideoPlaybackOpener {
       case FilePlayback(:final path):
         final controller = _file(path);
         try {
-          await controller.initialize();
+          await _initialize(controller);
           return controller;
         } on Object {
           _release(controller);
@@ -211,7 +235,7 @@ class VideoPlaybackOpener {
     _open.add((candidate, url));
     final controller = _network(url);
     try {
-      await controller.initialize();
+      await _initialize(controller);
     } on Object {
       _release(controller);
       _close(candidate, url);
@@ -220,6 +244,14 @@ class VideoPlaybackOpener {
     _candidate = candidate;
     _url = url;
     return controller;
+  }
+
+  /// Initialises [controller] and gives it the opening volume, before
+  /// anything can play it.
+  Future<void> _initialize(VideoPlayerController controller) async {
+    await controller.initialize();
+    final volume = _volume;
+    if (volume != null) await controller.setVolume(volume());
   }
 
   /// The candidate after [candidate], or null when it is the last.

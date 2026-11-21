@@ -21327,6 +21327,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'Videó pozíció keresése';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Videó némítása';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel =>
+      'Videó némításának feloldása';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Videó hangereje';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Fotó megosztása';
 
   @override

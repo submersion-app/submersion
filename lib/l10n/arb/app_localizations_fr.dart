@@ -21456,6 +21456,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Déplacer la position de la vidéo';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'Couper le son de la vidéo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel =>
+      'Rétablir le son de la vidéo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volume de la vidéo';
+
+  @override
   String get media_photoViewer_shareTooltip => 'Partager la photo';
 
   @override

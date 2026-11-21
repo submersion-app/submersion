@@ -20928,6 +20928,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'דלג למיקום בסרטון';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'השתק את הסרטון';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'בטל את השתקת הסרטון';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'עוצמת הקול של הסרטון';
+
+  @override
   String get media_photoViewer_shareTooltip => 'שתף תמונה';
 
   @override

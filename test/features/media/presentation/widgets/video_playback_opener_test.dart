@@ -22,6 +22,11 @@ class _FakePlatform extends VideoPlayerPlatform {
   final Map<int, Duration> seeks = {};
   final Set<int> playing = {};
   final Set<int> disposed = {};
+
+  /// Volume and play calls in order, as `(playerId, 'volume' | 'play',
+  /// volume)`, so a test can tell what a player's volume was when it began
+  /// to play.
+  final List<(int, String, double?)> calls = [];
   int _next = 0;
 
   /// When set, every player waits for it before it is created.
@@ -71,11 +76,29 @@ class _FakePlatform extends VideoPlayerPlatform {
   @override
   Future<void> setLooping(int playerId, bool looping) async {}
   @override
-  Future<void> play(int playerId) async => playing.add(playerId);
+  Future<void> play(int playerId) async {
+    calls.add((playerId, 'play', null));
+    playing.add(playerId);
+  }
+
   @override
   Future<void> pause(int playerId) async => playing.remove(playerId);
   @override
-  Future<void> setVolume(int playerId, double volume) async {}
+  Future<void> setVolume(int playerId, double volume) async =>
+      calls.add((playerId, 'volume', volume));
+
+  /// The volume [playerId] was last given before its first play, or null
+  /// when it never played.
+  double? volumeAtFirstPlay(int playerId) {
+    double? volume;
+    for (final (id, call, value) in calls) {
+      if (id != playerId) continue;
+      if (call == 'play') return volume;
+      volume = value;
+    }
+    return null;
+  }
+
   @override
   Future<void> setPlaybackSpeed(int playerId, double speed) async {}
   @override
@@ -89,8 +112,13 @@ class _FakePlatform extends VideoPlayerPlatform {
   @override
   Future<Duration> getPosition(int playerId) async =>
       seeks[playerId] ?? Duration.zero;
+
+  /// Every mix-with-others setting a player asked for, oldest first.
+  final List<bool> mixWithOthers = [];
+
   @override
-  Future<void> setMixWithOthers(bool mixWithOthers) async {}
+  Future<void> setMixWithOthers(bool mixWithOthers) async =>
+      this.mixWithOthers.add(mixWithOthers);
   @override
   Widget buildView(int playerId) => const SizedBox.expand();
 
@@ -344,6 +372,78 @@ void main() {
     await opener.reopenAfterError(first);
     opener.dispose();
     expect(original.closed, original.opened);
+  });
+
+  group('volume', () {
+    test('an opened stream takes the volume', () async {
+      final opener = VideoPlaybackOpener(
+        StreamPlayback([_Candidate('original', ServedTier.original).candidate]),
+        release: release,
+        network: network,
+        volume: () => 0,
+      );
+      final controller = await opener.open();
+      expect(controller.value.volume, 0.0);
+    });
+
+    test('an opened file takes the volume', () async {
+      final opener = VideoPlaybackOpener(
+        const FilePlayback('/videos/clip.mp4'),
+        release: release,
+        network: network,
+        file: file,
+        volume: () => 0.4,
+      );
+      final controller = await opener.open();
+      expect(controller.value.volume, 0.4);
+    });
+
+    test('reopen applies the volume before play', () async {
+      var volume = 0.0;
+      final opener = VideoPlaybackOpener(
+        StreamPlayback([_Candidate('original', ServedTier.original).candidate]),
+        release: release,
+        network: network,
+        volume: () => volume,
+      );
+      final first = await opener.open();
+      await first.play();
+      // The viewer's sound changed while the first player played.
+      volume = 0.7;
+      final next = await opener.reopenAfterError(first);
+      final id = platform.idOf(next!);
+      expect(platform.playing, contains(id));
+      expect(platform.volumeAtFirstPlay(id), 0.7);
+      expect(next.value.volume, 0.7);
+    });
+
+    // Issue #4817: a muted dive video must not stop the diver's music or
+    // podcast, so players mix with other audio rather than take it over.
+    test('a streamed player mixes with other audio', () async {
+      final opener = VideoPlaybackOpener(
+        StreamPlayback([_Candidate('original', ServedTier.original).candidate]),
+        release: release,
+      );
+      final controller = await opener.open();
+      addTearDown(controller.dispose);
+      expect(platform.mixWithOthers, [true]);
+    });
+
+    test('a file player mixes with other audio', () async {
+      final opener = VideoPlaybackOpener(
+        const FilePlayback('/videos/clip.mp4'),
+        release: release,
+      );
+      final controller = await opener.open();
+      addTearDown(controller.dispose);
+      expect(platform.mixWithOthers, [true]);
+    });
+
+    test('without a volume a player keeps its default', () async {
+      final opener = openerFor([_Candidate('original', ServedTier.original)]);
+      final controller = await opener.open();
+      expect(controller.value.volume, 1.0);
+    });
   });
 
   test('a file plays from its path and is not reopened', () async {

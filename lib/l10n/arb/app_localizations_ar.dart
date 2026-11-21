@@ -21746,6 +21746,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => 'تحريك موضع الفيديو';
 
   @override
+  String get media_photoViewer_muteVideoLabel => 'كتم صوت الفيديو';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'إلغاء كتم صوت الفيديو';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'مستوى صوت الفيديو';
+
+  @override
   String get media_photoViewer_shareTooltip => 'مشاركة الصورة';
 
   @override

@@ -6,7 +6,9 @@ import 'package:video_player/video_player.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/playhead_glide.dart';
+import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
+import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Video playback controls: elapsed time, a scrub bar, and total time.
@@ -30,11 +32,17 @@ class VideoControlsBar extends StatefulWidget {
   final String mediaId;
 
   /// Whether a host that hides its controls on a timer should hold them up:
-  /// true while a drag scrub is under way or the mouse rests on the bar,
-  /// false once both are over. A tap or a screen-reader step is a seek that
-  /// settles at once, so it reports false alone (unless the mouse is on the
-  /// bar), letting the host restart its clock.
+  /// true while a drag scrub is under way, the mouse rests on the bar, or the
+  /// volume slider is in use (keyboard focus in it, or a drag on it), false
+  /// once all are over. A tap or a screen-reader step is a seek that settles
+  /// at once, so it reports false alone (unless one of those still holds),
+  /// letting the host restart its clock.
   final ValueChanged<bool>? onHoldChanged;
+
+  /// The viewer's sound: when set, a mute button and volume slider follow the
+  /// total time (issue #4817). The slider shows on hover, keyboard focus or a
+  /// drag, and [onHoldChanged] holds the controls up for each.
+  final ViewerAudio? audio;
 
   /// The bar's touch area, for tests that tap or drag along it.
   @visibleForTesting
@@ -55,6 +63,7 @@ class VideoControlsBar extends StatefulWidget {
     required this.controller,
     required this.mediaId,
     this.onHoldChanged,
+    this.audio,
   });
 
   @override
@@ -77,6 +86,11 @@ class _VideoControlsBarState extends State<VideoControlsBar>
 
   /// Whether the mouse rests on the bar, which holds the host's controls.
   bool _hovered = false;
+
+  /// Whether the volume slider is in use (keyboard focus in it, or a drag
+  /// that may have strayed off the bar), which holds them too: a hidden bar
+  /// would take the slider from under the arrow keys or the pointer.
+  bool _volumeHeld = false;
 
   /// Whether the video was playing when the current scrub began.
   bool _resumeAfterScrub = false;
@@ -119,7 +133,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
       final onHoldChanged = widget.onHoldChanged;
       if (_scrubFraction != null && onHoldChanged != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) onHoldChanged(_hovered);
+          if (mounted) onHoldChanged(_hovered || _volumeHeld);
         });
       }
       _scrubId++;
@@ -141,16 +155,22 @@ class _VideoControlsBarState extends State<VideoControlsBar>
     // a drag): release the host's hold, or its controls never hide again.
     // After this frame, since the host may rebuild in answer.
     final onHoldChanged = widget.onHoldChanged;
-    if ((_scrubFraction != null || _hovered) && onHoldChanged != null) {
+    if ((_scrubFraction != null || _hovered || _volumeHeld) &&
+        onHoldChanged != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => onHoldChanged(false));
     }
     super.dispose();
   }
 
-  /// Tells the host whether to hold its controls: while [scrubbing], or
-  /// while the mouse rests on the bar.
+  /// Tells the host whether to hold its controls: while [scrubbing], while
+  /// the mouse rests on the bar, or while the volume slider is in use.
   void _reportHold({required bool scrubbing}) =>
-      widget.onHoldChanged?.call(scrubbing || _hovered);
+      widget.onHoldChanged?.call(scrubbing || _hovered || _volumeHeld);
+
+  void _onVolumeHold(bool held) {
+    _volumeHeld = held;
+    _reportHold(scrubbing: _scrubFraction != null);
+  }
 
   void _onPointerOver(bool hovered) {
     _hovered = hovered;
@@ -459,6 +479,8 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                   textAlign: TextAlign.center,
                 ),
               ),
+              if (widget.audio case final audio?)
+                VideoVolumeControl(audio: audio, onHoldChanged: _onVolumeHold),
             ],
           ),
         ),

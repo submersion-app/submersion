@@ -20334,6 +20334,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoViewer_seekVideoLabel => '调整视频位置';
 
   @override
+  String get media_photoViewer_muteVideoLabel => '静音视频';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => '取消视频静音';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => '视频音量';
+
+  @override
   String get media_photoViewer_shareTooltip => '分享照片';
 
   @override
