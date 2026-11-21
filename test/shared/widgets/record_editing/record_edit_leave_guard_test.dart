@@ -7,6 +7,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
+import 'package:submersion/shared/widgets/tab_visibility.dart';
 
 @immutable
 class _Rec {
@@ -34,8 +35,15 @@ bool? _cancelResult;
 /// How often the page's other control was pressed.
 int _taps = 0;
 
-/// A home page that pushes the guarded record page.
-Widget _app(RecordEditController<_Rec> controller) {
+/// A home page that pushes the guarded record page, in a kept-alive tab
+/// shown or hidden when [tabVisible] is given (#3437), beside another
+/// scope that refuses Back when [backRefused] (the tab on screen's own
+/// changes or selection).
+Widget _app(
+  RecordEditController<_Rec> controller, {
+  bool? tabVisible,
+  bool backRefused = false,
+}) {
   return MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -45,28 +53,32 @@ Widget _app(RecordEditController<_Rec> controller) {
         body: TextButton(
           onPressed: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) => RecordEditLeaveGuard<_Rec>(
-                controller: controller,
-                child: Scaffold(
-                  appBar: AppBar(title: const Text('Record')),
-                  body: Builder(
-                    builder: (context) => Column(
-                      children: [
-                        TextButton(
-                          onPressed: () async {
-                            _cancelResult = await cancelSitting(
-                              context,
-                              controller,
-                            );
-                          },
-                          child: const Text('cancel sitting'),
-                        ),
-                        TextButton(
-                          onPressed: () => _taps++,
-                          child: const Text('a control'),
-                        ),
-                        const TextField(key: ValueKey('a field')),
-                      ],
+              builder: (_) => _inTab(
+                tabVisible,
+                backRefused,
+                RecordEditLeaveGuard<_Rec>(
+                  controller: controller,
+                  child: Scaffold(
+                    appBar: AppBar(title: const Text('Record')),
+                    body: Builder(
+                      builder: (context) => Column(
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              _cancelResult = await cancelSitting(
+                                context,
+                                controller,
+                              );
+                            },
+                            child: const Text('cancel sitting'),
+                          ),
+                          TextButton(
+                            onPressed: () => _taps++,
+                            child: const Text('a control'),
+                          ),
+                          const TextField(key: ValueKey('a field')),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -80,16 +92,29 @@ Widget _app(RecordEditController<_Rec> controller) {
   );
 }
 
+/// [child] in a tab shown or hidden by [visible] (as it is when null),
+/// under a scope that refuses Back when [backRefused].
+Widget _inTab(bool? visible, bool backRefused, Widget child) {
+  final tab = visible == null
+      ? child
+      : TabVisibility(visible: visible, child: child);
+  return backRefused ? PopScope(canPop: false, child: tab) : tab;
+}
+
 Future<RecordEditController<_Rec>> _open(
   WidgetTester tester, {
   Future<void> Function()? onSave,
+  bool? tabVisible,
+  bool backRefused = false,
 }) async {
   _taps = 0;
   final controller = RecordEditController<_Rec>(
     onSave: (_) async => onSave?.call(),
   );
   addTearDown(controller.dispose);
-  await tester.pumpWidget(_app(controller));
+  await tester.pumpWidget(
+    _app(controller, tabVisible: tabVisible, backRefused: backRefused),
+  );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
   expect(find.text('Record'), findsOneWidget);
@@ -234,6 +259,61 @@ void main() {
 
     expect(find.text('Record'), findsOneWidget);
     expect(controller.isDirty, isTrue);
+  });
+
+  // A page that keeps its tabs mounted (Training, Media and Documents)
+  // leaves on Back while a record with changes sits in the hidden tab: the
+  // discard dialog is the tab on screen's to ask (#3437).
+  testWidgets('with changes in a hidden tab, back leaves and asks nothing', (
+    tester,
+  ) async {
+    final controller = await _open(tester, tabVisible: false);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'b');
+    await tester.pump();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsNothing);
+    // The page left with the hidden record's sitting.
+    expect(controller.isUnlocked, isFalse);
+  });
+
+  testWidgets('with changes in a hidden tab, a Back another scope refuses '
+      'asks nothing either', (tester) async {
+    // A route tells every scope of a refused Back, the hidden tab's too.
+    final controller = await _open(
+      tester,
+      tabVisible: false,
+      backRefused: true,
+    );
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'b');
+    await tester.pump();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(controller.isDirty, isTrue);
+  });
+
+  testWidgets('with changes in the tab on screen, back still asks', (
+    tester,
+  ) async {
+    final controller = await _open(tester, tabVisible: true);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'b');
+    await tester.pump();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsOneWidget);
+    expect(find.text('Record'), findsOneWidget);
   });
 
   testWidgets('unlocked with changes: back asks, and Discard pops and locks', (

@@ -88,6 +88,8 @@ Choose **Phone** or **Desktop** at the top; each has its own order.
 
 **Reset to defaults** restores the original order.
 
+The layout is saved on this device only. Arrange it on each phone and computer you use; changing the **Phone** tab on a computer does not change your phone.
+
 ## Check it worked
 
 - The app shows your theme, light or dark choice and text size everywhere.

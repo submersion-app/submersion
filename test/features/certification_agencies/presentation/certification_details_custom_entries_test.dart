@@ -1,69 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart';
+
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
-import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
-import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_card_editors.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../helpers/mock_providers.dart';
+import '../../../helpers/test_app.dart';
 import '../../../helpers/test_database.dart';
 
-/// Issue #690: the certification editor offers custom agencies and
-/// certifications, creates them in place, and never resets a stored id it
-/// cannot name.
+/// Issue #690: the certification Details editor (issue #4527, phase 3)
+/// offers custom agencies and certifications, creates them in place, and
+/// never resets a stored id it cannot name.
 void main() {
-  late AppDatabase db;
-  late CertificationRepository certRepo;
   late CustomCertificationRepository customRepo;
 
   setUp(() async {
-    db = await setUpTestDatabase();
+    final db = await setUpTestDatabase();
     await db.customStatement(
       "INSERT INTO divers (id, name, created_at, updated_at) "
       "VALUES ('a', 'A', 0, 0)",
     );
-    certRepo = CertificationRepository();
     customRepo = CustomCertificationRepository();
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> pumpEditor(
-    WidgetTester tester, {
-    String? certificationId,
-  }) async {
+  /// The Details editor over [cert], a new certification's seed (PADI, no
+  /// level) when null.
+  Future<EditSession<Certification>> pumpEditor(
+    WidgetTester tester, [
+    Certification? cert,
+  ]) async {
     // Tall enough that every dropdown item is built without scrolling.
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
+    final session = EditSession(cert ?? Certification.empty());
+    addTearDown(session.dispose);
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
-      ProviderScope(
+      testApp(
         overrides: [
           ...overrides,
-          certificationRepositoryProvider.overrideWithValue(certRepo),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'a'),
         ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: CertificationEditPage(
-              certificationId: certificationId,
-              embedded: true,
-            ),
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: CertificationDetailsCardEditor(session: session),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
+    return session;
   }
 
-  Finder agencyField() => find.byKey(const ValueKey('cred-agency-0'));
+  Finder agencyField() => find.byKey(const ValueKey('cert-edit-agency-0'));
   Finder levelField() =>
       find.byType(DropdownButtonFormField<CertificationOption>);
 
@@ -101,7 +96,7 @@ void main() {
   testWidgets('Add custom agency creates and selects the new agency', (
     tester,
   ) async {
-    await pumpEditor(tester);
+    final session = await pumpEditor(tester);
     await openAndTap(tester, agencyField(), 'Add custom agency...');
     await tester.enterText(find.byType(TextField).last, 'Club Y');
     await tester.tap(find.text('Save').last);
@@ -114,6 +109,7 @@ void main() {
       find.descendant(of: agencyField(), matching: find.text('Club Y')),
       findsOneWidget,
     );
+    expect(session.working.agency, agencies.single.id);
   });
 
   testWidgets('a quick-created agency clears a built-in level', (tester) async {
@@ -137,7 +133,7 @@ void main() {
   testWidgets('Add custom certification creates a ranked rung under PADI', (
     tester,
   ) async {
-    await pumpEditor(tester);
+    final session = await pumpEditor(tester);
     await openAndTap(tester, levelField(), 'Add custom certification...');
     await tester.enterText(find.byType(TextField).last, 'Ice Diver');
     await tester.tap(find.text('Save').last);
@@ -151,6 +147,7 @@ void main() {
       find.descendant(of: levelField(), matching: find.text('Ice Diver')),
       findsOneWidget,
     );
+    expect(session.working.level, level.id);
   });
 
   testWidgets('a duplicate name keeps the dialog open with an error', (
@@ -165,28 +162,28 @@ void main() {
     expect(await customRepo.getAllAgencies(), isEmpty);
   });
 
-  testWidgets('an unknown stored agency renders and survives a save', (
+  testWidgets('an unknown stored agency renders and is left as it is', (
     tester,
   ) async {
     const unknown = '2b1f7c3e-9d8a-4c55-8e21-0f6a1b2c3d4e';
-    await db.customStatement(
-      'INSERT INTO certifications (id, diver_id, name, agency, created_at, '
-      'updated_at) VALUES (?, ?, ?, ?, 0, 0)',
-      ['c1', 'a', 'My card', unknown],
+    final session = await pumpEditor(
+      tester,
+      Certification(
+        id: 'c1',
+        diverId: 'a',
+        name: 'My card',
+        agency: unknown,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
     );
-    await pumpEditor(tester, certificationId: 'c1');
+
     expect(
       find.descendant(of: agencyField(), matching: find.text('Unknown agency')),
       findsOneWidget,
     );
-    await tester.tap(find.text('Save').first);
-    await tester.pump(const Duration(seconds: 1));
-    final row = await tester.runAsync(
-      () => (db.select(
-        db.certifications,
-      )..where((t) => t.id.equals('c1'))).getSingle(),
-    );
-    expect(row!.agency, unknown);
-    expect(row.updatedAt, isNot(0), reason: 'the save actually ran');
+    // Opening it does not rewrite the id; a save writes only what changed.
+    expect(session.working.agency, unknown);
+    expect(session.isDirty, isFalse);
   });
 }

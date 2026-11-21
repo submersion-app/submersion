@@ -20,14 +20,28 @@ abstract interface class LoadedModel implements ModelRunner {
 /// device cannot run it.
 typedef ModelOpener = LoadedModel Function(String path, OrtDevice device);
 
+/// Told just before the first run on each newly opened device and once that
+/// run returns, worked or failed: some engines do their heaviest native work
+/// (compiling for the device) on the first run, where a crash would end the
+/// process ([DeviceCrashGuard] notes it).
+abstract interface class FirstRunWatcher {
+  void starting(OrtDevice device);
+
+  void finished();
+}
+
 /// What the worker isolate does, without the isolate: opens the models on
 /// the first of [devices] that works, runs the pipeline, and moves to the
 /// next device when a session will not open or a run fails there (a GPU
 /// engine on Windows falling back to DirectML, then the processor).
 class OnnxWorkerCore {
-  OnnxWorkerCore({required ModelOpener open, required List<OrtDevice> devices})
-    : _open = open,
-      _devices = List.unmodifiable(devices) {
+  OnnxWorkerCore({
+    required ModelOpener open,
+    required List<OrtDevice> devices,
+    FirstRunWatcher? firstRuns,
+  }) : _open = open,
+       _devices = List.unmodifiable(devices),
+       _firstRuns = firstRuns {
     if (devices.isEmpty) {
       throw ArgumentError.value(devices, 'devices', 'at least one device');
     }
@@ -35,6 +49,10 @@ class OnnxWorkerCore {
 
   final ModelOpener _open;
   final List<OrtDevice> _devices;
+  final FirstRunWatcher? _firstRuns;
+
+  /// Whether a run has returned on the device the models are open on.
+  bool _proven = false;
 
   VisionModels? _models;
   List<LoadedModel> _opened = const [];
@@ -43,6 +61,12 @@ class OnnxWorkerCore {
 
   /// The device the models are open on, or null when none are.
   OrtDevice? get device => _pipeline == null ? null : _devices[_deviceIndex];
+
+  /// Where the open models run, as their sessions describe it (the hardware
+  /// engine and devices, DirectML or the processor), for the debug log;
+  /// null when none are open.
+  String? get deviceDescription =>
+      _pipeline == null || _opened.isEmpty ? null : _opened.last.device;
 
   /// Opens [models]; a no-op when the same models are open.
   void load(VisionModels models) {
@@ -100,6 +124,7 @@ class OnnxWorkerCore {
     _opened = opened;
     _models = models;
     _deviceIndex = index;
+    _proven = false;
     _pipeline = OnnxPipeline(
       models: models,
       detectors: opened.sublist(0, opened.length - 1),
@@ -116,8 +141,17 @@ class OnnxWorkerCore {
       if (pipeline == null || models == null) {
         throw const VisionEngineException(VisionEngineException.notLoaded);
       }
+      final watch = _proven ? null : _firstRuns;
+      watch?.starting(_devices[_deviceIndex]);
       try {
-        return work(pipeline);
+        final T result;
+        try {
+          result = work(pipeline);
+        } finally {
+          watch?.finished();
+        }
+        _proven = true;
+        return result;
       } on OrtException catch (e) {
         final next = _nextOpenable(models, _deviceIndex + 1);
         if (next == null) {

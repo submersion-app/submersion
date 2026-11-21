@@ -10,6 +10,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/text_keeping_caret.dart';
@@ -48,20 +49,49 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
     _redrawAfter(annotationsRead(widget.session));
   }
 
-  /// Offers annotating once the sitting holds the annotations: keeping
-  /// them does not notify the sitting's listeners.
+  /// Offers annotating once the sitting holds the annotations, and checks
+  /// the links against them: keeping them does not notify the sitting's
+  /// listeners.
   void _redrawAfter(Future<void> read) => read.then((_) {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    _followLinks();
+    setState(() {});
   });
 
   /// Keeps the field showing the sitting's value. While the diver types the
   /// two already agree; they differ only when the stored dive changed
   /// underneath notes the diver has not touched.
   void _followSession() {
+    _followLinks();
     final notes = widget.session.valueOf(diveNotesField);
     if (_controller.text == notes) return;
     // The caret stays where it was, or at the end of a shorter note.
     _controller.replaceTextKeepingCaret(notes);
+  }
+
+  /// Whether the notes break no annotation link (#4815): while one is
+  /// broken the field says so, and Save is held by the card's check.
+  late bool _linksIntact = annotationLinksIntact(widget.session);
+
+  /// The notes, working and stored, and the annotations the sitting holds
+  /// (kept anew on each change), as [_linksIntact] last answered for them,
+  /// so a change on another card does not read the notes again.
+  (String, String, SittingAnnotations?)? _linksCheckedFor;
+
+  /// Redraws only when the answer changes, not on every keystroke.
+  void _followLinks() {
+    final session = widget.session;
+    if (session.isDisposed) return;
+    final notes = (
+      session.valueOf(diveNotesField),
+      session.stored.notes,
+      sittingAnnotations(session),
+    );
+    if (notes == _linksCheckedFor) return;
+    _linksCheckedFor = notes;
+    final intact = annotationLinksIntact(session);
+    if (intact == _linksIntact || !mounted) return;
+    setState(() => _linksIntact = intact);
   }
 
   @override
@@ -76,6 +106,12 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
     return MarkdownNotesField(
       controller: _controller,
       autofocus: true,
+      decoration: _linksIntact
+          ? null
+          : InputDecoration(
+              errorText: context.l10n.diveLog_annotation_brokenLink,
+              errorMaxLines: 4,
+            ),
       onChanged: (notes) => widget.session.set(diveNotesField, notes),
       // Only while the sitting holds the annotations: a pin asked for
       // before they are read, or after the read failed, would go nowhere.

@@ -3356,9 +3356,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_action_sortTitle => 'מיין חברי צוללים';
 
   @override
-  String get buddies_action_update => 'עדכן חבר צוללים';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return 'הצג הכל ($count)';
   }
@@ -3650,9 +3647,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_linkedProfile_notNow => 'לא עכשיו';
 
   @override
-  String get buddies_linkedProfile_openBuddy => 'פתיחת חבר צוללים';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => 'קישור לפרופיל';
 
   @override
@@ -3674,9 +3668,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'חברי צוללים אלה מקושרים לפרופילים שונים. יש למזג את הפרופילים תחילה.';
 
   @override
-  String get buddies_message_added => 'חבר צוללים נוסף בהצלחה';
-
-  @override
   String get buddies_message_contactImportUnavailable =>
       'ייבוא אנשי קשר אינו זמין בפלטפורמה זו';
 
@@ -3690,11 +3681,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return 'שגיאה בייבוא איש קשר: $error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return 'שגיאה בטעינת חבר צוללים: $error';
   }
 
   @override
@@ -3716,9 +3702,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => 'מכין ייצוא...';
-
-  @override
-  String get buddies_message_updated => 'חבר צוללים עודכן בהצלחה';
 
   @override
   String get buddies_picker_add => 'הוסף';
@@ -3852,9 +3835,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_title_add => 'הוסף חבר צוללים';
-
-  @override
-  String get buddies_title_edit => 'ערוך חבר צוללים';
 
   @override
   String get buddies_title_singular => 'חבר צוללים';
@@ -4422,21 +4402,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_appBar_add => 'הוסף הסמכה';
 
   @override
-  String get certifications_edit_appBar_edit => 'ערוך הסמכה';
-
-  @override
-  String get certifications_edit_button_add => 'הוסף הסמכה';
-
-  @override
-  String get certifications_edit_button_cancel => 'ביטול';
-
-  @override
-  String get certifications_edit_button_save => 'שמור';
-
-  @override
-  String get certifications_edit_button_update => 'עדכן הסמכה';
-
-  @override
   String get certifications_edit_certification_notSpecified => 'לא צוין';
 
   @override
@@ -4446,19 +4411,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get certifications_edit_datePicker_tapToSelect => 'הקש לבחירה';
-
-  @override
-  String get certifications_edit_dialog_discard => 'מחק';
-
-  @override
-  String get certifications_edit_dialog_discardContent =>
-      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?';
-
-  @override
-  String get certifications_edit_dialog_discardTitle => 'למחוק שינויים?';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => 'המשך עריכה';
 
   @override
   String get certifications_edit_group_progression => 'התקדמות';
@@ -4680,37 +4632,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => 'צלם תמונה';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos => 'תמונות כרטיס';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => 'תאריכים';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo => 'פרטי מדריך';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => 'הערות';
-
-  @override
-  String get certifications_edit_snackBar_added => 'ההסמכה נוספה בהצלחה';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return 'שגיאה בטעינת הסמכה: $error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return 'שגיאה בבחירת תמונה: $error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return 'שגיאה בשמירת הסמכה: $error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated => 'ההסמכה עודכנה בהצלחה';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -5888,9 +5812,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_action_addRequirement => 'הוסף דרישה';
 
   @override
-  String get courses_action_create => 'צור קורס';
-
-  @override
   String get courses_action_deleteRequirement => 'מחק דרישה';
 
   @override
@@ -5913,12 +5834,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'נסה שוב';
-
-  @override
-  String get courses_action_saveChanges => 'שמור שינויים';
-
-  @override
-  String get courses_action_saveSemantic => 'שמור קורס';
 
   @override
   String get courses_action_sort => 'מיין';
@@ -6027,11 +5942,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'תאריך התחלה';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'שגיאה בשמירת קורס: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6198,9 +6108,6 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$shown מתוך $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'ערוך קורס';
 
   @override
   String get courses_title_new => 'קורס חדש';
@@ -6799,16 +6706,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_action_clearRating => 'נקה';
 
   @override
-  String get diveCenters_action_gettingLocation => 'מאתר...';
-
-  @override
   String get diveCenters_action_import => 'ייבא';
 
   @override
   String get diveCenters_action_importToMyCenters => 'ייבא למרכזים שלי';
-
-  @override
-  String get diveCenters_action_lookingUp => 'מחפש...';
 
   @override
   String get diveCenters_action_lookupFromAddress => 'חפש מכתובת';
@@ -6865,19 +6766,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => 'למחוק מרכז צלילה';
 
   @override
-  String get diveCenters_dialog_discard => 'בטל';
-
-  @override
-  String get diveCenters_dialog_discardMessage =>
-      'יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לבטל אותם?';
-
-  @override
-  String get diveCenters_dialog_discardTitle => 'לבטל שינויים?';
-
-  @override
-  String get diveCenters_dialog_keepEditing => 'המשך עריכה';
-
-  @override
   String get diveCenters_empty_button => 'הוסף את מרכז הצלילה הראשון שלך';
 
   @override
@@ -6918,11 +6806,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => 'מרכז צלילה לא נמצא';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return 'שגיאה בשמירת מרכז צלילה: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => 'שגיאה לא ידועה';
@@ -7113,25 +6996,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_tag_closed => 'סגור';
 
   @override
-  String get diveCenters_section_address => 'כתובת';
-
-  @override
-  String get diveCenters_section_affiliations => 'השתייכויות';
-
-  @override
-  String get diveCenters_section_basicInfo => 'מידע בסיסי';
-
-  @override
   String get diveCenters_editCard_map => 'מפה';
 
   @override
   String get diveCenters_section_contact => 'יצירת קשר';
-
-  @override
-  String get diveCenters_section_contactInfo => 'פרטי קשר';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'קואורדינטות GPS';
 
   @override
   String get diveCenters_section_fillHours => 'שעות מילוי';
@@ -7164,24 +7032,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_section_notes => 'הערות';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'קואורדינטות נמצאו מהכתובת';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'יובא \"$name\"';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => 'מיקום נקלט';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return 'מיקום נקלט (±$accuracyמ\')';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap => 'מיקום נבחר מהמפה';
 
   @override
   String get diveCenters_sort_title => 'מיין מרכזי צלילה';
@@ -7238,9 +7091,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => 'הוסף מרכז צלילה';
-
-  @override
-  String get diveCenters_title_edit => 'ערוך מרכז צלילה';
 
   @override
   String get diveCenters_title_import => 'ייבא מרכז צלילה';
@@ -8611,6 +8461,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_annotation_noProfile =>
       'לצלילה זו אין פרופיל להצביע עליו. הזינו את הזמן במקום זאת.';
+
+  @override
+  String get diveLog_annotation_brokenLink =>
+      'הקישור של אחד הסימונים כאן פגום, ולכן שמירה תמחק את הסימון. תקנו את הקישור, או מחקו אותו כולו כדי להסיר את הסימון.';
 
   @override
   String get diveLog_annotation_action_annotate => 'סימון';
@@ -19393,68 +19247,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'הוסף מין';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return 'נוסף \"$name\"';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'חזרה';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'קטגוריה';
 
   @override
   String get marineLife_speciesEdit_commonNameError => 'נא להזין שם נפוץ';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => 'לדוגמה, דג ליצן';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'שם נפוץ';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint => 'תיאור קצר של המין...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => 'תיאור';
 
   @override
-  String get marineLife_speciesEdit_editTitle => 'ערוך מין';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'שגיאה בטעינת מין: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'שגיאה בשמירת מין: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage => 'מין זה כבר אינו קיים.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'שמירה';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'לדוגמה, Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => 'שם מדעי';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint =>
-      'לדוגמה, Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'מחלקה טקסונומית';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return 'עודכן \"$name\"';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'הכל';
@@ -20926,6 +20734,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'דלג למיקום בסרטון';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'השתק את הסרטון';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'בטל את השתקת הסרטון';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'עוצמת הקול של הסרטון';
 
   @override
   String get media_photoViewer_shareTooltip => 'שתף תמונה';
@@ -23650,6 +23467,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'גררו פריטים כדי לסדר מחדש את סרגל הצד. דף הבית תמיד נשאר למעלה.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'נשמרת במכשיר הזה בלבד. המכשירים האחרים שלך שומרים על פריסה משלהם.';
 
   @override
   String get settings_navCustomization_scopePhone => 'טלפון';
@@ -27426,9 +27247,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get documents_edit_newTitle => 'מסמך חדש';
 
   @override
-  String get documents_edit_editTitle => 'עריכת מסמך';
-
-  @override
   String get documents_field_type => 'סוג';
 
   @override
@@ -27540,14 +27358,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get documents_deleted => 'המסמך נמחק';
-
-  @override
-  String get documents_saved => 'המסמך נשמר';
-
-  @override
-  String documents_error_save(String error) {
-    return 'לא ניתן לשמור את המסמך: $error';
-  }
 
   @override
   String documents_error_load(String error) {
@@ -28610,6 +28420,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'פעולה זו תוריד $size ותשמור אותם במכשיר הזה. אפשר להסיר את המודל בכל עת.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'פעולה זו תוריד $size ותשמור אותם במכשיר הזה. ייתכן ש-Windows יוריד גם מנוע לכרטיס הגרפי או ל-NPU שלך מ-Microsoft. אפשר להסיר את המודל בכל עת.';
   }
 
   @override

@@ -3502,9 +3502,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_action_sortTitle => 'ترتيب الرفاق';
 
   @override
-  String get buddies_action_update => 'تحديث الرفيق';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return 'عرض الكل ($count)';
   }
@@ -3821,9 +3818,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_linkedProfile_notNow => 'ليس الآن';
 
   @override
-  String get buddies_linkedProfile_openBuddy => 'فتح الرفيق';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => 'الربط بملف شخصي';
 
   @override
@@ -3845,9 +3839,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'هؤلاء الرفاق مرتبطون بملفات شخصية مختلفة. ادمج الملفات الشخصية أولاً.';
 
   @override
-  String get buddies_message_added => 'تمت إضافة الرفيق بنجاح';
-
-  @override
   String get buddies_message_contactImportUnavailable =>
       'استيراد جهات الاتصال غير متوفر على هذا النظام';
 
@@ -3861,11 +3852,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return 'خطأ في استيراد جهة الاتصال: $error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return 'خطأ في تحميل الرفيق: $error';
   }
 
   @override
@@ -3887,9 +3873,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => 'جارٍ تحضير التصدير...';
-
-  @override
-  String get buddies_message_updated => 'تم تحديث الرفيق بنجاح';
 
   @override
   String get buddies_picker_add => 'إضافة';
@@ -4029,9 +4012,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_title_add => 'إضافة رفيق';
-
-  @override
-  String get buddies_title_edit => 'تعديل الرفيق';
 
   @override
   String get buddies_title_singular => 'رفيق';
@@ -4616,21 +4596,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_appBar_add => 'إضافة شهادة';
 
   @override
-  String get certifications_edit_appBar_edit => 'تعديل الشهادة';
-
-  @override
-  String get certifications_edit_button_add => 'إضافة شهادة';
-
-  @override
-  String get certifications_edit_button_cancel => 'إلغاء';
-
-  @override
-  String get certifications_edit_button_save => 'حفظ';
-
-  @override
-  String get certifications_edit_button_update => 'تحديث الشهادة';
-
-  @override
   String get certifications_edit_certification_notSpecified => 'غير محدد';
 
   @override
@@ -4640,19 +4605,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get certifications_edit_datePicker_tapToSelect => 'اضغط للاختيار';
-
-  @override
-  String get certifications_edit_dialog_discard => 'تجاهل';
-
-  @override
-  String get certifications_edit_dialog_discardContent =>
-      'لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟';
-
-  @override
-  String get certifications_edit_dialog_discardTitle => 'تجاهل التغييرات؟';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => 'متابعة التعديل';
 
   @override
   String get certifications_edit_group_progression => 'التدرج';
@@ -4884,38 +4836,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => 'التقاط صورة';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos => 'صور البطاقة';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => 'التواريخ';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo =>
-      'معلومات المدرب';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => 'ملاحظات';
-
-  @override
-  String get certifications_edit_snackBar_added => 'تمت إضافة الشهادة بنجاح';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return 'خطأ في تحميل الشهادة: $error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return 'خطأ في اختيار الصورة: $error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return 'خطأ في حفظ الشهادة: $error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated => 'تم تحديث الشهادة بنجاح';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -6127,9 +6050,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_action_addRequirement => 'إضافة متطلب';
 
   @override
-  String get courses_action_create => 'إنشاء دورة';
-
-  @override
   String get courses_action_deleteRequirement => 'حذف المتطلب';
 
   @override
@@ -6152,12 +6072,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'إعادة المحاولة';
-
-  @override
-  String get courses_action_saveChanges => 'حفظ التغييرات';
-
-  @override
-  String get courses_action_saveSemantic => 'حفظ الدورة';
 
   @override
   String get courses_action_sort => 'ترتيب';
@@ -6267,11 +6181,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'تاريخ البدء';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'خطأ في حفظ الدورة: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6444,9 +6353,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$shown من $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'تعديل الدورة';
 
   @override
   String get courses_title_new => 'دورة جديدة';
@@ -7062,16 +6968,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_action_clearRating => 'مسح';
 
   @override
-  String get diveCenters_action_gettingLocation => 'جارٍ الحصول...';
-
-  @override
   String get diveCenters_action_import => 'استيراد';
 
   @override
   String get diveCenters_action_importToMyCenters => 'استيراد إلى مراكزي';
-
-  @override
-  String get diveCenters_action_lookingUp => 'جارٍ البحث...';
 
   @override
   String get diveCenters_action_lookupFromAddress => 'البحث من العنوان';
@@ -7134,19 +7034,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => 'حذف مركز الغوص';
 
   @override
-  String get diveCenters_dialog_discard => 'تجاهل';
-
-  @override
-  String get diveCenters_dialog_discardMessage =>
-      'لديك تغييرات غير محفوظة. هل تريد تجاهلها؟';
-
-  @override
-  String get diveCenters_dialog_discardTitle => 'تجاهل التغييرات؟';
-
-  @override
-  String get diveCenters_dialog_keepEditing => 'متابعة التعديل';
-
-  @override
   String get diveCenters_empty_button => 'أضف أول مركز غوص';
 
   @override
@@ -7187,11 +7074,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => 'مركز الغوص غير موجود';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return 'خطأ في حفظ مركز الغوص: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => 'خطأ غير معروف';
@@ -7385,25 +7267,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_tag_closed => 'مغلق';
 
   @override
-  String get diveCenters_section_address => 'العنوان';
-
-  @override
-  String get diveCenters_section_affiliations => 'الانتماءات';
-
-  @override
-  String get diveCenters_section_basicInfo => 'المعلومات الأساسية';
-
-  @override
   String get diveCenters_editCard_map => 'الخريطة';
 
   @override
   String get diveCenters_section_contact => 'الاتصال';
-
-  @override
-  String get diveCenters_section_contactInfo => 'معلومات الاتصال';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'إحداثيات GPS';
 
   @override
   String get diveCenters_section_fillHours => 'ساعات التعبئة';
@@ -7435,25 +7302,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_section_notes => 'ملاحظات';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'تم العثور على الإحداثيات من العنوان';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'تم استيراد \"$name\"';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => 'تم التقاط الموقع';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return 'تم التقاط الموقع (±$accuracyم)';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap =>
-      'تم اختيار الموقع من الخريطة';
 
   @override
   String get diveCenters_sort_title => 'ترتيب مراكز الغوص';
@@ -7516,9 +7367,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => 'إضافة مركز غوص';
-
-  @override
-  String get diveCenters_title_edit => 'تعديل مركز الغوص';
 
   @override
   String get diveCenters_title_import => 'استيراد مركز الغوص';
@@ -8934,6 +8782,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_annotation_noProfile =>
       'لا يوجد ملف غوصة للإشارة إليه في هذه الغوصة. أدخل الوقت بدلًا من ذلك.';
+
+  @override
+  String get diveLog_annotation_brokenLink =>
+      'رابط أحد التعليقات هنا معطوب، وسيؤدي الحفظ إلى حذف التعليق. أصلح الرابط، أو احذفه بالكامل لإزالة التعليق.';
 
   @override
   String get diveLog_annotation_action_annotate => 'تعليق';
@@ -20074,14 +19926,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'إضافة نوع';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return 'تمت إضافة \"$name\"';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'رجوع';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'الفئة';
 
   @override
@@ -20089,54 +19933,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'يرجى إدخال الاسم الشائع';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => 'مثال: سمكة المهرج';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'الاسم الشائع';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint => 'وصف مختصر للنوع...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => 'الوصف';
 
   @override
-  String get marineLife_speciesEdit_editTitle => 'تعديل النوع';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'خطأ في تحميل النوع: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'خطأ في حفظ النوع: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'لم يعد هذا النوع موجودًا.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'حفظ';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'مثال: Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => 'الاسم العلمي';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'مثال: Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'الصنف التصنيفي';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return 'تم تحديث \"$name\"';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'الكل';
@@ -21744,6 +21550,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'تحريك موضع الفيديو';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'كتم صوت الفيديو';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'إلغاء كتم صوت الفيديو';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'مستوى صوت الفيديو';
 
   @override
   String get media_photoViewer_shareTooltip => 'مشاركة الصورة';
@@ -24545,6 +24360,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'يُحفظ على هذا الجهاز فقط. تحتفظ أجهزتك الأخرى بتخطيطها الخاص.';
 
   @override
   String get settings_navCustomization_scopePhone => 'الهاتف';
@@ -28417,9 +28236,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get documents_edit_newTitle => 'مستند جديد';
 
   @override
-  String get documents_edit_editTitle => 'تعديل المستند';
-
-  @override
   String get documents_field_type => 'النوع';
 
   @override
@@ -28534,14 +28350,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get documents_deleted => 'تم حذف المستند';
-
-  @override
-  String get documents_saved => 'تم حفظ المستند';
-
-  @override
-  String documents_error_save(String error) {
-    return 'تعذّر حفظ المستند: $error';
-  }
 
   @override
   String documents_error_load(String error) {
@@ -29627,6 +29435,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'سيؤدي هذا إلى تنزيل $size والاحتفاظ به على هذا الجهاز. يمكنك إزالته في أي وقت.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'سيؤدي هذا إلى تنزيل $size والاحتفاظ به على هذا الجهاز. قد يقوم Windows أيضًا بتنزيل محرك لبطاقة الرسومات أو وحدة NPU من Microsoft. يمكنك إزالة النموذج في أي وقت.';
   }
 
   @override

@@ -457,8 +457,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           : null;
 
       // Centered automatically with no crop dialog: the user is mid-import and
-      // did not ask to frame a photo. They can adjust it afterwards from the
-      // edit page.
+      // did not ask to frame a photo. They can adjust it afterwards on the
+      // buddy's page.
       final rawPhoto =
           fullContact.photo?.fullSize ?? fullContact.photo?.thumbnail;
       Uint8List? photo;

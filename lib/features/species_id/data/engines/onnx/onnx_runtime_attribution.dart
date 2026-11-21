@@ -8,7 +8,15 @@ abstract final class OnnxRuntimeAttribution {
   /// The heading the credit is filed under on the license page.
   static const String packageName = 'ONNX Runtime';
 
+  /// The heading Windows ML's terms are filed under, on Windows.
+  static const String windowsMlPackageName = 'Windows ML';
+
   static const _notices = 'assets/licenses/onnxruntime_third_party_notices.txt';
+
+  /// Microsoft's terms for the Windows ML files the Windows build ships
+  /// (Microsoft.Windows.AI.MachineLearning 2.5.96), accepted by the
+  /// maintainer on 2026-11-20; the installer shows them as well.
+  static const _windowsMlTerms = 'assets/licenses/windows_ml_license.txt';
 
   static const _licence = '''
 MIT License
@@ -35,8 +43,8 @@ SOFTWARE.''';
 
   /// Adds the credit where ONNX Runtime ships ([platform] defaults to the
   /// running one): not on Apple platforms, which use Core ML, nor the web.
-  /// Called once from `main()`; the notices are read only when the license
-  /// page is opened.
+  /// On Windows, Windows ML's terms are added too. Called once from
+  /// `main()`; the notices are read only when the license page is opened.
   static void registerLicense({TargetPlatform? platform}) {
     final on = platform ?? defaultTargetPlatform;
     if (kIsWeb ||
@@ -50,6 +58,11 @@ SOFTWARE.''';
       yield LicenseEntryWithLineBreaks(<String>[
         packageName,
       ], await rootBundle.loadString(_notices));
+      if (on == TargetPlatform.windows) {
+        yield LicenseEntryWithLineBreaks(<String>[
+          windowsMlPackageName,
+        ], await rootBundle.loadString(_windowsMlTerms));
+      }
     });
   }
 }

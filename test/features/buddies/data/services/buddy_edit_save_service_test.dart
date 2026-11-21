@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart' hide Buddy;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_profile_link_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/data/services/buddy_edit_save_service.dart';
@@ -64,9 +65,9 @@ void main() {
     await db.customStatement(
       'INSERT INTO buddies (id, diver_id, name, phone, country, '
       'country_code, card_id, card_dive_count, card_diving_since, '
-      'card_received_at, created_at, updated_at) VALUES '
+      'card_last_dive, card_received_at, created_at, updated_at) VALUES '
       "('b1', 'me', 'Alex', '555', 'Italy', 'IT', 'card-1', 120, 2010, "
-      '1700000000000, 0, 0)',
+      '1689984000000, 1700000000000, 0, 0)',
     );
     await db.customStatement(
       'INSERT INTO buddies (id, diver_id, name, created_at, updated_at) '
@@ -139,6 +140,10 @@ void main() {
       sql: 'UPDATE buddies SET card_diving_since = 2005',
       kept: (b) => b.cardDivingSince?.year == 2005,
     ),
+    'card last dive': (
+      sql: 'UPDATE buddies SET card_last_dive = 1649980800000',
+      kept: (b) => b.cardLastDive == BuddyCardColumns.lastDive(1649980800000),
+    ),
     'card received at': (
       sql: 'UPDATE buddies SET card_received_at = 1800000000000',
       kept: (b) => b.cardReceivedAt?.millisecondsSinceEpoch == 1800000000000,
@@ -173,7 +178,17 @@ void main() {
     expect(after.cardId, 'card-1');
     expect(after.cardDiveCount, 120);
     expect(after.cardDivingSince?.year, 2010);
+    expect(after.cardLastDive, BuddyCardColumns.lastDive(1689984000000));
     expect(after.cardReceivedAt?.millisecondsSinceEpoch, 1700000000000);
+  });
+
+  test('a link to a free profile is written', () async {
+    final session = EditSession(await stored())
+      ..set(buddyLinkedDiverField, 'p1');
+
+    await save(session);
+
+    expect((await stored()).linkedDiverId, 'p1');
   });
 
   test(
@@ -287,16 +302,17 @@ void main() {
       await service.create(
         buddy: fresh(),
         changedCardIds: const ['certifications'],
-        alsoWrite: () =>
-            CertificationRepository().replaceBuddyCertifications('n1', [
-              domain.Certification(
-                id: '',
-                name: 'Open Water',
-                agency: 'padi',
-                createdAt: DateTime(2026),
-                updatedAt: DateTime(2026),
-              ),
-            ]),
+        alsoWrite: () => CertificationRepository().createCertification(
+          domain.Certification(
+            id: '',
+            buddyId: 'n1',
+            name: 'Open Water',
+            agency: 'padi',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          notify: false,
+        ),
       );
 
       final certs = await CertificationRepository().getCertificationsByBuddy(

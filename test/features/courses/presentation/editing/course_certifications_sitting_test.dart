@@ -20,15 +20,16 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
-/// The certification list, its state set by the test.
-class _CertListNotifier extends StateNotifier<AsyncValue<List<Certification>>>
+/// The diver's certifications, as given.
+class _Certifications extends StateNotifier<AsyncValue<List<Certification>>>
     implements CertificationListNotifier {
-  _CertListNotifier(List<Certification> certs) : super(AsyncValue.data(certs));
+  _Certifications(List<Certification> all) : super(AsyncValue.data(all));
 
-  void put(List<Certification> certs) => state = AsyncValue.data(certs);
+  /// The list read again, as after a certification is created.
+  void put(List<Certification> all) => state = AsyncValue.data(all);
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => null;
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// A course's earned certifications held in its page's sitting (issue
@@ -190,6 +191,61 @@ void main() {
     expect(await representativeOf('k0'), 'c3');
   });
 
+  testWidgets('the field\'s choices are held as the certifications they '
+      'name, and a removal drops only that one', (tester) async {
+    late EditSession<Course> session;
+    late List<Certification> all;
+    await tester.runAsync(() async {
+      session = EditSession(await stored());
+      await courseCertificationsList.load(session);
+      all = await certifications.getAllCertifications();
+    });
+    addTearDown(session.dispose);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          // The diver's certifications, which the choices are read from.
+          certificationListNotifierProvider.overrideWith(
+            (ref) => _Certifications(all),
+          ),
+        ],
+        child: Scaffold(
+          body: CourseEarnedCertificationsEditor(session: session),
+        ),
+      ),
+    );
+    for (
+      var i = 0;
+      i < 200 && find.byType(CertificationMultiSelectField).evaluate().isEmpty;
+      i++
+    ) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 25)),
+      );
+      await tester.pump();
+    }
+    CertificationMultiSelectField field() =>
+        tester.widget(find.byType(CertificationMultiSelectField));
+
+    field().onChanged(['c1', 'c2']);
+    await tester.pump();
+    expect(
+      [for (final c in courseCertificationsList.current(session)!) c.id],
+      ['c1', 'c2'],
+    );
+    expect(field().selectedCertificationIds, ['c1', 'c2']);
+
+    field().onChanged(['c2']);
+    await tester.pump();
+    expect(
+      [for (final c in courseCertificationsList.current(session)!) c.id],
+      ['c2'],
+    );
+    expect(session.changedCardIds, {'earnedCertifications'});
+  });
+
   testWidgets("the field stays inert until the sitting's list has loaded", (
     tester,
   ) async {
@@ -242,7 +298,7 @@ void main() {
       created = (await certifications.getCertificationById('c5'))!;
     });
     addTearDown(session.dispose);
-    final list = _CertListNotifier(before);
+    final list = _Certifications(before);
     await tester.pumpWidget(
       testApp(
         overrides: [
@@ -290,7 +346,7 @@ void main() {
         overrides: [
           ...await getBaseOverrides(),
           certificationListNotifierProvider.overrideWith(
-            (ref) => _CertListNotifier(all),
+            (ref) => _Certifications(all),
           ),
         ],
         child: Scaffold(

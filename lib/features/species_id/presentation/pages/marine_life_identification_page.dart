@@ -220,11 +220,19 @@ class _MarineLifeIdentificationPageState
   Future<void> _confirmDownload(BuildContext context, int bytes) async {
     final l10n = context.l10n;
     final size = formatBytes(bytes);
+    final fetchesEngine = await ref
+        .read(speciesPackControllerProvider.notifier)
+        .downloadFetchesHardwareEngine();
+    if (!context.mounted) return;
     final go = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.settings_speciesId_downloadConfirmTitle),
-        content: Text(l10n.settings_speciesId_downloadConfirmBody(size)),
+        content: Text(
+          fetchesEngine
+              ? l10n.settings_speciesId_downloadConfirmBodyHardware(size)
+              : l10n.settings_speciesId_downloadConfirmBody(size),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),

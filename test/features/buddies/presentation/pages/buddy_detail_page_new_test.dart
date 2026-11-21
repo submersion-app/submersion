@@ -194,5 +194,19 @@ void main() {
     expect(seed?.photo, isNull);
     expect(NewBuddySeed.fromRouteExtra(null), isNull);
     expect(NewBuddySeed.fromRouteExtra(const {'name': ' '}), isNull);
+
+    final picked = NewBuddySeed.fromRouteExtra({
+      'phone': '555',
+      'photo': Uint8List.fromList([1, 2, 3]),
+    });
+    expect(picked?.phone, '555');
+    expect(picked?.photo, [1, 2, 3]);
+    // A contact with only a photo still seeds the page.
+    expect(
+      NewBuddySeed.fromRouteExtra({
+        'photo': Uint8List.fromList([1]),
+      })?.photo,
+      [1],
+    );
   });
 }

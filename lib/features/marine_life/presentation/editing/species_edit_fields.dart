@@ -13,7 +13,7 @@ final String _description = SpeciesCardId.description.name;
 
 /// [s] with the given values, every other one kept. [Species.copyWith]
 /// cannot clear a value, so the fields build the species whole, as the
-/// edit form's save does.
+/// old edit form's save did.
 Species _with(
   Species s, {
   String? commonName,

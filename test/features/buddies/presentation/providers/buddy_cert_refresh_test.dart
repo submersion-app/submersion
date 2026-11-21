@@ -92,12 +92,13 @@ void main() {
   }
 
   /// Upgrades the buddy's only cert from 2 star to 3 star the way the buddy
-  /// edit form commits it: a certifications-only write, no `buddies` tick.
+  /// page's sitting commits it: a certifications-only write, no `buddies`
+  /// tick.
   Future<void> upgradeCert() async {
     final current = await certRepo.getCertificationsByBuddy(buddyId);
-    await certRepo.replaceBuddyCertifications(buddyId, [
+    await certRepo.updateCertification(
       current.single.copyWith(name: threeStar, level: threeStar),
-    ]);
+    );
   }
 
   /// Keeps [provider] alive, checks it starts on 2 star, upgrades the cert and

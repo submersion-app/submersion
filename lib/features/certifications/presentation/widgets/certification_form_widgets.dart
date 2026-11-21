@@ -17,8 +17,8 @@ import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart'
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
-/// The certification form's own widgets, shared by the edit form and the
-/// certification page's card editors (issue #4527, phase 3).
+/// The certification form's own widgets, kept for the certification
+/// page's card editors (issue #4527, phase 3).
 
 /// Reads a picked image: its bytes and its declared name. A test hands in
 /// its own in place of the platform picker.
