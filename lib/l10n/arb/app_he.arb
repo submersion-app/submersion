@@ -6809,6 +6809,7 @@
   "settings_navCustomization_title": "פריסת הניווט",
   "settings_navCustomization_description": "גררו פריטים כדי לסדר אותם מחדש. הפריטים העליונים מופיעים בסרגל הניווט התחתון; מספרם תלוי בגודל המסך, לא בכיוון שלו.",
   "settings_navCustomization_descriptionDesktop": "גררו פריטים כדי לסדר מחדש את סרגל הצד. דף הבית תמיד נשאר למעלה.",
+  "settings_navCustomization_deviceOnlyNote": "נשמרת במכשיר הזה בלבד. המכשירים האחרים שלך שומרים על פריסה משלהם.",
   "settings_navCustomization_scopePhone": "טלפון",
   "settings_navCustomization_scopeDesktop": "מחשב שולחני",
   "settings_navCustomization_alwaysHideLabels_title": "הסתר תוויות תמיד",

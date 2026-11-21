@@ -22958,6 +22958,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '拖动项目以重新排列侧边栏。主页始终位于顶部。';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      '仅保存在此设备上。您的其他设备会保留各自的布局。';
+
+  @override
   String get settings_navCustomization_scopePhone => '手机';
 
   @override

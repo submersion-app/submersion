@@ -15356,6 +15356,10 @@
   "@settings_navCustomization_descriptionDesktop": {
     "description": "Help text shown when arranging the wide-screen navigation rail."
   },
+  "settings_navCustomization_deviceOnlyNote": "Saved on this device only. Your other devices keep their own layout.",
+  "@settings_navCustomization_deviceOnlyNote": {
+    "description": "Note on the navigation layout page, shown on both the phone and desktop tabs: the layout is a per-device setting that does not sync to the user's other devices (#2947, #4454)."
+  },
   "settings_navCustomization_scopePhone": "Phone",
   "@settings_navCustomization_scopePhone": {
     "description": "Segmented-button label for editing the phone navigation order."

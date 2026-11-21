@@ -23665,6 +23665,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'גררו פריטים כדי לסדר מחדש את סרגל הצד. דף הבית תמיד נשאר למעלה.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'נשמרת במכשיר הזה בלבד. המכשירים האחרים שלך שומרים על פריסה משלהם.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'טלפון';
 
   @override

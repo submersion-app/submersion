@@ -24191,6 +24191,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Arraste os itens para reordenar a barra lateral. O Início fica sempre no topo.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Guardado apenas neste dispositivo. Os seus outros dispositivos mantêm o próprio layout.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'Telefone';
 
   @override

@@ -24257,6 +24257,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Faites glisser les éléments pour réorganiser la barre latérale. Accueil reste toujours en haut.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Enregistrée sur cet appareil uniquement. Vos autres appareils conservent leur propre disposition.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'Téléphone';
 
   @override

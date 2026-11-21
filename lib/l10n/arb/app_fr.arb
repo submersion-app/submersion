@@ -6679,6 +6679,7 @@
   "settings_navCustomization_title": "Disposition de la navigation",
   "settings_navCustomization_description": "Faites glisser les éléments pour les réorganiser. Les premiers apparaissent dans la barre de navigation inférieure ; leur nombre dépend de la taille de l'écran, pas de son orientation.",
   "settings_navCustomization_descriptionDesktop": "Faites glisser les éléments pour réorganiser la barre latérale. Accueil reste toujours en haut.",
+  "settings_navCustomization_deviceOnlyNote": "Enregistrée sur cet appareil uniquement. Vos autres appareils conservent leur propre disposition.",
   "settings_navCustomization_scopePhone": "Téléphone",
   "settings_navCustomization_scopeDesktop": "Bureau",
   "settings_navCustomization_alwaysHideLabels_title": "Toujours masquer les libellés",

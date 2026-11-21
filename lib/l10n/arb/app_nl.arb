@@ -6805,6 +6805,7 @@
   "settings_navCustomization_title": "Navigatie-indeling",
   "settings_navCustomization_description": "Sleep items om ze opnieuw te ordenen. De bovenste items verschijnen in de onderste navigatiebalk; hoeveel hangt af van de schermgrootte, niet van de oriëntatie.",
   "settings_navCustomization_descriptionDesktop": "Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.",
+  "settings_navCustomization_deviceOnlyNote": "Alleen op dit apparaat opgeslagen. Je andere apparaten houden hun eigen indeling.",
   "settings_navCustomization_scopePhone": "Telefoon",
   "settings_navCustomization_scopeDesktop": "Desktop",
   "settings_navCustomization_alwaysHideLabels_title": "Labels altijd verbergen",

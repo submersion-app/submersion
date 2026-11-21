@@ -6805,6 +6805,7 @@
   "settings_navCustomization_title": "تخطيط التنقل",
   "settings_navCustomization_description": "اسحب العناصر لإعادة ترتيبها. تظهر العناصر العلوية في شريط التنقل السفلي؛ ويعتمد عددها على حجم الشاشة وليس على اتجاهها.",
   "settings_navCustomization_descriptionDesktop": "اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.",
+  "settings_navCustomization_deviceOnlyNote": "يُحفظ على هذا الجهاز فقط. تحتفظ أجهزتك الأخرى بتخطيطها الخاص.",
   "settings_navCustomization_scopePhone": "الهاتف",
   "settings_navCustomization_scopeDesktop": "سطح المكتب",
   "settings_navCustomization_alwaysHideLabels_title": "إخفاء التسميات دائمًا",

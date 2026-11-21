@@ -24047,6 +24047,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Sleep items om de zijbalk opnieuw te ordenen. Home blijft altijd bovenaan.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Alleen op dit apparaat opgeslagen. Je andere apparaten houden hun eigen indeling.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'Telefoon';
 
   @override
