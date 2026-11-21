@@ -299,6 +299,35 @@ void main() {
       );
     });
 
+    test('an id edited into a held annotation the stored Notes never linked '
+        'names the one lost', () {
+      expect(
+        baseline.damagedBy('[Turtle](annotation:o1)\n\n[Ray](annotation:r1)', {
+          ...holding,
+          'o1',
+        }),
+        {'t1'},
+      );
+    });
+
+    test('a pin placed in the sitting links its id once, as written', () {
+      expect(
+        baseline.damagedBy(
+          '[Ray](annotation:r1)\n\n[Manta](annotation:p1)',
+          {...holding, 'p1'},
+          placed: {'p1'},
+        ),
+        isEmpty,
+      );
+    });
+
+    test('an id differing only in case is another id', () {
+      final mixed = AnnotationLinkBaseline.of(
+        '[A](annotation:ABC)\n\n[a](annotation:abc)',
+      );
+      expect(mixed.damagedBy('[a](annotation:abc)', {'ABC', 'abc'}), isEmpty);
+    });
+
     test('a link to an annotation not held loses nothing', () {
       expect(
         baseline.damagedBy('$stored\n\n[Shark](annotation:s9)', holding),

@@ -374,6 +374,9 @@ bool annotationLinksIntact(EditSession<Dive> session) {
     return true;
   }
   final stored = _baseline(session);
+  final placed = {
+    for (final pin in held?.placed ?? const <PendingAnnotation>[]) pin.id,
+  };
   final holding = {
     // Before the read answers, or after it failed, the stored notes' links,
     // whole or broken, stand for the rows.
@@ -381,9 +384,9 @@ bool annotationLinksIntact(EditSession<Dive> session) {
     if (held != null)
       for (final event in held.loaded)
         if (!held.removed.contains(event.id)) event.id,
-    for (final pin in held?.placed ?? const <PendingAnnotation>[]) pin.id,
+    ...placed,
   };
-  return stored.damagedBy(notes, holding).isEmpty;
+  return stored.damagedBy(notes, holding, placed: placed).isEmpty;
 }
 
 const String _baselineKey = 'annotations.baseline';

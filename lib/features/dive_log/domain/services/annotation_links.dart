@@ -187,29 +187,40 @@ class AnnotationLinkBaseline {
   /// A lost annotation was damaged when its address is still there out of
   /// any link, when a stray address appears that the stored Notes did not
   /// have (part of an id, or a link's markup broken), or when [edited]
-  /// links an id neither the stored Notes nor [holding] know, or links an id
-  /// the stored Notes linked more often than they did (an id edited into
-  /// another's). A link that names no annotation in [holding] loses
-  /// nothing.
-  Set<String> damagedBy(String edited, Set<String> holding) {
+  /// links some id more often than it may: as often as the stored Notes
+  /// linked it, once more for each stored break of it (mended), and once
+  /// more for a pin [placed] in the sitting, whose link the editor writes.
+  /// More than that is an id edited, into an unknown id or another
+  /// annotation's. A link that names no annotation in [holding] loses
+  /// nothing. Ids are compared exactly, case and all.
+  Set<String> damagedBy(
+    String edited,
+    Set<String> holding, {
+    Set<String> placed = const {},
+  }) {
     if (!mayLinkAnnotations(edited)) return const {};
     final linkedNow = annotationIdsInNotes(edited);
     final lost = holding.difference(linkedNow);
     if (lost.isEmpty) return const {};
-    final lower = edited.toLowerCase();
-    final standing = {
-      for (final id in lost)
-        if (lower.contains('$annotationLinkScheme:${id.toLowerCase()}')) id,
+    final addressed = {
+      for (final address in _annotationAddress.allMatches(edited))
+        ?annotationIdFromHref(address[0]),
     };
+    final standing = lost.intersection(addressed);
     if (standing.isNotEmpty) return standing;
     if (!_withinStored(strayAnnotationAddresses(edited, linked: linkedNow))) {
       return lost;
     }
-    final known = {...linked, ...strayIds, ...holding};
-    if (!known.containsAll(linkedNow)) return lost;
     final now = _linksById(edited, linkedNow);
-    final gained = linked.any((id) => (now[id] ?? 0) > (_linkCounts[id] ?? 0));
-    return gained ? lost : const {};
+    final edits = now.entries.any((link) {
+      final id = link.key;
+      final allowed =
+          (_linkCounts[id] ?? 0) +
+          (_strayCounts['$annotationLinkScheme:$id'] ?? 0) +
+          (placed.contains(id) ? 1 : 0);
+      return link.value > allowed;
+    });
+    return edits ? lost : const {};
   }
 
   /// How many links [notes] hold to each of [linked], the ids they link.
