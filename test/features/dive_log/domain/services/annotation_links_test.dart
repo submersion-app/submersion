@@ -282,6 +282,23 @@ void main() {
       );
     });
 
+    test('an id edited into another annotation\'s id names the one lost', () {
+      expect(
+        baseline.damagedBy(
+          '[Turtle](annotation:r1)\n\n[Ray](annotation:r1)',
+          holding,
+        ),
+        {'t1'},
+      );
+    });
+
+    test('a link deleted whole beside another left as it was is a removal', () {
+      expect(
+        baseline.damagedBy('[Ray](annotation:r1) and again', holding),
+        isEmpty,
+      );
+    });
+
     test('a link to an annotation not held loses nothing', () {
       expect(
         baseline.damagedBy('$stored\n\n[Shark](annotation:s9)', holding),

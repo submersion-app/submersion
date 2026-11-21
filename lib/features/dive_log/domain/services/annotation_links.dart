@@ -139,6 +139,7 @@ class AnnotationLinkBaseline {
   AnnotationLinkBaseline._(
     this.notes,
     this.linked,
+    this._linkCounts,
     this._strayCounts,
     this.strayIds,
   );
@@ -153,7 +154,13 @@ class AnnotationLinkBaseline {
       final id = annotationIdFromHref(address);
       if (id != null) strayIds.add(id);
     }
-    return AnnotationLinkBaseline._(notes, linked, strayCounts, strayIds);
+    return AnnotationLinkBaseline._(
+      notes,
+      linked,
+      _linksById(notes, linked),
+      strayCounts,
+      strayIds,
+    );
   }
 
   /// The stored Notes this baseline was read from.
@@ -161,6 +168,9 @@ class AnnotationLinkBaseline {
 
   /// The ids the stored Notes link.
   final Set<String> linked;
+
+  /// How many links the stored Notes hold to each id they link.
+  final Map<String, int> _linkCounts;
 
   /// The stored Notes' stray addresses, by how often each appears.
   final Map<String, int> _strayCounts;
@@ -177,8 +187,10 @@ class AnnotationLinkBaseline {
   /// A lost annotation was damaged when its address is still there out of
   /// any link, when a stray address appears that the stored Notes did not
   /// have (part of an id, or a link's markup broken), or when [edited]
-  /// links an id neither the stored Notes nor [holding] know (an id
-  /// edited). A link that names no annotation in [holding] loses nothing.
+  /// links an id neither the stored Notes nor [holding] know, or links an id
+  /// the stored Notes linked more often than they did (an id edited into
+  /// another's). A link that names no annotation in [holding] loses
+  /// nothing.
   Set<String> damagedBy(String edited, Set<String> holding) {
     if (!mayLinkAnnotations(edited)) return const {};
     final linkedNow = annotationIdsInNotes(edited);
@@ -194,7 +206,20 @@ class AnnotationLinkBaseline {
       return lost;
     }
     final known = {...linked, ...strayIds, ...holding};
-    return known.containsAll(linkedNow) ? const {} : lost;
+    if (!known.containsAll(linkedNow)) return lost;
+    final now = _linksById(edited, linkedNow);
+    final gained = linked.any((id) => (now[id] ?? 0) > (_linkCounts[id] ?? 0));
+    return gained ? lost : const {};
+  }
+
+  /// How many links [notes] hold to each of [linked], the ids they link.
+  static Map<String, int> _linksById(String notes, Set<String> linked) {
+    final counts = <String, int>{};
+    for (final link in annotationLinkPattern.allMatches(notes)) {
+      final id = link[1]!;
+      if (linked.contains(id)) counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return counts;
   }
 
   /// Whether every one of [addresses] was stray in the stored Notes, each
