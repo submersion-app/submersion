@@ -32,6 +32,7 @@ void main() {
     int found = 3,
     bool busy = false,
     double? progress,
+    bool warm = true,
   }) async {
     final shown = item ?? testMediaItem(id: 'm1');
     final overrides = await getBaseOverrides();
@@ -44,9 +45,13 @@ void main() {
           labelModeProvider.overrideWith(
             (ref) => LabelModeNotifier.unstored(mode),
           ),
-          mediaAnalysisStatusProvider(
-            AnalysisTarget(shown, null),
-          ).overrideWith((ref) async => (state: state, found: found)),
+          mediaAnalysisStatusProvider(AnalysisTarget(shown, null)).overrideWith(
+            (ref) async {
+              // Not read ahead: still loading when the menu is opened.
+              if (!warm) await Future<void>.delayed(const Duration(seconds: 1));
+              return (state: state, found: found);
+            },
+          ),
           mediaIdentificationBusyProvider(
             shown.id,
           ).overrideWith((ref) => Stream.value(busy)),
@@ -57,8 +62,12 @@ void main() {
         child: Consumer(
           builder: (context, ref, _) {
             // The viewer's toolbar keeps these read while it shows.
+            if (warm) {
+              ref.watch(
+                mediaAnalysisStatusProvider(AnalysisTarget(shown, null)),
+              );
+            }
             ref
-              ..watch(mediaAnalysisStatusProvider(AnalysisTarget(shown, null)))
               ..watch(mediaIdentificationBusyProvider(shown.id))
               ..watch(mediaIdentificationProgressProvider(shown.id));
             return Center(
@@ -80,6 +89,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('labels'));
+    if (!warm) await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
   }
 
@@ -156,6 +166,14 @@ void main() {
       tester.widget<PopupMenuItem<Object>>(entry('analyse')).enabled,
       isFalse,
     );
+  });
+
+  testWidgets('opened before the status has loaded, it waits for it', (
+    tester,
+  ) async {
+    await open(tester, warm: false);
+    expect(find.text('Analyse again'), findsOneWidget);
+    expect(find.text('3 found'), findsOneWidget);
   });
 
   testWidgets('the status line cannot be picked', (tester) async {

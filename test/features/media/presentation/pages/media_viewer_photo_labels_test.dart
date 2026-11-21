@@ -128,6 +128,8 @@ void main() {
       'picked there is drawn', (tester) async {
     await pump(tester);
     await tester.tap(find.byKey(const ValueKey('viewer_marine_life_labels')));
+    // The status read waits for its database read, or gives up after 2 s.
+    await tester.pump(const Duration(seconds: 3));
     await settleViewer(tester);
     expect(find.byKey(const ValueKey('labels_menu_names')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('labels_menu_off')));

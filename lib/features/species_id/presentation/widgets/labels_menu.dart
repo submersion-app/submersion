@@ -56,16 +56,7 @@ Future<void> showMarineLifeLabelsMenu(
   required GeoPoint? location,
 }) async {
   final l10n = anchor.l10n;
-  final status = ref
-      .read(mediaAnalysisStatusProvider(AnalysisTarget(item, location)))
-      .value;
-  final model = labelsMenuModel(
-    state: status?.state ?? MediaAnalysisState.notAnalysed,
-    found: status?.found ?? 0,
-    busy: ref.read(mediaIdentificationBusyProvider(item.id)).value ?? false,
-    progress: ref.read(mediaIdentificationProgressProvider(item.id)).value,
-  );
-  final mode = ref.read(labelModeProvider);
+  // Where the menu opens, measured before anything is awaited.
   final button = anchor.findRenderObject()! as RenderBox;
   final overlay =
       Navigator.of(anchor).overlay!.context.findRenderObject()! as RenderBox;
@@ -79,6 +70,30 @@ Future<void> showMarineLifeLabelsMenu(
     ),
     Offset.zero & overlay.size,
   );
+  // Read ahead while the toolbar shows; waited for when it has not
+  // answered yet, so the menu never offers the wrong action.
+  final statusOf = mediaAnalysisStatusProvider(AnalysisTarget(item, location));
+  var status = ref.read(statusOf).value;
+  if (status == null) {
+    try {
+      status = await ref
+          .read(statusOf.future)
+          .timeout(const Duration(seconds: 2));
+    } on Object {
+      // Unread or failed: the menu still opens, offering Analyse.
+      status = null;
+    }
+  }
+  if (!anchor.mounted) return;
+  final MediaAnalysisStatus known =
+      status ?? (state: MediaAnalysisState.notAnalysed, found: 0);
+  final model = labelsMenuModel(
+    state: known.state,
+    found: known.found,
+    busy: ref.read(mediaIdentificationBusyProvider(item.id)).value ?? false,
+    progress: ref.read(mediaIdentificationProgressProvider(item.id)).value,
+  );
+  final mode = ref.read(labelModeProvider);
   CheckedPopupMenuItem<_Pick> modeItem(
     String key,
     _Pick pick,
