@@ -32,15 +32,16 @@ class VideoControlsBar extends StatefulWidget {
   final String mediaId;
 
   /// Whether a host that hides its controls on a timer should hold them up:
-  /// true while a drag scrub is under way or the mouse rests on the bar,
-  /// false once both are over. A tap or a screen-reader step is a seek that
-  /// settles at once, so it reports false alone (unless the mouse is on the
-  /// bar), letting the host restart its clock.
+  /// true while a drag scrub is under way, the mouse rests on the bar, or the
+  /// volume slider is in use (keyboard focus in it, or a drag on it), false
+  /// once all are over. A tap or a screen-reader step is a seek that settles
+  /// at once, so it reports false alone (unless one of those still holds),
+  /// letting the host restart its clock.
   final ValueChanged<bool>? onHoldChanged;
 
-  /// The viewer's sound: when set, a mute button and hover volume slider
-  /// follow the total time (issue #4817). The bar's own hover hold keeps the
-  /// controls up while the mouse is on them.
+  /// The viewer's sound: when set, a mute button and volume slider follow the
+  /// total time (issue #4817). The slider shows on hover, keyboard focus or a
+  /// drag, and [onHoldChanged] holds the controls up for each.
   final ViewerAudio? audio;
 
   /// The bar's touch area, for tests that tap or drag along it.
