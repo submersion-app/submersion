@@ -70,6 +70,42 @@ void main() {
     expect(Directory(folder).listSync(), isEmpty);
   });
 
+  test('a marker that takes too long to write is unknown, and is cleared '
+      'away once it does land', () async {
+    final alias = p.join(root.path, 'alias');
+    await Link(alias).create(folder);
+    final landed = Completer<void>();
+
+    final result = await compareFolders(
+      folder,
+      alias,
+      timeout: const Duration(milliseconds: 50),
+      create: (marker) async {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        await marker.create(exclusive: true);
+        landed.complete();
+      },
+    );
+
+    expect(result, FolderIdentity.unknown);
+    await landed.future;
+    // The late cleanup runs on the next turns of the event loop.
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(Directory(folder).listSync(), isEmpty);
+  });
+
+  test('a look-up the file system refuses is unknown', () async {
+    final result = await compareFolders(
+      folder,
+      p.join(root.path, 'other'),
+      exists: (path) async =>
+          throw FileSystemException('Access is denied', path),
+    );
+
+    expect(result, FolderIdentity.unknown);
+    expect(Directory(folder).listSync(), isEmpty);
+  });
+
   test('leaves nothing behind in either folder', () async {
     final alias = p.join(root.path, 'alias');
     await Link(alias).create(folder);

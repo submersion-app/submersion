@@ -36,19 +36,22 @@ const Duration folderProbeTimeout = Duration(seconds: 10);
 ///
 /// So the folders are compared by what they hold: a uniquely named marker is
 /// written through [a] and looked for through [b]. The database files are
-/// never touched. Each step is bounded by [timeout]. [exists] is a seam for
-/// tests.
+/// never touched. Each step is bounded by [timeout]. [create] and [exists]
+/// are seams for tests.
 Future<FolderIdentity> compareFolders(
   String a,
   String b, {
   Duration timeout = folderProbeTimeout,
+  @visibleForTesting Future<void> Function(File marker)? create,
   @visibleForTesting Future<bool> Function(String path)? exists,
 }) async {
   if (p.equals(a, b)) return FolderIdentity.same;
 
   final name = '.submersion-same-folder-${const Uuid().v4()}';
   final marker = File(p.join(a, name));
-  final creating = marker.create(exclusive: true);
+  final creating = create != null
+      ? create(marker)
+      : marker.create(exclusive: true);
   try {
     await creating.timeout(timeout);
   } on TimeoutException {

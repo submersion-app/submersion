@@ -243,6 +243,24 @@ void main() {
     expect(one.read<int>('v'), 1);
   });
 
+  test(
+    'checkForExistingDatabase reads the dive log in another folder',
+    () async {
+      final service = await initServiceAt(p.join(root.path, 'default'));
+      final otherDir = p.join(root.path, 'other');
+      final otherPath = p.join(
+        otherDir,
+        DatabaseLocationService.databaseFilename,
+      );
+      await _seedDatabase(otherPath);
+
+      final info = await service.checkForExistingDatabase(otherDir);
+
+      expect(info?.path, otherPath);
+      expect(info?.fileSize, File(otherPath).lengthSync());
+    },
+  );
+
   group('the current folder picked under another name (issue #4834)', () {
     // A symlink stands in for the reporter's NAS reached through a second
     // server name: \\DXP6800\... and \\DXP6800-5g\... are one folder.
@@ -330,15 +348,24 @@ void main() {
         'name', () async {
       final service = await initServiceAt(p.join(root.path, 'default'));
       final targetDir = p.join(root.path, 'target');
-      await Directory(targetDir).create(recursive: true);
+      final targetPath = p.join(
+        targetDir,
+        DatabaseLocationService.databaseFilename,
+      );
+      await _seedDatabase(targetPath);
       // No marker can be written beside the live dive log, so the folders
       // cannot be compared.
       await Process.run('chmod', ['555', currentDir]);
       try {
+        // Described from its file alone: it may be the live log.
+        final found = await service.checkForExistingDatabase(targetDir);
+        expect(found?.path, targetPath);
+
         final moved = await service.migrateToCustomFolder(targetDir);
         final replaced = await service.replaceExistingDatabase(targetDir);
+        final home = await service.migrateToDefault();
 
-        for (final result in [moved, replaced]) {
+        for (final result in [moved, replaced, home]) {
           expect(result.success, isFalse);
           expect(result.errorMessage, contains('Could not tell'));
         }
