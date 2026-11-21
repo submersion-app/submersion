@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -64,6 +66,28 @@ void main() {
 
     expect(seed.endDate, DateTime(2026, 11, 2, 0, 30));
     expect(seed.durationDays, 8);
+  });
+
+  // Sharing is decided by the owner, so a new trip's page cannot open, and
+  // its sharing cannot be offered, before the active profile is known
+  // (issue #2151).
+  test('a seed waits for the active profile, and is that profile\'s', () async {
+    final profile = Completer<String?>();
+    final c = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) => profile.future),
+        shareByDefaultProvider.overrideWith((ref) async => false),
+      ],
+    );
+    addTearDown(c.dispose);
+    var made = false;
+    final seed = newTripSeed(c.read, id: 'n1')..then((_) => made = true);
+
+    await Future<void>.delayed(Duration.zero);
+    expect(made, isFalse);
+    profile.complete('d1');
+
+    expect((await seed).diverId, 'd1');
   });
 
   test('sharing by default arrives before the sitting opens', () async {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
@@ -16,9 +17,11 @@ import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'trip_detail_page_new_harness.dart';
+import 'trip_detail_page_unlock_harness.dart' show twoDivers;
 
 /// A new trip opens on the trip page, already unlocked, its Overview in
 /// the prepare shape (issue #4527, phase 3, plan 11).
@@ -137,12 +140,27 @@ void main() {
 
   testWidgets('in the pane, Save hands the id to the pane', (tester) async {
     final harness = await pumpNewTripPage(tester, embedded: true);
+    expect(find.text(l.trips_edit_appBar_add), findsOneWidget);
     await typeName(tester);
 
     await tester.tap(find.text(l.forms_save));
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(harness.createdIds, [harness.save.creates.single.trip.id]);
+  });
+
+  testWidgets('in the pane, Cancel with an entry asks first', (tester) async {
+    final harness = await pumpNewTripPage(tester, embedded: true);
+    await typeName(tester);
+
+    await tester.tap(find.text(l.forms_cancel));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text(l.forms_discard_title), findsOneWidget);
+    await tester.tap(find.text(l.forms_discard_discard));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(harness.cancelled, 1);
+    expect(harness.save.createAttempts, isEmpty);
   });
 
   testWidgets('in the pane, Cancel tells the pane and creates nothing', (
@@ -293,7 +311,87 @@ void main() {
 
     expect(harness.save.creates, hasLength(1));
     expect(harness.tripDives.assigned.single, ['v1']);
+    // To the trip just made, under the id it was created with.
+    expect(
+      harness.tripDives.assignedTo.single,
+      harness.save.creates.single.trip.id,
+    );
     expect(find.text(l.trips_diveScan_added(1)), findsOneWidget);
+  });
+
+  /// [diveIdsForTripProvider] of [tripId], counting its reads, kept alive
+  /// as a page showing that trip would keep it.
+  ({List<Object> overrides, int Function() reads}) countedDivesOf(
+    String tripId,
+  ) {
+    var reads = 0;
+    return (
+      overrides: [
+        diveIdsForTripProvider(tripId).overrideWith((ref) async {
+          reads++;
+          return const <String>[];
+        }),
+      ],
+      reads: () => reads,
+    );
+  }
+
+  testWidgets('a dive taken from another trip leaves that trip read again', (
+    tester,
+  ) async {
+    final egypt = countedDivesOf('egypt-trip');
+    final harness = await pumpNewTripPage(
+      tester,
+      candidates: [
+        DiveCandidate(
+          dive: Dive(id: 'v1', dateTime: DateTime(2030, 5, 31, 9)),
+          currentTripId: 'egypt-trip',
+          currentTripName: 'Egypt',
+        ),
+      ],
+      extraOverrides: egypt.overrides,
+    );
+    harness.container.listen(diveIdsForTripProvider('egypt-trip'), (_, _) {});
+    await tester.pumpAndSettle();
+    final before = egypt.reads();
+    await typeName(tester);
+
+    await tapSave(tester);
+    // A dive on another trip starts unticked: tick it, then add it.
+    await tester.tap(find.byType(Checkbox).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.trips_diveScan_addButton(1)));
+    await tester.pumpAndSettle();
+
+    expect(harness.tripDives.assigned.single, ['v1']);
+    expect(egypt.reads(), greaterThan(before));
+  });
+
+  testWidgets('a shared new trip shows who it is shared with, by the '
+      "diver's default", (tester) async {
+    await pumpNewTripPage(tester, divers: twoDivers, shareByDefault: true);
+
+    expect(find.byType(ItemSharingField), findsOneWidget);
+    expect(find.text('Everyone'), findsOneWidget);
+  });
+
+  testWidgets('a new trip shared with one profile writes that share under '
+      'its id, by the acting profile', (tester) async {
+    final harness = await pumpNewTripPage(tester, divers: twoDivers);
+
+    tester
+        .widget<ItemSharingField>(find.byType(ItemSharingField))
+        .onChanged(const ItemSharing(profileIds: {'d2'}));
+    await tester.pumpAndSettle();
+    expect(harness.shares.setCalls, isEmpty);
+    await typeName(tester);
+    await tapSave(tester);
+
+    final id = harness.save.creates.single.trip.id;
+    expect(harness.shares.setCalls, [
+      (id, const ItemSharing(profileIds: {'d2'})),
+    ]);
+    expect(harness.shares.setActingDivers, ['d1']);
   });
 
   testWidgets('dismissing the question creates the trip with no dives', (
@@ -353,6 +451,37 @@ void main() {
     expect(created.trip.name, 'Bonaire 2030');
     expect(created.trip.location, 'Bonaire');
     expect(created.dives, ['a', 'b']);
+  });
+
+  testWidgets('the trips a draft took its dives from are read again', (
+    tester,
+  ) async {
+    final source = countedDivesOf('p');
+    final draft = TripDraft(
+      trip: Trip(
+        id: '',
+        name: 'Bonaire 2030',
+        startDate: DateTime(2030, 5, 30),
+        endDate: DateTime(2030, 6, 2),
+        createdAt: DateTime(2030),
+        updatedAt: DateTime(2030),
+      ),
+      diveIds: const ['a'],
+      sourceTripIds: const {'p'},
+    );
+    final harness = await pumpNewTripPage(
+      tester,
+      draft: draft,
+      extraOverrides: source.overrides,
+    );
+    harness.container.listen(diveIdsForTripProvider('p'), (_, _) {});
+    await tester.pumpAndSettle();
+    final before = source.reads();
+
+    await tapSave(tester);
+
+    expect(harness.save.creates, hasLength(1));
+    expect(source.reads(), greaterThan(before));
   });
 
   /// Opens the date picker of [tile], types [date] (month/day/year) into
