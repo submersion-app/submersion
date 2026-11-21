@@ -253,6 +253,11 @@ void main() {
     await save(session);
 
     expect(await vessels.getByTripId('t1'), isNull);
+    expect((await stored()).tripType, TripType.resort);
+    // The itinerary is the trip's days, not the boat's: it stays (#2845).
+    final kept = await days.getByTripId('t1');
+    expect(kept.first.id, 'i1');
+    expect(kept.first.notes, 'Embark');
     final ops = await operations();
     expect(ops, hasLength(1));
 
