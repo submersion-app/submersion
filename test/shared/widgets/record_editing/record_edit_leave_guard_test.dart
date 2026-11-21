@@ -36,8 +36,14 @@ bool? _cancelResult;
 int _taps = 0;
 
 /// A home page that pushes the guarded record page, in a kept-alive tab
-/// shown or hidden when [tabVisible] is given (#3437).
-Widget _app(RecordEditController<_Rec> controller, {bool? tabVisible}) {
+/// shown or hidden when [tabVisible] is given (#3437), beside another
+/// scope that refuses Back when [backRefused] (the tab on screen's own
+/// changes or selection).
+Widget _app(
+  RecordEditController<_Rec> controller, {
+  bool? tabVisible,
+  bool backRefused = false,
+}) {
   return MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -49,6 +55,7 @@ Widget _app(RecordEditController<_Rec> controller, {bool? tabVisible}) {
             MaterialPageRoute<void>(
               builder: (_) => _inTab(
                 tabVisible,
+                backRefused,
                 RecordEditLeaveGuard<_Rec>(
                   controller: controller,
                   child: Scaffold(
@@ -85,21 +92,29 @@ Widget _app(RecordEditController<_Rec> controller, {bool? tabVisible}) {
   );
 }
 
-/// [child] in a tab shown or hidden by [visible]; as it is when null.
-Widget _inTab(bool? visible, Widget child) =>
-    visible == null ? child : TabVisibility(visible: visible, child: child);
+/// [child] in a tab shown or hidden by [visible] (as it is when null),
+/// under a scope that refuses Back when [backRefused].
+Widget _inTab(bool? visible, bool backRefused, Widget child) {
+  final tab = visible == null
+      ? child
+      : TabVisibility(visible: visible, child: child);
+  return backRefused ? PopScope(canPop: false, child: tab) : tab;
+}
 
 Future<RecordEditController<_Rec>> _open(
   WidgetTester tester, {
   Future<void> Function()? onSave,
   bool? tabVisible,
+  bool backRefused = false,
 }) async {
   _taps = 0;
   final controller = RecordEditController<_Rec>(
     onSave: (_) async => onSave?.call(),
   );
   addTearDown(controller.dispose);
-  await tester.pumpWidget(_app(controller, tabVisible: tabVisible));
+  await tester.pumpWidget(
+    _app(controller, tabVisible: tabVisible, backRefused: backRefused),
+  );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
   expect(find.text('Record'), findsOneWidget);
@@ -262,6 +277,28 @@ void main() {
 
     expect(find.text('Discard changes?'), findsNothing);
     expect(find.text('Record'), findsNothing);
+    // The page left with the hidden record's sitting.
+    expect(controller.isUnlocked, isFalse);
+  });
+
+  testWidgets('with changes in a hidden tab, a Back another scope refuses '
+      'asks nothing either', (tester) async {
+    // A route tells every scope of a refused Back, the hidden tab's too.
+    final controller = await _open(
+      tester,
+      tabVisible: false,
+      backRefused: true,
+    );
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'b');
+    await tester.pump();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(controller.isDirty, isTrue);
   });
 
   testWidgets('with changes in the tab on screen, back still asks', (
