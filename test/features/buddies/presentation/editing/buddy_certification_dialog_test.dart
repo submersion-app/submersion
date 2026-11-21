@@ -65,6 +65,19 @@ void main() {
     expect(results.single!.cardNumber, '42');
     expect(results.single!.id, 'c1');
     expect(results.single!.name, 'Nitrox');
+    expect(results.single!.buddyId, 'b1');
+  });
+
+  // An unchanged certification must not read as edited: a new updatedAt
+  // would send it to sync for nothing (issue #553).
+  testWidgets('Done with nothing changed returns it as it was', (tester) async {
+    final results = await open(tester, nitrox);
+
+    await tester.tap(find.byKey(const ValueKey('buddy-cert-dialog-done')));
+    await tester.pumpAndSettle();
+
+    expect(results.single, nitrox);
+    expect(results.single!.updatedAt, DateTime(2020));
   });
 
   testWidgets('Cancel returns null', (tester) async {

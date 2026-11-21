@@ -156,6 +156,44 @@ void main() {
     expect(session.working.number, '9');
   });
 
+  testWidgets('typing the name after a pick keeps the buddy picked', (
+    tester,
+  ) async {
+    final session = await pumpEditor(tester);
+    await pick(tester, aliceLabel);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('test-instructor-name')),
+      'Alice I.',
+    );
+    await tester.pump();
+
+    expect(session.working.id, 'buddy-1');
+    expect(session.working.name, 'Alice I.');
+    expect(
+      find.descendant(
+        of: find.byType(DropdownButtonFormField<String?>),
+        matching: find.text(aliceLabel),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a stored instructor opens picked', (tester) async {
+    await pumpEditor(
+      tester,
+      const _Record(id: 'buddy-1', name: 'Alice Instructor', number: '9'),
+    );
+
+    expect(
+      find.descendant(
+        of: find.byType(DropdownButtonFormField<String?>),
+        matching: find.text(aliceLabel),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('typing the name is one change of the field\'s card', (
     tester,
   ) async {
