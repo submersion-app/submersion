@@ -88367,6 +88367,18 @@ abstract class AppLocalizations {
   /// **'Unnamed fish'**
   String get media_species_unnamedFishLocked;
 
+  /// Screen reader label of the chip that counts the species left off the viewer's one line (issue #4825); the chip itself reads +N.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} more species} other{{count} more species}}'**
+  String media_species_moreChips(int count);
+
+  /// No description provided for @media_species_listLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to add or dismiss'**
+  String get media_species_listLocked;
+
   /// No description provided for @media_species_possibleMatches.
   ///
   /// In en, this message translates to:

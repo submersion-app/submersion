@@ -16617,6 +16617,8 @@
   "media_species_scanProgress": "Halak keresése, {percent}",
   "media_species_unnamedFish": "Névtelen hal, koppints az elnevezéshez",
   "media_species_unnamedFishLocked": "Névtelen hal",
+  "media_species_moreChips": "{count, plural, =1{még {count} faj} other{még {count} faj}}",
+  "media_species_listLocked": "Oldja fel a hozzáadáshoz vagy elvetéshez",
   "media_species_possibleMatches": "Lehetséges egyezések",
   "media_species_cropUnavailable": "A kép nincs ezen az eszközön",
   "media_species_taggedOnPhoto": "Ezen a fotón címkézve",

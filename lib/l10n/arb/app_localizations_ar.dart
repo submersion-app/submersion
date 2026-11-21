@@ -57150,6 +57150,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'سمكة بلا اسم';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع آخر',
+      many: '$count نوعًا آخر',
+      few: '$count أنواع أخرى',
+      two: 'نوعان آخران',
+      one: 'نوع واحد آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked => 'افتح القفل للإضافة أو الرفض';
+
+  @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
 
   @override

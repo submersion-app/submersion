@@ -56347,6 +56347,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'Peixe sem nome';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'mais $count espécies',
+      one: 'mais $count espécie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked =>
+      'Desbloqueie para adicionar ou dispensar';
+
+  @override
   String get media_species_possibleMatches => 'Possíveis correspondências';
 
   @override

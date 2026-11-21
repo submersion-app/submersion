@@ -52838,6 +52838,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_unnamedFishLocked => '未命名的鱼';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另外 $count 个物种',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked => '解锁后可添加或忽略';
+
+  @override
   String get media_species_possibleMatches => '可能的匹配';
 
   @override

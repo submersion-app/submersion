@@ -16617,6 +16617,8 @@
   "media_species_scanProgress": "Recherche de poissons, {percent}",
   "media_species_unnamedFish": "Poisson sans nom, touchez pour le nommer",
   "media_species_unnamedFishLocked": "Poisson sans nom",
+  "media_species_moreChips": "{count, plural, =1{{count} autre espèce} other{{count} autres espèces}}",
+  "media_species_listLocked": "Déverrouillez pour ajouter ou ignorer",
   "media_species_possibleMatches": "Correspondances possibles",
   "media_species_cropUnavailable": "Image absente de cet appareil",
   "media_species_taggedOnPhoto": "Identifiées sur cette photo",

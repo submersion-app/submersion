@@ -16617,6 +16617,8 @@
   "media_species_scanProgress": "جارٍ البحث عن الأسماك، {percent}",
   "media_species_unnamedFish": "سمكة بلا اسم، اضغط لتسميتها",
   "media_species_unnamedFishLocked": "سمكة بلا اسم",
+  "media_species_moreChips": "{count, plural, =1{نوع واحد آخر} two{نوعان آخران} few{{count} أنواع أخرى} many{{count} نوعًا آخر} other{{count} نوع آخر}}",
+  "media_species_listLocked": "افتح القفل للإضافة أو الرفض",
   "media_species_possibleMatches": "تطابقات محتملة",
   "media_species_cropUnavailable": "الصورة غير موجودة على هذا الجهاز",
   "media_species_taggedOnPhoto": "موسومة في هذه الصورة",

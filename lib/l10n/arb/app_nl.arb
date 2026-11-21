@@ -16617,6 +16617,8 @@
   "media_species_scanProgress": "Zoeken naar vissen, {percent}",
   "media_species_unnamedFish": "Naamloze vis, tik om een naam te geven",
   "media_species_unnamedFishLocked": "Naamloze vis",
+  "media_species_moreChips": "{count, plural, =1{nog {count} soort} other{nog {count} soorten}}",
+  "media_species_listLocked": "Ontgrendel om toe te voegen of te negeren",
   "media_species_possibleMatches": "Mogelijke overeenkomsten",
   "media_species_cropUnavailable": "Afbeelding staat niet op dit apparaat",
   "media_species_taggedOnPhoto": "Getagd op deze foto",

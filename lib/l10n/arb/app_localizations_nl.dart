@@ -56005,6 +56005,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'Naamloze vis';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'nog $count soorten',
+      one: 'nog $count soort',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked =>
+      'Ontgrendel om toe te voegen of te negeren';
+
+  @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';
 
   @override

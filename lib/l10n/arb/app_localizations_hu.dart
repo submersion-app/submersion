@@ -56056,6 +56056,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'Névtelen hal';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'még $count faj',
+      one: 'még $count faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked =>
+      'Oldja fel a hozzáadáshoz vagy elvetéshez';
+
+  @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';
 
   @override

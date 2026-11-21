@@ -105,6 +105,20 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('many species stay on one line, so the scrub bar does not '
+      'climb the picture (issue #4825)', (tester) async {
+    await pumpTagged(tester);
+    final tops = {
+      for (final chip in find.byType(ActionChip).evaluate())
+        (chip.renderObject! as RenderBox).localToGlobal(Offset.zero).dy,
+    };
+    expect(tops, hasLength(1));
+    expect(find.byKey(const ValueKey('media_species_more')), findsOneWidget);
+    // The bar sits in the lower part of the phone, under the picture.
+    final track = tester.getRect(find.byKey(VideoControlsBar.trackKey));
+    expect(track.top, greaterThan(844 * 0.75));
+  });
+
   testWidgets('the scrub bar clears the mini profile chart in the corner', (
     tester,
   ) async {
