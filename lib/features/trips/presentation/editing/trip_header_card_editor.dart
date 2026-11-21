@@ -250,10 +250,15 @@ class _TripHeaderCardEditorState extends ConsumerState<TripHeaderCardEditor> {
 
   Future<void> _pickEnd() async {
     final dates = _dates;
-    // The end picker starts at the start date, as the form's did.
+    // As the form's did: a new trip's end is a placeholder until the diver
+    // picks one (or a draft gives one), so the picker opens at the start; a
+    // stored trip's end is the trip's own, and it opens there.
+    final placeholder = _session.isNew && dates.end == _session.stored.endDate;
     final picked = await showAppDatePicker(
       context: context,
-      initialDate: dates.end.isBefore(dates.start) ? dates.start : dates.end,
+      initialDate: placeholder || dates.end.isBefore(dates.start)
+          ? dates.start
+          : dates.end,
       firstDate: dates.start,
       lastDate: DateTime(2100),
     );

@@ -354,4 +354,51 @@ void main() {
     expect(created.trip.location, 'Bonaire');
     expect(created.dives, ['a', 'b']);
   });
+
+  /// Opens the date picker of [tile], types [date] (month/day/year) into
+  /// it and confirms.
+  Future<void> pickDate(WidgetTester tester, String tile, String date) async {
+    await tester.tap(find.byKey(Key(tile)));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.byIcon(Icons.edit_outlined),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.byType(TextField),
+      ),
+      date,
+    );
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+  }
+
+  DateTime endPickerOpensAt(WidgetTester tester) => tester
+      .widget<DatePickerDialog>(find.byType(DatePickerDialog))
+      .initialDate!;
+
+  // As the form's did (#2266 review): a new trip's end is a placeholder
+  // until the diver picks one, so its picker opens at the start just
+  // picked, not weeks away from it.
+  testWidgets('the end picker opens at a start just picked, until an end is '
+      'picked', (tester) async {
+    await pumpNewTripPage(tester);
+
+    await pickDate(tester, 'trip-edit-start', '01/15/2023');
+    await tester.tap(find.byKey(const Key('trip-edit-end')));
+    await tester.pumpAndSettle();
+    expect(endPickerOpensAt(tester), DateTime(2023, 1, 15));
+    await tester.tap(find.text('Cancel').last);
+    await tester.pumpAndSettle();
+
+    await pickDate(tester, 'trip-edit-end', '01/20/2023');
+    await tester.tap(find.byKey(const Key('trip-edit-end')));
+    await tester.pumpAndSettle();
+    expect(endPickerOpensAt(tester), DateTime(2023, 1, 20));
+  });
 }
