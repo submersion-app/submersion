@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -13,10 +14,10 @@ enum FolderIdentity {
   /// The two paths name different folders.
   different,
 
-  /// The comparison could not be made: the marker could not be written, or
-  /// the file system did not answer in time. Anything that would open or
-  /// copy a live database through the second path must treat this as
-  /// [same] and refuse.
+  /// The comparison could not be made: the marker could not be written or
+  /// looked up, or the file system did not answer in time. The two paths may
+  /// still be one folder, so nothing may open or copy a live database
+  /// through the second path on this answer.
   unknown,
 }
 
@@ -35,9 +36,12 @@ const Duration folderProbeTimeout = Duration(seconds: 10);
 /// kernel, past even Task Manager (issue #4834).
 ///
 /// So the folders are compared by what they hold: a uniquely named marker is
-/// written through [a] and looked for through [b]. The database files are
-/// never touched. Each step is bounded by [timeout]. [create] and [exists]
-/// are seams for tests.
+/// written through [a] and opened through [b]. An open rather than an
+/// existence query, because a Windows SMB client may answer the query from a
+/// directory listing it cached seconds earlier (the folder picker has just
+/// listed [b]), and that listing cannot hold a marker this new. The database
+/// files are never touched. Each step is bounded by [timeout]. [create] and
+/// [exists] are seams for tests.
 Future<FolderIdentity> compareFolders(
   String a,
   String b, {
@@ -65,7 +69,7 @@ Future<FolderIdentity> compareFolders(
   }
 
   try {
-    final lookUp = exists ?? (String path) => File(path).exists();
+    final lookUp = exists ?? _opens;
     final found = await lookUp(p.join(b, name)).timeout(timeout);
     return found ? FolderIdentity.same : FolderIdentity.different;
   } on TimeoutException {
@@ -77,12 +81,24 @@ Future<FolderIdentity> compareFolders(
   }
 }
 
+/// Whether the file at [path] can be opened: false when it is not there,
+/// and a [FileSystemException] for any other failure, such as a folder that
+/// cannot be read, since that says nothing about which folder it is.
+Future<bool> _opens(String path) async {
+  try {
+    await (await File(path).open()).close();
+    return true;
+  } on PathNotFoundException {
+    return false;
+  }
+}
+
 /// Best effort: a stray empty marker is harmless, a probe that throws or
 /// hangs is not.
 Future<void> _deleteQuietly(File marker, Duration timeout) async {
   try {
     await marker.delete().timeout(timeout);
-  } on Object {
+  } on Exception {
     // Left behind; see above.
   }
 }

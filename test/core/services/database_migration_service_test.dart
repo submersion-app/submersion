@@ -39,8 +39,10 @@ class _FakeLocation implements DatabaseLocationService {
   @override
   Future<bool> createAndStoreBookmark(String folderPath) async => true;
 
+  int bookmarkClears = 0;
+
   @override
-  Future<void> clearStoredBookmark() async {}
+  Future<void> clearStoredBookmark() async => bookmarkClears++;
 
   @override
   Future<void> resetToDefault() async {}
@@ -337,6 +339,8 @@ void main() {
       expect(result.success, isTrue, reason: result.errorMessage);
       expect(backupsIn(currentDir), isEmpty);
       expect(location.savedConfig?.mode, StorageLocationMode.appDefault);
+      // The custom folder's bookmark goes too, as it does after a full move.
+      expect(location.bookmarkClears, 1);
       final one = await DatabaseService.instance.database
           .customSelect('SELECT 1 AS v')
           .getSingle();
@@ -357,6 +361,14 @@ void main() {
       // cannot be compared.
       await Process.run('chmod', ['555', currentDir]);
       try {
+        try {
+          File(p.join(currentDir, 'write-check')).createSync();
+          markTestSkipped('permissions are not enforced for this user');
+          return;
+        } on FileSystemException {
+          // Read-only, as intended.
+        }
+
         // Described from its file alone: it may be the live log.
         final found = await service.checkForExistingDatabase(targetDir);
         expect(found?.path, targetPath);

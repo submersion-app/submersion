@@ -77,18 +77,28 @@ class DatabaseMigrationService {
     final dbPath = p.join(folderPath, DatabaseLocationService.databaseFilename);
     final file = File(dbPath);
 
-    if (!await file.exists()) {
-      return null;
-    }
-
     try {
+      // Bounded like the probe: a share that has stopped answering must not
+      // leave the folder change waiting with nothing on screen (issue #4834).
+      // A timeout lands in the catch below, as an unreadable folder does.
+      final exists = await _withTimeout(
+        file.exists(),
+        'Folder check',
+        timeout: folderProbeTimeout,
+      );
+      if (!exists) return null;
+
       final currentPath = await _dbService.databasePath;
       final identity = await _compareToCurrent(currentPath, folderPath);
       if (identity == FolderIdentity.same) {
         return await getCurrentDatabaseInfo();
       }
 
-      final stat = await file.stat();
+      final stat = await _withTimeout(
+        file.stat(),
+        'Folder check',
+        timeout: folderProbeTimeout,
+      );
       final fileSize = stat.size;
       final lastModified = stat.modified;
 
@@ -324,10 +334,12 @@ class DatabaseMigrationService {
       return MigrationResult.failure(_cannotCompare);
     }
     if (identity == FolderIdentity.same) {
-      // Just update config
+      // Just update config, and drop the custom folder's bookmark as the full
+      // move below does
       await _locationService.saveStorageConfig(
         const StorageConfig(mode: StorageLocationMode.appDefault),
       );
+      await _locationService.clearStoredBookmark();
       return MigrationResult.success(oldPath: currentPath, newPath: newPath);
     }
 

@@ -5,6 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/same_folder_probe.dart';
 
+/// Waits until [dir] is empty, for a cleanup that runs in the background.
+Future<void> _untilEmpty(String dir) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  while (Directory(dir).listSync().isNotEmpty &&
+      DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+  }
+}
+
 void main() {
   late Directory root;
   late String folder;
@@ -63,6 +72,8 @@ void main() {
       folder,
       alias,
       timeout: const Duration(milliseconds: 50),
+      // Written at once, so the short deadline only bounds the look-up.
+      create: (marker) async => marker.createSync(exclusive: true),
       exists: (_) => Completer<bool>().future,
     );
 
@@ -89,9 +100,47 @@ void main() {
 
     expect(result, FolderIdentity.unknown);
     await landed.future;
-    // The late cleanup runs on the next turns of the event loop.
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await _untilEmpty(folder);
     expect(Directory(folder).listSync(), isEmpty);
+  });
+
+  test(
+    'a second folder that cannot be read is unknown, not different',
+    () async {
+      final other = p.join(root.path, 'other');
+      await Directory(other).create();
+      await Process.run('chmod', ['000', other]);
+      try {
+        try {
+          Directory(other).listSync();
+          markTestSkipped('permissions are not enforced for this user');
+          return;
+        } on FileSystemException {
+          // Unreadable, as intended.
+        }
+
+        expect(await compareFolders(folder, other), FolderIdentity.unknown);
+      } finally {
+        await Process.run('chmod', ['755', other]);
+      }
+    },
+    skip: Platform.isWindows ? 'chmod is POSIX only' : false,
+  );
+
+  test('a marker already gone at cleanup still gives an answer', () async {
+    // Something else (a sync client, say) removed the marker first.
+    final result = await compareFolders(
+      folder,
+      p.join(root.path, 'alias'),
+      exists: (path) async {
+        Directory(
+          folder,
+        ).listSync().whereType<File>().forEach((marker) => marker.deleteSync());
+        return true;
+      },
+    );
+
+    expect(result, FolderIdentity.same);
   });
 
   test('a look-up the file system refuses is unknown', () async {
