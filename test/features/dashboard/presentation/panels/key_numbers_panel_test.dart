@@ -125,6 +125,67 @@ void main() {
     expect(find.text('+47 this year'), findsOneWidget);
   });
 
+  testWidgets('one day reads as a day, not days', (tester) async {
+    await _pump(
+      tester,
+      width: 1280,
+      numbers: HomeKeyNumbers(
+        careerDives: 3,
+        careerTimeSeconds: 3 * 3600,
+        daysSinceLastDive: 1,
+        lastDiveId: 'd3',
+        nextTrip: Trip(
+          id: 't1',
+          name: 'Bonaire',
+          startDate: DateTime.now().add(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 8)),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ),
+    );
+    expect(find.text('1 day'), findsNWidgets(2));
+    expect(find.text('1 days'), findsNothing);
+  });
+
+  testWidgets('hours this year keep a decimal under ten, as the total does', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 1280,
+      numbers: const HomeKeyNumbers(
+        careerDives: 1,
+        careerTimeSeconds: 45 * 60,
+        timeThisYearSeconds: 45 * 60,
+      ),
+    );
+    expect(find.text('0.8 h'), findsOneWidget);
+    expect(find.text('+0.8 h this year'), findsOneWidget);
+  });
+
+  testWidgets('a gas change that rounds to nothing carries no sign', (
+    tester,
+  ) async {
+    for (final change in [0.03, -0.04]) {
+      await _pump(
+        tester,
+        width: 1280,
+        numbers: HomeKeyNumbers(
+          careerDives: 30,
+          careerTimeSeconds: 30 * 3600,
+          avgSac: 14.2,
+          avgSacChange: change,
+        ),
+      );
+      expect(
+        find.text('0.0 vs previous 10'),
+        findsOneWidget,
+        reason: '$change',
+      );
+    }
+  });
+
   testWidgets('a tile with nothing to say is left out', (tester) async {
     await _pump(
       tester,

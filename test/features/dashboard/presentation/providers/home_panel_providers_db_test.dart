@@ -4,12 +4,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+
+/// The diver's documents with an expiry, as the repository would give them.
+class _Documents extends DocumentRepository {
+  final List<Document> docs;
+
+  _Documents(this.docs)
+    : super(cancelReminders: (_) async {}, clearancesDeleted: (_) {});
+
+  @override
+  Future<List<Document>> getRemindingForDiver(String diverId) async => docs;
+}
 
 /// Every Home panel provider read against a seeded test database, so the
 /// queries behind each panel run as they do in the app (the widget tests
@@ -153,6 +169,52 @@ void main() {
   test('the latest profile is the newest dive', () async {
     final latest = await container.read(homeLatestProfileProvider.future);
     expect(latest?.dive.id, 'd0');
+  });
+
+  test('coming due lists a document long before its reminder starts', () async {
+    Document doc(String id, String title, DocumentType type, int days) =>
+        Document(
+          id: id,
+          diverId: 'diver1',
+          owner: const DocumentOwner.personal(),
+          type: type,
+          title: title,
+          expiryDate: now.add(Duration(days: days)),
+          reminderLeadDays: 30,
+          createdAt: now,
+          updatedAt: now,
+        );
+    final c = ProviderContainer(
+      overrides: [
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver1'),
+        activeEquipmentClocksProvider.overrideWith((ref) async => const []),
+        dashboardGaugesProvider.overrideWith(
+          (ref) async => const DashboardGauges(
+            hasGear: false,
+            insurance: null,
+            noFlyStatus: null,
+            daysSinceLastDive: null,
+          ),
+        ),
+        documentRepositoryProvider.overrideWithValue(
+          _Documents([
+            // Five months out: well outside a 30-day reminder lead.
+            doc('p', 'Dive permit', DocumentType.permit, 150),
+            // Insurance comes from the diver's policy, not the documents.
+            doc('i', 'Policy scan', DocumentType.insurance, 100),
+            // Past the one-year horizon.
+            doc('m', 'Map licence', DocumentType.map, 500),
+          ]),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    final items = await c.read(homeComingDueProvider.future);
+    expect(items.map((i) => i.name), ['Dive permit']);
+    expect(items.single.kind, ComingDueKind.document);
   });
 
   test('averages cover the window', () async {

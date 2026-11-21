@@ -6358,7 +6358,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_card_waitingForDownload => 'ממתין להורדה';
 
   @override
-  String get dashboard_allHidden_message => 'כל כרטיסי דף הבית מוסתרים.';
+  String get dashboard_allHidden_message => 'אין לוחות להצגה.';
 
   @override
   String get dashboard_allHidden_customize => 'התאמה אישית של דף הבית';
@@ -64606,7 +64606,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dashboard_key_hoursThisYear(int hours) {
+  String dashboard_key_hoursThisYear(String hours) {
     return '+$hours ש\' השנה';
   }
 
@@ -64614,7 +64614,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_key_hoursUnit => 'ש\'';
 
   @override
-  String get dashboard_key_daysUnit => 'ימים';
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ימים',
+      one: 'יום',
+    );
+    return '$_temp0';
+  }
 
   @override
   String dashboard_key_vsPrevious(String change) {

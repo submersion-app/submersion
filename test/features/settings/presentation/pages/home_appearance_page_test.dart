@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/home_presets.dart';
@@ -167,6 +168,49 @@ void main() {
     final c = tester.getRect(find.byKey(const Key('homePreset_trends')));
     expect(c.top, greaterThan(a.top));
     expect(tester.takeException(), isNull);
+  });
+
+  group('the gas panel and tile take the name Home shows them by', () {
+    Future<void> expectNames(
+      WidgetTester tester,
+      AppSettings settings, {
+      required String trend,
+      required String tile,
+    }) async {
+      await _pump(tester, initial: settings);
+      final row = find.byKey(const Key('homePanelTile_sacTrend'));
+      await tester.scrollUntilVisible(row, 100);
+      expect(
+        find.descendant(of: row, matching: find.text(trend)),
+        findsOneWidget,
+      );
+      await _pump(tester, initial: settings, page: const HomeKeyNumbersPage());
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('homeKeyNumberToggle_avgSac')),
+          matching: find.text(tile),
+        ),
+        findsOneWidget,
+      );
+    }
+
+    testWidgets('RMV for a diver who reads RMV', (tester) async {
+      await expectNames(
+        tester,
+        const AppSettings(),
+        trend: 'RMV trend',
+        tile: 'Avg RMV',
+      );
+    });
+
+    testWidgets('SAC for a diver who reads only SAC', (tester) async {
+      await expectNames(
+        tester,
+        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.sac),
+        trend: 'SAC trend',
+        tile: 'Avg SAC',
+      );
+    });
   });
 
   testWidgets('the key numbers page toggles a tile', (tester) async {

@@ -6611,7 +6611,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeCards_card_waitingForDownload => 'في انتظار التنزيل';
 
   @override
-  String get dashboard_allHidden_message => 'جميع بطاقات الرئيسية مخفية.';
+  String get dashboard_allHidden_message => 'لا توجد لوحات لعرضها.';
 
   @override
   String get dashboard_allHidden_customize => 'تخصيص الرئيسية';
@@ -66902,7 +66902,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dashboard_key_hoursThisYear(int hours) {
+  String dashboard_key_hoursThisYear(String hours) {
     return '+$hours س هذا العام';
   }
 
@@ -66910,7 +66910,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_key_hoursUnit => 'س';
 
   @override
-  String get dashboard_key_daysUnit => 'أيام';
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يوم',
+      many: 'يومًا',
+      few: 'أيام',
+      two: 'يومان',
+      one: 'يوم',
+      zero: 'يوم',
+    );
+    return '$_temp0';
+  }
 
   @override
   String dashboard_key_vsPrevious(String change) {

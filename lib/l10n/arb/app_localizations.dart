@@ -10167,7 +10167,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_allHidden_message.
   ///
   /// In en, this message translates to:
-  /// **'All Home cards are hidden.'**
+  /// **'No panels to show.'**
   String get dashboard_allHidden_message;
 
   /// No description provided for @dashboard_allHidden_customize.
@@ -103360,7 +103360,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'+{hours} h this year'**
-  String dashboard_key_hoursThisYear(int hours);
+  String dashboard_key_hoursThisYear(String hours);
 
   /// No description provided for @dashboard_key_hoursUnit.
   ///
@@ -103371,8 +103371,8 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_key_daysUnit.
   ///
   /// In en, this message translates to:
-  /// **'days'**
-  String get dashboard_key_daysUnit;
+  /// **'{count, plural, =1{day} other{days}}'**
+  String dashboard_key_daysUnit(int count);
 
   /// No description provided for @dashboard_key_vsPrevious.
   ///

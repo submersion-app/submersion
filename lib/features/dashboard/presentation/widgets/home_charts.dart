@@ -86,7 +86,10 @@ class _SparklinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SparklinePainter old) =>
-      old.values != values || old.color != color;
+      old.values != values ||
+      old.color != color ||
+      old.invert != invert ||
+      old.fill != fill;
 }
 
 /// Vertical bars for [values], with an optional label under each.
@@ -360,5 +363,11 @@ class _DayGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DayGridPainter old) =>
-      old.counts != counts || old.weeks != weeks || old.filled != filled;
+      old.counts != counts ||
+      old.weeks != weeks ||
+      old.filled != filled ||
+      old.empty != empty ||
+      old.from != from ||
+      old.to != to ||
+      old.lastMonday != lastMonday;
 }

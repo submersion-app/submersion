@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
@@ -130,4 +131,22 @@ void main() {
       expect(await container.read(homeLatestProfileProvider.future), isNull);
     },
   );
+
+  test('days since the last dive count to the clock\'s today', () async {
+    // Read from the clock, not the wall time, so the count follows the
+    // local-day tick that refreshes it at midnight.
+    final container = ProviderContainer(
+      overrides: [
+        recentDivesProvider.overrideWith(
+          (ref) async => [Dive(id: 'd', dateTime: DateTime(2026, 3, 1, 10))],
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final days = await withClock(
+      Clock.fixed(DateTime(2026, 3, 4, 9)),
+      () => container.read(daysSinceLastDiveProvider.future),
+    );
+    expect(days, 3);
+  });
 }

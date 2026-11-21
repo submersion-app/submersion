@@ -5,6 +5,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
+import 'package:submersion/features/documents/presentation/document_l10n.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Where a coming-due item opens.
@@ -14,6 +16,15 @@ String comingDueRoute(ComingDueItem item) => switch (item.kind) {
   ComingDueKind.certification => '/certifications/${item.id}',
   ComingDueKind.document => '/documents/${item.id}',
 };
+
+/// What a row calls its item: a document with no title goes by its type,
+/// as the documents list names it.
+String comingDueName(AppLocalizations l10n, ComingDueItem item) {
+  final type = item.documentType;
+  return item.name.trim().isEmpty && type != null
+      ? documentTypeLabel(l10n, type)
+      : item.name;
+}
 
 IconData _icon(ComingDueKind kind) => switch (kind) {
   ComingDueKind.gear => Icons.build_outlined,
@@ -39,7 +50,7 @@ class ComingDuePanel extends ConsumerWidget {
       title: l10n.dashboard_panel_comingDue,
       semanticsValue: first == null
           ? l10n.dashboard_panel_nothingDue
-          : '${first.name} ${units.formatDate(first.due)}',
+          : '${comingDueName(l10n, first)} ${units.formatDate(first.due)}',
       onTap: first == null ? null : () => context.push(comingDueRoute(first)),
       fit: HomePanelFit.clip,
       child: HomePanelAsync<List<ComingDueItem>>(
@@ -66,7 +77,7 @@ class ComingDuePanel extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          item.name,
+                          comingDueName(l10n, item),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall,

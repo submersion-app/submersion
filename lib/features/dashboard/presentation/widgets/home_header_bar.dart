@@ -343,6 +343,8 @@ class HomeStatusStrip extends ConsumerWidget {
           ),
       ];
     }
+    // Loading, or every light hidden: no empty bordered bar under the header.
+    if (children.isEmpty) return const SizedBox.shrink();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),

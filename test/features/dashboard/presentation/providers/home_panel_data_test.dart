@@ -4,6 +4,7 @@ import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -140,8 +141,18 @@ void main() {
           (id: 'c1', name: 'Nitrox', expiry: DateTime(2026, 11, 1)),
         ],
         documents: [
-          (id: 'd1', name: 'Medical', expiry: DateTime(2027, 6, 1)),
-          (id: 'd2', name: 'Far away', expiry: DateTime(2030, 1, 1)),
+          (
+            id: 'd1',
+            name: 'Medical',
+            expiry: DateTime(2027, 6, 1),
+            type: DocumentType.medicalClearance,
+          ),
+          (
+            id: 'd2',
+            name: 'Far away',
+            expiry: DateTime(2030, 1, 1),
+            type: DocumentType.permit,
+          ),
         ],
         now: _now,
         max: 3,
@@ -158,7 +169,14 @@ void main() {
           (id: 'old', name: 'First aid 2017', expiry: DateTime(2017, 5, 1)),
           (id: 'new', name: 'Nitrox', expiry: DateTime(2026, 10, 1)),
         ],
-        documents: [(id: 'd', name: 'Medical', expiry: DateTime(2027, 2, 1))],
+        documents: [
+          (
+            id: 'd',
+            name: 'Medical',
+            expiry: DateTime(2027, 2, 1),
+            type: DocumentType.medicalClearance,
+          ),
+        ],
         now: _now,
       );
       expect(items.map((i) => i.name), ['Nitrox', 'Medical']);

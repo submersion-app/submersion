@@ -31,11 +31,12 @@ class DivesPerMonthPanel extends ConsumerWidget {
         emptyText: l10n.dashboard_panel_noDives,
         builder: (m) => HomeBars(
           [for (final c in m) c.count.toDouble()],
+          // The narrow standalone month (CLDR's one-letter form): the first
+          // character of the short name is the same for several months in
+          // some languages (1月, 10月, 11月 and 12月 in Chinese).
           labels: [
             for (final c in m)
-              DateFormat.MMM(
-                locale,
-              ).format(DateTime(c.year, c.month)).characters.first,
+              DateFormat('LLLLL', locale).format(DateTime(c.year, c.month)),
           ],
         ),
       ),

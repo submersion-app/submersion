@@ -7,6 +7,7 @@ import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/home_presets.dart';
 import 'package:submersion/features/dashboard/presentation/panels/key_numbers_panel.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -42,6 +43,7 @@ class HomeAppearancePage extends ConsumerWidget {
     final hiddenTiles = ref.watch(
       settingsProvider.select((s) => s.hiddenHomeKeyNumbers),
     );
+    final lane = ref.watch(homeSacLaneProvider);
     final notifier = ref.read(settingsProvider.notifier);
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -179,7 +181,7 @@ class HomeAppearancePage extends ConsumerWidget {
             return _PanelTile(
               key: Key('homePanelTile_${panel.name}'),
               index: index,
-              name: homePanelLabel(l10n, panel),
+              name: homePanelLabel(l10n, panel, lane: lane),
               subtitle: keyNumbers
                   ? l10n.settings_homePanels_keyNumbersCount(
                       tilesShown,

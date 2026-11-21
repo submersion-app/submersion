@@ -83,6 +83,28 @@ void main() {
       expect(find.text('DIVES PER MONTH'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('month labels stay distinct where names share a first '
+        'character', (tester) async {
+      // Chinese abbreviations are 1月 to 12月: a first character would
+      // label October, November and December all "1".
+      await pumpPanel(
+        tester,
+        const DivesPerMonthPanel(),
+        locale: const Locale('zh'),
+        overrides: [
+          homeMonthlyDivesProvider.overrideWith(
+            (ref) async => [
+              for (var m = 1; m <= 12; m++) MonthCount(2026, m, 1),
+            ],
+          ),
+        ],
+      );
+      expect(find.text('10'), findsOneWidget);
+      expect(find.text('11'), findsOneWidget);
+      expect(find.text('12'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+    });
   });
 
   testWidgets('dives per month with no dives in the year says so', (
@@ -143,6 +165,27 @@ void main() {
       await tester.tap(find.byType(DepthMixPanel));
       await tester.pumpAndSettle();
       expect(nav.location, '/insights');
+    });
+
+    testWidgets('reads its bands and counts to a screen reader', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPanel(
+        tester,
+        const DepthMixPanel(),
+        overrides: [
+          diveStatisticsProvider.overrideWith(
+            (ref) async => _stats(depths: _depths),
+          ),
+        ],
+      );
+      // The bars are the panel's only numbers, so the label carries them.
+      expect(
+        find.bySemanticsLabel(RegExp(r'^Depth mix, .*10-20.*: 8')),
+        findsOneWidget,
+      );
+      semantics.dispose();
     });
 
     testWidgets('labels bands in feet for an imperial diver', (tester) async {

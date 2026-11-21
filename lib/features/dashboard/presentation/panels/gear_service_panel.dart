@@ -9,6 +9,7 @@ import 'package:submersion/features/dashboard/presentation/widgets/home_panel.da
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/equipment_service_navigation.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -23,9 +24,14 @@ class GearServicePanel extends ConsumerWidget {
     final bars = ref.watch(homeGearServiceProvider);
     final list = bars.value ?? const <GearServiceBar>[];
     final max = homeWidthTierOf(context) == HomeWidthTier.phone ? 3 : 5;
-    final anyOverdue = list.any(
-      (b) => b.status.severity == ServiceClockSeverity.overdue,
-    );
+    bool any(ServiceClockSeverity s) => list.any((b) => b.status.severity == s);
+    // The list narrowed to the bars' worst severity; with nothing due, the
+    // whole list, since a due-soon filter would show no rows.
+    final ServiceDueFilter? due = any(ServiceClockSeverity.overdue)
+        ? ServiceDueFilter.overdue
+        : any(ServiceClockSeverity.dueSoon)
+        ? ServiceDueFilter.dueSoon
+        : null;
     return HomePanel(
       title: l10n.dashboard_panel_gearService,
       semanticsValue: list.isEmpty
@@ -33,11 +39,15 @@ class GearServicePanel extends ConsumerWidget {
           : '${list.first.itemName} ${gearRemainingText(l10n, list.first.status)}',
       onTap: bars.hasValue && list.isEmpty
           ? () => context.push('/equipment/new')
-          : () => openEquipmentWithServiceDue(
-              context,
-              ref,
-              anyOverdue ? ServiceDueFilter.overdue : ServiceDueFilter.dueSoon,
-            ),
+          : due != null
+          ? () => openEquipmentWithServiceDue(context, ref, due)
+          : () {
+              // Cleared, as the severity route replaces it: a leftover
+              // filter would hide some of the gear the panel just showed.
+              ref.read(equipmentFilterProvider.notifier).state =
+                  const EquipmentFilterState();
+              context.push('/equipment');
+            },
       fit: HomePanelFit.clip,
       child: HomePanelAsync<List<GearServiceBar>>(
         value: bars,

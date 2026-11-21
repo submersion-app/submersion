@@ -6403,7 +6403,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Waiting for download';
 
   @override
-  String get dashboard_allHidden_message => 'All Home cards are hidden.';
+  String get dashboard_allHidden_message => 'No panels to show.';
 
   @override
   String get dashboard_allHidden_customize => 'Customize Home';
@@ -64948,7 +64948,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dashboard_key_hoursThisYear(int hours) {
+  String dashboard_key_hoursThisYear(String hours) {
     return '+$hours h this year';
   }
 
@@ -64956,7 +64956,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_key_hoursUnit => 'h';
 
   @override
-  String get dashboard_key_daysUnit => 'days';
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'days',
+      one: 'day',
+    );
+    return '$_temp0';
+  }
 
   @override
   String dashboard_key_vsPrevious(String change) {

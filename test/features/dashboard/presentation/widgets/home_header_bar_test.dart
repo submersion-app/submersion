@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -230,6 +232,14 @@ void main() {
       hiddenChips: {for (final t in HomeChipType.values) t.name},
     );
     expect(find.text('All clear'), findsNothing);
+    // No empty, bordered bar is left behind under the header.
+    expect(tester.getSize(find.byType(HomeStatusStrip)).height, 0);
+  });
+
+  testWidgets('phone: no empty strip while the lights load', (tester) async {
+    final never = Completer<DashboardGauges>();
+    await _pump(tester, width: 390, gauges: () => never.future);
+    expect(tester.getSize(find.byType(HomeStatusStrip)).height, 0);
   });
 
   testWidgets('phone: the sheet lists warnings before quiet lights', (

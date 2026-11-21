@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
@@ -11,6 +12,9 @@ import 'package:submersion/features/dashboard/presentation/providers/home_panel_
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
@@ -86,7 +90,10 @@ final homeAveragesProvider =
       final pressure = ref.watch(homeSacLaneProvider) == GasConsumptionLane.sac;
       final since = homeWindowStart(clock.now());
       final window = DiveFilterState(startDate: since);
-      // Started together: the two reads do not depend on each other.
+      // Started together: the two reads do not depend on each other. Awaited
+      // through Future.wait, which listens to both at once: awaiting them in
+      // turn would leave the second unheard, and an error it raised before
+      // the first finished would be reported as uncaught.
       final sacF = pressure
           ? repository.getSacPressurePerDive(diverId: diverId, filter: window)
           : repository.getSacVolumePerDive(diverId: diverId, filter: window);
@@ -94,6 +101,7 @@ final homeAveragesProvider =
         diverId: diverId,
         since: since,
       );
+      await Future.wait<Object>([sacF, averagesF]);
       final sac = await sacF;
       final averages = await averagesF;
       return (
@@ -179,13 +187,24 @@ final homeGearServiceProvider = FutureProvider<List<GearServiceBar>>((
 });
 
 /// Gear services, insurance, certifications and documents coming due.
+///
+/// Documents are read in full rather than taken from the status lights,
+/// which hold only those already inside their reminder window: the panel
+/// looks a year ahead.
 final homeComingDueProvider = FutureProvider<List<ComingDueItem>>((ref) async {
   ref.invalidateSelfWhen(localDayChanges());
-  final clocks = await ref.watch(activeEquipmentClocksProvider.future);
-  final gauges = await ref.watch(dashboardGaugesProvider.future);
+  final documentRepository = ref.watch(documentRepositoryProvider);
+  ref.invalidateSelfWhen(documentRepository.watchChanges());
+  // Watched together before any await, so they load in parallel.
+  final clocksF = ref.watch(activeEquipmentClocksProvider.future);
+  final gaugesF = ref.watch(dashboardGaugesProvider.future);
+  final diverF = ref.watch(validatedCurrentDiverIdProvider.future);
   // A state notifier, not a future: certifications join once loaded, and
   // the panel rebuilds when they do.
   final certs = ref.watch(certificationListNotifierProvider).value ?? const [];
+  final clocks = await clocksF;
+  final gauges = await gaugesF;
+  final diverId = await diverF;
   return comingDueItems(
     clocks: clocks,
     insurance: gauges.insurance,
@@ -194,14 +213,42 @@ final homeComingDueProvider = FutureProvider<List<ComingDueItem>>((ref) async {
         if (c.expiryDate != null)
           (id: c.id, name: c.name, expiry: c.expiryDate!),
     ],
-    documents: [
-      for (final (doc, _) in gauges.attentionDocuments)
-        if (doc.expiryDate != null)
-          (id: doc.id, name: doc.title, expiry: doc.expiryDate!),
-    ],
+    documents: diverId == null
+        ? const []
+        : await _expiringDocuments(documentRepository, diverId),
     now: clock.now(),
   );
 });
+
+const _log = LoggerService('HomePanels');
+
+/// The diver's dated documents other than insurance, which the panel takes
+/// from the diver's policy. A failed read leaves the documents out rather
+/// than hiding the gear and certifications with it.
+Future<List<DocumentExpiry>> _expiringDocuments(
+  DocumentRepository repository,
+  String diverId,
+) async {
+  try {
+    return [
+      for (final doc in await repository.getRemindingForDiver(diverId))
+        if (doc.type != DocumentType.insurance && doc.expiryDate != null)
+          (
+            id: doc.id,
+            name: doc.title.trim(),
+            expiry: doc.expiryDate!,
+            type: doc.type,
+          ),
+    ];
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to read documents for coming due',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return const [];
+  }
+}
 
 /// Distinct species the diver has seen.
 final homeSpeciesCountProvider = FutureProvider<int>((ref) async {

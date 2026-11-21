@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -117,15 +118,28 @@ class ComingDueItem {
   final String name;
   final DateTime due;
 
+  /// A document's type, so one with no title is named by its type. Null
+  /// for every other kind.
+  final DocumentType? documentType;
+
   const ComingDueItem({
     required this.kind,
     required this.id,
     required this.name,
     required this.due,
+    this.documentType,
   });
 }
 
 typedef NamedExpiry = ({String id, String name, DateTime expiry});
+
+/// A document's expiry, with its type for naming an untitled one.
+typedef DocumentExpiry = ({
+  String id,
+  String name,
+  DateTime expiry,
+  DocumentType type,
+});
 
 /// Everything with a date within a year of [now], soonest first, at most
 /// [max]. Lapsed gear service always shows; a certification or document
@@ -135,7 +149,7 @@ List<ComingDueItem> comingDueItems({
   required List<EquipmentClocks> clocks,
   required DiverInsurance? insurance,
   required List<NamedExpiry> certifications,
-  required List<NamedExpiry> documents,
+  required List<DocumentExpiry> documents,
   required DateTime now,
   int max = 5,
 }) {
@@ -172,6 +186,7 @@ List<ComingDueItem> comingDueItems({
             id: d.id,
             name: d.name,
             due: d.expiry,
+            documentType: d.type,
           ),
       ].where((i) {
         if (!i.due.isBefore(horizon)) return false;

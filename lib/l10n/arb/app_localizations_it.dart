@@ -6502,8 +6502,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'In attesa di download';
 
   @override
-  String get dashboard_allHidden_message =>
-      'Tutte le schede della Home sono nascoste.';
+  String get dashboard_allHidden_message => 'Nessun pannello da mostrare.';
 
   @override
   String get dashboard_allHidden_customize => 'Personalizza Home';
@@ -65957,7 +65956,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String dashboard_key_hoursThisYear(int hours) {
+  String dashboard_key_hoursThisYear(String hours) {
     return '+$hours h quest\'anno';
   }
 
@@ -65965,7 +65964,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboard_key_hoursUnit => 'h';
 
   @override
-  String get dashboard_key_daysUnit => 'giorni';
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'giorni',
+      one: 'giorno',
+    );
+    return '$_temp0';
+  }
 
   @override
   String dashboard_key_vsPrevious(String change) {

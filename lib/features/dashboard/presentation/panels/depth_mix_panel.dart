@@ -19,9 +19,17 @@ class DepthMixPanel extends ConsumerWidget {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
     final stats = ref.watch(diveStatisticsProvider);
+    // The bars are the panel's only numbers, so a screen reader hears each
+    // band with its count.
+    final bands = trimmedDepthBands(
+      stats.value?.depthDistribution ?? const <DepthRangeStat>[],
+    );
     return HomePanel(
       title: l10n.dashboard_panel_depthMix,
-      semanticsValue: '',
+      semanticsValue: [
+        for (final b in bands)
+          '${depthBucketLabel(b, units, l10n)}: ${b.count}',
+      ].join(', '),
       onTap: () => context.push('/insights'),
       child: HomePanelAsync<DiveStatistics>(
         value: stats,

@@ -346,6 +346,26 @@ void main() {
     expect(find.text(l10n.dashboard_allHidden_customize), findsOneWidget);
   });
 
+  testWidgets('panels on but with nothing to show never claim to be hidden', (
+    tester,
+  ) async {
+    // Only On this day is on, and today it has nothing.
+    await pumpHome(
+      tester,
+      settings: AppSettings(
+        homePanelOrder: [for (final p in HomePanelType.values) p.name],
+        hiddenHomePanels: {
+          for (final p in HomePanelType.values)
+            if (p != HomePanelType.onThisDay) p.name,
+        },
+      ),
+    );
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(find.text(l10n.dashboard_allHidden_message), findsOneWidget);
+    expect(find.textContaining('hidden'), findsNothing);
+    expect(find.textContaining('cards'), findsNothing);
+  });
+
   testWidgets('demo mode puts its card above the panels', (tester) async {
     await pumpHome(tester, demo: true);
     final demo = tester.getRect(find.byType(DemoModeDashboardCard));

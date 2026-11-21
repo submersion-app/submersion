@@ -69,13 +69,15 @@ final dashboardDiverProvider = FutureProvider<Diver?>((ref) async {
   return ref.watch(currentDiverProvider.future);
 });
 
-/// Days since last dive provider
+/// Days since last dive provider. Today is read once per build, so midnight
+/// must rebuild it too, or the count holds yesterday's answer.
 final daysSinceLastDiveProvider = FutureProvider<int?>((ref) async {
+  ref.invalidateSelfWhen(localDayChanges());
   final recentDives = await ref.watch(recentDivesProvider.future);
   if (recentDives.isEmpty) return null;
 
   final lastDive = recentDives.first.effectiveEntryTime;
-  final now = DateTime.now();
+  final now = clock.now();
   final diveDay = DateTime(lastDive.year, lastDive.month, lastDive.day);
   final today = DateTime(now.year, now.month, now.day);
   return today.difference(diveDay).inDays;

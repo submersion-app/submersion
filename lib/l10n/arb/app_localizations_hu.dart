@@ -6485,8 +6485,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeCards_card_waitingForDownload => 'Letöltésre vár';
 
   @override
-  String get dashboard_allHidden_message =>
-      'Minden kezdőlapi kártya el van rejtve.';
+  String get dashboard_allHidden_message => 'Nincs megjeleníthető panel.';
 
   @override
   String get dashboard_allHidden_customize => 'Kezdőlap testreszabása';
@@ -65594,7 +65593,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dashboard_key_hoursThisYear(int hours) {
+  String dashboard_key_hoursThisYear(String hours) {
     return '+$hours ó idén';
   }
 
@@ -65602,7 +65601,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_key_hoursUnit => 'ó';
 
   @override
-  String get dashboard_key_daysUnit => 'nap';
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'nap',
+    );
+    return '$_temp0';
+  }
 
   @override
   String dashboard_key_vsPrevious(String change) {

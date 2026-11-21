@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dashboard/presentation/panels/coming_due_panel.dart';
 import 'package:submersion/features/dashboard/presentation/panels/gear_service_panel.dart';
@@ -6,10 +8,15 @@ import 'package:submersion/features/dashboard/presentation/panels/next_trip_pane
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'panel_harness.dart';
 
@@ -81,6 +88,39 @@ void main() {
       expect(nav.location, startsWith('/equipment'));
     });
 
+    testWidgets('with nothing due, a tap opens all the gear, not a '
+        'due-soon list that would be empty', (tester) async {
+      final nav = await pumpPanel(
+        tester,
+        const GearServicePanel(),
+        overrides: [
+          homeGearServiceProvider.overrideWith(
+            (ref) async => [
+              GearServiceBar(
+                itemId: 'bcd',
+                itemName: 'BCD',
+                status: _clock(
+                  ServiceClockSeverity.ok,
+                  due: DateTime.now().add(const Duration(days: 200)),
+                ),
+                fraction: 0.4,
+              ),
+            ],
+          ),
+        ],
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GearServicePanel)),
+      );
+      // A filter left over from the equipment list must not hide the gear.
+      container.read(equipmentFilterProvider.notifier).state =
+          const EquipmentFilterState(serviceDue: ServiceDueFilter.dueSoon);
+      await tester.tap(find.byType(GearServicePanel));
+      await tester.pumpAndSettle();
+      expect(nav.location, '/equipment');
+      expect(container.read(equipmentFilterProvider).serviceDue, isNull);
+    });
+
     testWidgets('with no gear it offers to add some', (tester) async {
       final nav = await pumpPanel(
         tester,
@@ -147,6 +187,31 @@ void main() {
       await tester.tap(find.text('DAN'));
       await tester.pumpAndSettle();
       expect(nav.location, '/documents?type=insurance');
+    });
+
+    testWidgets('an untitled document goes by its type', (tester) async {
+      await pumpPanel(
+        tester,
+        const ComingDuePanel(),
+        overrides: [
+          homeComingDueProvider.overrideWith(
+            (ref) async => [
+              ComingDueItem(
+                kind: ComingDueKind.document,
+                id: 'd1',
+                name: '',
+                due: DateTime(2027, 3, 14),
+                documentType: DocumentType.permit,
+              ),
+            ],
+          ),
+        ],
+      );
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      expect(
+        find.text(documentTypeLabel(l10n, DocumentType.permit)),
+        findsOneWidget,
+      );
     });
 
     testWidgets('nothing due says so', (tester) async {

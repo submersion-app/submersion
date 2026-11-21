@@ -6519,8 +6519,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'En attente de téléchargement';
 
   @override
-  String get dashboard_allHidden_message =>
-      'Toutes les cartes de l\'accueil sont masquées.';
+  String get dashboard_allHidden_message => 'Aucun panneau à afficher.';
 
   @override
   String get dashboard_allHidden_customize => 'Personnaliser l\'accueil';
@@ -66099,7 +66098,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String dashboard_key_hoursThisYear(int hours) {
+  String dashboard_key_hoursThisYear(String hours) {
     return '+$hours h cette année';
   }
 
@@ -66107,7 +66106,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dashboard_key_hoursUnit => 'h';
 
   @override
-  String get dashboard_key_daysUnit => 'jours';
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'jours',
+      one: 'jour',
+    );
+    return '$_temp0';
+  }
 
   @override
   String dashboard_key_vsPrevious(String change) {

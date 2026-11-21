@@ -6464,7 +6464,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeCards_card_waitingForDownload => 'Wacht op download';
 
   @override
-  String get dashboard_allHidden_message => 'Alle startkaarten zijn verborgen.';
+  String get dashboard_allHidden_message => 'Geen panelen om te tonen.';
 
   @override
   String get dashboard_allHidden_customize => 'Start aanpassen';
@@ -65560,7 +65560,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String dashboard_key_hoursThisYear(int hours) {
+  String dashboard_key_hoursThisYear(String hours) {
     return '+$hours u dit jaar';
   }
 
@@ -65568,7 +65568,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_key_hoursUnit => 'u';
 
   @override
-  String get dashboard_key_daysUnit => 'dagen';
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'dagen',
+      one: 'dag',
+    );
+    return '$_temp0';
+  }
 
   @override
   String dashboard_key_vsPrevious(String change) {

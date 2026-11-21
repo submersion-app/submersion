@@ -1,14 +1,32 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+
+/// A repository whose SAC read finishes only when the test says so.
+class _SlowSac extends InsightsRepository {
+  final Future<List<TrendDataPoint>> sac;
+
+  _SlowSac(this.sac);
+
+  @override
+  Future<List<TrendDataPoint>> getSacVolumePerDive({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    int? limit,
+  }) => sac;
+}
 
 /// The "vs average" SAC is the average over the same twelve months as the
 /// depth and runtime averages, not over the 30 dives the trend panel draws.
@@ -85,4 +103,31 @@ void main() {
     final result = await container.read(homeAveragesProvider.future);
     expect(result.sac, closeTo(expected, 1e-9));
   });
+
+  test(
+    'a failed averages read is the provider error, never an uncaught one',
+    () async {
+      // The averages query fails while the SAC read is still running: an
+      // error with nothing listening yet would be reported as uncaught, and
+      // fail this test, before the provider got to it.
+      await db.customStatement('DROP TABLE dives');
+      final sac = Completer<List<TrendDataPoint>>();
+      final container = ProviderContainer(
+        // No retry: the error must reach the future, not a later attempt.
+        retry: (_, _) => null,
+        overrides: [
+          insightsRepositoryProvider.overrideWithValue(_SlowSac(sac.future)),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          homeSacLaneProvider.overrideWithValue(GasConsumptionLane.rmv),
+        ],
+      );
+      addTearDown(container.dispose);
+      final result = container.read(homeAveragesProvider.future);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      sac.complete(const []);
+      await expectLater(result, throwsA(anything));
+    },
+  );
 }

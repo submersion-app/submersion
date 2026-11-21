@@ -146,31 +146,27 @@ class KeyNumbersPanel extends ConsumerWidget {
           onTap: () => context.push('/dives'),
         );
       case HomeKeyNumber.timeUnder:
-        // A decimal under ten hours, so a first 45-minute dive is not "0".
-        final exact = n.careerTimeSeconds / 3600;
-        final hours = exact < 10
-            ? exact.toStringAsFixed(1)
-            : exact.floor().toString();
+        final hours = _hours(n.careerTimeSeconds);
+        final yearSeconds = n.timeThisYearSeconds;
         return _Tile(
           title: l10n.dashboard_key_timeUnder,
           value: hours,
           highlight: true,
           unit: l10n.dashboard_key_hoursUnit,
-          comparison: n.timeThisYearSeconds == null
+          comparison: yearSeconds == null
               ? null
-              : l10n.dashboard_key_hoursThisYear(
-                  n.timeThisYearSeconds! ~/ 3600,
-                ),
+              : l10n.dashboard_key_hoursThisYear(_hours(yearSeconds)),
           semantics: '$hours ${l10n.dashboard_key_hoursUnit}',
           onTap: () => context.push('/insights'),
         );
       case HomeKeyNumber.lastDive:
+        final days = n.daysSinceLastDive!;
         return _Tile(
           title: l10n.dashboard_key_lastDive,
-          value: '${n.daysSinceLastDive}',
-          unit: l10n.dashboard_key_daysUnit,
+          value: '$days',
+          unit: l10n.dashboard_key_daysUnit(days),
           comparison: n.lastDiveSite,
-          semantics: '${n.daysSinceLastDive} ${l10n.dashboard_key_daysUnit}',
+          semantics: '$days ${l10n.dashboard_key_daysUnit(days)}',
           onTap: () => context.push('/dives/${n.lastDiveId}'),
         );
       case HomeKeyNumber.avgSac:
@@ -179,11 +175,18 @@ class KeyNumbersPanel extends ConsumerWidget {
             ? units.convertSac(n.avgSac!)
             : units.convertRmv(n.avgSac!);
         final change = n.avgSacChange;
-        final changeText = change == null
+        // Rounded before the sign is chosen, so a change too small to show
+        // reads 0.0 rather than +0.0 or -0.0.
+        final shownChange = change == null
             ? null
-            : (change > 0 ? '+' : '') +
-                  (sac ? units.convertSac(change) : units.convertRmv(change))
-                      .toStringAsFixed(1);
+            : ((sac ? units.convertSac(change) : units.convertRmv(change)) * 10)
+                      .round() /
+                  10;
+        final changeText = shownChange == null
+            ? null
+            : shownChange == 0
+            ? 0.0.toStringAsFixed(1)
+            : (shownChange > 0 ? '+' : '') + shownChange.toStringAsFixed(1);
         final unit = sac ? units.sacSymbol : units.rmvSymbol;
         return _Tile(
           title: sac ? l10n.dashboard_key_avgSac : l10n.dashboard_key_avgRmv,
@@ -211,10 +214,11 @@ class KeyNumbersPanel extends ConsumerWidget {
         );
       case HomeKeyNumber.nextTrip:
         final trip = n.nextTrip!;
+        final tripDays = trip.daysUntilStart;
         return _Tile(
           title: l10n.dashboard_key_nextTrip,
-          value: '${trip.daysUntilStart}',
-          unit: l10n.dashboard_key_daysUnit,
+          value: '$tripDays',
+          unit: l10n.dashboard_key_daysUnit(tripDays),
           comparison: n.tripChecklistTotal == null
               ? trip.name
               : l10n.dashboard_key_tripChecklist(
@@ -223,7 +227,7 @@ class KeyNumbersPanel extends ConsumerWidget {
                   n.tripChecklistTotal!,
                 ),
           semantics:
-              '${trip.name}, ${trip.daysUntilStart} ${l10n.dashboard_key_daysUnit}',
+              '${trip.name}, $tripDays ${l10n.dashboard_key_daysUnit(tripDays)}',
           onTap: () => context.push('/trips/${trip.id}'),
         );
       case HomeKeyNumber.avgDepth:
@@ -253,6 +257,13 @@ class KeyNumbersPanel extends ConsumerWidget {
         );
     }
   }
+}
+
+/// Hours from [seconds]: a decimal under ten, so a first 45-minute dive is
+/// not "0", and whole hours from there.
+String _hours(int seconds) {
+  final exact = seconds / 3600;
+  return exact < 10 ? exact.toStringAsFixed(1) : exact.floor().toString();
 }
 
 /// One number tile: title, value with its unit, a comparison line, and a
@@ -340,14 +351,21 @@ class _Tile extends StatelessWidget {
 }
 
 /// Exposed for the settings sub-page: a tile's name in the diver's language.
-String homeKeyNumberLabel(AppLocalizations l10n, HomeKeyNumber tile) =>
-    switch (tile) {
-      HomeKeyNumber.dives => l10n.dashboard_key_dives,
-      HomeKeyNumber.timeUnder => l10n.dashboard_key_timeUnder,
-      HomeKeyNumber.lastDive => l10n.dashboard_key_lastDive,
-      HomeKeyNumber.avgSac => l10n.dashboard_key_avgSac,
-      HomeKeyNumber.deepestThisYear => l10n.dashboard_key_deepestThisYear,
-      HomeKeyNumber.nextTrip => l10n.dashboard_key_nextTrip,
-      HomeKeyNumber.avgDepth => l10n.dashboard_key_avgDepth,
-      HomeKeyNumber.species => l10n.dashboard_key_species,
-    };
+/// The gas tile takes the name Home shows it by, from the diver's [lane].
+String homeKeyNumberLabel(
+  AppLocalizations l10n,
+  HomeKeyNumber tile, {
+  required GasConsumptionLane lane,
+}) => switch (tile) {
+  HomeKeyNumber.dives => l10n.dashboard_key_dives,
+  HomeKeyNumber.timeUnder => l10n.dashboard_key_timeUnder,
+  HomeKeyNumber.lastDive => l10n.dashboard_key_lastDive,
+  HomeKeyNumber.avgSac =>
+    lane == GasConsumptionLane.sac
+        ? l10n.dashboard_key_avgSac
+        : l10n.dashboard_key_avgRmv,
+  HomeKeyNumber.deepestThisYear => l10n.dashboard_key_deepestThisYear,
+  HomeKeyNumber.nextTrip => l10n.dashboard_key_nextTrip,
+  HomeKeyNumber.avgDepth => l10n.dashboard_key_avgDepth,
+  HomeKeyNumber.species => l10n.dashboard_key_species,
+};

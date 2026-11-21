@@ -157,7 +157,9 @@ class DashboardPage extends ConsumerWidget {
                     SliverPadding(
                       padding: const EdgeInsets.all(12),
                       // The first-dive panel cannot be hidden, so an empty
-                      // log keeps the grid even with every panel off.
+                      // log keeps the grid even with every panel off. With
+                      // dives, no panel to show (all off, or the ones on
+                      // have nothing today) points at the settings.
                       sliver: visible.isEmpty && !noDives
                           ? const SliverToBoxAdapter(child: _AllHiddenState())
                           : DashboardGrid(
@@ -241,6 +243,8 @@ class DashboardPage extends ConsumerWidget {
     ref.invalidate(homeTopBuddiesProvider);
     ref.invalidate(homeRecentSpeciesProvider);
     ref.invalidate(homeLatestProfileProvider);
+    // Reads the documents itself, so it is not reached through the gauges.
+    ref.invalidate(homeComingDueProvider);
     ref.invalidate(homeNewSpeciesThisYearProvider);
     ref.invalidate(homeKeyNumbersProvider);
   }

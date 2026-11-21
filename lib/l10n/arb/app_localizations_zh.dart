@@ -6156,7 +6156,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeCards_card_waitingForDownload => '等待下载';
 
   @override
-  String get dashboard_allHidden_message => '所有主页卡片均已隐藏。';
+  String get dashboard_allHidden_message => '没有可显示的面板。';
 
   @override
   String get dashboard_allHidden_customize => '自定义主页';
@@ -61856,7 +61856,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String dashboard_key_hoursThisYear(int hours) {
+  String dashboard_key_hoursThisYear(String hours) {
     return '今年 +$hours 小时';
   }
 
@@ -61864,7 +61864,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_key_hoursUnit => '小时';
 
   @override
-  String get dashboard_key_daysUnit => '天';
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '天',
+    );
+    return '$_temp0';
+  }
 
   @override
   String dashboard_key_vsPrevious(String change) {
