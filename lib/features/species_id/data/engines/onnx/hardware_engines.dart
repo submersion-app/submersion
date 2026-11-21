@@ -70,19 +70,45 @@ class WindowsMlEngines implements HardwareEngines {
 
   @override
   Future<bool> fetchEngine() async {
-    // Elapsed time, not the wall clock, which a clock change can move.
-    final clock = Stopwatch()..start();
+    // One timer keeps the deadline for every engine: a clock change cannot
+    // move it, and whether time is left is read from the same timer that
+    // ends a download, so the two can never disagree.
+    final passed = Completer<void>();
+    final timer = Timer(fetchTimeout, passed.complete);
     var anyReady = false;
-    for (final engine in await _engines()) {
-      if (engine.state != WinMlReadyState.notPresent) continue;
-      final left = fetchTimeout - clock.elapsed;
-      if (left <= Duration.zero) {
-        _log.warning('No time left to fetch Windows ML engine ${engine.name}');
-        break;
+    try {
+      for (final engine in await _engines()) {
+        if (engine.state != WinMlReadyState.notPresent) continue;
+        if (passed.isCompleted) {
+          _log.warning(
+            'No time left to fetch Windows ML engine ${engine.name}',
+          );
+          break;
+        }
+        anyReady = await _fetch(engine.name, passed.future) || anyReady;
       }
-      anyReady = await _prepare(engine.name, left) || anyReady;
+    } finally {
+      timer.cancel();
     }
     return anyReady;
+  }
+
+  /// Fetches [name] until [deadline]; never throws. A download the deadline
+  /// cuts short goes on in its own isolate and does no harm.
+  Future<bool> _fetch(String name, Future<void> deadline) async {
+    try {
+      final ready = await Future.any([
+        _catalogue.ensureReady(name),
+        deadline.then<bool>((_) => throw TimeoutException(null, fetchTimeout)),
+      ]);
+      _log.info('Windows ML engine $name: ready $ready');
+      return ready;
+    } on TimeoutException {
+      _log.warning('Windows ML engine $name not fetched within $fetchTimeout');
+    } on Object catch (e) {
+      _log.warning('Windows ML engine $name did not arrive', error: e);
+    }
+    return false;
   }
 
   @override
