@@ -1972,7 +1972,6 @@
   "@buddies_gear_allReturned": {"description": "Action on the gear section: everything came back"},
   "buddies_action_sort": "Sort",
   "buddies_action_sortTitle": "Sort Buddies",
-  "buddies_action_update": "Update Buddy",
   "buddies_action_viewAll": "View All ({count})",
   "buddies_detail_error": "Error: {error}",
   "buddies_detail_noDivesTogether": "No dives together yet",
@@ -2151,7 +2150,6 @@
   "buddies_linkedProfile_chip": "Profile",
   "buddies_linkedProfile_link": "Link",
   "buddies_linkedProfile_notNow": "Not now",
-  "buddies_linkedProfile_openBuddy": "Open buddy",
   "buddies_linkedProfile_pickerTitle": "Link to a profile",
   "buddies_linkedProfile_refusedSelf": "A buddy cannot be linked to its own profile.",
   "buddies_linkedProfile_refusedTaken": "{buddyName} is already linked to this profile.",
@@ -2171,18 +2169,15 @@
     }
   },
   "buddies_merge_refusedDifferentLinks": "These buddies are linked to different profiles. Merge the profiles first.",
-  "buddies_message_added": "Buddy added successfully",
   "buddies_message_contactImportUnavailable": "Contact import is not available on this platform",
   "buddies_message_contactPermissionRequired": "Contact permission is required to import buddies",
   "buddies_message_deleted": "Buddy deleted",
   "buddies_message_errorImportingContact": "Error importing contact: {error}",
-  "buddies_message_errorLoading": "Error loading buddy: {error}",
   "buddies_message_errorSaving": "Error saving buddy: {error}",
   "buddies_message_exportFailed": "Export failed: {error}",
   "buddies_message_noDivesFound": "No dives found to export",
   "buddies_message_noDivesToShare": "No dives to share with this buddy",
   "buddies_message_preparingExport": "Preparing export...",
-  "buddies_message_updated": "Buddy updated successfully",
   "buddies_picker_add": "Add",
   "buddies_picker_addCustomRole": "Add custom role...",
   "buddies_picker_addNew": "Add New Buddy",
@@ -2240,7 +2235,6 @@
     }
   },
   "buddies_title_add": "Add Buddy",
-  "buddies_title_edit": "Edit Buddy",
   "buddies_title_singular": "Buddy",
   "buddies_validation_emailInvalid": "Please enter a valid email",
   "buddies_validation_nameRequired": "Please enter a name",
@@ -2280,13 +2274,6 @@
     }
   },
   "@buddies_message_errorImportingContact": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@buddies_message_errorLoading": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -2791,18 +2778,9 @@
   "certifications_ecard_statusBadge_expired": "EXPIRED",
   "certifications_ecard_statusBadge_expiring": "EXPIRING",
   "certifications_edit_appBar_add": "Add Certification",
-  "certifications_edit_appBar_edit": "Edit Certification",
-  "certifications_edit_button_add": "Add Certification",
-  "certifications_edit_button_cancel": "Cancel",
-  "certifications_edit_button_save": "Save",
-  "certifications_edit_button_update": "Update Certification",
   "certifications_edit_certification_notSpecified": "Not specified",
   "certifications_edit_datePicker_clearTooltip": "Clear {label}",
   "certifications_edit_datePicker_tapToSelect": "Tap to select",
-  "certifications_edit_dialog_discard": "Discard",
-  "certifications_edit_dialog_discardContent": "You have unsaved changes. Are you sure you want to leave?",
-  "certifications_edit_dialog_discardTitle": "Discard Changes?",
-  "certifications_edit_dialog_keepEditing": "Keep Editing",
   "certifications_edit_group_progression": "Progression",
   "certifications_edit_group_specialties": "Specialties",
   "certifications_edit_group_tdiOpenCircuit": "Open Circuit",
@@ -2872,15 +2850,7 @@
   "certifications_edit_photo_chooseFromGallery": "Choose from Gallery",
   "certifications_edit_photo_removeTooltip": "Remove {label} photo",
   "certifications_edit_photo_takePhoto": "Take Photo",
-  "certifications_edit_sectionTitle_cardPhotos": "Card Photos",
-  "certifications_edit_sectionTitle_dates": "Dates",
-  "certifications_edit_sectionTitle_instructorInfo": "Instructor Information",
-  "certifications_edit_sectionTitle_notes": "Notes",
-  "certifications_edit_snackBar_added": "Certification added successfully",
-  "certifications_edit_snackBar_errorLoading": "Error loading certification: {error}",
   "certifications_edit_snackBar_errorPhoto": "Error picking photo: {error}",
-  "certifications_edit_snackBar_errorSaving": "Error saving certification: {error}",
-  "certifications_edit_snackBar_updated": "Certification updated successfully",
   "certifications_edit_validation_certificationOrTitleRequired": "Choose a certification or enter a title",
   "certifications_list_button_retry": "Retry",
   "certifications_list_empty_button": "Add Your First Certification",
@@ -3050,21 +3020,7 @@
       }
     }
   },
-  "@certifications_edit_snackBar_errorLoading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@certifications_edit_snackBar_errorPhoto": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@certifications_edit_snackBar_errorSaving": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -3692,7 +3648,6 @@
   "courses_action_add": "Add Course",
   "courses_action_addFromTemplate": "Add from template",
   "courses_action_addRequirement": "Add requirement",
-  "courses_action_create": "Create Course",
   "courses_action_deleteRequirement": "Delete requirement",
   "courses_action_editRequirement": "Edit requirement",
   "courses_action_exportTrainingLog": "Export Training Log",
@@ -3701,8 +3656,6 @@
   "courses_action_unlinkDive": "Unlink dive",
   "courses_action_moreOptions": "More options",
   "courses_action_retry": "Retry",
-  "courses_action_saveChanges": "Save Changes",
-  "courses_action_saveSemantic": "Save course",
   "courses_action_sort": "Sort",
   "courses_action_sortTitle": "Sort Courses",
   "courses_card_instructor": "Instructor: {name}",
@@ -3739,7 +3692,6 @@
   "courses_label_location": "Location",
   "courses_label_name": "Name",
   "courses_label_startDate": "Start Date",
-  "courses_message_errorSaving": "Error saving course: {error}",
   "courses_message_exportFailed": "Failed to export training log: {error}",
   "courses_picker_active": "Active",
   "courses_picker_createCourse": "Create Course",
@@ -3823,7 +3775,6 @@
       }
     }
   },
-  "courses_title_edit": "Edit Course",
   "courses_title_new": "New Course",
   "courses_title_singular": "Course",
   "courses_validation_nameRequired": "Please enter a course name",
@@ -3849,13 +3800,6 @@
     }
   },
   "@courses_error_generic": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@courses_message_errorSaving": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -4333,10 +4277,8 @@
   "diveCenters_accessibility_viewSavedCenter": "View saved dive center {name}",
   "diveCenters_action_addCenter": "Add Center",
   "diveCenters_action_clearRating": "Clear",
-  "diveCenters_action_gettingLocation": "Getting...",
   "diveCenters_action_import": "Import",
   "diveCenters_action_importToMyCenters": "Import to My Centers",
-  "diveCenters_action_lookingUp": "Looking up...",
   "diveCenters_action_lookupFromAddress": "Lookup from Address",
   "diveCenters_action_pickFromMap": "Pick from Map",
   "diveCenters_action_retry": "Retry",
@@ -4349,10 +4291,6 @@
   "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 dive will be left without a dive center.} other{{count} dives will be left without a dive center.}}",
   "diveCenters_dialog_deleteMessage": "Are you sure you want to delete \"{name}\"?",
   "diveCenters_dialog_deleteTitle": "Delete Dive Center",
-  "diveCenters_dialog_discard": "Discard",
-  "diveCenters_dialog_discardMessage": "You have unsaved changes. Are you sure you want to discard them?",
-  "diveCenters_dialog_discardTitle": "Discard Changes?",
-  "diveCenters_dialog_keepEditing": "Keep Editing",
   "diveCenters_empty_button": "Add Your First Dive Center",
   "diveCenters_empty_subtitle": "Add your favorite dive shops and operators",
   "diveCenters_empty_title": "No dive centers yet",
@@ -4364,7 +4302,6 @@
   "diveCenters_error_locationUnavailable": "Unable to get location. Location services may not be available.",
   "diveCenters_error_noAddressForLookup": "Please enter an address to look up coordinates",
   "diveCenters_error_notFound": "Dive center not found",
-  "diveCenters_error_saving": "Error saving dive center: {error}",
   "diveCenters_error_unknown": "Unknown error",
   "diveCenters_field_city": "City",
   "diveCenters_field_country": "Country",
@@ -4424,16 +4361,11 @@
   "diveCenters_picker_nearYourLocation": "Near your location",
   "@diveCenters_picker_nearYourLocation": {"description": "Dive center picker section header: centers near where the device is now, for a new dive with no site or GPS"},
   "diveCenters_tag_closed": "Closed",
-  "diveCenters_section_address": "Address",
-  "diveCenters_section_affiliations": "Affiliations",
-  "diveCenters_section_basicInfo": "Basic Information",
   "diveCenters_editCard_map": "Map",
   "@diveCenters_editCard_map": {
     "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
   },
   "diveCenters_section_contact": "Contact",
-  "diveCenters_section_contactInfo": "Contact Information",
-  "diveCenters_section_gpsCoordinates": "GPS Coordinates",
   "diveCenters_section_fillHours": "Fill hours",
   "diveCenters_fillHours_caption": "When the station fills cylinders. The trip fill forecast uses the closing time.",
   "diveCenters_fillHours_opens": "Opens",
@@ -4443,11 +4375,7 @@
   "diveCenters_fillHours_errorBoth": "Set both times, or neither.",
   "diveCenters_fillHours_errorOrder": "Closing time must be after opening time.",
   "diveCenters_section_notes": "Notes",
-  "diveCenters_snackbar_coordinatesFound": "Coordinates found from address",
   "diveCenters_snackbar_imported": "Imported \"{name}\"",
-  "diveCenters_snackbar_locationCaptured": "Location captured",
-  "diveCenters_snackbar_locationCapturedWithAccuracy": "Location captured (±{accuracy}m)",
-  "diveCenters_snackbar_locationSelectedFromMap": "Location selected from map",
   "diveCenters_sort_title": "Sort Dive Centers",
   "diveCenters_summary_countries": "Countries",
   "diveCenters_summary_highestRating": "Highest Rating",
@@ -4480,7 +4408,6 @@
     }
   },
   "diveCenters_title_add": "Add Dive Center",
-  "diveCenters_title_edit": "Edit Dive Center",
   "diveCenters_title_import": "Import Dive Center",
   "diveCenters_tooltip_addNew": "Add a new dive center",
   "diveCenters_tooltip_clearSearch": "Clear search",
@@ -4550,13 +4477,6 @@
       }
     }
   },
-  "@diveCenters_error_saving": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@diveCenters_import_fromDatabase": {
     "placeholders": {
       "count": {
@@ -4595,13 +4515,6 @@
   "@diveCenters_snackbar_imported": {
     "placeholders": {
       "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveCenters_snackbar_locationCapturedWithAccuracy": {
-    "placeholders": {
-      "accuracy": {
         "type": "Object"
       }
     }
@@ -11997,24 +11910,12 @@
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesEdit_addTitle": "Add Species",
-  "marineLife_speciesEdit_addedSnackbar": "Added \"{name}\"",
-  "marineLife_speciesEdit_backTooltip": "Back",
   "marineLife_speciesEdit_categoryLabel": "Category",
   "marineLife_speciesEdit_commonNameError": "Please enter a common name",
-  "marineLife_speciesEdit_commonNameHint": "e.g., Ocellaris Clownfish",
   "marineLife_speciesEdit_commonNameLabel": "Common Name",
-  "marineLife_speciesEdit_descriptionHint": "Brief description of the species...",
   "marineLife_speciesEdit_descriptionLabel": "Description",
-  "marineLife_speciesEdit_editTitle": "Edit Species",
-  "marineLife_speciesEdit_errorLoading": "Error loading species: {error}",
-  "marineLife_speciesEdit_errorSaving": "Error saving species: {error}",
-  "marineLife_speciesEdit_notFoundMessage": "This species no longer exists.",
-  "marineLife_speciesEdit_saveButton": "Save",
-  "marineLife_speciesEdit_scientificNameHint": "e.g., Amphiprion ocellaris",
   "marineLife_speciesEdit_scientificNameLabel": "Scientific Name",
-  "marineLife_speciesEdit_taxonomyClassHint": "e.g., Actinopterygii",
   "marineLife_speciesEdit_taxonomyClassLabel": "Taxonomy Class",
-  "marineLife_speciesEdit_updatedSnackbar": "Updated \"{name}\"",
   "marineLife_speciesManage_allFilter": "All",
   "marineLife_speciesManage_appBarTitle": "Species",
   "marineLife_speciesManage_backTooltip": "Back",
@@ -12427,34 +12328,6 @@
   "@marineLife_speciesDetail_taxonomyClassLabel": {
     "placeholders": {
       "className": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_addedSnackbar": {
-    "placeholders": {
-      "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_errorLoading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_errorSaving": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_updatedSnackbar": {
-    "placeholders": {
-      "name": {
         "type": "Object"
       }
     }
@@ -16785,7 +16658,6 @@
   "documents_section_title": "Documents",
   "documents_section_empty": "No documents attached",
   "documents_edit_newTitle": "New document",
-  "documents_edit_editTitle": "Edit document",
   "documents_field_type": "Type",
   "documents_field_title": "Title",
   "documents_field_issuer": "Issued by",
@@ -16852,15 +16724,6 @@
   "documents_delete_title": "Delete document?",
   "documents_delete_content": "This deletes the document and all its pages on every synced device.",
   "documents_deleted": "Document deleted",
-  "documents_saved": "Document saved",
-  "documents_error_save": "Couldn't save the document: {error}",
-  "@documents_error_save": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "documents_error_load": "Couldn't load documents: {error}",
   "@documents_error_load": {
     "placeholders": {

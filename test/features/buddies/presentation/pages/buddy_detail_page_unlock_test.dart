@@ -147,6 +147,25 @@ void main() {
     expect(harness.save.calls.single.after.excludedFromRankings, isTrue);
   });
 
+  testWidgets('an excluded buddy opens with the switch on, and turning it off '
+      'saves', (tester) async {
+    final harness = await pumpBuddyPage(
+      tester,
+      buddy: alex.copyWith(excludedFromRankings: true),
+    );
+    await unlock(tester);
+    await openCard(tester, l.buddies_section_diveStatistics);
+    final rankings = find.byKey(const ValueKey('buddy-edit-rankings'));
+    expect(tester.widget<SwitchListTile>(rankings).value, isTrue);
+
+    await tester.tap(rankings);
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    expect(harness.save.calls.single.cards, {'statistics'});
+    expect(harness.save.calls.single.after.excludedFromRankings, isFalse);
+  });
+
   testWidgets('empty Contact and Notes are offered in the strip', (
     tester,
   ) async {

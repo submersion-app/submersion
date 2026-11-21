@@ -10,11 +10,9 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
-import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -91,17 +89,6 @@ void main() {
               path: ':id',
               builder: (context, state) =>
                   DocumentDetailPage(documentId: state.pathParameters['id']!),
-              routes: [
-                GoRoute(
-                  path: 'edit',
-                  builder: (context, state) => DocumentEditPage(
-                    documentId: state.pathParameters['id'],
-                    embedded: true,
-                    onSaved: (_) => context.go('/documents'),
-                    onCancel: () {},
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -123,28 +110,6 @@ void main() {
     );
     await t.pumpAndSettle();
   }
-
-  testWidgets('the edit page saves a tag typed into its Tags field', (t) async {
-    final id = (await t.runAsync(() => save('DAN', tagIds: ['travel'])))!;
-    await pump(t, '/documents/$id/edit');
-
-    expect(find.text('Tags'), findsOneWidget);
-    expect(find.text('Travel'), findsOneWidget);
-
-    final input = find.descendant(
-      of: find.byType(TagInputWidget),
-      matching: find.byType(TextField),
-    );
-    await t.ensureVisible(input);
-    await t.enterText(input, 'Club');
-    await t.testTextInput.receiveAction(TextInputAction.done);
-    await t.pumpAndSettle();
-    await t.tap(find.text('Save'));
-    await t.pumpAndSettle();
-
-    final stored = await t.runAsync(() => links.getTagIdsByItem([id]));
-    expect(stored![id]!.toSet(), {'travel', 'club'});
-  });
 
   testWidgets('the detail page shows the tags, and a tap filters the list', (
     t,

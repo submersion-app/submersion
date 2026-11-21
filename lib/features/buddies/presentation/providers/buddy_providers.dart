@@ -385,7 +385,7 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
     });
 
     // Reload when a buddy or its certifications change (e.g. a sync writes
-    // rows directly, or the edit form commits certs after the buddy row,
+    // rows directly, or a buddy's save writes certs after the buddy row,
     // issue #4496) so surfaces watching this notifier (e.g. the buddy
     // summary) refresh too.
     final tableChangeSub = _repository.watchHydratedBuddiesChanges().listen(

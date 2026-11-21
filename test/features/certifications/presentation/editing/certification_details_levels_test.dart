@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
-import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
-import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_card_editors.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
+/// The Details editor's agency and certification menus (issue #4527, phase
+/// 3): the level menu follows the row's agency, in its own groups.
 void main() {
-  late CertificationRepository repository;
   late CustomCertificationRepository customRepository;
 
   setUp(() async {
@@ -23,7 +23,6 @@ void main() {
       'INSERT INTO divers (id, name, created_at, updated_at) '
       "VALUES ('owner-1', 'Owner', 0, 0)",
     );
-    repository = CertificationRepository();
     customRepository = CustomCertificationRepository();
   });
 
@@ -31,10 +30,23 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<Widget> buildHarness(
-    WidgetTester tester, {
-    String? certificationId,
-  }) async {
+  /// A stored certification of [agency] at [level].
+  Certification stored(String name, String agency, String level) =>
+      Certification(
+        id: 'c1',
+        name: name,
+        agency: agency,
+        level: level,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+
+  /// The Details editor over [cert], a new certification's seed (PADI, no
+  /// level) when null.
+  Future<EditSession<Certification>> pumpEditor(
+    WidgetTester tester, [
+    Certification? cert,
+  ]) async {
     // The open dropdown is a lazy ListView clipped to the surface, so items
     // past the fold are not in the widget tree at all. The longest menu
     // (PADI: "Not specified" + 2 headers + 9 ladder + 10 specialties +
@@ -43,24 +55,22 @@ void main() {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
+    final session = EditSession(cert ?? Certification.empty());
+    addTearDown(session.dispose);
 
     final overrides = await getBaseOverrides();
-    return ProviderScope(
-      overrides: [
-        ...overrides,
-        certificationRepositoryProvider.overrideWithValue(repository),
-      ],
-      child: MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: CertificationEditPage(
-            certificationId: certificationId,
-            embedded: true,
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: CertificationDetailsCardEditor(session: session),
           ),
         ),
       ),
     );
+    await tester.pumpAndSettle();
+    return session;
   }
 
   Finder agencyDropdown() => find.byType(DropdownButtonFormField<String>);
@@ -105,8 +115,7 @@ void main() {
   }
 
   testWidgets('agency dropdown appears above level dropdown', (tester) async {
-    await tester.pumpWidget(await buildHarness(tester));
-    await tester.pumpAndSettle();
+    await pumpEditor(tester);
 
     expect(
       tester.getTopLeft(agencyDropdown()).dy,
@@ -117,8 +126,7 @@ void main() {
   testWidgets('selecting CMAS restricts levels to CMAS grades + specialties', (
     tester,
   ) async {
-    await tester.pumpWidget(await buildHarness(tester));
-    await tester.pumpAndSettle();
+    await pumpEditor(tester);
 
     await selectFromDropdown(tester, agencyDropdown(), 'CMAS');
 
@@ -133,8 +141,7 @@ void main() {
   });
 
   testWidgets('switching agency resets an incompatible level', (tester) async {
-    await tester.pumpWidget(await buildHarness(tester));
-    await tester.pumpAndSettle();
+    final session = await pumpEditor(tester);
 
     // Default agency is PADI; pick a PADI-ladder level.
     await selectFromDropdown(tester, levelDropdown(), 'Advanced Open Water');
@@ -144,13 +151,14 @@ void main() {
 
     expect(selectedCertification('Advanced Open Water'), findsNothing);
     expect(selectedCertification('Not specified'), findsOneWidget);
+    expect(session.working.agency, CertificationAgency.cmas.name);
+    expect(session.working.level, isNull);
   });
 
   testWidgets('switching agency keeps a compatible (specialty) level', (
     tester,
   ) async {
-    await tester.pumpWidget(await buildHarness(tester));
-    await tester.pumpAndSettle();
+    await pumpEditor(tester);
 
     await selectFromDropdown(tester, levelDropdown(), 'Nitrox');
     await selectFromDropdown(tester, agencyDropdown(), 'CMAS');
@@ -162,8 +170,7 @@ void main() {
     testWidgets('$agency offers Master Instructor (issue #3194)', (
       tester,
     ) async {
-      await tester.pumpWidget(await buildHarness(tester));
-      await tester.pumpAndSettle();
+      await pumpEditor(tester);
 
       // PADI is the default agency; re-selecting it would match both the
       // closed button and its menu row.
@@ -181,44 +188,25 @@ void main() {
     });
   }
 
-  testWidgets(
-    'existing record with out-of-catalog level renders and survives save',
-    (tester) async {
-      final now = DateTime(2024);
-      final cert = await repository.createCertification(
-        Certification(
-          id: '',
-          name: 'Legacy CMAS card',
-          agency: CertificationAgency.cmas.name,
-          level: CertificationLevel.advancedOpenWater.name,
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
+  testWidgets('a stored level outside its agency\'s catalog renders and is '
+      'left as it is', (tester) async {
+    final session = await pumpEditor(
+      tester,
+      stored(
+        'Legacy CMAS card',
+        CertificationAgency.cmas.name,
+        CertificationLevel.advancedOpenWater.name,
+      ),
+    );
 
-      await tester.pumpWidget(
-        await buildHarness(tester, certificationId: cert.id),
-      );
-      await tester.pumpAndSettle();
-
-      // Stored level renders even though it is not in the CMAS catalog.
-      expect(selectedCertification('Advanced Open Water'), findsOneWidget);
-
-      // Save without touching agency or level; the value must survive.
-      await tester.tap(find.text('Save'));
-      await tester.pump(const Duration(seconds: 1));
-
-      final saved = await tester.runAsync(
-        () => repository.getCertificationById(cert.id),
-      );
-      expect(saved!.level, CertificationLevel.advancedOpenWater.name);
-      expect(saved.agency, CertificationAgency.cmas.name);
-    },
-  );
+    // Stored level renders even though it is not in the CMAS catalog, and
+    // opening the editor does not rewrite it.
+    expect(selectedCertification('Advanced Open Water'), findsOneWidget);
+    expect(session.isDirty, isFalse);
+  });
 
   testWidgets('certification dropdown shows group headers', (tester) async {
-    await tester.pumpWidget(await buildHarness(tester));
-    await tester.pumpAndSettle();
+    await pumpEditor(tester);
 
     await tester.ensureVisible(levelDropdown());
     await tester.pumpAndSettle();
@@ -230,8 +218,7 @@ void main() {
   });
 
   testWidgets('group headers are not selectable', (tester) async {
-    await tester.pumpWidget(await buildHarness(tester));
-    await tester.pumpAndSettle();
+    await pumpEditor(tester);
 
     await tester.ensureVisible(levelDropdown());
     await tester.pumpAndSettle();
@@ -248,8 +235,7 @@ void main() {
   testWidgets('closed dropdown shows Not specified, not a group header', (
     tester,
   ) async {
-    await tester.pumpWidget(await buildHarness(tester));
-    await tester.pumpAndSettle();
+    await pumpEditor(tester);
 
     expect(selectedCertification('Not specified'), findsOneWidget);
     expect(find.text('Progression'), findsNothing);
@@ -259,8 +245,7 @@ void main() {
     'TDI shows its own five course categories, not Progression/Specialties '
     '(issue #3072)',
     (tester) async {
-      await tester.pumpWidget(await buildHarness(tester));
-      await tester.pumpAndSettle();
+      await pumpEditor(tester);
 
       await selectFromDropdown(tester, agencyDropdown(), 'TDI');
 
@@ -296,21 +281,14 @@ void main() {
     'a legacy ambiguous TDI level (techDiver) renders under the Specialties '
     'catch-all, not headerless after Professional (issue #3072)',
     (tester) async {
-      final cert = await repository.createCertification(
-        Certification(
-          id: '',
-          name: 'Tech Diver card',
-          agency: CertificationAgency.tdi.name,
-          level: CertificationLevel.techDiver.name,
-          createdAt: DateTime(2024),
-          updatedAt: DateTime(2024),
+      await pumpEditor(
+        tester,
+        stored(
+          'Tech Diver card',
+          CertificationAgency.tdi.name,
+          CertificationLevel.techDiver.name,
         ),
       );
-
-      await tester.pumpWidget(
-        await buildHarness(tester, certificationId: cert.id),
-      );
-      await tester.pumpAndSettle();
 
       expect(selectedCertification('Tech Diver'), findsOneWidget);
 
@@ -343,21 +321,10 @@ void main() {
       isProgression: false,
       isShared: true,
     );
-    final cert = await repository.createCertification(
-      Certification(
-        id: '',
-        name: 'Club Technical Diver',
-        agency: CertificationAgency.tdi.name,
-        level: custom.id,
-        createdAt: DateTime(2024),
-        updatedAt: DateTime(2024),
-      ),
+    await pumpEditor(
+      tester,
+      stored('Club Technical Diver', CertificationAgency.tdi.name, custom.id),
     );
-
-    await tester.pumpWidget(
-      await buildHarness(tester, certificationId: cert.id),
-    );
-    await tester.pumpAndSettle();
 
     // The custom level still renders as the selected value.
     expect(selectedCertification('Club Technical Diver'), findsOneWidget);
@@ -381,8 +348,7 @@ void main() {
     'IART shows its own five course categories, not Progression/Specialties '
     '(issue #3357)',
     (tester) async {
-      await tester.pumpWidget(await buildHarness(tester));
-      await tester.pumpAndSettle();
+      await pumpEditor(tester);
 
       await selectFromDropdown(tester, agencyDropdown(), 'IART');
 
@@ -421,21 +387,10 @@ void main() {
       isProgression: false,
       isShared: true,
     );
-    final cert = await repository.createCertification(
-      Certification(
-        id: '',
-        name: 'Club Rebreather Diver',
-        agency: CertificationAgency.iart.name,
-        level: custom.id,
-        createdAt: DateTime(2024),
-        updatedAt: DateTime(2024),
-      ),
+    await pumpEditor(
+      tester,
+      stored('Club Rebreather Diver', CertificationAgency.iart.name, custom.id),
     );
-
-    await tester.pumpWidget(
-      await buildHarness(tester, certificationId: cert.id),
-    );
-    await tester.pumpAndSettle();
 
     expect(selectedCertification('Club Rebreather Diver'), findsOneWidget);
 

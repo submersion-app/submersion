@@ -3415,9 +3415,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_action_sortTitle => 'Tauchpartner sortieren';
 
   @override
-  String get buddies_action_update => 'Tauchpartner aktualisieren';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return 'Alle anzeigen ($count)';
   }
@@ -3716,9 +3713,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_linkedProfile_notNow => 'Später';
 
   @override
-  String get buddies_linkedProfile_openBuddy => 'Tauchpartner öffnen';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => 'Mit einem Profil verknüpfen';
 
   @override
@@ -3740,9 +3734,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Tauchpartner sind mit verschiedenen Profilen verknüpft. Führe zuerst die Profile zusammen.';
 
   @override
-  String get buddies_message_added => 'Tauchpartner erfolgreich hinzugefügt';
-
-  @override
   String get buddies_message_contactImportUnavailable =>
       'Kontaktimport ist auf dieser Plattform nicht verfügbar';
 
@@ -3756,11 +3747,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return 'Fehler beim Importieren des Kontakts: $error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return 'Fehler beim Laden des Tauchpartners: $error';
   }
 
   @override
@@ -3783,9 +3769,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => 'Export wird vorbereitet...';
-
-  @override
-  String get buddies_message_updated => 'Tauchpartner erfolgreich aktualisiert';
 
   @override
   String get buddies_picker_add => 'Hinzufügen';
@@ -3921,9 +3904,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_title_add => 'Tauchpartner hinzufügen';
-
-  @override
-  String get buddies_title_edit => 'Tauchpartner bearbeiten';
 
   @override
   String get buddies_title_singular => 'Tauchpartner';
@@ -4506,22 +4486,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_appBar_add => 'Zertifizierung hinzufügen';
 
   @override
-  String get certifications_edit_appBar_edit => 'Zertifizierung bearbeiten';
-
-  @override
-  String get certifications_edit_button_add => 'Zertifizierung hinzufügen';
-
-  @override
-  String get certifications_edit_button_cancel => 'Abbrechen';
-
-  @override
-  String get certifications_edit_button_save => 'Speichern';
-
-  @override
-  String get certifications_edit_button_update =>
-      'Zertifizierung aktualisieren';
-
-  @override
   String get certifications_edit_certification_notSpecified =>
       'Nicht angegeben';
 
@@ -4533,19 +4497,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get certifications_edit_datePicker_tapToSelect =>
       'Zum Auswählen tippen';
-
-  @override
-  String get certifications_edit_dialog_discard => 'Verwerfen';
-
-  @override
-  String get certifications_edit_dialog_discardContent =>
-      'Du hast ungespeicherte Änderungen. Bist du sicher, dass du die Seite verlassen möchtest?';
-
-  @override
-  String get certifications_edit_dialog_discardTitle => 'Änderungen verwerfen?';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => 'Weiter bearbeiten';
 
   @override
   String get certifications_edit_group_progression => 'Ausbildungsstufen';
@@ -4779,40 +4730,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => 'Foto aufnehmen';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos => 'Kartenfotos';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => 'Daten';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo =>
-      'Instructor-Informationen';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => 'Notizen';
-
-  @override
-  String get certifications_edit_snackBar_added =>
-      'Zertifizierung erfolgreich hinzugefügt';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return 'Fehler beim Laden der Zertifizierung: $error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return 'Fehler beim Auswählen des Fotos: $error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return 'Fehler beim Speichern der Zertifizierung: $error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated =>
-      'Zertifizierung erfolgreich aktualisiert';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -6021,9 +5941,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_action_addRequirement => 'Anforderung hinzufügen';
 
   @override
-  String get courses_action_create => 'Kurs erstellen';
-
-  @override
   String get courses_action_deleteRequirement => 'Anforderung löschen';
 
   @override
@@ -6047,12 +5964,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'Wiederholen';
-
-  @override
-  String get courses_action_saveChanges => 'Änderungen speichern';
-
-  @override
-  String get courses_action_saveSemantic => 'Kurs speichern';
 
   @override
   String get courses_action_sort => 'Sortieren';
@@ -6164,11 +6075,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'Startdatum';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'Fehler beim Speichern des Kurses: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6339,9 +6245,6 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$shown von $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'Kurs bearbeiten';
 
   @override
   String get courses_title_new => 'Neuer Kurs';
@@ -6953,17 +6856,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_action_clearRating => 'Löschen';
 
   @override
-  String get diveCenters_action_gettingLocation => 'Wird abgerufen...';
-
-  @override
   String get diveCenters_action_import => 'Importieren';
 
   @override
   String get diveCenters_action_importToMyCenters =>
       'Zu Meine Center importieren';
-
-  @override
-  String get diveCenters_action_lookingUp => 'Wird gesucht...';
 
   @override
   String get diveCenters_action_lookupFromAddress => 'Von Adresse nachschlagen';
@@ -7022,19 +6919,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => 'Tauchcenter löschen';
 
   @override
-  String get diveCenters_dialog_discard => 'Verwerfen';
-
-  @override
-  String get diveCenters_dialog_discardMessage =>
-      'Du hast nicht gespeicherte Änderungen. Möchtest du diese wirklich verwerfen?';
-
-  @override
-  String get diveCenters_dialog_discardTitle => 'Änderungen verwerfen?';
-
-  @override
-  String get diveCenters_dialog_keepEditing => 'Weiter bearbeiten';
-
-  @override
   String get diveCenters_empty_button => 'Erstes Tauchcenter hinzufügen';
 
   @override
@@ -7076,11 +6960,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => 'Tauchcenter nicht gefunden';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return 'Fehler beim Speichern des Tauchcenters: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => 'Unbekannter Fehler';
@@ -7273,25 +7152,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_tag_closed => 'Geschlossen';
 
   @override
-  String get diveCenters_section_address => 'Adresse';
-
-  @override
-  String get diveCenters_section_affiliations => 'Verbindungen';
-
-  @override
-  String get diveCenters_section_basicInfo => 'Grundinformationen';
-
-  @override
   String get diveCenters_editCard_map => 'Karte';
 
   @override
   String get diveCenters_section_contact => 'Kontakt';
-
-  @override
-  String get diveCenters_section_contactInfo => 'Kontaktinformationen';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'GPS-Koordinaten';
 
   @override
   String get diveCenters_section_fillHours => 'Füllzeiten';
@@ -7324,25 +7188,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_section_notes => 'Notizen';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'Koordinaten aus Adresse gefunden';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '\"$name\" importiert';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => 'Standort erfasst';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return 'Standort erfasst (±${accuracy}m)';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap =>
-      'Standort von Karte ausgewählt';
 
   @override
   String get diveCenters_sort_title => 'Tauchcenter sortieren';
@@ -7399,9 +7247,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => 'Tauchcenter hinzufügen';
-
-  @override
-  String get diveCenters_title_edit => 'Tauchcenter bearbeiten';
 
   @override
   String get diveCenters_title_import => 'Tauchcenter importieren';
@@ -19802,14 +19647,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'Art hinzufügen';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return '\"$name\" hinzugefügt';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'Zurück';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'Kategorie';
 
   @override
@@ -19817,57 +19654,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bitte gib einen allgemeinen Namen ein';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint =>
-      'z.B. Falscher Clownfisch';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'Allgemeiner Name';
 
   @override
-  String get marineLife_speciesEdit_descriptionHint =>
-      'Kurze Beschreibung der Art...';
-
-  @override
   String get marineLife_speciesEdit_descriptionLabel => 'Beschreibung';
-
-  @override
-  String get marineLife_speciesEdit_editTitle => 'Art bearbeiten';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'Fehler beim Laden der Art: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'Fehler beim Speichern der Art: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'Diese Art existiert nicht mehr.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'Speichern';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'z.B. Amphiprion ocellaris';
 
   @override
   String get marineLife_speciesEdit_scientificNameLabel =>
       'Wissenschaftlicher Name';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'z.B. Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'Taxonomische Klasse';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return '\"$name\" aktualisiert';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'Alle';
@@ -28095,9 +27892,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get documents_edit_newTitle => 'Neues Dokument';
 
   @override
-  String get documents_edit_editTitle => 'Dokument bearbeiten';
-
-  @override
   String get documents_field_type => 'Art';
 
   @override
@@ -28210,14 +28004,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get documents_deleted => 'Dokument gelöscht';
-
-  @override
-  String get documents_saved => 'Dokument gespeichert';
-
-  @override
-  String documents_error_save(String error) {
-    return 'Das Dokument konnte nicht gespeichert werden: $error';
-  }
 
   @override
   String documents_error_load(String error) {

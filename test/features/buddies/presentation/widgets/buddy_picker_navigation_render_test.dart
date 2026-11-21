@@ -7,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -35,13 +36,13 @@ import '../../../../helpers/test_database.dart';
 // wherever the dialog/sheet actually are.
 //
 // A go_router push does temporarily elide the dialog/sheet from the render
-// tree while BuddyEditPage (fully opaque) covers them -- confirmed via a
-// NavigatorObserver to be Flutter's standard "don't paint/build routes
-// fully covered by an opaque route" behavior, NOT a pop: the DialogRoute is
-// never popped or removed, and reappears with its state intact as soon as
-// the covering route is popped. These tests assert on that full round
-// trip -- the real proof the fix works, rather than just checking router
-// config.
+// tree while the new-buddy page (fully opaque) covers them. A
+// NavigatorObserver confirmed this is Flutter's standard "don't paint/build
+// routes fully covered by an opaque route" behavior, NOT a pop: the
+// DialogRoute is never popped or removed, and reappears with its state
+// intact as soon as the covering route is popped. These tests assert on
+// that full round trip: the real proof the fix works, rather than just
+// checking router config.
 
 /// Mirrors DiveEditPage._bulkAddBuddies: an AlertDialog hosting BuddyPicker,
 /// opened via showDialog's default useRootNavigator: true.
@@ -148,7 +149,7 @@ void main() {
                   path: 'new',
                   name: 'newBuddy',
                   parentNavigatorKey: rootKey,
-                  builder: (context, state) => const BuddyEditPage(),
+                  builder: (context, state) => newBuddyPage(state.extra),
                 ),
               ],
             ),
@@ -171,12 +172,11 @@ void main() {
 
   testWidgets(
     'Add New Buddy pushed from inside the bulk-edit dialog renders the real '
-    'BuddyEditPage on top, and the dialog/sheet reappear intact once it is '
+    'new-buddy page on top, and the dialog/sheet reappear intact once it is '
     'saved and popped',
     (tester) async {
-      // BuddyEditPage's form is taller than the default 800x600 test
-      // surface, so its Save button sits below the fold; widen the surface
-      // rather than fight scroll offsets to reach it.
+      // The new-buddy page is taller than the default 800x600 test
+      // surface; widen the surface rather than fight scroll offsets.
       addTearDown(tester.view.reset);
       tester.view.physicalSize = const Size(800, 2000);
       tester.view.devicePixelRatio = 1.0;
@@ -194,25 +194,30 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(DraggableScrollableSheet), findsOneWidget);
 
-      // Tap "Add New Buddy" -- BuddyPicker pushes the real BuddyEditPage.
+      // Tap "Add New Buddy": BuddyPicker pushes the real new-buddy page.
       await tester.tap(find.byIcon(Icons.person_add));
       await tester.pumpAndSettle();
 
-      // The real proof of the fix: BuddyEditPage is on top and interactive.
+      // The real proof of the fix: the new-buddy page is on top and
+      // interactive.
       // (The dialog/sheet are elided from the tree while it's on top -- a
       // harmless Flutter optimization for fully-opaque covering routes, not
       // a dismissal -- so they are deliberately not asserted on here.)
-      expect(find.byType(BuddyEditPage), findsOneWidget);
+      expect(find.byType(BuddyDetailPage), findsOneWidget);
 
       // Complete the round trip: save a new buddy so it pops back via
-      // context.pop(savedBuddy), and confirm the dialog/sheet reappear with
+      // the buddy it created, and confirm the dialog/sheet reappear with
       // their original state intact -- proving nothing was lost while
       // covered.
-      await tester.enterText(find.byType(TextFormField).first, 'New Diver');
-      await tester.tap(find.byType(FilledButton));
+      await tester.enterText(
+        find.byKey(const ValueKey('buddy-edit-name')),
+        'New Diver',
+      );
+      await tester.pump();
+      await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(BuddyEditPage), findsNothing);
+      expect(find.byType(BuddyDetailPage), findsNothing);
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.byType(DraggableScrollableSheet), findsOneWidget);
       expect(find.text('New Diver'), findsOneWidget);
@@ -222,7 +227,7 @@ void main() {
 
   testWidgets(
     'Add New Buddy pushed with no dialog involved (single-dive-edit style) '
-    'still shows the real BuddyEditPage on top -- the root-navigator fix '
+    'still shows the real new-buddy page on top: the root-navigator fix '
     'does not regress this flow',
     (tester) async {
       addTearDown(tester.view.reset);
@@ -239,13 +244,17 @@ void main() {
       await tester.tap(find.byIcon(Icons.person_add));
       await tester.pumpAndSettle();
 
-      expect(find.byType(BuddyEditPage), findsOneWidget);
+      expect(find.byType(BuddyDetailPage), findsOneWidget);
 
-      await tester.enterText(find.byType(TextFormField).first, 'Another One');
-      await tester.tap(find.byType(FilledButton));
+      await tester.enterText(
+        find.byKey(const ValueKey('buddy-edit-name')),
+        'Another One',
+      );
+      await tester.pump();
+      await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(BuddyEditPage), findsNothing);
+      expect(find.byType(BuddyDetailPage), findsNothing);
       expect((await buddyRepo.getAllBuddies()).single.name, 'Another One');
     },
   );

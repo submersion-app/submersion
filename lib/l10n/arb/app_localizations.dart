@@ -5260,12 +5260,6 @@ abstract class AppLocalizations {
   /// **'Sort Buddies'**
   String get buddies_action_sortTitle;
 
-  /// No description provided for @buddies_action_update.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Buddy'**
-  String get buddies_action_update;
-
   /// No description provided for @buddies_action_viewAll.
   ///
   /// In en, this message translates to:
@@ -5650,12 +5644,6 @@ abstract class AppLocalizations {
   /// **'Not now'**
   String get buddies_linkedProfile_notNow;
 
-  /// No description provided for @buddies_linkedProfile_openBuddy.
-  ///
-  /// In en, this message translates to:
-  /// **'Open buddy'**
-  String get buddies_linkedProfile_openBuddy;
-
   /// No description provided for @buddies_linkedProfile_pickerTitle.
   ///
   /// In en, this message translates to:
@@ -5686,12 +5674,6 @@ abstract class AppLocalizations {
   /// **'These buddies are linked to different profiles. Merge the profiles first.'**
   String get buddies_merge_refusedDifferentLinks;
 
-  /// No description provided for @buddies_message_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Buddy added successfully'**
-  String get buddies_message_added;
-
   /// No description provided for @buddies_message_contactImportUnavailable.
   ///
   /// In en, this message translates to:
@@ -5715,12 +5697,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error importing contact: {error}'**
   String buddies_message_errorImportingContact(Object error);
-
-  /// No description provided for @buddies_message_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading buddy: {error}'**
-  String buddies_message_errorLoading(Object error);
 
   /// No description provided for @buddies_message_errorSaving.
   ///
@@ -5751,12 +5727,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preparing export...'**
   String get buddies_message_preparingExport;
-
-  /// No description provided for @buddies_message_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Buddy updated successfully'**
-  String get buddies_message_updated;
 
   /// No description provided for @buddies_picker_add.
   ///
@@ -5985,12 +5955,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Buddy'**
   String get buddies_title_add;
-
-  /// No description provided for @buddies_title_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Buddy'**
-  String get buddies_title_edit;
 
   /// No description provided for @buddies_title_singular.
   ///
@@ -6881,36 +6845,6 @@ abstract class AppLocalizations {
   /// **'Add Certification'**
   String get certifications_edit_appBar_add;
 
-  /// No description provided for @certifications_edit_appBar_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Certification'**
-  String get certifications_edit_appBar_edit;
-
-  /// No description provided for @certifications_edit_button_add.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Certification'**
-  String get certifications_edit_button_add;
-
-  /// No description provided for @certifications_edit_button_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get certifications_edit_button_cancel;
-
-  /// No description provided for @certifications_edit_button_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get certifications_edit_button_save;
-
-  /// No description provided for @certifications_edit_button_update.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Certification'**
-  String get certifications_edit_button_update;
-
   /// No description provided for @certifications_edit_certification_notSpecified.
   ///
   /// In en, this message translates to:
@@ -6928,30 +6862,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to select'**
   String get certifications_edit_datePicker_tapToSelect;
-
-  /// No description provided for @certifications_edit_dialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get certifications_edit_dialog_discard;
-
-  /// No description provided for @certifications_edit_dialog_discardContent.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to leave?'**
-  String get certifications_edit_dialog_discardContent;
-
-  /// No description provided for @certifications_edit_dialog_discardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get certifications_edit_dialog_discardTitle;
-
-  /// No description provided for @certifications_edit_dialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get certifications_edit_dialog_keepEditing;
 
   /// No description provided for @certifications_edit_group_progression.
   ///
@@ -7319,59 +7229,11 @@ abstract class AppLocalizations {
   /// **'Take Photo'**
   String get certifications_edit_photo_takePhoto;
 
-  /// No description provided for @certifications_edit_sectionTitle_cardPhotos.
-  ///
-  /// In en, this message translates to:
-  /// **'Card Photos'**
-  String get certifications_edit_sectionTitle_cardPhotos;
-
-  /// No description provided for @certifications_edit_sectionTitle_dates.
-  ///
-  /// In en, this message translates to:
-  /// **'Dates'**
-  String get certifications_edit_sectionTitle_dates;
-
-  /// No description provided for @certifications_edit_sectionTitle_instructorInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Instructor Information'**
-  String get certifications_edit_sectionTitle_instructorInfo;
-
-  /// No description provided for @certifications_edit_sectionTitle_notes.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get certifications_edit_sectionTitle_notes;
-
-  /// No description provided for @certifications_edit_snackBar_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification added successfully'**
-  String get certifications_edit_snackBar_added;
-
-  /// No description provided for @certifications_edit_snackBar_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading certification: {error}'**
-  String certifications_edit_snackBar_errorLoading(Object error);
-
   /// No description provided for @certifications_edit_snackBar_errorPhoto.
   ///
   /// In en, this message translates to:
   /// **'Error picking photo: {error}'**
   String certifications_edit_snackBar_errorPhoto(Object error);
-
-  /// No description provided for @certifications_edit_snackBar_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving certification: {error}'**
-  String certifications_edit_snackBar_errorSaving(Object error);
-
-  /// No description provided for @certifications_edit_snackBar_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification updated successfully'**
-  String get certifications_edit_snackBar_updated;
 
   /// No description provided for @certifications_edit_validation_certificationOrTitleRequired.
   ///
@@ -9390,12 +9252,6 @@ abstract class AppLocalizations {
   /// **'Add requirement'**
   String get courses_action_addRequirement;
 
-  /// No description provided for @courses_action_create.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Course'**
-  String get courses_action_create;
-
   /// No description provided for @courses_action_deleteRequirement.
   ///
   /// In en, this message translates to:
@@ -9443,18 +9299,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get courses_action_retry;
-
-  /// No description provided for @courses_action_saveChanges.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get courses_action_saveChanges;
-
-  /// No description provided for @courses_action_saveSemantic.
-  ///
-  /// In en, this message translates to:
-  /// **'Save course'**
-  String get courses_action_saveSemantic;
 
   /// No description provided for @courses_action_sort.
   ///
@@ -9653,12 +9497,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Date'**
   String get courses_label_startDate;
-
-  /// No description provided for @courses_message_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving course: {error}'**
-  String courses_message_errorSaving(Object error);
 
   /// No description provided for @courses_message_exportFailed.
   ///
@@ -9917,12 +9755,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{shown} of {total, plural, =1{{total} course} other{{total} courses}}'**
   String courses_list_countFiltered(int shown, int total);
-
-  /// No description provided for @courses_title_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Course'**
-  String get courses_title_edit;
 
   /// No description provided for @courses_title_new.
   ///
@@ -10877,12 +10709,6 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get diveCenters_action_clearRating;
 
-  /// No description provided for @diveCenters_action_gettingLocation.
-  ///
-  /// In en, this message translates to:
-  /// **'Getting...'**
-  String get diveCenters_action_gettingLocation;
-
   /// No description provided for @diveCenters_action_import.
   ///
   /// In en, this message translates to:
@@ -10894,12 +10720,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import to My Centers'**
   String get diveCenters_action_importToMyCenters;
-
-  /// No description provided for @diveCenters_action_lookingUp.
-  ///
-  /// In en, this message translates to:
-  /// **'Looking up...'**
-  String get diveCenters_action_lookingUp;
 
   /// No description provided for @diveCenters_action_lookupFromAddress.
   ///
@@ -10973,30 +10793,6 @@ abstract class AppLocalizations {
   /// **'Delete Dive Center'**
   String get diveCenters_dialog_deleteTitle;
 
-  /// No description provided for @diveCenters_dialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get diveCenters_dialog_discard;
-
-  /// No description provided for @diveCenters_dialog_discardMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to discard them?'**
-  String get diveCenters_dialog_discardMessage;
-
-  /// No description provided for @diveCenters_dialog_discardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get diveCenters_dialog_discardTitle;
-
-  /// No description provided for @diveCenters_dialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get diveCenters_dialog_keepEditing;
-
   /// No description provided for @diveCenters_empty_button.
   ///
   /// In en, this message translates to:
@@ -11062,12 +10858,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive center not found'**
   String get diveCenters_error_notFound;
-
-  /// No description provided for @diveCenters_error_saving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving dive center: {error}'**
-  String diveCenters_error_saving(Object error);
 
   /// No description provided for @diveCenters_error_unknown.
   ///
@@ -11393,24 +11183,6 @@ abstract class AppLocalizations {
   /// **'Closed'**
   String get diveCenters_tag_closed;
 
-  /// No description provided for @diveCenters_section_address.
-  ///
-  /// In en, this message translates to:
-  /// **'Address'**
-  String get diveCenters_section_address;
-
-  /// No description provided for @diveCenters_section_affiliations.
-  ///
-  /// In en, this message translates to:
-  /// **'Affiliations'**
-  String get diveCenters_section_affiliations;
-
-  /// No description provided for @diveCenters_section_basicInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Basic Information'**
-  String get diveCenters_section_basicInfo;
-
   /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
   ///
   /// In en, this message translates to:
@@ -11422,18 +11194,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contact'**
   String get diveCenters_section_contact;
-
-  /// No description provided for @diveCenters_section_contactInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Contact Information'**
-  String get diveCenters_section_contactInfo;
-
-  /// No description provided for @diveCenters_section_gpsCoordinates.
-  ///
-  /// In en, this message translates to:
-  /// **'GPS Coordinates'**
-  String get diveCenters_section_gpsCoordinates;
 
   /// No description provided for @diveCenters_section_fillHours.
   ///
@@ -11489,35 +11249,11 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get diveCenters_section_notes;
 
-  /// No description provided for @diveCenters_snackbar_coordinatesFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Coordinates found from address'**
-  String get diveCenters_snackbar_coordinatesFound;
-
   /// No description provided for @diveCenters_snackbar_imported.
   ///
   /// In en, this message translates to:
   /// **'Imported \"{name}\"'**
   String diveCenters_snackbar_imported(Object name);
-
-  /// No description provided for @diveCenters_snackbar_locationCaptured.
-  ///
-  /// In en, this message translates to:
-  /// **'Location captured'**
-  String get diveCenters_snackbar_locationCaptured;
-
-  /// No description provided for @diveCenters_snackbar_locationCapturedWithAccuracy.
-  ///
-  /// In en, this message translates to:
-  /// **'Location captured (±{accuracy}m)'**
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy);
-
-  /// No description provided for @diveCenters_snackbar_locationSelectedFromMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Location selected from map'**
-  String get diveCenters_snackbar_locationSelectedFromMap;
 
   /// No description provided for @diveCenters_sort_title.
   ///
@@ -11596,12 +11332,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Dive Center'**
   String get diveCenters_title_add;
-
-  /// No description provided for @diveCenters_title_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Dive Center'**
-  String get diveCenters_title_edit;
 
   /// No description provided for @diveCenters_title_import.
   ///
@@ -31614,18 +31344,6 @@ abstract class AppLocalizations {
   /// **'Add Species'**
   String get marineLife_speciesEdit_addTitle;
 
-  /// No description provided for @marineLife_speciesEdit_addedSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Added \"{name}\"'**
-  String marineLife_speciesEdit_addedSnackbar(Object name);
-
-  /// No description provided for @marineLife_speciesEdit_backTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get marineLife_speciesEdit_backTooltip;
-
   /// No description provided for @marineLife_speciesEdit_categoryLabel.
   ///
   /// In en, this message translates to:
@@ -31638,23 +31356,11 @@ abstract class AppLocalizations {
   /// **'Please enter a common name'**
   String get marineLife_speciesEdit_commonNameError;
 
-  /// No description provided for @marineLife_speciesEdit_commonNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Ocellaris Clownfish'**
-  String get marineLife_speciesEdit_commonNameHint;
-
   /// No description provided for @marineLife_speciesEdit_commonNameLabel.
   ///
   /// In en, this message translates to:
   /// **'Common Name'**
   String get marineLife_speciesEdit_commonNameLabel;
-
-  /// No description provided for @marineLife_speciesEdit_descriptionHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Brief description of the species...'**
-  String get marineLife_speciesEdit_descriptionHint;
 
   /// No description provided for @marineLife_speciesEdit_descriptionLabel.
   ///
@@ -31662,65 +31368,17 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get marineLife_speciesEdit_descriptionLabel;
 
-  /// No description provided for @marineLife_speciesEdit_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Species'**
-  String get marineLife_speciesEdit_editTitle;
-
-  /// No description provided for @marineLife_speciesEdit_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading species: {error}'**
-  String marineLife_speciesEdit_errorLoading(Object error);
-
-  /// No description provided for @marineLife_speciesEdit_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving species: {error}'**
-  String marineLife_speciesEdit_errorSaving(Object error);
-
-  /// No description provided for @marineLife_speciesEdit_notFoundMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'This species no longer exists.'**
-  String get marineLife_speciesEdit_notFoundMessage;
-
-  /// No description provided for @marineLife_speciesEdit_saveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get marineLife_speciesEdit_saveButton;
-
-  /// No description provided for @marineLife_speciesEdit_scientificNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Amphiprion ocellaris'**
-  String get marineLife_speciesEdit_scientificNameHint;
-
   /// No description provided for @marineLife_speciesEdit_scientificNameLabel.
   ///
   /// In en, this message translates to:
   /// **'Scientific Name'**
   String get marineLife_speciesEdit_scientificNameLabel;
 
-  /// No description provided for @marineLife_speciesEdit_taxonomyClassHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Actinopterygii'**
-  String get marineLife_speciesEdit_taxonomyClassHint;
-
   /// No description provided for @marineLife_speciesEdit_taxonomyClassLabel.
   ///
   /// In en, this message translates to:
   /// **'Taxonomy Class'**
   String get marineLife_speciesEdit_taxonomyClassLabel;
-
-  /// No description provided for @marineLife_speciesEdit_updatedSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Updated \"{name}\"'**
-  String marineLife_speciesEdit_updatedSnackbar(Object name);
 
   /// No description provided for @marineLife_speciesManage_allFilter.
   ///
@@ -44674,12 +44332,6 @@ abstract class AppLocalizations {
   /// **'New document'**
   String get documents_edit_newTitle;
 
-  /// No description provided for @documents_edit_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit document'**
-  String get documents_edit_editTitle;
-
   /// No description provided for @documents_field_type.
   ///
   /// In en, this message translates to:
@@ -44871,18 +44523,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Document deleted'**
   String get documents_deleted;
-
-  /// No description provided for @documents_saved.
-  ///
-  /// In en, this message translates to:
-  /// **'Document saved'**
-  String get documents_saved;
-
-  /// No description provided for @documents_error_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t save the document: {error}'**
-  String documents_error_save(String error);
 
   /// No description provided for @documents_error_load.
   ///

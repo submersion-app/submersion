@@ -20,6 +20,18 @@ void main() {
           documentOwnerLabelProvider.overrideWith(
             (ref, owner) async => switch (owner.id) {
               't1' => const DocumentOwnerOption('t1', 'Bonaire'),
+              'v1' => DocumentOwnerOption.dive(
+                'v1',
+                number: 142,
+                name: null,
+                site: 'Blue Hole',
+                dateTimeMillis: DateTime.utc(
+                  2026,
+                  9,
+                  1,
+                  9,
+                ).millisecondsSinceEpoch,
+              ),
               'c1' => const DocumentOwnerOption('c1', ''),
               _ => null,
             },
@@ -62,6 +74,14 @@ void main() {
       const DocumentOwner(DocumentOwnerKind.certification, 'c2'),
     );
     expect(find.text('Adv. Nitrox'), findsOneWidget);
+  });
+
+  // Issue #3391: a dive reads as the picker lists it, number, site and
+  // date.
+  testWidgets('a dive shows its number, site and date', (t) async {
+    await pumpField(t, const DocumentOwner(DocumentOwnerKind.dive, 'v1'));
+    expect(find.textContaining('#142 · Blue Hole · '), findsOneWidget);
+    expect(find.textContaining('2026'), findsOneWidget);
   });
 
   testWidgets('another kind shows its record name', (t) async {

@@ -246,6 +246,66 @@ void main() {
     expect((await stored()).pages, hasLength(2));
   });
 
+  test('a Pages change saves the sitting\'s pages, the new one with its '
+      'bytes and the removed one gone', () async {
+    final before = await stored();
+
+    await service.save(
+      documentId: 'doc',
+      apply: (s) => s.copyWith(
+        pages: [
+          DocumentPage(
+            id: '',
+            documentId: '',
+            pageIndex: 0,
+            fileName: 'scan.jpg',
+            mimeType: 'image/jpeg',
+            sizeBytes: 2,
+            bytes: Uint8List.fromList([7, 7]),
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        ],
+      ),
+      changedCardIds: const ['pages'],
+    );
+
+    final pages = (await stored()).pages;
+    expect(pages, hasLength(1));
+    expect(pages.single.fileName, 'scan.jpg');
+    expect(pages.single.id, isNot(before.pages.single.id));
+    expect(await documents.getPageContent(pages.single.id), [7, 7]);
+  });
+
+  test(
+    'a document filed under a trip moved to Personal clears its trip',
+    () async {
+      await db.customStatement(
+        'INSERT INTO trips (id, diver_id, name, start_date, end_date, '
+        "created_at, updated_at) VALUES ('t9', 'd1', 'Bonaire', 0, 0, 0, 0)",
+      );
+      await underneath(
+        (d) => d.copyWith(
+          owner: const DocumentOwner(DocumentOwnerKind.trip, 't9'),
+        ),
+      );
+
+      await service.save(
+        documentId: 'doc',
+        apply: (s) => s.copyWith(
+          document: s.document.copyWith(owner: const DocumentOwner.personal()),
+        ),
+        changedCardIds: const ['details'],
+      );
+
+      expect((await stored()).document.owner.kind, DocumentOwnerKind.personal);
+      final row = await db
+          .customSelect("SELECT trip_id FROM documents WHERE id = 'doc'")
+          .getSingle();
+      expect(row.data['trip_id'], isNull);
+    },
+  );
+
   test('unchanged tags are not written', () async {
     await service.save(
       documentId: 'doc',

@@ -3232,9 +3232,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_action_sortTitle => '潜伴排序';
 
   @override
-  String get buddies_action_update => '更新潜伴';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return '查看全部 ($count)';
   }
@@ -3513,9 +3510,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_linkedProfile_notNow => '暂不';
 
   @override
-  String get buddies_linkedProfile_openBuddy => '打开潜伴';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => '关联到个人资料';
 
   @override
@@ -3535,9 +3529,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_merge_refusedDifferentLinks => '这些潜伴关联到不同的个人资料。请先合并个人资料。';
 
   @override
-  String get buddies_message_added => '潜伴添加成功';
-
-  @override
   String get buddies_message_contactImportUnavailable => '此平台不支持通讯录导入';
 
   @override
@@ -3549,11 +3540,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return '导入联系人出错：$error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return '加载潜伴出错：$error';
   }
 
   @override
@@ -3574,9 +3560,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => '正在准备导出...';
-
-  @override
-  String get buddies_message_updated => '潜伴更新成功';
 
   @override
   String get buddies_picker_add => '添加';
@@ -3709,9 +3692,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_title_add => '添加潜伴';
-
-  @override
-  String get buddies_title_edit => '编辑潜伴';
 
   @override
   String get buddies_title_singular => '潜伴';
@@ -4257,21 +4237,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_appBar_add => '添加证书';
 
   @override
-  String get certifications_edit_appBar_edit => '编辑证书';
-
-  @override
-  String get certifications_edit_button_add => '添加证书';
-
-  @override
-  String get certifications_edit_button_cancel => '取消';
-
-  @override
-  String get certifications_edit_button_save => '保存';
-
-  @override
-  String get certifications_edit_button_update => '更新证书';
-
-  @override
   String get certifications_edit_certification_notSpecified => '未指定';
 
   @override
@@ -4281,18 +4246,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_edit_datePicker_tapToSelect => '点击选择';
-
-  @override
-  String get certifications_edit_dialog_discard => '丢弃';
-
-  @override
-  String get certifications_edit_dialog_discardContent => '您有未保存的更改。确定要离开吗？';
-
-  @override
-  String get certifications_edit_dialog_discardTitle => '丢弃更改？';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => '继续编辑';
 
   @override
   String get certifications_edit_group_progression => '进阶等级';
@@ -4506,37 +4459,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => '拍照';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos => '证书照片';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => '日期';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo => '教练信息';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => '备注';
-
-  @override
-  String get certifications_edit_snackBar_added => '证书添加成功';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return '加载证书出错：$error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return '选择照片出错：$error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return '保存证书出错：$error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated => '证书更新成功';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -5693,9 +5618,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_action_addRequirement => '添加要求';
 
   @override
-  String get courses_action_create => '创建课程';
-
-  @override
   String get courses_action_deleteRequirement => '删除要求';
 
   @override
@@ -5718,12 +5640,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_action_retry => '重试';
-
-  @override
-  String get courses_action_saveChanges => '保存更改';
-
-  @override
-  String get courses_action_saveSemantic => '保存课程';
 
   @override
   String get courses_action_sort => '排序';
@@ -5831,11 +5747,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_label_startDate => '开始日期';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return '保存课程时出错：$error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6001,9 +5912,6 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$shown / $_temp0';
   }
-
-  @override
-  String get courses_title_edit => '编辑课程';
 
   @override
   String get courses_title_new => '新课程';
@@ -6588,16 +6496,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_action_clearRating => '清除';
 
   @override
-  String get diveCenters_action_gettingLocation => '获取中...';
-
-  @override
   String get diveCenters_action_import => '导入';
 
   @override
   String get diveCenters_action_importToMyCenters => '导入到我的潜水中心';
-
-  @override
-  String get diveCenters_action_lookingUp => '查找中...';
 
   @override
   String get diveCenters_action_lookupFromAddress => '按地址查找';
@@ -6654,18 +6556,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => '删除潜水中心';
 
   @override
-  String get diveCenters_dialog_discard => '丢弃';
-
-  @override
-  String get diveCenters_dialog_discardMessage => '您有未保存的更改。确定要丢弃吗?';
-
-  @override
-  String get diveCenters_dialog_discardTitle => '丢弃更改？';
-
-  @override
-  String get diveCenters_dialog_keepEditing => '继续编辑';
-
-  @override
   String get diveCenters_empty_button => '添加您的第一个潜水中心';
 
   @override
@@ -6701,11 +6591,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => '未找到潜水中心';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return '保存出错潜水中心: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => '未知错误';
@@ -6890,25 +6775,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_tag_closed => '已关闭';
 
   @override
-  String get diveCenters_section_address => '地址';
-
-  @override
-  String get diveCenters_section_affiliations => '所属机构';
-
-  @override
-  String get diveCenters_section_basicInfo => '基本信息';
-
-  @override
   String get diveCenters_editCard_map => '地图';
 
   @override
   String get diveCenters_section_contact => '联系人';
-
-  @override
-  String get diveCenters_section_contactInfo => '联系信息';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'GPS 坐标';
 
   @override
   String get diveCenters_section_fillHours => '充气时间';
@@ -6938,23 +6808,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_section_notes => '备注';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound => '已从地址获取坐标';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return '已导入“$name”';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => '位置已获取';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return '已捕获位置（精度 ±${accuracy}m）';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap => '已从地图选择位置';
 
   @override
   String get diveCenters_sort_title => '排序潜水中心';
@@ -7010,9 +6866,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => '添加潜水中心';
-
-  @override
-  String get diveCenters_title_edit => '编辑潜水中心';
 
   @override
   String get diveCenters_title_import => '导入潜水中心';
@@ -18848,67 +18701,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => '添加物种';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return '已添加 \"$name\"';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => '返回';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => '类别';
 
   @override
   String get marineLife_speciesEdit_commonNameError => '请输入常用名';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => '例如，公子小丑鱼';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => '常用名';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint => '物种的简要描述...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => '描述';
 
   @override
-  String get marineLife_speciesEdit_editTitle => '编辑物种';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return '加载物种出错：$error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return '保存物种出错：$error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage => '该物种已不存在。';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => '保存';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      '例如 Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => '学名';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => '例如 Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => '分类纲';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return '已更新\"$name\"';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => '全部';
@@ -26540,9 +26348,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get documents_edit_newTitle => '新建文档';
 
   @override
-  String get documents_edit_editTitle => '编辑文档';
-
-  @override
   String get documents_field_type => '类型';
 
   @override
@@ -26652,14 +26457,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get documents_deleted => '文档已删除';
-
-  @override
-  String get documents_saved => '文档已保存';
-
-  @override
-  String documents_error_save(String error) {
-    return '无法保存文档：$error';
-  }
 
   @override
   String documents_error_load(String error) {
