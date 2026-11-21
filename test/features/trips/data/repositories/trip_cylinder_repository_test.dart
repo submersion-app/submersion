@@ -440,6 +440,33 @@ void main() {
     expect(uses[a.id]!.single.tankId, 't1');
   });
 
+  test('a Hydrotank use says its pressure is not the gas in it', () async {
+    // Issue #4666: the board must not read an Avelo Hydrotank's end
+    // pressure as the gas left in the slot.
+    final a = await repository.createCylinder(slot(label: 'A'));
+    final t0 = at.millisecondsSinceEpoch;
+    await insertDiveWithTank(
+      diveId: 'd1',
+      tankId: 't1',
+      entryMillis: t0,
+      cylinderId: a.id,
+      end: 210,
+    );
+    await insertDiveWithTank(
+      diveId: 'd2',
+      tankId: 't2',
+      entryMillis: t0 + 3600000,
+      cylinderId: a.id,
+      end: 90,
+    );
+    await db.customUpdate(
+      "UPDATE dive_tanks SET tank_role = 'hydrotank' WHERE id = 't1'",
+    );
+
+    final uses = (await repository.getTankUsesForTrip(tripId))[a.id]!;
+    expect(uses.map((u) => u.measuresGasUse), [false, true]);
+  });
+
   test('a tank use is timed by the dive entry time when it has one', () async {
     // dive_date_time is the legacy stamp; entry_time is when the diver
     // actually went in. A fill between the two must fold before the dive.

@@ -35,6 +35,11 @@ class TripCylinderTankUse extends Equatable {
   /// the dive has no site.
   final String? siteName;
 
+  /// Whether the tank's pressure measures the gas in it: false for an Avelo
+  /// Hydrotank, whose end pressure is raised by the water still inside
+  /// (issue #4666). See `TankRole.pressureMeasuresGasUse`.
+  final bool measuresGasUse;
+
   const TripCylinderTankUse({
     required this.tankId,
     required this.diveId,
@@ -43,6 +48,7 @@ class TripCylinderTankUse extends Equatable {
     this.endPressure,
     this.gasMix = const GasMix(),
     this.siteName,
+    this.measuresGasUse = true,
   });
 
   @override
@@ -54,6 +60,7 @@ class TripCylinderTankUse extends Equatable {
     endPressure,
     gasMix,
     siteName,
+    measuresGasUse,
   ];
 }
 
