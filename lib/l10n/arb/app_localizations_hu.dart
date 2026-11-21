@@ -39167,6 +39167,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get maps_compass_resetTooltip => 'Észak felül';
 
   @override
+  String get maps_myLocation_markerLabel => 'Jelenlegi helyzet';
+
+  @override
+  String get maps_myLocation_tooltip => 'Saját helyzet megjelenítése';
+
+  @override
   String get maps_heatMap_hide => 'Hőtérkép elrejtése';
 
   @override

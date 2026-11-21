@@ -39481,6 +39481,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get maps_compass_resetTooltip => 'Nord en haut';
 
   @override
+  String get maps_myLocation_markerLabel => 'Position actuelle';
+
+  @override
+  String get maps_myLocation_tooltip => 'Afficher ma position';
+
+  @override
   String get maps_heatMap_hide => 'Masquer la carte de chaleur';
 
   @override

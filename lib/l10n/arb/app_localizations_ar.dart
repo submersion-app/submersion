@@ -39888,6 +39888,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_compass_resetTooltip => 'الشمال للأعلى';
 
   @override
+  String get maps_myLocation_markerLabel => 'الموقع الحالي';
+
+  @override
+  String get maps_myLocation_tooltip => 'إظهار موقعي';
+
+  @override
   String get maps_heatMap_hide => 'إخفاء خريطة الحرارة';
 
   @override

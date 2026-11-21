@@ -5730,6 +5730,8 @@
   "gas_tmx2135_displayName": "Tx 21/35",
   "maps_compass_resetLabel": "إعادة ضبط اتجاه الخريطة نحو الشمال",
   "maps_compass_resetTooltip": "الشمال للأعلى",
+  "maps_myLocation_markerLabel": "الموقع الحالي",
+  "maps_myLocation_tooltip": "إظهار موقعي",
   "maps_heatMap_hide": "إخفاء خريطة الحرارة",
   "maps_heatMap_overlayOff": "طبقة خريطة الحرارة معطلة",
   "maps_depthOverlay_show": "إظهار طبقة العمق",

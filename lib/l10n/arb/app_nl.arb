@@ -5730,6 +5730,8 @@
   "gas_tmx2135_displayName": "Tx 21/35",
   "maps_compass_resetLabel": "Kaartoriëntatie terugzetten naar het noorden",
   "maps_compass_resetTooltip": "Noorden boven",
+  "maps_myLocation_markerLabel": "Huidige locatie",
+  "maps_myLocation_tooltip": "Mijn locatie tonen",
   "maps_heatMap_hide": "Heatmap verbergen",
   "maps_heatMap_overlayOff": "Heatmap-overlay is uit",
   "maps_depthOverlay_show": "Diepte-overlay tonen",

@@ -21,6 +21,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_corner_control
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
@@ -128,11 +130,12 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
           onPressed: () => context.go('/dive-centers'),
         ),
         IconButton(
-          icon: const Icon(Icons.my_location),
+          icon: const Icon(Icons.zoom_out_map),
           tooltip: context.l10n.diveCenters_tooltip_fitAllCenters,
           onPressed: () =>
               _camera.fitAll(_centerPoints(centersAsync.value ?? [])),
         ),
+        MyLocationButton(onLocated: _camera.animateTo),
       ],
     );
   }
@@ -252,6 +255,8 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
                   },
                 ),
               ),
+              // The device, once Show my location has found it (#4808).
+              const MyLocationLayer(),
               const MapAttribution(),
             ],
           ),

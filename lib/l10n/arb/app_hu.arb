@@ -5604,6 +5604,8 @@
   "gas_tmx2135_displayName": "Tx 21/35",
   "maps_compass_resetLabel": "Térkép tájolásának visszaállítása északra",
   "maps_compass_resetTooltip": "Észak felül",
+  "maps_myLocation_markerLabel": "Jelenlegi helyzet",
+  "maps_myLocation_tooltip": "Saját helyzet megjelenítése",
   "maps_heatMap_hide": "Hőtérkép elrejtése",
   "maps_heatMap_overlayOff": "A hőtérkép réteg ki van kapcsolva",
   "maps_depthOverlay_show": "Mélységréteg megjelenítése",

@@ -39348,6 +39348,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maps_compass_resetTooltip => 'Norte para cima';
 
   @override
+  String get maps_myLocation_markerLabel => 'Localização atual';
+
+  @override
+  String get maps_myLocation_tooltip => 'Mostrar minha localização';
+
+  @override
   String get maps_heatMap_hide => 'Ocultar Mapa de Calor';
 
   @override

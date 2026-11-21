@@ -220,7 +220,7 @@ void main() {
       await tester.pump();
       expect(_camera(tester).center.latitude, closeTo(45.0, 1e-6));
 
-      await tester.tap(find.byIcon(Icons.my_location));
+      await tester.tap(find.byIcon(Icons.zoom_out_map));
       await tester.pump();
 
       // Back to the framing the page opened with, which shows both sites.

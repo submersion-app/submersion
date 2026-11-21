@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_map_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -144,6 +145,9 @@ void main() {
 
     expect(find.byType(DiveCenterMapContent), findsOneWidget);
     expect(find.byType(FlutterMap), findsWidgets);
+    // Fit all has its own icon; the crosshair is Show my location (#4808).
+    expect(find.byIcon(Icons.zoom_out_map), findsOneWidget);
+    expect(find.byType(MyLocationButton), findsOneWidget);
   });
 
   testWidgets('renders FlutterMap with a preselected center', (tester) async {

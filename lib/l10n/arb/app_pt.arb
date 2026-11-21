@@ -5730,6 +5730,8 @@
   "gas_tmx2135_displayName": "Tx 21/35",
   "maps_compass_resetLabel": "Redefinir a orientação do mapa para o norte",
   "maps_compass_resetTooltip": "Norte para cima",
+  "maps_myLocation_markerLabel": "Localização atual",
+  "maps_myLocation_tooltip": "Mostrar minha localização",
   "maps_heatMap_hide": "Ocultar Mapa de Calor",
   "maps_heatMap_overlayOff": "Sobreposição do mapa de calor desativada",
   "maps_depthOverlay_show": "Mostrar camada de profundidade",

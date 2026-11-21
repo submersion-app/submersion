@@ -5856,6 +5856,8 @@
   "gas_tmx2135_displayName": "Tx 21/35",
   "maps_compass_resetLabel": "Kartenausrichtung nach Norden zurücksetzen",
   "maps_compass_resetTooltip": "Norden oben",
+  "maps_myLocation_markerLabel": "Aktueller Standort",
+  "maps_myLocation_tooltip": "Meinen Standort anzeigen",
   "maps_heatMap_hide": "Heatmap ausblenden",
   "maps_heatMap_overlayOff": "Heatmap-Overlay ist aus",
   "maps_depthOverlay_show": "Tiefen-Overlay anzeigen",

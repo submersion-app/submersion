@@ -61626,6 +61626,18 @@ abstract class AppLocalizations {
   /// **'North up'**
   String get maps_compass_resetTooltip;
 
+  /// No description provided for @maps_myLocation_markerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your location'**
+  String get maps_myLocation_markerLabel;
+
+  /// No description provided for @maps_myLocation_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show my location'**
+  String get maps_myLocation_tooltip;
+
   /// No description provided for @maps_heatMap_hide.
   ///
   /// In en, this message translates to:

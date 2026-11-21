@@ -22,6 +22,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_corner_control
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
@@ -182,12 +184,13 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
                 children: [
                   const HeatMapToggleButton(),
                   IconButton(
-                    icon: const Icon(Icons.my_location, size: 20),
+                    icon: const Icon(Icons.zoom_out_map, size: 20),
                     tooltip: context.l10n.diveLog_map_tooltip_fitAllSites,
                     onPressed: () => _camera.fitAll(
                       _sitePoints(sitesWithCounts.map((s) => s.site)),
                     ),
                   ),
+                  MyLocationButton(onLocated: _camera.animateTo, iconSize: 20),
                 ],
               ),
             ),
@@ -349,6 +352,8 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
                   loading: () => const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),
                 ),
+              // The device, once Show my location has found it (#4808).
+              const MyLocationLayer(),
               const MapAttribution(),
             ],
           ),

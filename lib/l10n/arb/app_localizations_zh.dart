@@ -37016,6 +37016,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_compass_resetTooltip => '正北朝上';
 
   @override
+  String get maps_myLocation_markerLabel => '当前位置';
+
+  @override
+  String get maps_myLocation_tooltip => '显示我的位置';
+
+  @override
   String get maps_heatMap_hide => '隐藏热力图';
 
   @override
