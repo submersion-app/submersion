@@ -292,14 +292,14 @@ Counts are `test(`/`testWidgets(` matches. "Plan N" means that plan's table alre
 
 | Old test | Cases | Pinned now by |
 | --- | --- | --- |
-| `document_edit_page_test` | 20 | Plan 2 (`document_edit_fields_test`, `record_document_links_sitting_test`, `document_pages_card_editor_test`, `document_detail_page_unlock_test`); create cases plan 11 (`document_new_sitting_test`, `document_detail_page_new_test`) |
-| `document_tags_ui_test` (*mixed*), `documents_pages_test` (*mixed*) | 4, 18 | `document_edit_fields_test` (tags written once loaded), `documents_pages_test` itself |
-| `species_edit_page_test` | 5 | Plan 11 (`species_detail_page_new_test`), plan 2 (`species_detail_page_unlock_test`, lookup) |
-| `course_edit_agency_test`, `_embedded_save_test`, `_date_range_test`, `_certifications_test`, `_instructor_test` | 2, 2, 2, 3, 4 | Plan 4's table (`course_card_editors_test`, `course_certifications_sitting_test`, `instructor_card_editor_test`, `course_detail_page_unlock_test`); create cases plan 11 |
-| `buddy_edit_photo_test`, `buddy_edit_cert_fields_test`, `buddy_edit_country_test`, `buddy_social_handle_test`, `buddy_edit_keeps_card_fields_test`, `buddy_edit_linked_profile_test`, `buddy_contact_import_test`, `buddy_picker_navigation_render_test` | 5, 5, 5, 3, 1, 5, 3, 2 | `buddy_contact_card_editor_test`, `buddy_certification_dialog_test`, `buddy_certifications_card_editor_test`, `buddy_edit_fields_test`, `buddy_detail_page_unlock_test`, `buddy_detail_page_new_test` (plan 11 for photo, contacts and picker cases). Plan 3 left no table: most cases are mapped here |
-| `buddy_rankings_form_detail_test` (*mixed*) | 7 | Its detail cases stay; form cases to `buddy_detail_page_unlock_test` (rankings switch on Statistics) |
-| `dive_center_edit_page_fill_hours_test`, `_logo_test`, `_closed_test` | 8, 3, 2 | `dive_center_header_card_editor_test`, `dive_center_edit_fields_test` (`fillHoursProblem`), `dive_center_detail_page_unlock_test`; create cases plan 11 |
-| `certification_edit_custom_entries_test`, `certification_photo_pick_test`, `_instructor_test`, `_name_field_test`, `_credentials_test`, `_agency_level_test`, `_page_staging_test`, `_hidden_tab_test`, `_embedded_header_test` | 6, 3, 6, 15, 5, 14, 2, 2, 1 | `certification_card_editors_test`, `certification_edit_fields_test`, `instructor_card_editor_test`, `buddy_certification_dialog_test` (staging), `certification_detail_page_unlock_test`; create cases plan 11. Plan 3 left no table |
+| `document_edit_page_test` | 20 | `document_pages_card_editor_test`, `document_detail_page_unlock_test`, `document_edit_save_service_test`, `document_repository_test`, `document_widgets_test`, `document_owner_field_test`, `document_edit_fields_test`; create cases plan 11 (`document_new_sitting_test`, `document_detail_page_new_test`). Part B added the cases plan 2 left out (the lazy strip, type fields, page slots and limits, owners, a Pages save) |
+| `document_tags_ui_test` (*mixed*), `documents_pages_test` (*mixed*) | 4, 18 | The form case: `document_detail_page_unlock_test` (a tag typed into Details, added in Part B) and `document_edit_save_service_test` (changed tags are written); the other cases stay in `document_tags_ui_test` and `documents_pages_test` |
+| `species_edit_page_test` | 5 | Plan 11 (`species_detail_page_new_test`), plan 2 (`species_detail_page_unlock_test`, lookup), `species_edit_save_service_test`, `record_edit_host_test` |
+| `course_edit_agency_test`, `_embedded_save_test`, `_date_range_test`, `_certifications_test`, `_instructor_test` | 2, 2, 2, 3, 4 | Plan 4's table (`course_card_editors_test`, `course_certifications_sitting_test`, `instructor_card_editor_test`, `course_detail_page_unlock_test`), `course_edit_save_service_test`; create cases plan 11 |
+| `buddy_edit_photo_test`, `buddy_edit_cert_fields_test`, `buddy_edit_country_test`, `buddy_social_handle_test`, `buddy_edit_keeps_card_fields_test`, `buddy_edit_linked_profile_test`, `buddy_contact_import_test`, `buddy_picker_navigation_render_test` | 5, 5, 5, 3, 1, 5, 3, 2 | `buddy_contact_card_editor_test`, `buddy_header_card_editor_test` and `buddy_country_field_test` (both new in Part B), `buddy_certifications_card_editor_test`, `buddy_certifications_sitting_test`, `buddy_merge_page_test`, `buddy_edit_save_service_test`, `buddy_profile_link_repository_test`, `buddy_detail_page_unlock_test`, `buddy_detail_page_new_test`, `app_router_test`; `buddy_social_handle_test` keeps its detail page case, and `buddy_picker_navigation_render_test` now pushes the new-buddy page. Plan 3 left no table: every case is mapped in "After the build" |
+| `buddy_rankings_form_detail_test` (*mixed*; renamed `buddy_rankings_merge_detail_test`) | 7 | Its detail and merge cases stay; the other form cases to `buddy_detail_page_new_test` (a new buddy), `buddy_detail_page_unlock_test` (the Statistics switch, on and off) and `buddy_edit_save_service_test` (an exclusion kept) |
+| `dive_center_edit_page_fill_hours_test`, `_logo_test`, `_closed_test` | 8, 3, 2 | `dive_center_edit_fields_test` (`fillHoursProblem`), `dive_center_detail_page_unlock_test`, `dive_center_detail_page_new_test`, `dive_center_edit_save_service_test`, and `dive_center_header_card_editor_test` (logo and closed switch, added in Part B; it held only the rating stars before); create cases plan 11 |
+| `certification_edit_custom_entries_test`, `certification_photo_pick_test`, `_instructor_test`, `_name_field_test`, `_credentials_test`, `_agency_level_test`, `_page_staging_test`, `_hidden_tab_test`, `_embedded_header_test` | 6, 3, 6, 15, 5, 14, 2, 2, 1 | `certification_details_custom_entries_test` and `certification_details_levels_test` (the custom entries and agency level files, re-pointed at the Details editor), `certification_photo_pick_test` (rewritten), `certification_card_editors_test`, `certification_edit_fields_test`, `certification_edit_save_service_test`, `certification_unknown_id_test`, `instructor_card_editor_test`, `buddy_certification_dialog_test` (staging), `certification_detail_page_unlock_test`, `certification_detail_page_new_test`, `record_edit_leave_guard_test` (the hidden tab, PR #4829); create cases plan 11. Two cases are form only. Plan 3 left no table |
 | `equipment_edit_advanced_test`, `_price_locale_test`, `_colour_test`, `_tags_test`, `_type_order_test`, `_save_navigation_test`, `_hidden_by_view_test`, `_device_type_test`, `_service_section_test`, `_wanted_test`, `_parent_picker_test` | 8, 5, 4, 7, 1, 3, 6, 5, 2, 3, 7 | Plan 6's table (`gear_item_header_editor_test`, `gear_item_details_editor_test`, `gear_item_edit_fields_test`, `equipment_detail_page_unlock_test`); create cases plan 11 |
 | `equipment_edit_clone_test` | 18 | Plan 11 (`gear_item_new_sitting_test`, `equipment_detail_page_new_test`) |
 | `equipment_set_edit_page_test`, `_discard_test`, `_folds_test`, `_figure_test`, `_assembly_parts_test`, `_history_test` | 12, 7, 2, 11, 3, 6 | Plan 8's table (`equipment_set_members_editor_test`, `equipment_set_card_editors_test`, `equipment_set_detail_page_unlock_test`); create cases plan 11 |
@@ -435,5 +435,309 @@ Counts are `test(`/`testWidgets(` matches. "Plan N" means that plan's table alre
 
 ### Parts B and C
 
-(Filled in while building: the per-case table for each deleted form test file: old file, old case, Pinned / Added / Form only, where.)
+**Part B: where each old case lives now** (built 2026-11-21). These tables cover Part B only; Part C adds its own below them. Each table is one old test file that Part B deleted, re-pointed or trimmed, with every case by its name before Part B (a group's name leads its cases). `Now` is one of:
+
+- **Pinned**: a test from before Part B already covered it. A case a trimmed file keeps reads "Kept in this file".
+- **Added**: a test written or changed in Part B, named with its commit. Each was seen failing against a mutation of the code first.
+- **Re-pointed**: the same case now pumps the in-place editor.
+- **Form only**: it tested something only the deleted widget had.
+
+Paths are under `test/features/` unless they start with `test/`. A file named without its folder was named with it earlier in the same table.
+
+#### `documents/presentation/pages/document_edit_page_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| stored page content (issue #3847): opening reads only the images the strip builds | Added | `documents/presentation/editing/document_pages_card_editor_test` "a long document reads only the pages the strip builds" (d9fc168) |
+| stored page content (issue #3847): saving an edit leaves the stored pages untouched | Pinned | `documents/data/services/document_edit_save_service_test` "a page added underneath survives a details save"; `documents/data/repositories/document_repository_test` "a page without bytes keeps its stored content" |
+| insurance shows the phones and the primary toggle | Added | `documents/presentation/widgets/document_widgets_test` "insurance shows its insurer, phones and primary; a permit its issuer and none of them" (ab5e5aa) |
+| a first insurance starts as the primary one | Pinned | `documents/presentation/editing/document_new_sitting_test` "a first insurance seeds primary, a second does not"; `documents/presentation/pages/document_detail_page_new_test` "an insurance is saved primary only as the first (has one: false)" |
+| a second insurance does not take over the primary | Pinned | The same two cases (has one: true) |
+| closing the pane with changes asks before discarding | Pinned | `documents/presentation/pages/document_detail_page_unlock_test` "Cancel with changes asks first"; `document_detail_page_new_test` "an entry asks before leaving" |
+| a permit has no phones or primary toggle | Added | `document_widgets_test`, the insurance and permit case above (ab5e5aa) |
+| a card shows Front and Back slots and no expiry | Added | `document_pages_card_editor_test` "an insurance and a certification card have Front and Back slots; a permit has none" (ab5e5aa, the card added in a11957a); no expiry: `document_widgets_test` "insurance shows its insurer, phones and primary; a permit its issuer and none of them" (a11957a) and `document_detail_page_new_test` "a card document has no title, expiry or reminder" |
+| card faces are stored first, Front then Back, whatever order they were added in | Added | `document_pages_card_editor_test` "card faces are kept Front then Back, whatever order they are added in" (ab5e5aa) |
+| adding a file page and saving persists it | Added | `document_edit_save_service_test` "a Pages change saves the sitting's pages, the new one with its bytes and the removed one gone" (55eaf88); the editor: `document_pages_card_editor_test` "adding a page is a change of Pages" |
+| a file over the limit shows the limit and adds nothing | Added | `document_pages_card_editor_test` "a file over the limit says so and adds nothing" (ab5e5aa) |
+| an unsupported file names its type | Added | `document_pages_card_editor_test` "an unsupported file names its type and adds nothing" (ab5e5aa) |
+| removing a page then saving deletes it | Added | `document_edit_save_service_test`, the Pages change case above (55eaf88); the editor: `document_pages_card_editor_test` "removing a page is a change, and nothing is written" |
+| editing keeps the owner it was filed under | Pinned | `document_edit_save_service_test` "a $column changed underneath keeps its newer value" (owner) |
+| a dive owner shows its number, site and date (#3391) | Added | `documents/presentation/widgets/document_owner_field_test` "a dive shows its number, site and date" (3b1a1ee) |
+| Filed under: a personal document can be filed under a trip | Added | `document_detail_page_unlock_test` "a document refiled under a trip in Details saves that owner and names it" (3b1a1ee) |
+| Filed under: moving to Personal clears the old owner column | Added | `document_edit_save_service_test` "a document filed under a trip moved to Personal clears its trip" (55eaf88) |
+| Filed under: a new document starts where it was opened from | Pinned | `document_new_sitting_test` "a type and an owner from the opener are changes of Details" |
+| Filed under: a card document cannot be moved | Added | `document_detail_page_unlock_test` "a card document's editor offers no owner, type, title or expiry change" now checks the owner field is locked (3b1a1ee); the rule: `documents/presentation/editing/document_edit_fields_test` "a certification card locks its owner and type and has no title, expiry or reminder" |
+| ownerFixed hides the owner field (issue #4527) | Pinned | `document_detail_page_new_test` "a fixed owner is not offered, and is saved as Personal"; the refiling case above finds the field when the owner is not fixed |
+
+#### `documents/presentation/document_tags_ui_test.dart` (trimmed)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the edit page saves a tag typed into its Tags field | Added | `documents/presentation/pages/document_detail_page_unlock_test` "a tag typed into Details is saved with the sitting" (3b1a1ee); the write: `documents/data/services/document_edit_save_service_test` "changed tags are written" |
+| the detail page shows the tags, and a tap filters the list | Pinned | Kept in this file; it pumps the detail page |
+| the list shows tags, filters by them and searches them | Pinned | Kept in this file; it pumps the list page |
+| a filter on a tag that no longer exists does not hide the list | Pinned | Kept in this file; it pumps the list page |
+
+#### `marine_life/presentation/pages/species_edit_page_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| a lookup fills name, scientific name, category and class | Pinned | `marine_life/presentation/pages/species_detail_page_unlock_test` "the lookup fills the names, taxonomy and category as changes of the header"; `marine_life/presentation/pages/species_detail_page_new_test` "a lookup fills the header as changes" |
+| saving: an edit saves while nothing listens to the species list | Pinned | `species_detail_page_unlock_test` "editing the description and saving writes one sitting" and "photos added are queued for upload even if the page goes" (a save outlives the page) |
+| saving: a new species saves while nothing listens to the list | Pinned | `species_detail_page_new_test` "Save waits for the first entry, and the name is required". The list provider race was the form's own: the page reads its save service before it awaits |
+| saving: clearing the optional fields blanks them on the row | Added | `marine_life/data/services/species_edit_save_service_test` "clearing the taxonomy class and the description stores null" (55eaf88), beside "clearing the scientific name stores null" |
+| saving: reports a species deleted under the editor instead of a save | Pinned | `species_edit_save_service_test` "a species that has gone throws"; `test/shared/widgets/record_editing/record_edit_host_test` "a failed save stays unlocked and says so" |
+
+#### `courses/presentation/pages/course_edit_agency_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| course editor offers every agency, including FFESSM | Pinned | `courses/presentation/editing/course_card_editors_test` "the Details editor offers every agency, including FFESSM" |
+| course and certification editors offer the same agencies | Pinned | `course_card_editors_test` "the course and certification Details editors offer the same agencies" |
+
+#### `courses/presentation/pages/course_edit_certifications_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| ticking two certifications links both to the course | Added | `courses/presentation/editing/course_certifications_sitting_test` "the field's choices are held as the certifications they name, and a removal drops only that one" (ad1015f); the write: "ticking two certifications holds both, written at Save" |
+| removing a certification chip unlinks it on save | Added | The same case (ad1015f); the write: "removing one unlinks it at Save" |
+| the field stays inert until the course set has loaded | Pinned | `course_certifications_sitting_test` "the field stays inert until the sitting's list has loaded" |
+
+#### `courses/presentation/pages/course_edit_date_range_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| start date can be set more than one year in the future | Pinned | `courses/presentation/editing/course_card_editors_test` "the start date can be set more than one year ahead" |
+| completion date picker opens when the start date is in the future | Pinned | `course_card_editors_test` "the completion date picker opens when the start date is in the future" |
+
+#### `courses/presentation/pages/course_edit_embedded_save_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| embedded header Save persists edits to an existing course | Pinned | `courses/presentation/pages/course_detail_page_unlock_test` "the pane's Save updates the course" |
+| embedded header Save updates the existing course instead of creating one | Pinned | `course_detail_page_unlock_test` "the pane's Save creates no course" |
+
+#### `courses/presentation/pages/course_edit_instructor_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| picking a credentialed buddy fills instructor name and number fields | Pinned | `buddies/presentation/editing/instructor_card_editor_test` "picking a credentialed buddy fills name and number" |
+| switching to a non-credentialed buddy clears the instructor number | Pinned | `instructor_card_editor_test` "switching to a buddy without a credential clears the number" |
+| a buddy with no credential still appears in the instructor dropdown | Pinned | `instructor_card_editor_test` "a buddy with no credential is still offered" |
+| saving persists instructorId through to the repository | Added | `courses/data/services/course_edit_save_service_test` "the instructor picked on a new course is written" (55eaf88), beside "the instructor picked is written" |
+
+#### `dive_centers/presentation/pages/dive_center_edit_page_fill_hours_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| fillHoursProblem: neither time is fine | Pinned | `dive_centers/presentation/pages/dive_center_detail_page_unlock_test` "website and closed in one sitting save as one entry" (a centre with no fill hours passes the check at Save) |
+| fillHoursProblem: one time alone is not | Added | `dive_centers/presentation/editing/dive_center_edit_fields_test` "fill hours with only a closing are a problem" (b9e4dc7), beside "fill hours with only an opening are a problem" |
+| fillHoursProblem: closing must follow opening | Added | `dive_center_edit_fields_test` "both fill hours in order are fine" and "closing at the opening time is a problem" (b9e4dc7), beside "closing before opening is a problem" |
+| the fill hours save with a new center | Added | `dive_centers/presentation/pages/dive_center_detail_page_new_test` "fill hours picked on a new centre show and are created" (b9e4dc7) |
+| one time alone blocks the save | Added | `dive_center_detail_page_new_test` "one fill hour alone says so and stops the Save" (b9e4dc7) |
+| editing keeps the fill hours | Pinned | `dive_centers/data/services/dive_center_edit_save_service_test` "a $column changed underneath keeps its newer value" (fill hours) |
+| clear removes the fill hours | Added | `dive_center_detail_page_unlock_test` "Clear removes the fill hours with the Save" (b9e4dc7) |
+| hours that close before they open block the save | Added | `dive_center_detail_page_unlock_test` "stored fill hours that close before they open stop a Save of another card" (b9e4dc7) |
+
+#### `dive_centers/presentation/pages/dive_center_edit_page_logo_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| an existing logo is shown and saved unchanged | Added | `dive_centers/presentation/editing/dive_center_header_card_editor_test` "a stored logo shows in the editor" (b9e4dc7); the save: `dive_centers/data/services/dive_center_edit_save_service_test` "a $column changed underneath keeps its newer value" (logo) and "unchanged returns null and writes nothing" |
+| tapping the logo offers Remove, and remove clears it on save | Added | `dive_center_header_card_editor_test` "Remove Photo clears the logo in the sitting, with no contacts offered" (b9e4dc7) |
+| a center with no logo shows the store icon | Added | `dive_center_header_card_editor_test` "with no logo the editor shows the store icon" (b9e4dc7) |
+
+#### `dive_centers/presentation/pages/dive_center_edit_page_closed_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| a closed center opens with the switch on | Added | `dive_centers/presentation/editing/dive_center_header_card_editor_test` "a closed centre opens with the switch on and its hint" (b9e4dc7) |
+| flipping only the switch saves it | Pinned | `dive_centers/presentation/pages/dive_center_detail_page_unlock_test` "website and closed in one sitting save as one entry" |
+
+#### `buddies/presentation/pages/buddy_edit_cert_fields_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| shows the Certifications section with existing certs and an Add button | Added | `buddies/presentation/editing/buddy_certifications_card_editor_test` "with none it says so, and Add holds a new certification" (8e84c0f) for Add; the listed certs: `buddies/presentation/pages/buddy_detail_page_unlock_test` "edited in the dialog, Done, then the buddy's Cancel writes nothing" |
+| saving unrelated edits does not clobber certs added after the form loaded (dirty-flag gate) | Pinned | `buddies/presentation/editing/buddy_certifications_sitting_test` "one added underneath is left as it is" |
+| new buddy shows an empty Certifications section with an Add button | Added | `buddy_certifications_card_editor_test` "with none it says so, and Add holds a new certification" (8e84c0f) |
+| merge mode hides the Certifications section (survivor inherits the union at the repository level) | Pinned | `buddies/presentation/pages/buddy_merge_page_test` "the merge page builds no linked profile or certifications section" |
+| merge mode starts with a social handle one of them has | Added | `buddy_merge_page_test` "the merge starts with a social handle one of them has" (ea399d4) |
+
+#### `buddies/presentation/pages/buddy_edit_country_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the field shows the stored country | Added | `buddies/presentation/editing/buddy_contact_card_editor_test` "the stored country shows below the social handle, and a country typed is held" (40feb48) |
+| the field sits after the social handle | Added | The same case (40feb48) |
+| typing offers matching countries | Added | `buddies/presentation/widgets/buddy_country_field_test` (new) "typing offers the countries that contain it" (40feb48) |
+| saving stores the country and the code read from it | Added | The Contact editor case above holds a typed country (40feb48); the write: `buddies/data/services/buddy_edit_save_service_test` "the country code follows a changed country" |
+| submitting the field takes the first suggestion | Added | `buddy_country_field_test` "submitting takes the first suggestion" (40feb48) |
+
+#### `buddies/presentation/pages/buddy_edit_keeps_card_fields_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| saving an edit keeps the buddy card fields | Added | `buddies/data/services/buddy_edit_save_service_test` "a received card's details survive a save" now checks the last dive too, with a census case for it, "a $column changed underneath keeps its newer value" (card last dive) (8e84c0f) |
+
+#### `buddies/presentation/pages/buddy_edit_linked_profile_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| shows the suggestion when the name matches a profile and links on tap | Added | `buddies/presentation/editing/buddy_contact_card_editor_test` "Link takes the suggested profile into the sitting" (40feb48); `buddies/data/services/buddy_edit_save_service_test` "a link to a free profile is written" (8e84c0f) |
+| Not now hides the suggestion without saving a link | Added | `buddy_contact_card_editor_test` "Not now hides the suggestion and changes nothing" (40feb48) |
+| no suggestion when the profile is already linked in this list | Pinned | `buddies/data/repositories/buddy_profile_link_repository_test` "returns null when the profile is already linked in this list" |
+| refuses a link another buddy already holds | Pinned | `buddy_contact_card_editor_test` "a profile taken by another buddy is refused when picked"; `buddy_edit_save_service_test` "a linked profile taken by another buddy refuses the whole save" |
+| a linked buddy shows the profile name and can clear it | Added | `buddy_contact_card_editor_test` "a linked buddy shows its profile, and clearing unlinks it" (40feb48) |
+
+#### `buddies/presentation/pages/buddy_edit_photo_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the edit page shows a tappable ProfileAvatar, not a stub | Added | `buddies/presentation/editing/buddy_header_card_editor_test` (new) "a stored photo shows, with the camera badge on it" (ea399d4) |
+| the avatar is wrapped in a tap target | Added | `buddy_header_card_editor_test` "with no photo it shows the initials and the sheet offers no Remove" taps the photo control (ea399d4) |
+| an initial photo from a contact import is shown | Added | `buddy_header_card_editor_test` "with no photo it shows the initials and the sheet offers no Remove" (ea399d4) |
+| tapping the avatar opens the source sheet | Added | The same case (ea399d4) |
+| choosing Remove clears a photo carried in from a contact | Added | `buddy_header_card_editor_test` "Remove Photo clears the photo in the sitting" (ea399d4) |
+
+#### `buddies/presentation/pages/buddy_social_handle_test.dart` (trimmed)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the detail page shows the social handle | Pinned | Kept in this file; it pumps the detail page |
+| the edit page saves the social handle and has no card fields | Added | `buddies/presentation/editing/buddy_contact_card_editor_test` "a social handle typed is held as a change of Contact" (40feb48); card fields kept: `buddies/data/services/buddy_edit_save_service_test` "a received card's details survive a save" |
+| editing only the social handle counts as an unsaved change | Added | The same Contact editor case: Contact is the only changed card (40feb48) |
+
+#### `buddies/presentation/pages/buddy_rankings_form_detail_test.dart` (trimmed, and renamed `buddy_rankings_merge_detail_test.dart`)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the form: a new buddy starts ranked and can be excluded | Pinned | `buddies/presentation/pages/buddy_detail_page_new_test` "a new buddy starts ranked and can be excluded" |
+| the form: an unrelated edit keeps the exclusion | Added | `buddies/presentation/pages/buddy_detail_page_unlock_test` "an excluded buddy opens with the switch on, and turning it off saves" (ea399d4); the save: `buddies/data/services/buddy_edit_save_service_test` "a $column changed underneath keeps its newer value" (rankings exclusion) |
+| the form: turning it off ranks the buddy again | Added | `buddy_detail_page_unlock_test`, the same case (ea399d4) |
+| the form: a merge starts ranked when any buddy is ranked | Pinned | Kept in this file, now in the group "the merge"; it pumps the merge form |
+| the form: a merge starts excluded when every buddy is excluded | Pinned | Kept in this file, as above |
+| the detail page: says so when the buddy is left out | Pinned | Kept in this file |
+| the detail page: says nothing for a ranked buddy | Pinned | Kept in this file |
+
+#### `buddies/presentation/widgets/buddy_contact_import_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the new-buddy route carries the imported name through extra | Pinned | `test/core/router/app_router_test` "a new buddy opens the page"; `buddies/presentation/pages/buddy_detail_page_new_test` "a seed from contacts is a change, a photo alone included" |
+| an imported contact photo reaches the edit form | Added | `buddy_detail_page_new_test` "the route extra reads as a seed" now checks a photo and a phone in the extra (ea399d4); shown by `buddies/presentation/editing/buddy_header_card_editor_test` "a stored photo shows, with the camera badge on it" (ea399d4) |
+| a contact with no photo still imports its name | Added | `buddy_detail_page_new_test` "the route extra reads as a seed" (the name kept, no photo); the initials: `buddy_header_card_editor_test` "with no photo it shows the initials and the sheet offers no Remove" (ea399d4) |
+
+#### `buddies/presentation/widgets/buddy_picker_navigation_render_test.dart` (re-pointed in place)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| Add New Buddy pushed from inside the bulk-edit dialog renders the real new-buddy page on top, and the dialog/sheet reappear intact once it is saved and popped | Re-pointed | This file, at the new-buddy page (ea399d4); the name said `BuddyEditPage` before |
+| Add New Buddy pushed with no dialog involved (single-dive-edit style) still shows the real new-buddy page on top: the root-navigator fix does not regress this flow | Re-pointed | This file, as above (ea399d4) |
+
+#### `certification_agencies/presentation/certification_edit_custom_entries_test.dart` (re-pointed)
+
+Now `certification_agencies/presentation/certification_details_custom_entries_test.dart`, pumping the Details editor over a sitting (169b7c7).
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| custom agencies appear before Other, with an add action | Re-pointed | Same name |
+| Add custom agency creates and selects the new agency | Re-pointed | Same name |
+| a quick-created agency clears a built-in level | Re-pointed | Same name |
+| Add custom certification creates a ranked rung under PADI | Re-pointed | Same name |
+| a duplicate name keeps the dialog open with an error | Re-pointed | Same name |
+| an unknown stored agency renders and survives a save | Re-pointed | Now "an unknown stored agency renders and is left as it is"; the save: `certifications/data/certification_unknown_id_test` "unknown stored ids survive load and save" |
+
+#### `certifications/presentation/pages/certification_edit_agency_level_test.dart` (re-pointed)
+
+Now `certifications/presentation/editing/certification_details_levels_test.dart`, pumping the Details editor over a sitting (169b7c7).
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| agency dropdown appears above level dropdown | Re-pointed | Same name |
+| selecting CMAS restricts levels to CMAS grades + specialties | Re-pointed | Same name |
+| switching agency resets an incompatible level | Re-pointed | Same name |
+| switching agency keeps a compatible (specialty) level | Re-pointed | Same name |
+| PADI offers Master Instructor (issue #3194) | Re-pointed | Same name |
+| SDI offers Master Instructor (issue #3194) | Re-pointed | Same name |
+| existing record with out-of-catalog level renders and survives save | Re-pointed | Now "a stored level outside its agency's catalog renders and is left as it is"; the save: `certifications/data/certification_unknown_id_test` "unknown stored ids survive load and save" |
+| certification dropdown shows group headers | Re-pointed | Same name |
+| group headers are not selectable | Re-pointed | Same name |
+| closed dropdown shows Not specified, not a group header | Re-pointed | Same name |
+| TDI shows its own five course categories, not Progression/Specialties (issue #3072) | Re-pointed | Same name |
+| a legacy ambiguous TDI level (techDiver) renders under the Specialties catch-all, not headerless after Professional (issue #3072) | Re-pointed | Same name |
+| a diver's own custom level under TDI still renders, under a catch-all Specialties group (issue #3072) | Re-pointed | Same name |
+| IART shows its own five course categories, not Progression/Specialties (issue #3357) | Re-pointed | Same name |
+| a diver's own custom level under IART still renders, under a catch-all Specialties group (issue #3357) | Re-pointed | Same name |
+
+#### `certifications/certification_photo_pick_test.dart` (rewritten)
+
+It now tests `pickCertificationCardPhoto` on its own, as the Card photos editor calls it (0f8b70e).
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| a cancelled pick leaves the card photo unset | Added | This file, "a cancelled pick returns no photo" (0f8b70e) |
+| a successful pick applies the encoded photo to the card | Added | This file, "a successful pick returns the photo encoded to the stored size" (0f8b70e); the photo reaching the sitting: `certifications/presentation/editing/certification_card_editors_test` "Card photos sets only Card photos" |
+| an undecodable pick reports an error and stores nothing | Added | This file, "an undecodable pick says so and returns no photo" (0f8b70e) |
+
+#### `certifications/presentation/pages/certification_edit_credentials_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| starts with a single credential row | Added | `certifications/presentation/editing/certification_card_editors_test` "one recognition has no remove button; adding one gives each row its own" (169b7c7) |
+| "Add another recognition" appends an equal-rank row | Added | The same case (169b7c7); "Details sets only Details" holds the added row |
+| removing the second row returns to a single row | Added | The same case taps Remove on the second row and is back to one row with no remove button (169b7c7, the removal added in a11957a); the rule: `certifications/presentation/editing/certification_edit_fields_test` "removing the first credential promotes the next" and "the last credential is not removed" |
+| a second recognition is saved to additionalCredentials | Pinned | `certification_card_editors_test` "Details sets only Details"; `certification_edit_fields_test` "the credentials field writes row 0 as the agency and level"; `certifications/data/services/certification_edit_save_service_test` "a $column changed underneath keeps its newer value" (additional credentials) |
+| an existing multi-credential card prefills every row | Added | `certification_card_editors_test` "a stored card with two recognitions shows a row each" (169b7c7) |
+
+#### `certifications/presentation/pages/certification_edit_embedded_header_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| a narrow pane moves Cancel and Save below the title | Form only | The pane's header is now `RecordEditPaneHeader`, whose title keeps to one line with an ellipsis, so the buttons never move below it and the wrap of #3358 cannot happen |
+
+#### `certifications/presentation/pages/certification_edit_hidden_tab_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| a hidden tab lets Back leave without a discard dialog | Added | PR #4829 (open, not on this branch): `test/shared/widgets/record_editing/record_edit_leave_guard_test` "with changes in a hidden tab, back leaves and asks nothing", with the fix in `RecordEditLeaveGuard` |
+| a shown tab still asks before discarding | Pinned | `test/shared/widgets/record_editing/record_edit_leave_guard_test` "unlocked with changes: back asks, and Keep editing stays"; `certifications/presentation/pages/certification_detail_page_unlock_test` "Cancel with changes asks first". PR #4829 adds "with changes in the tab on screen, back still asks" |
+
+#### `certifications/presentation/pages/certification_edit_instructor_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| picking a credentialed buddy fills instructor name and number fields | Pinned | `buddies/presentation/editing/instructor_card_editor_test` "picking a credentialed buddy fills name and number" |
+| switching to a non-credentialed buddy clears the instructor number | Pinned | `instructor_card_editor_test` "switching to a buddy without a credential clears the number" |
+| editing the name text after picking does not clear the selection | Added | `instructor_card_editor_test` "typing the name after a pick keeps the buddy picked" (0f8b70e) |
+| selecting None keeps the text fields contents | Pinned | `instructor_card_editor_test` "clearing the pick keeps the text"; `certifications/presentation/editing/certification_edit_fields_test` "clearing the instructor keeps the text" |
+| saving passes instructorId through to the repository | Pinned | `certification_edit_fields_test` "one instructor pick is one change of Instructor"; `certifications/data/repositories/certification_repository_test` "persists and reads back instructorId"; `certifications/data/services/certification_edit_save_service_test` "a $column changed underneath keeps its newer value" (instructor id) |
+| loading an existing cert with instructorId pre-selects the dropdown | Added | `instructor_card_editor_test` "a stored instructor opens picked" (0f8b70e) |
+
+#### `certifications/presentation/pages/certification_edit_name_field_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| Certification title field: is labelled as the certification title | Added | `certifications/presentation/editing/certification_card_editors_test` "Details opens on the stored values, under the title's label and helper" (169b7c7) |
+| Certification title field: is blank for a new certification | Added | `certification_card_editors_test` "a new certification's title stays blank when a level is picked" (169b7c7) |
+| Certification title field: is never auto-filled when a certification is picked | Added | The same case (169b7c7) |
+| Certification title field: a manually entered name survives an agency change | Pinned | `certification_card_editors_test` "Details sets only Details" |
+| Certification title field: shows blank when editing a cert with a derived name | Added | `certification_card_editors_test`, group "a derived title", "shows blank, and opening it changes nothing" (4a3aaa6, with the behaviour it pins) |
+| Validation: rejects a save with neither certification nor name | Pinned | `certifications/presentation/pages/certification_detail_page_unlock_test` "a certification with neither title nor level cannot be saved"; `buddies/presentation/editing/buddy_certification_dialog_test` "neither title nor level keeps it open" |
+| Validation: accepts a save with a certification and no name | Pinned | `certification_detail_page_unlock_test` "editing the card number and saving writes one sitting and locks" |
+| Validation: accepts a save with a name and no certification | Pinned | `certifications/presentation/pages/certification_detail_page_new_test` "Save waits for the first entry, then pops the id" |
+| Form interactions and coverage: loading an existing certification prefills the form | Added | `certification_card_editors_test` "Details opens on the stored values, under the title's label and helper" (169b7c7) |
+| Form interactions and coverage: staging mode works with initial certification | Pinned | `buddy_certification_dialog_test` "Done returns the edited certification" |
+| Form interactions and coverage: date pickers work | Added | `certification_card_editors_test` "Dates sets the issue date from the picker" (169b7c7) |
+| Form interactions and coverage: notes field is editable | Pinned | `certification_detail_page_unlock_test` "notes added from the strip are saved" |
+| Form interactions and coverage: unsaved changes dialog shows when popping with changes | Pinned | `certification_detail_page_unlock_test` "Cancel with changes asks first"; `test/shared/widgets/record_editing/record_edit_leave_guard_test` "unlocked with changes: back asks, and Keep editing stays" |
+| Form interactions and coverage: instructor picker works | Pinned | `buddies/presentation/editing/instructor_card_editor_test` "picking a credentialed buddy fills name and number"; `certification_card_editors_test` "Instructor sets only Instructor" |
+| Form interactions and coverage: saving an existing certification updates it | Pinned | `certification_detail_page_unlock_test` "editing the card number and saving writes one sitting and locks" |
+
+#### `certifications/presentation/pages/certification_edit_page_staging_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| staging mode returns a Certification via onStaged without persisting | Added | `buddies/presentation/editing/buddy_certification_dialog_test` "Done returns the edited certification" now checks the buddy is kept, and "Done with nothing changed returns it as it was" (0f8b70e). The dialog has no repository, so it writes nothing |
+| constructor asserts against mixing staging and by-id modes | Form only | It tested the deleted widget's constructor |
 
