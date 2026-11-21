@@ -116,6 +116,9 @@ void main() {
     EditSession<PhotoRecord>? sitting,
     bool editable = true,
     Size? imageSize = const Size(400, 300),
+    double bottomInset = 0,
+    Offset pan = Offset.zero,
+    bool centred = false,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -140,15 +143,20 @@ void main() {
           child: SizedBox(
             width: 400,
             height: 300,
-            child: Transform.scale(
-              scale: zoom,
-              alignment: Alignment.topLeft,
-              child: PhotoIdentificationLayer(
-                item: testMediaItem(id: 'm1'),
-                imageSize: imageSize,
-                zoom: ValueNotifier(zoom),
-                sitting: sitting,
-                editable: editable,
+            // PhotoView pans, then zooms about the centre.
+            child: Transform.translate(
+              offset: pan,
+              child: Transform.scale(
+                scale: zoom,
+                alignment: centred ? Alignment.center : Alignment.topLeft,
+                child: PhotoIdentificationLayer(
+                  item: testMediaItem(id: 'm1'),
+                  imageSize: imageSize,
+                  zoom: ValueNotifier((scale: zoom, position: pan)),
+                  sitting: sitting,
+                  editable: editable,
+                  bottomInset: bottomInset,
+                ),
               ),
             ),
           ),
@@ -305,5 +313,40 @@ void main() {
     marineLifeIdEnabled = false;
     await pump(tester, mode: LabelMode.allLife);
     expect(find.byType(TrackDot), findsNothing);
+  });
+
+  group('above the controls (issue #4825)', () {
+    /// The pill drawn, inside its larger touch target.
+    Rect drawn(WidgetTester tester, String id) => tester.getRect(
+      find.descendant(of: pill(id), matching: find.byType(TrackPill)),
+    );
+
+    // An animal near the photo's foot, under 100 of controls.
+    final low = _at(identification('low'), 0.45, 0.85);
+
+    testWidgets('a pill keeps above them', (tester) async {
+      await pump(tester, found: [low], bottomInset: 100);
+      expect(drawn(tester, 'low').bottom, lessThanOrEqualTo(200.5));
+    });
+
+    testWidgets('zoomed and panned, a pill still keeps above them', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        // On screen near 260 down: under the controls' edge at 200.
+        found: [_at(identification('low'), 0.45, 0.75)],
+        bottomInset: 100,
+        zoom: 2,
+        centred: true,
+        pan: const Offset(0, -40),
+      );
+      expect(drawn(tester, 'low').bottom, lessThanOrEqualTo(200.5));
+    });
+
+    testWidgets('with no controls a pill goes where it would', (tester) async {
+      await pump(tester, found: [low]);
+      expect(drawn(tester, 'low').bottom, greaterThan(200.5));
+    });
   });
 }

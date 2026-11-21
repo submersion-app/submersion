@@ -18,6 +18,10 @@ import 'package:submersion/features/species_id/presentation/widgets/identificati
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
+/// How far a photo is zoomed in (1 shows it whole) and moved, as PhotoView
+/// has it: moved by [position], then zoomed about the middle.
+typedef PhotoZoom = ({double scale, Offset position});
+
 /// Name pills and dots over a photo (issue #4825), as a paused video has
 /// them: the same painter, the same rules, by the labels mode.
 ///
@@ -26,7 +30,8 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 /// smaller, so they keep their size on screen. A label takes a tap only
 /// while the photo is [editable] and its [sitting] open, and then through
 /// the viewer's own tap layer ([identificationLabelTap]), which lies over
-/// the photo.
+/// the photo. No pill reaches into the [bottomInset] the viewer's controls
+/// cover, so it can be tapped.
 class PhotoIdentificationLayer extends ConsumerWidget {
   const PhotoIdentificationLayer({
     super.key,
@@ -35,6 +40,7 @@ class PhotoIdentificationLayer extends ConsumerWidget {
     required this.zoom,
     this.sitting,
     required this.editable,
+    this.bottomInset = 0,
   });
 
   final MediaItem item;
@@ -43,14 +49,17 @@ class PhotoIdentificationLayer extends ConsumerWidget {
   /// drawn.
   final Size? imageSize;
 
-  /// How far the photo is zoomed in: 1 shows it whole.
-  final ValueListenable<double> zoom;
+  /// How far the photo is zoomed in and moved.
+  final ValueListenable<PhotoZoom> zoom;
 
   /// The photo's sitting: its held tags show in the labels before Save.
   final EditSession<PhotoRecord>? sitting;
 
   /// Whether the viewer allows edits (not a locked photo).
   final bool editable;
+
+  /// How far up from the bottom of the view the viewer's controls reach.
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -108,11 +117,20 @@ class PhotoIdentificationLayer extends ConsumerWidget {
     final holdIn = editable && session != null && !session.isDisposed
         ? session
         : null;
-    return ValueListenableBuilder<double>(
+    return ValueListenableBuilder<PhotoZoom>(
       valueListenable: zoom,
       builder: (context, zoomed, _) => LayoutBuilder(
         builder: (context, box) {
-          final z = zoomed > 0 ? zoomed : 1.0;
+          final z = zoomed.scale > 0 ? zoomed.scale : 1.0;
+          // The controls' edge on screen, in the zoomed layout's terms: a
+          // point q there lands on screen at middle + move + q - middle * z.
+          final middle = box.maxHeight / 2;
+          final floor = bottomInset > 0
+              ? middle * z +
+                    (box.maxHeight - bottomInset) -
+                    middle -
+                    zoomed.position.dy
+              : null;
           // Laid out as if the photo were drawn z times as large, then
           // shrunk back into place: positions land where the zoom puts
           // them, and every part keeps its own size on screen.
@@ -132,6 +150,7 @@ class PhotoIdentificationLayer extends ConsumerWidget {
                 species: species,
                 item: item,
                 picture: containedImageRect(size, large),
+                floor: floor,
                 holdIn: holdIn,
                 keyPrefix: 'photo_label',
                 tapsByMarker: true,

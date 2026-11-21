@@ -39,7 +39,8 @@ class _PhotoGallery extends ConsumerStatefulWidget {
 
   /// How far up from the bottom the viewer's panel and its scrub bar reach
   /// outside fullscreen, which a video's fish labels keep above (issue
-  /// #4762); 0 while the panel is hidden.
+  /// #4762), and an unlocked photo's (issue #4825); 0 while the panel is
+  /// hidden.
   final double videoControlsInset;
 
   const _PhotoGallery({
@@ -180,6 +181,10 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
             isCurrent: index == widget.currentIndex,
             identificationsEditable: widget.identificationsEditable,
             hideIdentifications: widget.hideIdentifications,
+            // While unlocked the controls stay up: pills keep above them.
+            controlsInset: widget.identificationsEditable
+                ? widget.videoControlsInset
+                : 0,
             onShown: _shown,
             onGone: _gone,
           ),
@@ -232,6 +237,9 @@ class _PhotoItem extends ConsumerStatefulWidget {
   /// Whether the labels are hidden: while picking a white point.
   final bool hideIdentifications;
 
+  /// How far up from the bottom the viewer's controls reach.
+  final double controlsInset;
+
   /// The page this is: the gallery keeps the page's zoom while it shows.
   final int page;
 
@@ -248,6 +256,7 @@ class _PhotoItem extends ConsumerStatefulWidget {
     required this.isCurrent,
     required this.identificationsEditable,
     required this.hideIdentifications,
+    required this.controlsInset,
     required this.onShown,
     required this.onGone,
   });
@@ -257,8 +266,8 @@ class _PhotoItem extends ConsumerStatefulWidget {
 }
 
 class _PhotoItemState extends ConsumerState<_PhotoItem> {
-  /// How far the photo is zoomed in, 1 when it shows whole.
-  final _zoom = ValueNotifier<double>(1);
+  /// How far the photo is zoomed in and moved.
+  final _zoom = ValueNotifier<PhotoZoom>((scale: 1, position: Offset.zero));
   StreamSubscription<PhotoViewControllerValue>? _zoomChanges;
 
   @override
@@ -280,9 +289,10 @@ class _PhotoItemState extends ConsumerState<_PhotoItem> {
 
   void _follow(PhotoViewController zoom) {
     unawaited(_zoomChanges?.cancel());
-    _zoom.value = zoom.scale ?? 1;
+    _zoom.value = (scale: zoom.scale ?? 1, position: zoom.position);
     _zoomChanges = zoom.outputStateStream.listen(
-      (value) => _zoom.value = value.scale ?? 1,
+      (value) =>
+          _zoom.value = (scale: value.scale ?? 1, position: value.position),
     );
   }
 
@@ -341,6 +351,7 @@ class _PhotoItemState extends ConsumerState<_PhotoItem> {
             zoom: _zoom,
             sitting: people.sitting,
             editable: widget.identificationsEditable,
+            bottomInset: widget.controlsInset,
           ),
       ],
     );

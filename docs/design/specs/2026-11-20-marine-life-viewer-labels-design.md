@@ -234,9 +234,12 @@ What one detection or track gets, by mode:
 - **When the photo layer shows.** It follows the label mode only, not the
   viewer's controls (as the video layer does). It is hidden in people-tag
   mode and while picking a white point, as the video layer is.
-- **No floor on photos.** A video's pills stay above the scrub bar because
-  the bar cannot be tapped away while paused. A photo's panel hides with the
-  rest of the controls on a tap, so photo pills are not moved clear of it.
+- **Pills keep above the controls while unlocked** (the maintainer's
+  choice, after review). While a photo is unlocked its toolbar and bottom
+  panel stay up and take taps, so a pill is kept above the panel, as a
+  video's is; the panel's edge is converted through the photo's zoom and
+  pan. A dot under the panel stays there until the photo is moved. Locked,
+  labels take no taps and the panel hides on a tap, so nothing moves.
 
 ### 3. The labels menu and the mode
 
@@ -383,7 +386,6 @@ desktop widths.
 - A claim on a photo is carried by box overlap alone.
 - Locked, "+N" opens a read-only list.
 - The scrub bar tint shows only while a scan is incomplete.
-- No floor for pills on a photo.
 - The label mode is one preference shared by photos and videos.
 
 ## Left to the builder
