@@ -111,6 +111,18 @@ void main() {
       expect(result.insert.single.decidedAt, fixtureT1);
     });
 
+    test('a reopened track is carried to the fresh track of the same fish '
+        '(issue #4825)', () {
+      final reopened = track('old').copyWith(decidedAt: fixtureT1);
+      final result = carryTrackDecisions(
+        decided: [reopened],
+        fresh: [track('new', startMs: 1250, endMs: 2250)],
+      );
+      expect(result.deleteIds, ['old']);
+      expect(result.insert.single.decision, IdentificationDecision.undecided);
+      expect(result.insert.single.reopened, isTrue);
+    });
+
     test('too little time together is a different fish', () {
       final result = carryTrackDecisions(
         decided: [dismissed],

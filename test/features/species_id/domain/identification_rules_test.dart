@@ -604,6 +604,145 @@ void main() {
         IdentificationDecision.undecided,
       ]);
     });
+
+    test('a decided match keeps the name the diver gave it', () {
+      final result = carryDecisions(
+        previous: [
+          _id(
+            'old',
+            decision: IdentificationDecision.accepted,
+            decidedSpeciesId: 'sp_x',
+          ).copyWith(claimedSpeciesId: () => 'sp_x'),
+        ],
+        fresh: [_id('new', box: overlapping)],
+      );
+      expect(result.insert.single.decision, IdentificationDecision.accepted);
+      expect(result.insert.single.claimedSpeciesId, 'sp_x');
+    });
+
+    group('a reopened detection (issue #4825)', () {
+      final reopened = _id('old').copyWith(decidedAt: _earlier);
+
+      test('is carried to the fresh detection of the same animal', () {
+        final result = carryDecisions(
+          previous: [reopened],
+          fresh: [_id('new', box: overlapping)],
+        );
+        expect(result.insert.single.decision, IdentificationDecision.undecided);
+        expect(result.insert.single.decidedAt, _earlier);
+        expect(result.insert.single.reopened, isTrue);
+        expect(result.deleteIds, ['old']);
+        expect(result.keep, isEmpty);
+      });
+
+      test('is dropped when the fresh run does not find it again', () {
+        final result = carryDecisions(
+          previous: [reopened],
+          fresh: [_id('new', box: elsewhere)],
+        );
+        expect(result.deleteIds, ['old']);
+        expect(result.keep, isEmpty);
+        expect(result.insert.single.reopened, isFalse);
+      });
+
+      test('is not carried to an animal the app names differently', () {
+        final result = carryDecisions(
+          previous: [reopened],
+          fresh: [
+            _id('new', box: overlapping, candidates: [(_tang, 0.9)]),
+          ],
+        );
+        expect(result.insert.single.reopened, isFalse);
+        expect(result.deleteIds, ['old']);
+      });
+    });
+
+    group('a name the diver gave a detection, not yet tagged', () {
+      final claimed = _id('old').copyWith(claimedSpeciesId: () => 'sp_x');
+
+      test('is carried by overlap alone, whatever the app now calls it', () {
+        final result = carryDecisions(
+          previous: [claimed],
+          fresh: [
+            _id('new', box: overlapping, candidates: [(_tang, 0.9)]),
+          ],
+        );
+        expect(result.insert.single.id, 'new');
+        expect(result.insert.single.claimedSpeciesId, 'sp_x');
+        expect(result.deleteIds, ['old']);
+        expect(result.keep, isEmpty);
+      });
+
+      test('goes to the fresh detection that overlaps it most', () {
+        const closer = IdentificationBox(
+          x: 0.1,
+          y: 0.1,
+          width: 0.2,
+          height: 0.2,
+        );
+        final result = carryDecisions(
+          previous: [claimed],
+          fresh: [
+            _id('n1', box: overlapping),
+            _id('n2', box: closer),
+          ],
+        );
+        expect(result.insert.map((i) => i.claimedSpeciesId), [null, 'sp_x']);
+      });
+
+      test('is kept as it is when no fresh detection overlaps it', () {
+        final result = carryDecisions(
+          previous: [claimed],
+          fresh: [_id('new', box: elsewhere)],
+        );
+        expect(result.keep.single.id, 'old');
+        expect(result.keep.single.claimedSpeciesId, 'sp_x');
+        expect(result.deleteIds, isEmpty);
+        expect(result.insert.single.claimedSpeciesId, isNull);
+      });
+
+      test('never takes the fresh detection a decision was carried to', () {
+        final result = carryDecisions(
+          previous: [
+            _id('gone', decision: IdentificationDecision.rejected),
+            claimed,
+          ],
+          fresh: [_id('new', box: overlapping)],
+        );
+        expect(result.insert.single.decision, IdentificationDecision.rejected);
+        expect(result.insert.single.claimedSpeciesId, isNull);
+        expect(result.keep.single.id, 'old');
+      });
+    });
+  });
+
+  group('reopenDismissed (issue #4825)', () {
+    final later = DateTime.utc(2026, 11, 21);
+
+    test('turns a dismissal into an undecided row that remembers it', () {
+      final changed = reopenDismissed([
+        _id('a', decision: IdentificationDecision.rejected),
+        _id('b'),
+        _id('c', decision: IdentificationDecision.accepted),
+      ], now: later);
+      expect(changed.map((i) => i.id), ['a']);
+      expect(changed.single.decision, IdentificationDecision.undecided);
+      expect(changed.single.decidedAt, later);
+      expect(changed.single.reopened, isTrue);
+      expect(changed.single.saidByDiver, isTrue);
+    });
+
+    test('an ordinary undecided row is neither reopened nor said', () {
+      expect(_id('b').reopened, isFalse);
+      expect(_id('b').saidByDiver, isFalse);
+    });
+
+    test('a reopened row is offered again as a suggestion', () {
+      final changed = reopenDismissed([
+        _id('a', decision: IdentificationDecision.rejected),
+      ], now: later);
+      expect(groupSuggestions(changed, const []), hasLength(1));
+    });
   });
 
   group('namingFlags (issue #4675)', () {
