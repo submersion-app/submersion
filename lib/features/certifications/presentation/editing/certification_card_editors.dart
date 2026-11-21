@@ -74,11 +74,14 @@ class _CertificationDetailsCardEditorState
   bool _repeatsCredentials(Certification cert) =>
       hasDerivedName(cert, catalog: context.certificationCatalog);
 
-  /// Sets the recognitions. A name that repeated the old agency and level
-  /// is cleared with them, as the old form's blank field saved it: kept, it
-  /// would read as a custom title on the new one.
+  /// Sets the recognitions. A stored name that repeated the old agency and
+  /// level is cleared with them, as the old form's blank field saved it:
+  /// kept, it would read as a custom title on the new one. A title typed in
+  /// this sitting is the diver's own, and stays.
   void _setRows(List<CertificationCredential> rows) {
-    final repeated = _repeatsCredentials(_session.working);
+    final working = _session.working;
+    final repeated =
+        working.name == _session.stored.name && _repeatsCredentials(working);
     _session.set(certificationCredentialsField, rows);
     if (repeated && !_repeatsCredentials(_session.working)) {
       _session.set(certificationTitleField, '');
@@ -172,6 +175,14 @@ class _CertificationDetailsCardEditorState
   @override
   Widget build(BuildContext context) {
     ref.watch(certificationCatalogSyncProvider);
+    // Whether a title only repeats its credentials follows the catalog,
+    // which can arrive, or change on a sync, after the editor opens. A title
+    // typed in this sitting is left as typed.
+    ref.listen(certificationCatalogSyncProvider, (_, _) {
+      if (_session.valueOf(certificationTitleField) == _session.stored.name) {
+        _title.reformat();
+      }
+    });
     final l10n = context.l10n;
     return ListenableBuilder(
       listenable: _session,

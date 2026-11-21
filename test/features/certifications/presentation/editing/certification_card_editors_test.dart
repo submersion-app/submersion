@@ -3,6 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_card_editors.dart';
@@ -204,6 +208,97 @@ void main() {
       expect(session.working.agency, 'ssi');
       expect(session.working.name, isEmpty);
       expect(titleText(tester), isEmpty);
+    });
+
+    // The custom catalog can arrive, or change on a sync, after the editor
+    // opens: whether a title repeats its credentials follows it.
+    testWidgets('follows the catalog when it changes under an open editor', (
+      tester,
+    ) async {
+      final catalog = StateProvider<CertificationCatalog>(
+        (ref) => CertificationCatalog.builtInOnly,
+      );
+      final clubX = CertificationCatalog(
+        agencies: [
+          CustomCertificationAgency(
+            id: 'u1',
+            diverId: 'a',
+            name: 'Club X',
+            colorArgb: 0xFF3B82F6,
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        ],
+      );
+      final session = EditSession(
+        Certification(
+          id: 'c1',
+          name: 'Club X',
+          agency: 'u1',
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+      );
+      addTearDown(session.dispose);
+      tester.view.physicalSize = const Size(600, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            catalog,
+            certificationCatalogSyncProvider.overrideWith(
+              (ref) => ref.watch(catalog),
+            ),
+          ],
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: CertificationDetailsCardEditor(session: session),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CertificationDetailsCardEditor)),
+      );
+      expect(titleText(tester), 'Club X');
+
+      container.read(catalog.notifier).state = clubX;
+      await tester.pumpAndSettle();
+      expect(titleText(tester), isEmpty);
+
+      container.read(catalog.notifier).state = CertificationCatalog.builtInOnly;
+      await tester.pumpAndSettle();
+      expect(titleText(tester), 'Club X');
+      expect(session.isDirty, isFalse);
+    });
+
+    testWidgets('a title typed in the sitting stays when the level changes', (
+      tester,
+    ) async {
+      final session = EditSession(cert().copyWith(name: ''));
+      addTearDown(session.dispose);
+      await pumpEditor(
+        tester,
+        CertificationDetailsCardEditor(session: session),
+      );
+
+      await tester.enterText(
+        find.byKey(const ValueKey('cert-edit-title')),
+        'Open Water',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(levelField(0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Advanced Open Water').last);
+      await tester.pumpAndSettle();
+
+      expect(session.working.level, 'advancedOpenWater');
+      expect(session.working.name, 'Open Water');
+      expect(titleText(tester), 'Open Water');
     });
 
     testWidgets('stays as stored when only a recognition is added', (
