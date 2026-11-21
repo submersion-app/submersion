@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -140,5 +144,83 @@ void main() {
     await tester.tap(find.textContaining('Bonaire'));
     await tester.pumpAndSettle();
     expect(nav.location, '/trips/t1');
+  });
+
+  testWidgets('a pre-dive run under way resumes from its row', (tester) async {
+    final active = PreDiveSession(
+      id: 'run1',
+      templateName: 'Boat dive',
+      startedAt: DateTime(2026),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final nav = await pumpPanel(
+      tester,
+      const PreDivePanel(),
+      overrides: [
+        preDiveActiveSessionProvider.overrideWith((ref) async => active),
+        preDiveSessionsProvider.overrideWith((ref) async => [active]),
+        preDiveTemplatesProvider.overrideWith((ref) async => []),
+        preDiveSessionItemsProvider('run1').overrideWith((ref) async => []),
+        homeTripChecklistProvider.overrideWith((ref) async => null),
+      ],
+    );
+    await tester.tap(find.textContaining('Resume'));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/pre-dive-sessions/run1');
+  });
+
+  testWidgets('recent sites shows its map and opens the sites list', (
+    tester,
+  ) async {
+    final nav = await pumpPanel(
+      tester,
+      const RecentSitesPanel(),
+      overrides: [
+        recentSitesProvider.overrideWith(
+          (ref) async => const [
+            RecentSitePin(
+              siteName: 'Salt Pier',
+              latitude: 12.08,
+              longitude: -68.28,
+            ),
+            RecentSitePin(
+              siteName: 'Bari Reef',
+              latitude: 12.16,
+              longitude: -68.28,
+            ),
+          ],
+        ),
+      ],
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('RECENT SITES'), findsOneWidget);
+    await tester.tap(find.text('RECENT SITES'));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/sites');
+  });
+
+  testWidgets('a video in recent media carries its badge', (tester) async {
+    await pumpPanel(
+      tester,
+      const PhotosPanel(),
+      overrides: [
+        recentMediaProvider.overrideWith(
+          (ref) async => [
+            MediaItem(
+              id: 'v1',
+              diveId: 'd1',
+              mediaType: MediaType.video,
+              sourceType: MediaSourceType.platformGallery,
+              filePath: '/tmp/v1.mov',
+              takenAt: DateTime(2026, 7, 1),
+              createdAt: DateTime(2026, 7, 1),
+              updatedAt: DateTime(2026, 7, 1),
+            ),
+          ],
+        ),
+      ],
+    );
+    expect(find.byIcon(Icons.play_circle), findsOneWidget);
   });
 }
