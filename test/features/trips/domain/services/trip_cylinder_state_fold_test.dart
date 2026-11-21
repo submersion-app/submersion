@@ -60,6 +60,7 @@ void main() {
     String tankId = 'k',
     double? end = 60,
     double o2 = 32,
+    bool endPressureIsGasLeft = true,
   }) => TripCylinderTankUse(
     tankId: '$tankId$minutes',
     diveId: '$diveId$minutes',
@@ -67,6 +68,7 @@ void main() {
     startPressure: 200,
     endPressure: end,
     gasMix: GasMix(o2: o2),
+    endPressureIsGasLeft: endPressureIsGasLeft,
   );
 
   TripCylinderState fold({
@@ -434,6 +436,82 @@ void main() {
         ],
       );
       expect(s.pressure, isNull);
+    });
+  });
+
+  group('an Avelo Hydrotank (issue #4666)', () {
+    // Water pumped into a Hydrotank squeezes its gas, so its end pressure is
+    // not the gas left in the slot: it can read above the fill.
+    TripCylinderTankUse hydro(
+      int minutes, {
+      String tankId = 'h',
+      double? end = 210,
+    }) => dive(minutes, tankId: tankId, end: end, endPressureIsGasLeft: false);
+
+    test('its end pressure leaves the slot used, pressure unknown', () {
+      final s = fold(events: [fill(0)], uses: [hydro(60)]);
+      expect(s.pressure, isNull);
+      expect(s.status, TripCylinderStatus.partial);
+      expect(s.lastUse, isNotNull);
+      expect(s.linkedDiveCount, 1);
+    });
+
+    test('a low end pressure does not mark the slot empty', () {
+      final s = fold(events: [fill(0)], uses: [hydro(60, end: 40)]);
+      expect(s.pressure, isNull);
+      expect(s.status, TripCylinderStatus.partial);
+    });
+
+    test('another computer\'s copy of the dive does not count either', () {
+      // Both rows measured the same squeezed cylinder, so the copy that
+      // was not tagged a Hydrotank reads no truer than the one that was.
+      final tagged = hydro(60, tankId: 'a');
+      final copy = dive(60, tankId: 'b', end: 150);
+      for (final uses in [
+        [tagged, copy],
+        [copy, tagged],
+      ]) {
+        expect(fold(events: [fill(0)], uses: uses).pressure, isNull);
+      }
+    });
+
+    test('a tagged copy with no end pressure still blanks the dive', () {
+      // The copy-reading rule (#2661) drops a copy with no end pressure,
+      // but the dive stays a Hydrotank dive.
+      final tagged = hydro(60, tankId: 'a', end: null);
+      final copy = dive(60, tankId: 'b', end: 150);
+      for (final uses in [
+        [tagged, copy],
+        [copy, tagged],
+      ]) {
+        expect(fold(events: [fill(0)], uses: uses).pressure, isNull);
+      }
+    });
+
+    test('a later fill, correction or ordinary dive reads again', () {
+      expect(
+        fold(events: [fill(0), fill(120)], uses: [hydro(60)]).pressure,
+        200,
+      );
+      expect(
+        fold(
+          events: [fill(0), adjust(120, pressure: 120)],
+          uses: [hydro(60)],
+        ).pressure,
+        120,
+      );
+      expect(
+        fold(events: [fill(0)], uses: [hydro(60), dive(120, end: 70)]).pressure,
+        70,
+      );
+    });
+
+    test('an earlier Hydrotank dive does not blank a later reading', () {
+      final s = fold(
+        events: [fill(0), fill(100)],
+        uses: [hydro(60), dive(120, end: 90)],
+      );
+      expect(s.pressure, 90);
     });
   });
 
