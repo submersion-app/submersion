@@ -163,6 +163,65 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('follows a change of spacing and direction on rebuild', (
+    tester,
+  ) async {
+    await pump(tester, items: 5);
+    expect(_painted(tester, item(1)), isTrue);
+    await pump(tester, items: 5, spacing: 30);
+    expect(_painted(tester, item(1)), isFalse);
+    await pump(tester, items: 5, spacing: 30, direction: TextDirection.rtl);
+    expect(tester.getTopRight(find.byKey(item(0))).dx, 300);
+    // Fewer items: every count past the new end is gone.
+    await pump(tester, items: 2, spacing: 30, direction: TextDirection.rtl);
+    expect(_painted(tester, item(1)), isTrue);
+    expect(find.byKey(count(3)), findsNothing);
+  });
+
+  testWidgets('answers its size when a parent asks before laying it out', (
+    tester,
+  ) async {
+    Widget row(int items) => Directionality(
+      textDirection: TextDirection.ltr,
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: IntrinsicWidth(
+          child: IntrinsicHeight(
+            child: OneLineOverflowRow(
+              spacing: 10,
+              overflowBuilder: (context, hidden) =>
+                  SizedBox(key: count(hidden), width: 50, height: 16),
+              children: [
+                for (var k = 0; k < items; k++)
+                  SizedBox(key: item(k), width: 100, height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(row(3));
+    // Its widest is every child with the spacing; its height the tallest.
+    expect(
+      tester.getSize(find.byType(OneLineOverflowRow)),
+      const Size(320, 20),
+    );
+    final box = tester.renderObject<RenderOneLineOverflow>(
+      find.byType(OneLineOverflowRow),
+    );
+    expect(box.getMinIntrinsicWidth(20), 0);
+    expect(box.getMaxIntrinsicWidth(20), 320);
+    expect(box.getMinIntrinsicHeight(320), 20);
+    expect(
+      box.getDryLayout(const BoxConstraints(maxWidth: 260)),
+      const Size(260, 20),
+    );
+    expect(
+      box.getDryLayout(const BoxConstraints(maxHeight: 40)),
+      const Size(320, 20),
+    );
+  });
+
   testWidgets('nothing to show draws nothing', (tester) async {
     await pump(tester, items: 0);
     expect(tester.getSize(find.byType(OneLineOverflowRow)).height, 0);

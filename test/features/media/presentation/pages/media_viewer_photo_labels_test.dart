@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -48,7 +52,11 @@ void main() {
   final pill = find.byKey(const ValueKey('photo_label_pill_s'));
   final dot = find.byKey(const ValueKey('photo_label_dot_u'));
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    Size size = const Size(1280, 800),
+    List<Override> extra = const [],
+  }) async {
     final items = await tester.runAsync(() => storedMedia(['p1']));
     expect(items!.single.width, 1600);
     await pumpViewerApp(
@@ -59,7 +67,9 @@ void main() {
         mediaIdentificationServiceProvider.overrideWithValue(
           RecordingIdentificationService(),
         ),
+        ...extra,
       ],
+      size: size,
     );
   }
 
@@ -136,5 +146,34 @@ void main() {
     await settleViewer(tester);
     expect(pill, findsNothing);
     expect(dot, findsNothing);
+  });
+
+  testWidgets('locked, "+N" opens the read-only list of every species', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      size: const Size(390, 844),
+      extra: [
+        mediaTagChipsProvider('p1').overrideWith(
+          (ref) async => [
+            for (var i = 0; i < 12; i++)
+              SpeciesTagChip(
+                speciesId: 'sp_$i',
+                storedName: 'Striped species $i',
+                category: SpeciesCategory.fish,
+                isBuiltIn: false,
+              ),
+          ],
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(const ValueKey('media_species_more')));
+    await settleViewer(tester);
+    expect(
+      find.byKey(const ValueKey('media_species_list_sheet')),
+      findsOneWidget,
+    );
+    expect(find.text('Unlock to add or dismiss'), findsOneWidget);
   });
 }
