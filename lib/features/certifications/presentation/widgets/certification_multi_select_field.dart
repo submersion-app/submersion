@@ -39,16 +39,11 @@ class CertificationMultiSelectField extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: () => showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => CertificationMultiPickerSheet(
-          courseId: courseId,
-          selectedCertificationIds: selectedCertificationIds,
-          onChanged: onChanged,
-        ),
+      onTap: () => showCertificationMultiPickerSheet(
+        context,
+        courseId: courseId,
+        selectedCertificationIds: selectedCertificationIds,
+        onChanged: onChanged,
       ),
       child: InputDecorator(
         decoration: const InputDecoration(
@@ -90,6 +85,49 @@ class CertificationMultiSelectField extends ConsumerWidget {
   }
 }
 
+/// What the certification checklist closes with when the diver asks for a
+/// new certification: its opener creates it, so it comes back to be chosen.
+enum _CertificationSheetExit { newCertification }
+
+/// Opens the certification checklist for the course [courseId]. Each
+/// toggle reaches [onChanged] at once. A certification created from it is
+/// chosen with the rest (#4809): the sheet closes, the new certification
+/// opens on its own page, and once it is saved its id reaches [onChanged]
+/// added to the selection the sheet left, for the course's Save to link.
+/// The future answers after that.
+Future<void> showCertificationMultiPickerSheet(
+  BuildContext context, {
+  required String? courseId,
+  required List<String> selectedCertificationIds,
+  required ValueChanged<List<String>> onChanged,
+}) async {
+  var latest = selectedCertificationIds;
+  final exit = await showModalBottomSheet<_CertificationSheetExit>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (_) => CertificationMultiPickerSheet(
+      courseId: courseId,
+      selectedCertificationIds: selectedCertificationIds,
+      onChanged: (ids) {
+        latest = ids;
+        onChanged(ids);
+      },
+    ),
+  );
+  if (exit != _CertificationSheetExit.newCertification || !context.mounted) {
+    return;
+  }
+  final id = await context.push<String>('/certifications/new');
+  if (id == null || id.isEmpty || !context.mounted) return;
+  onChanged([
+    for (final other in latest)
+      if (other != id) other,
+    id,
+  ]);
+}
+
 /// The checklist of certifications, most recently issued first. A
 /// certification linked to another course shows that course's name; ticking
 /// it moves the certification to this course on save.
@@ -125,10 +163,10 @@ class _CertificationMultiPickerSheetState
     widget.onChanged(next);
   }
 
-  void _createCertification() {
-    Navigator.of(context).pop();
-    context.push('/certifications/new');
-  }
+  /// Closes the sheet asking its opener for a new certification, which
+  /// [showCertificationMultiPickerSheet] creates and chooses.
+  void _createCertification() =>
+      Navigator.of(context).pop(_CertificationSheetExit.newCertification);
 
   @override
   Widget build(BuildContext context) {
