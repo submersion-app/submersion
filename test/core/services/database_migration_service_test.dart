@@ -30,14 +30,19 @@ class _FakeLocation implements DatabaseLocationService {
   @override
   Future<bool> verifyFolderAccessible(String folderPath) async => true;
 
+  StorageConfig? savedConfig;
+
   @override
-  Future<void> saveStorageConfig(StorageConfig config) async {}
+  Future<void> saveStorageConfig(StorageConfig config) async =>
+      savedConfig = config;
 
   @override
   Future<bool> createAndStoreBookmark(String folderPath) async => true;
 
+  int bookmarkClears = 0;
+
   @override
-  Future<void> clearStoredBookmark() async {}
+  Future<void> clearStoredBookmark() async => bookmarkClears++;
 
   @override
   Future<void> resetToDefault() async {}
@@ -238,5 +243,163 @@ void main() {
         .customSelect('SELECT 1 AS v')
         .getSingle();
     expect(one.read<int>('v'), 1);
+  });
+
+  test(
+    'checkForExistingDatabase reads the dive log in another folder',
+    () async {
+      final service = await initServiceAt(p.join(root.path, 'default'));
+      final otherDir = p.join(root.path, 'other');
+      final otherPath = p.join(
+        otherDir,
+        DatabaseLocationService.databaseFilename,
+      );
+      await _seedDatabase(otherPath);
+
+      final info = await service.checkForExistingDatabase(otherDir);
+
+      expect(info?.path, otherPath);
+      expect(info?.fileSize, File(otherPath).lengthSync());
+    },
+  );
+
+  group('the current folder picked under another name (issue #4834)', () {
+    // A symlink stands in for the reporter's NAS reached through a second
+    // server name: \\DXP6800\... and \\DXP6800-5g\... are one folder.
+    late String aliasDir;
+
+    Future<DatabaseMigrationService> initWithAlias() async {
+      final service = await initServiceAt(p.join(root.path, 'default'));
+      aliasDir = p.join(root.path, 'alias');
+      await Link(aliasDir).create(currentDir);
+      return service;
+    }
+
+    List<String> backupsIn(String dir) => Directory(dir)
+        .listSync()
+        .map((e) => p.basename(e.path))
+        .where((name) => name.contains('_backup_'))
+        .toList();
+
+    test('checkForExistingDatabase describes the open dive log rather than '
+        'opening it a second time through the other name', () async {
+      final service = await initWithAlias();
+
+      final info = await service.checkForExistingDatabase(aliasDir);
+
+      expect(info, isNotNull);
+      expect(info!.path, currentPath);
+    });
+
+    test('migrateToCustomFolder refuses rather than copy the dive log onto '
+        'itself', () async {
+      final service = await initWithAlias();
+      final before = File(currentPath).lengthSync();
+
+      final result = await service.migrateToCustomFolder(aliasDir);
+
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('already at this location'));
+      expect(backupsIn(currentDir), isEmpty);
+      expect(File(currentPath).lengthSync(), before);
+      expect(DatabaseService.instance.currentPath, currentPath);
+      expect(location.savedConfig, isNull);
+    });
+
+    test('replaceExistingDatabase refuses rather than replace the dive log '
+        'with itself', () async {
+      final service = await initWithAlias();
+
+      final result = await service.replaceExistingDatabase(aliasDir);
+
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('already at this location'));
+      expect(backupsIn(currentDir), isEmpty);
+      expect(DatabaseService.instance.currentPath, currentPath);
+      expect(location.savedConfig, isNull);
+    });
+
+    test('migrateToDefault does not copy the dive log onto itself when the '
+        'default folder is the current one under another name', () async {
+      // Here the alias is the DEFAULT folder, and the live log is in it.
+      aliasDir = p.join(root.path, 'alias');
+      await Link(aliasDir).create(currentDir);
+      location = _FakeLocation(currentPath: currentPath, defaultDir: aliasDir);
+      await DatabaseService.instance.initialize(locationService: location);
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      final service = DatabaseMigrationService(
+        DatabaseService.instance,
+        location,
+      );
+
+      final result = await service.migrateToDefault();
+
+      expect(result.success, isTrue, reason: result.errorMessage);
+      expect(backupsIn(currentDir), isEmpty);
+      expect(location.savedConfig?.mode, StorageLocationMode.appDefault);
+      // The custom folder's bookmark goes too, as it does after a full move.
+      expect(location.bookmarkClears, 1);
+      final one = await DatabaseService.instance.database
+          .customSelect('SELECT 1 AS v')
+          .getSingle();
+      expect(one.read<int>('v'), 1);
+    });
+
+    test('a move refuses when it cannot tell whether the folder is the current '
+        'one, rather than risk opening or copying the live file under a second '
+        'name', () async {
+      final service = await initServiceAt(p.join(root.path, 'default'));
+      final targetDir = p.join(root.path, 'target');
+      final targetPath = p.join(
+        targetDir,
+        DatabaseLocationService.databaseFilename,
+      );
+      await _seedDatabase(targetPath);
+      // No marker can be written beside the live dive log, so the folders
+      // cannot be compared.
+      await Process.run('chmod', ['555', currentDir]);
+      try {
+        try {
+          File(p.join(currentDir, 'write-check')).createSync();
+          markTestSkipped('permissions are not enforced for this user');
+          return;
+        } on FileSystemException {
+          // Read-only, as intended.
+        }
+
+        // Described from its file alone: it may be the live log.
+        final found = await service.checkForExistingDatabase(targetDir);
+        expect(found?.path, targetPath);
+
+        final moved = await service.migrateToCustomFolder(targetDir);
+        final replaced = await service.replaceExistingDatabase(targetDir);
+        final home = await service.migrateToDefault();
+
+        for (final result in [moved, replaced, home]) {
+          expect(result.success, isFalse);
+          expect(result.errorMessage, contains('Could not tell'));
+        }
+        expect(DatabaseService.instance.currentPath, currentPath);
+        expect(location.savedConfig, isNull);
+      } finally {
+        await Process.run('chmod', ['755', currentDir]);
+      }
+    }, skip: Platform.isWindows ? 'chmod is POSIX only' : false);
+
+    test('switchToExistingDatabase moves the stored folder to the name the '
+        'diver picked', () async {
+      final service = await initWithAlias();
+
+      final result = await service.switchToExistingDatabase(aliasDir);
+
+      expect(result.success, isTrue, reason: result.errorMessage);
+      expect(location.savedConfig?.customFolderPath, aliasDir);
+      final one = await DatabaseService.instance.database
+          .customSelect('SELECT 1 AS v')
+          .getSingle();
+      expect(one.read<int>('v'), 1);
+    });
   });
 }
