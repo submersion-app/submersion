@@ -8411,6 +8411,7 @@
   "settings_speciesId_downloading": "جارٍ التنزيل {percent}٪",
   "settings_speciesId_downloadConfirmTitle": "تنزيل النموذج؟",
   "settings_speciesId_downloadConfirmBody": "سيؤدي هذا إلى تنزيل {size} والاحتفاظ به على هذا الجهاز. يمكنك إزالته في أي وقت.",
+  "settings_speciesId_downloadConfirmBodyHardware": "سيؤدي هذا إلى تنزيل {size} والاحتفاظ به على هذا الجهاز. قد يقوم Windows أيضًا بتنزيل محرك لبطاقة الرسومات أو وحدة NPU من Microsoft. يمكنك إزالة النموذج في أي وقت.",
   "settings_speciesId_downloadFailed": "لم يكتمل التنزيل. حاول مرة أخرى للمتابعة من حيث توقف.",
   "settings_speciesId_downloadNoSpace": "لا توجد مساحة خالية كافية على هذا الجهاز.",
   "settings_speciesId_needsAppUpdate": "يتطلب هذا النموذج إصدارًا أحدث من Submersion.",

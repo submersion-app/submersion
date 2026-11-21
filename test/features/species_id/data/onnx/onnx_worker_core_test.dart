@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion_vision/onnx_runtime.dart';
 
+import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker_core.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/onnx_pipeline.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
@@ -68,7 +71,7 @@ const _models = VisionModels(
 
 void main() {
   final image = RgbaImage(40, 20, Uint8List(40 * 20 * 4));
-  const devices = [OrtDevice.preferGpu, OrtDevice.directMl, OrtDevice.cpu];
+  const devices = [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu];
 
   late List<FakeModel> opened;
   late Set<OrtDevice> refuseToOpen;
@@ -94,18 +97,18 @@ void main() {
 
   test('opens on the first device that takes the models', () {
     final c = core()..load(_models);
-    expect(c.device, OrtDevice.preferGpu);
+    expect(c.device, OrtDevice.hardware);
     expect(c.analyze(image).analysis.detections, hasLength(1));
   });
 
   test('a session failing on the GPU opens on DirectML', () {
-    refuseToOpen = {OrtDevice.preferGpu};
+    refuseToOpen = {OrtDevice.hardware};
     final c = core()..load(_models);
     expect(c.device, OrtDevice.directMl);
   });
 
   test('a run failing on the GPU moves to DirectML', () {
-    failToRun = {OrtDevice.preferGpu};
+    failToRun = {OrtDevice.hardware};
     final c = core()..load(_models);
 
     final result = c.analyze(image);
@@ -113,13 +116,82 @@ void main() {
     expect(result.analysis.detections, hasLength(1));
     expect(c.device, OrtDevice.directMl);
     expect(
-      opened.where((m) => m.device == 'preferGpu').every((m) => m.closed),
+      opened.where((m) => m.device == 'hardware').every((m) => m.closed),
       isTrue,
     );
   });
 
+  test('says where the models run, before and after a fallback, for the '
+      'debug log', () {
+    final c = core();
+    expect(c.deviceDescription, isNull);
+
+    c.load(_models);
+    expect(c.deviceDescription, 'hardware');
+
+    failToRun = {OrtDevice.hardware};
+    c.analyze(image);
+    expect(c.deviceDescription, 'directMl');
+  });
+
+  test('every model open is noted while it runs, a fallback during a run '
+      'included, and the note is gone once it returns', () {
+    // The note survives only if the app ends mid-open: DeviceCrashGuard then
+    // skips the device it names at the next start.
+    final dir = Directory.systemTemp.createTempSync('opening_note');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final path = p.join(dir.path, 'onnx_opening');
+    final noted = <String>[];
+    failToRun = {OrtDevice.hardware};
+    final c = OnnxWorkerCore(
+      devices: devices,
+      open: noteOpens((modelPath, device) {
+        noted.add(File(path).readAsStringSync());
+        final model = FakeModel(
+          modelPath,
+          device,
+          () => failToRun.contains(device),
+        );
+        opened.add(model);
+        return model;
+      }, OpeningNote(path)),
+    );
+
+    c.load(_models);
+    c.analyze(image);
+
+    expect(noted.toSet(), {'hardware', 'directMl'});
+    expect(File(path).existsSync(), isFalse);
+  });
+
+  test('the first run after each open is watched while it runs, a '
+      'fallback included, and later runs are not', () {
+    final watched = <String>[];
+    failToRun = {OrtDevice.hardware};
+    final c = OnnxWorkerCore(
+      devices: devices,
+      open: (path, device) {
+        final model = FakeModel(path, device, () => failToRun.contains(device));
+        opened.add(model);
+        return model;
+      },
+      firstRuns: _Watcher(watched),
+    );
+
+    c.load(_models);
+    c.analyze(image);
+    c.analyze(image);
+
+    expect(watched, [
+      'starting hardware',
+      'finished',
+      'starting directMl',
+      'finished',
+    ]);
+  });
+
   test('failing on DirectML too lands on the processor', () {
-    failToRun = {OrtDevice.preferGpu, OrtDevice.directMl};
+    failToRun = {OrtDevice.hardware, OrtDevice.directMl};
     final c = core()..load(_models);
 
     c.analyze(image);
@@ -170,4 +242,16 @@ void main() {
       ),
     );
   });
+}
+
+class _Watcher implements FirstRunWatcher {
+  _Watcher(this.calls);
+
+  final List<String> calls;
+
+  @override
+  void starting(OrtDevice device) => calls.add('starting ${device.name}');
+
+  @override
+  void finished() => calls.add('finished');
 }

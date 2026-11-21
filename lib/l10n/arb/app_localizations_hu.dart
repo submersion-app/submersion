@@ -29222,6 +29222,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Ez $size adatot tölt le, és ezen az eszközön tárolja. A Windows a Microsofttól a videokártyádhoz vagy NPU-dhoz való motort is letölthet. A modellt bármikor eltávolíthatod.';
+  }
+
+  @override
   String get settings_speciesId_downloadFailed =>
       'A letöltés nem fejeződött be. Próbáld újra, hogy ott folytasd, ahol abbamaradt.';
 

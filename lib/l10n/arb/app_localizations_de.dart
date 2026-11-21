@@ -29294,6 +29294,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Dabei werden $size heruntergeladen und auf diesem Gerät gespeichert. Windows lädt eventuell zusätzlich eine Engine für deine Grafikkarte oder NPU von Microsoft herunter. Du kannst das Modell jederzeit entfernen.';
+  }
+
+  @override
   String get settings_speciesId_downloadFailed =>
       'Der Download wurde nicht abgeschlossen. Versuche es erneut, um dort weiterzumachen, wo er aufgehört hat.';
 

@@ -4,13 +4,17 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:submersion_vision/onnx_runtime.dart';
+import 'package:submersion_vision/windows_ml.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/device_memory.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/device_memory_io.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/flutter_image_decoder.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/frame_reader.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/hardware_engines.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
@@ -24,17 +28,46 @@ import 'package:submersion/features/species_id/domain/services/vision_engine.dar
 /// runs (spinning is off too). The Pixel 6a measurement times this count.
 int onnxThreadsFor(int cores) => cores > 3 ? cores - 2 : 1;
 
+/// Starts a worker whose sessions open on the first of [devices] that takes
+/// them, with [providerLibraries] registered first ([OnnxWorker.spawn]).
+typedef WorkerSpawner =
+    Future<OnnxWorkerHandle> Function({
+      required List<OrtDevice> devices,
+      required List<ProviderLibrary> providerLibraries,
+      required int intraOpThreads,
+      String? openingNote,
+    });
+
+Future<OnnxWorkerHandle> _spawnOnnxWorker({
+  required List<OrtDevice> devices,
+  required List<ProviderLibrary> providerLibraries,
+  required int intraOpThreads,
+  String? openingNote,
+}) => OnnxWorker.spawn(
+  devices: devices,
+  providerLibraries: providerLibraries,
+  intraOpThreads: intraOpThreads,
+  openingNote: openingNote,
+);
+
 /// [VisionEngine] over ONNX Runtime, on Android, Windows and Linux (piece 3,
 /// docs/design/specs/2026-11-19-marine-life-identification-3-other-platforms-design.md).
 /// The pipeline runs in a worker isolate; photos are decoded by Flutter's
 /// own decoder. Calls are served one at a time, as the Swift engine's
 /// serial queue serves them.
-class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
+class OnnxVisionEngine
+    with WidgetsBindingObserver
+    implements VisionEngine, HardwareEngineSource {
   /// [platform] defaults to the running one; tests pass their own, and a
-  /// fake [worker] and [decode].
+  /// fake [worker] and [decode], or a fake [spawnWorker] to see the devices
+  /// a worker is started with. [hardware] defaults to Windows ML's engines
+  /// on Windows and none elsewhere.
   OnnxVisionEngine({
     TargetPlatform? platform,
     Future<OnnxWorkerHandle> Function()? worker,
+    WorkerSpawner spawnWorker = _spawnOnnxWorker,
+    HardwareEngines? hardware,
+    DeviceCrashGuard? crashGuard,
     Future<RgbaImage> Function(Uint8List encoded)? decode,
     DeviceMemory? deviceMemory,
     bool ignoreFloor = marineLifeIgnoreFloor,
@@ -45,11 +78,18 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
     bool onnxPlatforms = marineLifeOnnxPlatforms,
   }) : _platform = platform ?? defaultTargetPlatform,
        _onnxPlatforms = onnxPlatforms,
-       _spawn =
-           worker ??
-           (() => OnnxWorker.spawn(
-             intraOpThreads: onnxThreadsFor(HostPlatform.numberOfProcessors),
-           )),
+       _hardware =
+           hardware ??
+           ((platform ?? defaultTargetPlatform) == TargetPlatform.windows
+               ? WindowsMlEngines(const WinMlCatalog())
+               : const NoHardwareEngines()),
+       _spawnWorker = spawnWorker,
+       _crashGuard =
+           crashGuard ??
+           ((platform ?? defaultTargetPlatform) == TargetPlatform.windows
+               ? DeviceCrashGuard.forThisDevice()
+               : null),
+       _customWorker = worker,
        _decode = decode ?? decodeForAnalysis,
        _frames = frames ?? const ChannelFrameReader(),
        _lifecycle = lifecycle ?? (() => WidgetsBinding.instance.lifecycleState),
@@ -68,7 +108,31 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   /// The `MARINE_LIFE_ID_ONNX` define: off, the engine runs nowhere, so a
   /// build without it never offers or downloads anything for it.
   final bool _onnxPlatforms;
-  final Future<OnnxWorkerHandle> Function() _spawn;
+  final HardwareEngines _hardware;
+  final WorkerSpawner _spawnWorker;
+
+  /// On Windows, keeps a device that ended the app from being tried again.
+  final DeviceCrashGuard? _crashGuard;
+
+  /// Whether a run has returned on the current worker ([_ran]).
+  bool _ranOnWorker = false;
+
+  /// The device the models last loaded on, from the worker's description.
+  OrtDevice? _loadedOn;
+
+  /// The device a worker's description names: `hardware: ...`, `directMl`
+  /// or `cpu` ([OrtModelSession.device]).
+  static OrtDevice? _deviceNamed(String? description) => description == null
+      ? null
+      : OrtDevice.values
+            .where(
+              (d) =>
+                  description == d.name || description.startsWith('${d.name}:'),
+            )
+            .firstOrNull;
+
+  final Future<OnnxWorkerHandle> Function()? _customWorker;
+  final _log = LoggerService.forClass(OnnxVisionEngine);
   final Future<RgbaImage> Function(Uint8List encoded) _decode;
   final FrameReader _frames;
   final AppLifecycleState? Function() _lifecycle;
@@ -120,7 +184,9 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   Future<void> load(VisionModels models) => _serial(() async {
     if (_loaded == models) return;
     _loaded = null;
-    await _fromWorker((await _workerHandle()).load(models));
+    final device = await _fromWorker((await _workerHandle()).load(models));
+    _log.info('Marine life models open on ${device ?? 'an unknown device'}');
+    _loadedOn = _deviceNamed(device);
     _loaded = models;
     _observe();
   });
@@ -136,7 +202,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
       }
       final encoded = bytes ?? await _readPhoto(path!);
       final image = await _decode(encoded);
-      final result = await _fromWorker((await _workerHandle()).analyze(image));
+      final result = await _ran((await _workerHandle()).analyze(image));
       return result.analysis;
     });
   }
@@ -201,7 +267,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
           while (next <= frame.ms) {
             next += sampleIntervalMs;
           }
-          final boxes = await _fromWorker(worker.detect(frame.image));
+          final boxes = await _ran(worker.detect(frame.image));
           frames.add(
             FrameDetections(
               ms: frame.ms,
@@ -260,7 +326,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
             crops.add(null);
             continue;
           }
-          crops.add(await _fromWorker(worker.cropAndEmbed(image, moment.box)));
+          crops.add(await _ran(worker.cropAndEmbed(image, moment.box)));
         }
         if (moments.isNotEmpty && unread == moments.length) {
           throw const VisionEngineException(
@@ -326,14 +392,77 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
 
   /// The worker, started on first use. A start that failed is not kept, so
   /// the next call tries again.
+  /// On Windows the models try a hardware engine Windows ML supplied, then
+  /// DirectML, then the processor (design section 2a); elsewhere they run
+  /// on the processor.
+  Future<OnnxWorkerHandle> _spawnDefault() async {
+    _ranOnWorker = false;
+    final threads = onnxThreadsFor(HostPlatform.numberOfProcessors);
+    if (!_onWindows) {
+      return _spawnWorker(
+        devices: const [OrtDevice.cpu],
+        providerLibraries: const [],
+        intraOpThreads: threads,
+      );
+    }
+    const wanted = [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu];
+    final devices = await _crashGuard?.devicesFor(wanted) ?? wanted;
+    return _spawnWorker(
+      devices: devices,
+      providerLibraries: devices.contains(OrtDevice.hardware)
+          ? await _hardware.readyProviderLibraries()
+          : const [],
+      intraOpThreads: threads,
+      openingNote: _crashGuard?.openingNotePath,
+    );
+  }
+
+  bool get _onWindows => _platform == TargetPlatform.windows;
+
+  @override
+  Future<bool> offersEngineToFetch() async =>
+      _runsHere && _onWindows && await _hardware.offersEngineToFetch();
+
+  /// A worker registers the engines ready when it starts, so one that
+  /// arrives here stops the worker: the next load starts one that has it.
+  @override
+  Future<bool> fetchEngine() async {
+    if (!_runsHere || !_onWindows) return false;
+    final arrived = await _hardware.fetchEngine();
+    if (arrived) {
+      await _crashGuard?.forgive(OrtDevice.hardware);
+      await _serial(() async {
+        _loaded = null;
+        _dropWorker();
+      });
+    }
+    return arrived;
+  }
+
   Future<OnnxWorkerHandle> _workerHandle() async {
-    final spawning = _worker ??= _spawn();
+    final spawning = _worker ??= (_customWorker ?? _spawnDefault)();
     try {
       return await spawning;
     } on Object {
       if (identical(_worker, spawning)) _worker = null;
       rethrow;
     }
+  }
+
+  /// [call]'s answer, from a run of the models. The first run that returns
+  /// on a worker tells the crash guard the app got past the opens and first
+  /// runs it was noting; a completed load is not enough, since a first run
+  /// comes after it.
+  Future<T> _ran<T>(Future<T> call) async {
+    final result = await _fromWorker(call);
+    final device = _loadedOn;
+    if (!_ranOnWorker) {
+      _ranOnWorker = true;
+      if (_customWorker == null && device != null) {
+        await _crashGuard?.ranSafely(device);
+      }
+    }
+    return result;
   }
 
   /// [call]'s answer. A worker that answers `not_loaded` has closed its
