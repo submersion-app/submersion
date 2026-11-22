@@ -108,6 +108,9 @@ mixin DiverProfileEditor<W extends ConsumerStatefulWidget, D>
 
   /// Writes the page's changes onto the diver as stored now, inside the
   /// sitting. A diver gone meanwhile is refused, and nothing is written.
+  /// Changes that come to what is already stored (a value typed with a
+  /// trailing space, or one synced in meanwhile) write nothing either: the
+  /// sitting then ends with no History entry.
   @override
   Future<void> writeEditor(String recordId) async {
     final repository = ref.read(diverRepositoryProvider);
@@ -115,9 +118,13 @@ mixin DiverProfileEditor<W extends ConsumerStatefulWidget, D>
     if (stored == null) {
       throw RecordSittingRefusal((l10n) => l10n.divers_edit_notFound);
     }
-    await repository.updateDiver(
-      applyEditorDraft(stored, editorStartDraft as D, readEditorDraft()),
+    final updated = applyEditorDraft(
+      stored,
+      editorStartDraft as D,
+      readEditorDraft(),
     );
+    if (updated == stored) return;
+    await repository.updateDiver(updated);
   }
 
   @override

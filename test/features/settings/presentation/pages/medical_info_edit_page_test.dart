@@ -263,4 +263,25 @@ void main() {
       expect(barAction(tester, 'Save').onPressed, isNotNull);
     },
   );
+
+  testWidgets('a Save that changes nothing stored writes nothing', (
+    tester,
+  ) async {
+    await pump(tester, allergies: 'Latex');
+    await (db.update(db.divers)..where((t) => t.id.equals('diver-1'))).write(
+      const DiversCompanion(updatedAt: Value(1)),
+    );
+
+    // Changed as typed, the same once trimmed.
+    await typeInto(tester, 'Allergies', 'Latex ');
+    expect(barAction(tester, 'Save').onPressed, isNotNull);
+    await tapBar(tester, 'Save');
+
+    expect(find.text('Hub'), findsOneWidget);
+    final row = await (db.select(
+      db.divers,
+    )..where((t) => t.id.equals('diver-1'))).getSingle();
+    expect(row.updatedAt, 1);
+    expect(row.allergies, 'Latex');
+  });
 }
