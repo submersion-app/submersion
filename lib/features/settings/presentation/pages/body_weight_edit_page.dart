@@ -10,7 +10,7 @@ import 'package:submersion/features/settings/presentation/widgets/body_weight_en
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dated body-weight history for the active diver (weight prediction v104):
-/// a list of measurements with add/delete.
+/// a list of measurements with add/delete. Deleting asks first.
 class BodyWeightEditPage extends ConsumerWidget {
   const BodyWeightEditPage({super.key});
 
@@ -34,6 +34,49 @@ class BodyWeightEditPage extends ConsumerWidget {
             updatedAt: draft.measuredAt,
           ),
         );
+    ref.invalidate(diverWeightEntriesProvider);
+  }
+
+  /// Deletes [entry] once the diver has said so (issue #4527, phase 4,
+  /// decision 1): a deleted measurement cannot be brought back.
+  Future<void> _deleteEntry(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+    DiverWeightEntry entry,
+  ) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final colors = Theme.of(dialogContext).colorScheme;
+        return AlertDialog(
+          title: Text(l10n.bodyWeight_deleteConfirmTitle),
+          content: Text(
+            l10n.bodyWeight_deleteConfirmBody(
+              units.formatWeight(entry.weightKg),
+              units.formatDate(entry.measuredAt),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.common_action_cancel),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: colors.error,
+                foregroundColor: colors.onError,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.common_action_delete),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) return;
+    await ref.read(diverWeightEntryRepositoryProvider).deleteEntry(entry.id);
     ref.invalidate(diverWeightEntriesProvider);
   }
 
@@ -85,12 +128,7 @@ class BodyWeightEditPage extends ConsumerWidget {
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: context.l10n.bodyWeight_deleteTooltip,
-                  onPressed: () async {
-                    await ref
-                        .read(diverWeightEntryRepositoryProvider)
-                        .deleteEntry(entry.id);
-                    ref.invalidate(diverWeightEntriesProvider);
-                  },
+                  onPressed: () => _deleteEntry(context, ref, units, entry),
                 ),
               );
             },

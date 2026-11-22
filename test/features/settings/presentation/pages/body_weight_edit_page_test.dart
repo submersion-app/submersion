@@ -5,6 +5,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -180,10 +181,58 @@ void main() {
 
     await tester.tap(find.byTooltip('Delete entry'));
     await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
 
     expect(find.text('Not recorded'), findsOneWidget);
     expect(await repository.getEntriesForDiver(diverId), isEmpty);
   });
+
+  testWidgets(
+    'deleting asks first, in the diver units; Cancel keeps the entry',
+    (tester) async {
+      final repository = DiverWeightEntryRepository();
+      final measured = DateTime(2026, 6, 1);
+      await repository.createEntry(
+        DiverWeightEntry(
+          id: '',
+          diverId: diverId,
+          measuredAt: measured,
+          weightKg: 80.0,
+          createdAt: measured,
+          updatedAt: measured,
+        ),
+      );
+      await pumpPage(tester);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(BodyWeightEditPage)),
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setWeightUnit(WeightUnit.pounds);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Delete entry'));
+      await tester.pumpAndSettle();
+
+      final units = container.read(unitFormatterProvider);
+      expect(find.text('Delete this measurement?'), findsOneWidget);
+      expect(
+        find.text(
+          '${units.formatWeight(80.0)} on ${units.formatDate(measured)} '
+          'will be deleted. This cannot be undone.',
+        ),
+        findsOneWidget,
+      );
+      expect(units.formatWeight(80.0), contains('lbs'));
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(await repository.getEntriesForDiver(diverId), hasLength(1));
+      expect(find.text(units.formatWeight(80.0)), findsOneWidget);
+    },
+  );
 
   group('body fat (issue #4525)', () {
     Future<void> openDialog(WidgetTester tester) async {

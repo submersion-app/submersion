@@ -40962,6 +40962,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get bodyWeight_deleteTooltip => 'Elimina voce';
 
   @override
+  String get bodyWeight_deleteConfirmTitle => 'Eliminare questa misurazione?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight del $date verrà eliminato. L\'operazione non può essere annullata.';
+  }
+
+  @override
   String get bodyWeight_heightLabel => 'Altezza (cm)';
 
   @override

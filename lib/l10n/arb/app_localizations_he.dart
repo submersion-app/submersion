@@ -39956,6 +39956,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get bodyWeight_deleteTooltip => 'מחק רשומה';
 
   @override
+  String get bodyWeight_deleteConfirmTitle => 'למחוק את המדידה הזו?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight מתאריך $date יימחק. אי אפשר לבטל את הפעולה.';
+  }
+
+  @override
   String get bodyWeight_heightLabel => 'גובה (ס״מ)';
 
   @override

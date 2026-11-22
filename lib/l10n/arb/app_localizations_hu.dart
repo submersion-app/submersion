@@ -40717,6 +40717,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get bodyWeight_deleteTooltip => 'Bejegyzés törlése';
 
   @override
+  String get bodyWeight_deleteConfirmTitle => 'Törlöd ezt a mérést?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return 'A(z) $date napi $weight mérés törlődik. Ez nem vonható vissza.';
+  }
+
+  @override
   String get bodyWeight_heightLabel => 'Magasság (cm)';
 
   @override

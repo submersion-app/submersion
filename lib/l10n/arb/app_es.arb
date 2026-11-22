@@ -11587,6 +11587,8 @@
   "bodyWeight_addEntry": "Añadir medición",
   "bodyWeight_dateLabel": "Fecha",
   "bodyWeight_deleteTooltip": "Eliminar entrada",
+  "bodyWeight_deleteConfirmTitle": "¿Eliminar esta medición?",
+  "bodyWeight_deleteConfirmBody": "Se eliminará {weight} del {date}. No se puede deshacer.",
   "bodyWeight_heightLabel": "Altura (cm)",
   "bodyWeight_heightFeetLabel": "Altura (ft)",
   "bodyWeight_heightInchesLabel": "Pulgadas",

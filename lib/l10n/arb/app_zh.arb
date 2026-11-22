@@ -11587,6 +11587,8 @@
   "bodyWeight_addEntry": "添加测量",
   "bodyWeight_dateLabel": "日期",
   "bodyWeight_deleteTooltip": "删除条目",
+  "bodyWeight_deleteConfirmTitle": "删除此测量记录？",
+  "bodyWeight_deleteConfirmBody": "{date} 的 {weight} 将被删除。此操作无法撤销。",
   "bodyWeight_heightLabel": "身高（厘米）",
   "bodyWeight_heightFeetLabel": "身高（英尺）",
   "bodyWeight_heightInchesLabel": "英寸",

@@ -41531,6 +41531,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bodyWeight_deleteTooltip => 'حذف الإدخال';
 
   @override
+  String get bodyWeight_deleteConfirmTitle => 'حذف هذا القياس؟';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return 'سيُحذف القياس $weight بتاريخ $date. لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
   String get bodyWeight_heightLabel => 'الطول (سم)';
 
   @override

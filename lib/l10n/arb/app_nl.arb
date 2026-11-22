@@ -11587,6 +11587,8 @@
   "bodyWeight_addEntry": "Meting toevoegen",
   "bodyWeight_dateLabel": "Datum",
   "bodyWeight_deleteTooltip": "Item verwijderen",
+  "bodyWeight_deleteConfirmTitle": "Deze meting verwijderen?",
+  "bodyWeight_deleteConfirmBody": "{weight} van {date} wordt verwijderd. Dit kan niet ongedaan worden gemaakt.",
   "bodyWeight_heightLabel": "Lengte (cm)",
   "bodyWeight_heightFeetLabel": "Lengte (ft)",
   "bodyWeight_heightInchesLabel": "Inches",

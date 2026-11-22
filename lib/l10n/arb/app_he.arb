@@ -11587,6 +11587,8 @@
   "bodyWeight_addEntry": "הוסף מדידה",
   "bodyWeight_dateLabel": "תאריך",
   "bodyWeight_deleteTooltip": "מחק רשומה",
+  "bodyWeight_deleteConfirmTitle": "למחוק את המדידה הזו?",
+  "bodyWeight_deleteConfirmBody": "{weight} מתאריך {date} יימחק. אי אפשר לבטל את הפעולה.",
   "bodyWeight_heightLabel": "גובה (ס״מ)",
   "bodyWeight_heightFeetLabel": "גובה (רגל)",
   "bodyWeight_heightInchesLabel": "אינץ'",

@@ -11721,6 +11721,8 @@
   "bodyWeight_addEntry": "Messung hinzufügen",
   "bodyWeight_dateLabel": "Datum",
   "bodyWeight_deleteTooltip": "Eintrag löschen",
+  "bodyWeight_deleteConfirmTitle": "Diese Messung löschen?",
+  "bodyWeight_deleteConfirmBody": "{weight} vom {date} wird gelöscht. Das lässt sich nicht rückgängig machen.",
   "bodyWeight_heightLabel": "Größe (cm)",
   "bodyWeight_heightFeetLabel": "Größe (ft)",
   "bodyWeight_heightInchesLabel": "Zoll",

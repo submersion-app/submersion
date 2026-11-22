@@ -63804,6 +63804,18 @@ abstract class AppLocalizations {
   /// **'Delete entry'**
   String get bodyWeight_deleteTooltip;
 
+  /// No description provided for @bodyWeight_deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this measurement?'**
+  String get bodyWeight_deleteConfirmTitle;
+
+  /// Body of the question asked before a body-weight entry is deleted. {weight} is the weight in the diver's units, such as 176.4 lbs; {date} is the date it was measured.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} on {date} will be deleted. This cannot be undone.'**
+  String bodyWeight_deleteConfirmBody(String weight, String date);
+
   /// No description provided for @bodyWeight_heightLabel.
   ///
   /// In en, this message translates to:

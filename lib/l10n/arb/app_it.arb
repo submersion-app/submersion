@@ -11587,6 +11587,8 @@
   "bodyWeight_addEntry": "Aggiungi misurazione",
   "bodyWeight_dateLabel": "Data",
   "bodyWeight_deleteTooltip": "Elimina voce",
+  "bodyWeight_deleteConfirmTitle": "Eliminare questa misurazione?",
+  "bodyWeight_deleteConfirmBody": "{weight} del {date} verrà eliminato. L'operazione non può essere annullata.",
   "bodyWeight_heightLabel": "Altezza (cm)",
   "bodyWeight_heightFeetLabel": "Altezza (ft)",
   "bodyWeight_heightInchesLabel": "Pollici",

@@ -11587,6 +11587,8 @@
   "bodyWeight_addEntry": "إضافة قياس",
   "bodyWeight_dateLabel": "التاريخ",
   "bodyWeight_deleteTooltip": "حذف الإدخال",
+  "bodyWeight_deleteConfirmTitle": "حذف هذا القياس؟",
+  "bodyWeight_deleteConfirmBody": "سيُحذف القياس {weight} بتاريخ {date}. لا يمكن التراجع عن ذلك.",
   "bodyWeight_heightLabel": "الطول (سم)",
   "bodyWeight_heightFeetLabel": "الطول (قدم)",
   "bodyWeight_heightInchesLabel": "بوصة",

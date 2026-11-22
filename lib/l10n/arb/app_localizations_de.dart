@@ -40867,6 +40867,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get bodyWeight_deleteTooltip => 'Eintrag löschen';
 
   @override
+  String get bodyWeight_deleteConfirmTitle => 'Diese Messung löschen?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight vom $date wird gelöscht. Das lässt sich nicht rückgängig machen.';
+  }
+
+  @override
   String get bodyWeight_heightLabel => 'Größe (cm)';
 
   @override
