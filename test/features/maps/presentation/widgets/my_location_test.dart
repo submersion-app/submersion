@@ -105,6 +105,8 @@ void main() {
     expect(located, [const LatLng(17.3, -87.5)]);
     expect(location.geocodingAsked, isFalse);
     expect(_dot, findsOneWidget);
+    // Display only: a site marker under the dot still takes the tap.
+    expect(_dot.hitTestable(), findsNothing);
     final marker = tester
         .widget<MarkerLayer>(find.byType(MarkerLayer))
         .markers

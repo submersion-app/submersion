@@ -30,28 +30,31 @@ class MyLocationLayer extends ConsumerWidget {
           point: point,
           width: _haloSize,
           height: _haloSize,
-          child: Semantics(
-            label: context.l10n.maps_myLocation_markerLabel,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _blue.withValues(alpha: 0.18),
-              ),
-              alignment: Alignment.center,
+          // Display only, so a site marker under the dot still takes taps.
+          child: IgnorePointer(
+            child: Semantics(
+              label: context.l10n.maps_myLocation_markerLabel,
               child: Container(
-                width: _dotSize,
-                height: _dotSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _blue,
-                  border: Border.all(color: Colors.white, width: 3),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
+                  color: _blue.withValues(alpha: 0.18),
+                ),
+                alignment: Alignment.center,
+                child: Container(
+                  width: _dotSize,
+                  height: _dotSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _blue,
+                    border: Border.all(color: Colors.white, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
