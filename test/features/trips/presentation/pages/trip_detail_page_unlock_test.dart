@@ -288,6 +288,46 @@ void main() {
     });
   }
 
+  // A finger's drag over the open header editor reaches its last field and
+  // the card's bottom edge, with nothing of them under the tab row (issue
+  // #4844).
+  for (final (kind, size, embedded, keyboard) in [
+    ('a phone', const Size(402, 874), false, 0.0),
+    ('a phone with the keyboard up', const Size(402, 874), false, 336.0),
+    ('a desktop', const Size(1280, 800), false, 0.0),
+    ('the list pane', const Size(900, 800), true, 0.0),
+  ]) {
+    testWidgets('on $kind a drag reaches the header editor\'s last field '
+        'above the tab row', (tester) async {
+      await pumpTripPage(tester, size: size, embedded: embedded);
+      await unlock(tester);
+      await openCard(tester, l.settings_conflict_ref_trip);
+      tester.view.viewInsets = FakeViewPadding(bottom: keyboard);
+      await tester.pumpAndSettle();
+
+      await tester.drag(
+        find.byKey(const Key('trip-edit-type')),
+        const Offset(0, -3000),
+      );
+      await tester.pumpAndSettle();
+
+      final tabs = tester.getRect(find.byType(TabBar));
+      final last = tester.getRect(
+        find.byKey(const Key('trip-edit-liveaboard-name')),
+      );
+      final card = tester.getRect(
+        find
+            .ancestor(
+              of: find.byKey(const Key('trip-edit-name')),
+              matching: find.byType(RecordCardFrame<Trip>),
+            )
+            .first,
+      );
+      expect(last.bottom, lessThanOrEqualTo(tabs.top));
+      expect(card.bottom, lessThanOrEqualTo(tabs.top + 0.01));
+    });
+  }
+
   testWidgets('Cancel with changes asks first', (tester) async {
     final harness = await pumpTripPage(tester);
     await unlock(tester);

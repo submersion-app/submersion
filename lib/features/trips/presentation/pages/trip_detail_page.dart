@@ -334,7 +334,9 @@ class _TripDetailContent extends ConsumerWidget {
           // The header block, on every tab: the trip's values nothing else
           // shows, and its editor (issue #4527). At most half the page,
           // scrolling within that, so the open editor fits above the tab row
-          // and the tab's top with a phone's keyboard up.
+          // and the tab's top with a phone's keyboard up. The editor has no
+          // scroll view of its own: a nested one would keep a finger's drag
+          // and leave its last fields under the tab row (issue #4844).
           ConstrainedBox(
             constraints: BoxConstraints(maxHeight: constraints.maxHeight / 2),
             child: SingleChildScrollView(

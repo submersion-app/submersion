@@ -175,9 +175,9 @@ String tripTypeName(AppLocalizations l10n, TripType type) => switch (type) {
 
 /// The header block's editor: the trip's type, name, larger trip, dates,
 /// return flight, location, resort, the boat's name as older versions kept
-/// it, and who it is shared with, with the form's rules. At most two fifths
-/// of the screen the keyboard leaves, scrolling inside, so the tabs stay in
-/// sight below it.
+/// it, and who it is shared with, with the form's rules. It scrolls with
+/// the rest of the header block, in the page's one scroll view (issue
+/// #4844).
 class TripHeaderCardEditor extends ConsumerStatefulWidget {
   const TripHeaderCardEditor({super.key, required this.session});
 
@@ -326,169 +326,161 @@ class _TripHeaderCardEditorState extends ConsumerState<TripHeaderCardEditor> {
         ref.watch(hasSideTripsProvider(_session.stored.id)).value ?? false;
     final nameBlank = !tripNameValid(_name.controller.text);
     final sharing = _sharingField();
-    // At most two fifths of what the keyboard leaves of the screen, so the
-    // tab row and some of the tab stay in sight below the open editor.
-    final visible =
-        MediaQuery.sizeOf(context).height -
-        MediaQuery.viewInsetsOf(context).bottom;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: visible * 0.4),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SegmentedButton<TripType>(
-              key: const Key('trip-edit-type'),
-              // Four types across a card on a phone: the check and the
-              // usual padding would wrap "Liveaboard" over two lines.
-              showSelectedIcon: false,
-              style: const ButtonStyle(
-                padding: WidgetStatePropertyAll(
-                  EdgeInsets.symmetric(horizontal: 4),
-                ),
-              ),
-              segments: [
-                for (final t in [
-                  TripType.shore,
-                  TripType.liveaboard,
-                  TripType.resort,
-                  TripType.dayTrip,
-                ])
-                  ButtonSegment(value: t, label: Text(tripTypeName(l10n, t))),
-              ],
-              selected: {type},
-              onSelectionChanged: (selected) {
-                final next = selected.first;
-                _session
-                  ..set(tripTypeField, next)
-                  ..set(tripDatesField, tripTypePicked(next, _dates));
-              },
+    // No height cap or scroll view of its own: the page holds the header
+    // block to half its body and scrolls it, so one scroll view takes a
+    // finger's drag to the last field and the card's edge (issue #4844).
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SegmentedButton<TripType>(
+          key: const Key('trip-edit-type'),
+          // Four types across a card on a phone: the check and the
+          // usual padding would wrap "Liveaboard" over two lines.
+          showSelectedIcon: false,
+          style: const ButtonStyle(
+            padding: WidgetStatePropertyAll(
+              EdgeInsets.symmetric(horizontal: 4),
             ),
-            const SizedBox(height: 8),
-            // Says what each type is for (#2625).
-            Text(
-              tripTypeDescription(l10n, type),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              key: const Key('trip-edit-name'),
-              controller: _name.controller,
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.trips_edit_label_tripName,
-                prefixIcon: const Icon(Icons.flight_takeoff),
-                hintText: l10n.trips_edit_hint_tripName,
-                errorText: nameBlank
-                    ? l10n.trips_edit_validation_nameRequired
-                    : null,
-              ),
-            ),
-            if (!hasSideTrips) ...[
-              const SizedBox(height: 8),
-              PartOfTripField(
-                tripId: _session.stored.id,
-                value: _session.valueOf(tripParentField),
-                onChanged: (id) => _session.set(tripParentField, id),
-              ),
-            ],
-            const SizedBox(height: 8),
-            ListTile(
-              key: const Key('trip-edit-start'),
-              leading: const Icon(Icons.calendar_today),
-              title: Text(l10n.trips_edit_label_startDate),
-              subtitle: Text(units.formatDate(dates.start)),
-              onTap: _pickStart,
-              contentPadding: EdgeInsets.zero,
-              trailing: const Icon(Icons.edit),
-            ),
-            // Locked on a one-day Day Trip.
-            ListTile(
-              key: const Key('trip-edit-end'),
-              leading: const Icon(Icons.event),
-              title: Text(l10n.trips_edit_label_endDate),
-              subtitle: Text(units.formatDate(dates.end)),
-              enabled: !endLocked,
-              onTap: endLocked ? null : _pickEnd,
-              contentPadding: EdgeInsets.zero,
-              trailing: Icon(endLocked ? Icons.lock_outline : Icons.edit),
-            ),
-            Padding(
-              padding: const EdgeInsetsDirectional.only(start: 40),
-              child: Text(
-                // Calendar days, as the itinerary counts them.
-                l10n.trips_edit_durationDays(
-                  calendarDaysBetween(dates.start, dates.end) + 1,
-                ),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-            // The return flight drives the no-fly countdown.
-            ListTile(
-              key: const Key('trip-edit-return-flight'),
-              leading: const Icon(Icons.flight_land),
-              title: Text(l10n.trips_edit_label_returnFlight),
-              subtitle: Text(
-                returnFlight == null
-                    ? l10n.trips_edit_returnFlightNotSet
-                    // The diver's time format, not the platform's (#1512).
-                    : '${units.formatDate(returnFlight)}, '
-                          '${units.formatTime(returnFlight)}',
-              ),
-              trailing: returnFlight == null
-                  ? const Icon(Icons.edit)
-                  : IconButton(
-                      tooltip: l10n.trips_edit_returnFlightClear,
-                      icon: const Icon(Icons.clear),
-                      onPressed: () =>
-                          _session.set(tripReturnFlightField, null),
-                    ),
-              contentPadding: EdgeInsets.zero,
-              onTap: _pickReturnFlight,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              key: const Key('trip-edit-location'),
-              controller: _location.controller,
-              textCapitalization: TextCapitalization.words,
-              decoration: InputDecoration(
-                labelText: l10n.trips_edit_label_location,
-                prefixIcon: const Icon(Icons.place),
-                hintText: l10n.trips_edit_hint_location,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              key: const Key('trip-edit-resort'),
-              controller: _resort.controller,
-              textCapitalization: TextCapitalization.words,
-              decoration: InputDecoration(
-                labelText: l10n.trips_edit_label_resortName,
-                prefixIcon: const Icon(Icons.hotel),
-                hintText: l10n.trips_edit_hint_resortName,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              key: const Key('trip-edit-liveaboard-name'),
-              controller: _boat.controller,
-              textCapitalization: TextCapitalization.words,
-              decoration: InputDecoration(
-                labelText: l10n.trips_edit_label_liveaboardName,
-                prefixIcon: const Icon(Icons.sailing),
-                hintText: l10n.trips_edit_hint_liveaboardName,
-              ),
-            ),
-            if (sharing != null) ...[const SizedBox(height: 8), sharing],
+          ),
+          segments: [
+            for (final t in [
+              TripType.shore,
+              TripType.liveaboard,
+              TripType.resort,
+              TripType.dayTrip,
+            ])
+              ButtonSegment(value: t, label: Text(tripTypeName(l10n, t))),
           ],
+          selected: {type},
+          onSelectionChanged: (selected) {
+            final next = selected.first;
+            _session
+              ..set(tripTypeField, next)
+              ..set(tripDatesField, tripTypePicked(next, _dates));
+          },
         ),
-      ),
+        const SizedBox(height: 8),
+        // Says what each type is for (#2625).
+        Text(
+          tripTypeDescription(l10n, type),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          key: const Key('trip-edit-name'),
+          controller: _name.controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_tripName,
+            prefixIcon: const Icon(Icons.flight_takeoff),
+            hintText: l10n.trips_edit_hint_tripName,
+            errorText: nameBlank
+                ? l10n.trips_edit_validation_nameRequired
+                : null,
+          ),
+        ),
+        if (!hasSideTrips) ...[
+          const SizedBox(height: 8),
+          PartOfTripField(
+            tripId: _session.stored.id,
+            value: _session.valueOf(tripParentField),
+            onChanged: (id) => _session.set(tripParentField, id),
+          ),
+        ],
+        const SizedBox(height: 8),
+        ListTile(
+          key: const Key('trip-edit-start'),
+          leading: const Icon(Icons.calendar_today),
+          title: Text(l10n.trips_edit_label_startDate),
+          subtitle: Text(units.formatDate(dates.start)),
+          onTap: _pickStart,
+          contentPadding: EdgeInsets.zero,
+          trailing: const Icon(Icons.edit),
+        ),
+        // Locked on a one-day Day Trip.
+        ListTile(
+          key: const Key('trip-edit-end'),
+          leading: const Icon(Icons.event),
+          title: Text(l10n.trips_edit_label_endDate),
+          subtitle: Text(units.formatDate(dates.end)),
+          enabled: !endLocked,
+          onTap: endLocked ? null : _pickEnd,
+          contentPadding: EdgeInsets.zero,
+          trailing: Icon(endLocked ? Icons.lock_outline : Icons.edit),
+        ),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 40),
+          child: Text(
+            // Calendar days, as the itinerary counts them.
+            l10n.trips_edit_durationDays(
+              calendarDaysBetween(dates.start, dates.end) + 1,
+            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+        // The return flight drives the no-fly countdown.
+        ListTile(
+          key: const Key('trip-edit-return-flight'),
+          leading: const Icon(Icons.flight_land),
+          title: Text(l10n.trips_edit_label_returnFlight),
+          subtitle: Text(
+            returnFlight == null
+                ? l10n.trips_edit_returnFlightNotSet
+                // The diver's time format, not the platform's (#1512).
+                : '${units.formatDate(returnFlight)}, '
+                      '${units.formatTime(returnFlight)}',
+          ),
+          trailing: returnFlight == null
+              ? const Icon(Icons.edit)
+              : IconButton(
+                  tooltip: l10n.trips_edit_returnFlightClear,
+                  icon: const Icon(Icons.clear),
+                  onPressed: () => _session.set(tripReturnFlightField, null),
+                ),
+          contentPadding: EdgeInsets.zero,
+          onTap: _pickReturnFlight,
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          key: const Key('trip-edit-location'),
+          controller: _location.controller,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_location,
+            prefixIcon: const Icon(Icons.place),
+            hintText: l10n.trips_edit_hint_location,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('trip-edit-resort'),
+          controller: _resort.controller,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_resortName,
+            prefixIcon: const Icon(Icons.hotel),
+            hintText: l10n.trips_edit_hint_resortName,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('trip-edit-liveaboard-name'),
+          controller: _boat.controller,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_liveaboardName,
+            prefixIcon: const Icon(Icons.sailing),
+            hintText: l10n.trips_edit_hint_liveaboardName,
+          ),
+        ),
+        if (sharing != null) ...[const SizedBox(height: 8), sharing],
+      ],
     );
   }
 }
