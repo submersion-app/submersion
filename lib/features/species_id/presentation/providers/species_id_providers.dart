@@ -440,6 +440,7 @@ final Provider<AutoApplier> autoApplierProvider = Provider<AutoApplier>(
       final installed = ref.read(installedSpeciesPackProvider).value;
       return installed == null || packCanApply(installed.manifest.naming);
     },
+    deviceId: syncDeviceIdOrNull,
   ),
 );
 

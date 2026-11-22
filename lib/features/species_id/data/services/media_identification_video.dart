@@ -16,6 +16,7 @@ extension _VideoScanning on MediaIdentificationService {
     required int? cell,
     required bool cropsPresent,
     required bool embeddingsPresent,
+    required bool madeHere,
     required int generation,
   }) async {
     final manifest = pack.pack.manifest;
@@ -30,6 +31,7 @@ extension _VideoScanning on MediaIdentificationService {
             cell: cell,
             cropsPresent: cropsPresent,
             embeddingsPresent: embeddingsPresent,
+            madeHere: madeHere,
           );
     switch (action) {
       case VideoRefreshAction.none:

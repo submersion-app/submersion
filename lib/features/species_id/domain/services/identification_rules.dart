@@ -6,6 +6,7 @@ library;
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/pack_versions.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 
 /// How much two boxes must overlap to be taken for the same animal.
@@ -233,7 +234,23 @@ RefreshAction decideRefresh({
   required int? cell,
   required bool cropsPresent,
   required bool embeddingsPresent,
+  bool madeHere = true,
 }) {
+  // A run another device made is trusted (issue #4876): its crops and
+  // embeddings are that device's, and its place was its own. Only newer
+  // models here analyse it again.
+  if (run != null && !madeHere) {
+    return hasNewerModels(
+          packVersion: packVersion,
+          detectorId: detectorId,
+          classifierId: classifierId,
+          runPackVersion: run.packVersion,
+          runDetectorId: run.detectorId,
+          runClassifierId: run.classifierId,
+        )
+        ? RefreshAction.analyse
+        : RefreshAction.none;
+  }
   if (run == null ||
       !cropsPresent ||
       run.detectorId != detectorId ||

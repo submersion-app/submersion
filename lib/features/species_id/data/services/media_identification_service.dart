@@ -94,7 +94,7 @@ class MediaIdentificationService {
        _firstVideoChunkMs = firstVideoChunkMs,
        _onItemSettled = onItemSettled ?? ((_, _) async {}),
        _namingLevel = namingLevel ?? (() async => null),
-       _deviceId = deviceId ?? _syncDeviceId,
+       _deviceId = deviceId ?? syncDeviceIdOrNull,
        _newRunId = newRunId ?? const Uuid().v4;
 
   final VisionEngine _engine;
@@ -147,12 +147,13 @@ class MediaIdentificationService {
   /// A run id, minted when an analysis of a media starts (issue #4876).
   final String Function() _newRunId;
 
-  static Future<String?> _syncDeviceId() async {
-    try {
-      return await SyncRepository().getDeviceId();
-    } on Object {
-      return null;
-    }
+  /// Whether [run] was made on this device (issue #4876). With no run, or
+  /// when this device's id cannot be read, it counts as this device's, as
+  /// every run did before results synced.
+  Future<bool> _madeHere(MediaIdentificationRun? run) async {
+    if (run == null || run.analysedBy == null) return true;
+    final me = await _deviceId();
+    return me == null || run.madeOn(me);
   }
 
   final _log = LoggerService.forClass(MediaIdentificationService);
@@ -549,6 +550,7 @@ class MediaIdentificationService {
             ], classifierId: manifest.classifier.embeddingId);
       final embeddingsPresent =
           namesCurrent || storedEmbeddings.length == undecided.length;
+      final madeHere = await _madeHere(run);
       var putBack = false;
       if (video) {
         putBack = await _refreshVideo(
@@ -561,6 +563,7 @@ class MediaIdentificationService {
           cell: cell,
           cropsPresent: cropsPresent,
           embeddingsPresent: embeddingsPresent,
+          madeHere: madeHere,
           generation: generation,
         );
       } else {
@@ -574,6 +577,7 @@ class MediaIdentificationService {
                 cell: cell,
                 cropsPresent: cropsPresent,
                 embeddingsPresent: embeddingsPresent,
+                madeHere: madeHere,
               );
         switch (action) {
           case RefreshAction.none:
@@ -804,6 +808,16 @@ class MediaIdentificationService {
     } on Object catch (e) {
       _log.debug('Could not unload the marine life models', error: e);
     }
+  }
+}
+
+/// This device's sync id, or null when it cannot be read (no logbook open,
+/// or a test with none): what a run records as its maker (issue #4876).
+Future<String?> syncDeviceIdOrNull() async {
+  try {
+    return await SyncRepository().getDeviceId();
+  } on Object {
+    return null;
   }
 }
 

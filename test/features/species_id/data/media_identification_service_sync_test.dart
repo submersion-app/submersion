@@ -17,6 +17,7 @@ import 'package:submersion/features/species_id/domain/services/identification_ru
 
 import '../../../helpers/temp_dir.dart';
 import 'fake_vision_engine.dart';
+import 'identification_fixtures.dart';
 import 'media_identification_service_fixtures.dart';
 
 /// Which analysis made a run, and who (issue #4876): a run id minted when
@@ -123,5 +124,44 @@ void main() {
     expect(tracks, hasLength(2));
     expect(tracks.map((i) => i.runId).toSet(), {'run-0'});
     expect(visibleRows(stored, tracks), hasLength(2));
+  });
+
+  group('a run another device made (Review Focus 1)', () {
+    Future<void> storeElsewhere(String mediaId, {int? scannedMs}) =>
+        identifications.storeRun(
+          run(mediaId: mediaId).copyWith(
+            packVersion: pack().pack.manifest.packVersion,
+            analysedBy: () => 'laptop',
+            runId: () => 'laptop-run',
+            scannedMs: () => scannedMs,
+            videoDurationMs: () => scannedMs == null ? null : 25000,
+          ),
+          insert: [identification('i-$mediaId', mediaId: mediaId)],
+          deleteIds: const [],
+        );
+
+    test(
+      'is left alone on opening, its crops and embeddings missing',
+      () async {
+        await storeElsewhere('m1');
+        await service.request(photo('m1'));
+        expect(engine.analysed, isEmpty);
+        expect((await identifications.runFor('m1'))!.analysedBy, 'laptop');
+        expect((await identifications.forMedia('m1')).single.id, 'i-m1');
+      },
+    );
+
+    test('is analysed here when the diver asks again', () async {
+      await storeElsewhere('m1');
+      await service.request(photo('m1'), fresh: true);
+      expect(engine.analysed, isNotEmpty);
+      expect((await identifications.runFor('m1'))!.analysedBy, 'phone');
+    });
+
+    test('a video it scanned part-way is not resumed here', () async {
+      await storeElsewhere('v1', scannedMs: 10000);
+      await service.request(photo('v1', type: MediaType.video));
+      expect(engine.detectCalls, isEmpty);
+    });
   });
 }

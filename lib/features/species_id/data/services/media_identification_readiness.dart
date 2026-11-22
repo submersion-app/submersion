@@ -30,6 +30,7 @@ extension Readiness on MediaIdentificationService {
       final run = runs[item.id];
       if (run == null) continue;
       final cell = _regionCell(manifest, locationOf(item));
+      final madeHere = await _madeHere(run);
       final crops = await _cropsPresent(_crops, item.id, [
         for (final i in visibleRows(
           run,
@@ -48,6 +49,7 @@ extension Readiness on MediaIdentificationService {
                   cell: cell,
                   cropsPresent: crops,
                   embeddingsPresent: true,
+                  madeHere: madeHere,
                 ) ==
                 VideoRefreshAction.none
           : decideRefresh(
@@ -58,6 +60,7 @@ extension Readiness on MediaIdentificationService {
                   cell: cell,
                   cropsPresent: crops,
                   embeddingsPresent: true,
+                  madeHere: madeHere,
                 ) ==
                 RefreshAction.none;
       if (nothingToDo) current.add(item.id);
