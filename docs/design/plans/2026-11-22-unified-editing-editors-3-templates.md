@@ -822,3 +822,45 @@ screenshots attached through the project's highest-numbered secret gist
 (`PR screenshots: submersion-app/submersion (N)`, pngquant first,
 `<pr>-<nn>-<screen>-<state>.png`, raw URLs pinned to the gist commit). Bind
 the PR and report its checks.
+
+## After the build
+
+Built natively on 2026-11-22 (commits 9c46a78 to the branch head). What
+changed from this plan, for plan 4 (rules and incidents) and plan 5 to build
+on:
+
+- **The host is unchanged, as planned.** A read-only view is an editor that
+  loads and never calls `openEditor`. Its title must not follow
+  `editorOpen`: the controller locks as a page leaves (a Save, a discard, a
+  change of diver), so a title read from the sitting turns to the view
+  title during the exit animation. The pre-dive editor reads it from what
+  was loaded (`_loaded && !_builtIn`); a test steps the exit frame by frame.
+- **Each not-found string landed with its save function** (Tasks 3 and 5),
+  since the refusal needs it, and sits beside its feature's keys in each
+  arb file rather than at the end, to stay clear of other plans' strings.
+- **The writers number the items they write by position.** A merged stored
+  row carries its stored `sortOrder`; the repositories renumber anyway, but
+  a caller (or a test fake) reading the list gets the order shown.
+- **A threshold drafts locale-free** (15 significant digits, a dot), so a
+  change of number locale while the editor is open is no change.
+- **An untouched template is no longer rewritten.** Before, every Save
+  rewrote both lists in display order; every view groups items by section
+  and the editor shows stored order within one, so nothing visible is lost.
+- **The checklist editor's item types and dialog are public**
+  (`EditableChecklistItem`, `EditableChecklistSection`,
+  `ChecklistItemDialog`), as the pre-dive editor's already were.
+- **Old test files needed:** a database in `setUp` even with a fake
+  repository (Save is a transaction and a change log operation); a diver
+  for a new template (it refuses Save with none); a field changed before
+  any Save (an untouched form, or an item confirmed unchanged, is no
+  change); a `pump()` between typing and Save; dialog buttons scoped to the
+  dialog (the bar has its own Cancel). A drag in the pre-dive reorder test
+  never reordered anything; it passed before only because Save wrote
+  everything. The section editor also moves rows with up and down arrows,
+  which tests can tap.
+- **The test database seeds six pre-dive templates**, so a rollback test
+  counts rows before and after rather than expecting none.
+- **Review (code-review, high, all findings):** three findings. Fixed
+  test-first: the title flash above, and the locale-dependent threshold
+  text. No change: an untouched template's stored sort order is no longer
+  renumbered by a no-op Save (nothing shows it).
