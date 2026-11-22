@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -13,9 +11,7 @@ import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class PersonalInfoEditPage extends ConsumerStatefulWidget {
-  final bool isNewDiver;
-
-  const PersonalInfoEditPage({super.key, this.isNewDiver = false});
+  const PersonalInfoEditPage({super.key});
 
   @override
   ConsumerState<PersonalInfoEditPage> createState() =>
@@ -98,30 +94,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
     setState(() => _isSaving = true);
 
     try {
-      if (widget.isNewDiver) {
-        final now = DateTime.now();
-        final newDiver = Diver(
-          id: const Uuid().v4(),
-          name: _nameCtrl.text.trim(),
-          email: _trimOrNull(_emailCtrl),
-          phone: _trimOrNull(_phoneCtrl),
-          socialHandle: _trimOrNull(_socialCtrl),
-          sex: _sex,
-          birthYear: _birthYear,
-          createdAt: now,
-          updatedAt: now,
-        );
-        final created = await ref
-            .read(diverListNotifierProvider.notifier)
-            .addDiver(newDiver);
-        // The new diver stands either way; becoming them starts the table
-        // editor clean, so the page underneath may keep the current one.
-        if (await ref.read(appExitGuardProvider).mayLeave()) {
-          await ref
-              .read(currentDiverIdProvider.notifier)
-              .setCurrentDiver(created.id);
-        }
-      } else if (existingDiver != null) {
+      if (existingDiver != null) {
         final updated = existingDiver.copyWith(
           name: _nameCtrl.text.trim(),
           email: _trimOrNull(_emailCtrl),
@@ -175,42 +148,33 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    Diver? diver;
-
-    if (!widget.isNewDiver) {
-      final diverAsync = ref.watch(currentDiverProvider);
-      return diverAsync.when(
-        loading: () =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (error, _) => Scaffold(
-          appBar: AppBar(
-            title: Text(context.l10n.settings_profileHub_personalInfo),
-          ),
-          body: Center(child: Text('$error')),
+    final diverAsync = ref.watch(currentDiverProvider);
+    return diverAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, _) => Scaffold(
+        appBar: AppBar(
+          title: Text(context.l10n.settings_profileHub_personalInfo),
         ),
-        data: (loadedDiver) {
-          if (loadedDiver == null) {
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(context.l10n.settings_profileHub_personalInfo),
-              ),
-              body: const Center(child: CircularProgressIndicator()),
-            );
-          }
-          diver = loadedDiver;
-          _populateFromDiver(loadedDiver);
-          return _buildScaffold(diver);
-        },
-      );
-    }
-
-    return _buildScaffold(diver);
+        body: Center(child: Text('$error')),
+      ),
+      data: (loadedDiver) {
+        if (loadedDiver == null) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(context.l10n.settings_profileHub_personalInfo),
+            ),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        _populateFromDiver(loadedDiver);
+        return _buildScaffold(loadedDiver);
+      },
+    );
   }
 
   Widget _buildScaffold(Diver? diver) {
-    final title = widget.isNewDiver
-        ? context.l10n.settings_profileHub_createDiverTitle
-        : context.l10n.settings_profileHub_personalInfo;
+    final title = context.l10n.settings_profileHub_personalInfo;
 
     return PopScope(
       canPop: !_hasChanges,

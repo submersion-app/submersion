@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -16,13 +15,8 @@ class _CapturingNotifier extends StateNotifier<AsyncValue<List<Diver>>>
   _CapturingNotifier(List<Diver> divers) : super(AsyncValue.data(divers));
 
   Diver? updated;
-  Diver? added;
-
   @override
-  Future<Diver> addDiver(Diver diver) async {
-    added = diver;
-    return diver;
-  }
+  Future<Diver> addDiver(Diver diver) async => diver;
 
   @override
   Future<void> updateDiver(Diver diver) async => updated = diver;
@@ -52,12 +46,7 @@ void main() {
     );
   }
 
-  Future<_CapturingNotifier> pump(
-    WidgetTester tester,
-    Diver diver, {
-    bool isNewDiver = false,
-    AppExitGuard? exitGuard,
-  }) async {
+  Future<_CapturingNotifier> pump(WidgetTester tester, Diver diver) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -69,16 +58,14 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
-          if (exitGuard != null)
-            appExitGuardProvider.overrideWithValue(exitGuard),
           currentDiverProvider.overrideWith((_) async => diver),
           diverListNotifierProvider.overrideWith((_) => notifier),
         ],
-        child: MaterialApp(
-          locale: const Locale('en'),
+        child: const MaterialApp(
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: PersonalInfoEditPage(isNewDiver: isNewDiver),
+          home: PersonalInfoEditPage(),
         ),
       ),
     );
@@ -183,27 +170,6 @@ void main() {
     expect(find.text('Enter a valid email'), findsOneWidget);
   });
 
-  testWidgets('new-diver mode creates a diver instead of updating one', (
-    tester,
-  ) async {
-    final notifier = await pump(tester, makeDiver(), isNewDiver: true);
-
-    expect(find.widgetWithText(AppBar, 'Create Diver'), findsOneWidget);
-    expect(find.text('Save'), findsOneWidget);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Name *'),
-      'Carlos Charlie',
-    );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(notifier.added, isNotNull);
-    expect(notifier.added!.name, 'Carlos Charlie');
-    expect(notifier.added!.id, isNotEmpty);
-    expect(notifier.updated, isNull);
-  });
-
   group('sex and birth year (issue #4525)', () {
     Future<void> pickSex(WidgetTester tester, String option) async {
       await tester.tap(find.byKey(const Key('personalInfo_sex')));
@@ -281,59 +247,5 @@ void main() {
       }
       expect(notifier.updated, isNull);
     });
-
-    testWidgets('a new diver is created with them', (tester) async {
-      final notifier = await pump(tester, makeDiver(), isNewDiver: true);
-
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Name *'),
-        'Carlos Charlie',
-      );
-      await pickSex(tester, 'Male');
-      await tester.enterText(birthYear(), '1990');
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(notifier.added!.sex, DiverSex.male);
-      expect(notifier.added!.birthYear, 1990);
-    });
-  });
-
-  // A page underneath may hold unsaved work, which a switch would drop (#3422).
-  testWidgets('a new diver waits on the page underneath before taking over', (
-    tester,
-  ) async {
-    final guard =
-        AppExitGuard(
-          retryExit: () async {},
-          preventWindowClose: (_) async {},
-          revealWindow: () async {},
-        )..hold(
-          AppExitBlocker(
-            hasUnsavedWork: () => true,
-            confirmLeaving: () async => false,
-          ),
-        );
-    final notifier = await pump(
-      tester,
-      makeDiver(),
-      isNewDiver: true,
-      exitGuard: guard,
-    );
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Name *'),
-      'Carlos Charlie',
-    );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(notifier.added, isNotNull);
-    expect(
-      ProviderScope.containerOf(
-        tester.element(find.byType(PersonalInfoEditPage)),
-      ).read(currentDiverIdProvider),
-      isNull,
-    );
   });
 }
