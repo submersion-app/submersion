@@ -855,22 +855,33 @@ to the gist commit). Bind the PR and report its checks.
 
 ## After the build
 
-Built natively on 2026-11-22 (commits 5801707 to 66c158d). What changed
-from this plan, for the plans after it:
+Built natively on 2026-11-22 (commits 5801707 to the PR head, #4915). What
+changed from this plan, for the plans after it:
 
 - **No shared code changed.** `lib/shared/widgets/record_editing/` is as
   plan 2 left it. Shared files touched: `lib/core/router/app_router.dart`
   (the diver-profile routes only), the 11 arb files and the 12 generated
   localisation files (three new keys), and
   `emergency_chamber_repository.dart` (`createChamber` takes an `id`).
-- **A profile page fills only from a settled diver.** `currentDiverProvider`
-  keeps the diver it replaces while it reloads (Riverpod 3), so a page
-  pushed mid-switch could pin the old diver while the host had noted the
-  new one, and never close. `openProfileEditor` now skips values while the
-  provider loads (review finding, fixed test-first).
-- **The body weight delete reads what it needs before asking.** A page gone
-  while its question was up threw on `ref`; it now holds the repository and
-  the container from before the dialog (review finding).
+- **A profile page opens only on a settled diver the host agrees on.**
+  `currentDiverProvider` keeps the diver it replaces while it reloads
+  (Riverpod 3), and the host tracks `validatedCurrentDiverIdProvider`, which
+  may not be known yet as the page opens. `openProfileEditor` listens to
+  both and pins only when the diver has loaded and the id names the same
+  diver, so a page pushed mid-switch never shows one diver while the host
+  watches another (two review findings, fixed test-first).
+- **A Save that comes to what is stored writes nothing** (a value typed
+  with a trailing space, or one synced in meanwhile): no row write, no
+  History entry.
+- **`locale_numeric_input_test.dart` changed too.** Its prior experience
+  group saved through the old mocked diver list; the pre-push hook caught
+  it, and it now reads the stored diver through the profile harness. The
+  same file holds plan 3's pre-dive template checks (untouched here), so a
+  plan merging after this one may meet it in a merge.
+- **The body weight add and delete read what they need before asking.** A
+  page gone while its dialog was up threw on `ref`; both now hold the
+  repository and the container from before the dialog (review findings;
+  the add was older than this plan).
 - **Task 3 left the personal page's fields alone**; Task 4 moved it onto
   the mixin and `PersonalInfoFields` in one step.
 - **The profile tests share a harness**,
@@ -884,6 +895,13 @@ from this plan, for the plans after it:
   split it into one test per case.
 - **Review (code-review, high, all findings):** two findings, both fixed
   test-first. Whole-repo analyze clean.
+- **Review (code-review, xhigh, all findings, on the PR):** seven findings;
+  five fixed (the diver agreement above, the no-op Save, the body weight
+  add, the test import order, this record). Two left: the write reads the
+  form after the transaction opens rather than the draft that was
+  validated (closing it needs the shared host to hand the validated draft
+  to `writeEditor`), and a profile page that cannot load the diver shows
+  the raw error text, as before this plan.
 - Unused strings (`divers_edit_discardDialog*`, `divers_edit_keepEditingButton`,
   `divers_edit_discardButton`, `divers_edit_saveButton`,
   `divers_edit_errorSaving`, `addChamber_save`) stay, by Eric's
