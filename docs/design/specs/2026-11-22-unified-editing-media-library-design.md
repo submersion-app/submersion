@@ -19,18 +19,21 @@ program has covered so far, the Library is not a page about one record. It is
 a grid of many photos with a multi-select bar.
 
 A survey of that screen found that per-photo edits already go through the
-viewer's lock, and that what remains is a handful of bulk actions, two places
+viewer's lock, and that what remains is a handful of bulk actions, three places
 where a lock that has shipped can still be bypassed, a History label that
 reads as the diver's when it was not, and a few one-tap writes with no
 confirmation.
 
 ## Goals
 
-- Every write the Library tab or the Gear tab makes is deliberate: it asks
-  first, naming what it changes, and it is one labelled History entry.
+- Every bulk write from the Library's and the Gear tab's selection bars is
+  deliberate: it asks first, naming what it changes, and it is one labelled
+  History entry. (The store actions on the info sheet stay one tap, as plan 10
+  decided; see "Design: actions left as they are".)
 - No path writes past a lock that has shipped: a locked site page shows no
-  control that writes, and a picker opened from a sitting holds everything it
-  adds or offers nothing that cannot be held.
+  control that writes, and a picker opened from any sitting (dive, site, gear
+  or species) holds everything it adds and offers nothing that cannot be
+  held.
 - History never files a background job as the diver's change.
 - The few one-tap destructive writes on the Media screen and its settings ask
   first (decisions 3 and 4).
@@ -65,8 +68,10 @@ Those of the pattern, plus:
 
 ## Current state (for orientation)
 
-The full inventory, with every handler's file and line, is in four notes in
-the program's shared session notes (`media-scope-inv-1` to `-4`). This is its
+The full inventory, with every handler's file and line, was gathered in four
+local working notes outside the repository (`media-scope-inv-1` to `-4` in the
+program's session notes folder). They are not needed to plan from: the tables
+here carry every file and line a plan touches. This is the inventory's
 shape. Paths are under `lib/features/media/presentation/` unless given in
 full.
 
@@ -111,8 +116,16 @@ Facts that shaped the design:
 - **Two immediate paths are unreached today.** The PDF viewer's unlocked
   Edit details path (`pages/document_viewer_page.dart:146-160`) and the
   species tag picker without `chooseOnly`
-  (`pages/species_tag_picker_page.dart:193-200`) write at once, but every
-  current caller takes the held path.
+  (`pages/species_tag_picker_page.dart:193-200`) write at once, but no
+  current caller reaches them: the site callers take the PDF viewer's held
+  path, its dive and gear callers its read-only path, and the species page
+  passes `chooseOnly`.
+- **The species page's picker has no hold scope.** Add photos on an unlocked
+  species (`helpers/species_photo_import_helper.dart:137`) opens
+  `showPhotoPicker` with no `onHold` and no target, so its Files, URL and
+  Manifest tabs write their rows (linked to dives, not to the species) at
+  once, and Cancel on the species leaves them. Only its Gallery tab hands its
+  choice back to the sitting.
 
 ## Approaches
 
@@ -176,19 +189,22 @@ else in the selection bar, and the Gear tab's Remove, follows these rules:
 | Share | No record write | Unchanged |
 | Move to dive | Picking the dive commits; no confirmation; unscoped | Picking the dive opens a confirmation naming the number of photos and the dive; Move writes in one labelled bulk operation |
 | Edit tags | Confirms every change, one `bulk_edit` operation, Undo | Unchanged |
-| Edit tags: a tag created or widened from inside the sheet | Written at once, survives Cancel | Unchanged (a record created from a picker, pattern "Not held") |
+| Edit tags: a tag created or widened from inside the sheet | Written at once, survives Cancel | Unchanged: tags are a settings list (pattern, "Outside the rule"), and a tag created from a picker survives Cancel (pattern, "Not held") |
 | Unlink | Confirms (with the caption and favourite warning); unscoped | Unchanged confirmation; the deletes run in one labelled bulk operation |
 | Gear tab: Remove | Confirms; unscoped | Unchanged confirmation; one labelled bulk operation |
 | Tile tap | Opens the viewer, locked | Unchanged |
 
 - **Move to dive and an open sitting.** If the chosen dive, or the dive a
-  selected photo is on now, is held in an open sitting
-  (`openDiveSittingProvider`), Move is refused with a one-line hint to save
-  or cancel that dive's changes first, and nothing is written. This rarely
-  comes up, since leaving a dive page with unsaved changes asks first, but it
-  costs one check, the same one the window drop path makes. (The drop path's
-  own hint, "Unlock this dive to add photos", does not fit here; the new hint
-  is a string of its own.)
+  selected photo is on now, is open for editing (`openDiveSittingProvider`
+  names it), Move is refused with a one-line hint that the dive is open for
+  editing and must be saved, cancelled or locked first, and nothing is
+  written. The sitting may have no changes yet, so the hint does not speak
+  of changes. This rarely comes up, since leaving a dive page with unsaved
+  changes asks first. Move reads the same provider as the window drop path
+  but answers the other way: `diveDropAnswer` (`features/dive_log/presentation/providers/open_dive_sitting_provider.dart:38-46`)
+  holds a drop in an open sitting and refuses a locked dive, while Move,
+  which belongs to no sitting, refuses an open dive and writes to a locked
+  one. Do not reuse `diveDropAnswer`; the hint is a string of its own.
 - **History placement.** Media is logged as a child of its dive. The builder
   confirms where a move's entry appears (the old dive, the new dive or both)
   and raises it if it appears under neither.
@@ -221,23 +237,34 @@ is read-only (`:341`).
   in the site's sitting and written with its Save, like the card's Unlink
   (`:129-133`) and the viewer's Edit details. Cancel discards it.
 
-### Picker opened from a sitting: Manifest mode
+### Picker opened from a sitting: what it cannot hold
 
 `url_tab.dart` shows the Link and Manifest switch in every picker
 (`:164-173`), and `manifest_mode_panel.dart` never reads `MediaHoldScope`, so
 Import then Confirm writes a subscription and its rows at once, including
 rows matched to other dives, and Cancel on the sitting leaves them.
 
-- When `MediaHoldScope.maybeOf(context)` is set, the URL tab shows single
-  links only (held, as today) and a one-line hint that a feed of photos is
-  imported from Media, Import (decision 2).
-- Outside a sitting (Media, Import), Manifest mode is unchanged.
+The rule is keyed on where the picker is opened from, not on whether it
+carries a hold scope: a picker opened from a sitting offers only what that
+sitting can hold.
+
+- **Dive, site and gear sittings** (the picker carries `MediaHoldScope`): the
+  URL tab shows single links only (held, as today) and a one-line hint that
+  a feed of photos is imported from Media, Import (decision 2). The Files and
+  Gallery tabs already hold.
+- **A species sitting** (Add photos, no hold scope): the picker shows the
+  Gallery tab only, with the same hint. Files and URL rows would land on
+  dives, not on the species, and only the Gallery choice is handed back to
+  the sitting today, so nothing the species page can use is lost.
+- Outside a sitting (Media, Import), every tab and Manifest mode are
+  unchanged.
 
 ### Immediate paths no caller reaches
 
 The PDF viewer's unlocked Edit details path and the species tag picker's
 immediate `tagPhotos` path are removed, so no future caller can write past a
-lock through them. Each one's held path is what every caller uses today.
+lock through them. Every caller today takes the held path or, for the PDF
+viewer opened from a dive or gear item, the read-only one.
 
 ## Design: History for the folder watcher
 
@@ -249,10 +276,16 @@ as a repair the diver confirmed.
 
 - `apply` opens `ChangeLogScope.automatic` when the source is the watcher,
   and `ChangeLogScope.bulk` otherwise. The label stays `media_repair`.
+- Media, Sources, Scan now runs the same scanner with the same watcher
+  source (`pages/media_sources_section_view.dart:66-71`), so its relinks file
+  as automatic too. That is intended: the diver asked for a scan, but the
+  relinks it applies are matched and written without review, like the daily
+  pass. Only the repair wizard's Re-link, which the diver reviews, stays
+  manual.
 - The pass itself is unchanged: it runs on opening the screen, once a day,
-  only with watched folders and only with auto-apply on. A relink changes
-  where a file is found, not a value the diver recorded (pattern, "Derived
-  data that refreshes on viewing").
+  when there are watched folders, and it relinks only when auto-apply is on.
+  A relink changes where a file is found, not a value the diver recorded
+  (pattern, "Derived data that refreshes on viewing").
 
 ## Design: confirmations on storage and settings
 
@@ -311,15 +344,19 @@ Eric has not explicitly confirmed these. Correct any of them:
 
 - The Gear tab's Remove follows decision 1 like the Library's bulk actions
   (confirmation already there; one labelled History entry).
-- Move to dive refuses a dive held in an open sitting, with a hint of its
-  own, making the same check as the window drop path.
+- Move to dive refuses a dive that is open for editing, with a hint of its
+  own, reading the same provider as the window drop path.
 - Unlink and the Gear tab's Remove become one labelled History entry each;
   today their deletes are unscoped.
 - The info sheet opened from the Library stays as it is (read only, with
   Check now, Back up and Retry upload available).
 - Smart albums are configuration, like saved queries; only Delete changes.
-- The two leaks (site Set category, Manifest in a sitting's picker) are fixed
-  in this phase, as breaches of rules already decided.
+- The leaks (site Set category, Manifest in a sitting's picker, the species
+  picker's Files and URL tabs) are fixed in this phase, as breaches of rules
+  already decided.
+- The species page's picker shows the Gallery tab only, extending decision 2
+  to the one sitting picker with no hold scope.
+- Scan now's auto-applied relinks file as automatic, like the daily pass.
 - The two unreached immediate paths are removed rather than left for a
   future caller to find.
 - The folder watcher's pass files under `ChangeLogScope.automatic`.
@@ -350,10 +387,13 @@ Eric has not explicitly confirmed these. Correct any of them:
   untouched (as today's coordinator tests pin).
 - Site page: a locked page offers no Set category; in the open attachments
   card, Set category is held, written by Save, discarded by Cancel.
-- Picker from a sitting: no Manifest switch, the hint shows; from Media,
-  Import, Manifest mode is unchanged.
-- The watcher's relink files under the automatic source; the wizard's Re-link
-  stays manual.
+- Picker from a dive, site or gear sitting: no Manifest switch, the hint
+  shows. Picker from a species sitting: Gallery tab only, the hint shows.
+  From Media, Import, every tab and Manifest mode are unchanged.
+- The daily watcher pass and Scan now file their relinks under the automatic
+  source; the wizard's Re-link stays manual.
+- Move to dive is refused for a dive open for editing with no changes, and
+  allowed for a locked dive.
 - Smart album delete, reconnect sheet Stop keeping copies, watched folder
   removal and Re-upload downgrade each ask, and Cancel writes nothing; a
   re-upload that is not a downgrade does not ask.
@@ -373,12 +413,16 @@ pull request that goes live as it merges:
    `media_library_filter_sheet.dart`, the media repository and unlink
    service where the scope is opened.
 2. **Leaks, History and storage confirmations.** Site page Set category;
-   Manifest hidden in a sitting's picker; the two unreached immediate paths
+   Manifest hidden in a sitting's picker; the species picker reduced to its
+   Gallery tab; the two unreached immediate paths
    removed; the watcher's automatic scope; the reconnect sheet, watched
    folder and Re-upload downgrade confirmations; the note on the Lightroom
    flag.
 
-The two touch different files and can be built in either order. With both,
+The two touch different source files and can be built in either order.
+Both add strings to every locale file under `lib/l10n/arb/` (and its
+generated output), so the second to merge takes main's locale files and adds
+its own strings again. With both,
 the media library follows the pattern, and nothing named by the pattern's
 "The photo viewer" section is left open.
 
