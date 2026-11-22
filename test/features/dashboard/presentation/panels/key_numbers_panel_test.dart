@@ -8,6 +8,8 @@ import 'package:submersion/features/dashboard/presentation/home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/panels/key_numbers_panel.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_charts.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -421,5 +423,55 @@ void main() {
     await tester.tap(find.text('TIME UNDER'));
     await tester.pumpAndSettle();
     expect(nav.location, '/dives');
+  });
+
+  group('trend line lies inside the tile\'s content area', () {
+    const sparse = HomeKeyNumbers(
+      careerDives: 36,
+      careerTimeSeconds: 74000,
+      divesThisYear: 15,
+      monthlySeries: [7, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0],
+      avgSac: 14.4,
+      sacSeries: [17, 15.5, 19.8, 14.2, 14.7, 13.6],
+    );
+    for (final width in [390.0, 1280.0]) {
+      for (final scale in [1.0, 1.6]) {
+        testWidgets('at width $width, text scale $scale', (tester) async {
+          await _pump(
+            tester,
+            width: width,
+            numbers: sparse,
+            textScale: scale,
+            // Only the tiles the numbers fill, so the loading frame's
+            // placeholders match the box the harness sizes.
+            settings: const AppSettings(
+              hiddenHomeKeyNumbers: {
+                'lastDive',
+                'deepestThisYear',
+                'nextTrip',
+                'avgDepth',
+                'species',
+              },
+            ),
+          );
+          final sparks = find.byType(HomeSparkline);
+          expect(sparks, findsWidgets);
+          for (final element in sparks.evaluate()) {
+            final spark = tester.getRect(find.byWidget(element.widget));
+            final panel = tester.getRect(
+              find
+                  .ancestor(
+                    of: find.byWidget(element.widget),
+                    matching: find.byType(HomePanel),
+                  )
+                  .first,
+            );
+            // The panel's bottom padding is 10; its content is clipped there.
+            expect(spark.bottom, lessThanOrEqualTo(panel.bottom - 10));
+            expect(spark.height, greaterThan(0));
+          }
+        });
+      }
+    }
   });
 }

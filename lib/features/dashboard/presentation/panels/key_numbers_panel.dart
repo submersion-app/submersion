@@ -330,55 +330,90 @@ class _Tile extends StatelessWidget {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
 
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: value),
+              if (unit.isNotEmpty)
+                TextSpan(
+                  text: ' $unit',
+                  style: theme.textTheme.labelSmall?.copyWith(color: muted),
+                ),
+            ],
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            height: 1.1,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        if (comparison != null)
+          Text(
+            comparison!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: highlight ? theme.colorScheme.primary : muted,
+            ),
+          ),
+      ],
+    );
+    final hasLine = child == null && series != null && series!.length > 1;
+
     return HomePanel(
       title: title,
       semanticsValue: semantics,
       onTap: onTap,
-      fit: HomePanelFit.clip,
+      // A tile with a trend line fills its box, so the line can take the
+      // height its text leaves; the rest let taller text be clipped.
+      fit: hasLine ? HomePanelFit.fill : HomePanelFit.clip,
       child:
           child ??
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text.rich(
-                TextSpan(
+          (hasLine
+              ? CustomMultiChildLayout(
+                  delegate: _TextThenLine(),
                   children: [
-                    TextSpan(text: value),
-                    if (unit.isNotEmpty)
-                      TextSpan(
-                        text: ' $unit',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: muted,
-                        ),
-                      ),
+                    LayoutId(id: _TextThenLine.text, child: text),
+                    LayoutId(
+                      id: _TextThenLine.line,
+                      child: HomeSparkline(series!),
+                    ),
                   ],
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  height: 1.1,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-              if (comparison != null)
-                Text(
-                  comparison!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: highlight ? theme.colorScheme.primary : muted,
-                  ),
-                ),
-              if (series != null && series!.length > 1) ...[
-                const SizedBox(height: 3),
-                SizedBox(height: 16, child: HomeSparkline(series!)),
-              ],
-            ],
-          ),
+                )
+              : text),
     );
   }
+}
+
+/// Lays a tile's text out at its own height, then gives the trend line the
+/// height left under it, at most [maxLine], so the line is never drawn
+/// below the tile's clipped content. With less than [minLine] left the line
+/// is not shown.
+class _TextThenLine extends MultiChildLayoutDelegate {
+  static const text = 'text';
+  static const line = 'line';
+  static const double gap = 3;
+  static const double maxLine = 16;
+  static const double minLine = 4;
+
+  @override
+  void performLayout(Size size) {
+    final textSize = layoutChild(text, BoxConstraints(maxWidth: size.width));
+    positionChild(text, Offset.zero);
+    final room = size.height - textSize.height - gap;
+    final height = room >= minLine ? math.min(room, maxLine) : 0.0;
+    layoutChild(line, BoxConstraints.tight(Size(size.width, height)));
+    positionChild(line, Offset(0, textSize.height + gap));
+  }
+
+  @override
+  bool shouldRelayout(_TextThenLine oldDelegate) => false;
 }
 
 /// Exposed for the settings sub-page: a tile's name in the diver's language.
