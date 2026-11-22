@@ -107,18 +107,72 @@ void main() {
 
     final disc = find.byType(RecordPencilDisc);
     expect(tester.getSize(disc), const Size.square(RecordPencilDisc.size));
-    final box = tester.widget<DecoratedBox>(
-      find.descendant(of: disc, matching: find.byType(DecoratedBox)),
+    final material = tester.widget<Material>(
+      find.descendant(of: disc, matching: find.byType(Material)),
     );
-    final decoration = box.decoration as BoxDecoration;
-    expect(decoration.shape, BoxShape.circle);
-    expect(decoration.color, custom.fill);
-    expect(decoration.border, Border.all(color: custom.outline));
+    expect(material.color, custom.fill);
+    expect(
+      material.shape,
+      CircleBorder(side: BorderSide(color: custom.outline)),
+    );
     final glyph = tester.widget<Icon>(
       find.descendant(of: disc, matching: find.byType(Icon)),
     );
     expect(glyph.icon, Icons.edit);
     expect(glyph.color, custom.onFill);
+  });
+
+  // An ink splash or focus highlight painted under an opaque disc would show
+  // only as a hairline round it, so the disc is the surface the ink paints
+  // on: pressed, hovered or focused from the keyboard, the disc itself
+  // shows it.
+  testWidgets('the pencil\'s ink paints on the disc, not under it', (
+    tester,
+  ) async {
+    final controller = _controller()..unlock('Blue Corner');
+    await tester.pumpWidget(_host(controller));
+
+    final ink = find.descendant(
+      of: find.byType(RecordPencilDisc),
+      matching: find.byType(InkWell),
+    );
+    expect(ink, findsOneWidget);
+    final surface = tester.widget<Material>(
+      find.ancestor(of: ink, matching: find.byType(Material)).first,
+    );
+    expect(surface.color, RecordPencilColors.light.fill);
+  });
+
+  testWidgets('at a small text size the disc shrinks with the text', (
+    tester,
+  ) async {
+    final controller = _controller()..unlock('Blue Corner');
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(0.85)),
+        child: _host(controller),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(RecordPencilDisc)).height,
+      (RecordPencilDisc.size * 0.85).floorToDouble(),
+    );
+  });
+
+  testWidgets('at a large text size the disc keeps its size', (tester) async {
+    final controller = _controller()..unlock('Blue Corner');
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+        child: _host(controller),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(RecordPencilDisc)),
+      const Size.square(RecordPencilDisc.size),
+    );
   });
 
   testWidgets('with changes, the dot', (tester) async {

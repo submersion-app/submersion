@@ -7,8 +7,10 @@ import 'package:flutter/material.dart';
 /// Fixed hues rather than ColorScheme roles on purpose, as with
 /// StatusColors. Every role the presets offer is a shade of the page's own
 /// accent, so a pencil drawn in one of them blended into the cards around
-/// it and divers had to hunt for it. Electric lime is a hue no preset uses,
-/// and it reads the same under each of them.
+/// it and divers had to hunt for it. Electric lime is a hue no preset's
+/// colour scheme uses, and it reads the same under each of them. The
+/// Species feature accent (FeatureAccentColors) is a lime too, but a deep
+/// kelp one, far darker than this.
 @immutable
 class RecordPencilColors extends ThemeExtension<RecordPencilColors> {
   const RecordPencilColors({

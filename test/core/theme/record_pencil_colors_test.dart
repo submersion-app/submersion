@@ -177,10 +177,10 @@ void main() {
     );
     expect(
       RecordPencilColors.light.copyWith(fill: const Color(0xFF000000)),
-      const RecordPencilColors(
-        fill: Color(0xFF000000),
-        onFill: Color(0xFF1B2600),
-        outline: Color(0xFF4C6B00),
+      RecordPencilColors(
+        fill: const Color(0xFF000000),
+        onFill: RecordPencilColors.light.onFill,
+        outline: RecordPencilColors.light.outline,
       ),
     );
   });

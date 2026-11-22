@@ -73,9 +73,15 @@ const _readCard = Card(
   ),
 );
 
-Widget _host(RecordEditController<_Rec>? controller) {
+Widget _host(RecordEditController<_Rec>? controller, {TextScaler? textScaler}) {
   final frame = RecordCardFrame<_Rec>(card: _card, child: _readCard);
   return MaterialApp(
+    builder: textScaler == null
+        ? null
+        : (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+            child: child!,
+          ),
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -265,6 +271,25 @@ void main() {
 
   // The header's own right edge is where the pencil and Done belong, with
   // whatever the card shows while reading just before the pencil.
+  // The pencil is no taller than the title's line at any system text size
+  // up to 100%, so a smaller one does not make unlocking grow the row.
+  testWidgets('at a small text size, unlocking keeps the header\'s height', (
+    tester,
+  ) async {
+    final controller = _controller();
+    await tester.pumpWidget(
+      _host(controller, textScaler: const TextScaler.linear(0.85)),
+    );
+    final header = find.byType(RecordCardHeader);
+    final before = tester.getSize(header);
+
+    controller.unlock(const _Rec());
+    await tester.pump();
+
+    expect(find.byType(RecordPencilDisc), findsOneWidget);
+    expect(tester.getSize(header), before);
+  });
+
   testWidgets('the pencil sits at the right edge, after the trailing', (
     tester,
   ) async {
