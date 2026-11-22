@@ -31,14 +31,17 @@ class JustifiedSpanCell {
 /// with the large item's bottom, and the split between the rows is the one
 /// that keeps both nearest [targetHeight]. Every item keeps its ratio.
 ///
-/// A large item with less than [targetHeight] of pane beside it at two rows'
-/// height fills the pane width on its own, up to three rows' height, whether
-/// or not tiles are left: a column that narrow holds no useful tile, and this
-/// rule comes before the others. If no
-/// split of plenty of tiles keeps each at [minTileWidth], it stands alone at
-/// two rows and the tiles flow on under it. One with no tiles left keeps two
-/// rows' height and is not stretched, and tiles too few to fill both rows
-/// sit beside it at the target height, as the row packer leaves its last row.
+/// The exceptions, in the order they are checked:
+///
+/// - A large item with less than [targetHeight] of pane beside it at two
+///   rows' height fills the pane width on its own, up to three rows' height,
+///   whether or not tiles are left: a column that narrow holds no useful
+///   tile.
+/// - One with no tiles left keeps two rows' height and is not stretched.
+/// - Tiles too few to fill both rows sit beside it at the target height, as
+///   the row packer leaves its last row.
+/// - If no split of plenty of tiles keeps each at [minTileWidth], it stands
+///   alone at two rows and the tiles flow on under it.
 ///
 /// The tiles left after the last block go into ordinary justified rows under
 /// it ([packJustifiedRows]). Cells come back in reading order: each large

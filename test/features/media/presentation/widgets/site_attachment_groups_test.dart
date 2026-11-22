@@ -377,6 +377,10 @@ void main() {
     expect(viewOf('map').fit, BoxFit.contain);
     expect(viewOf('a').thumbnail, isTrue);
     expect(viewOf('a').fit, BoxFit.cover);
+    // Learned shapes come from thumbnails only: an original's decode does
+    // not teach them.
+    expect(viewOf('map').onImageSize, isNull);
+    expect(viewOf('a').onImageSize, isNotNull);
   });
 
   testWidgets('a Large document still draws its rendered page', (tester) async {
