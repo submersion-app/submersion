@@ -246,8 +246,16 @@ class SyncInitializer {
     return newId;
   }
 
-  List<String> _recordedUploadNonces(String providerId) =>
-      _prefs.getStringList(_uploadNoncesKey(providerId)) ?? const [];
+  /// The nonce ring as the platform holds it now. `SharedPreferences` serves
+  /// reads from a cache loaded once per isolate, and a second app instance on
+  /// the same phone (Android once started one for a share sent while the app
+  /// ran, #4843) records its nonces in the same store. Read from the cache,
+  /// this install's own other instance would look like a twin, and a rewrite
+  /// would drop the nonces it recorded.
+  Future<List<String>> _recordedUploadNonces(String providerId) async {
+    await _prefs.reload();
+    return _prefs.getStringList(_uploadNoncesKey(providerId)) ?? const [];
+  }
 
   /// Record a nonce this install's own manifest on [providerId] carries, or is
   /// about to. A nonce already held moves up rather than taking a second slot,
@@ -255,7 +263,7 @@ class SyncInitializer {
   Future<void> recordUploadNonce(String nonce, String providerId) async {
     final nonces = [
       nonce,
-      ..._recordedUploadNonces(providerId).where((n) => n != nonce),
+      ...(await _recordedUploadNonces(providerId)).where((n) => n != nonce),
     ];
     await _prefs.setStringList(
       _uploadNoncesKey(providerId),
@@ -277,9 +285,9 @@ class SyncInitializer {
   /// genuine whole-container clone carries the cloned, non-empty ring, so
   /// twin detection still fires for it: whichever twin uploads first puts a
   /// nonce in the manifest that the other's cloned ring does not contain.
-  bool isForeignUploadNonce(String? nonce, String providerId) {
+  Future<bool> isForeignUploadNonce(String? nonce, String providerId) async {
     if (nonce == null) return false;
-    final recorded = _recordedUploadNonces(providerId);
+    final recorded = await _recordedUploadNonces(providerId);
     if (recorded.isEmpty) return false;
     return !recorded.contains(nonce);
   }
