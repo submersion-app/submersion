@@ -299,6 +299,7 @@ MediaIdentification _decided(
   path: i.path,
   confident: i.confident,
   specific: i.specific,
+  runId: i.runId,
 );
 
 /// Where two scanned stretches meet at [seamMs] (issue #4709): which of

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
@@ -105,6 +106,35 @@ void main() {
         NamingLevel.surer,
       )!;
       expect((surer.suggestScore, surer.suggestScoreNoLocation), (0.5, 0.7));
+    });
+  });
+
+  group('levelFromBars (issue #4876)', () {
+    test('is null with no bars', () {
+      expect(levelFromBars(null, NamingLevel.eager, packVersion: 'p'), isNull);
+    });
+
+    test('names every level exactly as levelInForce does for the pack', () {
+      final pack = _pack(levels: [_balanced, _eager]);
+      final bars = NamingBars.fromNaming(pack.naming);
+      for (final chosen in NamingLevel.values) {
+        expect(
+          levelFromBars(bars, chosen, packVersion: pack.packVersion),
+          levelInForce(pack, chosen),
+          reason: chosen.id,
+        );
+      }
+    });
+
+    test('survives a round trip through the stored JSON', () {
+      final pack = _pack(levels: [_balanced, _eager]);
+      final bars = NamingBars.fromJson(
+        NamingBars.fromNaming(pack.naming).toJson(),
+      );
+      expect(
+        levelFromBars(bars, NamingLevel.eager, packVersion: pack.packVersion),
+        levelInForce(pack, NamingLevel.eager),
+      );
     });
   });
 

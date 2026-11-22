@@ -283,6 +283,7 @@ MediaIdentification _reopenedAt(MediaIdentification i, DateTime now) =>
       claimedSpeciesId: i.claimedSpeciesId,
       confident: i.confident,
       specific: i.specific,
+      runId: i.runId,
     );
 
 /// What to store after a photo is analysed again.

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
@@ -78,6 +79,7 @@ class MediaIdentification extends Equatable {
     this.claimedSpeciesId,
     this.confident = false,
     this.specific = false,
+    this.runId,
   });
 
   final String id;
@@ -124,6 +126,10 @@ class MediaIdentification extends Equatable {
   /// Whether its open score passed the floor when it was last named: it
   /// looks like something in particular, not a hand or open water.
   final bool specific;
+
+  /// The run that produced or last carried it (issue #4876). Undecided rows
+  /// of another run lost a sync race and are not shown.
+  final String? runId;
 
   NamedCandidate? get top => candidates.isEmpty ? null : candidates.first;
 
@@ -178,6 +184,7 @@ class MediaIdentification extends Equatable {
     String? Function()? claimedSpeciesId,
     bool? confident,
     bool? specific,
+    String? Function()? runId,
   }) => MediaIdentification(
     id: id ?? this.id,
     mediaId: mediaId ?? this.mediaId,
@@ -202,6 +209,7 @@ class MediaIdentification extends Equatable {
         : claimedSpeciesId(),
     confident: confident ?? this.confident,
     specific: specific ?? this.specific,
+    runId: runId == null ? this.runId : runId(),
   );
 
   @override
@@ -227,6 +235,7 @@ class MediaIdentification extends Equatable {
     claimedSpeciesId,
     confident,
     specific,
+    runId,
   ];
 }
 
@@ -245,6 +254,9 @@ class MediaIdentificationRun extends Equatable {
     this.scannedMs,
     this.videoDurationMs,
     this.scannedRanges,
+    this.analysedBy,
+    this.runId,
+    this.namingBars,
   });
 
   final String mediaId;
@@ -275,6 +287,20 @@ class MediaIdentificationRun extends Equatable {
   /// were kept; [scanned] then reads [scannedMs] as one stretch from 0.
   final ScannedRanges? scannedRanges;
 
+  /// The sync device id of the device that analysed or last renamed it
+  /// (issue #4876). Null only for a run from before v381 not yet published.
+  final String? analysedBy;
+
+  /// Minted when an analysis starts; kept by later chunks and renames.
+  final String? runId;
+
+  /// The naming bars of the pack that named it, or null when unknown.
+  final NamingBars? namingBars;
+
+  /// Whether it was made on the device whose sync id is [deviceId]. A run
+  /// from before v381 was made on the device holding it.
+  bool madeOn(String deviceId) => analysedBy == null || analysedBy == deviceId;
+
   /// The stretches of the video scanned so far.
   ScannedRanges get scanned =>
       scannedRanges ?? ScannedRanges.prefix(scannedMs ?? 0);
@@ -291,6 +317,9 @@ class MediaIdentificationRun extends Equatable {
     int? Function()? scannedMs,
     int? Function()? videoDurationMs,
     ScannedRanges? Function()? scannedRanges,
+    String? Function()? analysedBy,
+    String? Function()? runId,
+    NamingBars? Function()? namingBars,
   }) => MediaIdentificationRun(
     mediaId: mediaId,
     packVersion: packVersion ?? this.packVersion,
@@ -306,6 +335,9 @@ class MediaIdentificationRun extends Equatable {
         ? this.videoDurationMs
         : videoDurationMs(),
     scannedRanges: scannedRanges == null ? this.scannedRanges : scannedRanges(),
+    analysedBy: analysedBy == null ? this.analysedBy : analysedBy(),
+    runId: runId == null ? this.runId : runId(),
+    namingBars: namingBars == null ? this.namingBars : namingBars(),
   );
 
   @override
@@ -322,6 +354,9 @@ class MediaIdentificationRun extends Equatable {
     scannedMs,
     videoDurationMs,
     scannedRanges,
+    analysedBy,
+    runId,
+    namingBars,
   ];
 }
 

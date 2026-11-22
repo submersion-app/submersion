@@ -8,6 +8,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 
 import 'identification_fixtures.dart';
@@ -35,6 +36,38 @@ void main() {
     expect(await repo.forMedia('m1'), [identification('a')]);
     expect(await repo.runFor('other'), isNull);
     expect(await repo.forMedia('other'), isEmpty);
+  });
+
+  test('a run keeps where it came from, its run id and its naming bars, '
+      'and its rows their run id (issue #4876)', () async {
+    const bars = NamingBars(
+      minCropSide: 64,
+      minOpenScore: 0.15,
+      suggestScore: 0.5,
+      suggestScoreNoLocation: 0.7,
+    );
+    final made = run().copyWith(
+      analysedBy: () => 'laptop',
+      runId: () => 'r1',
+      namingBars: () => bars,
+    );
+    final row = identification('a').copyWith(runId: () => 'r1');
+    await repo.storeRun(made, insert: [row], deleteIds: []);
+
+    expect(await repo.runFor('m1'), made);
+    expect(await repo.forMedia('m1'), [row]);
+  });
+
+  test('a run written without an origin keeps the one stored', () async {
+    await repo.storeRun(
+      run().copyWith(analysedBy: () => 'laptop', runId: () => 'r1'),
+      insert: const [],
+      deleteIds: const [],
+    );
+    await repo.storeRun(run(count: 0), insert: const [], deleteIds: const []);
+    final stored = (await repo.runFor('m1'))!;
+    expect(stored.analysedBy, 'laptop');
+    expect(stored.runId, 'r1');
   });
 
   test(

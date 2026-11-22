@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
@@ -520,6 +521,9 @@ class MediaIdentificationRepository {
         scannedMs: row.scannedMs,
         videoDurationMs: row.videoDurationMs,
         scannedRanges: _ranges(row.scannedRanges),
+        analysedBy: row.analysedBy,
+        runId: row.runId,
+        namingBars: NamingBars.fromJson(row.namingBars),
       );
 
   /// The stored stretches, or null when there are none or they cannot be
@@ -553,6 +557,11 @@ class MediaIdentificationRepository {
           ? null
           : encodeScannedRanges(run.scannedRanges!),
     ),
+    // Absent rather than null when unknown: a write never clears where a
+    // run came from, its run id or its bars.
+    analysedBy: Value.absentIfNull(run.analysedBy),
+    runId: Value.absentIfNull(run.runId),
+    namingBars: Value.absentIfNull(run.namingBars?.toJson()),
   );
 
   static MediaIdentification _fromRow(
@@ -588,6 +597,7 @@ class MediaIdentificationRepository {
     claimedSpeciesId: row.claimedSpeciesId,
     confident: row.confident,
     specific: row.specific,
+    runId: row.runId,
   );
 
   static MediaIdentificationsCompanion _toCompanion(MediaIdentification i) =>
@@ -618,6 +628,7 @@ class MediaIdentificationRepository {
         claimedSpeciesId: Value(i.claimedSpeciesId),
         confident: Value(i.confident),
         specific: Value(i.specific),
+        runId: Value.absentIfNull(i.runId),
       );
 
   /// A path that cannot be read keeps its row with no path, which draws no
