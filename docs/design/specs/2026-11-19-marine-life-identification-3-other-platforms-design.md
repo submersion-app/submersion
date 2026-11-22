@@ -587,8 +587,10 @@ Android launches at 8 GB. The build went on by uninstalling the Play copy,
 the maintainer's choice that day. Figures in
 [the phone memory findings](../findings/2026-11-17-marine-life-phone-memory.md#on-a-pixel-6a).
 
-The same run records the 6a's times (model load, a photo, a video chunk) in
-the findings, as a mid-range reference.
+The same run was to record the 6a's times (model load, a photo, a video
+chunk) in the findings, as a mid-range reference. It could not: the app does
+not log when a stage starts, and the video scanned was a single 2 second
+chunk, so the 6a's times are still unmeasured.
 
 ### 6. The accuracy gate
 
@@ -803,8 +805,9 @@ differs.
 ## Risks
 
 - **Phone speed.** On the 6a's processor, a photo may take several seconds
-  and video will run well behind playback. The decision is to accept that; a
-  measured figure comes from the 6a run.
+  and video will run well behind playback. The decision is to accept that.
+  The 6a run gave no measured figure (see section 5), so phone speed is
+  still unmeasured.
 - **Phone memory.** The 1.5 to 2.5 GB peak is an estimate. Android's limit is
   the phone's whole memory, shared with whatever else is open.
 - **Load time.** Creating a session for a 600 MB model on a phone may take
