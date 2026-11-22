@@ -1,8 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:clock/clock.dart';
-
 import 'package:flutter/material.dart';
+import 'package:clock/clock.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
