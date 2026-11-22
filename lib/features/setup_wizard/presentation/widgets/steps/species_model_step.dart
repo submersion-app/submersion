@@ -88,26 +88,31 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
       onPressed: widget.onNext,
       child: Text(l10n.settings_setUpDevice_skip),
     );
+    // The size is not known yet, or a state left from an earlier Settings
+    // visit may be stale until the step's own check answers: show the check,
+    // not a dead Download.
+    final (List<Widget>, String, VoidCallback?, Widget?) checking = (
+      [
+        const Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: SizedBox.square(
+            dimension: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ],
+      l10n.setup_speciesModel_download,
+      null,
+      skip,
+    );
     final (
       List<Widget> body,
       String primary,
       VoidCallback? onPrimary,
       Widget? secondary,
     ) = switch (state) {
-      PackChecking() => (
-        [
-          const Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: SizedBox.square(
-              dimension: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-        ],
-        l10n.setup_speciesModel_download,
-        null,
-        skip,
-      ),
+      PackChecking() => checking,
+      PackNotInstalled() when !_checked => checking,
       PackNotInstalled(:final bytes, :final resumable) => (
         [
           line(l10n.setup_speciesModel_size(formatBytes(bytes))),
@@ -117,7 +122,7 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
         resumable
             ? l10n.settings_speciesId_resume(formatBytes(bytes))
             : l10n.settings_speciesId_download(formatBytes(bytes)),
-        _checked ? _download : null,
+        _download,
         skip,
       ),
       PackDownloading() || PackInstalling() => (

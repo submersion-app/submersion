@@ -260,7 +260,18 @@ void main() {
       const PackNotInstalled(bytes: bytes, resumable: false),
       refreshDone: done.future,
     );
-    expect(tester.widget<FilledButton>(download).onPressed, isNull);
+    // Until it answers, the step shows it is checking, not a dead button.
+    expect(download, findsNothing);
+    expect(find.text(l10n.setup_speciesModel_size(size)), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, l10n.setup_speciesModel_download),
+          )
+          .onPressed,
+      isNull,
+    );
     done.complete();
     await tester.pump();
     await tester.pump();
