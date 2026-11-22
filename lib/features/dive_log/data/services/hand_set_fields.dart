@@ -157,6 +157,10 @@ class HandSetChange {
 /// with every field the diver set by hand left as stored, unless named in
 /// [replace].
 ///
+/// [replace] holds the changes the diver chose the parse for, as a preview
+/// showed them. One whose stored value has changed since (a sync, another
+/// edit) is kept: the diver never saw the value it would now replace.
+///
 /// [kept] lists, in [HandSetField] order, each kept field the parse would
 /// have changed: what the preview offers and the bulk re-parse counts. A
 /// field in [replace] takes the parse and loses its mark, written in the
@@ -164,11 +168,15 @@ class HandSetChange {
 ({DivesCompanion companion, List<HandSetChange> kept}) keepHandSetFields(
   DivesCompanion parse,
   Dive stored, {
-  Set<HandSetField> replace = const {},
+  Iterable<HandSetChange> replace = const [],
 }) {
   final keys = HandSetMarks.decode(stored.handSetFields);
   final marked = HandSetMarks.fieldsOf(keys);
   if (marked.isEmpty) return (companion: parse, kept: const []);
+  final replacing = {
+    for (final change in replace)
+      if (change.field.valueIn(stored) == change.storedValue) change.field,
+  };
 
   final written = stored.copyWithCompanion(parse);
   var companion = parse;
@@ -176,7 +184,7 @@ class HandSetChange {
   final cleared = <String>{};
   for (final field in HandSetField.values) {
     if (!marked.contains(field)) continue;
-    if (replace.contains(field)) {
+    if (replacing.contains(field)) {
       cleared.add(field.name);
       continue;
     }
@@ -193,7 +201,7 @@ class HandSetChange {
     }
     companion = field.leaveOut(companion);
   }
-  companion = _exitFollowsKeptTimes(companion, stored, marked, replace);
+  companion = _exitFollowsKeptTimes(companion, stored, marked, replacing);
   if (cleared.isNotEmpty) {
     companion = companion.copyWith(
       handSetFields: Value(HandSetMarks.encode(keys.difference(cleared))),

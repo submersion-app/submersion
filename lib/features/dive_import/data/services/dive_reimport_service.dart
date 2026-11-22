@@ -108,7 +108,7 @@ class DiveReimportService {
     required String diveId,
     required Map<String, dynamic> diveData,
     required DateTime now,
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) async {
     final diveRow = await (db.select(
       db.dives,
@@ -346,7 +346,7 @@ class DiveReimportService {
     required Dive diveRow,
     required Map<String, dynamic> diveData,
     required DateTime now,
-    required Set<HandSetField> replaceHandSet,
+    required Iterable<HandSetChange> replaceHandSet,
   }) async {
     final diveId = diveRow.id;
     final guarded = keepHandSetFields(

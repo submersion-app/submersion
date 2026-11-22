@@ -62,10 +62,10 @@ class _FakeReparseService extends ReparseService {
   Future<({List<String> errors, int profilesPreserved})> reparseDive(
     String diveId, {
     required RawDiveParseFn parseFn,
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) async {
     reparsedDiveIds.add(diveId);
-    replacedFields.add(replaceHandSet);
+    replacedFields.add({for (final c in replaceHandSet) c.field});
     await gate?.future;
     final failure = this.failure;
     if (failure != null) throw failure;

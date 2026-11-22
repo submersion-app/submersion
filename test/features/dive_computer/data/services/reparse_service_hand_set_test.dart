@@ -85,7 +85,7 @@ void main() {
 
   Future<({Dive row, List<HandSetChange> kept})> apply({
     String source = 'src-1',
-    Set<HandSetField> replace = const {},
+    Iterable<HandSetChange> replace = const [],
   }) async {
     final outcome = await service.applyParsedUpdate(
       diveId: 'dive-1',
@@ -115,7 +115,15 @@ void main() {
   });
 
   test('replace takes the parse and clears the mark', () async {
-    final result = await apply(replace: {HandSetField.waterTemp});
+    final result = await apply(
+      replace: const [
+        HandSetChange(
+          field: HandSetField.waterTemp,
+          storedValue: 26.0,
+          parsedValue: 22.0,
+        ),
+      ],
+    );
     expect(result.row.waterTemp, 22);
     expect(result.row.handSetFields, isNull);
     expect(result.kept, isEmpty);

@@ -204,6 +204,32 @@ void main() {
       expect(guarded.companion.exitTime.present, isFalse);
     });
 
+    test(
+      'a replacement whose value changed since the preview is kept',
+      () async {
+        // The diver saw 20 degrees and chose the parse; meanwhile a sync
+        // brought their newer 24 degrees, which they never saw.
+        final stored = await insertDive(handSetFields: '["waterTemp"]');
+        final guarded = keepHandSetFields(
+          parse,
+          stored,
+          replace: const [
+            HandSetChange(
+              field: HandSetField.waterTemp,
+              storedValue: 20.0,
+              parsedValue: 22.0,
+            ),
+          ],
+        );
+        expect(guarded.companion.waterTemp.present, isFalse);
+        expect(guarded.companion.handSetFields.present, isFalse);
+        expect(
+          [for (final c in guarded.kept) c.field],
+          [HandSetField.waterTemp],
+        );
+      },
+    );
+
     test('replace takes the parse and clears only that mark', () async {
       final stored = await insertDive(
         handSetFields: '["bottomTime","heartRate","waterTemp"]',
@@ -211,7 +237,13 @@ void main() {
       final guarded = keepHandSetFields(
         parse,
         stored,
-        replace: {HandSetField.waterTemp},
+        replace: const [
+          HandSetChange(
+            field: HandSetField.waterTemp,
+            storedValue: 24.0,
+            parsedValue: 22.0,
+          ),
+        ],
       );
       expect(guarded.companion.waterTemp, const Value(22.0));
       expect(guarded.companion.bottomTime.present, isFalse);

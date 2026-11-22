@@ -157,7 +157,7 @@ class ReparseService {
     required String? libdivecomputerVersion,
     Uint8List? rawData,
     Uint8List? rawFingerprint,
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) async {
     // Before the transaction, so an empty parse leaves even the source row's
     // lastParsedAt and clock alone and nothing is staged for sync.
@@ -631,7 +631,7 @@ class ReparseService {
   Future<({List<String> errors, int profilesPreserved})> reparseDive(
     String diveId, {
     required RawDiveParseFn parseFn,
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) => ReparseBatchService(
     this,
   ).reparseSingleDive(diveId, parseFn: parseFn, replaceHandSet: replaceHandSet);
@@ -741,7 +741,7 @@ class ReparseService {
     required String? vendor,
     required bool beneathEdit,
     required double? surfacePressure,
-    required Set<HandSetField> replaceHandSet,
+    required Iterable<HandSetChange> replaceHandSet,
   }) async {
     final guarded = keepHandSetFields(
       await _diveRowCompanion(

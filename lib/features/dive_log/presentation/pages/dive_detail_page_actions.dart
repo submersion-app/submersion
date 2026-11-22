@@ -418,20 +418,27 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   }
 
   /// Asks which of [changes], values the diver set by hand that a re-parse
-  /// or resync would replace, to keep (issue #4909). The fields to replace,
-  /// none when nothing would change, or null when the diver cancels.
-  Future<Set<HandSetField>?> _reviewHandSet(
+  /// or resync would replace, to keep (issue #4909). The changes to make,
+  /// none when nothing would change, or null when the diver cancels. Each
+  /// carries the value the diver saw, so the write replaces nothing that
+  /// changed since.
+  Future<List<HandSetChange>?> _reviewHandSet(
     List<HandSetChange> changes,
     HandSetReviewSource source,
   ) async {
-    if (changes.isEmpty) return const {};
+    if (changes.isEmpty) return const [];
     if (!mounted) return null;
-    return showHandSetReviewDialog(
+    final replace = await showHandSetReviewDialog(
       context,
       changes: changes,
       source: source,
       units: ref.read(unitFormatterProvider),
     );
+    if (replace == null) return null;
+    return [
+      for (final change in changes)
+        if (replace.contains(change.field)) change,
+    ];
   }
 
   Future<bool> _reparseDive(Dive dive) async {

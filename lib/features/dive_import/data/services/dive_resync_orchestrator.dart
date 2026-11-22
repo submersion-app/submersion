@@ -62,7 +62,7 @@ class DiveResyncOrchestrator {
   /// [previewHandSetChanges].
   Future<DiveResyncOutcome> resync(
     String diveId, {
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.diveComputerDownload);
     final lookup = await _finder.find(diveId);

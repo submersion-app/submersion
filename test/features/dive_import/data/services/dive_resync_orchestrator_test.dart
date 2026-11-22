@@ -311,7 +311,13 @@ void main() {
 
       await orchestrator.resync(
         'dive-1',
-        replaceHandSet: {HandSetField.maxDepth},
+        replaceHandSet: const [
+          HandSetChange(
+            field: HandSetField.maxDepth,
+            storedValue: 19.0,
+            parsedValue: 18.2,
+          ),
+        ],
       );
 
       final dive = await stored();

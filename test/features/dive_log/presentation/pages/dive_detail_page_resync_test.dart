@@ -50,10 +50,10 @@ class _FakeDiveResyncOrchestrator extends DiveResyncOrchestrator {
   @override
   Future<DiveResyncOutcome> resync(
     String diveId, {
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) async {
     resyncedDiveIds.add(diveId);
-    replacedFields.add(replaceHandSet);
+    replacedFields.add({for (final c in replaceHandSet) c.field});
     await gate?.future;
     return outcome;
   }
@@ -73,7 +73,7 @@ class _ThrowingDiveResyncOrchestrator extends DiveResyncOrchestrator {
   @override
   Future<DiveResyncOutcome> resync(
     String diveId, {
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) {
     throw const FormatException('truncated UDDF payload');
   }

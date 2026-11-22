@@ -304,7 +304,7 @@ class ReparseBatchService {
   Future<({List<String> errors, int profilesPreserved})> reparseSingleDive(
     String diveId, {
     required RawDiveParseFn parseFn,
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) => ChangeLogScope.bulk(
     _db,
     label: ChangeLogLabels.reparse,
@@ -337,7 +337,7 @@ class ReparseBatchService {
   Future<({List<String> errors, int profilesPreserved})> _reparseSingle(
     String diveId,
     RawDiveParseFn parseFn,
-    Set<HandSetField> replaceHandSet,
+    Iterable<HandSetChange> replaceHandSet,
   ) async {
     final outcome = await _reparseOne(
       diveId,
@@ -363,7 +363,7 @@ class ReparseBatchService {
     String diveId,
     RawDiveParseFn parseFn,
     String? computerId, {
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) async {
     final (:stop, sources: parsed) = await _parseSources(
       diveId,

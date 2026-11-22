@@ -44,7 +44,7 @@ class _WriteFault extends ReparseService {
     required String? libdivecomputerVersion,
     Uint8List? rawData,
     Uint8List? rawFingerprint,
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) {
     if (sourceRowId == failingSource) throw StateError('disk full');
     return super.applyParsedUpdate(
@@ -78,7 +78,7 @@ class _CombinedDives extends ReparseService {
     required String? libdivecomputerVersion,
     Uint8List? rawData,
     Uint8List? rawFingerprint,
-    Set<HandSetField> replaceHandSet = const {},
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) async => (profilePreserved: true, handSetKept: const <HandSetChange>[]);
 }
 
@@ -500,7 +500,13 @@ void main() {
       final result = await batch.reparseSingleDive(
         'd1',
         parseFn: okParse,
-        replaceHandSet: {HandSetField.waterTemp},
+        replaceHandSet: const [
+          HandSetChange(
+            field: HandSetField.waterTemp,
+            storedValue: 24.0,
+            parsedValue: 18.0,
+          ),
+        ],
       );
 
       expect(result.errors, isEmpty);
