@@ -17,7 +17,8 @@ import 'package:submersion/features/media/data/services/motion_photo.dart';
 /// shared album's session cookie is one), so a video from such a source is
 /// fetched here with them and played from disk. A file already here is
 /// reused; one download per URL runs at a time; the directory is kept under
-/// [maxBytes] by deleting the least recently used files.
+/// [maxBytes] by deleting the least recently used files, never the one
+/// about to play.
 class NetworkVideoCache {
   NetworkVideoCache({
     required http.Client client,
@@ -32,7 +33,10 @@ class NetworkVideoCache {
   final Future<Directory> Function() _directory;
   final Future<Map<String, String>?> Function(Uri uri) _headersFor;
 
-  /// Upper bound of the directory's size after a download.
+  /// Upper bound of the directory's size after a download, apart from the
+  /// file just fetched: it is about to play, so it stays even when it alone
+  /// is larger, and goes on the next download like any other file.
+  /// Refusing it instead would leave a long video unplayable.
   final int maxBytes;
 
   final _log = LoggerService.forClass(NetworkVideoCache);

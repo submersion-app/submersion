@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -76,5 +77,19 @@ void main() {
       networkVideoUrl(plain, original: true),
       Uri.parse('https://example.com/a.mp4'),
     );
+  });
+
+  test('the choice to play the original ends with its viewer', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final viewer = container.listen(playVideoOriginalProvider('m1'), (_, _) {});
+    container.read(playVideoOriginalProvider('m1').notifier).state = true;
+    expect(container.read(playVideoOriginalProvider('m1')), isTrue);
+
+    // The viewer closes: nothing watches the choice any more.
+    viewer.close();
+    await container.pump();
+
+    expect(container.read(playVideoOriginalProvider('m1')), isFalse);
   });
 }

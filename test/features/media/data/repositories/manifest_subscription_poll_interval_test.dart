@@ -54,6 +54,56 @@ void main() {
     expect(after.nextPollAt, isNull);
   });
 
+  test('a failed first poll moves its retry with a new interval', () async {
+    final sub = await create();
+    final failed = DateTime.utc(2026, 1, 1, 12);
+    await repo.recordPollFailure(
+      sub.id,
+      pollIntervalSeconds: 604800,
+      error: 'boom',
+      now: failed,
+    );
+    // A week doubled is capped at a day.
+    expect(
+      (await repo.getById(sub.id))!.nextPollAt,
+      failed.add(const Duration(hours: 24)),
+    );
+
+    await repo.setPollInterval(sub.id, 3600);
+
+    // The same backoff, now on an hour: twice the interval.
+    expect(
+      (await repo.getById(sub.id))!.nextPollAt,
+      failed.add(const Duration(hours: 2)),
+    );
+  });
+
+  test('a failure after a successful poll counts from the failure', () async {
+    final sub = await create();
+    final polled = DateTime.utc(2026, 1, 1, 12);
+    await repo.recordPollSuccess(
+      sub.id,
+      pollIntervalSeconds: 86400,
+      etag: null,
+      lastModified: null,
+      now: polled,
+    );
+    final failed = polled.add(const Duration(days: 1));
+    await repo.recordPollFailure(
+      sub.id,
+      pollIntervalSeconds: 86400,
+      error: 'boom',
+      now: failed,
+    );
+
+    await repo.setPollInterval(sub.id, 21600);
+
+    expect(
+      (await repo.getById(sub.id))!.nextPollAt,
+      failed.add(const Duration(hours: 12)),
+    );
+  });
+
   test('a non-positive interval is refused', () async {
     final sub = await create();
     expect(() => repo.setPollInterval(sub.id, 0), throwsArgumentError);

@@ -109,6 +109,20 @@ void main() {
     expect(File(third!).existsSync(), isTrue);
   });
 
+  test('a video larger than the cache plays, and goes on the next', () async {
+    final c = cache(
+      (r) async => video(r.url.path.contains('big') ? 40 : 10),
+      maxBytes: 25,
+    );
+    final big = await c.fileFor(Uri.parse('https://h/big.mp4'));
+    // Kept although it alone is over the bound: it is about to play.
+    expect(File(big!).existsSync(), isTrue);
+
+    final next = await c.fileFor(Uri.parse('https://h/small.mp4'));
+    expect(File(big).existsSync(), isFalse);
+    expect(File(next!).existsSync(), isTrue);
+  });
+
   group('motion photos', () {
     final photo = Uri.parse('https://nas.example.com:5001/p.jpg?id=2');
     final clip = [0, 0, 0, 16, ...'ftypmp42'.codeUnits, 0, 0, 0, 0, 5, 5];

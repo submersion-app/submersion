@@ -391,10 +391,30 @@ class ManifestSubscriptionRepository {
     }
   }
 
-  /// Changes how often [id] is polled. The next poll moves with it, to the
-  /// last poll plus the new interval, so a shorter interval takes effect now
-  /// instead of after the old one ran out. A subscription never polled on
-  /// this device keeps its next poll (none, which means due).
+  /// The next poll after the interval changed to [pollIntervalSeconds], in
+  /// ms since epoch, counted from whichever came last: a successful poll
+  /// (plus the interval) or a failed one (plus the same backoff
+  /// [recordPollFailure] applies). Null when neither happened on this
+  /// device: no next poll means due.
+  static int? _nextPollAfterIntervalChange({
+    required int? lastPolledAt,
+    required int? lastErrorAt,
+    required int pollIntervalSeconds,
+  }) {
+    if (lastErrorAt != null &&
+        (lastPolledAt == null || lastErrorAt > lastPolledAt)) {
+      const capMs = 24 * 60 * 60 * 1000;
+      final backoffMs = pollIntervalSeconds * 2 * 1000;
+      return lastErrorAt + (backoffMs > capMs ? capMs : backoffMs);
+    }
+    if (lastPolledAt != null) return lastPolledAt + pollIntervalSeconds * 1000;
+    return null;
+  }
+
+  /// Changes how often [id] is polled. The next poll moves with it, so a
+  /// shorter interval takes effect now instead of after the old one ran
+  /// out, also while the last poll failed and is waiting out its backoff
+  /// (see [_nextPollAfterIntervalChange]).
   Future<void> setPollInterval(String id, int pollIntervalSeconds) async {
     if (pollIntervalSeconds <= 0) {
       throw ArgumentError.value(
@@ -417,14 +437,16 @@ class ManifestSubscriptionRepository {
         final state = await (_db.select(
           _db.mediaSubscriptionState,
         )..where((t) => t.subscriptionId.equals(id))).getSingleOrNull();
-        final lastPolledAt = state?.lastPolledAt;
-        if (lastPolledAt != null) {
+        final nextPollAt = _nextPollAfterIntervalChange(
+          lastPolledAt: state?.lastPolledAt,
+          lastErrorAt: state?.lastErrorAt,
+          pollIntervalSeconds: pollIntervalSeconds,
+        );
+        if (nextPollAt != null) {
           await (_db.update(
             _db.mediaSubscriptionState,
           )..where((t) => t.subscriptionId.equals(id))).write(
-            MediaSubscriptionStateCompanion(
-              nextPollAt: Value(lastPolledAt + pollIntervalSeconds * 1000),
-            ),
+            MediaSubscriptionStateCompanion(nextPollAt: Value(nextPollAt)),
           );
         }
       });
