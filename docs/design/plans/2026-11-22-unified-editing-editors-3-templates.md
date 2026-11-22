@@ -82,6 +82,10 @@ exit blocker or `record_sitting_writer.dart`.
 - **Added:** `lib/shared/widgets/record_editing/editor_row_merge.dart`
   (`mergeEditorRows`, Task 1), a new file with one pure function. Nothing
   else imports it until this plan merges; plans 4 and 5 may adopt it after.
+- **Added after review:** `lib/shared/widgets/section_list_editor.dart`
+  gains an optional `onTitleChanged(sectionId, text)`, told of each
+  keystroke in a section title (a rename still commits only when the field
+  lets go). Additive: the trip checklist leaves it null and is unchanged.
 - **Edited, shared with other plans:** `lib/core/router/app_router.dart`
   (`onExit` on four routes: `/checklist-templates/new`,
   `/checklist-templates/:templateId/edit`, `/pre-dive-checklists/new`,
@@ -864,3 +868,14 @@ on:
   test-first: the title flash above, and the locale-dependent threshold
   text. No change: an untouched template's stored sort order is no longer
   renumbered by a no-op Save (nothing shows it).
+- **A second review (code-review, xhigh, all findings, after the PR
+  opened):** six findings, all fixed. A section title being typed is now a
+  change: the section editor reports each keystroke (`onTitleChanged`),
+  and each page drafts and saves from the titles as shown, trimmed, the old
+  title when typed blank. An item's draft is built as its dialog would
+  write it (trimmed text, no dangling section, no value fields, device or
+  source its type does not use), so a stored item in another form confirmed
+  unchanged is no change. A section the diver changed that was deleted
+  elsewhere is created again and the items the form shows in it go back in
+  with it. Stale doc comments, the first-frame test and the new strings'
+  `@` descriptions were brought up to date.
