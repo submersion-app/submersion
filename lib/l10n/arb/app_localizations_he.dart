@@ -63,7 +63,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'אתרים, חיים ימיים וסוגי צלילה; קו פירושו צלילות משותפות.';
+      'אתרים, מינים וסוגי צלילה; קו פירושו צלילות משותפות.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -154,7 +154,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_preset_gearRoad => 'ציוד בדרכים';
 
   @override
-  String get connections_preset_life => 'אתרים לפי חיים ימיים';
+  String get connections_preset_life => 'אתרים לפי מינים';
 
   @override
   String get connections_preset_reef => 'חיי השונית';
@@ -15348,7 +15348,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get pdf_sectionTechnical => 'טכני';
 
   @override
-  String get pdf_sectionMarineLife => 'חיים ימיים';
+  String get pdf_sectionMarineLife => 'מינים';
 
   @override
   String get pdf_sectionNotes => 'הערות';
@@ -42172,7 +42172,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'היפרדות מהבן זוג';
 
   @override
-  String get incidentCategory_marineLife => 'חיים ימיים';
+  String get incidentCategory_marineLife => 'חיות מים';
 
   @override
   String get incidentCategory_boatSurface => 'סירה / פני השטח';
@@ -51354,7 +51354,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'חיים ימיים';
+  String get diveLog_filter_sectionSpecies => 'מינים';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -54541,7 +54541,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_listLocked => 'בטל את הנעילה כדי להוסיף או לדחות';
 
   @override
-  String get media_labels_action => 'תוויות חיים ימיים';
+  String get media_labels_action => 'תוויות מינים';
 
   @override
   String get media_labels_names => 'שמות';

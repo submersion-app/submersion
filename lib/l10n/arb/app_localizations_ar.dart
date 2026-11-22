@@ -65,7 +65,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'المواقع والحياة البحرية وأنواع الغوص؛ يعني الخط أن بينها غوصات مشتركة.';
+      'المواقع والأنواع وأنواع الغوص؛ يعني الخط أن بينها غوصات مشتركة.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -164,7 +164,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_preset_gearRoad => 'المعدات في السفر';
 
   @override
-  String get connections_preset_life => 'المواقع حسب الحياة البحرية';
+  String get connections_preset_life => 'المواقع حسب الأنواع';
 
   @override
   String get connections_preset_reef => 'حياة الشعاب';
@@ -15885,7 +15885,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pdf_sectionTechnical => 'البيانات التقنية';
 
   @override
-  String get pdf_sectionMarineLife => 'الحياة البحرية';
+  String get pdf_sectionMarineLife => 'الأنواع';
 
   @override
   String get pdf_sectionNotes => 'الملاحظات';
@@ -43768,7 +43768,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'الانفصال عن الرفيق';
 
   @override
-  String get incidentCategory_marineLife => 'الحياة البحرية';
+  String get incidentCategory_marineLife => 'الحياة المائية';
 
   @override
   String get incidentCategory_boatSurface => 'القارب / السطح';
@@ -53193,7 +53193,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'الحياة البحرية';
+  String get diveLog_filter_sectionSpecies => 'الأنواع';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -56501,7 +56501,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_listLocked => 'افتح القفل للإضافة أو الرفض';
 
   @override
-  String get media_labels_action => 'تسميات الحياة البحرية';
+  String get media_labels_action => 'تسميات الأنواع';
 
   @override
   String get media_labels_names => 'الأسماء';

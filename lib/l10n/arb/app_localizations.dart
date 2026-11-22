@@ -209,7 +209,7 @@ abstract class AppLocalizations {
   /// No description provided for @connections_caption_reef.
   ///
   /// In en, this message translates to:
-  /// **'Sites, marine life and dive types; a line means they share dives.'**
+  /// **'Sites, species and dive types; a line means they share dives.'**
   String get connections_caption_reef;
 
   /// No description provided for @connections_caption_gearRoad.
@@ -347,7 +347,7 @@ abstract class AppLocalizations {
   /// No description provided for @connections_preset_life.
   ///
   /// In en, this message translates to:
-  /// **'Sites by marine life'**
+  /// **'Sites by species'**
   String get connections_preset_life;
 
   /// No description provided for @connections_preset_reef.
@@ -25055,7 +25055,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdf_sectionMarineLife.
   ///
   /// In en, this message translates to:
-  /// **'Marine Life'**
+  /// **'Species'**
   String get pdf_sectionMarineLife;
 
   /// No description provided for @pdf_sectionNotes.
@@ -67891,7 +67891,7 @@ abstract class AppLocalizations {
   /// No description provided for @incidentCategory_marineLife.
   ///
   /// In en, this message translates to:
-  /// **'Marine life'**
+  /// **'Aquatic life'**
   String get incidentCategory_marineLife;
 
   /// No description provided for @incidentCategory_boatSurface.
@@ -82706,7 +82706,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_filter_sectionSpecies.
   ///
   /// In en, this message translates to:
-  /// **'Marine life'**
+  /// **'Species'**
   String get diveLog_filter_sectionSpecies;
 
   /// No description provided for @diveLog_filter_sectionVisibilityUnit.
@@ -87296,7 +87296,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_labels_action.
   ///
   /// In en, this message translates to:
-  /// **'Marine life labels'**
+  /// **'Species labels'**
   String get media_labels_action;
 
   /// No description provided for @media_labels_names.
