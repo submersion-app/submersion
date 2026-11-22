@@ -43,6 +43,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -369,8 +370,8 @@ void main() {
 
   _tickGroup('dashboard', [
     (
-      name: 'dashboardQuickStatsProvider',
-      read: (c) => c.read(dashboardQuickStatsProvider.future),
+      name: 'homeSpeciesCountProvider',
+      read: (c) => c.read(homeSpeciesCountProvider.future),
     ),
     (name: 'onThisDayProvider', read: (c) => c.read(onThisDayProvider.future)),
     (

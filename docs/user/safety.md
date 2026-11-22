@@ -158,7 +158,7 @@ A single screen with what you would need in an emergency, built entirely from
 data already on your device. No network, no location permission and no sign-in:
 it works on a boat with no signal, which is the condition that matters.
 
-Open it with **Emergency card** in the Dashboard's quick actions, or from
+Open it with **Emergency card** in the Dashboard's quick actions (tap **+**), or from
 **Settings > Diver Profile > Emergency card**.
 
 ### What it shows
@@ -265,9 +265,9 @@ report stays private: an exported check-in never mentions the near-miss.
 |---------|-------|
 | Safety review settings, rules, analysing every dive | Settings > Safety |
 | No-fly guideline choice | Settings > Safety > Flying after diving |
-| No-fly countdown | Planning > Flying after diving, and the Dashboard's No-fly chip |
+| No-fly countdown | Planning > Flying after diving, and the Dashboard's No-fly light |
 | Findings for one dive | The dive's details > Safety review |
-| Emergency card | The Dashboard's quick actions, or Settings > Diver Profile > Emergency card |
+| Emergency card | The Dashboard's quick actions (tap **+**), or Settings > Diver Profile > Emergency card |
 | Medical details, contacts, insurance | Settings > Diver Profile |
 | Near-miss log | Settings > Diver Profile > Near-miss log, or a dive's menu |
 

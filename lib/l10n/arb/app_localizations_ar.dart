@@ -6347,75 +6347,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_activeCourses_title => 'الدورات قيد التنفيذ';
 
   @override
-  String get dashboard_greeting_afternoon => 'مساء الخير';
-
-  @override
-  String get dashboard_greeting_evening => 'مساء الخير';
-
-  @override
-  String get dashboard_greeting_morning => 'صباح الخير';
-
-  @override
-  String dashboard_greeting_withName(Object greeting, Object name) {
-    return '$greeting، $name!';
-  }
-
-  @override
-  String dashboard_greeting_withoutName(Object greeting) {
-    return '$greeting!';
-  }
-
-  @override
-  String get dashboard_hero_divesLoggedOne => 'غوصة واحدة مسجلة';
-
-  @override
-  String dashboard_hero_divesLoggedOther(Object count) {
-    return '$count غوصات مسجلة';
-  }
-
-  @override
-  String get dashboard_hero_divesTotalOne => 'غوصة واحدة';
-
-  @override
-  String dashboard_hero_divesTotalOther(Object count) {
-    return '$count غوصات';
-  }
-
-  @override
-  String get dashboard_hero_error => 'هل أنت مستعد لاستكشاف الأعماق؟';
-
-  @override
-  String dashboard_hero_hoursUnderwater(Object hours) {
-    return '$hours ساعات تحت الماء';
-  }
-
-  @override
-  String get dashboard_hero_loading => 'جارٍ تحميل إحصائيات الغوص...';
-
-  @override
-  String dashboard_hero_minutesUnderwater(Object minutes) {
-    return '$minutes دقائق تحت الماء';
-  }
-
-  @override
-  String get dashboard_hero_noDives => 'هل أنت مستعد لتسجيل أول غوصة؟';
-
-  @override
-  String get dashboard_hero_diverFallbackName => 'غواص';
-
-  @override
-  String get dashboard_hero_statDives => 'غطسات';
-
-  @override
-  String get dashboard_hero_statHours => 'ساعات';
-
-  @override
-  String get dashboard_hero_statSites => 'مواقع';
-
-  @override
-  String get dashboard_hero_statCountries => 'دول';
-
-  @override
   String get dashboard_gauges_addGear => 'إضافة معدات';
 
   @override
@@ -6514,13 +6445,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeChips_sectionTitle => 'شرائح الحالة';
 
   @override
-  String get settings_homeCards_sectionTitle => 'بطاقات الرئيسية';
-
-  @override
-  String get settings_homeCards_description =>
-      'اختر البطاقات التي تظهر في تبويب الرئيسية واسحبها لإعادة ترتيبها.';
-
-  @override
   String get settings_homeCards_autoHides => 'تُخفى تلقائيًا عندما تكون فارغة';
 
   @override
@@ -6531,53 +6455,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'إعادة تعيين تخطيط الرئيسية؟';
 
   @override
-  String get settings_homeCards_resetDialog_message =>
-      'يستعيد الترتيب الافتراضي للبطاقات ويعرضها جميعًا من جديد.';
-
-  @override
   String get settings_homeCards_resetDialog_cancel => 'إلغاء';
 
   @override
   String get settings_homeCards_resetDialog_confirm => 'إعادة تعيين';
 
   @override
-  String get settings_homeCards_card_hero => 'ترويسة الترحيب';
-
-  @override
-  String get settings_homeCards_card_gaugeStrip => 'شرائح الحالة';
-
-  @override
-  String get settings_homeCards_card_preDive => 'قوائم التحقق';
-
-  @override
-  String get settings_homeCards_card_recentDives => 'الغوصات الأخيرة';
-
-  @override
-  String get settings_homeCards_card_quickActions => 'إجراءات سريعة';
-
-  @override
-  String get settings_homeCards_card_milestones => 'الإنجازات';
-
-  @override
-  String get settings_homeCards_card_photoRibbon => 'أحدث الوسائط';
-
-  @override
-  String get settings_homeCards_card_onThisDay => 'في مثل هذا اليوم';
-
-  @override
-  String get settings_homeCards_card_yearInReview => 'حصاد العام';
-
-  @override
-  String get settings_homeCards_card_activeCourses => 'تقدّم الدورة';
-
-  @override
-  String get settings_homeCards_card_recentSitesMap => 'خريطة المواقع الأخيرة';
-
-  @override
   String get settings_homeCards_card_waitingForDownload => 'في انتظار التنزيل';
 
   @override
-  String get dashboard_allHidden_message => 'جميع بطاقات الرئيسية مخفية.';
+  String get dashboard_allHidden_message => 'لا توجد لوحات لعرضها.';
 
   @override
   String get dashboard_allHidden_customize => 'تخصيص الرئيسية';
@@ -6710,42 +6597,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_recentSites_title => 'المواقع الأخيرة';
 
   @override
-  String get dashboard_yearInReview_title => 'هذا العام';
-
-  @override
-  String dashboard_yearInReview_divesVs(int count, int previous) {
-    return '$count غطسات (مقابل $previous العام الماضي)';
-  }
-
-  @override
-  String dashboard_yearInReview_hours(String hours) {
-    return '$hours ساعات تحت الماء';
-  }
-
-  @override
-  String dashboard_yearInReview_maxDepth(String depth) {
-    return 'الأعمق: $depth';
-  }
-
-  @override
   String get dashboard_onThisDay_title => 'في مثل هذا اليوم';
 
   @override
   String dashboard_onThisDay_entry(String year, String site) {
     return '$year - $site';
-  }
-
-  @override
-  String get dashboard_milestones_title => 'الإنجازات';
-
-  @override
-  String dashboard_milestones_nextDive(int remaining, int milestone) {
-    return '$remaining غطسات حتى رقم $milestone';
-  }
-
-  @override
-  String dashboard_milestones_certYears(String name, int years, String month) {
-    return '$name: $years سنوات في $month';
   }
 
   @override
@@ -6755,19 +6611,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_quickActions_planDive => 'تخطيط غوصة';
 
   @override
-  String get dashboard_quickActions_sectionTitle => 'إجراءات سريعة';
-
-  @override
-  String get dashboard_quickActions_insights => 'الرؤى';
-
-  @override
   String get dashboard_recentDives_empty => 'لم يتم تسجيل غوصات بعد';
-
-  @override
-  String get dashboard_recentDives_errorLoading => 'فشل تحميل الغوصات';
-
-  @override
-  String get dashboard_recentDives_latestProfileTitle => 'مخطط آخر غطسة';
 
   @override
   String get dashboard_recentDives_noProfileData =>
@@ -6775,28 +6619,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dashboard_recentDives_profileLoadError => 'تعذر تحميل مخطط الغطسة';
-
-  @override
-  String get dashboard_recentDives_logFirst => 'سجّل أول غوصة لك';
-
-  @override
-  String get dashboard_recentDives_sectionTitle => 'الغوصات الأخيرة';
-
-  @override
-  String get dashboard_recentDives_viewAll => 'عرض الكل';
-
-  @override
-  String get dashboard_recentDives_viewAllTooltip => 'عرض جميع الغوصات';
-
-  @override
-  String get dashboard_semantics_errorLoadingRecentDives =>
-      'خطأ: فشل تحميل الغوصات الأخيرة';
-
-  @override
-  String get dashboard_semantics_greetingBanner => 'شعار ترحيب لوحة التحكم';
-
-  @override
-  String get dashboard_waitingForDownload_download => 'نزّل الآن';
 
   @override
   String dashboard_waitingForDownload_title(int count) {
@@ -66559,4 +66381,341 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diverProfile_bodyEstimate_note =>
       'يُستخدمان فقط لتقدير تكوين الجسم من أجل توقّع الأثقال.';
+
+  @override
+  String get dashboard_header_quickActions => 'إجراءات سريعة';
+
+  @override
+  String get dashboard_header_allClear => 'كل شيء على ما يرام';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count على ما يرام';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => 'الحالة';
+
+  @override
+  String get dashboard_panel_loadError => 'تعذّر التحميل';
+
+  @override
+  String get dashboard_key_dives => 'الغطسات';
+
+  @override
+  String get dashboard_key_timeUnder => 'الوقت تحت الماء';
+
+  @override
+  String get dashboard_key_lastDive => 'آخر غطسة';
+
+  @override
+  String get dashboard_key_avgSac => 'متوسط SAC';
+
+  @override
+  String get dashboard_key_avgRmv => 'متوسط RMV';
+
+  @override
+  String get dashboard_key_deepestThisYear => 'الأعمق هذا العام';
+
+  @override
+  String get dashboard_key_nextTrip => 'الرحلة القادمة';
+
+  @override
+  String get dashboard_key_avgDepth => 'متوسط العمق';
+
+  @override
+  String get dashboard_key_species => 'الأنواع';
+
+  @override
+  String dashboard_key_countThisYear(int count) {
+    return '+$count هذا العام';
+  }
+
+  @override
+  String dashboard_key_hoursThisYear(String hours) {
+    return '+$hours س هذا العام';
+  }
+
+  @override
+  String get dashboard_key_hoursUnit => 'س';
+
+  @override
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يوم',
+      many: 'يومًا',
+      few: 'أيام',
+      two: 'يومان',
+      one: 'يوم',
+      zero: 'يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_key_vsPrevious(String change) {
+    return '$change مقارنة بالعشر السابقة';
+  }
+
+  @override
+  String dashboard_key_lastYear(String value) {
+    return 'العام الماضي $value';
+  }
+
+  @override
+  String dashboard_key_tripChecklist(String name, int done, int total) {
+    return 'القائمة $done/$total · $name';
+  }
+
+  @override
+  String dashboard_panel_activity(int months) {
+    return 'النشاط، $months أشهر';
+  }
+
+  @override
+  String dashboard_panel_activitySummary(int dives, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة',
+      many: '$dives غطسة',
+      few: '$dives غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get dashboard_panel_divesPerMonth => 'الغطسات شهريًا';
+
+  @override
+  String get dashboard_panel_sacTrend => 'اتجاه SAC';
+
+  @override
+  String get dashboard_panel_rmvTrend => 'اتجاه RMV';
+
+  @override
+  String dashboard_panel_lastDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'آخر $count غطسة',
+      many: 'آخر $count غطسة',
+      few: 'آخر $count غطسات',
+      two: 'آخر غطستين',
+      one: 'آخر غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_noSac => 'لا توجد غطسات ببيانات غاز بعد';
+
+  @override
+  String get dashboard_panel_depthMix => 'توزيع الأعماق';
+
+  @override
+  String get dashboard_panel_noDives => 'لا توجد غطسات بعد';
+
+  @override
+  String get dashboard_panel_gasMix => 'خلائط الغاز';
+
+  @override
+  String get dashboard_panel_diveTypes => 'أنواع الغطس';
+
+  @override
+  String get dashboard_panel_topSites => 'أبرز المواقع';
+
+  @override
+  String get dashboard_panel_topBuddies => 'أبرز الرفاق';
+
+  @override
+  String get dashboard_panel_noBuddies => 'لم يُسجَّل رفاق بعد';
+
+  @override
+  String get dashboard_panel_gearService => 'صيانة المعدات';
+
+  @override
+  String get dashboard_panel_noGear => 'أضف معدات لتتبع صيانتها';
+
+  @override
+  String get dashboard_panel_overdue => 'متأخرة';
+
+  @override
+  String dashboard_panel_daysLeft(int days) {
+    return '$days ي';
+  }
+
+  @override
+  String dashboard_panel_divesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_panel_hoursLeft(int hours) {
+    return '$hours س';
+  }
+
+  @override
+  String get dashboard_panel_comingDue => 'مستحق قريبًا';
+
+  @override
+  String get dashboard_panel_nothingDue => 'لا شيء مستحق خلال العام القادم';
+
+  @override
+  String dashboard_panel_inDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'بعد $days يوم',
+      many: 'بعد $days يومًا',
+      few: 'بعد $days أيام',
+      two: 'بعد يومين',
+      one: 'غدًا',
+      zero: 'اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_tripChecklist => 'قائمة الرحلة';
+
+  @override
+  String get dashboard_panel_latestProfile => 'أحدث مخطط';
+
+  @override
+  String get dashboard_panel_latestVsAverage => 'آخر غطسة مقابل المتوسط';
+
+  @override
+  String dashboard_panel_vsAverage(String value, String average) {
+    return '$value · المتوسط $average';
+  }
+
+  @override
+  String get dashboard_panel_maxDepth => 'أقصى عمق';
+
+  @override
+  String get dashboard_panel_runtime => 'المدة';
+
+  @override
+  String get dashboard_panel_sac => 'SAC';
+
+  @override
+  String get dashboard_panel_rmv => 'RMV';
+
+  @override
+  String get dashboard_panel_recentDives => 'الغطسات الأخيرة';
+
+  @override
+  String get dashboard_panel_colSite => 'الموقع';
+
+  @override
+  String get dashboard_panel_colDate => 'التاريخ';
+
+  @override
+  String get dashboard_panel_colDepth => 'العمق';
+
+  @override
+  String get dashboard_panel_colTime => 'الوقت';
+
+  @override
+  String get dashboard_panel_speciesSeen => 'أنواع شوهدت مؤخرًا';
+
+  @override
+  String dashboard_panel_speciesTotal(int count) {
+    return '$count إجمالًا';
+  }
+
+  @override
+  String dashboard_panel_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_firstDive => 'سجّل أو استورد غطستك الأولى';
+
+  @override
+  String get dashboard_panel_import => 'استيراد';
+
+  @override
+  String get settings_homeLayout_sectionTitle => 'التخطيط';
+
+  @override
+  String get settings_homeLayout_description =>
+      'اختر تخطيطًا للبدء، ثم أظهر اللوحات أدناه أو أخفها أو اسحبها. تغييراتك تجعله مخصصًا.';
+
+  @override
+  String get settings_homeLayout_balanced => 'متوازن';
+
+  @override
+  String get settings_homeLayout_ready => 'الجاهزية';
+
+  @override
+  String get settings_homeLayout_trends => 'الاتجاهات';
+
+  @override
+  String get settings_homeLayout_logbook => 'السجل';
+
+  @override
+  String get settings_homeLayout_replaceTitle => 'استبدال التخطيط؟';
+
+  @override
+  String settings_homeLayout_replaceMessage(String preset) {
+    return 'سيُستبدل ترتيبك الخاص للوحات بتخطيط $preset.';
+  }
+
+  @override
+  String get settings_homeLayout_replace => 'استبدال';
+
+  @override
+  String get settings_homePanels_sectionTitle => 'اللوحات';
+
+  @override
+  String get settings_homePanels_resetMessage =>
+      'يعيد هذا الشاشة الرئيسية إلى التخطيط المتوازن.';
+
+  @override
+  String get settings_homePanels_keyNumbers => 'الأرقام الرئيسية';
+
+  @override
+  String settings_homePanels_keyNumbersCount(int shown, int total) {
+    return '$shown من $total';
+  }
+
+  @override
+  String get settings_homePanels_activityCalendar => 'تقويم النشاط';
+
+  @override
+  String get settings_homeKeyNumbers_description =>
+      'اختر الأرقام المعروضة أعلى الشاشة الرئيسية. يُحذف الرقم الذي ليس لديه ما يعرضه بعد.';
 }

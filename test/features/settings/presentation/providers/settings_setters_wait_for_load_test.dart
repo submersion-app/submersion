@@ -118,7 +118,7 @@ void main() {
     final expectedSite = List.of(siteSections);
 
     final pending = Future.wait([
-      notifier.setHomeCardOrder(order),
+      notifier.setHomePanelLayout(order: order, hidden: const {}),
       notifier.setEquipmentDefaultStatuses(statuses),
       notifier.setServiceReminderDays(days),
       notifier.setDiveDetailSections(diveSections),
@@ -134,7 +134,7 @@ void main() {
     await pending;
 
     final settings = container.read(settingsProvider);
-    expect(settings.homeCardOrder, ['stats', 'recent']);
+    expect(settings.homePanelOrder, ['stats', 'recent']);
     expect(settings.equipmentDefaultStatuses, {EquipmentStatus.active});
     expect(settings.serviceReminderDays, [14, 3]);
     expect(settings.diveDetailSections, expectedDive);

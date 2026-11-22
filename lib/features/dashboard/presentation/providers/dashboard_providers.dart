@@ -2,7 +2,6 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -20,10 +19,9 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 ///
 /// Discovery is SQL-bounded (`getDiveSummaries(limit: 3)`); the three
 /// winners then load in one batched read that decodes no samples (issue
-/// #4251), the way the trip lists read theirs. The cards draw their mini
-/// charts from the shared downsampled cache below, and the wide layout's
-/// interactive preview reads the newest dive in full on its own, so nothing
-/// here needs a dive's profile. The dashboard no longer forces
+/// #4251), the way the trip lists read theirs. Home's recent dives are a
+/// table and its profile panel reads the newest dive on its own, so nothing
+/// here reads a profile (issue #4824). The dashboard no longer forces
 /// `getAllDives()` on the first home frame (WS4, large-DB performance).
 final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
@@ -36,31 +34,9 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
     diverId: currentDiverId,
     limit: 3,
   );
-  final recent = await _diveRowsInOrder(repository, [
+  return _diveRowsInOrder(repository, [
     for (final summary in summaries) summary.id,
   ]);
-
-  // Pre-load downsampled profiles so DiveListTile mini charts render
-  // immediately (the batch cache is shared with the paginated dive list).
-  if (recent.isNotEmpty) {
-    final cache = ref.read(batchProfileCacheProvider);
-    // A dive cached without samples is asked again, as the dive list does,
-    // in case it has gained a profile since (#4112).
-    final uncached = recent
-        .map((d) => d.id)
-        .where((id) => cache[id]?.isEmpty ?? true)
-        .toList();
-    if (uncached.isNotEmpty) {
-      final profiles = await repository.getBatchProfileSummaries(uncached);
-      mergeIntoBatchProfileCache(
-        ref.read(batchProfileCacheProvider.notifier),
-        profiles,
-        requested: uncached,
-      );
-    }
-  }
-
-  return recent;
 });
 
 /// The dives [ids] name, in [ids]' order, for a card that lists them rather
@@ -93,13 +69,15 @@ final dashboardDiverProvider = FutureProvider<Diver?>((ref) async {
   return ref.watch(currentDiverProvider.future);
 });
 
-/// Days since last dive provider
+/// Days since last dive provider. Today is read once per build, so midnight
+/// must rebuild it too, or the count holds yesterday's answer.
 final daysSinceLastDiveProvider = FutureProvider<int?>((ref) async {
+  ref.invalidateSelfWhen(localDayChanges());
   final recentDives = await ref.watch(recentDivesProvider.future);
   if (recentDives.isEmpty) return null;
 
   final lastDive = recentDives.first.effectiveEntryTime;
-  final now = DateTime.now();
+  final now = clock.now();
   final diveDay = DateTime(lastDive.year, lastDive.month, lastDive.day);
   final today = DateTime(now.year, now.month, now.day);
   return today.difference(diveDay).inDays;
@@ -193,87 +171,3 @@ final onThisDayProvider = FutureProvider<List<Dive>>((ref) async {
   // The card shows year, site or name, depth and runtime: row values.
   return _diveRowsInOrder(repository, ids);
 });
-
-/// Quick stats data class for dashboard.
-///
-/// A metric whose query failed is null (unknown), never 0: a count of 0 is a
-/// real answer, and the hero header must not state one it does not have.
-class DashboardQuickStats {
-  final String? topBuddyName;
-  final int? topBuddyDiveCount;
-  final int? countriesVisited;
-  final int? speciesDiscovered;
-
-  const DashboardQuickStats({
-    this.topBuddyName,
-    this.topBuddyDiveCount,
-    this.countriesVisited = 0,
-    this.speciesDiscovered = 0,
-  });
-}
-
-/// Quick stats provider for dashboard.
-///
-/// Deliberately UNFILTERED: the home dashboard has no filter UI, so it must
-/// not inherit whatever filter is active on the (unrelated) Insights tab.
-/// [topBuddiesProvider], [countriesVisitedProvider], and
-/// [uniqueSpeciesCountProvider] themselves stay filter-aware -- they also
-/// back the Insights Social/Geographic/Marine-Life pages -- so this reads
-/// the shared repository directly instead of watching those providers, and
-/// re-implements their diver scoping (but not their filter scoping).
-/// The statistics change tick preserves the dive-mutation reactivity that used
-/// to arrive transitively through those three providers.
-///
-/// The three metrics are unrelated and the hero header shows each on its
-/// own, so each loads and fails on its own (issue #1930): a failed buddy
-/// query must not hide a countries count that loaded fine. A failed metric
-/// is logged and left null.
-final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
-  ref,
-) async {
-  final repository = ref.watch(insightsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchInsightsChanges());
-  final diverId = ref.watch(currentDiverIdProvider);
-
-  final (topBuddies, countries, speciesCount) = await (
-    // Only the first row is shown, so only the first row is read.
-    _quickStat(
-      'top buddy',
-      () => repository.getTopBuddies(diverId: diverId, limit: 1),
-    ),
-    // A count, not the top of the ranking: without a null limit (every row)
-    // the ranking's default of 10 capped the count.
-    _quickStat(
-      'countries visited',
-      () => repository.getCountriesVisited(diverId: diverId, limit: null),
-    ),
-    _quickStat(
-      'species discovered',
-      () => repository.getUniqueSpeciesCount(diverId: diverId),
-    ),
-  ).wait;
-  final topBuddy = topBuddies?.firstOrNull;
-
-  return DashboardQuickStats(
-    topBuddyName: topBuddy?.name,
-    topBuddyDiveCount: topBuddy?.count,
-    countriesVisited: countries?.length,
-    speciesDiscovered: speciesCount,
-  );
-});
-
-const _quickStatsLog = LoggerService('DashboardQuickStats');
-
-/// One quick-stats metric, or null when its query failed.
-Future<T?> _quickStat<T>(String name, Future<T> Function() load) async {
-  try {
-    return await load();
-  } catch (e, stackTrace) {
-    _quickStatsLog.error(
-      'Failed to load the $name quick stat',
-      error: e,
-      stackTrace: stackTrace,
-    );
-    return null;
-  }
-}
