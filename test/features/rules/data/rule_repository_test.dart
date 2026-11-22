@@ -265,6 +265,26 @@ void main() {
       expect((await row(id)).conditionJson, encodeRuleCondition(null));
     });
 
+    test('a write to a rule that is gone stamps nothing for sync', () async {
+      final id = await make('Deep');
+      await repo.delete(id);
+      await db.delete(db.syncRecords).go();
+
+      await repo.setEnabled(id, false);
+      final wrote = await repo.patch(id, (
+        name: 'Back again',
+        triggers: null,
+        condition: null,
+        actions: null,
+      ));
+
+      expect(wrote, isFalse);
+      final pending = await (db.select(
+        db.syncRecords,
+      )..where((t) => t.recordId.equals(id))).get();
+      expect(pending, isEmpty);
+    });
+
     test('patch of a rule that is gone writes nothing and says so', () async {
       final id = await make('Deep');
       await repo.delete(id);

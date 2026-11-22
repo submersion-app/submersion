@@ -154,33 +154,36 @@ class RuleRepository {
   /// what the editor left alone (the list's enabled switch, a condition
   /// that did not load, a sync meanwhile) keeps its stored value. Triggers
   /// keep any a newer version added. False, writing nothing, when the rule
-  /// no longer exists.
-  Future<bool> patch(String id, RuleChanges changes) async {
-    final stored = await (_db.select(
-      _db.rules,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
-    if (stored == null) return false;
-    final name = changes.name;
-    final triggers = changes.triggers;
-    final condition = changes.condition;
-    final actions = changes.actions;
-    await _update(
-      id,
-      RulesCompanion(
-        name: name == null ? const Value.absent() : Value(name.trim()),
-        triggers: triggers == null
-            ? const Value.absent()
-            : Value(formatRuleTriggers(triggers, keeping: stored.triggers)),
-        conditionJson: condition == null
-            ? const Value.absent()
-            : Value(encodeRuleCondition(condition.node)),
-        actionsJson: actions == null
-            ? const Value.absent()
-            : Value(jsonEncode(ruleActionsToJson(actions))),
-      ),
-    );
-    return true;
-  }
+  /// no longer exists. The read and the write are one transaction, and the
+  /// answer is whether a row was written, so a rule deleted between them is
+  /// refused rather than stamped.
+  Future<bool> patch(String id, RuleChanges changes) =>
+      _db.transaction(() async {
+        final stored = await (_db.select(
+          _db.rules,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        if (stored == null) return false;
+        final name = changes.name;
+        final triggers = changes.triggers;
+        final condition = changes.condition;
+        final actions = changes.actions;
+        final written = await _update(
+          id,
+          RulesCompanion(
+            name: name == null ? const Value.absent() : Value(name.trim()),
+            triggers: triggers == null
+                ? const Value.absent()
+                : Value(formatRuleTriggers(triggers, keeping: stored.triggers)),
+            conditionJson: condition == null
+                ? const Value.absent()
+                : Value(encodeRuleCondition(condition.node)),
+            actionsJson: actions == null
+                ? const Value.absent()
+                : Value(jsonEncode(ruleActionsToJson(actions))),
+          ),
+        );
+        return written > 0;
+      });
 
   Future<void> setEnabled(String id, bool enabled) =>
       _update(id, RulesCompanion(enabled: Value(enabled)));
@@ -253,13 +256,17 @@ class RuleRepository {
     }
   }
 
-  Future<void> _update(String id, RulesCompanion patch) async {
+  /// Writes [patch] on rule [id] and stamps it for sync. Answers how many
+  /// rows were written: none for a rule that is gone, which is not stamped.
+  Future<int> _update(String id, RulesCompanion patch) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.rules)..where((t) => t.id.equals(id))).write(
-        patch.copyWith(updatedAt: Value(now)),
-      );
-      await _stamp(id, now);
+      final written =
+          await (_db.update(_db.rules)..where((t) => t.id.equals(id))).write(
+            patch.copyWith(updatedAt: Value(now)),
+          );
+      if (written > 0) await _stamp(id, now);
+      return written;
     } catch (e, st) {
       _log.error('Failed to update rule $id', error: e, stackTrace: st);
       rethrow;
