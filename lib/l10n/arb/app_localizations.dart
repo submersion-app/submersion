@@ -32911,6 +32911,12 @@ abstract class AppLocalizations {
   /// **'Check every'**
   String get media_pollInterval_checkEvery;
 
+  /// Status where a photo subscription's error is shown (banner, card): the shared album refused the saved password
+  ///
+  /// In en, this message translates to:
+  /// **'The share did not accept the saved password.'**
+  String get media_sharePassword_rejectedStatus;
+
   /// No description provided for @media_photoViewer_playPauseVideoLabel.
   ///
   /// In en, this message translates to:

@@ -20972,6 +20972,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'Vérifier toutes les';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'Le partage n’a pas accepté le mot de passe enregistré.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Lire ou mettre en pause la vidéo';
 

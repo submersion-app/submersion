@@ -6189,6 +6189,7 @@
   "media_sharePassword_keychainNote": "密码保存在此设备的钥匙串中，从不同步。",
   "media_sharePassword_formSave": "保存密码并获取",
   "media_pollInterval_checkEvery": "检查间隔",
+  "media_sharePassword_rejectedStatus": "共享未接受已保存的密码。",
   "media_photoViewer_playPauseVideoLabel": "播放或暂停视频",
   "media_photoViewer_previousTooltip": "上一个媒体",
   "media_photoViewer_seekVideoLabel": "调整视频位置",

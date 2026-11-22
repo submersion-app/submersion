@@ -40,6 +40,7 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
 import 'package:submersion/features/media/presentation/widgets/share_password_flow.dart';
+import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -166,7 +167,9 @@ class _SubscriptionTile extends ConsumerWidget {
   String _subtitle(AppLocalizations l10n) {
     final parts = <String>[];
     if (sub.lastError != null && sub.lastError!.isNotEmpty) {
-      parts.add(l10n.media_manifest_lastError('${sub.lastError}'));
+      parts.add(
+        l10n.media_manifest_lastError(localizedPollError(l10n, sub.lastError!)),
+      );
     } else if (sub.lastPolledAt != null) {
       parts.add(
         l10n.media_manifest_lastPolled(_relative(l10n, sub.lastPolledAt!)),
@@ -245,7 +248,8 @@ class _SubscriptionTile extends ConsumerWidget {
             backgroundColor: colors.errorContainer,
             duration: const Duration(seconds: 10),
             content: Text(
-              '$label: ${l10n.media_manifest_pollError(error)}',
+              '$label: '
+              '${l10n.media_manifest_pollError(localizedPollError(l10n, error))}',
               style: TextStyle(color: colors.onErrorContainer),
             ),
           ),

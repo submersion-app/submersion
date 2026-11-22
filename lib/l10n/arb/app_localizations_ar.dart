@@ -21293,6 +21293,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'التحقق كل';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'لم تقبل المشاركة كلمة المرور المحفوظة.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'تشغيل أو إيقاف الفيديو';
 
   @override

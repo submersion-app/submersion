@@ -133,6 +133,10 @@ void main() {
       );
     });
 
+    test('an interval under a minute still reads as one', () {
+      expect(const PollIntervalOption(seconds: 20).label(en), '1 minute');
+    });
+
     test('labels read in the diver\'s language', () {
       expect(kPollIntervalOptions.map((o) => o.label(en)), [
         '1 hour',

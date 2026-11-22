@@ -6048,6 +6048,7 @@
   "media_sharePassword_keychainNote": "Het wordt bewaard in de sleutelhanger van dit apparaat en nooit gesynchroniseerd.",
   "media_sharePassword_formSave": "Wachtwoord opslaan en ophalen",
   "media_pollInterval_checkEvery": "Controleren elke",
+  "media_sharePassword_rejectedStatus": "De share heeft het opgeslagen wachtwoord niet geaccepteerd.",
   "media_photoViewer_playPauseVideoLabel": "Video afspelen of pauzeren",
   "media_photoViewer_previousTooltip": "Vorige media",
   "media_photoViewer_seekVideoLabel": "Videopositie zoeken",

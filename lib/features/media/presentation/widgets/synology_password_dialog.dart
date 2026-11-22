@@ -10,7 +10,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 String localizedPollError(AppLocalizations l10n, String error) =>
     switch (error) {
       kSynologyPasswordMissingMessage => l10n.media_sharePassword_needed,
-      kSynologyPasswordRejectedMessage => l10n.media_sharePassword_rejected,
+      // A status, shown where nothing can be typed: not the dialog's
+      // "enter it again".
+      kSynologyPasswordRejectedMessage =>
+        l10n.media_sharePassword_rejectedStatus,
       _ => error,
     };
 

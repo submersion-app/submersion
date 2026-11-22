@@ -20796,6 +20796,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'Controleren elke';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'De share heeft het opgeslagen wachtwoord niet geaccepteerd.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Video afspelen of pauzeren';
 

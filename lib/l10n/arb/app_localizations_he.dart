@@ -20477,6 +20477,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'בדוק כל';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'השיתוף לא קיבל את הסיסמה השמורה.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'הפעל או השהה סרטון';
 
   @override

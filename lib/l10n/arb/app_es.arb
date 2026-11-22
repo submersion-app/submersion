@@ -6048,6 +6048,7 @@
   "media_sharePassword_keychainNote": "Se guarda en el llavero de este dispositivo y nunca se sincroniza.",
   "media_sharePassword_formSave": "Guardar contraseña y obtener",
   "media_pollInterval_checkEvery": "Comprobar cada",
+  "media_sharePassword_rejectedStatus": "El enlace compartido no aceptó la contraseña guardada.",
   "media_photoViewer_playPauseVideoLabel": "Reproducir o pausar video",
   "media_photoViewer_previousTooltip": "Elemento anterior",
   "media_photoViewer_seekVideoLabel": "Buscar posición del video",

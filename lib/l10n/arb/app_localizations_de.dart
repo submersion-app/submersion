@@ -20905,6 +20905,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'Prüfen alle';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'Die Freigabe hat das gespeicherte Passwort nicht akzeptiert.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Video abspielen oder pausieren';
 

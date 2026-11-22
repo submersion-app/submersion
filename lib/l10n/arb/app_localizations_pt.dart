@@ -20921,6 +20921,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'Verificar a cada';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'O compartilhamento não aceitou a senha salva.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Reproduzir ou pausar vídeo';
 

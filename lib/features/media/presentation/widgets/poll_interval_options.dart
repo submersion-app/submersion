@@ -17,7 +17,8 @@ class PollIntervalOption {
     if (seconds % hour == 0) {
       return l10n.media_pollInterval_hours(seconds ~/ hour);
     }
-    return l10n.media_pollInterval_minutes((seconds / 60).round());
+    final minutes = (seconds / 60).round();
+    return l10n.media_pollInterval_minutes(minutes < 1 ? 1 : minutes);
   }
 }
 

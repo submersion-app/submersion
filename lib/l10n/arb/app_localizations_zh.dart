@@ -19891,6 +19891,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_pollInterval_checkEvery => '检查间隔';
 
   @override
+  String get media_sharePassword_rejectedStatus => '共享未接受已保存的密码。';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => '播放或暂停视频';
 
   @override

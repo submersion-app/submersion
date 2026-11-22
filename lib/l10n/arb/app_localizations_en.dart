@@ -20623,6 +20623,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'Check every';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'The share did not accept the saved password.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'Play or pause video';
 
   @override

@@ -5922,6 +5922,7 @@
   "media_sharePassword_keychainNote": "היא נשמרת במחזיק המפתחות של מכשיר זה ולעולם אינה מסונכרנת.",
   "media_sharePassword_formSave": "שמור סיסמה ואחזר",
   "media_pollInterval_checkEvery": "בדוק כל",
+  "media_sharePassword_rejectedStatus": "השיתוף לא קיבל את הסיסמה השמורה.",
   "media_photoViewer_playPauseVideoLabel": "הפעל או השהה סרטון",
   "media_photoViewer_previousTooltip": "המדיה הקודמת",
   "media_photoViewer_seekVideoLabel": "דלג למיקום בסרטון",

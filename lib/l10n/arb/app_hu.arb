@@ -5922,6 +5922,7 @@
   "media_sharePassword_keychainNote": "Az eszköz kulcstartójában tárolódik, és soha nem szinkronizálódik.",
   "media_sharePassword_formSave": "Jelszó mentése és lekérés",
   "media_pollInterval_checkEvery": "Ellenőrzés gyakorisága",
+  "media_sharePassword_rejectedStatus": "A megosztás nem fogadta el a mentett jelszót.",
   "media_photoViewer_playPauseVideoLabel": "Videó lejátszása vagy szüneteltetése",
   "media_photoViewer_previousTooltip": "Előző médiaelem",
   "media_photoViewer_seekVideoLabel": "Videó pozíció keresése",

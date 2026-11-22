@@ -5922,6 +5922,7 @@
   "media_sharePassword_keychainNote": "Viene conservata nel portachiavi di questo dispositivo e non viene mai sincronizzata.",
   "media_sharePassword_formSave": "Salva la password e recupera",
   "media_pollInterval_checkEvery": "Controlla ogni",
+  "media_sharePassword_rejectedStatus": "La condivisione non ha accettato la password salvata.",
   "media_photoViewer_playPauseVideoLabel": "Riproduci o metti in pausa il video",
   "media_photoViewer_previousTooltip": "Elemento precedente",
   "media_photoViewer_seekVideoLabel": "Cerca posizione nel video",

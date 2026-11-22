@@ -12601,6 +12601,8 @@
   "@media_sharePassword_formSave": {"description": "Manifest import button: saves the shared album's password and fetches the album"},
   "media_pollInterval_checkEvery": "Check every",
   "@media_pollInterval_checkEvery": {"description": "Label of the poll interval choice in a photo subscription's edit dialog"},
+  "media_sharePassword_rejectedStatus": "The share did not accept the saved password.",
+  "@media_sharePassword_rejectedStatus": {"description": "Status where a photo subscription's error is shown (banner, card): the shared album refused the saved password"},
   "media_photoViewer_playPauseVideoLabel": "Play or pause video",
   "media_photoViewer_previousTooltip": "Previous media",
   "media_photoViewer_seekVideoLabel": "Seek video position",

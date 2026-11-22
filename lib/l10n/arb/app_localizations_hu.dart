@@ -20853,6 +20853,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'Ellenőrzés gyakorisága';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'A megosztás nem fogadta el a mentett jelszót.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Videó lejátszása vagy szüneteltetése';
 

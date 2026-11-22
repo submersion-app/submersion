@@ -6048,6 +6048,7 @@
   "media_sharePassword_keychainNote": "تُحفظ في سلسلة مفاتيح هذا الجهاز ولا تتم مزامنتها أبدًا.",
   "media_sharePassword_formSave": "حفظ كلمة المرور والجلب",
   "media_pollInterval_checkEvery": "التحقق كل",
+  "media_sharePassword_rejectedStatus": "لم تقبل المشاركة كلمة المرور المحفوظة.",
   "media_photoViewer_playPauseVideoLabel": "تشغيل أو إيقاف الفيديو",
   "media_photoViewer_previousTooltip": "الوسائط السابقة",
   "media_photoViewer_seekVideoLabel": "تحريك موضع الفيديو",

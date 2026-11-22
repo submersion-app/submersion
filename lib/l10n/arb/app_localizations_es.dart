@@ -20915,6 +20915,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_pollInterval_checkEvery => 'Comprobar cada';
 
   @override
+  String get media_sharePassword_rejectedStatus =>
+      'El enlace compartido no aceptó la contraseña guardada.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Reproducir o pausar video';
 

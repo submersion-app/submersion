@@ -6174,6 +6174,7 @@
   "media_sharePassword_keychainNote": "Es wird im Schlüsselbund dieses Geräts gespeichert und nie synchronisiert.",
   "media_sharePassword_formSave": "Passwort speichern und abrufen",
   "media_pollInterval_checkEvery": "Prüfen alle",
+  "media_sharePassword_rejectedStatus": "Die Freigabe hat das gespeicherte Passwort nicht akzeptiert.",
   "media_photoViewer_playPauseVideoLabel": "Video abspielen oder pausieren",
   "media_photoViewer_previousTooltip": "Vorheriges Medium",
   "media_photoViewer_seekVideoLabel": "Videoposition suchen",
