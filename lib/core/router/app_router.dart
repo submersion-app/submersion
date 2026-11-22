@@ -2174,11 +2174,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newTankPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const TankPresetEditPage(),
               ),
               GoRoute(
                 path: ':presetId/edit',
                 name: 'editTankPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => TankPresetEditPage(
                   presetId: state.pathParameters['presetId'],
                 ),

@@ -1,19 +1,32 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
+
+/// What the tank preset editor's form shows, as the diver sees it: the
+/// sitting's draft (issue #4527, phase 4). Text as shown, so a pressure in
+/// psi or a volume in cubic feet that would not convert back exactly never
+/// reads as a change.
+typedef TankPresetDraft = ({
+  String name,
+  String volume,
+  String pressure,
+  TankMaterial material,
+  String description,
+});
 
 class TankPresetEditPage extends ConsumerStatefulWidget {
   final String? presetId;
@@ -26,9 +39,9 @@ class TankPresetEditPage extends ConsumerStatefulWidget {
   ConsumerState<TankPresetEditPage> createState() => _TankPresetEditPageState();
 }
 
-class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
+class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
+    with RecordEditorHost<TankPresetEditPage, TankPresetDraft> {
   final _formKey = GlobalKey<FormState>();
-  final _uuid = const Uuid();
 
   late TextEditingController _displayNameController;
   late TextEditingController _volumeController;
@@ -46,9 +59,20 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
     _volumeController = TextEditingController();
     _workingPressureController = TextEditingController();
     _descriptionController = TextEditingController();
+    for (final controller in [
+      _displayNameController,
+      _volumeController,
+      _workingPressureController,
+      _descriptionController,
+    ]) {
+      controller.addListener(editorChanged);
+    }
 
     if (widget.isEditing) {
       _loadPreset();
+    } else {
+      // A new preset starts empty: its sitting opens on the empty form.
+      WidgetsBinding.instance.addPostFrameCallback((_) => openEditor());
     }
   }
 
@@ -90,6 +114,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
             0,
           );
         });
+        openEditor();
       }
     } catch (e) {
       if (mounted) {
@@ -111,6 +136,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
 
   @override
   void dispose() {
+    disposeEditor();
     _displayNameController.dispose();
     _volumeController.dispose();
     _workingPressureController.dispose();
@@ -122,25 +148,8 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
   Widget build(BuildContext context) {
     final units = ref.watch(unitFormatterProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.isEditing
-              ? context.l10n.tankPresets_edit_title
-              : context.l10n.tankPresets_new_title,
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
-          tooltip: context.l10n.common_action_close,
-        ),
-        actions: [
-          AppBarTextAction(
-            label: context.l10n.common_action_save,
-            onPressed: _isLoading ? null : _savePreset,
-          ),
-        ],
-      ),
+    return editorScaffold(
+      context,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Form(
@@ -246,6 +255,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                     onChanged: (value) {
                       if (value != null) {
                         setState(() => _material = value);
+                        editorChanged();
                       }
                     },
                   ),
@@ -270,6 +280,31 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
             ),
     );
   }
+
+  // The editor's sitting (issue #4527, phase 4).
+
+  @override
+  String get editorTable => 'tank_presets';
+
+  @override
+  String? get editorStoredId => widget.presetId;
+
+  @override
+  String editorTitle(BuildContext context) => widget.isEditing
+      ? context.l10n.tankPresets_edit_title
+      : context.l10n.tankPresets_new_title;
+
+  @override
+  TankPresetDraft readEditorDraft() => (
+    name: _displayNameController.text,
+    volume: _volumeController.text,
+    pressure: _workingPressureController.text,
+    material: _material,
+    description: _descriptionController.text,
+  );
+
+  @override
+  bool validateEditor() => _formKey.currentState!.validate();
 
   static double? _readable(TextEditingController controller) =>
       switch (readNumber(controller.text)) {
@@ -336,40 +371,30 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
     );
   }
 
-  Future<void> _savePreset() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  @override
+  Future<void> writeEditor(String recordId) async {
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    final repository = ref.read(tankPresetRepositoryProvider);
 
-    setState(() => _isLoading = true);
+    // The validators already rejected anything unreadable in the diver's
+    // locale, so both fields parse here.
+    final displayName = _displayNameController.text.trim();
+    final volumeDisplay = _readable(_volumeController)!;
+    final pressureDisplay = _readable(_workingPressureController)!;
+    final description = _descriptionController.text.trim();
 
-    try {
-      final settings = ref.read(settingsProvider);
-      final units = UnitFormatter(settings);
-      final notifier = ref.read(tankPresetListNotifierProvider.notifier);
+    // Convert to storage units (metric)
+    final workingPressureBar = units.pressureToBar(pressureDisplay);
+    final volumeLiters = settings.volumeUnit == VolumeUnit.cubicFeet
+        // liters = (cuft * 28.3168) / pressure_bar
+        ? (volumeDisplay * 28.3168) / workingPressureBar
+        : volumeDisplay;
 
-      // Parse form values
-      final displayName = _displayNameController.text.trim();
-      // The validators above already rejected anything unreadable in the
-      // diver's locale, so both fields parse here.
-      final volumeDisplay = _readable(_volumeController)!;
-      final pressureDisplay = _readable(_workingPressureController)!;
-      final description = _descriptionController.text.trim();
-
-      // Convert to storage units (metric)
-      final workingPressureBar = units.pressureToBar(pressureDisplay);
-
-      double volumeLiters;
-      if (settings.volumeUnit == VolumeUnit.cubicFeet) {
-        // Convert cuft to liters: liters = (cuft * 28.3168) / pressure_bar
-        volumeLiters = (volumeDisplay * 28.3168) / workingPressureBar;
-      } else {
-        volumeLiters = volumeDisplay;
-      }
-
-      if (widget.isEditing && _existingPreset != null) {
-        // Update existing preset
-        final updated = _existingPreset!.copyWith(
+    final existing = _existingPreset;
+    if (widget.isEditing && existing != null) {
+      await repository.updatePreset(
+        existing.copyWith(
           name: TankPresetEntity.generateSlug(displayName),
           displayName: displayName,
           volumeLiters: volumeLiters,
@@ -377,49 +402,41 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
           material: _material,
           description: description,
           updatedAt: DateTime.now(),
-        );
-        await notifier.updatePreset(updated);
-      } else {
-        // Create new preset
-        final preset = TankPresetEntity.create(
-          id: _uuid.v4(),
-          name: TankPresetEntity.generateSlug(displayName),
-          displayName: displayName,
-          volumeLiters: volumeLiters,
-          workingPressureBar: workingPressureBar,
-          material: _material,
-          description: description,
-        );
-        await notifier.addPreset(preset);
-      }
-
-      if (mounted) {
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.isEditing
-                  ? context.l10n.tankPresets_edit_updated(displayName)
-                  : context.l10n.tankPresets_edit_created(displayName),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.tankPresets_edit_errorSaving(e.toString()),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+        ),
+      );
+      return;
     }
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) {
+      throw StateError('A new tank preset needs an active diver');
+    }
+    await repository.createPreset(
+      TankPresetEntity.create(
+        id: recordId,
+        diverId: diverId,
+        name: TankPresetEntity.generateSlug(displayName),
+        displayName: displayName,
+        volumeLiters: volumeLiters,
+        workingPressureBar: workingPressureBar,
+        material: _material,
+        description: description,
+      ),
+    );
+  }
+
+  @override
+  void afterEditorSaved(ScaffoldMessengerState messenger) {
+    final displayName = _displayNameController.text.trim();
+    unawaited(ref.read(tankPresetListNotifierProvider.notifier).refresh());
+    ref.invalidate(customTankPresetsProvider);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          widget.isEditing
+              ? context.l10n.tankPresets_edit_updated(displayName)
+              : context.l10n.tankPresets_edit_created(displayName),
+        ),
+      ),
+    );
   }
 }
