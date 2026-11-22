@@ -159,6 +159,117 @@ void main() {
     expect(await table.bytesFor('i1'), isNull);
   });
 
+  group('identifications another device deleted (issue #4890)', () {
+    final vector = Float32List.fromList([1, 0, 0]);
+
+    /// Two identifications on [mediaId], each with a crop file and an
+    /// embedding.
+    Future<void> seedTwo(String mediaId) async {
+      await identifications.storeRun(
+        run(mediaId: mediaId, count: 2),
+        insert: [
+          identification('i1', mediaId: mediaId),
+          identification('i2', mediaId: mediaId),
+        ],
+        deleteIds: const [],
+      );
+      await embeddings.put({'i1': vector, 'i2': vector}, classifierId: 'clf');
+      await crops.write(mediaId, 'i1', jpeg);
+      await crops.write(mediaId, 'i2', jpeg);
+    }
+
+    /// What applying a peer's tombstone leaves: no row, and the tombstone
+    /// logged.
+    Future<void> deletedByPeer(String id) async {
+      await library.customStatement(
+        'DELETE FROM media_identifications WHERE id = ?',
+        [id],
+      );
+      await library.customStatement(
+        'INSERT INTO deletion_log (id, entity_type, record_id, deleted_at) '
+        "VALUES (?, 'mediaIdentifications', ?, 1)",
+        ['t-$id', id],
+      );
+    }
+
+    test('a deletion sync applied removes the crop file and embedding, '
+        'and keeps the rest of the photo', () async {
+      await seedTwo('m1');
+      await deletedByPeer('i1');
+
+      await cleanup.onDeletedBySync([(mediaId: 'm1', id: 'i1')]);
+
+      expect(await crops.allPresent('m1', ['i1']), isFalse);
+      expect(await embeddings.get(['i1'], classifierId: 'clf'), isEmpty);
+      expect(await crops.allPresent('m1', ['i2']), isTrue);
+      expect(await embeddings.get(['i2'], classifierId: 'clf'), hasLength(1));
+    });
+
+    test('a named crop in the logbook is left to the peer\'s own '
+        'tombstone', () async {
+      final table = IdentificationCropRepository(database: library);
+      final withTable = IdentificationCropStore(
+        supportPath: () async => support.path,
+        table: table,
+      );
+      addTearDown(withTable.dispose);
+      final hooked = IdentificationCleanup(
+        identifications: identifications,
+        embeddings: embeddings,
+        crops: withTable,
+      );
+      await seedTwo('m1');
+      await withTable.write('m1', 'i1', jpeg, named: true);
+      await deletedByPeer('i1');
+
+      await hooked.onDeletedBySync([(mediaId: 'm1', id: 'i1')]);
+
+      expect(await table.bytesFor('i1'), isNotNull);
+      expect(await embeddings.get(['i1'], classifierId: 'clf'), isEmpty);
+    });
+
+    test('a deletion whose apply rolled back removes nothing', () async {
+      await seedTwo('m1');
+
+      await cleanup.onDeletedBySync([(mediaId: 'm1', id: 'i1')]);
+
+      expect(await crops.allPresent('m1', ['i1']), isTrue);
+      expect(await embeddings.get(['i1'], classifierId: 'clf'), hasLength(1));
+    });
+
+    test('the launch sweep removes what an earlier sync left behind, and '
+        'keeps files this logbook holds no tombstone for', () async {
+      await addMedia('m1');
+      await seedTwo('m1');
+      await deletedByPeer('i1');
+      // Another logbook's photo: a crop and an embedding, no rows here.
+      await crops.write('m-other', 'i-other', jpeg);
+      await embeddings.put({'i-other': vector}, classifierId: 'clf');
+
+      expect(await cleanup.sweepOrphans(), 0);
+
+      expect(await crops.allPresent('m1', ['i1']), isFalse);
+      expect(await embeddings.get(['i1'], classifierId: 'clf'), isEmpty);
+      expect(await crops.allPresent('m1', ['i2']), isTrue);
+      expect(await crops.allPresent('m-other', ['i-other']), isTrue);
+      expect(
+        await embeddings.get(['i-other'], classifierId: 'clf'),
+        hasLength(1),
+      );
+    });
+
+    test('a failure does not escape the sync hook', () async {
+      await library.close();
+      await expectLater(
+        cleanup.onDeletedBySync([(mediaId: 'm1', id: 'i1')]),
+        completes,
+      );
+      library = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+    });
+  });
+
   test('a failure does not escape a deletion hook', () async {
     await library.close();
     await expectLater(

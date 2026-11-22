@@ -166,6 +166,52 @@ void main() {
     );
   });
 
+  group('a peer\'s deletions are handed on (issue #4890)', () {
+    Future<List<List<DeletedIdentification>>> applyDeletions(
+      Map<String, List<SyncDeletion>> deletions,
+    ) async {
+      final handed = <List<DeletedIdentification>>[];
+      await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        onIdentificationsDeleted: (deleted) async => handed.add(deleted),
+      ).debugApplyPayload(
+        SyncPayload(
+          version: 1,
+          exportedAt: 0,
+          deviceId: 'peer',
+          checksum: '',
+          data: const SyncData(),
+          deletions: deletions,
+        ),
+      );
+      return handed;
+    }
+
+    // Later than the row was written, so the tombstone wins with no
+    // conflict.
+    final later = DateTime.utc(2100).millisecondsSinceEpoch;
+
+    test('with the media each was on, once the apply has ended', () async {
+      await storeVideo();
+      final handed = await applyDeletions({
+        'mediaIdentifications': [SyncDeletion(id: 't1', deletedAt: later)],
+      });
+      expect(await repo.forMedia('v1'), isEmpty);
+      expect(handed, [
+        [(mediaId: 'v1', id: 't1')],
+      ]);
+    });
+
+    test('not at all when no identification was deleted', () async {
+      await storeVideo();
+      final handed = await applyDeletions({
+        'mediaIdentifications': [SyncDeletion(id: 'absent', deletedAt: later)],
+      });
+      expect(handed, isEmpty);
+    });
+  });
+
   test('a full export carries all three', () async {
     await storeVideo();
     await storeCrop();

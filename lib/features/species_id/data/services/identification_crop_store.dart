@@ -14,9 +14,10 @@ import 'package:submersion/features/species_id/data/repositories/identification_
 /// Durable application support storage, not a cache the operating system
 /// may empty. A deliberate, narrow exception to "media is links only":
 /// small crops of detected animals, never the originals. Crops are deleted
-/// only with their identification, by the app's own code; there is no
-/// sweep of files without a row, because this folder is shared by every
-/// logbook opened on the device.
+/// only with their identification, by the app's own code, or once the open
+/// logbook holds a tombstone for it (issue #4890); there is no sweep of
+/// files without a row, because this folder is shared by every logbook
+/// opened on the device.
 ///
 /// Since issue #4876 the crops of named identifications live in the
 /// logbook instead ([IdentificationCropRepository]), so they sync; this
@@ -170,7 +171,11 @@ class IdentificationCropStore {
 
   /// The media that have a crops folder here: the only ones whose crops
   /// can still be files to move into the logbook.
-  Future<List<String>> mediaWithFiles() async {
+  Future<List<String>> mediaWithFiles() => _mediaFolders();
+
+  /// The media with a crops folder here, for the backfill and the sweep
+  /// alike.
+  Future<List<String>> _mediaFolders() async {
     if (!_files) return const [];
     final base = await root();
     if (!await base.exists()) return const [];
@@ -199,11 +204,50 @@ class IdentificationCropStore {
 
   Future<void> delete(String mediaId, List<String> identificationIds) async {
     await _table?.deleteIds(identificationIds);
-    for (final id in _files ? identificationIds : const <String>[]) {
-      final file = await fileFor(mediaId, id);
-      if (await file.exists()) await file.delete();
-    }
+    await _deleteFiles(mediaId, identificationIds);
     if (identificationIds.isNotEmpty) _changed(mediaId);
+  }
+
+  /// Removes the crop files of [identificationIds] only, never the synced
+  /// crops: for identifications a peer deleted, whose synced crops its own
+  /// tombstones remove (issue #4890).
+  Future<void> deleteFiles(
+    String mediaId,
+    List<String> identificationIds,
+  ) async {
+    if (await _deleteFiles(mediaId, identificationIds)) _changed(mediaId);
+  }
+
+  /// Whether any file was there to remove.
+  Future<bool> _deleteFiles(
+    String mediaId,
+    List<String> identificationIds,
+  ) async {
+    if (!_files) return false;
+    var removed = false;
+    for (final id in identificationIds) {
+      final file = await fileFor(mediaId, id);
+      if (await file.exists()) {
+        await file.delete();
+        removed = true;
+      }
+    }
+    return removed;
+  }
+
+  /// The identifications with a crop file here, by media (issue #4890).
+  Future<Map<String, List<String>>> fileIds() async {
+    final found = <String, List<String>>{};
+    for (final mediaId in await _mediaFolders()) {
+      final dir = Directory(p.join((await root()).path, mediaId));
+      final ids = [
+        await for (final entity in dir.list(followLinks: false))
+          if (entity is File && p.extension(entity.path) == '.jpg')
+            p.basenameWithoutExtension(entity.path),
+      ];
+      if (ids.isNotEmpty) found[mediaId] = ids;
+    }
+    return found;
   }
 
   void _changed(String mediaId) {

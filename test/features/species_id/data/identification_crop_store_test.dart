@@ -98,6 +98,40 @@ void main() {
     expect(await store.sizeBytes(), 0);
   });
 
+  test('crop files are listed by media, without the analysed mark or a '
+      'half-written crop (issue #4890)', () async {
+    await store.write('m1', 'i1', jpeg);
+    await store.write('m1', 'i2', jpeg);
+    await store.write('m2', 'i3', jpeg);
+    await store.markAnalysed('m1');
+    await store.markAnalysed('m3');
+    await File(
+      p.join((await store.root()).path, 'm2', 'i4.jpg.tmp'),
+    ).writeAsBytes(jpeg);
+
+    final listed = await store.fileIds();
+
+    expect(listed.keys, unorderedEquals(['m1', 'm2']));
+    expect(listed['m1'], unorderedEquals(['i1', 'i2']));
+    expect(listed['m2'], ['i3']);
+  });
+
+  test('deleting crop files removes only those, announced once', () async {
+    await store.write('m1', 'i1', jpeg);
+    await store.write('m1', 'i2', jpeg);
+    final seen = <String>[];
+    final sub = store.watchChanges().listen(seen.add);
+    addTearDown(sub.cancel);
+
+    await store.deleteFiles('m1', ['i1', 'absent']);
+    await store.deleteFiles('m1', ['absent']);
+    await pumpEventQueue();
+
+    expect(await store.allPresent('m1', ['i1']), isFalse);
+    expect(await store.allPresent('m1', ['i2']), isTrue);
+    expect(seen, ['m1']);
+  });
+
   test('an id that could leave the folder is refused', () async {
     expect(() => store.fileFor('..', 'i1'), throwsArgumentError);
     expect(() => store.fileFor('m1', p.join('a', 'b')), throwsArgumentError);
