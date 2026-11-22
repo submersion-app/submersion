@@ -587,6 +587,7 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
             // TODO(media): l10n
             displayName: 'Synology Photos share',
           );
+      if (!mounted) return;
       // The Saved hosts list reads the store once; show the new row.
       ref.invalidate(savedHostsProvider);
       await ref.read(manifestTabProvider.notifier).fetch(widget.url);

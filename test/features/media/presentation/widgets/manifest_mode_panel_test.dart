@@ -15,12 +15,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/database.dart'
+    show NetworkCredentialHost;
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/presentation/providers/manifest_tab_providers.dart';
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_mode_panel.dart';
 
 /// Test-only [ManifestTabNotifier] that seeds an arbitrary state so the
@@ -350,5 +355,85 @@ void main() {
       );
       expect(importBtn.onPressed, isNotNull);
     });
+
+    testWidgets('a saved share password refreshes the Saved hosts list', (
+      tester,
+    ) async {
+      const stub = _StubFetcher();
+      final creds = _FakeCredentials();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            manifestFetchServiceProvider.overrideWithValue(stub),
+            networkCredentialsServiceProvider.overrideWithValue(creds),
+            manifestTabProvider.overrideWith(
+              (ref) => _SeededManifestTabNotifier(
+                const ManifestTabError(
+                  url: 'https://nas.example.com:5001/mo/sharing/code1',
+                  message: 'needs its password',
+                  unauthorized: true,
+                ),
+                fetchService: stub,
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: Column(
+                children: [
+                  const Expanded(child: ManifestModePanel()),
+                  // Stands in for the Saved hosts card on the same page.
+                  Consumer(
+                    builder: (context, ref, _) {
+                      ref.watch(savedHostsProvider);
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(creds.listCalls, 1);
+
+      await tester.enterText(
+        find.byKey(const Key('synologySharePassword')),
+        'pw',
+      );
+      await tester.tap(find.byKey(const Key('synologySharePasswordSave')));
+      await tester.pumpAndSettle();
+
+      expect(creds.saved, ['nas.example.com:5001/mo/sharing/code1']);
+      expect(creds.listCalls, 2);
+    });
   });
+}
+
+class _FakeCredentials implements NetworkCredentialsService {
+  final List<String> saved = [];
+  int listCalls = 0;
+
+  @override
+  Future<void> save({
+    required String hostname,
+    required String authType,
+    String? username,
+    String? password,
+    String? token,
+    String? displayName,
+  }) async {
+    saved.add(hostname);
+  }
+
+  @override
+  Future<List<NetworkCredentialHost>> list() async {
+    listCalls++;
+    return const [];
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} not stubbed');
 }

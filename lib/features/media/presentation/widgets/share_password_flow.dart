@@ -29,6 +29,8 @@ Future<bool> resolveSharePassword(
   final repo = ref.read(manifestSubscriptionRepositoryProvider);
   final credentials = ref.read(networkCredentialsServiceProvider);
   final poller = ref.read(subscriptionPollerProvider);
+  // Held, not ref: the caller (a sheet) may be dismissed while this awaits.
+  final container = ProviderScope.containerOf(context, listen: false);
   // [askFirst]: the caller already knows the password is wanted (a photo
   // check found no session), though the last poll may not have said so yet.
   var ask = askFirst;
@@ -57,7 +59,7 @@ Future<bool> resolveSharePassword(
       displayName: 'Synology Photos share',
     );
     // The Saved hosts list reads the store once; show the new row.
-    ref.invalidate(savedHostsProvider);
+    container.invalidate(savedHostsProvider);
     polled = await poller.pollNow(subscriptionId, clock.now().toUtc());
   }
   return polled;
