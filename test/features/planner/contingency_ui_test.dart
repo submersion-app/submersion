@@ -94,6 +94,37 @@ void main() {
     expect(backdropPainter().ceiling, baseCeiling);
   });
 
+  testWidgets('time chips are hidden while the plan has no bottom', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(overrides: _overrides(), child: const ContingencyChips()),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ContingencyChips)),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+
+    expect(find.text('+5\u2032'), findsOneWidget);
+    await tester.tap(find.text('+5\u2032'));
+    await tester.pumpAndSettle();
+    expect(container.read(selectedContingencyProvider), isNotNull);
+
+    // Drop the bottom: only the linear descent is left, so a time delta has
+    // nothing to lengthen and the time chips go, along with the preview.
+    final hold = container.read(divePlanNotifierProvider).segments.last;
+    notifier.removeSegment(hold.id);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Base'), findsOneWidget);
+    expect(find.text('+5m'), findsOneWidget);
+    expect(find.text('+5\u2032'), findsNothing);
+    expect(find.text('+5m +5\u2032'), findsNothing);
+    expect(container.read(selectedContingencyProvider), isNull);
+  });
+
   testWidgets('overlay chips render a single row strip and drive selection', (
     tester,
   ) async {

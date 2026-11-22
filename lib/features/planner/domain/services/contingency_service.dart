@@ -51,8 +51,9 @@ class ContingencyService {
   /// The three deviation keys, in slate order.
   static const deviationKeys = ['deeper', 'longer', 'both'];
 
-  /// The deeper / longer / both variants (empty when the plan has no
-  /// segments).
+  /// The deeper / longer / both variants that apply to [plan], in slate
+  /// order: empty when the plan has no segments, and only 'deeper' when it
+  /// has no bottom to lengthen (see [canLengthen]).
   ///
   /// Every method here takes the live plan's [startState] (a repetitive
   /// dive's residual tissue loading): a contingency is an alternative to the
@@ -60,23 +61,38 @@ class ContingencyService {
   List<DeviationOutcome> deviations(
     domain.DivePlan plan, {
     TissueState? startState,
-  }) {
-    if (plan.segments.isEmpty) return const [];
-    return [
-      for (final key in deviationKeys)
-        deviationFor(plan, key, startState: startState)!,
-    ];
+  }) => [
+    for (final key in deviationKeys)
+      ?deviationFor(plan, key, startState: startState),
+  ];
+
+  /// Whether [plan] has a bottom a time delta can lengthen (see
+  /// [SegmentChain.bottomLegIndex]). A plan with none, such as one linear
+  /// descent that never holds at depth, gets no '+time' variant: it would
+  /// equal the base plan, and 'both' would equal 'deeper' (#4849).
+  bool canLengthen(domain.DivePlan plan) {
+    final ordered = List<PlanSegment>.from(plan.segments)
+      ..sort((a, b) => a.order.compareTo(b.order));
+    const chain = SegmentChain();
+    return chain.bottomLegIndex(
+          chain.resolve(ordered),
+          descentRate: config.resolvedFor(plan).descentRate,
+        ) !=
+        null;
   }
 
   /// A single deviation variant by [key] ('deeper' | 'longer' | 'both'), or
-  /// null when the plan has no segments. Lets callers (the chart ghost) run
-  /// just the one variant the user selected instead of all three.
+  /// null when the plan has no segments, or when [key] adds time and the
+  /// plan has no bottom to lengthen (see [canLengthen]). Lets callers (the
+  /// chart ghost) run just the one variant the user selected instead of all
+  /// three.
   DeviationOutcome? deviationFor(
     domain.DivePlan plan,
     String key, {
     TissueState? startState,
   }) {
     if (plan.segments.isEmpty) return null;
+    if (key != 'deeper' && !canLengthen(plan)) return null;
     final variant = switch (key) {
       'deeper' => _deepened(plan),
       'longer' => _lengthened(plan),

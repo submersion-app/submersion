@@ -430,6 +430,15 @@ final collapsedContingencyKeysProvider = StateProvider<Set<String>>(
   (_) => const {},
 );
 
+/// Whether the current plan has a bottom a time delta can lengthen. When it
+/// has none, the '+time' and '+depth +time' contingencies are not offered
+/// (see [ContingencyService.canLengthen]).
+final planCanLengthenProvider = Provider<bool>((ref) {
+  final config = ref.watch(planEngineConfigProvider);
+  final plan = divePlanFromState(ref.watch(divePlanNotifierProvider));
+  return ContingencyService(config: config).canLengthen(plan);
+});
+
 /// Which deviation is ghosted on the chart ('deeper'|'longer'|'both'; null =
 /// none). Mutually exclusive with [selectedLostGasTankIdProvider] -- only one
 /// contingency can be previewed at a time.

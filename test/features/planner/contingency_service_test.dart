@@ -379,6 +379,38 @@ void main() {
     expect(byId['deep']!.durationSeconds, 20 * 60);
   });
 
+  group('a plan with no bottom to lengthen', () {
+    // A linear descent never holds at depth, so a time delta has nothing to
+    // lengthen: '+time' would equal the base plan and 'both' would equal
+    // 'deeper', so neither is offered.
+    final noBottom = _plan().copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'seg-1',
+          targetDepth: 40.0,
+          durationSeconds: 25 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+        ),
+      ],
+    );
+
+    test('cannot be lengthened, unlike a plan with a bottom', () {
+      expect(service.canLengthen(noBottom), isFalse);
+      expect(service.canLengthen(_plan()), isTrue);
+    });
+
+    test('offers only the deeper deviation', () {
+      expect(service.deviations(noBottom).map((d) => d.key), ['deeper']);
+    });
+
+    test('has no longer or both variant', () {
+      expect(service.deviationFor(noBottom, 'longer'), isNull);
+      expect(service.deviationFor(noBottom, 'both'), isNull);
+      expect(service.deviationFor(noBottom, 'deeper'), isNotNull);
+    });
+  });
+
   test('no segments yields no deviations', () {
     final empty = domain.DivePlan(
       id: 'p',
