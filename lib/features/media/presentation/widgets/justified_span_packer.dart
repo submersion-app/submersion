@@ -237,10 +237,6 @@ typedef _Split = ({
   double upperHeight,
 });
 
-/// The most tiles one row beside a large item is tried with. Far more than
-/// a row at the target height can hold beside anything.
-const int _kMaxRowTiles = 40;
-
 /// Whether the tiles from [first], at [targetHeight], reach across both
 /// rows beside a large item, each [besideAtTwoRows] wide. Fewer keep the
 /// target height, as the row packer's last row does.
@@ -268,6 +264,11 @@ bool _fillsTwoRows({
 /// of ratio sum S and n tiles is `(paneWidth - largeRatio * H - gap * n) / S`
 /// tall. The two rows and the gap between them make H, which is linear in
 /// H, so each split has exactly one height that ends every edge flush.
+///
+/// Every split is tried, with no cap on a row's tiles, so a very wide pane
+/// fills its rows. Adding a tile to the lower row lowers H and raises the
+/// upper row, so the lower row only gets shorter: once it is under the
+/// minimum, no longer lower row can do better.
 _Split? _bestSplit({
   required double largeRatio,
   required List<double> tiles,
@@ -283,13 +284,13 @@ _Split? _bestSplit({
   var bestCost = double.infinity;
   var upperSum = 0.0;
   var upperMin = double.infinity;
-  for (var k1 = 1; k1 <= math.min(left - 1, _kMaxRowTiles); k1++) {
+  for (var k1 = 1; k1 < left; k1++) {
     final upperRatio = tiles[first + k1 - 1];
     upperSum += upperRatio;
     upperMin = math.min(upperMin, upperRatio);
     var lowerSum = 0.0;
     var lowerMin = double.infinity;
-    for (var k2 = 1; k2 <= math.min(left - k1, _kMaxRowTiles); k2++) {
+    for (var k2 = 1; k2 <= left - k1; k2++) {
       final lowerRatio = tiles[first + k1 + k2 - 1];
       lowerSum += lowerRatio;
       lowerMin = math.min(lowerMin, lowerRatio);
@@ -300,10 +301,8 @@ _Split? _bestSplit({
           (1 + largeRatio * (a + b));
       final upper = a * (paneWidth - largeRatio * height - gap * k1);
       final lower = height - gap - upper;
-      if (upper <= 0 || lower <= 0) continue;
-      if (upperMin * upper < minTileWidth || lowerMin * lower < minTileWidth) {
-        continue;
-      }
+      if (lower <= 0 || lowerMin * lower < minTileWidth) break;
+      if (upper <= 0 || upperMin * upper < minTileWidth) continue;
       final cost =
           (math.log(upper / targetHeight)).abs() +
           (math.log(lower / targetHeight)).abs();

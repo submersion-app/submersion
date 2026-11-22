@@ -195,7 +195,6 @@ const Map<String, String> keptEnglishValues = {
   'maps_offline_regionInfo@pt': _loanword,
   'media_map_placeItemCount@nl': _dutchItem,
   'media_photoPicker_files_itemCount@nl': _dutchItem,
-  'media_siteAttachment_pageCount@fr': _sameWord,
   'media_timeInDive_fieldHint': _units,
   'navShortcut_cnsOtu': _abbreviation,
   'navTrack_list_durationHours@de': _units,

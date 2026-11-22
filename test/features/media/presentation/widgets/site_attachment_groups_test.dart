@@ -49,6 +49,7 @@ void main() {
     MediaAspectCacheRepository? shapes,
     bool settle = true,
     double width = 400,
+    TextDirection direction = TextDirection.ltr,
   }) async {
     // Tall enough that a large tile and the tiles under it are all on
     // screen, so taps land.
@@ -72,12 +73,15 @@ void main() {
             // host, as the section's ValueListenableBuilder does.
             child: ValueListenableBuilder<SelectionState>(
               valueListenable: selection,
-              builder: (context, state, _) => SiteAttachmentGroups(
-                layout: layoutSiteAttachments(items),
-                selection: selection,
-                isSelectionMode: state.isActive,
-                settings: const AppSettings(),
-                onOpen: (item) => opened.add(item.id),
+              builder: (context, state, _) => Directionality(
+                textDirection: direction,
+                child: SiteAttachmentGroups(
+                  layout: layoutSiteAttachments(items),
+                  selection: selection,
+                  isSelectionMode: state.isActive,
+                  settings: const AppSettings(),
+                  onOpen: (item) => opened.add(item.id),
+                ),
               ),
             ),
           ),
@@ -340,6 +344,34 @@ void main() {
     for (final r in beside.where((r) => r.top == rows.last)) {
       expect(r.bottom, closeTo(map.bottom, 0.5));
     }
+  });
+
+  testWidgets('right to left, a Large attachment sits at the right with its '
+      'rows to its left', (tester) async {
+    await pump(
+      tester,
+      [
+        for (var i = 0; i < 11; i++) sized('t$i', i + 1, 400, 300),
+        large('map', 12, 400, 300),
+      ],
+      width: 900,
+      direction: TextDirection.rtl,
+    );
+    final grid = tester.getRect(find.byType(DragSelectGridView<MediaItem>));
+    final map = tester.getRect(tileOf('map'));
+    expect(map.right, closeTo(grid.right, 0.5));
+    expect(map.top, grid.top);
+    final beside = [
+      for (var i = 0; i < 11; i++) tester.getRect(tileOf('t$i')),
+    ].where((r) => r.top < map.bottom).toList();
+    expect(beside, isNotEmpty);
+    for (final r in beside) {
+      expect(r.right, lessThanOrEqualTo(map.left - kSiteAttachmentGap + 0.5));
+    }
+    expect(
+      beside.map((r) => r.left).reduce((a, b) => a < b ? a : b),
+      closeTo(grid.left, 0.5),
+    );
   });
 
   testWidgets('on a phone a wide Large attachment fills the width alone', (

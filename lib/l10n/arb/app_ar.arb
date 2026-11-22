@@ -5876,8 +5876,6 @@
   "media_attachmentDetails_open": "فتح",
   "media_siteAttachment_editDetails": "تعديل التفاصيل",
   "media_siteAttachment_groupHeading": "{category} ({count})",
-  "media_siteAttachment_moreOptions": "خيارات إضافية",
-  "media_siteAttachment_pageCount": "{count, plural, zero{{count} صفحة} one{{count} صفحة} two{{count} صفحتان} few{{count} صفحات} many{{count} صفحة} other{{count} صفحة}}",
   "media_siteAttachment_saveError": "تعذر الحفظ: {error}",
   "media_siteAttachment_setCategory": "تعيين الفئة",
   "media_siteAttachment_setCategoryError": "فشل في تعيين الفئة: {error}",

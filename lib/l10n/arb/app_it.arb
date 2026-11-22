@@ -5750,8 +5750,6 @@
   "media_attachmentDetails_open": "Apri",
   "media_siteAttachment_editDetails": "Modifica dettagli",
   "media_siteAttachment_groupHeading": "{category} ({count})",
-  "media_siteAttachment_moreOptions": "Altre opzioni",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} pagina} other{{count} pagine}}",
   "media_siteAttachment_saveError": "Salvataggio non riuscito: {error}",
   "media_siteAttachment_setCategory": "Imposta categoria",
   "media_siteAttachment_setCategoryError": "Impostazione della categoria non riuscita: {error}",

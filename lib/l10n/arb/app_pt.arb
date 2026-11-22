@@ -5876,8 +5876,6 @@
   "media_attachmentDetails_open": "Abrir",
   "media_siteAttachment_editDetails": "Editar detalhes",
   "media_siteAttachment_groupHeading": "{category} ({count})",
-  "media_siteAttachment_moreOptions": "Mais opções",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} página} other{{count} páginas}}",
   "media_siteAttachment_saveError": "Não foi possível salvar: {error}",
   "media_siteAttachment_setCategory": "Definir categoria",
   "media_siteAttachment_setCategoryError": "Falha ao definir a categoria: {error}",

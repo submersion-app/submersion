@@ -228,6 +228,24 @@ void main() {
       expect(rect.width, closeTo(cap / 3, 1e-9));
     });
 
+    test('on a very wide pane the rows beside a large item take as many '
+        'tiles as reach the target height', () {
+      // About 4670 px beside a 4:3 map holds some 90 tiles 48 px wide.
+      final cells = pack(
+        const [4 / 3],
+        List.filled(200, 0.4),
+        paneWidth: 5000,
+        minTileWidth: 48,
+      );
+      final large = cells.first.rect;
+      final beside = tilesIn(
+        cells,
+      ).where((c) => c.rect.top < large.bottom).toList();
+      for (final c in beside) {
+        expect(c.rect.height, closeTo(target, target * 0.15));
+      }
+    });
+
     test('nothing overlaps and nothing passes the pane edge', () {
       for (final pane in [phone, 600.0, wide]) {
         final cells = pack(const [4 / 3, 0.75], mixed, paneWidth: pane);

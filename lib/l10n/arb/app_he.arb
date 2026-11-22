@@ -5750,8 +5750,6 @@
   "media_attachmentDetails_open": "פתח",
   "media_siteAttachment_editDetails": "עריכת פרטים",
   "media_siteAttachment_groupHeading": "{category} ({count})",
-  "media_siteAttachment_moreOptions": "אפשרויות נוספות",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} עמוד} other{{count} עמודים}}",
   "media_siteAttachment_saveError": "השמירה נכשלה: {error}",
   "media_siteAttachment_setCategory": "הגדרת קטגוריה",
   "media_siteAttachment_setCategoryError": "הגדרת הקטגוריה נכשלה: {error}",

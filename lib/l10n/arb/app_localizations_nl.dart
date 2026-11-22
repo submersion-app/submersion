@@ -19937,20 +19937,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'Meer opties';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count pagina\'s',
-      one: '$count pagina',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return 'Opslaan mislukt: $error';
   }

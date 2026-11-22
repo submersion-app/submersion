@@ -20035,20 +20035,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'Weitere Optionen';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Seiten',
-      one: '$count Seite',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return 'Speichern fehlgeschlagen: $error';
   }

@@ -6010,8 +6010,6 @@
   "media_attachmentDetails_open": "打开",
   "media_siteAttachment_editDetails": "编辑详情",
   "media_siteAttachment_groupHeading": "{category}（{count}）",
-  "media_siteAttachment_moreOptions": "更多选项",
-  "media_siteAttachment_pageCount": "{count, plural, other{{count} 页}}",
   "media_siteAttachment_saveError": "无法保存：{error}",
   "media_siteAttachment_setCategory": "设置类别",
   "media_siteAttachment_setCategoryError": "设置类别失败：{error}",
