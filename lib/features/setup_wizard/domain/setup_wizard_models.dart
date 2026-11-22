@@ -150,6 +150,15 @@ const kBrowserSetUpWizardSteps = [
   SetupStepId.setUpSync,
 ];
 
+/// Whether an offer of the species model that arrives now may still add its
+/// step (issue #4881): only while the diver has not passed the Photos step,
+/// so the step is never inserted behind them. A list with no Photos step yet
+/// (the path is still undecided) takes the offer for later.
+bool speciesModelOfferFits(List<SetupStepId> steps, int currentIndex) {
+  final photos = steps.indexOf(SetupStepId.setUpPhotos);
+  return photos < 0 || currentIndex <= photos;
+}
+
 /// Computes the ordered step list for the current draft state.
 List<SetupStepId> computeSteps(SetupWizardDraft draft) =>
     _withSpeciesModel(draft, _trimmedForBrowser(draft));

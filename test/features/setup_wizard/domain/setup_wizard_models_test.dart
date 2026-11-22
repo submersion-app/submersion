@@ -292,6 +292,51 @@ void main() {
     });
   });
 
+  group('speciesModelOfferFits (#4881)', () {
+    const fresh = [
+      SetupStepId.welcomeFork,
+      SetupStepId.profile,
+      SetupStepId.units,
+      ...kSetUpWizardSteps,
+      SetupStepId.finish,
+    ];
+
+    test('fits while the diver has not passed Photos', () {
+      expect(speciesModelOfferFits(fresh, 0), isTrue);
+      expect(
+        speciesModelOfferFits(fresh, fresh.indexOf(SetupStepId.setUpPhotos)),
+        isTrue,
+      );
+    });
+
+    test('a list with no Photos step yet takes it for later', () {
+      expect(speciesModelOfferFits(const [SetupStepId.welcomeFork], 0), isTrue);
+    });
+
+    test('never behind the diver: not on Finish', () {
+      expect(
+        speciesModelOfferFits(fresh, fresh.indexOf(SetupStepId.finish)),
+        isFalse,
+      );
+    });
+
+    // Cloud sync with no diver: Finish sends the diver to a Profile step
+    // that sits after Photos.
+    test('never behind the diver: not on a Profile after Photos', () {
+      const cloud = [
+        SetupStepId.welcomeFork,
+        SetupStepId.existingChoice,
+        ...kSetUpWizardSteps,
+        SetupStepId.profile,
+        SetupStepId.finish,
+      ];
+      expect(
+        speciesModelOfferFits(cloud, cloud.indexOf(SetupStepId.profile)),
+        isFalse,
+      );
+    });
+  });
+
   group('computeSteps in a browser (#4121)', () {
     // A browser has no automatic backups (no files, no background work) and
     // no photo library to sync, so those two shared steps are gone in every

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -16,7 +17,9 @@ import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart
 import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard_page.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/species_model_step.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_flow_provider.dart';
@@ -722,6 +725,84 @@ void main() {
       expect(find.text("You're all set"), findsOneWidget);
       expect(draft(tester).speciesModelOffered, isTrue);
       expect(computeSteps(draft(tester)), contains(SetupStepId.speciesModel));
+    });
+
+    // The real offer, not an override: on a cold first run nothing else has
+    // asked the engine yet, so the availability check is slow. The wizard
+    // must hold the offer until it answers, or Riverpod disposes it midway.
+    testWidgets('a slow availability check still offers the step', (
+      tester,
+    ) async {
+      marineLifeIdEnabled = true;
+      addTearDown(resetMarineLifeIdEnabled);
+      controller = _StepPackController();
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: [
+          visionAvailabilityProvider.overrideWith(
+            (ref) => Future.delayed(
+              const Duration(milliseconds: 200),
+              () => VisionAvailability.available,
+            ),
+          ),
+          installedSpeciesPackProvider.overrideWith((ref) async => null),
+          speciesDownloadPromptDismissedNotifierProvider.overrideWith(
+            (ref) => SpeciesDownloadPromptDismissedNotifier.unstored(false),
+          ),
+          speciesPackControllerProvider.overrideWith(() => controller),
+        ],
+      );
+      await toPhotos(tester);
+      await tapStub(tester, 'stub next');
+      expect(find.byType(SpeciesModelStep), findsOneWidget);
+    });
+
+    // Cloud sync with no diver: Finish asks for a Profile step that sits
+    // after the species step. Back from it finds the step and its download.
+    testWidgets('Back from a late Profile returns to the step mid-download', (
+      tester,
+    ) async {
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: offer(Future.value(true)),
+      );
+      await tester.tap(find.text('I have existing Submersion data'));
+      await pumpWizard(tester);
+      await tester.tap(find.text('Connect cloud sync'));
+      await pumpWizard(tester);
+      for (var i = 0; i < 4; i++) {
+        await tapStub(tester, 'stub next');
+      }
+      await tester.tap(
+        find.widgetWithText(
+          FilledButton,
+          'Download (${formatBytes(633 * 1024 * 1024)})',
+        ),
+      );
+      await pumpWizard(tester);
+      expect(find.text("You're all set"), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Get started'));
+      await tester.pump();
+      await tester.tap(find.text('Get started'));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await pumpWizard(tester);
+      expect(find.text('Create Your Profile'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Back'));
+      await pumpWizard(tester);
+      expect(find.byType(SpeciesModelStep), findsOneWidget);
+      expect(
+        find.text(
+          'Downloading. You can follow it in Settings > Species '
+          'identification.',
+        ),
+        findsOneWidget,
+      );
     });
 
     // An offer that resolves only once the diver is on Finish would insert

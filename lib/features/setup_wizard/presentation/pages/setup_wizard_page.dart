@@ -4,6 +4,7 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_flow_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -18,8 +19,8 @@ import 'package:submersion/features/setup_wizard/presentation/widgets/steps/exis
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/finish_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/open_folder_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/restore_step.dart';
-import 'package:submersion/features/setup_wizard/presentation/widgets/steps/species_model_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/profile_step.dart';
+import 'package:submersion/features/setup_wizard/presentation/widgets/steps/species_model_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/units_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/welcome_fork_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/wizard_surface_style.dart';
@@ -80,6 +81,7 @@ const _setUpSteps = {
 
 class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   int _currentIndex = 0;
+  final _log = LoggerService.forClass(SetupWizardPage);
 
   @override
   void initState() {
@@ -90,17 +92,27 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   /// Asks once whether to offer the species model (issue #4881) and puts the
   /// answer on the draft, where it stays: the step must not leave the list
   /// once a download it started turns the live offer off. An answer that
-  /// arrives on Finish is dropped, so the step is never inserted behind the
-  /// diver; one that fails leaves the step out.
+  /// arrives after the diver passed Photos is dropped, so the step is never
+  /// inserted behind them; one that fails leaves the step out.
+  ///
+  /// Held through the container while it settles: the offer asks the vision
+  /// engine, which is slow on a cold first run, and an auto-disposed
+  /// provider read with `ref.read(...future)` is disposed before it answers.
   Future<void> _offerSpeciesModel() async {
+    final container = ProviderScope.containerOf(context, listen: false);
     final bool offered;
     try {
-      offered = await ref.read(speciesModelOfferProvider.future);
-    } on Object {
+      offered = await container.awaitFuture(speciesModelOfferProvider.future);
+    } on Object catch (e) {
+      _log.warning(
+        'Could not ask whether to offer the species model',
+        error: e,
+      );
       return;
     }
     if (!offered || !mounted) return;
-    if (_currentStepId() == SetupStepId.finish) return;
+    final steps = computeSteps(ref.read(setupWizardProvider(widget.mode)));
+    if (!speciesModelOfferFits(steps, _currentIndex)) return;
     ref.read(setupWizardProvider(widget.mode).notifier).offerSpeciesModel();
   }
 
