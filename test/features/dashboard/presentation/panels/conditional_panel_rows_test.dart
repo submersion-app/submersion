@@ -3,6 +3,9 @@ import 'package:submersion/features/dashboard/presentation/providers/media_ribbo
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
@@ -106,6 +109,43 @@ void main() {
     await tester.pumpAndSettle();
     expect(nav.location, '/dives/draft1');
   });
+
+  // The panel opens the computer the diver downloaded from last, or the
+  // computer list when there is none to pick (issue #637).
+  for (final (computer, route) in [
+    (
+      DiveComputer(
+        id: 'pc1',
+        name: 'Perdix',
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      ),
+      '/dive-computers/pc1/download',
+    ),
+    (null, '/dive-computers'),
+  ]) {
+    testWidgets('waiting for download opens $route', (tester) async {
+      final nav = await pumpPanel(
+        tester,
+        const WaitingForDownloadPanel(),
+        overrides: [
+          draftDivesProvider.overrideWith(
+            (ref) async => [
+              Dive(
+                id: 'draft1',
+                dateTime: DateTime.utc(2026, 11, 8),
+                exitTime: DateTime.utc(2026, 11, 8, 11),
+              ),
+            ],
+          ),
+          downloadTargetComputerProvider.overrideWith((ref) async => computer),
+        ],
+      );
+      await tester.tap(find.textContaining('WAITING FOR YOUR DIVE COMPUTER'));
+      await tester.pumpAndSettle();
+      expect(nav.location, route);
+    });
+  }
 
   testWidgets('the trip checklist row opens the trip beside a pre-dive row', (
     tester,
@@ -231,6 +271,74 @@ void main() {
       expect(nav.location, '/sites');
     },
   );
+
+  group('the recent sites map', () {
+    var pins = <RecentSitePin>[];
+    const salt = RecentSitePin(
+      siteName: 'Salt Pier',
+      latitude: 12.08,
+      longitude: -68.28,
+    );
+    const bari = RecentSitePin(
+      siteName: 'Bari Reef',
+      latitude: 12.16,
+      longitude: -68.28,
+    );
+    const klein = RecentSitePin(
+      siteName: 'Klein Bonaire',
+      latitude: 12.16,
+      longitude: -68.32,
+    );
+
+    Future<void> pumpMap(WidgetTester tester) async {
+      await pumpPanel(
+        tester,
+        const RecentSitesPanel(),
+        overrides: [recentSitesProvider.overrideWith((ref) async => pins)],
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    Future<Element> reloadWith(
+      WidgetTester tester,
+      List<RecentSitePin> next,
+    ) async {
+      pins = next;
+      ProviderScope.containerOf(
+        tester.element(find.byType(RecentSitesPanel)),
+      ).invalidate(recentSitesProvider);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      return tester.element(find.byType(FlutterMap));
+    }
+
+    // Keyed by its pins, unordered: the same sites again keep the map and
+    // its tiles, and only a new site reframes it.
+    testWidgets('keeps the map for the same pins in any order', (tester) async {
+      pins = [salt, bari];
+      await pumpMap(tester);
+      final first = tester.element(find.byType(FlutterMap));
+      expect(await reloadWith(tester, [bari, salt]), same(first));
+      expect(await reloadWith(tester, [bari, salt]), same(first));
+      expect(await reloadWith(tester, [bari, salt, klein]), isNot(same(first)));
+    });
+
+    testWidgets('one pin still draws, with one marker', (tester) async {
+      pins = [salt];
+      await pumpMap(tester);
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is DecoratedBox &&
+              w.decoration is BoxDecoration &&
+              (w.decoration as BoxDecoration).shape == BoxShape.circle,
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  });
 
   testWidgets('a video in recent media carries its badge', (tester) async {
     await pumpPanel(

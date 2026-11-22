@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -346,6 +347,47 @@ void main() {
     await tester.tap(find.text('RECENT MEDIA'));
     await tester.pumpAndSettle();
     expect(nav.location, '/media');
+  });
+
+  // Home shows a grid of small tiles: each decodes a thumbnail sized to its
+  // tile, never the full-resolution original.
+  testWidgets('recent media decodes thumbnails sized to their tiles', (
+    tester,
+  ) async {
+    await pumpPanel(
+      tester,
+      const PhotosPanel(),
+      overrides: [
+        recentMediaProvider.overrideWith(
+          (ref) async => [
+            for (var i = 0; i < 6; i++)
+              MediaItem(
+                id: 'p$i',
+                diveId: 'd1',
+                mediaType: MediaType.photo,
+                sourceType: MediaSourceType.platformGallery,
+                filePath: '/tmp/p$i.jpg',
+                takenAt: DateTime(2026, 7, 1),
+                createdAt: DateTime(2026, 7, 1),
+                updatedAt: DateTime(2026, 7, 1),
+              ),
+          ],
+        ),
+      ],
+    );
+    final views = find.byType(MediaItemView);
+    expect(views, findsWidgets);
+    final dpr = tester.view.devicePixelRatio;
+    for (final e in views.evaluate()) {
+      final view = e.widget as MediaItemView;
+      final tile = tester.getSize(find.byWidget(view));
+      expect(view.thumbnail, isTrue);
+      expect(view.targetSize, isNotNull);
+      expect(
+        view.targetSize!.longestSide,
+        lessThanOrEqualTo(tile.longestSide * dpr + 0.5),
+      );
+    }
   });
 
   testWidgets('latest vs average with no average draws no bars', (
