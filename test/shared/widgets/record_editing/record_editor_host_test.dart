@@ -16,6 +16,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -28,15 +29,31 @@ class _Probe {
   int afterSaved = 0;
   bool valid = true;
   bool failWrite = false;
+  bool failAfterSaved = false;
+
+  /// The diver the write was handed ([RecordEditorHost.editorDiverId]).
+  final diversSeen = <String?>[];
+
+  /// The change log operation in force each time the validated diver was
+  /// read: null outside any sitting's transaction.
+  final diverReadInScope = <String?>[];
+
+  /// Runs inside the write, before it answers.
+  Future<void> Function()? duringWrite;
 }
 
 /// An editor with no read page, as small as one can be: one text field
 /// whose text is the draft.
 class _FakeEditorPage extends ConsumerStatefulWidget {
-  const _FakeEditorPage({required this.probe, this.storedId = 'rec-1'});
+  const _FakeEditorPage({
+    required this.probe,
+    this.storedId = 'rec-1',
+    this.leaveLocation,
+  });
 
   final _Probe probe;
   final String? storedId;
+  final String? leaveLocation;
 
   @override
   ConsumerState<_FakeEditorPage> createState() => _FakeEditorState();
@@ -65,6 +82,9 @@ class _FakeEditorState extends ConsumerState<_FakeEditorPage>
   String get editorTable => 'fake';
 
   @override
+  String? get editorLeaveLocation => widget.leaveLocation;
+
+  @override
   String? get editorStoredId => widget.storedId;
 
   @override
@@ -79,6 +99,8 @@ class _FakeEditorState extends ConsumerState<_FakeEditorPage>
   @override
   Future<void> writeEditor(String recordId) async {
     final probe = widget.probe;
+    probe.diversSeen.add(editorDiverId);
+    await probe.duringWrite?.call();
     if (probe.failWrite) throw StateError('write refused');
     probe.writes.add(recordId);
     final operationId = ChangeLogScope.currentOperationId;
@@ -94,8 +116,10 @@ class _FakeEditorState extends ConsumerState<_FakeEditorPage>
   }
 
   @override
-  void afterEditorSaved(ScaffoldMessengerState messenger) =>
-      widget.probe.afterSaved++;
+  void afterEditorSaved(ScaffoldMessengerState messenger) {
+    widget.probe.afterSaved++;
+    if (widget.probe.failAfterSaved) throw StateError('refresh failed');
+  }
 
   @override
   Widget build(BuildContext context) => editorScaffold(
@@ -115,24 +139,44 @@ void main() {
   });
   tearDown(() async => tearDownTestDatabase());
 
+  /// The editor pushed over a stand-in list. [shell] puts both in a shell
+  /// navigator, as the app's preset routes are, so a dialog opens above
+  /// it in the root one; [onExit] gives the editor's route the app's leave
+  /// check, as the app's routes have.
   Future<_FakeEditorState> pump(
     WidgetTester tester, {
     String? storedId = 'rec-1',
+    bool shell = false,
+    bool onExit = false,
   }) async {
-    router = GoRouter(
+    final list = GoRoute(
+      path: shell ? 'list' : '/',
+      builder: (_, _) => const Scaffold(body: Text('list')),
       routes: [
         GoRoute(
-          path: '/',
-          builder: (_, _) => const Scaffold(body: Text('list')),
-          routes: [
-            GoRoute(
-              path: 'edit',
-              builder: (_, _) =>
-                  _FakeEditorPage(probe: probe, storedId: storedId),
-            ),
-          ],
+          path: 'edit',
+          onExit: onExit ? confirmLeaveRecordSitting : null,
+          builder: (_, _) => _FakeEditorPage(probe: probe, storedId: storedId),
         ),
       ],
+    );
+    // In the shell the list sits over a page of its own, as the app's
+    // preset lists sit over Settings.
+    router = GoRouter(
+      routes: shell
+          ? [
+              ShellRoute(
+                builder: (_, _, child) => child,
+                routes: [
+                  GoRoute(
+                    path: '/',
+                    builder: (_, _) => const Scaffold(body: Text('home')),
+                    routes: [list],
+                  ),
+                ],
+              ),
+            ]
+          : [list],
     );
     await tester.pumpWidget(
       ProviderScope(
@@ -140,6 +184,10 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async {
+            probe.diverReadInScope.add(ChangeLogScope.currentOperationId);
+            return ref.watch(currentDiverIdProvider);
+          }),
         ],
         child: RecordEditShortcuts(
           child: MaterialApp.router(
@@ -152,9 +200,15 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    container = ProviderScope.containerOf(tester.element(find.text('list')));
+    container = ProviderScope.containerOf(
+      tester.element(find.byType(Navigator).first),
+    );
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('a');
-    router.push('/edit');
+    if (shell) {
+      router.push('/list');
+      await tester.pumpAndSettle();
+    }
+    router.push(shell ? '/list/edit' : '/edit');
     await tester.pumpAndSettle();
     return tester.state<_FakeEditorState>(find.byType(_FakeEditorPage));
   }
@@ -358,6 +412,148 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(probe.writes, ['rec-1']);
     expect(find.byType(_FakeEditorPage), findsOneWidget);
+  });
+
+  testWidgets('the diver is read before the write, outside its transaction', (
+    tester,
+  ) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    await tapSave(tester);
+    expect(probe.diversSeen, ['a']);
+    expect(probe.diverReadInScope, isNotEmpty);
+    expect(probe.diverReadInScope, everyElement(isNull));
+  });
+
+  testWidgets('a diver change during a Save that fails closes the editor', (
+    tester,
+  ) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    probe
+      ..failWrite = true
+      ..duringWrite = () =>
+          container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
+    await tapSave(tester);
+    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.text('list'), findsOneWidget);
+  });
+
+  testWidgets('an afterEditorSaved that throws still leaves', (tester) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    probe.failAfterSaved = true;
+    await tapSave(tester);
+    expect(probe.writes, ['rec-1']);
+    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.text('list'), findsOneWidget);
+  });
+
+  testWidgets('a page with nothing under it leaves to its leave location', (
+    tester,
+  ) async {
+    router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) =>
+              _FakeEditorPage(probe: probe, leaveLocation: '/list'),
+        ),
+        GoRoute(
+          path: '/list',
+          builder: (_, _) => const Scaffold(body: Text('list')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await type(tester, 'changed');
+    await tapSave(tester);
+    expect(probe.writes, ['rec-1']);
+    expect(find.text('list'), findsOneWidget);
+  });
+
+  testWidgets('a diver change under Back\'s discard question pops only the '
+      'editor', (tester) async {
+    await pump(tester, shell: true);
+    await type(tester, 'changed');
+    final shellNavigator = tester
+        .stateList<NavigatorState>(find.byType(Navigator))
+        .last;
+    unawaited(shellNavigator.maybePop());
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.text('list'), findsOneWidget);
+  });
+
+  group('on a route with the app\'s leave check', () {
+    testWidgets('Save leaves once', (tester) async {
+      await pump(tester, onExit: true);
+      await type(tester, 'changed');
+      await tapSave(tester);
+      expect(probe.writes, ['rec-1']);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('list'), findsOneWidget);
+    });
+
+    testWidgets('Cancel with a change asks once, then leaves', (tester) async {
+      await pump(tester, onExit: true);
+      await type(tester, 'changed');
+      await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('list'), findsOneWidget);
+    });
+
+    testWidgets('Back with a change asks once, then leaves', (tester) async {
+      await pump(tester, onExit: true);
+      await type(tester, 'changed');
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      unawaited(navigator.maybePop());
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('list'), findsOneWidget);
+    });
+  });
+
+  testWidgets('the app exit guard\'s Discard ends the sitting and closes the '
+      'page', (tester) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    final leaving = container.read(appExitGuardProvider).mayLeave();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(await leaving, isTrue);
+    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.text('list'), findsOneWidget);
+    expect(probe.writes, isEmpty);
   });
 
   testWidgets('Ctrl+S saves and Escape cancels', (tester) async {

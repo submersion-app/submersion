@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -13,6 +15,8 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
+
+final _log = LoggerService.forClass(RecordEditorHost);
 
 /// The one card id an editor's sitting uses. Its History entry names no
 /// card, so it reads "Edited" (or "Added" for a create).
@@ -64,11 +68,22 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   Future<void> writeEditor(String recordId);
 
   /// What follows a committed Save before the page leaves: lists read
-  /// again, a snackbar on [messenger]. Not awaited by anyone: keep it to
-  /// what cannot fail the save.
+  /// again, a snackbar on [messenger]. The record is saved by then, so a
+  /// throw here is logged and the page leaves all the same.
   void afterEditorSaved(ScaffoldMessengerState messenger) {}
 
+  /// Where the page goes once done when there is no page under it to go
+  /// back to (the editor's list); null stays. Every editor is opened over
+  /// its list, so this is only a fallback.
+  String? get editorLeaveLocation => null;
+
   // What the host provides.
+
+  /// The active diver as Save resolved it, before its transaction opened:
+  /// the diver a new record is created under. Read it in [writeEditor];
+  /// null before a Save, or when no diver is set up.
+  String? get editorDiverId => _saveDiverId;
+  String? _saveDiverId;
 
   /// The id a new record is created with, made once for the page.
   late final String newEditorRecordId = const Uuid().v4();
@@ -188,18 +203,42 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     _saving = true;
     final bool saved;
     try {
+      // Resolved before the transaction opens: a provider rebuilding inside
+      // it would wait on the transaction's lock, and the transaction on it.
+      _saveDiverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (!mounted) return;
+      // Another diver became active meanwhile: the record is not theirs.
+      if (_diverChanged) {
+        _controller?.lock();
+        return;
+      }
       saved = await controller.save();
     } finally {
       _saving = false;
     }
     if (saved) {
       _leaving = true;
-      afterEditorSaved(messenger);
+      try {
+        afterEditorSaved(messenger);
+      } catch (error, stackTrace) {
+        _log.error(
+          'What follows saving $editorTable $editorRecordId failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
       if (mounted) _pop();
       return;
     }
+    if (!mounted) return;
+    // The diver changed while the save ran (the change was not acted on
+    // then): the sitting ends, and the page leaves.
+    if (_diverChanged) {
+      _controller?.lock();
+      return;
+    }
     final error = controller.saveError;
-    if (error == null || !mounted) return;
+    if (error == null) return;
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -221,18 +260,27 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     _pop();
   }
 
-  /// Leaves the page. An editor is always opened over its list, so there is
-  /// a page to go back to; one with nothing under it stays, rather than
-  /// leave nothing on screen.
+  /// Whether the active diver is no longer the one the sitting opened for.
+  bool get _diverChanged => ref.read(currentDiverIdProvider) != _diverAtOpen;
+
+  /// Leaves the page: back to the page under it, or, with none (never the
+  /// case in the app, where every editor is opened over its list), to
+  /// [editorLeaveLocation] when there is one.
   void _pop() {
     final navigator = Navigator.of(context);
-    if (navigator.canPop()) navigator.pop();
+    if (navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+    final location = editorLeaveLocation;
+    if (location != null) GoRouter.maybeOf(context)?.go(location);
   }
 
   /// A sitting that ended without this page's Save or Cancel (the app's
-  /// leave check, a change of diver) leaves once the page is in view. Back
-  /// ends it too, but Back pops the page itself: by the time this runs the
-  /// page is no longer current, and nothing is popped twice.
+  /// leave check, a change of diver) leaves once the page is the current
+  /// route of its navigator: a dialog in the root navigator does not stop
+  /// it. Back ends it too, but Back pops the page itself: by the time this
+  /// runs the page is no longer current, and nothing is popped twice.
   void _leaveIfEnded(BuildContext context) {
     if (!_opened || _leaving || _saving || editorOpen) return;
     if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
