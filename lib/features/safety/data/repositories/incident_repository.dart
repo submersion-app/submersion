@@ -3,9 +3,11 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' as db;
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
+import 'package:submersion/features/safety/domain/entities/incident_changes.dart';
 
 /// Persistence for near-miss incident reports (HLC parent, synced,
 /// deliberately untouched by every outbound exporter).
@@ -45,7 +47,10 @@ class IncidentRepository {
     return row == null ? null : (await _read([row])).single;
   }
 
+  /// Files a new report, under [id] when given (the editor's sitting
+  /// chooses the id as it opens), else a new one.
   Future<Incident> createIncident({
+    String? id,
     required DateTime occurredAt,
     required IncidentCategory category,
     required IncidentSeverity severity,
@@ -57,10 +62,10 @@ class IncidentRepository {
     String? equipmentId,
     String? observationId,
   }) async {
-    final id = _uuid.v4();
+    final incidentId = id ?? _uuid.v4();
     final now = DateTime.now();
     final incident = Incident(
-      id: id,
+      id: incidentId,
       diverId: diverId,
       diveId: diveId,
       equipmentId: equipmentId,
@@ -77,7 +82,7 @@ class IncidentRepository {
     await _db.into(_db.incidents).insert(_toCompanion(incident));
     await _syncRepository.markRecordPending(
       entityType: 'incidents',
-      recordId: id,
+      recordId: incidentId,
       localUpdatedAt: now.millisecondsSinceEpoch,
     );
     SyncEventBus.notifyLocalChange();
@@ -94,6 +99,63 @@ class IncidentRepository {
       localUpdatedAt: now.millisecondsSinceEpoch,
     );
     SyncEventBus.notifyLocalChange();
+  }
+
+  /// Writes only the fields of [changes] given, on the report as stored,
+  /// with a new `updatedAt`, staged for sync. What the editor left alone
+  /// keeps its stored value, including a check-in link that does not stand
+  /// just now (a read gives it as null; see [_read]). An update by id only:
+  /// false, writing nothing, when the report no longer exists, so a report
+  /// deleted elsewhere is never brought back.
+  Future<bool> applyIncidentChanges(String id, IncidentChanges changes) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final occurredAt = changes.occurredAt;
+    final category = changes.category;
+    final severity = changes.severity;
+    final narrative = changes.narrative;
+    final factors = changes.contributingFactors;
+    final lessons = changes.lessonsLearned;
+    final equipment = changes.equipmentId;
+    final link = changes.link;
+    final written =
+        await (_db.update(_db.incidents)..where((t) => t.id.equals(id))).write(
+          db.IncidentsCompanion(
+            occurredAt: occurredAt == null
+                ? const Value.absent()
+                : Value(occurredAt.millisecondsSinceEpoch),
+            category: category == null
+                ? const Value.absent()
+                : Value(category.dbValue),
+            severity: severity == null
+                ? const Value.absent()
+                : Value(severity.dbValue),
+            narrative: narrative == null
+                ? const Value.absent()
+                : Value(narrative),
+            contributingFactors: factors == null
+                ? const Value.absent()
+                : Value(factors.value),
+            lessonsLearned: lessons == null
+                ? const Value.absent()
+                : Value(lessons.value),
+            equipmentId: equipment == null
+                ? const Value.absent()
+                : Value(equipment.value),
+            diveId: link == null ? const Value.absent() : Value(link.diveId),
+            observationId: link == null
+                ? const Value.absent()
+                : Value(link.observationId),
+            updatedAt: Value(now),
+          ),
+        );
+    if (written == 0) return false;
+    await _syncRepository.markRecordPending(
+      entityType: 'incidents',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+    return true;
   }
 
   /// Every incident that names [equipmentId], newest first (condition
@@ -142,11 +204,18 @@ class IncidentRepository {
     });
   }
 
-  Future<void> deleteIncident(String id) async {
-    await (_db.delete(_db.incidents)..where((t) => t.id.equals(id))).go();
-    await _syncRepository.logDeletion(entityType: 'incidents', recordId: id);
-    SyncEventBus.notifyLocalChange();
-  }
+  /// Deletes report [id]: its own labelled History entry, as a record
+  /// page's Delete is (issue #4527, phase 4), or part of an operation
+  /// already running.
+  Future<void> deleteIncident(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () async {
+      await (_db.delete(_db.incidents)..where((t) => t.id.equals(id))).go();
+      await _syncRepository.logDeletion(entityType: 'incidents', recordId: id);
+      SyncEventBus.notifyLocalChange();
+    },
+  );
 
   db.IncidentsCompanion _toCompanion(Incident incident) {
     return db.IncidentsCompanion.insert(
