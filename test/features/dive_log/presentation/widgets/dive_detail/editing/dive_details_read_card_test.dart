@@ -27,6 +27,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
 import '../../../../../../helpers/test_database.dart';
@@ -133,7 +134,7 @@ void main() {
         find.descendant(of: header, matching: find.byType(HeaderInfoButton)),
         findsOneWidget,
       );
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byType(RecordPencilDisc), findsNothing);
     });
 
     testWidgets('the trip link is a button of its own', (tester) async {
@@ -172,7 +173,7 @@ void main() {
 
       await pumpCard(tester, bare, controller: controller);
 
-      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+      expect(find.byType(RecordPencilDisc), findsOneWidget);
       expect(find.byTooltip(l.recordEdit_editCardTooltip('Details')), findsOne);
     });
   });

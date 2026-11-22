@@ -9,6 +9,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 /// Informational note shown when the site records a meaningful altitude
 /// but the dive itself has none, so deco replay ran at sea-level pressure.
@@ -26,9 +27,7 @@ class DiveAltitudeMismatchNote extends StatelessWidget {
         leading: Icon(Icons.terrain, color: colorScheme.onSurfaceVariant),
         title: Text(context.l10n.diveLog_detail_altitudeMismatch_title),
         subtitle: Text(context.l10n.diveLog_detail_altitudeMismatch_subtitle),
-        trailing: open == null
-            ? null
-            : const Icon(Icons.edit_outlined, size: 18),
+        trailing: open == null ? null : const RecordPencilDisc(),
         onTap: open,
       ),
     );

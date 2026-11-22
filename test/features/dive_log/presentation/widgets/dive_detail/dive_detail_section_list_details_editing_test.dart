@@ -30,6 +30,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
@@ -172,7 +173,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(DiveDetailsSection), findsOneWidget);
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byType(RecordPencilDisc), findsNothing);
     });
 
     testWidgets('unlocked, it has a pencil and opens where it sits', (

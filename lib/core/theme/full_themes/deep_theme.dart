@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
+import 'package:submersion/core/theme/record_pencil_colors.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/theme/derived_neutrals.dart';
 import 'package:submersion/core/theme/tinted_containers.dart';
@@ -75,6 +76,7 @@ final ThemeData deepLight = ThemeData(
   extensions: const <ThemeExtension<dynamic>>[
     FeatureAccentColors.light,
     StatusColors.light,
+    RecordPencilColors.light,
   ],
   colorScheme: withDerivedNeutrals(
     withTintedContainers(
@@ -132,6 +134,7 @@ final ThemeData deepDark = ThemeData(
   extensions: const <ThemeExtension<dynamic>>[
     FeatureAccentColors.dark,
     StatusColors.dark,
+    RecordPencilColors.dark,
   ],
   colorScheme: withDerivedNeutrals(
     withTintedContainers(
