@@ -102696,6 +102696,48 @@ abstract class AppLocalizations {
   /// **'{dives, plural, =1{1 dive} other{{dives} dives}} · {days, plural, =1{1 day} other{{days} days}}'**
   String dashboard_panel_activitySummary(int dives, int days);
 
+  /// No description provided for @dashboard_panel_recentOutings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent outings'**
+  String get dashboard_panel_recentOutings;
+
+  /// No description provided for @dashboard_outings_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{outings, plural, =1{1 outing} other{{outings} outings}} · {dives, plural, =1{1 dive} other{{dives} dives}}'**
+  String dashboard_outings_summary(int outings, int dives);
+
+  /// No description provided for @dashboard_outings_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String dashboard_outings_dives(int count);
+
+  /// No description provided for @dashboard_outings_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'{depth} max'**
+  String dashboard_outings_maxDepth(String depth);
+
+  /// No description provided for @dashboard_outings_species.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species} other{{count} species}}'**
+  String dashboard_outings_species(int count);
+
+  /// No description provided for @dashboard_outings_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your outings will show here once you log a dive'**
+  String get dashboard_outings_empty;
+
+  /// No description provided for @dashboard_outings_unnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get dashboard_outings_unnamed;
+
   /// No description provided for @dashboard_panel_divesPerMonth.
   ///
   /// In en, this message translates to:
@@ -103013,6 +103055,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Activity calendar'**
   String get settings_homePanels_activityCalendar;
+
+  /// No description provided for @settings_homePanels_recentOutings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent outings'**
+  String get settings_homePanels_recentOutings;
 
   /// No description provided for @settings_homeKeyNumbers_description.
   ///

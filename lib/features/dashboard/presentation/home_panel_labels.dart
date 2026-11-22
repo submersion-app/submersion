@@ -16,6 +16,7 @@ String homePanelLabel(
   HomePanelType.preDive => l10n.dashboard_checklists_title,
   HomePanelType.activeCourses => l10n.dashboard_activeCourses_title,
   HomePanelType.activityCalendar => l10n.settings_homePanels_activityCalendar,
+  HomePanelType.recentOutings => l10n.settings_homePanels_recentOutings,
   HomePanelType.gearService => l10n.dashboard_panel_gearService,
   HomePanelType.comingDue => l10n.dashboard_panel_comingDue,
   HomePanelType.nextTrip => l10n.dashboard_key_nextTrip,

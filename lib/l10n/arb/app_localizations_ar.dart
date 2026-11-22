@@ -66562,6 +66562,71 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get dashboard_panel_recentOutings => 'رحلات الغوص الأخيرة';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings رحلة',
+      many: '$outings رحلة',
+      few: '$outings رحلات',
+      two: 'رحلتان',
+      one: 'رحلة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة',
+      many: '$dives غطسة',
+      few: '$dives غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth كحد أقصى';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty => 'ستظهر رحلاتك هنا بمجرد تسجيل غطسة';
+
+  @override
+  String get dashboard_outings_unnamed => 'غطسات';
+
+  @override
   String get dashboard_panel_divesPerMonth => 'الغطسات شهريًا';
 
   @override
@@ -66778,6 +66843,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'تقويم النشاط';
+
+  @override
+  String get settings_homePanels_recentOutings => 'رحلات الغوص الأخيرة';
 
   @override
   String get settings_homeKeyNumbers_description =>

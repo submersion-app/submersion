@@ -19158,6 +19158,13 @@
   "dashboard_key_tripChecklist": "רשימה {done}/{total} · {name}",
   "dashboard_panel_activity": "פעילות, {months} חודשים",
   "dashboard_panel_activitySummary": "{dives, plural, =1{צלילה אחת} other{{dives} צלילות}} · {days, plural, =1{יום אחד} other{{days} ימים}}",
+  "dashboard_panel_recentOutings": "יציאות אחרונות",
+  "dashboard_outings_summary": "{outings, plural, =1{יציאה אחת} other{{outings} יציאות}} · {dives, plural, =1{צלילה אחת} other{{dives} צלילות}}",
+  "dashboard_outings_dives": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
+  "dashboard_outings_maxDepth": "{depth} מקס׳",
+  "dashboard_outings_species": "{count, plural, =1{מין אחד} other{{count} מינים}}",
+  "dashboard_outings_empty": "היציאות שלך יופיעו כאן לאחר שתתעד צלילה",
+  "dashboard_outings_unnamed": "צלילות",
   "dashboard_panel_divesPerMonth": "צלילות לחודש",
   "dashboard_panel_sacTrend": "מגמת SAC",
   "dashboard_panel_rmvTrend": "מגמת RMV",
@@ -19211,5 +19218,6 @@
   "settings_homePanels_keyNumbers": "מספרי מפתח",
   "settings_homePanels_keyNumbersCount": "{shown} מתוך {total}",
   "settings_homePanels_activityCalendar": "לוח פעילות",
+  "settings_homePanels_recentOutings": "יציאות אחרונות",
   "settings_homeKeyNumbers_description": "בחר את המספרים שיוצגו בראש מסך הבית. מספר שעדיין אין לו מה להציג מושמט."
 }

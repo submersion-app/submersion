@@ -1,0 +1,264 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dashboard/domain/home_outings.dart';
+import 'package:submersion/features/dashboard/presentation/panels/recent_outings_panel.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_outings_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/outing_card.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import 'panel_harness.dart';
+
+Outing _outing(
+  String id, {
+  String? tripId,
+  String? name,
+  int month = 5,
+  int dives = 3,
+  double? maxDepth = 29.7,
+  int species = 25,
+}) => Outing(
+  tripId: tripId,
+  name: name ?? 'Outing $id',
+  firstDay: DateTime(2026, month, 3),
+  lastDay: DateTime(2026, month, 7),
+  diveIds: [for (var i = 0; i < dives; i++) '$id-$i'],
+  maxDepth: maxDepth,
+  speciesCount: species,
+  depths: [for (var i = 0; i < dives; i++) 10.0 + i * 5],
+);
+
+List<HomeOuting> _many(int n) => [
+  for (var i = 0; i < n; i++)
+    HomeOuting(
+      outing: _outing('o$i', tripId: 't$i', month: 12 - i),
+    ),
+];
+
+Future<PanelNav> _pump(
+  WidgetTester tester, {
+  required Future<List<HomeOuting>> Function() outings,
+  double width = 390,
+  double height = 300,
+  AppSettings settings = const AppSettings(),
+  double textScale = 1,
+  List<Object> extra = const [],
+}) => pumpPanel(
+  tester,
+  const RecentOutingsPanel(),
+  width: width,
+  height: height,
+  settings: settings,
+  textScale: textScale,
+  overrides: [
+    homeRecentOutingsProvider.overrideWith((ref) => outings()),
+    ...extra,
+  ],
+);
+
+void main() {
+  testWidgets('a phone shows one card at a time with page dots', (
+    tester,
+  ) async {
+    await _pump(tester, outings: () async => _many(3));
+    expect(find.text('Outing o0'), findsOneWidget);
+    expect(find.byKey(const Key('outing-page-dots')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('outing-page-dots')),
+        matching: find.byType(DecoratedBox),
+      ),
+      findsNWidgets(3),
+    );
+    final first = tester.getRect(find.byType(OutingCard).first);
+    expect(first.width, greaterThan(390 * 0.7));
+  });
+
+  testWidgets('a desktop panel shows cards side by side', (tester) async {
+    await _pump(tester, width: 840, outings: () async => _many(5));
+    final rects = [
+      for (final e in find.byType(OutingCard).evaluate())
+        tester.getRect(find.byWidget(e.widget)),
+    ];
+    final onScreen = rects.where((r) => r.right <= 840).toList();
+    expect(onScreen.length, greaterThanOrEqualTo(4));
+    expect(onScreen.map((r) => r.top).toSet(), hasLength(1));
+    expect(find.byKey(const Key('outing-page-dots')), findsNothing);
+  });
+
+  testWidgets('a card shows name, dates, dives, depth in feet and species', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      settings: const AppSettings(depthUnit: DepthUnit.feet),
+      outings: () async => [
+        HomeOuting(
+          outing: _outing(
+            'b',
+            tripId: 't1',
+            name: 'Bonaire May 2026',
+            dives: 15,
+          ),
+        ),
+      ],
+    );
+    expect(find.text('Bonaire May 2026'), findsOneWidget);
+    expect(find.textContaining('May 3'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(OutingCard),
+        matching: find.textContaining('15 dives'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('97ft max'), findsOneWidget);
+    expect(find.textContaining('25 species'), findsOneWidget);
+  });
+
+  testWidgets('species are left out at zero', (tester) async {
+    await _pump(
+      tester,
+      outings: () async => [HomeOuting(outing: _outing('p', species: 0))],
+    );
+    expect(find.textContaining('species'), findsNothing);
+  });
+
+  testWidgets('an outing with no name shows the fallback', (tester) async {
+    await _pump(
+      tester,
+      outings: () async => [
+        HomeOuting(
+          outing: Outing(
+            tripId: null,
+            name: null,
+            firstDay: DateTime(2026, 4, 1),
+            lastDay: DateTime(2026, 4, 1),
+            diveIds: const ['n'],
+            maxDepth: null,
+            speciesCount: 0,
+            depths: const [0],
+          ),
+        ),
+      ],
+    );
+    expect(find.text('Dives'), findsOneWidget);
+  });
+
+  testWidgets('a coverless card draws the skyline', (tester) async {
+    await _pump(tester, outings: () async => _many(1));
+    expect(find.byType(OutingSkyline), findsOneWidget);
+  });
+
+  testWidgets('a cover that cannot load falls back to the skyline', (
+    tester,
+  ) async {
+    final missing = MediaItem(
+      id: 'm',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      localPath: '/does/not/exist.jpg',
+      filePath: '/does/not/exist.jpg',
+      takenAt: DateTime(2026, 5, 3),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    await _pump(
+      tester,
+      outings: () async => [HomeOuting(outing: _outing('o'), cover: missing)],
+    );
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.byType(OutingSkyline), findsOneWidget);
+  });
+
+  testWidgets('a trip card opens the trip', (tester) async {
+    final nav = await _pump(tester, outings: () async => _many(1));
+    await tester.tap(find.byType(OutingCard));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/trips/t0');
+  });
+
+  testWidgets('a trip-less card opens exactly its dives', (tester) async {
+    final nav = await _pump(
+      tester,
+      outings: () async => [HomeOuting(outing: _outing('pool', dives: 2))],
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RecentOutingsPanel)),
+    );
+    await tester.tap(find.byType(OutingCard));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/dives');
+    expect(container.read(diveFilterProvider).diveIds, ['pool-0', 'pool-1']);
+  });
+
+  testWidgets('an empty log shows the empty line', (tester) async {
+    await _pump(tester, outings: () async => const []);
+    expect(
+      find.text('Your outings will show here once you log a dive'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a failed read shows the shared error state', (tester) async {
+    await _pump(tester, outings: () async => throw StateError('boom'));
+    expect(find.byType(OutingCard), findsNothing);
+    expect(find.textContaining('boom'), findsNothing);
+  });
+
+  testWidgets('the summary counts outings and dives', (tester) async {
+    await _pump(tester, outings: () async => _many(2));
+    expect(find.text('2 outings · 6 dives'), findsOneWidget);
+  });
+
+  testWidgets('a long name at text scale 1.6 does not overflow', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      textScale: 1.6,
+      height: 420,
+      outings: () async => [
+        HomeOuting(
+          outing: _outing(
+            'l',
+            tripId: 't',
+            name: 'A very long trip name that goes on and on past the card',
+          ),
+        ),
+      ],
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the card reads its name, dates, dives, depth and species', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(
+      tester,
+      settings: const AppSettings(depthUnit: DepthUnit.feet),
+      outings: () async => [
+        HomeOuting(
+          outing: _outing('b', tripId: 't1', name: 'Bonaire'),
+        ),
+      ],
+    );
+    final label = tester
+        .getSemantics(find.byType(OutingCard))
+        .getSemanticsData()
+        .label;
+    expect(label, contains('Bonaire'));
+    expect(label, contains('May 3'));
+    expect(label, contains('3 dives'));
+    expect(label, contains('97ft'));
+    expect(label, contains('25 species'));
+    handle.dispose();
+  });
+}

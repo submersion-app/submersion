@@ -19158,6 +19158,13 @@
   "dashboard_key_tripChecklist": "القائمة {done}/{total} · {name}",
   "dashboard_panel_activity": "النشاط، {months} أشهر",
   "dashboard_panel_activitySummary": "{dives, plural, =1{غطسة واحدة} two{غطستان} few{{dives} غطسات} many{{dives} غطسة} other{{dives} غطسة}} · {days, plural, =1{يوم واحد} two{يومان} few{{days} أيام} many{{days} يومًا} other{{days} يوم}}",
+  "dashboard_panel_recentOutings": "رحلات الغوص الأخيرة",
+  "dashboard_outings_summary": "{outings, plural, =1{رحلة واحدة} two{رحلتان} few{{outings} رحلات} many{{outings} رحلة} other{{outings} رحلة}} · {dives, plural, =1{غطسة واحدة} two{غطستان} few{{dives} غطسات} many{{dives} غطسة} other{{dives} غطسة}}",
+  "dashboard_outings_dives": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
+  "dashboard_outings_maxDepth": "{depth} كحد أقصى",
+  "dashboard_outings_species": "{count, plural, =1{نوع واحد} two{نوعان} few{{count} أنواع} many{{count} نوعًا} other{{count} نوع}}",
+  "dashboard_outings_empty": "ستظهر رحلاتك هنا بمجرد تسجيل غطسة",
+  "dashboard_outings_unnamed": "غطسات",
   "dashboard_panel_divesPerMonth": "الغطسات شهريًا",
   "dashboard_panel_sacTrend": "اتجاه SAC",
   "dashboard_panel_rmvTrend": "اتجاه RMV",
@@ -19211,5 +19218,6 @@
   "settings_homePanels_keyNumbers": "الأرقام الرئيسية",
   "settings_homePanels_keyNumbersCount": "{shown} من {total}",
   "settings_homePanels_activityCalendar": "تقويم النشاط",
+  "settings_homePanels_recentOutings": "رحلات الغوص الأخيرة",
   "settings_homeKeyNumbers_description": "اختر الأرقام المعروضة أعلى الشاشة الرئيسية. يُحذف الرقم الذي ليس لديه ما يعرضه بعد."
 }

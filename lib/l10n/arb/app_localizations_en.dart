@@ -64595,6 +64595,60 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dashboard_panel_recentOutings => 'Recent outings';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings outings',
+      one: '1 outing',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives',
+      one: '1 dive',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth max';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count species',
+      one: '1 species',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Your outings will show here once you log a dive';
+
+  @override
+  String get dashboard_outings_unnamed => 'Dives';
+
+  @override
   String get dashboard_panel_divesPerMonth => 'Dives per month';
 
   @override
@@ -64799,6 +64853,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Activity calendar';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Recent outings';
 
   @override
   String get settings_homeKeyNumbers_description =>

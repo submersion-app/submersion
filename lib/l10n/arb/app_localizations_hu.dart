@@ -65230,6 +65230,60 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get dashboard_panel_recentOutings => 'Legutóbbi merülőtúrák';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings túra',
+      one: '1 túra',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return 'max. $depth';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count faj',
+      one: '1 faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'A túráid itt jelennek meg, amint rögzítesz egy merülést';
+
+  @override
+  String get dashboard_outings_unnamed => 'Merülések';
+
+  @override
   String get dashboard_panel_divesPerMonth => 'Merülések havonta';
 
   @override
@@ -65437,6 +65491,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Aktivitásnaptár';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Legutóbbi merülőtúrák';
 
   @override
   String get settings_homeKeyNumbers_description =>

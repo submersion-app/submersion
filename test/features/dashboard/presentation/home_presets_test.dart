@@ -82,7 +82,8 @@ void main() {
       legacyHiddenCards: const {},
     );
     final i = layout.order.indexOf(HomePanelType.gearService);
-    expect(layout.order[i - 1], HomePanelType.activityCalendar);
+    // Recent outings is gear service's nearest earlier panel in the enum.
+    expect(layout.order[i - 1], HomePanelType.recentOutings);
     expect(layout.hidden, contains(HomePanelType.gearService));
   });
 
