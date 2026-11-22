@@ -112,8 +112,10 @@ List<String> buildChangeLogTriggers(
   final update = tracked || optIn
       ? _updateTrigger(spec, schemaVersion, optInOnly: optIn)
       : null;
+  final insertsOptIn = !tracked && changeLogOptInLogsInserts(spec.table);
   return [
-    if (tracked) _insertTrigger(spec, schemaVersion),
+    if (tracked || insertsOptIn)
+      _insertTrigger(spec, schemaVersion, optInOnly: insertsOptIn),
     ?update,
     _deleteTrigger(spec, schemaVersion),
   ];
@@ -166,10 +168,16 @@ String _eventInsert(
     '${changeLogRecordIdSql(prefix, spec.keyColumns)}, '
     "'$action', $_nowSql, $schemaVersion);";
 
-String _insertTrigger(ChangeLogTableSpec spec, int schemaVersion) =>
+/// [optInOnly] limits it to operations that ask for machine rows.
+String _insertTrigger(
+  ChangeLogTableSpec spec,
+  int schemaVersion, {
+  bool optInOnly = false,
+}) =>
     'CREATE TRIGGER "${_triggerName(spec.table, 'i')}" '
     'AFTER INSERT ON "${spec.table}" '
     'WHEN ${_guard(spec.table, 'NEW')} '
+    '${optInOnly ? 'AND ${_optInOperation()} ' : ''}'
     'BEGIN ${_eventInsert(spec, 'NEW', 'I', schemaVersion)} END';
 
 /// Null when no column of the table is worth recording. [optInOnly] limits

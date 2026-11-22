@@ -529,8 +529,8 @@ const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 /// Removing a source or a duplicate cylinder re-zeroes, promotes or moves
 /// series rows in place. Without their old values a revert would bring back
 /// the deleted rows beside series still shifted, which is a broken dive.
-/// Downloads, re-parses and analysis sweeps rewrite these large rows all the
-/// time and nothing the diver did, so they stay out of the log. A promotion
+/// Downloads and analysis sweeps rewrite these large rows all the time and
+/// nothing the diver did, so they stay out of the log. A promotion
 /// also shifts photo placements along the re-zeroed timeline, so
 /// media_enrichment is here too.
 ///
@@ -540,8 +540,13 @@ const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 /// dive_safety_findings is here, limited by [changeLogOptInUpdateColumns].
 /// A gear item's sitting dismisses its condition findings the same way, so
 /// equipment_findings is here too (issue #4527, phase 3).
+///
+/// A series' lineage row goes when its series goes, so a revert that puts a
+/// replaced series back needs the row back as well, or the series returns
+/// with no place in the profile's history (issue #4848).
 const Set<String> changeLogOptInUpdateTables = {
   'dive_profile_series',
+  'dive_profile_series_history',
   'dive_safety_findings',
   'equipment_findings',
   'media_enrichment',
@@ -565,6 +570,15 @@ const Map<String, Set<String>> changeLogOptInUpdateColumns = {
 bool changeLogOptInKeepsDeletes(String table) =>
     changeLogOptInUpdateTables.contains(table) &&
     !changeLogOptInUpdateColumns.containsKey(table);
+
+/// Whether an opted-in operation notes the rows it adds to [table], so its
+/// revert takes them away: a re-parse replaces a series with a new one
+/// rather than rewriting it (issue #4848). A device-local table's row is a
+/// series' lineage, keyed by its series, and goes when the series goes, so
+/// only the delete copies and updates of such a table are kept.
+bool changeLogOptInLogsInserts(String table) =>
+    changeLogOptInKeepsDeletes(table) &&
+    !changeLogDeviceLocalTables.contains(table);
 
 /// Machine columns an entry lists, for any operation: what a diver changes
 /// on a machine row (issue #4527). Every other machine row and column stays
@@ -598,14 +612,18 @@ bool changeLogOptsInMachineRows({
 
 /// The operation labels that record updates to [changeLogOptInUpdateTables].
 /// Kept equal to `ChangeLogLabels.removeSource`,
-/// `ChangeLogLabels.removeDuplicateCylinders` and
-/// `ChangeLogLabels.updatePlannedDives`, which this file cannot import. The
-/// planner's Update planned dives rewrites a planned entry's profile in
-/// place, so its revert needs the old samples too (issue #4203).
+/// `ChangeLogLabels.removeDuplicateCylinders`,
+/// `ChangeLogLabels.updatePlannedDives` and `ChangeLogLabels.reparse`, which
+/// this file cannot import. The planner's Update planned dives rewrites a
+/// planned entry's profile in place, so its revert needs the old samples too
+/// (issue #4203). A re-parse the diver asked for replaces a source's profile
+/// and pressure series, so its revert needs the old ones back and the new
+/// ones gone (issue #4848).
 const Set<String> changeLogSeriesUpdateLabels = {
   'remove_source',
   'remove_duplicate_cylinders',
   'update_planned_dives',
+  'reparse',
 };
 
 /// The operation sources that record updates to [changeLogOptInUpdateTables]

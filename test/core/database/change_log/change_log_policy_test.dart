@@ -202,6 +202,18 @@ void main() {
     expect(changeLogOptInKeepsDeletes('dives'), isFalse);
   });
 
+  // A re-parse deletes a series and its lineage row, and its revert must
+  // put both back and take the new series away (issue #4848).
+  test('an opted-in operation keeps a series lineage row, and notes the '
+      'series it adds but not their lineage', () {
+    expect(changeLogOptInKeepsDeletes('dive_profile_series_history'), isTrue);
+    expect(changeLogOptInLogsInserts('dive_profile_series'), isTrue);
+    expect(changeLogOptInLogsInserts('tank_pressure_series'), isTrue);
+    expect(changeLogOptInLogsInserts('dive_profile_series_history'), isFalse);
+    expect(changeLogOptInLogsInserts('dive_safety_findings'), isFalse);
+    expect(changeLogOptInLogsInserts('dives'), isFalse);
+  });
+
   // A gear item's sitting dismisses its condition findings (issue #4527,
   // phase 3): logged as the dive's safety findings are, under the item.
   test('equipment findings are delete copy only, under their item', () {

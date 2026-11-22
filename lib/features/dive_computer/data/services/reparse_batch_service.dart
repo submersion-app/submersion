@@ -284,13 +284,23 @@ class ReparseBatchService {
   }
 
   /// One dive's re-parse, as the dive page's "Re-parse raw data" runs it:
-  /// the same step [run] takes for each dive, without a batch's change-log
-  /// scope. Returns the error (none on success, or when the dive has no raw
+  /// the same step [run] takes for each dive, filed under a re-parse entry
+  /// of its own, so its revert puts the replaced series back too (issue
+  /// #4848). Returns the error (none on success, or when the dive has no raw
   /// data) and how many sources kept a combined dive's profile.
   Future<({List<String> errors, int profilesPreserved})> reparseSingleDive(
     String diveId, {
     required RawDiveParseFn parseFn,
-  }) async {
+  }) => ChangeLogScope.bulk(
+    _db,
+    label: ChangeLogLabels.reparse,
+    body: () => _reparseSingle(diveId, parseFn),
+  );
+
+  Future<({List<String> errors, int profilesPreserved})> _reparseSingle(
+    String diveId,
+    RawDiveParseFn parseFn,
+  ) async {
     final outcome = await _reparseOne(diveId, parseFn, null);
     switch (outcome) {
       case _Skipped():
