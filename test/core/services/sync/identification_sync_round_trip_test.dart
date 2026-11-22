@@ -1,12 +1,15 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
@@ -16,6 +19,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 
 import '../../../features/species_id/data/identification_fixtures.dart';
+import '../../../helpers/temp_dir.dart';
 import '../../../helpers/test_database.dart';
 
 /// Marine life results sync (issue #4876): runs, identifications and the
@@ -167,15 +171,15 @@ void main() {
   });
 
   group('a peer\'s deletions are handed on (issue #4890)', () {
-    Future<List<List<DeletedIdentification>>> applyDeletions(
-      Map<String, List<SyncDeletion>> deletions,
-    ) async {
-      final handed = <List<DeletedIdentification>>[];
-      await SyncService(
-        syncRepository: SyncRepository(),
-        serializer: SyncDataSerializer(),
-        onIdentificationsDeleted: (deleted) async => handed.add(deleted),
-      ).debugApplyPayload(
+    late List<List<DeletedIdentification>> handed;
+
+    SyncService hooked() => SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      onIdentificationsDeleted: (deleted) async => handed.add(deleted),
+    );
+
+    SyncPayload tombstones(Map<String, List<SyncDeletion>> deletions) =>
         SyncPayload(
           version: 1,
           exportedAt: 0,
@@ -183,10 +187,85 @@ void main() {
           checksum: '',
           data: const SyncData(),
           deletions: deletions,
-        ),
-      );
+        );
+
+    setUp(() => handed = []);
+
+    Future<List<List<DeletedIdentification>>> applyDeletions(
+      Map<String, List<SyncDeletion>> deletions,
+    ) async {
+      await hooked().debugApplyPayload(tombstones(deletions));
       return handed;
     }
+
+    test('when the row and the tombstone carry clocks, as every row has '
+        'since v381', () async {
+      await storeVideo();
+      await db.customStatement(
+        'UPDATE media_identifications SET hlc = ? WHERE id = ?',
+        [const Hlc(1000, 0, 'laptop').toString(), 't1'],
+      );
+      await applyDeletions({
+        'mediaIdentifications': [
+          SyncDeletion(
+            id: 't1',
+            deletedAt: 1,
+            hlc: const Hlc(2000, 0, 'phone').toString(),
+          ),
+        ],
+      });
+      expect(await repo.forMedia('v1'), isEmpty);
+      expect(handed, [
+        [(mediaId: 'v1', id: 't1')],
+      ]);
+    });
+
+    test('from a peer base file too', () async {
+      await storeVideo();
+      final dir = await Directory.systemTemp.createTemp('identification_base');
+      addTearDown(() => deleteTempDir(dir));
+      final file = File(p.join(dir.path, 'base.json'));
+      await file.writeAsString(
+        jsonEncode(
+          tombstones({
+            'mediaIdentifications': [
+              SyncDeletion(
+                id: 't1',
+                deletedAt: DateTime.utc(2100).millisecondsSinceEpoch,
+              ),
+            ],
+          }).toJson(),
+        ),
+      );
+      await hooked().debugApplyBaseFile(file.path);
+      expect(await repo.forMedia('v1'), isEmpty);
+      expect(handed, [
+        [(mediaId: 'v1', id: 't1')],
+      ]);
+    });
+
+    test('when the diver keeps the peer\'s deletion of a conflict', () async {
+      await storeVideo();
+      await SyncRepository().markRecordConflict(
+        entityType: 'mediaIdentifications',
+        recordId: 't1',
+        conflictDataJson: jsonEncode({
+          '_deleted': true,
+          'deletedAt': 1,
+          'recordId': 't1',
+        }),
+        localUpdatedAt: 1000,
+      );
+      await hooked().resolveConflict(
+        'mediaIdentifications',
+        't1',
+        ConflictResolution.keepRemote,
+      );
+      expect(await repo.forMedia('v1'), isEmpty);
+      expect(handed, [
+        [(mediaId: 'v1', id: 't1')],
+      ]);
+    });
 
     // Later than the row was written, so the tombstone wins with no
     // conflict.

@@ -4812,18 +4812,26 @@ class SyncService {
           // references before COMMIT, as _applyRemoteDeletions does. The
           // repaired rows are not marked pending: every peer applying this
           // tombstone runs the same repair.
-          await _serializer.applyInDeferredFkTransaction(() async {
-            await _serializer.deleteRecord(entityType, recordId);
-            await _serializer.repairDanglingForeignKeys();
-            await _syncRepository.logDeletionIfMissing(
-              entityType: entityType,
-              recordId: recordId,
-              deletedAt: deletedAt ?? DateTime.now().millisecondsSinceEpoch,
-              originHlc: remoteData['hlc'] is String
-                  ? remoteData['hlc'] as String
-                  : null,
-            );
-          });
+          try {
+            await _serializer.applyInDeferredFkTransaction(() async {
+              final local = await _serializer.fetchRecord(entityType, recordId);
+              await _serializer.deleteRecord(entityType, recordId);
+              await _serializer.repairDanglingForeignKeys();
+              await _syncRepository.logDeletionIfMissing(
+                entityType: entityType,
+                recordId: recordId,
+                deletedAt: deletedAt ?? DateTime.now().millisecondsSinceEpoch,
+                originHlc: remoteData['hlc'] is String
+                    ? remoteData['hlc'] as String
+                    : null,
+              );
+              _noteDeletedIdentification(entityType, local);
+            });
+          } finally {
+            // An identification's crop file and embedding go too, as when
+            // the tombstone applied with no conflict (issue #4890).
+            await _handOnDeletedIdentifications();
+          }
         } else {
           // keepRemote overwrites the local row. For HLC-bearing entities the
           // upsert uses `.toCompanion(false)`, so a cross-version remote map
