@@ -19,7 +19,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 const double _gap = 8;
 
 /// The row of headline numbers at the top of Home: up to eight tiles, each
-/// its own bordered box and tap target, sharing the rows they wrap into.
+/// its own filled box and tap target, sharing the rows they wrap into.
 class KeyNumbersPanel extends ConsumerWidget {
   const KeyNumbersPanel({super.key});
 

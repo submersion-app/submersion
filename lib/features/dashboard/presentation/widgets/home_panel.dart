@@ -17,7 +17,7 @@ double homeRowHeight(HomePanelHeight height, BuildContext context) {
   return base * scale;
 }
 
-/// The frame every Home panel shares: a bordered box with a small capitals
+/// The frame every Home panel shares: a filled box with a small capitals
 /// title, optional trailing text, and content that fills the rest of the
 /// panel's fixed height. The whole box is one tap target, and it reads to
 /// assistive technology as its title and headline value, so a chart is
@@ -87,12 +87,14 @@ class HomePanel extends StatelessWidget {
         ],
       ],
     );
+    // A filled shape with no outline: the fill and the gaps between panels
+    // keep them apart without a page of boxes. surfaceContainer, not Low:
+    // it sits a steady 1.09 to 1.13 contrast from the page in every preset,
+    // light and dark, where Low drops to 1.04 in the light ones and would
+    // all but vanish without its border.
     final box = Material(
-      color: scheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: scheme.outlineVariant),
-      ),
+      color: scheme.surfaceContainer,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,

@@ -45,6 +45,30 @@ void main() {
       handle.dispose();
     });
 
+    // No outline: the fill alone sets a panel off the page, one step of the
+    // theme's tonal surfaces from it, so a page of panels is not a wall of
+    // boxes.
+    testWidgets('is a filled shape with no border', (tester) async {
+      await _pump(
+        tester,
+        const HomePanel(title: 'Dives', semanticsValue: '', child: Text('412')),
+      );
+      final material = tester.widget<Material>(
+        find
+            .descendant(
+              of: find.byType(HomePanel),
+              matching: find.byType(Material),
+            )
+            .first,
+      );
+      final shape = material.shape! as RoundedRectangleBorder;
+      expect(shape.side, BorderSide.none);
+      final scheme = Theme.of(
+        tester.element(find.byType(HomePanel)),
+      ).colorScheme;
+      expect(material.color, scheme.surfaceContainer);
+    });
+
     testWidgets('a tap anywhere runs its action', (tester) async {
       var taps = 0;
       await _pump(
