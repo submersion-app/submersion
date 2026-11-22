@@ -184,19 +184,44 @@ void main() {
     'tombstone; one the diver has said something on meanwhile stays',
     () async {
       await repo.storeRun(
-        run(),
+        run().copyWith(runId: () => 'mine'),
         insert: [
-          identification('left'),
-          identification('decided', decision: IdentificationDecision.rejected),
+          identification('left').copyWith(runId: () => 'theirs'),
+          identification(
+            'decided',
+            decision: IdentificationDecision.rejected,
+          ).copyWith(runId: () => 'theirs'),
+          identification('own'),
         ],
         deleteIds: const [],
       );
 
-      expect(await repo.deleteLeftovers('m1', ['left', 'decided']), ['left']);
-      expect([for (final i in await repo.forMedia('m1')) i.id], ['decided']);
+      expect(
+        await repo.deleteLeftovers('m1', 'mine', ['left', 'decided', 'own']),
+        ['left'],
+      );
+      expect([for (final i in await repo.forMedia('m1')) i.id]..sort(), [
+        'decided',
+        'own',
+      ]);
       expect(await tombstones('mediaIdentifications'), {'left'});
     },
   );
+
+  test('leftovers are judged against a run: once another run is stored, '
+      'nothing goes, since its own rows are no leftovers', () async {
+    // The run was read as 'mine'; a sync stored the laptop's run and rows
+    // before the rows were read.
+    await repo.storeRun(
+      run().copyWith(runId: () => 'laptop'),
+      insert: [identification('fresh')],
+      deleteIds: const [],
+    );
+
+    expect(await repo.deleteLeftovers('m1', 'mine', ['fresh']), isEmpty);
+    expect([for (final i in await repo.forMedia('m1')) i.id], ['fresh']);
+    expect(await tombstones('mediaIdentifications'), isEmpty);
+  });
 
   test('deleting the results of media tombstones runs and rows', () async {
     await repo.storeRun(

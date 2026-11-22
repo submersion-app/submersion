@@ -35,21 +35,21 @@ extension _RunOrigin on MediaIdentificationService {
     required bool madeHere,
     required int generation,
   }) async {
-    if (!madeHere) return stored;
+    final runId = run?.runId;
+    if (!madeHere || runId == null) return stored;
     final visible = visibleRows(run, stored);
     if (visible.length == stored.length) return stored;
-    if (_databaseGeneration() != generation) return stored;
+    // The rows shown, whatever goes: a leftover kept because a sync landed
+    // since is no reason to analyse again.
+    if (_databaseGeneration() != generation) return visible;
     final shown = {for (final i in visible) i.id};
-    final gone = await _identifications.deleteLeftovers(mediaId, [
+    final gone = await _identifications.deleteLeftovers(mediaId, runId, [
       for (final i in stored)
         if (!shown.contains(i.id)) i.id,
     ]);
     await _embeddings.delete(gone);
     await _crops.delete(mediaId, gone);
-    return [
-      for (final i in stored)
-        if (!gone.contains(i.id)) i,
-    ];
+    return visible;
   }
 }
 

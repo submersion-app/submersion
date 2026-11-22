@@ -402,12 +402,26 @@ class MediaIdentificationRepository {
   }
 
   /// Deletes [ids], leftovers of a run that lost a sync race on [mediaId]
-  /// (issue #4876), with tombstones. Only rows nobody has said anything on
-  /// go: one a decision or claim synced into since is shown again, so it
-  /// stays. Returns the ids deleted, for their crops and embeddings.
-  Future<List<String>> deleteLeftovers(String mediaId, List<String> ids) async {
+  /// (issue #4876), with tombstones. They were judged against the run
+  /// [runId], so nothing goes once another run is stored (a sync landed
+  /// since), and no row of [runId] itself ever does. Only rows nobody has
+  /// said anything on go: one a decision or claim synced into since is
+  /// shown again, so it stays. Returns the ids deleted, for their crops and
+  /// embeddings.
+  Future<List<String>> deleteLeftovers(
+    String mediaId,
+    String runId,
+    List<String> ids,
+  ) async {
     if (ids.isEmpty) return const [];
     final deleted = await _transaction((db) async {
+      final stored =
+          await (db.selectOnly(db.mediaIdentificationRuns)
+                ..addColumns([db.mediaIdentificationRuns.runId])
+                ..where(db.mediaIdentificationRuns.mediaId.equals(mediaId)))
+              .map((r) => r.read(db.mediaIdentificationRuns.runId))
+              .getSingleOrNull();
+      if (stored != runId) return const <String>[];
       final table = db.mediaIdentifications;
       final gone = <String>[];
       for (final slice in ids.slices(_slice)) {
@@ -417,6 +431,8 @@ class MediaIdentificationRepository {
                   ..where(
                     table.mediaId.equals(mediaId) &
                         table.id.isIn(slice) &
+                        table.runId.isNotNull() &
+                        table.runId.equals(runId).not() &
                         table.decision.equals(
                           IdentificationDecision.undecided.name,
                         ) &
