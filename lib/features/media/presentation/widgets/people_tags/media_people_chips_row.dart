@@ -7,6 +7,7 @@ import 'package:submersion/features/media/presentation/helpers/face_box_geometry
 import 'package:submersion/features/media/presentation/media_tag_navigation.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
+import 'package:submersion/features/media/presentation/widgets/viewer_tag_chips.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -16,7 +17,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// A buddy chip opens the buddy and Me opens the library filtered to Me. A
 /// moment chip goes to [onMomentTap] instead, so the viewer can jump the
-/// video there. Renders nothing when nobody is tagged.
+/// video there. Renders nothing when nobody is tagged. The chips are the
+/// viewer's compact, translucent ones, as the species chips are (issue
+/// #4921).
 class MediaPeopleChipsRow extends ConsumerWidget {
   final String mediaId;
   final ValueChanged<MediaPersonTag>? onMomentTap;
@@ -37,7 +40,7 @@ class MediaPeopleChipsRow extends ConsumerWidget {
     final chips = peopleChipsShown(ref, mediaId, sitting);
     if (chips.isEmpty) return const SizedBox.shrink();
 
-    return Semantics(
+    final row = Semantics(
       label: l10n.media_people_chipsLabel,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
@@ -50,18 +53,19 @@ class MediaPeopleChipsRow extends ConsumerWidget {
                 avatar: ExcludeSemantics(
                   child: Icon(
                     chip.tag.isMe ? Icons.person : Icons.person_outline,
-                    size: 16,
+                    size: ViewerTagChips.iconSize,
                   ),
                 ),
                 label: Text(personChipLabel(context, chip)),
                 onPressed: () => _open(context, ref, chip.tag),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
+                visualDensity: ViewerTagChips.density,
               ),
           ],
         ),
       ),
     );
+    return ViewerTagChips.theme(context, child: row);
   }
 
   void _open(BuildContext context, WidgetRef ref, MediaPersonTag tag) {

@@ -13,6 +13,7 @@ import 'package:submersion/features/species_id/presentation/providers/recorded_n
 import 'package:submersion/features/species_id/presentation/widgets/recorded_nearby_pin.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
+import 'package:submersion/features/media/presentation/widgets/viewer_tag_chips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/dashed_outline_painter.dart';
 import 'package:submersion/shared/widgets/one_line_overflow_row.dart';
@@ -24,7 +25,8 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 ///
 /// The line never wraps (issue #4825): what does not fit is counted in a
 /// "+N" chip, which calls [onMoreTap], so the panel under a video's scrub
-/// bar never grows with the number of species.
+/// bar never grows with the number of species. The chips are the viewer's
+/// compact, translucent ones (issue #4921).
 class MediaSpeciesChipsRow extends ConsumerWidget {
   final String mediaId;
 
@@ -73,9 +75,10 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
       sitting,
       onSuggestionTap: onSuggestionTap,
       nearbyRequest: item == null ? null : nearbyRequestForMedia(item),
+      overlay: true,
     );
     if (chips.isEmpty) return const SizedBox.shrink();
-    return Semantics(
+    final row = Semantics(
       label: l10n.media_species_chipsLabel,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
@@ -92,13 +95,14 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
               label: Text('+$hidden'),
               onPressed: onMoreTap,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
+              visualDensity: ViewerTagChips.density,
             ),
           ),
           children: chips,
         ),
       ),
     );
+    return ViewerTagChips.theme(context, child: row);
   }
 }
 
@@ -108,7 +112,8 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
 /// [onSuggestionTap], and are inert without it. [openUnconfirmed] has the
 /// app's tags open their species page instead, as the diver's do. A
 /// suggestion on the "Recorded nearby" list read for [nearbyRequest] ends
-/// with a pin.
+/// with a pin. [overlay] draws them as the viewer's compact chips over the
+/// picture, under a [ViewerTagChips.theme] (issue #4921).
 List<Widget> speciesChipWidgets(
   BuildContext context,
   WidgetRef ref,
@@ -117,26 +122,31 @@ List<Widget> speciesChipWidgets(
   VoidCallback? onSuggestionTap,
   bool openUnconfirmed = false,
   NearbyListRequest? nearbyRequest,
+  bool overlay = false,
 }) {
   final l10n = context.l10n;
   final chips = speciesChipsShown(ref, mediaId, sitting);
   final suggestions = marineLifeLabelsShown
       ? suggestionsShown(ref, mediaId, sitting)
       : const <SpeciesSuggestion>[];
-  final outline = Theme.of(context).colorScheme.outline;
+  final outline = overlay
+      ? ViewerTagChips.outline
+      : Theme.of(context).colorScheme.outline;
+  final density = overlay ? ViewerTagChips.density : VisualDensity.compact;
+  final iconSize = overlay ? ViewerTagChips.iconSize : 16.0;
   return [
     for (final chip in chips)
       if (!chip.unconfirmed)
         ActionChip(
           avatar: ExcludeSemantics(
-            child: Icon(iconForSpeciesCategory(chip.category), size: 16),
+            child: Icon(iconForSpeciesCategory(chip.category), size: iconSize),
           ),
           label: Text(
             localizedSpeciesName(l10n, chip.speciesId, chip.storedName),
           ),
           onPressed: () => context.push('/species/${chip.speciesId}'),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
+          visualDensity: density,
         ),
     // Tags the app applied, not yet confirmed (issue #4727).
     for (final chip in chips)
@@ -146,11 +156,12 @@ List<Widget> speciesChipWidgets(
           onTap: openUnconfirmed
               ? () => context.push('/species/${chip.speciesId}')
               : onSuggestionTap,
+          overlay: overlay,
         ),
     for (final s in suggestions)
       ActionChip(
         key: ValueKey('media_suggested_chip_${s.top.candidate.gbifKey}'),
-        avatar: const ExcludeSemantics(child: Icon(Icons.add, size: 16)),
+        avatar: ExcludeSemantics(child: Icon(Icons.add, size: iconSize)),
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -165,14 +176,17 @@ List<Widget> speciesChipWidgets(
                 request: nearbyRequest,
                 gbifKey: s.top.candidate.gbifKey,
                 catalogId: s.top.candidate.catalogId,
+                size: iconSize,
               ),
           ],
         ),
         backgroundColor: Colors.transparent,
+        // The theme's fill would win over the transparent background.
+        color: overlay ? ViewerTagChips.suggestionColor : null,
         side: BorderSide(color: outline),
         onPressed: onSuggestionTap,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
+        visualDensity: density,
       ),
   ];
 }
@@ -182,10 +196,17 @@ List<Widget> speciesChipWidgets(
 /// for the diver's own (issue #4727). Tapping opens the species sheet,
 /// where it can be confirmed; inert on a locked photo.
 class _UnconfirmedChip extends StatelessWidget {
-  const _UnconfirmedChip({required this.chip, required this.onTap});
+  const _UnconfirmedChip({
+    required this.chip,
+    required this.onTap,
+    required this.overlay,
+  });
 
   final SpeciesTagChip chip;
   final VoidCallback? onTap;
+
+  /// Drawn as the viewer's compact chip over the picture (issue #4921).
+  final bool overlay;
 
   static const double _radius = 8;
 
@@ -201,11 +222,16 @@ class _UnconfirmedChip extends StatelessWidget {
       onTap: onTap,
       child: CustomPaint(
         foregroundPainter: DashedOutlinePainter(
-          color: Theme.of(context).colorScheme.outline,
+          color: overlay
+              ? ViewerTagChips.outline
+              : Theme.of(context).colorScheme.outline,
           radius: _radius,
         ),
         child: ActionChip(
-          avatar: const Icon(Icons.auto_awesome_outlined, size: 16),
+          avatar: Icon(
+            Icons.auto_awesome_outlined,
+            size: overlay ? ViewerTagChips.iconSize : 16,
+          ),
           label: Text(name),
           side: BorderSide.none,
           shape: RoundedRectangleBorder(
@@ -213,7 +239,9 @@ class _UnconfirmedChip extends StatelessWidget {
           ),
           onPressed: onTap,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
+          visualDensity: overlay
+              ? ViewerTagChips.density
+              : VisualDensity.compact,
         ),
       ),
     );
