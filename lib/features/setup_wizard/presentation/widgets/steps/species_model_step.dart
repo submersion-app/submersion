@@ -15,8 +15,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The setup wizard's offer of the species identification model (issue
 /// #4881), after the Photos step on a device that can run it. The size line
 /// is the confirmation: Download starts the download in the background and
-/// moves on at once, and Settings > Species identification shows how it
-/// goes. Skip moves on and leaves every later offer in place.
+/// moves on at once, and Settings > Data > Photos & videos > Species
+/// identification shows how it goes. Skip moves on and leaves every later
+/// offer in place.
 class SpeciesModelStep extends ConsumerStatefulWidget {
   const SpeciesModelStep({
     super.key,

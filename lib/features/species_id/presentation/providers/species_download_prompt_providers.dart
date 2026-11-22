@@ -72,10 +72,13 @@ final libraryHasPhotosOrVideosProvider = FutureProvider.autoDispose<bool>((
 /// Cheap checks first: the offer itself asks the vision engine (which loads
 /// ONNX Runtime on Android, Windows and Linux) and the pack store, so it is
 /// asked last, and never for a library with nothing for the model to see.
+/// An installed model (a cached file check) ends the library watch too:
+/// installing dismisses nothing, and the banner can never show again.
 final homeSpeciesBannerProvider = Provider.autoDispose<bool>((ref) {
   if (ref.watch(demoModeActiveProvider)) return false;
   if (!marineLifeIdEnabled) return false;
   if (ref.watch(speciesDownloadPromptDismissedNotifierProvider)) return false;
+  if (ref.watch(installedSpeciesPackProvider).value != null) return false;
   if (!(ref.watch(libraryHasPhotosOrVideosProvider).value ?? false)) {
     return false;
   }
