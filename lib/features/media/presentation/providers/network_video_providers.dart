@@ -18,8 +18,9 @@ final networkVideoCacheProvider = Provider<NetworkVideoCache>((ref) {
 
 /// Whether the diver chose to play the original of a video whose row points
 /// at a smaller conversion (a shared album's 720p stream), by media id.
-/// For this viewing only: disposed with the viewer that watches it, so the
-/// next open plays the conversion again.
+/// For this viewing only: the video's page in the viewer watches it while
+/// it is built, so the choice lasts while the diver pages nearby and ends
+/// with the viewer; the next open plays the conversion again.
 final playVideoOriginalProvider = StateProvider.family<bool, String>(
   (ref, mediaId) => false,
   isAutoDispose: true,

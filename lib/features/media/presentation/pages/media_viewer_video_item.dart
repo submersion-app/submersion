@@ -339,6 +339,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   Widget build(BuildContext context) {
+    // Watched on every build, not only where the button shows: this page is
+    // what keeps the choice alive while it is swiped off screen, the overlay
+    // hidden or tag mode on.
+    final playingOriginal = ref.watch(
+      playVideoOriginalProvider(widget.item.id),
+    );
     final resolved = _resolvedFor;
     if (widget.isCurrent && resolved != null) {
       ref.listen(videoPlaybackProvider(resolved), (_, _) {});
@@ -506,7 +512,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               (!widget.fullscreen || widget.showOverlay) &&
               !widget.people.active &&
               hasPlayableOriginal(widget.item) &&
-              !ref.watch(playVideoOriginalProvider(widget.item.id)))
+              !playingOriginal)
             // Below the viewer's top bar (close, lock, info, share), which
             // draws over this page.
             Positioned(

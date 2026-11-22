@@ -248,8 +248,14 @@ class NetworkVideoCache {
       for (final f in oldestFirst) {
         if (total <= maxBytes) break;
         if (f.path == keep) continue;
-        total -= stats[f]!.size;
-        await f.delete();
+        // A file still open (a player on Windows) refuses; the next one
+        // may not, so one refusal does not end the cleanup.
+        try {
+          await f.delete();
+          total -= stats[f]!.size;
+        } on FileSystemException catch (e) {
+          _log.debug('Video cache kept a file in use: ${e.message}');
+        }
       }
     } catch (e) {
       _log.warning('Video cache cleanup failed: $e');

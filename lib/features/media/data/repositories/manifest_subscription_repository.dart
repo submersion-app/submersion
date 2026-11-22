@@ -312,6 +312,15 @@ class ManifestSubscriptionRepository {
     }
   }
 
+  /// How long a failed poll waits before the next try: twice the interval,
+  /// at most a day. Shared by [recordPollFailure] and a later interval
+  /// change, so both compute the same retry.
+  static Duration _failureBackoff(int pollIntervalSeconds) {
+    const cap = Duration(hours: 24);
+    final backoff = Duration(seconds: pollIntervalSeconds * 2);
+    return backoff > cap ? cap : backoff;
+  }
+
   Future<void> recordPollFailure(
     String id, {
     required int pollIntervalSeconds,
@@ -319,9 +328,7 @@ class ManifestSubscriptionRepository {
     required DateTime now,
   }) async {
     try {
-      const cap = Duration(hours: 24);
-      final backoff = Duration(seconds: pollIntervalSeconds * 2);
-      final delay = backoff > cap ? cap : backoff;
+      final delay = _failureBackoff(pollIntervalSeconds);
       final nowMs = now.millisecondsSinceEpoch;
       await (_db.update(
         _db.mediaSubscriptionState,
@@ -403,9 +410,7 @@ class ManifestSubscriptionRepository {
   }) {
     if (lastErrorAt != null &&
         (lastPolledAt == null || lastErrorAt > lastPolledAt)) {
-      const capMs = 24 * 60 * 60 * 1000;
-      final backoffMs = pollIntervalSeconds * 2 * 1000;
-      return lastErrorAt + (backoffMs > capMs ? capMs : backoffMs);
+      return lastErrorAt + _failureBackoff(pollIntervalSeconds).inMilliseconds;
     }
     if (lastPolledAt != null) return lastPolledAt + pollIntervalSeconds * 1000;
     return null;
