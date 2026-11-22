@@ -182,8 +182,8 @@ List<Widget> speciesChipWidgets(
               ),
           ],
         ),
-        // Unfilled on a sheet; over the picture the viewer's fill wins.
-        backgroundColor: Colors.transparent,
+        // Unfilled on a sheet; over the picture the viewer's fill.
+        backgroundColor: overlay ? null : Colors.transparent,
         side: BorderSide(color: outline),
         onPressed: onSuggestionTap,
         density: density,
