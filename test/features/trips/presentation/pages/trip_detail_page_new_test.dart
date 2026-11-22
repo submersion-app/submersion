@@ -19,6 +19,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 
 import '../../../../helpers/test_database.dart';
 import 'trip_detail_page_new_harness.dart';
+import 'trip_page_drag_helpers.dart';
 
 /// A new trip opens on the trip page, already unlocked, its Overview in
 /// the prepare shape (issue #4527, phase 3, plan 11).
@@ -353,5 +354,85 @@ void main() {
     expect(created.trip.name, 'Bonaire 2030');
     expect(created.trip.location, 'Bonaire');
     expect(created.dives, ['a', 'b']);
+  });
+
+  const headerFields = [
+    'trip-edit-type',
+    'trip-edit-name',
+    'trip-edit-start',
+    'trip-edit-end',
+    'trip-edit-return-flight',
+    'trip-edit-location',
+    'trip-edit-resort',
+    'trip-edit-liveaboard-name',
+  ];
+
+  Rect headerCard(WidgetTester tester) => tester.getRect(
+    find.ancestor(
+      of: find.byKey(const Key('trip-edit-name'), skipOffstage: false),
+      matching: find.byType(RecordCardFrame<Trip>, skipOffstage: false),
+    ),
+  );
+
+  // The header editor at its full height, the Overview below it, one page
+  // that scrolls, as on a stored trip's page (issue #4844).
+  for (final (name, size, embedded) in [
+    ('a phone', const Size(402, 874), false),
+    ('a desktop window', const Size(1280, 800), false),
+    ('the master-detail pane', const Size(900, 800), true),
+  ]) {
+    testWidgets('on $name every field of the header editor drags into view, '
+        'with the Overview below the card', (tester) async {
+      await pumpNewTripPage(tester, size: size, embedded: embedded);
+      expect(tester.takeException(), isNull);
+
+      for (final key in headerFields) {
+        final field = find.byKey(Key(key), skipOffstage: false);
+        await dragPageUntilShown(
+          tester,
+          field,
+          bottom: size.height,
+          from: Offset(size.width / 2, size.height / 2),
+        );
+        expectFullyShown(tester, field, bottom: size.height);
+      }
+      expect(
+        headerCard(tester).bottom,
+        lessThanOrEqualTo(
+          tester
+              .getRect(
+                find.byKey(
+                  const Key('trip-prepare-overview'),
+                  skipOffstage: false,
+                ),
+              )
+              .top,
+        ),
+      );
+    });
+  }
+
+  testWidgets('on a phone with the keyboard up, the header editor shows the '
+      'focused field and scrolls to its last', (tester) async {
+    await pumpNewTripPage(tester, size: const Size(402, 874));
+    tester.view.padding = const FakeViewPadding(top: 62, bottom: 34);
+    // The keyboard, as an iPhone 17 Pro shows it for the name field.
+    tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    const keyboardTop = 874.0 - 336;
+    expect(tester.getRect(nameField()).bottom, lessThanOrEqualTo(keyboardTop));
+    final last = find.byKey(
+      const Key('trip-edit-liveaboard-name'),
+      skipOffstage: false,
+    );
+    await dragPageUntilShown(
+      tester,
+      last,
+      bottom: keyboardTop,
+      from: const Offset(201, 300),
+    );
+    expectFullyShown(tester, last, bottom: keyboardTop);
   });
 }

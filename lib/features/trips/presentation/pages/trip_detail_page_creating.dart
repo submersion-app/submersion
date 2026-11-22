@@ -163,8 +163,8 @@ mixin _TripDetailPageCreating
     final story = _newTripStory(shown);
     final body = TripCardSlotsScope(
       slots: slots,
-      child: Column(
-        children: [
+      child: TripPageBody(
+        above: [
           // Its larger trip, as the sitting holds it: the stored page's
           // link reads the trip's own row, which a new trip does not have.
           if (shown.parentTripId case final parentId?)
@@ -172,9 +172,10 @@ mixin _TripDetailPageCreating
               parentId: parentId,
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
             ),
-          slots.frame(TripCardId.header, TripHeaderRows(trip: shown)),
-          Expanded(child: TripPrepareOverview(story: story, tabRows: false)),
         ],
+        header: slots.frame(TripCardId.header, TripHeaderRows(trip: shown)),
+        below: TripPrepareOverview(story: story, tabRows: false),
+        headerOpen: _headerEditorOpen,
       ),
     );
     if (widget.embedded) {
