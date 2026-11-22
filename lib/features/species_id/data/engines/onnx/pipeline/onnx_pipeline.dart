@@ -111,10 +111,21 @@ class OnnxPipeline {
   List<PipelineBox> detectFrame(RgbaImage frame) =>
       _combined(_detectEach(frame));
 
-  /// [box] of [image] cropped and embedded, as a photo's box is; null when
-  /// too small to crop.
+  /// [box] of a video frame [image] cropped and embedded; null when too
+  /// small to crop. A small box takes more of its surroundings than a
+  /// photo's box does ([VisionModels.momentPadding], issue #4882).
   VisionMomentCrop? cropAndEmbed(RgbaImage image, IdentificationBox box) =>
-      _cropAndEmbed(image, box.x, box.y, box.width, box.height);
+      _cropAndEmbed(
+        image,
+        box.x,
+        box.y,
+        box.width,
+        box.height,
+        padding: models.momentPadding(
+          boxWidth: box.width * image.width,
+          boxHeight: box.height * image.height,
+        ),
+      );
 
   List<List<PipelineBox>> _detectEach(RgbaImage image) {
     final inputs = _detectorInputs(image);
@@ -238,8 +249,9 @@ class OnnxPipeline {
     double x,
     double y,
     double w,
-    double h,
-  ) {
+    double h, {
+    double? padding,
+  }) {
     final rect = paddedCrop(
       imageWidth: image.width,
       imageHeight: image.height,
@@ -247,7 +259,7 @@ class OnnxPipeline {
       y: y,
       w: w,
       h: h,
-      padding: models.cropPadding,
+      padding: padding ?? models.cropPadding,
     );
     if (rect == null) return null;
     final crop = cropOf(image, rect);

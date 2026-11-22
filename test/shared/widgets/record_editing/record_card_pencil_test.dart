@@ -5,6 +5,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
@@ -236,6 +237,35 @@ void main() {
       find.bySemanticsLabel(l10n.recordEdit_unsavedChanges),
       findsOneWidget,
     );
+  });
+
+  // The dot that marks unsaved changes is the pencil's colour, ring and
+  // all, wherever it is drawn (issue #4527).
+  testWidgets('the unsaved dot wears the theme\'s pencil colours', (
+    tester,
+  ) async {
+    const custom = RecordPencilColors(
+      fill: Color(0xFF123456),
+      onFill: Color(0xFFABCDEF),
+      outline: Color(0xFF654321),
+    );
+    final controller = _controller()..unlock('Blue Corner');
+    await tester.pumpWidget(
+      _host(controller, theme: ThemeData(extensions: const [custom])),
+    );
+    controller.session!.set(_name, 'Elphinstone');
+    await tester.pump();
+
+    final box = tester.widget<Container>(
+      find.descendant(
+        of: find.byType(RecordChangedDot),
+        matching: find.byType(Container),
+      ),
+    );
+    final decoration = box.decoration! as BoxDecoration;
+    expect(decoration.shape, BoxShape.circle);
+    expect(decoration.color, custom.fill);
+    expect(decoration.border, Border.all(color: custom.outline));
   });
 
   // Inside a Card the pencil keeps a node of its own: merged into the

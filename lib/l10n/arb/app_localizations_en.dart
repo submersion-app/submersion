@@ -9629,6 +9629,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setup_step_units => 'Units';
 
   @override
+  String get setup_speciesModel_title => 'Species identification';
+
+  @override
+  String get setup_speciesModel_intro =>
+      'Suggests the species in your dive photos and videos. It runs on this device, and nothing is uploaded.';
+
+  @override
+  String get setup_speciesModel_introPhotos =>
+      'Suggests the species in your dive photos. It runs on this device, and nothing is uploaded.';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return 'Download: $size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => 'Wi-Fi recommended';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'Windows may also download an engine for your graphics card or NPU from Microsoft.';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      'Downloading. You can follow it in Settings > Data > Photos & videos > Species identification.';
+
+  @override
+  String get setup_speciesModel_installed => 'Installed on this device';
+
+  @override
+  String get setup_speciesModel_later =>
+      'Can\'t reach the download right now. You\'ll find it later in Settings > Data > Photos & videos > Species identification.';
+
+  @override
+  String get setup_speciesModel_download => 'Download';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       'This account holds a Submersion library that was never finished uploading. Let your other device finish syncing, then try again.';
 

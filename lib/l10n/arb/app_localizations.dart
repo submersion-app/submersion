@@ -15394,6 +15394,66 @@ abstract class AppLocalizations {
   /// **'Units'**
   String get setup_step_units;
 
+  /// No description provided for @setup_speciesModel_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Species identification'**
+  String get setup_speciesModel_title;
+
+  /// No description provided for @setup_speciesModel_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggests the species in your dive photos and videos. It runs on this device, and nothing is uploaded.'**
+  String get setup_speciesModel_intro;
+
+  /// No description provided for @setup_speciesModel_introPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggests the species in your dive photos. It runs on this device, and nothing is uploaded.'**
+  String get setup_speciesModel_introPhotos;
+
+  /// No description provided for @setup_speciesModel_size.
+  ///
+  /// In en, this message translates to:
+  /// **'Download: {size}'**
+  String setup_speciesModel_size(String size);
+
+  /// No description provided for @setup_speciesModel_wifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi recommended'**
+  String get setup_speciesModel_wifi;
+
+  /// No description provided for @setup_speciesModel_hardware.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows may also download an engine for your graphics card or NPU from Microsoft.'**
+  String get setup_speciesModel_hardware;
+
+  /// No description provided for @setup_speciesModel_downloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading. You can follow it in Settings > Data > Photos & videos > Species identification.'**
+  String get setup_speciesModel_downloading;
+
+  /// No description provided for @setup_speciesModel_installed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed on this device'**
+  String get setup_speciesModel_installed;
+
+  /// No description provided for @setup_speciesModel_later.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the download right now. You\'ll find it later in Settings > Data > Photos & videos > Species identification.'**
+  String get setup_speciesModel_later;
+
+  /// No description provided for @setup_speciesModel_download.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get setup_speciesModel_download;
+
   /// No description provided for @setup_syncPull_incomplete_message.
   ///
   /// In en, this message translates to:

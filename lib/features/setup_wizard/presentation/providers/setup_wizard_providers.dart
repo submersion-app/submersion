@@ -58,4 +58,7 @@ class SetupWizardNotifier extends StateNotifier<SetupWizardDraft> {
 
   /// Finish found no diver and no name: ask for the profile first.
   void requireProfile() => state = state.copyWith(needsProfile: true);
+
+  /// Offers the species model step (issue #4881). Never withdrawn.
+  void offerSpeciesModel() => state = state.copyWith(speciesModelOffered: true);
 }
