@@ -41,11 +41,16 @@ final homeRecentOutingsProvider = FutureProvider<List<HomeOuting>>((ref) async {
   ref.invalidateSelfWhen(localDayChanges());
   final diverId = ref.watch(currentDiverIdProvider);
 
-  final dives = await insights.getOutingDives(
+  // One row past the limit says whether older dives exist at all: exactly
+  // [_readLimit] dives is the whole log, not a cut one.
+  final read = await insights.getOutingDives(
     diverId: diverId,
-    limit: _readLimit,
+    limit: _readLimit + 1,
   );
-  final outings = groupOutings(dives, truncated: dives.length >= _readLimit);
+  final outings = groupOutings(
+    read.take(_readLimit).toList(),
+    truncated: read.length > _readLimit,
+  );
   final covers = await _coversFor(coverRepository, outings);
   return [
     for (var i = 0; i < outings.length; i++)

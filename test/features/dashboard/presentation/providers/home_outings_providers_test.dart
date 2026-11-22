@@ -120,4 +120,41 @@ void main() {
       expect(outings.every((o) => o.cover == null), isTrue);
     },
   );
+
+  group('the 300-dive read', () {
+    Future<void> seed({required bool older}) async {
+      await db.delete(db.dives).go();
+      // 299 dives on one trip, and one far older trip-less dive: 300 in all.
+      await db.batch((b) {
+        for (var i = 0; i < 299; i++) {
+          b.insert(
+            db.dives,
+            DivesCompanion(
+              id: Value('t$i'),
+              diveDateTime: Value(
+                DateTime.utc(2026, 5, 3, 0, i).millisecondsSinceEpoch,
+              ),
+              tripId: const Value('t1'),
+              createdAt: const Value(0),
+              updatedAt: const Value(0),
+            ),
+          );
+        }
+      });
+      await dive('old', DateTime.utc(2020, 1, 1, 9));
+      if (older) await dive('older', DateTime.utc(2019, 1, 1, 9));
+    }
+
+    test('exactly 300 dives keep the oldest outing', () async {
+      await seed(older: false);
+      final outings = await container.read(homeRecentOutingsProvider.future);
+      expect(outings.map((o) => o.outing.diveIds.first), ['t0', 'old']);
+    });
+
+    test('a 301st dive drops the outing the read may have cut', () async {
+      await seed(older: true);
+      final outings = await container.read(homeRecentOutingsProvider.future);
+      expect(outings.map((o) => o.outing.tripId), ['t1']);
+    });
+  });
 }
