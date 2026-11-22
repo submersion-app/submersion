@@ -678,3 +678,29 @@ numpy and Pillow. Each set's `precision` and `levels` go from
 `results.json`'s `measured` entries into `NAMING_MEASURED`, and
 `relevel_manifest.py --in <published manifest.json> --out <new manifest.json>`
 adds them to the published manifest, changing nothing else.
+
+"The ONNX engine against Core ML" comes from `engine_gate.json` and the
+gate and comparison outputs, regenerated in the species-pack repository
+from the pack with its ONNX files added (`PACK`) and a work folder
+(`WORK`):
+
+1. `score.py --pack PACK --engine coreml --naming-from PACK --work WORK`,
+   then the same with `--engine onnx` and `SUBMERSION_APP` set to an app
+   checkout at the engine's commit; the ONNX results go to `WORK/onnx`.
+2. `engine_gate.py --work WORK --pack PACK`, then
+   `gate.py --baseline W0 --baseline-pack P0 --trained WORK --trained-pack PACK --check W2 --check-pack P2 --trained-onnx WORK/onnx --set testdata/accuracy_set.csv`,
+   where P0 is the baseline pack (`2026.11.18.0356` with ONNX files
+   added), P2 the rare-species check pack, and W0 and W2 their work
+   folders, each scored with `--naming-from PACK` as `gate.py`'s own
+   header describes.
+3. For x64, a request file for the app's scoring runner on each machine,
+   built with species-pack's `score.onnx_request`: the pack's manifest,
+   both detectors' and the classifier's ONNX files, `centreCrop` and the
+   100 held-out photos, with that machine's paths; as `out`, that
+   machine's JSON lines file (`MAC.jsonl`, `X64.jsonl`); and as
+   `ortLibrary`, the pinned ONNX Runtime library `score.py` fetches on
+   the Mac, and nothing on Linux, where the app's build hook supplies it.
+   Then, in an app checkout at the engine's commit on each machine,
+   `SPECIES_VISION_REQUEST=request.json flutter test tool/species_vision_onnx/species_vision_onnx_test.dart`
+   with that machine's request, and
+   `engine_compare.py --pack PACK MAC.jsonl X64.jsonl`.
