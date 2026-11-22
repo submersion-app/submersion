@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_computer/data/services/libdc_sample_uni
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart'
     show computerModelsCompatible, identityPartsCompatible;
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_dive_counts.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -2866,7 +2867,7 @@ class DiveComputerRepository {
   // ============================================================================
 
   /// [row] as a domain computer whose `diveCount` is counted from the dives
-  /// it recorded (see [_diveCountsFor]).
+  /// it recorded (see [diveComputerDiveCounts]).
   Future<domain.DiveComputer> _toComputer(db.DiveComputer row) async =>
       (await _toComputers([row])).single;
 
@@ -2874,46 +2875,12 @@ class DiveComputerRepository {
   Future<List<domain.DiveComputer>> _toComputers(
     List<db.DiveComputer> rows,
   ) async {
-    final counts = await _diveCountsFor([for (final r in rows) r.id]);
+    final counts = await diveComputerDiveCounts(_db, [
+      for (final r in rows) r.id,
+    ]);
     return [
       for (final r in rows) _mapRowToComputer(r, diveCount: counts[r.id] ?? 0),
     ];
-  }
-
-  /// The number of distinct dives each of [computerIds] recorded: a data
-  /// source from it, primary or not, or the dive's own `computer_id` (a dive
-  /// attributed before data sources existed). This is what "Dives imported"
-  /// shows (issue #4846). The stored `dive_count` only ever counted a
-  /// computer's own downloads, so dives that came to it later by a relink
-  /// or a merge were missing from it. The same union decides which dives
-  /// carry the computer's Equipment item.
-  Future<Map<String, int>> _diveCountsFor(List<String> computerIds) async {
-    final counts = <String, int>{};
-    // Each id is bound twice per statement.
-    for (final chunk in seriesIdChunks(
-      computerIds.toSet().toList(),
-      size: kSeriesIdChunkSize ~/ 2,
-    )) {
-      final marks = List.filled(chunk.length, '?').join(', ');
-      final rows = await _db
-          .customSelect(
-            'SELECT computer_id, COUNT(*) AS dives FROM ('
-            'SELECT computer_id, dive_id FROM dive_data_sources '
-            'WHERE computer_id IN ($marks) '
-            'UNION SELECT computer_id, id FROM dives '
-            'WHERE computer_id IN ($marks)'
-            ') GROUP BY computer_id',
-            variables: [
-              for (final id in [...chunk, ...chunk]) Variable<String>(id),
-            ],
-            readsFrom: {_db.diveDataSources, _db.dives},
-          )
-          .get();
-      for (final r in rows) {
-        counts[r.read<String>('computer_id')] = r.read<int>('dives');
-      }
-    }
-    return counts;
   }
 
   domain.DiveComputer _mapRowToComputer(
