@@ -141,6 +141,52 @@ void main() {
     expect((await h.one('nav_tracks', 'r2'))!['is_primary'], isTrue);
   });
 
+  group('a site change moves the anchor as the track page does', () {
+    Future<void> sites() => db.customStatement(
+      'INSERT INTO dive_sites (id, diver_id, name, latitude, longitude, '
+      "created_at, updated_at) VALUES ('sa', '$kDiverA', 'A', 10.0, 20.0, "
+      "1, 1), ('sb', '$kDiverA', 'B', 30.0, 40.0, 1, 1)",
+    );
+
+    Future<void> placeOnSiteA(double lat, double lon) =>
+        (db.update(db.navTracks)..where((t) => t.id.equals('r1'))).write(
+          NavTracksCompanion(
+            siteId: const Value('sa'),
+            anchorLatitude: Value(lat),
+            anchorLongitude: Value(lon),
+          ),
+        );
+
+    Future<List<Object?>> place() async {
+      final row = (await h.one('nav_tracks', 'r1'))!;
+      return [row['site_id'], row['anchor_latitude'], row['anchor_longitude']];
+    }
+
+    test('an anchor on the old site\'s pin moves to the new one', () async {
+      await sites();
+      await route('r1');
+      await placeOnSiteA(10.0, 20.0);
+
+      await h.run([
+        updateOp('nav_tracks', 'r1', {'site_id': 'sb'}),
+      ]);
+
+      expect(await place(), ['sb', 30.0, 40.0]);
+    });
+
+    test('an anchor placed by hand stays', () async {
+      await sites();
+      await route('r1');
+      await placeOnSiteA(1.0, 2.0);
+
+      await h.run([
+        updateOp('nav_tracks', 'r1', {'site_id': 'sb'}),
+      ]);
+
+      expect(await place(), ['sb', 1.0, 2.0]);
+    });
+  });
+
   test('a scale of 5 is refused', () async {
     await route('r1');
 

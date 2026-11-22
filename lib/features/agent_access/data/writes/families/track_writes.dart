@@ -10,6 +10,7 @@ import 'package:submersion/features/gps_log/data/repositories/track_geometry_cac
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
 
 /// Surface GPS tracks, through the repository the GPS log uses: a track is
 /// trimmed (its fixes kept, only hidden), split in two at a moment, or
@@ -343,7 +344,22 @@ class NavTrackWrites extends WritableEntry {
       }
     }
     if (v.containsKey('site_id')) {
-      await repo.setSite(id, v['site_id'] as String?);
+      final siteId = v['site_id'] as String?;
+      // Read again: a dive change above may have moved the site and anchor.
+      final current = await _route(id);
+      // The anchor follows the site as the track page's site picker moves
+      // it: only one still on the old site's pin, never one placed by hand.
+      final change = navTrackAnchorChangeForSite(
+        current.anchor,
+        await _sitePin(current.siteId),
+        await _sitePin(siteId),
+      );
+      await repo.setSite(
+        id,
+        siteId,
+        anchor: change.write ? change.anchor : null,
+        clearAnchor: change.write && change.anchor == null,
+      );
     }
     if (v.containsKey('equipment_id')) {
       final itemId = v['equipment_id'] as String?;
@@ -386,6 +402,10 @@ class NavTrackWrites extends WritableEntry {
 
   @override
   Future<void> delete(String id, String? ownerId) => _r.navTracks.delete(id);
+
+  /// Where site [siteId] is pinned, or null for no site or no pin.
+  Future<GeoPoint?> _sitePin(String? siteId) async =>
+      siteId == null ? null : (await _r.sites.getSiteById(siteId))?.location;
 
   Future<NavTrack> _route(String id) async =>
       await _r.navTracks.getById(id, includePoints: false) ??
