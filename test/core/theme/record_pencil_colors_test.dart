@@ -121,7 +121,9 @@ void main() {
           final pencil = brightness == Brightness.light
               ? RecordPencilColors.light
               : RecordPencilColors.dark;
-          final apart = (hue(primary) - hue(pencil.fill)).abs();
+          // Measured round the colour wheel: hue 355 is 50 from hue 45.
+          final gap = (hue(primary) - hue(pencil.fill)).abs();
+          final apart = gap > 180 ? 360 - gap : gap;
           expect(
             // A grey primary has no hue to compare.
             HSVColor.fromColor(primary).saturation < .2 || apart >= 60,
