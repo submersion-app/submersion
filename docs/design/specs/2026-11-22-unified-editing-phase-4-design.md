@@ -224,7 +224,9 @@ page, and holds what every phase 4 editor shares:
 - A stored record deleted elsewhere while it was edited is refused at Save
   with the editor's "no longer exists" message, and nothing is written.
 - An editor writes only the values whose text changed since the form was
-  filled (`editorStartDraft`); the rest keep their stored values.
+  filled (`editorStartDraft`), on top of the record as stored at Save
+  (read inside the sitting), never the copy the page loaded; the rest keep
+  their stored values, including any synced in meanwhile.
 - Save runs the editor's save function inside `runRecordSitting` on that
   editor's table and id, for a new record as for a stored one: one
   transaction, one change log operation, labelled with the record. The

@@ -493,6 +493,15 @@ changed from this plan, for plan 2 to build on:
   it falls back to `editorLeaveLocation`. Each editor's update refuses a
   record deleted elsewhere with a `RecordSittingRefusal` carrying its
   not-found message.
+- **An update starts from the record as stored at Save**, read inside the
+  sitting (the same read refuses a record deleted elsewhere), never from
+  the copy the page loaded: only fields whose text changed since the form
+  was filled are written, so a value synced in meanwhile is kept. The tank
+  editor applies this field by field; the weight editor renames only
+  (`renamePreset`, the weights untouched) when its rows are unchanged, keeps
+  the stored name when only rows changed, and a row whose amount text is
+  unchanged keeps its stored kilograms. Plan 2's editors (cylinder
+  configurations, transmitter keys) follow the same rule.
 - **A test that holds Save on the diver** must refresh the provider
   (`container.invalidate(validatedCurrentDiverIdProvider)`) after setting
   its gate, since the host has read it at start, and step frames instead of
