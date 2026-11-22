@@ -4929,6 +4929,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checklists_template_descriptionLabel => '説明';
 
   @override
+  String get checklists_template_edit_notFound => 'このテンプレートはもう存在しません。';
+
+  @override
   String get checklists_template_itemsHeader => '項目';
 
   @override
@@ -5018,6 +5021,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => '名前を入力してください';
+
+  @override
+  String get preDive_edit_notFound => 'このチェックリストはもう存在しません。';
 
   @override
   String get preDive_item_title => 'タイトル';
