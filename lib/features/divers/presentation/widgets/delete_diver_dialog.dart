@@ -60,13 +60,13 @@ class _DeleteDiverDialogState extends State<DeleteDiverDialog> {
 
   /// Whether [typed] is the confirmation phrase. Whitespace is compared
   /// loosely: a Japanese or Chinese IME in full-width mode types the space
-  /// as U+3000 (#4833), and a doubled or edge space is a slip, not a
-  /// different answer.
+  /// as U+3000 (#4833), which Dart's `\s` matches, and a doubled or edge
+  /// space is a slip, not a different answer.
   bool _matchesConfirmation(String typed) =>
       _normalizeSpaces(typed) == _normalizeSpaces(_confirmationText);
 
   static String _normalizeSpaces(String text) =>
-      text.replaceAll(RegExp(r'[\s\u3000]+'), ' ').trim();
+      text.replaceAll(RegExp(r'\s+'), ' ').trim();
 
   @override
   void initState() {

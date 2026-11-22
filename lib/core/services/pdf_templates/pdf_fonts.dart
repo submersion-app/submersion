@@ -116,9 +116,8 @@ class PdfFonts {
   /// time, and characters laid out one at a time neither join (Arabic) nor
   /// keep their order inside a mixed right-to-left line (Latin site names,
   /// units). Only the languages in [scriptFontLoaders] trigger a download.
-  /// Deliberately does
-  /// not call [initialize]: whether the Latin font is embedded stays the
-  /// caller's decision, as it was before.
+  /// Deliberately does not call [initialize]: whether the Latin font is
+  /// embedded stays the caller's decision, as it was before.
   ///
   /// Never throws. A script font that cannot be loaded (no network) leaves
   /// the Latin theme, which prints the characters it can, as before.
