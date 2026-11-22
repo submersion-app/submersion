@@ -11,6 +11,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/data/services/primary_source_promotion.dart';
 import 'package:submersion/features/dive_log/data/services/source_row_ownership.dart';
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
@@ -208,6 +209,9 @@ class DiveSplitService {
         recordId: newDiveId,
         localUpdatedAt: now,
       );
+      // The copy brought every hand-set mark; only those whose value it
+      // kept stay the diver's (issue #4909).
+      await carryHandSetMarks(_db, newDiveId, [diveRow]);
       // The diver's own roles travel with the copied row (issue #1221): the
       // scalar came across in the copy, the rest of the set lives in the
       // junction.
@@ -543,6 +547,9 @@ class DiveSplitService {
       await (_db.update(
         _db.dives,
       )..where((t) => t.id.equals(diveId))).write(diveUpdate);
+      // A value step 9 refreshed from the next source is no longer the one
+      // the diver set, so its mark goes (issue #4909).
+      await carryHandSetMarks(_db, diveId, [diveRow]);
       await _sync.markRecordPending(
         entityType: 'dives',
         recordId: diveId,

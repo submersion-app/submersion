@@ -152,6 +152,39 @@ Future<void> clearHandSetMarks(
   );
 }
 
+/// Sets the marks of [targetId], a dive a merge or split has just written,
+/// from [sources], the dives as they were before it (issue #4909).
+///
+/// A mark follows the value it marked: a field is marked on the target when
+/// its value there equals that of a source that had it marked, so a value
+/// the operation carried across stays the diver's and one it recomputed (a
+/// combined runtime, a split dive's depths) does not. A key this version
+/// does not know is carried as it is. The target's own marks are replaced.
+/// Call it inside the operation's transaction.
+Future<void> carryHandSetMarks(
+  AppDatabase db,
+  String targetId,
+  Iterable<Dive> sources,
+) async {
+  final target = await (db.select(
+    db.dives,
+  )..where((t) => t.id.equals(targetId))).getSingleOrNull();
+  if (target == null) return;
+  bool carries(String key, Dive source) => switch (HandSetField.fromKey(key)) {
+    null => true,
+    final field => field.valueIn(source) == field.valueIn(target),
+  };
+  final carried = HandSetMarks.encode({
+    for (final source in sources)
+      for (final key in HandSetMarks.decode(source.handSetFields))
+        if (carries(key, source)) key,
+  });
+  if (carried == target.handSetFields) return;
+  await (db.update(db.dives)..where((t) => t.id.equals(targetId))).write(
+    DivesCompanion(handSetFields: Value(carried)),
+  );
+}
+
 /// The fields whose columns differ between [before] and [after].
 Set<HandSetField> changedHandSetFields(Dive before, Dive after) => {
   for (final field in HandSetField.values)

@@ -298,4 +298,70 @@ void main() {
       );
     });
   });
+
+  // Merge and split (issue #4909): a mark follows the value it marked.
+  group('carryHandSetMarks', () {
+    Future<Dive> row(String id) =>
+        (db.select(db.dives)..where((t) => t.id.equals(id))).getSingle();
+
+    Future<void> insertTarget({
+      double? waterTemp = 24,
+      int? runtime = 3000,
+      String? handSetFields,
+    }) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 't1',
+            diveDateTime: 1000,
+            runtime: Value(runtime),
+            waterTemp: Value(waterTemp),
+            handSetFields: Value(handSetFields),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+
+    test('a marked value the new dive took keeps its mark; a recomputed '
+        'one loses it', () async {
+      final source = await insertDive(handSetFields: '["runtime","waterTemp"]');
+      await insertTarget(runtime: 5400);
+
+      await carryHandSetMarks(db, 't1', [source]);
+
+      expect((await row('t1')).handSetFields, '["waterTemp"]');
+    });
+
+    test('marks come from whichever source the value came from', () async {
+      final marked = await insertDive(handSetFields: '["waterTemp"]');
+      final unmarked = marked.copyWith(
+        id: 'd2',
+        waterTemp: const Value(21),
+        handSetFields: const Value(null),
+      );
+      await insertTarget(waterTemp: 21);
+
+      await carryHandSetMarks(db, 't1', [marked, unmarked]);
+
+      expect((await row('t1')).handSetFields, isNull);
+    });
+
+    test('a key this version does not know is carried as it is', () async {
+      final source = await insertDive(handSetFields: '["heartRate"]');
+      await insertTarget();
+
+      await carryHandSetMarks(db, 't1', [source]);
+
+      expect((await row('t1')).handSetFields, '["heartRate"]');
+    });
+
+    test('the new dive\'s own marks are replaced by what carries', () async {
+      final source = await insertDive(handSetFields: '["runtime"]');
+      await insertTarget(runtime: 5400, handSetFields: '["runtime"]');
+
+      await carryHandSetMarks(db, 't1', [source]);
+
+      expect((await row('t1')).handSetFields, isNull);
+    });
+  });
 }
