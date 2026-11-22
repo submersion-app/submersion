@@ -4142,6 +4142,7 @@
   "divers_edit_medicationsLabel": "Gyógyszerek",
   "divers_edit_nameError": "A név megadása kötelező",
   "divers_edit_nameLabel": "Név *",
+  "divers_edit_notFound": "Ez a búvár már nem létezik.",
   "divers_edit_notesLabel": "Megjegyzések",
   "divers_edit_phoneLabel": "Telefon",
   "divers_edit_primaryContactTitle": "Elsődleges kapcsolattartó",

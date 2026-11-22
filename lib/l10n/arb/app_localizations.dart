@@ -21860,6 +21860,12 @@ abstract class AppLocalizations {
   /// **'Name *'**
   String get divers_edit_nameLabel;
 
+  /// No description provided for @divers_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This diver no longer exists.'**
+  String get divers_edit_notFound;
+
   /// No description provided for @divers_edit_notesLabel.
   ///
   /// In en, this message translates to:

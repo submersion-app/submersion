@@ -4302,6 +4302,7 @@
   "divers_edit_medicationsLabel": "Medikamente",
   "divers_edit_nameError": "Name ist erforderlich",
   "divers_edit_nameLabel": "Name *",
+  "divers_edit_notFound": "Diesen Taucher gibt es nicht mehr.",
   "divers_edit_notesLabel": "Notizen",
   "divers_edit_phoneLabel": "Telefon",
   "divers_edit_primaryContactTitle": "Primärer Kontakt",

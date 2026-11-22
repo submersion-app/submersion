@@ -14056,6 +14056,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_nameLabel => 'الاسم *';
 
   @override
+  String get divers_edit_notFound => 'لم يعد هذا الغواص موجودًا.';
+
+  @override
   String get divers_edit_notesLabel => 'ملاحظات';
 
   @override

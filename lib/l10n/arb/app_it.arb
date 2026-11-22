@@ -4142,6 +4142,7 @@
   "divers_edit_medicationsLabel": "Farmaci",
   "divers_edit_nameError": "Il nome è obbligatorio",
   "divers_edit_nameLabel": "Nome *",
+  "divers_edit_notFound": "Questo subacqueo non esiste più.",
   "divers_edit_notesLabel": "Note",
   "divers_edit_phoneLabel": "Telefono",
   "divers_edit_primaryContactTitle": "Contatto principale",

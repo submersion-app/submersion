@@ -4268,6 +4268,7 @@
   "divers_edit_medicationsLabel": "الأدوية",
   "divers_edit_nameError": "الاسم مطلوب",
   "divers_edit_nameLabel": "الاسم *",
+  "divers_edit_notFound": "لم يعد هذا الغواص موجودًا.",
   "divers_edit_notesLabel": "ملاحظات",
   "divers_edit_phoneLabel": "الهاتف",
   "divers_edit_primaryContactTitle": "جهة الاتصال الأساسية",

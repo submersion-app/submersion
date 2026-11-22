@@ -4268,6 +4268,7 @@
   "divers_edit_medicationsLabel": "Medicijnen",
   "divers_edit_nameError": "Naam is verplicht",
   "divers_edit_nameLabel": "Naam *",
+  "divers_edit_notFound": "Deze duiker bestaat niet meer.",
   "divers_edit_notesLabel": "Notities",
   "divers_edit_phoneLabel": "Telefoon",
   "divers_edit_primaryContactTitle": "Primair contact",

@@ -8506,6 +8506,7 @@
   "divers_edit_medicationsLabel": "Medications",
   "divers_edit_nameError": "Name is required",
   "divers_edit_nameLabel": "Name *",
+  "divers_edit_notFound": "This diver no longer exists.",
   "divers_edit_notesLabel": "Notes",
   "divers_edit_phoneLabel": "Phone",
   "divers_edit_primaryContactTitle": "Primary Contact",

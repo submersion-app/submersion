@@ -4268,6 +4268,7 @@
   "divers_edit_medicationsLabel": "Medicamentos",
   "divers_edit_nameError": "Nome é obrigatório",
   "divers_edit_nameLabel": "Nome *",
+  "divers_edit_notFound": "Este mergulhador já não existe.",
   "divers_edit_notesLabel": "Notas",
   "divers_edit_phoneLabel": "Telefone",
   "divers_edit_primaryContactTitle": "Contato Principal",

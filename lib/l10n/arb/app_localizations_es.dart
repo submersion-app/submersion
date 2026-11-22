@@ -13849,6 +13849,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divers_edit_nameLabel => 'Nombre *';
 
   @override
+  String get divers_edit_notFound => 'Este buceador ya no existe.';
+
+  @override
   String get divers_edit_notesLabel => 'Notas';
 
   @override

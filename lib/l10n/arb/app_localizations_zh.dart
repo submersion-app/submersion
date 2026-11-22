@@ -13158,6 +13158,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_nameLabel => '名称 *';
 
   @override
+  String get divers_edit_notFound => '该潜水员已不存在。';
+
+  @override
   String get divers_edit_notesLabel => '备注';
 
   @override

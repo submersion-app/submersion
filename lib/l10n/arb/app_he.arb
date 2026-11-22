@@ -4142,6 +4142,7 @@
   "divers_edit_medicationsLabel": "תרופות",
   "divers_edit_nameError": "שם הוא שדה חובה",
   "divers_edit_nameLabel": "שם *",
+  "divers_edit_notFound": "הצולל הזה כבר לא קיים.",
   "divers_edit_notesLabel": "הערות",
   "divers_edit_phoneLabel": "טלפון",
   "divers_edit_primaryContactTitle": "איש קשר ראשי",

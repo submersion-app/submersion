@@ -13554,6 +13554,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_nameLabel => 'שם *';
 
   @override
+  String get divers_edit_notFound => 'הצולל הזה כבר לא קיים.';
+
+  @override
   String get divers_edit_notesLabel => 'הערות';
 
   @override

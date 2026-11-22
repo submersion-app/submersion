@@ -4374,6 +4374,7 @@
   "divers_edit_medicationsLabel": "用药",
   "divers_edit_nameError": "姓名为必填项",
   "divers_edit_nameLabel": "名称 *",
+  "divers_edit_notFound": "该潜水员已不存在。",
   "divers_edit_notesLabel": "备注",
   "divers_edit_phoneLabel": "电话",
   "divers_edit_primaryContactTitle": "主要联系人",

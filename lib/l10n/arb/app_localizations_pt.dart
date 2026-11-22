@@ -13851,6 +13851,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divers_edit_nameLabel => 'Nome *';
 
   @override
+  String get divers_edit_notFound => 'Este mergulhador já não existe.';
+
+  @override
   String get divers_edit_notesLabel => 'Notas';
 
   @override

@@ -2016,6 +2016,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'medical',
                     name: 'editMedicalInfo',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const MedicalInfoEditPage(),
                   ),
                   GoRoute(

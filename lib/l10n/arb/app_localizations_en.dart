@@ -13641,6 +13641,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divers_edit_nameLabel => 'Name *';
 
   @override
+  String get divers_edit_notFound => 'This diver no longer exists.';
+
+  @override
   String get divers_edit_notesLabel => 'Notes';
 
   @override

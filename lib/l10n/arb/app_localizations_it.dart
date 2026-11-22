@@ -13852,6 +13852,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divers_edit_nameLabel => 'Nome *';
 
   @override
+  String get divers_edit_notFound => 'Questo subacqueo non esiste più.';
+
+  @override
   String get divers_edit_notesLabel => 'Note';
 
   @override

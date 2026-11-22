@@ -4142,6 +4142,7 @@
   "divers_edit_medicationsLabel": "Médicaments",
   "divers_edit_nameError": "Le nom est requis",
   "divers_edit_nameLabel": "Nom *",
+  "divers_edit_notFound": "Ce plongeur n'existe plus.",
   "divers_edit_notesLabel": "Notes",
   "divers_edit_phoneLabel": "Téléphone",
   "divers_edit_primaryContactTitle": "Contact principal",

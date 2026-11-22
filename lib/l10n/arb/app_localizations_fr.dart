@@ -13887,6 +13887,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divers_edit_nameLabel => 'Nom *';
 
   @override
+  String get divers_edit_notFound => 'Ce plongeur n\'existe plus.';
+
+  @override
   String get divers_edit_notesLabel => 'Notes';
 
   @override

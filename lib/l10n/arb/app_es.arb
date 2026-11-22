@@ -4268,6 +4268,7 @@
   "divers_edit_medicationsLabel": "Medicamentos",
   "divers_edit_nameError": "El nombre es obligatorio",
   "divers_edit_nameLabel": "Nombre *",
+  "divers_edit_notFound": "Este buceador ya no existe.",
   "divers_edit_notesLabel": "Notas",
   "divers_edit_phoneLabel": "Teléfono",
   "divers_edit_primaryContactTitle": "Contacto principal",
