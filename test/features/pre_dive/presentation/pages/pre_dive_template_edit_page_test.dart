@@ -12,6 +12,8 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
@@ -47,8 +49,8 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
 
   /// Fake find-or-create: deterministic by title, no real persistence.
   /// None of this file's save-path tests type a section title, so this is
-  /// never exercised for its return value, only kept so _save does not hit
-  /// noSuchMethod for a method it genuinely calls.
+  /// never exercised for its return value, only kept so a call to it does
+  /// not hit noSuchMethod.
   @override
   Future<String?> findOrCreateSectionId(
     String templateId,
@@ -724,13 +726,30 @@ void main() {
       expect(find.text('Save'), findsNothing);
     });
 
-    testWidgets('a brand new template still gets Save immediately', (
-      tester,
-    ) async {
+    testWidgets('a brand new template shows the tinted bar on its first '
+        'frame, Save disabled until a change', (tester) async {
       // No fetch happens without a templateId, so nothing should be deferred.
-      await pumpPage(tester);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            preDiveTemplateRepositoryProvider.overrideWithValue(
+              _FakeTemplateRepo(),
+            ),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-1',
+            ),
+          ],
+          child: const PreDiveTemplateEditPage(),
+        ),
+      );
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
       expect(find.text('New Pre-Dive Checklist'), findsOneWidget);
-      expect(find.text('Save'), findsOneWidget);
+      final save = tester
+          .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+          .firstWhere((a) => a.label == 'Save');
+      expect(save.onPressed, isNull);
     });
   });
 
