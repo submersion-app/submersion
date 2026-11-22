@@ -168,6 +168,42 @@ void main() {
       expect(guarded.kept, isEmpty);
     });
 
+    test('a kept start moves the parse\'s exit with it', () async {
+      // Stored: start 1000, runtime 3000 s. The diver moved the start.
+      final stored = await insertDive(handSetFields: '["entryTime"]');
+      final guarded = keepHandSetFields(
+        const DivesCompanion(
+          entryTime: Value(500),
+          diveDateTime: Value(500),
+          runtime: Value(2000),
+          exitTime: Value(500 + 2000 * 1000),
+        ),
+        stored,
+      );
+      expect(guarded.companion.entryTime.present, isFalse);
+      expect(guarded.companion.exitTime, const Value(1000 + 2000 * 1000));
+    });
+
+    test('a kept runtime keeps the exit at start plus runtime', () async {
+      final stored = await insertDive(handSetFields: '["runtime"]');
+      final guarded = keepHandSetFields(
+        const DivesCompanion(runtime: Value(2000), exitTime: Value(2001000)),
+        stored,
+      );
+      expect(guarded.companion.exitTime, const Value(1000 + 3000 * 1000));
+    });
+
+    test('a kept exit stays as the diver set it', () async {
+      final stored = await insertDive(
+        handSetFields: '["entryTime","exitTime"]',
+      );
+      final guarded = keepHandSetFields(
+        const DivesCompanion(entryTime: Value(500), exitTime: Value(9)),
+        stored,
+      );
+      expect(guarded.companion.exitTime.present, isFalse);
+    });
+
     test('replace takes the parse and clears only that mark', () async {
       final stored = await insertDive(
         handSetFields: '["bottomTime","heartRate","waterTemp"]',

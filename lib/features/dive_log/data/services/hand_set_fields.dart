@@ -193,12 +193,38 @@ class HandSetChange {
     }
     companion = field.leaveOut(companion);
   }
+  companion = _exitFollowsKeptTimes(companion, stored, marked, replace);
   if (cleared.isNotEmpty) {
     companion = companion.copyWith(
       handSetFields: Value(HandSetMarks.encode(keys.difference(cleared))),
     );
   }
   return (companion: companion, kept: List.unmodifiable(kept));
+}
+
+/// [companion] with its exit at the dive's start plus runtime, when the
+/// start or the runtime is the diver's and the exit is not: the parse
+/// computed its exit from its own start and duration, which a kept value
+/// no longer matches. A companion writing no exit is left alone.
+DivesCompanion _exitFollowsKeptTimes(
+  DivesCompanion companion,
+  Dive stored,
+  Set<HandSetField> marked,
+  Set<HandSetField> replace,
+) {
+  bool kept(HandSetField field) =>
+      marked.contains(field) && !replace.contains(field);
+  if (!companion.exitTime.present || kept(HandSetField.exitTime)) {
+    return companion;
+  }
+  if (!kept(HandSetField.entryTime) && !kept(HandSetField.runtime)) {
+    return companion;
+  }
+  final written = stored.copyWithCompanion(companion);
+  final runtime = written.runtime;
+  if (runtime == null) return companion;
+  final start = written.entryTime ?? written.diveDateTime;
+  return companion.copyWith(exitTime: Value(start + runtime * 1000));
 }
 
 /// Marks, on each dive of [before], the fields the diver's write just
