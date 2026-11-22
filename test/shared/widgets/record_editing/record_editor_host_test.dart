@@ -40,6 +40,13 @@ class _Probe {
 
   /// Runs inside the write, before it answers.
   Future<void> Function()? duringWrite;
+
+  /// While set, the validated diver waits for it: a Save resolving the
+  /// diver is held there.
+  Completer<String?>? diverGate;
+
+  /// While set, the fake record "loads" until it completes, then opens.
+  Completer<void>? loadGate;
 }
 
 /// An editor with no read page, as small as one can be: one text field
@@ -68,7 +75,12 @@ class _FakeEditorState extends ConsumerState<_FakeEditorPage>
     super.initState();
     text = TextEditingController(text: widget.storedId == null ? '' : 'stored')
       ..addListener(editorChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) => openEditor());
+    final loading = widget.probe.loadGate;
+    if (loading != null) {
+      loading.future.then((_) => openEditor());
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => openEditor());
+    }
   }
 
   @override
@@ -148,6 +160,7 @@ void main() {
     String? storedId = 'rec-1',
     bool shell = false,
     bool onExit = false,
+    String? diver = 'a',
   }) async {
     final list = GoRoute(
       path: shell ? 'list' : '/',
@@ -186,7 +199,9 @@ void main() {
           ),
           validatedCurrentDiverIdProvider.overrideWith((ref) async {
             probe.diverReadInScope.add(ChangeLogScope.currentOperationId);
-            return ref.watch(currentDiverIdProvider);
+            final current = ref.watch(currentDiverIdProvider);
+            final gate = probe.diverGate;
+            return gate == null ? current : gate.future;
           }),
         ],
         child: RecordEditShortcuts(
@@ -203,7 +218,11 @@ void main() {
     container = ProviderScope.containerOf(
       tester.element(find.byType(Navigator).first),
     );
-    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('a');
+    if (diver != null) {
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver(diver);
+    }
     if (shell) {
       router.push('/list');
       await tester.pumpAndSettle();
@@ -554,6 +573,65 @@ void main() {
     expect(find.byType(_FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
     expect(probe.writes, isEmpty);
+  });
+
+  testWidgets('a discard from the exit guard while Save resolves the diver '
+      'closes the page', (tester) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    final gate = probe.diverGate = Completer<String?>();
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.pump();
+    final leaving = container.read(appExitGuardProvider).mayLeave();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(await leaving, isTrue);
+    gate.complete('a');
+    await tester.pumpAndSettle();
+    expect(probe.writes, isEmpty);
+    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.text('list'), findsOneWidget);
+  });
+
+  testWidgets('the form is checked after Save resolves the diver, as it is '
+      'written', (tester) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    final gate = probe.diverGate = Completer<String?>();
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.pump();
+    probe.valid = false;
+    gate.complete('a');
+    await tester.pumpAndSettle();
+    expect(probe.writes, isEmpty);
+    expect(find.byType(_FakeEditorPage), findsOneWidget);
+  });
+
+  testWidgets('a diver id repaired from none to a diver keeps the editor '
+      'open', (tester) async {
+    await pump(tester, diver: null);
+    await type(tester, 'changed');
+    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('a');
+    await tester.pumpAndSettle();
+    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.text('changed'), findsOneWidget);
+    // That diver is now the editor's: switching away from it closes it.
+    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
+    await tester.pumpAndSettle();
+    expect(find.byType(_FakeEditorPage), findsNothing);
+  });
+
+  testWidgets('a diver switch while the record loads closes the page '
+      'unopened', (tester) async {
+    final loading = probe.loadGate = Completer<void>();
+    await pump(tester);
+    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
+    await tester.pumpAndSettle();
+    loading.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.text('list'), findsOneWidget);
   });
 
   testWidgets('Ctrl+S saves and Escape cancels', (tester) async {

@@ -116,7 +116,9 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   /// The page is leaving: nothing leaves again.
   bool _leaving = false;
 
-  /// The active diver when the sitting opened: another one closes it.
+  /// The active diver the editor is for, noted as the page starts: another
+  /// one closes it. Null until a diver is known; the first one known is
+  /// adopted, not a switch (the app resolving its default diver).
   String? _diverAtOpen;
 
   /// The sitting's controller, created on first use.
@@ -125,6 +127,10 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
 
   /// Whether the sitting is open.
   bool get editorOpen => _opened && (_controller?.isUnlocked ?? false);
+
+  /// The draft the sitting opened on: the form as it was filled. An editor
+  /// writes what differs from it; null before [openEditor].
+  D? get editorStartDraft => _controller?.session?.stored;
 
   RecordEditController<D> _newController() {
     final container = ProviderScope.containerOf(context, listen: false);
@@ -157,6 +163,7 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   @override
   void initState() {
     super.initState();
+    _diverAtOpen = ref.read(currentDiverIdProvider);
     final controller = editorController;
     final target = _shortcutTarget = RecordEditShortcutTarget(
       controller: controller,
@@ -179,7 +186,12 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   void openEditor() {
     if (_opened || _leaving || !mounted) return;
     _opened = true;
-    _diverAtOpen = ref.read(currentDiverIdProvider);
+    // Another diver became active while the record loaded: it is not the
+    // new diver's to edit. The page leaves without a sitting.
+    if (_switchedAway(ref.read(currentDiverIdProvider))) {
+      setState(() {});
+      return;
+    }
     editorController.unlock(readEditorDraft());
   }
 
@@ -197,25 +209,27 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     if (_saving || _leaving || !editorOpen) return;
     final controller = editorController;
     if (!controller.isDirty || controller.isBusy) return;
-    if (!validateEditor()) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     _saving = true;
-    final bool saved;
+    var saved = false;
     try {
       // Resolved before the transaction opens: a provider rebuilding inside
       // it would wait on the transaction's lock, and the transaction on it.
       _saveDiverId = await ref.read(validatedCurrentDiverIdProvider.future);
       if (!mounted) return;
-      // Another diver became active meanwhile: the record is not theirs.
-      if (_diverChanged) {
+      if (_switchedAway(ref.read(currentDiverIdProvider))) {
+        // Another diver became active meanwhile: the record is not theirs.
         _controller?.lock();
-        return;
+      } else if (editorOpen && controller.isDirty && validateEditor()) {
+        // Checked now, after the wait, so what is checked is what is
+        // written: the form could change while the diver was resolved.
+        saved = await controller.save();
       }
-      saved = await controller.save();
     } finally {
       _saving = false;
     }
+    if (!mounted) return;
     if (saved) {
       _leaving = true;
       try {
@@ -227,14 +241,17 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
           stackTrace: stackTrace,
         );
       }
-      if (mounted) _pop();
+      _pop();
       return;
     }
-    if (!mounted) return;
     // The diver changed while the save ran (the change was not acted on
-    // then): the sitting ends, and the page leaves.
-    if (_diverChanged) {
-      _controller?.lock();
+    // then): the sitting ends.
+    if (_switchedAway(ref.read(currentDiverIdProvider))) _controller?.lock();
+    // The sitting ended while Save waited (the app's leave check discarded
+    // it, or the diver changed): nothing will tell the page again, so it
+    // leaves now.
+    if (!editorOpen) {
+      _leaveIfEnded(context);
       return;
     }
     final error = controller.saveError;
@@ -260,8 +277,16 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     _pop();
   }
 
-  /// Whether the active diver is no longer the one the sitting opened for.
-  bool get _diverChanged => ref.read(currentDiverIdProvider) != _diverAtOpen;
+  /// Whether [diverId], the active diver now, is another diver than the
+  /// editor's. With none noted yet, [diverId] becomes the editor's: the app
+  /// resolving its default diver is not a switch.
+  bool _switchedAway(String? diverId) {
+    if (_diverAtOpen == null) {
+      _diverAtOpen = diverId;
+      return false;
+    }
+    return diverId != _diverAtOpen;
+  }
 
   /// Leaves the page: back to the page under it, or, with none (never the
   /// case in the app, where every editor is opened over its list), to
@@ -300,8 +325,9 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     // record, or the record it would create, is the other diver's. With
     // changes, the switch has already asked through the app's leave check.
     ref.listen<String?>(currentDiverIdProvider, (_, next) {
-      if (!_opened || _leaving || _saving) return;
-      if (next != _diverAtOpen) _controller?.lock();
+      if (_leaving || _saving) return;
+      // Before the sitting opens, openEditor checks the diver itself.
+      if (_switchedAway(next) && _opened) _controller?.lock();
     });
     if (!_opened) {
       return Scaffold(
