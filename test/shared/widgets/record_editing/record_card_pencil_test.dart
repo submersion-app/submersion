@@ -115,6 +115,8 @@ void main() {
       material.shape,
       CircleBorder(side: BorderSide(color: custom.outline)),
     );
+    // The InkWell's border clips its ink; the disc needs no clip layer.
+    expect(material.clipBehavior, Clip.none);
     final glyph = tester.widget<Icon>(
       find.descendant(of: disc, matching: find.byType(Icon)),
     );
@@ -173,6 +175,50 @@ void main() {
       tester.getSize(find.byType(RecordPencilDisc)),
       const Size.square(RecordPencilDisc.size),
     );
+  });
+
+  // A card's own title row (an icon and a titleMedium title) is one 24
+  // point line, and the pencil arriving on unlock must not make it taller.
+  testWidgets('unlocking keeps a title row\'s height', (tester) async {
+    final controller = _controller();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: RecordEditScope<String>(
+            controller: controller,
+            child: RecordCardFrame<String>(
+              card: _card,
+              child: Builder(
+                builder: (context) => Row(
+                  key: const ValueKey('titleRow'),
+                  children: [
+                    const Icon(Icons.layers),
+                    Expanded(
+                      child: Text(
+                        'Twin set',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    const RecordCardPencil(cardTitle: 'Twin set'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final row = find.byKey(const ValueKey('titleRow'));
+    final before = tester.getSize(row);
+
+    controller.unlock('Blue Corner');
+    await tester.pump();
+
+    expect(find.byType(RecordPencilDisc), findsOneWidget);
+    expect(tester.getSize(row), before);
   });
 
   testWidgets('with changes, the dot', (tester) async {

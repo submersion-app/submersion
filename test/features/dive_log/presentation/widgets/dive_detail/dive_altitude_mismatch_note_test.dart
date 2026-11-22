@@ -44,5 +44,8 @@ void main() {
     expect(find.byType(RecordPencilDisc), findsOneWidget);
     await tester.tap(find.byType(DiveAltitudeMismatchNote));
     expect(opened, 1);
+    // The pencil itself is part of the note's tap, not a target of its own.
+    await tester.tap(find.byType(RecordPencilDisc));
+    expect(opened, 2);
   });
 }

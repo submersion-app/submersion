@@ -41,7 +41,6 @@ class RecordPencilDisc extends StatelessWidget {
       child: Material(
         color: colors.fill,
         shape: CircleBorder(side: BorderSide(color: colors.outline)),
-        clipBehavior: Clip.antiAlias,
         child: onTap == null
             ? glyph
             : InkWell(
@@ -110,12 +109,9 @@ class RecordCardPencil extends StatelessWidget {
           label: context.l10n.recordEdit_editCardTooltip(cardTitle),
           onTap: frame.onOpen,
           excludeSemantics: true,
-          // A point of padding round the 24 point disc keeps the pencil to
-          // the 26 points a title row has always made room for.
-          child: Padding(
-            padding: const EdgeInsets.all(1),
-            child: RecordPencilIcon(cardTitle: cardTitle, onTap: frame.onOpen),
-          ),
+          // Exactly the disc, no padding round it: a title row's line is the
+          // disc's height, so the pencil arriving does not make it taller.
+          child: RecordPencilIcon(cardTitle: cardTitle, onTap: frame.onOpen),
         ),
       ],
     );
