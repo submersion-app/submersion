@@ -19,7 +19,8 @@ with Japanese glyph shapes, and formatted with Japanese dates and numbers.
   so kanji print in Japanese shapes, not the Chinese ones Noto Sans SC draws.
 - Japanese sea names in `assets/data/sea_areas.json`, from Wikidata, through
   `scripts/sea_area_harvester.py`.
-- The UI shows Japanese glyph shapes when the app language is Japanese.
+- The UI shows Japanese glyph shapes when the app language is Japanese (on
+  web, when the browser language is Japanese too; see UI glyphs).
 - Dates and numbers come from `intl`'s `ja` locale; a test pins one of each.
 
 ## Non-goals
@@ -68,11 +69,18 @@ The maintainer chose 1.
 ### UI glyphs
 
 Flutter's `Text` passes the app locale to the text engine, which picks
-Japanese CJK fallback glyphs on iOS, macOS, Android and Windows. Verified by
-screenshot. On web, CanvasKit ranks its fallback Noto fonts by the browser
-language; if Japanese chosen in the app inside a non-Japanese browser draws
-Chinese shapes, a Noto Sans JP fallback is added for the Japanese locale on
-web in this PR.
+Japanese CJK fallback glyphs on iOS, macOS, Android and Windows.
+
+On web, the engine's fallback manager ranks its Noto fonts by
+`navigator.language` (`font_fallback_service.dart`, `_selectBestFont`), not
+by the app locale. A browser set to Japanese gets Noto Sans JP. Japanese
+chosen in the app inside a browser set to another language was checked on a
+web build: it loads Noto Sans SC and TC subsets, so kanji take Chinese
+shapes. A Noto Sans JP fallback through `google_fonts` would fix that case
+but costs about 5.3 MB per weight (about 16 MB for the three weights the app
+uses). The maintainer chose to leave it as a known limitation: the case
+needs a Japanese reader using a non-Japanese browser, and every native
+platform is unaffected.
 
 ## Glossary and style guide
 
