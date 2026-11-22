@@ -88,8 +88,13 @@ String _formatDate(WidgetTester tester, DateTime date) =>
 
 void main() {
   // Not about marine life identification, which is on for Android (the
-  // test platform); its own tests cover these screens with it on.
-  setUp(() => marineLifeIdEnabled = false);
+  // test platform) but never set up here. The viewer's species layer is
+  // tested with it on in media_viewer_photo_labels_test.dart,
+  // media_viewer_video_playhead_test.dart and test/features/species_id/.
+  setUp(() {
+    marineLifeIdEnabled = false;
+    addTearDown(resetMarineLifeIdEnabled);
+  });
 
   final entries = [_entry('p1'), _entry('p2')];
 

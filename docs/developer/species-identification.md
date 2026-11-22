@@ -21,7 +21,8 @@ The flag is `marineLifeIdEnabled` in `lib/core/constants/feature_flags.dart`.
 It is on by default wherever an engine runs (asked of `visionEngineRuns`):
 Core ML on iPhone, iPad and Mac, and the ONNX engine on Android, Windows and
 Linux. A build made with `--dart-define=MARINE_LIFE_ID_ONNX=false` leaves the
-ONNX platforms out. The web never has it. A build turns it off everywhere
+ONNX platforms out; only the exact word `false` does, and any other value
+leaves them on. The web never has it. A build turns it off everywhere
 with:
 
 ```bash

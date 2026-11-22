@@ -37,8 +37,13 @@ import 'media_viewer_unlock_harness.dart';
 /// The photo viewer's own lock (issue #4527, plan 10).
 void main() {
   // Not about marine life identification, which is on for Android (the
-  // test platform); its own tests cover these screens with it on.
-  setUp(() => marineLifeIdEnabled = false);
+  // test platform) but never set up here. The viewer's species layer is
+  // tested with it on in media_viewer_photo_labels_test.dart,
+  // media_viewer_video_playhead_test.dart and test/features/species_id/.
+  setUp(() {
+    marineLifeIdEnabled = false;
+    addTearDown(resetMarineLifeIdEnabled);
+  });
 
   late AppDatabase db;
 
