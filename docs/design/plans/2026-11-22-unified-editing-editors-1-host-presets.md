@@ -478,6 +478,25 @@ changed from this plan, for plan 2 to build on:
   to the list, as the weight editor did. New string
   `tankPresets_edit_notFound` in all locales. `tankPresets_edit_errorSaving`
   stays: the dive's tank card uses it.
+- **Review rounds 2 and 3 (xhigh) changed the host further.** The diver is
+  tracked as `validatedCurrentDiverIdProvider` resolves it, noted in
+  `initState` (`_noteDiver`, `_isAnotherDiver`): the first diver known is
+  the editor's, a repair of the raw id that resolves to the same diver is
+  no switch, and a switch while a stored record loads leaves the page
+  unopened. Save sets `_saving` with a rebuild, so the bar shows the save
+  (Cancel disabled) while the diver resolves, validates only after that
+  wait, and leaves when the sitting ended meanwhile. `D? editorStartDraft`
+  is the draft the sitting opened on: write only the fields whose text
+  changed (the tank editor keeps an untouched volume and pressure, and in
+  cubic feet a pressure change also recomputes the volume). `leaveEditor()`
+  is the one way an editor leaves on its own (a record that cannot open);
+  it falls back to `editorLeaveLocation`. Each editor's update refuses a
+  record deleted elsewhere with a `RecordSittingRefusal` carrying its
+  not-found message.
+- **A test that holds Save on the diver** must refresh the provider
+  (`container.invalidate(validatedCurrentDiverIdProvider)`) after setting
+  its gate, since the host has read it at start, and step frames instead of
+  `pumpAndSettle` while the bar shows the save.
 - **Tests that type and tap Save in the same frame** need a `pump()` between:
   Save enables on the next frame.
 - **A first-frame test must look offstage** (`skipOffstage: false`): a

@@ -206,14 +206,25 @@ page, and holds what every phase 4 editor shares:
   does a draft carry anything the save stamps (`updatedAt`) or encodes
   (`Rule`'s `conditionJson` and `actionsJson`), so neither can make a
   change the diver never made. Save parses the form as it does today.
-- It watches the active diver. When it changes under the page, the sitting
-  ends without a word and the page closes (decision 7). With unsaved
-  changes the switcher has already asked, through the exit guard; the paths
-  that switch without asking (the misplaced logbook banner, a deleted
-  diver's replacement) discard as a switch the diver allowed. A new record
-  is therefore always created under the diver it was opened for.
-- Save validates the form first, as today. A form that fails stays open
-  with its errors and nothing is written.
+- It watches the active diver as the app resolves it
+  (`validatedCurrentDiverIdProvider`, the diver a new record is written
+  under), noted as the page starts. When it changes under the page, before
+  or after the record has loaded, the sitting ends without a word and the
+  page closes (decision 7). With unsaved changes the switcher has already
+  asked, through the exit guard; the paths that switch without asking (the
+  misplaced logbook banner, a deleted diver's replacement) discard as a
+  switch the diver allowed. The first diver known is the editor's, not a
+  switch, and a repair of the raw id that resolves to the same diver
+  changes nothing. A new record is therefore always created under the
+  diver it was opened for.
+- Save resolves that diver first, showing the save in progress (Cancel
+  disabled), then validates the form, as today, so what is checked is what
+  is written. A form that fails stays open with its errors and nothing is
+  written.
+- A stored record deleted elsewhere while it was edited is refused at Save
+  with the editor's "no longer exists" message, and nothing is written.
+- An editor writes only the values whose text changed since the form was
+  filled (`editorStartDraft`); the rest keep their stored values.
 - Save runs the editor's save function inside `runRecordSitting` on that
   editor's table and id, for a new record as for a stored one: one
   transaction, one change log operation, labelled with the record. The
