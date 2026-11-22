@@ -50,7 +50,10 @@ class ConsolidationCopyMatcher {
 
   /// The target's own event that [copyEvent] of the copy owned by
   /// [copyComputerId], shifted by [offset], repeats: the same type from the
-  /// same recorder within [toleranceSeconds]. Null when it is new.
+  /// same recorder on the same cylinder within [toleranceSeconds]. Null when
+  /// it is new. [targetTankId] is the copy event's cylinder as the target
+  /// knows it, null for an event on none, so a gas change on each of two
+  /// cylinders at one moment stays two events.
   ///
   /// The recorder is the computer a fold would attribute the event to: its
   /// own computerId, else its dive's for an event the computer logged. A
@@ -59,6 +62,7 @@ class ConsolidationCopyMatcher {
   DiveProfileEvent? matchEvent(
     DiveProfileEvent copyEvent,
     String? copyComputerId,
+    String? targetTankId,
     int offset,
   ) {
     final shared = {targetComputerId, copyComputerId}.nonNulls.toSet();
@@ -66,6 +70,7 @@ class ConsolidationCopyMatcher {
     for (final e in _targetEvents) {
       if (_claimedEvents.contains(e.id)) continue;
       if (e.eventType != copyEvent.eventType) continue;
+      if (e.tankId != targetTankId) continue;
       if (_recorder(e, targetComputerId, shared) != copyRecorder) continue;
       if ((e.timestamp - (copyEvent.timestamp + offset)).abs() >
           toleranceSeconds) {

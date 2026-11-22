@@ -1310,6 +1310,43 @@ void main() {
         ]);
       });
 
+      test('keeps an event of the copy on a cylinder other than the one the '
+          'target\'s matching event names', () async {
+        await seedSplitDive(
+          wholeTanks: [
+            tank('tk-w1', o2: 21, start: 200, end: 60, order: 0),
+            tank('tk-w2', o2: 50, start: 200, end: 60, order: 1),
+          ],
+          halfTanks: [
+            tank('tk-h1', o2: 21, start: 200, end: 60, order: 0),
+            tank('tk-h2', o2: 50, start: 200, end: 60, order: 1),
+          ],
+        );
+        await seedEvent(
+          'ev-whole',
+          diveId: 'whole',
+          timestamp: 1500,
+          tankId: 'tk-w1',
+        );
+        // A gas change on the other cylinder at the same moment.
+        await seedEvent(
+          'ev-half-2',
+          diveId: 'half',
+          timestamp: 200,
+          tankId: 'tk-h2',
+        );
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final events = await (db.select(
+          db.diveProfileEvents,
+        )..where((e) => e.diveId.equals('whole'))).get();
+        expect(events.map((e) => e.tankId).toList()..sort(), [
+          'tk-w1',
+          'tk-w2',
+        ]);
+      });
+
       test('adds no source for a copy that has no source row', () async {
         await seedSplitDive(halfHasSource: false);
 

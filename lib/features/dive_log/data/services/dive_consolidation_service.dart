@@ -564,6 +564,7 @@ class DiveConsolidationService {
             final already = copyMatcher.matchEvent(
               row,
               secRow.computerId,
+              row.tankId == null ? null : tankIdMap[row.tankId] ?? row.tankId,
               offset,
             );
             if (already != null) {
