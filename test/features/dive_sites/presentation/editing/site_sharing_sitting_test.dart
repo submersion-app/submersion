@@ -152,6 +152,8 @@ void main() {
     final session = await loaded();
     expect(siteSharing.inSitting(session), const ItemSharing(everyone: true));
     expect(session.isDirty, isFalse);
+    // A Save with no change writes nothing, the upkeep included.
+    await save(session);
     expect(await shares.storedProfileIds(SharedItemKind.site, 's1'), {'ana'});
 
     session.set(siteNotesField, 'Choppy');
