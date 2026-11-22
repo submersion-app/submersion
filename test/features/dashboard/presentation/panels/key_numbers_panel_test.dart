@@ -575,4 +575,30 @@ void main() {
     expect(dives.top, time.top);
     expect(find.text('now'), findsNothing);
   });
+
+  testWidgets('in a right-to-left language the headline line still reads '
+      'from its start to now', (tester) async {
+    await pumpPanel(
+      tester,
+      const KeyNumbersPanel(),
+      width: 390,
+      height: 3 * 96 + 16,
+      locale: const Locale('he'),
+      settings: const AppSettings(
+        hiddenHomeKeyNumbers: {'deepestThisYear', 'avgDepth', 'nextTrip'},
+      ),
+      overrides: [homeKeyNumbersProvider.overrideWith((ref) async => _full)],
+    );
+    final now = find.text('עכשיו');
+    expect(now, findsOneWidget);
+    final labels = find.descendant(
+      of: find.ancestor(of: now, matching: find.byType(Row)).first,
+      matching: find.byType(Text),
+    );
+    final start = tester.getRect(labels.first);
+    // The line is drawn oldest to newest left to right in every language,
+    // so its start label sits at the left and "now" at the right.
+    expect(start.left, lessThan(tester.getRect(now).left));
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -62,9 +63,22 @@ class RecentOutingsPanel extends ConsumerWidget {
             skylineScaleMeters: scale,
             onTap: () => open(o),
           );
-          return phone
-              ? _OutingPager(outings: shown, card: card)
-              : _OutingRow(outings: shown, card: card);
+          // A mouse drags a horizontal list only when told to (as the
+          // header's lights do), so the later cards stay reachable.
+          return ScrollConfiguration(
+            behavior: ScrollConfiguration.of(
+              context,
+            ).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
+            child: phone
+                ? _OutingPager(
+                    // A lone card fills the width; a new state gives it a
+                    // controller with the other viewport fraction.
+                    key: ValueKey(shown.length == 1),
+                    outings: shown,
+                    card: card,
+                  )
+                : _OutingRow(outings: shown, card: card),
+          );
         },
       ),
     );
@@ -101,14 +115,16 @@ class _OutingPager extends StatefulWidget {
   final List<HomeOuting> outings;
   final Widget Function(HomeOuting) card;
 
-  const _OutingPager({required this.outings, required this.card});
+  const _OutingPager({required this.outings, required this.card, super.key});
 
   @override
   State<_OutingPager> createState() => _OutingPagerState();
 }
 
 class _OutingPagerState extends State<_OutingPager> {
-  final _controller = PageController(viewportFraction: 0.86);
+  late final _controller = PageController(
+    viewportFraction: widget.outings.length == 1 ? 1 : 0.86,
+  );
   int _page = 0;
 
   @override
@@ -131,7 +147,9 @@ class _OutingPagerState extends State<_OutingPager> {
             itemCount: count,
             onPageChanged: (p) => setState(() => _page = p),
             itemBuilder: (_, i) => Padding(
-              padding: const EdgeInsets.only(right: RecentOutingsPanel.gap),
+              padding: EdgeInsetsDirectional.only(
+                end: count == 1 ? 0 : RecentOutingsPanel.gap,
+              ),
               child: widget.card(widget.outings[i]),
             ),
           ),

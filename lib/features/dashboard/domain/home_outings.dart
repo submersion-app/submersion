@@ -99,10 +99,16 @@ DateTime _localDay(DateTime wallClock) =>
 /// grouped among themselves in date order: a dive joins the previous
 /// trip-less dive's outing when its day is at most [maxGapDays] after that
 /// dive's day.
+///
+/// [truncated] says [dives] is the newest part of a longer log, cut at a
+/// read limit: the outing holding the oldest dive may then have begun
+/// earlier and be missing dives, so it is dropped, unless it is the only
+/// one.
 List<Outing> groupOutings(
   List<OutingDive> dives, {
   int limit = 8,
   int maxGapDays = 2,
+  bool truncated = false,
 }) {
   final sorted = [...dives]..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   final byTrip = <String, List<OutingDive>>{};
@@ -123,6 +129,10 @@ List<Outing> groupOutings(
   }
   final groups = [...byTrip.values, ...tripless]
     ..sort((a, b) => b.last.dateTime.compareTo(a.last.dateTime));
+  if (truncated && groups.length > 1) {
+    final oldest = sorted.first;
+    groups.removeWhere((g) => g.contains(oldest));
+  }
   return [for (final g in groups.take(limit)) _outingOf(g)];
 }
 

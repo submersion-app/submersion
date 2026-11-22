@@ -1,5 +1,6 @@
-import 'package:clock/clock.dart';
 import 'dart:math' as math;
+
+import 'package:clock/clock.dart';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -378,6 +379,7 @@ class _Tile extends StatelessWidget {
     highlight: highlight,
     headline: true,
     lineStart: lineStart,
+    child: child,
   );
 
   @override
@@ -436,7 +438,7 @@ class _Tile extends StatelessWidget {
           child ??
           (hasLine && headline
               ? CustomMultiChildLayout(
-                  delegate: _TextBesideLine(),
+                  delegate: _TextBesideLine(Directionality.of(context)),
                   children: [
                     LayoutId(id: _TextBesideLine.text, child: text),
                     LayoutId(
@@ -446,12 +448,15 @@ class _Tile extends StatelessWidget {
                         children: [
                           Expanded(child: HomeSparkline(series!)),
                           if (lineStart != null)
+                            // The line runs oldest to newest left to right in
+                            // every language, so its labels do too.
                             DefaultTextStyle.merge(
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: muted,
                               ),
                               maxLines: 1,
                               child: Row(
+                                textDirection: TextDirection.ltr,
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
@@ -496,6 +501,12 @@ class _Tile extends StatelessWidget {
 /// width, and gives its trend line the rest of the row beside it. The line is
 /// not shown when less than [minWidth] is left.
 class _TextBesideLine extends MultiChildLayoutDelegate {
+  /// Puts the text on the reading side: the left, or the right in a
+  /// right-to-left language, as the panel title above it is.
+  final TextDirection direction;
+
+  _TextBesideLine(this.direction);
+
   static const text = 'text';
   static const line = 'line';
   static const double gap = 14;
@@ -507,20 +518,22 @@ class _TextBesideLine extends MultiChildLayoutDelegate {
       text,
       BoxConstraints(maxWidth: size.width / 2),
     );
-    positionChild(text, Offset(0, math.max(0, size.height - textSize.height)));
-    final left = textSize.width + gap;
-    final width = size.width - left;
+    final rtl = direction == TextDirection.rtl;
+    final top = math.max(0.0, size.height - textSize.height);
+    positionChild(text, Offset(rtl ? size.width - textSize.width : 0, top));
+    final width = size.width - textSize.width - gap;
     layoutChild(
       line,
       BoxConstraints.tight(
         width >= minWidth ? Size(width, size.height) : Size.zero,
       ),
     );
-    positionChild(line, Offset(left, 0));
+    positionChild(line, Offset(rtl ? 0 : textSize.width + gap, 0));
   }
 
   @override
-  bool shouldRelayout(_TextBesideLine oldDelegate) => false;
+  bool shouldRelayout(_TextBesideLine oldDelegate) =>
+      oldDelegate.direction != direction;
 }
 
 /// Lays a tile's text out at its own height, then gives the trend line the

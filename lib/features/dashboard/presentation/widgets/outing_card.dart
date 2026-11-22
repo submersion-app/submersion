@@ -32,12 +32,14 @@ class OutingCard extends ConsumerStatefulWidget {
 
 class _OutingCardState extends ConsumerState<OutingCard> {
   bool _coverFailed = false;
+  bool _coverReady = false;
 
   @override
   void didUpdateWidget(OutingCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.outing.cover?.id != widget.outing.cover?.id) {
       _coverFailed = false;
+      _coverReady = false;
     }
   }
 
@@ -65,6 +67,8 @@ class _OutingCardState extends ConsumerState<OutingCard> {
       button: true,
       excludeSemantics: true,
       label: [name, dates, ...stats].join(', '),
+      // excludeSemantics drops the InkWell's own action; put it back.
+      onTap: widget.onTap,
       child: Material(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(10),
@@ -74,24 +78,46 @@ class _OutingCardState extends ConsumerState<OutingCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // The whole cover is part of the card's tap: a photo still
+              // downloading would otherwise take the tap to retry.
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, box) => cover != null && !_coverFailed
-                      ? MediaItemView(
-                          item: cover,
-                          thumbnail: true,
-                          fit: BoxFit.cover,
-                          targetSize:
-                              box.biggest *
-                              MediaQuery.devicePixelRatioOf(context),
-                          onImageFailed: () {
-                            if (mounted) setState(() => _coverFailed = true);
-                          },
-                        )
-                      : OutingSkyline(
+                child: IgnorePointer(
+                  child: LayoutBuilder(
+                    builder: (context, box) => Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Shown until the cover has drawn, and for good when
+                        // it cannot: a missing file, a photo still on its
+                        // way, a video with no poster.
+                        OutingSkyline(
                           depths: outing.depths,
                           scaleMeters: widget.skylineScaleMeters,
                         ),
+                        if (cover != null && !_coverFailed)
+                          Opacity(
+                            opacity: _coverReady ? 1 : 0,
+                            child: MediaItemView(
+                              item: cover,
+                              thumbnail: true,
+                              fit: BoxFit.cover,
+                              targetSize:
+                                  box.biggest *
+                                  MediaQuery.devicePixelRatioOf(context),
+                              onImageReady: (_, _) {
+                                if (mounted && !_coverReady) {
+                                  setState(() => _coverReady = true);
+                                }
+                              },
+                              onImageFailed: () {
+                                if (mounted) {
+                                  setState(() => _coverFailed = true);
+                                }
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
               Padding(

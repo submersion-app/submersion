@@ -146,6 +146,24 @@ void main() {
       expect(outings, hasLength(1));
     });
 
+    test('a read cut short drops the outing it may have cut', () {
+      final dives = [
+        _dive('old1', 3, 1, site: 'Pier'),
+        _dive('old2', 3, 2, site: 'Pier'),
+        _dive('new', 5, 1, site: 'Reef'),
+      ];
+      // The oldest outing may have begun before the read's first dive.
+      expect(groupOutings(dives, truncated: true).map((o) => o.diveIds), [
+        ['new'],
+      ]);
+      expect(groupOutings(dives), hasLength(2));
+    });
+
+    test('a read cut short keeps a lone outing', () {
+      final dives = [_dive('a', 3, 1, site: 'Pier'), _dive('b', 3, 2)];
+      expect(groupOutings(dives, truncated: true), hasLength(1));
+    });
+
     test('no dives give no outings', () {
       expect(groupOutings(const []), isEmpty);
     });

@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -8,10 +10,33 @@ import 'package:submersion/features/dashboard/presentation/providers/home_outing
 import 'package:submersion/features/dashboard/presentation/widgets/outing_card.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'panel_harness.dart';
+
+/// A gallery photo whose bytes have not arrived on this device yet.
+class _StillFetching implements MediaSourceResolver {
+  @override
+  MediaSourceType get sourceType => MediaSourceType.platformGallery;
+  @override
+  bool canResolveOnThisDevice(MediaItem item) => true;
+  @override
+  Future<MediaSourceData> resolve(MediaItem item) async =>
+      const UnavailableData(kind: UnavailableKind.stillFetching);
+  @override
+  Future<MediaSourceData> resolveThumbnail(
+    MediaItem item, {
+    required Size target,
+  }) => resolve(item);
+  @override
+  Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
+}
 
 Outing _outing(
   String id, {
@@ -260,5 +285,102 @@ void main() {
     expect(label, contains('97ft'));
     expect(label, contains('25 species'));
     handle.dispose();
+  });
+
+  testWidgets('a screen reader can open a card', (tester) async {
+    final handle = tester.ensureSemantics();
+    final nav = await _pump(tester, outings: () async => _many(1));
+    final data = tester
+        .getSemantics(find.byType(OutingCard))
+        .getSemanticsData();
+    expect(data.hasAction(SemanticsAction.tap), isTrue);
+    tester.semantics.tap(find.semantics.byLabel(RegExp('^Outing o0')));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/trips/t0');
+    handle.dispose();
+  });
+
+  testWidgets('a mouse can drag the desktop row to the later cards', (
+    tester,
+  ) async {
+    await _pump(tester, width: 840, outings: () async => _many(8));
+    ScrollPosition row() => tester
+        .state<ScrollableState>(
+          find.descendant(
+            of: find.byType(RecentOutingsPanel),
+            matching: find.byType(Scrollable),
+          ),
+        )
+        .position;
+    expect(row().pixels, 0);
+    await tester.dragFrom(
+      tester.getCenter(find.byType(OutingCard).first),
+      const Offset(-300, 0),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pumpAndSettle();
+    expect(row().pixels, greaterThan(0));
+  });
+
+  testWidgets('a cover still downloading shows the skyline and taps open '
+      'the trip', (tester) async {
+    final fetching = MediaItem(
+      id: 'f',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.platformGallery,
+      takenAt: DateTime(2026, 5, 3),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final nav = await _pump(
+      tester,
+      outings: () async => [
+        HomeOuting(
+          outing: _outing('o', tripId: 't9'),
+          cover: fetching,
+        ),
+      ],
+      extra: [
+        mediaSourceResolverRegistryProvider.overrideWithValue(
+          MediaSourceResolverRegistry({
+            MediaSourceType.platformGallery: _StillFetching(),
+          }),
+        ),
+      ],
+    );
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.byType(OutingSkyline), findsOneWidget);
+    // The middle of the cover, not the text strip.
+    final card = tester.getRect(find.byType(OutingCard));
+    await tester.tapAt(Offset(card.center.dx, card.top + 40));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/trips/t9');
+  });
+
+  testWidgets('one outing on a phone fills the panel width', (tester) async {
+    await _pump(tester, outings: () async => _many(1));
+    final card = tester.getRect(find.byType(OutingCard));
+    final panel = tester.getRect(find.byType(RecentOutingsPanel));
+    // The panel's side padding is 10.
+    expect(card.width, closeTo(panel.width - 20, 1));
+  });
+
+  testWidgets('in a right-to-left language the first card starts at the '
+      'right edge', (tester) async {
+    await pumpPanel(
+      tester,
+      const RecentOutingsPanel(),
+      width: 390,
+      height: 300,
+      locale: const Locale('he'),
+      overrides: [
+        homeRecentOutingsProvider.overrideWith((ref) async => _many(3)),
+      ],
+    );
+    final card = tester.getRect(find.byType(OutingCard).first);
+    final panel = tester.getRect(find.byType(RecentOutingsPanel));
+    expect(card.right, closeTo(panel.right - 10, 1));
   });
 }

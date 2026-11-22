@@ -108,4 +108,16 @@ void main() {
     await db.delete(db.dives).go();
     expect(await container.read(homeRecentOutingsProvider.future), isEmpty);
   });
+
+  test(
+    'a failed cover read still shows every outing, without covers',
+    () async {
+      await photo('p1', 'b1', favorite: true);
+      // Any failure in the cover reads; the dives read is unaffected.
+      await db.customStatement('DROP TABLE media_species');
+      final outings = await container.read(homeRecentOutingsProvider.future);
+      expect(outings, hasLength(2));
+      expect(outings.every((o) => o.cover == null), isTrue);
+    },
+  );
 }
