@@ -37,10 +37,15 @@ final speciesDownloadPromptDismissedNotifierProvider =
 /// (issue #4773): the feature is on, the model can run on this device, none
 /// is installed, and the diver has not dismissed the offer.
 ///
+/// Never in the sample logbook (issue #4891): demo mode shares the device's
+/// preferences, so closing the offer on a sample dive would hide it in the
+/// diver's own logbook too.
+///
 /// Asks nothing of the network. What the pack controller already knows
 /// (from a visit to the settings page) still counts: no offer while a
 /// download runs, nor once it is known that none can be had here.
 final speciesDownloadPromptProvider = Provider<bool>((ref) {
+  if (ref.watch(demoModeActiveProvider)) return false;
   if (!marineLifeIdEnabled) return false;
   if (ref.watch(speciesDownloadPromptDismissedNotifierProvider)) return false;
   final availability = ref.watch(visionAvailabilityProvider).value;
