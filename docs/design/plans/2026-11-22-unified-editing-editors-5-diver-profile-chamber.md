@@ -902,6 +902,13 @@ changed from this plan, for the plans after it:
   validated (closing it needs the shared host to hand the validated draft
   to `writeEditor`), and a profile page that cannot load the diver shows
   the raw error text, as before this plan.
+- **Second review (code-review, xhigh, all findings, on the PR):** four
+  findings, all fixed: the diving-since picker no longer fails on a year
+  after this one (one synced from a device already in the next year), and
+  three tests now pin what had none: `Diver` equality covers every field a
+  page writes (the no-op Save relies on it), a diver that fails to load
+  opens no sitting, and the chamber form with no active diver writes
+  nothing. Each new test was checked to fail with its guard removed.
 - Unused strings (`divers_edit_discardDialog*`, `divers_edit_keepEditingButton`,
   `divers_edit_discardButton`, `divers_edit_saveButton`,
   `divers_edit_errorSaving`, `addChamber_save`) stay, by Eric's
