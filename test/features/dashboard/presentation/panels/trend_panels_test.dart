@@ -11,9 +11,12 @@ import 'package:submersion/features/dashboard/presentation/panels/ranking_panels
 import 'package:submersion/features/dashboard/presentation/panels/sac_trend_panel.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_charts.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/presentation/widgets/depth_pie_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'panel_harness.dart';
@@ -256,6 +259,22 @@ void main() {
       expect(find.textContaining('ft'), findsWidgets);
     });
 
+    // Shallow to deep in the same colours as the Insights depth chart, so
+    // a band reads the same on both pages.
+    testWidgets('colours each band as Insights does', (tester) async {
+      await pumpPanel(
+        tester,
+        const DepthMixPanel(),
+        overrides: [
+          diveStatisticsProvider.overrideWith(
+            (ref) async => _stats(depths: _depths),
+          ),
+        ],
+      );
+      final bars = tester.widget<HomeBars>(find.byType(HomeBars));
+      expect(bars.colors, depthBucketColors.take(3).toList());
+    });
+
     testWidgets('no dives shows the empty text', (tester) async {
       await pumpPanel(
         tester,
@@ -285,6 +304,33 @@ void main() {
       );
       expect(find.text('Nitrox'), findsOneWidget);
       expect(find.text('61%'), findsOneWidget);
+    });
+
+    // Each gas in its colour from the dive profile: air orange, nitrox
+    // green, trimix purple.
+    testWidgets('gas mix colours each gas as the profile does', (tester) async {
+      await pumpPanel(
+        tester,
+        const GasMixPanel(),
+        overrides: [
+          homeGasMixProvider.overrideWith(
+            (ref) async => [
+              DistributionSegment(label: 'Nitrox', count: 6, percentage: 61),
+              DistributionSegment(label: 'Air', count: 3, percentage: 33),
+              DistributionSegment(label: 'Trimix', count: 1, percentage: 6),
+            ],
+          ),
+        ],
+      );
+      final rows = tester.widgetList<HomeBarRow>(find.byType(HomeBarRow));
+      expect(
+        {for (final r in rows) r.label: r.color},
+        {
+          'Nitrox': GasColors.nitrox,
+          'Air': GasColors.air,
+          'Trimix': GasColors.trimix,
+        },
+      );
     });
 
     testWidgets('dive types name their types', (tester) async {

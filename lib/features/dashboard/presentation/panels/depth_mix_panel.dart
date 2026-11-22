@@ -37,9 +37,16 @@ class DepthMixPanel extends ConsumerWidget {
         emptyText: l10n.dashboard_panel_noDives,
         builder: (s) {
           final bands = trimmedDepthBands(s.depthDistribution);
+          // Shallow to deep in the Insights depth chart's colours, so a
+          // band reads the same on both pages. Trimming only drops bands
+          // from the deep end, so each keeps its index.
           return HomeBars(
             [for (final b in bands) b.count.toDouble()],
             labels: [for (final b in bands) depthBucketLabel(b, units, l10n)],
+            colors: [
+              for (var i = 0; i < bands.length; i++)
+                depthBucketColors[i % depthBucketColors.length],
+            ],
           );
         },
       ),

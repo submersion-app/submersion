@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 
@@ -131,7 +132,11 @@ class HomeBars extends StatelessWidget {
   final List<double> values;
   final List<String> labels;
 
-  const HomeBars(this.values, {this.labels = const [], super.key});
+  /// A colour per bar, where the colour means something (a depth band's
+  /// shade). Null draws every bar in the theme's primary colour.
+  final List<Color>? colors;
+
+  const HomeBars(this.values, {this.labels = const [], this.colors, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +151,11 @@ class HomeBars extends StatelessWidget {
         Expanded(
           child: CustomPaint(
             size: Size.infinite,
-            painter: _BarsPainter(values, theme.colorScheme.primary),
+            painter: _BarsPainter(
+              values,
+              theme.colorScheme.primary,
+              colors: colors,
+            ),
           ),
         ),
         if (labels.isNotEmpty) ...[
@@ -178,8 +187,9 @@ class HomeBars extends StatelessWidget {
 class _BarsPainter extends CustomPainter {
   final List<double> values;
   final Color color;
+  final List<Color>? colors;
 
-  _BarsPainter(this.values, this.color);
+  _BarsPainter(this.values, this.color, {this.colors});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -187,10 +197,12 @@ class _BarsPainter extends CustomPainter {
     final hi = values.reduce(math.max);
     final slot = size.width / values.length;
     final gap = math.min(4.0, slot * 0.25);
-    final paint = Paint()..color = color;
+    final perBar = colors;
     for (var i = 0; i < values.length; i++) {
       final h = hi <= 0 ? 0.0 : values[i] / hi * size.height;
       if (h <= 0) continue;
+      final paint = Paint()
+        ..color = perBar != null && i < perBar.length ? perBar[i] : color;
       canvas.drawRRect(
         RRect.fromRectAndCorners(
           Rect.fromLTWH(i * slot + gap / 2, size.height - h, slot - gap, h),
@@ -204,7 +216,9 @@ class _BarsPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BarsPainter old) =>
-      old.values != values || old.color != color;
+      old.values != values ||
+      old.color != color ||
+      !listEquals(old.colors, colors);
 }
 
 enum HomeBarTone { accent, ok, warn, alert }
@@ -217,11 +231,16 @@ class HomeBarRow extends StatelessWidget {
   final double? fraction;
   final HomeBarTone tone;
 
+  /// The bar's own colour, where it means something (a gas's colour); it
+  /// replaces [tone]'s.
+  final Color? color;
+
   const HomeBarRow({
     required this.label,
     required this.value,
     required this.fraction,
     this.tone = HomeBarTone.accent,
+    this.color,
     super.key,
   });
 
@@ -230,12 +249,14 @@ class HomeBarRow extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final status = StatusColors.of(context);
-    final color = switch (tone) {
-      HomeBarTone.accent => scheme.primary,
-      HomeBarTone.ok => status.ok.outline,
-      HomeBarTone.warn => status.warn.outline,
-      HomeBarTone.alert => status.alert.outline,
-    };
+    final barColor =
+        color ??
+        switch (tone) {
+          HomeBarTone.accent => scheme.primary,
+          HomeBarTone.ok => status.ok.outline,
+          HomeBarTone.warn => status.warn.outline,
+          HomeBarTone.alert => status.alert.outline,
+        };
     final text = theme.textTheme.bodySmall;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -280,7 +301,7 @@ class HomeBarRow extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: f.isNaN ? 0 : f.clamp(0.0, 1.0),
                 minHeight: 4,
-                color: color,
+                color: barColor,
                 backgroundColor: scheme.outlineVariant.withValues(alpha: 0.5),
               ),
             ),

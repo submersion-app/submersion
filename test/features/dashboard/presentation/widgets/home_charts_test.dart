@@ -103,6 +103,18 @@ void main() {
     });
   });
 
+  testWidgets('bars repaint when only their colours change', (tester) async {
+    final before = await _paint(
+      tester,
+      const HomeBars([1, 2], colors: [Colors.red, Colors.blue]),
+    );
+    final after = await _paint(
+      tester,
+      const HomeBars([1, 2], colors: [Colors.green, Colors.blue]),
+    );
+    expect(after.shouldRepaint(before), isTrue);
+  });
+
   group('the day grid repaints when', () {
     final counts = {DateTime(2026, 3, 2): 1};
     final to = DateTime(2026, 3, 10);

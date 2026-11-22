@@ -5,6 +5,7 @@ import 'package:submersion/features/dashboard/presentation/providers/home_panel_
 import 'package:submersion/features/dashboard/presentation/widgets/home_charts.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -15,10 +16,15 @@ class _SharesPanel extends StatelessWidget {
   final AsyncValue<List<DistributionSegment>> value;
   final String Function(DistributionSegment) label;
 
+  /// A segment's own colour where it means something; null keeps the
+  /// theme's primary colour.
+  final Color? Function(DistributionSegment)? colorOf;
+
   const _SharesPanel({
     required this.title,
     required this.value,
     required this.label,
+    this.colorOf,
   });
 
   @override
@@ -45,6 +51,7 @@ class _SharesPanel extends StatelessWidget {
                 label: label(s),
                 value: '${s.percentage.round()}%',
                 fraction: s.percentage / 100,
+                color: colorOf?.call(s),
               ),
           ],
         ),
@@ -63,8 +70,18 @@ class GasMixPanel extends ConsumerWidget {
     title: context.l10n.dashboard_panel_gasMix,
     value: ref.watch(homeGasMixProvider),
     label: (s) => s.label,
+    colorOf: (s) => gasMixColor(s.label),
   );
 }
+
+/// A gas mix row's colour, as the dive profile draws that gas: the
+/// distribution names each row Air, Nitrox or Trimix.
+Color? gasMixColor(String gasType) => switch (gasType) {
+  'Air' => GasColors.air,
+  'Nitrox' => GasColors.nitrox,
+  'Trimix' => GasColors.trimix,
+  _ => null,
+};
 
 /// Share of dives by type, the top three.
 class DiveTypesPanel extends ConsumerWidget {
