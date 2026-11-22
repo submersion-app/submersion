@@ -386,14 +386,14 @@ needs the session cookie: a session id in the query is refused (error 101).
 | What if a page of the listing fails? | A partial list would orphan the missing rows on every device. | Any page error fails the whole fetch. |
 | Does `verify` detect a deleted item? | Synology answers 200 + JSON 804, read as "available". | JSON responses for Synology URLs count as transient errors. |
 | What if the share is view-only? | Originals answer 804; every full-size view would fail. | Read `privacy_type`; point entries at `xl` when downloads are off. |
-| Are there types besides photo and video? | Yes, `live`. | Skipped with videos in the prototype. |
+| Are there types besides photo and video? | Yes, `live`. | Imported as their still frame (section 11). |
 | Do extra query parameters break the API? | No; download and thumbnail ignore unknown parameters (checked). | Store `id` and `cache_key` on the original URL. |
 | Can a burst of thumbnails trigger many logins? | Yes, and each login ends the previous session. | One in-flight login per share; invalidate only the failing sid. |
 | Does the first import download every original? | Yes, without GPS the pipeline extracts each entry. | `ManifestEntry.metadataComplete` skips extraction. |
 
 ## Prototype test in the app (Windows hot build, real share)
 
-Run against a password-protected condition album of several hundred items
+Run against a password-protected album of several hundred items
 (photos, videos, live photos) and a copy of a real logbook of about a thousand
 dives, in an isolated database.
 
@@ -401,7 +401,7 @@ dives, in an isolated database.
 |---|---|---|
 | 1 | Paste the share link, Fetch, no password saved | Password form appears |
 | 2 | Wrong password | Form again, with "The share did not accept the password" |
-| 3 | Right password | Preview lists exactly the album's photos; videos and live photos skipped; capture times correct |
+| 3 | Right password | Preview lists exactly the album's photos (videos and live photos were skipped at this stage; see section 11); capture times correct |
 | 4 | Subscribe and Import | Photos with a confident match linked to their dives within about 40 s; app stays responsive; spot check: a photo 29 min before entry lands on that dive |
 | 5 | Media library | Synology photos paint with thumbnails from the NAS |
 | 6 | Full-screen view | Original loads; depth, temperature and profile overlay derived from the dive |
@@ -427,8 +427,10 @@ TDD, unit tests with `MockClient` (no network):
   builders, thumbnail derivation.
 - `SynologyShareSessions`: single in-flight login, invalidate only the stale
   sid, wrong password, validation throttle.
-- `SynologyAlbumSource`: paging, mapping, skipping videos, 119 retry,
-  401 mapping, error envelopes.
+- `SynologyAlbumSource`: paging, mapping of photos, videos and live photos,
+  119 retry, 401 mapping, error envelopes, format change detection.
+- `NetworkVideoCache` and `motion_photo`: download, reuse, refusal of error
+  pages, eviction, motion photo probe and clip extraction.
 - `NetworkCredentialsService`: save/decode of `synologyShare`, headers only for
   share URIs.
 - `NetworkFetchPipeline`: `metadataComplete` skips extraction.
