@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
@@ -877,7 +878,7 @@ void main() {
     test('bundles the media report as a second file when given one', () async {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
-      final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
+      final shareTemp = Directory(p.join(tempDir.path, 'tmp'))..createSync();
       useFakePathProvider(_FakePathProvider(shareTemp.path));
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
@@ -902,7 +903,7 @@ void main() {
     test('shares a header-prefixed, redacted copy of the log', () async {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
-      final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
+      final shareTemp = Directory(p.join(tempDir.path, 'tmp'))..createSync();
       useFakePathProvider(_FakePathProvider(shareTemp.path));
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
@@ -927,7 +928,7 @@ void main() {
 
     setUp(() {
       tempDir = Directory.systemTemp.createTempSync('export_bytes_test_');
-      file = File('${tempDir.path}/submersion.log');
+      file = File(p.join(tempDir.path, 'submersion.log'));
     });
 
     tearDown(() => tempDir.deleteSync(recursive: true));
