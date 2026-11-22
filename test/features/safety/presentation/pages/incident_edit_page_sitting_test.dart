@@ -7,9 +7,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' hide Incident;
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -33,6 +35,24 @@ class _FailingReadRepository extends IncidentRepository {
   @override
   Future<Incident?> getIncidentById(String id) =>
       Future.error(StateError('database closed'));
+}
+
+/// A repository whose create fails, as a locked database would.
+class _FailingWriteRepository extends IncidentRepository {
+  @override
+  Future<Incident> createIncident({
+    String? id,
+    required DateTime occurredAt,
+    required IncidentCategory category,
+    required IncidentSeverity severity,
+    required String narrative,
+    String? contributingFactors,
+    String? lessonsLearned,
+    String? diveId,
+    String? diverId,
+    String? equipmentId,
+    String? observationId,
+  }) => Future.error(Exception('database is locked'));
 }
 
 /// The near-miss editor on the shared Cancel and Save bar (issue #4527,
@@ -342,6 +362,44 @@ void main() {
     expect(find.text('Near-miss report not found'), findsOneWidget);
     expect(await incidents.getIncidentById(incident.id), isNull);
     expect(find.byType(RecordEditBar), findsOneWidget);
+  });
+
+  testWidgets('a save that fails is logged', (tester) async {
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+    await pump(tester, '/incidents/new', repository: _FailingWriteRepository());
+    await tester.enterText(find.byType(TextFormField).first, 'Lost a fin');
+
+    await tapSave(tester);
+
+    expect(
+      find.text("Couldn't save your changes. Nothing was changed."),
+      findsOneWidget,
+    );
+    expect(
+      logged.where((e) => e.message.contains('database is locked')),
+      isNotEmpty,
+    );
+  });
+
+  testWidgets('a refused save is not logged as a failure', (tester) async {
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+    final incident = await stored();
+    await pump(tester, '/incidents/${incident.id}');
+    await incidents.deleteIncident(incident.id);
+
+    await tester.tap(find.text('Serious'));
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+
+    expect(find.text('Near-miss report not found'), findsOneWidget);
+    expect(
+      logged.where((e) => e.message.contains('Could not save a near-miss')),
+      isEmpty,
+    );
   });
 
   testWidgets('Delete is in the menu, disabled while there are changes', (

@@ -327,8 +327,11 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage>
 
   @override
   bool editorSaveFailed(Object error) {
-    // The host says so in a snackbar; the log keeps why.
-    _log.error('Could not save a near-miss', error: error);
+    // The host says so in a snackbar; the log keeps why. A refusal (the
+    // report was deleted elsewhere) is no fault, and the diver is told.
+    if (error is! RecordSittingRefusal) {
+      _log.error('Could not save a near-miss', error: error);
+    }
     return false;
   }
 
