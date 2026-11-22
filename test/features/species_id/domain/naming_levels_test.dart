@@ -202,6 +202,60 @@ void main() {
     expect(accuracyPercent(0.07), 5);
   });
 
+  group('applyChosenLevel (issue #4876)', () {
+    // A row the pack's bars would suggest, stored as not suggested: as a
+    // video track renamed to another species is (suggestableOnRename).
+    final withdrawn = _named(0.9);
+
+    test('a choice that resolves to Surer on the run\'s bars reads the rows '
+        'as stored', () {
+      final unmeasured = _pack();
+      final named = run().copyWith(
+        packVersion: unmeasured.packVersion,
+        namingBars: () => NamingBars.fromNaming(unmeasured.naming),
+      );
+      expect(
+        applyChosenLevel(
+          [withdrawn],
+          run: named,
+          chosen: NamingLevel.eager,
+          installed: null,
+        ),
+        [withdrawn],
+      );
+    });
+
+    test('so does one that resolves to Surer on the installed pack', () {
+      final unmeasured = _pack();
+      expect(
+        applyChosenLevel(
+          [withdrawn],
+          run: run().copyWith(packVersion: unmeasured.packVersion),
+          chosen: NamingLevel.eager,
+          installed: levelInForce(unmeasured, NamingLevel.eager),
+        ),
+        [withdrawn],
+      );
+    });
+
+    test('a measured looser level names by its bars', () {
+      final measured = _pack(levels: [_balanced, _eager]);
+      final named = run().copyWith(
+        packVersion: measured.packVersion,
+        namingBars: () => NamingBars.fromNaming(measured.naming),
+      );
+      expect(
+        applyChosenLevel(
+          [_named(0.35)],
+          run: named,
+          chosen: NamingLevel.eager,
+          installed: null,
+        ).single.suggestable,
+        isTrue,
+      );
+    });
+  });
+
   group('applyNamingLevel', () {
     final pack = _pack(levels: [_balanced, _eager]);
     final surer = levelInForce(pack, NamingLevel.surer)!;
