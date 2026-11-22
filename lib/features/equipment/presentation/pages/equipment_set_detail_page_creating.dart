@@ -56,7 +56,7 @@ mixin _EquipmentSetDetailPageCreating
 
   /// The set and its held writes, in one transaction. A seed made with no
   /// diver (the profile still being read) takes the one active now, as the
-  /// form does, so the set is never stored ownerless.
+  /// form did, so the set is never stored ownerless.
   @override
   Future<EquipmentSet> createRecord(EditSession<EquipmentSet> session) async {
     // Read before the first wait: the page can be gone by the end.

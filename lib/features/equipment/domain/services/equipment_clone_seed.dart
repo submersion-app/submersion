@@ -11,7 +11,7 @@ const _perItemAttrKeys = {
   EquipmentAttrKeys.installedDate,
 };
 
-/// The item the Clone form starts from (issue #3184): [source] with no id,
+/// The item a clone starts from (issue #3184): [source] with no id,
 /// owner or creation time (the save assigns them), the name from [copyName],
 /// no serial number, none of the frozen legacy service fields, and without
 /// the per-item attributes above, nor any system attribute: a passport id

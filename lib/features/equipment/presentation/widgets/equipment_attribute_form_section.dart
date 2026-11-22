@@ -18,8 +18,8 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 /// keyed by attrKey in [values]; edits emit whole EquipmentAttribute objects
 /// through [onChanged]; emptied inputs call [onCleared] (unset = no row).
 ///
-/// The edit page mounts one instance per group, so the physical specs and the
-/// purchase record land in their own blocks of the form.
+/// The Details editor mounts one instance per group, so the physical specs
+/// and the purchase record land in their own blocks of it.
 class EquipmentAttributeFormSection extends StatelessWidget {
   final EquipmentType type;
   final Map<String, EquipmentAttribute> values;

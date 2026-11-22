@@ -511,16 +511,6 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
     }
   }
 
-  Future<void> updateTrip(Trip trip) async {
-    final actingDiverId = await _ref.read(
-      validatedCurrentDiverIdProvider.future,
-    );
-    await _repository.updateTrip(trip, actingDiverId: actingDiverId);
-    await refresh();
-    _ref.invalidate(tripByIdProvider(trip.id));
-    _ref.invalidate(tripWithStatsProvider(trip.id));
-  }
-
   /// Deletes [id] when the active profile may (issue #2594). False, with
   /// nothing changed, for a shared trip another profile owns.
   Future<bool> deleteTrip(String id) async {

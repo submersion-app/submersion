@@ -29,7 +29,7 @@ void main() {
   /// Any of the ways a reader waits for the caches its query reads.
   final waits = RegExp(
     r'\b(awaitQueryCachesIfRead|awaitAndFollowQueryCaches|'
-    r'awaitInsightsFilterCaches|awaitQueryCachesIfReadFromWidget|'
+    r'awaitInsightsFilterCaches|'
     r'prepareQueryCachesFor|_awaitQueryCaches|_keepAliveWithExpiry|'
     r'_awaitFilterCaches)\b',
   );

@@ -663,7 +663,8 @@ class EquipmentRepository {
   ///
   /// The tag links are clockless children of the item: only the junction
   /// rows are marked pending, never the row again (#1769). Sync hears of the
-  /// save once, after it commits. The demo data seeder creates gear so.
+  /// save once, after it commits. The demo data seeder uses it to create
+  /// tagged gear.
   Future<EquipmentItem> createEquipmentWithTags(
     EquipmentItem equipment,
     List<String> tagIds,
@@ -2065,9 +2066,9 @@ class EquipmentRepository {
   /// Writes [desired] as the item's attribute set.
   ///
   /// With [preserveSystem] (the default), a system attribute the caller did
-  /// not pass (a cylinder's passport id) is kept rather than deleted: the
-  /// edit form shows only its type's fields and may have been opened before
-  /// a synced id arrived, and neither is a reason to drop the tag's
+  /// not pass (a cylinder's passport id) is kept rather than deleted: an
+  /// item's sitting shows only its type's fields and may have been opened
+  /// before a synced id arrived, and neither is a reason to drop the tag's
   /// identity. The passport repository passes false to release a tag.
   ///
   /// Returns the attributes as they were before the write.

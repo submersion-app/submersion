@@ -101,22 +101,23 @@ void main() {
   });
 
   test('a save whose tag write rolls back never notifies sync', () async {
-    final item = await equipment.createEquipmentWithTags(
-      const EquipmentItem(id: '', name: 'Wing', type: EquipmentType.bcd),
-      ['t1'],
-    );
-
     expect(
       await notificationsDuring(
         () => equipment.createEquipmentWithTags(
-          const EquipmentItem(id: '', name: 'Doomed', type: EquipmentType.bcd),
+          const EquipmentItem(
+            id: 'doomed',
+            name: 'Doomed',
+            type: EquipmentType.bcd,
+          ),
           ['t1', 'missing'],
         ),
       ),
       0,
       reason: 'create',
     );
-    expect(await tagIdsOf(item.id), ['t1']);
+    // Rolled back whole: no row, no link.
+    expect(await equipment.getEquipmentById('doomed'), isNull);
+    expect(await linkCount(), 0);
   });
 
   test('updateEquipment with a partial entity leaves the tags alone', () async {

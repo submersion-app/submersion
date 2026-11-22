@@ -87,7 +87,7 @@ class EquipmentSetRepository {
   ///
   /// A caller can legitimately hold ids that no longer exist: SQLite cascades
   /// the junction rows away the instant a gear item is deleted, but an
-  /// in-memory equipment set -- or an edit form already on screen -- keeps its
+  /// in-memory equipment set -- or a sitting already open -- keeps its
   /// snapshot of the membership. Inserting such an id fails the
   /// foreign key and aborts the entire save (issue #819), so drop it instead.
   ///

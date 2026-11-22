@@ -6,8 +6,8 @@ import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dar
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 
-/// The trip page's values a sitting edits, and the rules its form keeps
-/// (issue #4527, phase 3).
+/// The trip page's values a sitting edits, and the rules the trip form
+/// kept (issue #4527, phase 3).
 
 final String _header = TripCardId.header.name;
 final String _plan = TripCardId.plan.name;

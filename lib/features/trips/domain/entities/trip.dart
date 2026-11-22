@@ -232,8 +232,8 @@ const _undefined = Object();
 /// result is DST-immune (UTC has no daylight-saving transitions, so every day
 /// is exactly 24 hours). Negative when [to] is before [from].
 ///
-/// Public so screens that count days over a trip range (the edit page's
-/// duration label) share one implementation with [Trip.durationDays] rather
+/// Public so screens that count days over a trip range (the header
+/// editor's duration label) share one implementation with [Trip.durationDays] rather
 /// than reaching for `Duration.inDays`, which floors elapsed hours and so
 /// loses a day whenever the range spans a local spring-forward.
 int calendarDaysBetween(DateTime from, DateTime to) {

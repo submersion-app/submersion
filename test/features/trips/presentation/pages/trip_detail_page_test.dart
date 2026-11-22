@@ -1274,9 +1274,6 @@ class _MockTripListNotifier
   Future<void> refresh() async {}
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
-
-  @override
   Future<bool> deleteTrip(String id) async => true;
 
   @override

@@ -111,7 +111,7 @@ final gearTypeField = EditField<EquipmentItem, EquipmentType>(
 
 /// The item's status. Setting it also sets whether the item is in the kit:
 /// retired, sold and wanted gear is out of it (#636, #2025). Read as the
-/// form shows it ([gearShownStatus]), so an untouched legacy row is not
+/// item page shows it ([gearShownStatus]), so an untouched legacy row is not
 /// written.
 final gearStatusField = EditField<EquipmentItem, EquipmentStatus>(
   id: 'status',
@@ -286,7 +286,7 @@ EquipmentStatus gearShownStatus(EquipmentItem item) =>
 /// The parent to keep once the type is [type]: [parentId] only when it
 /// names one of [candidates], the active items, whose type can hold [type].
 /// While [candidates] are still loading (null) the id is kept, as the form
-/// keeps it: a quick change must not drop a link never checked. A type that
+/// kept it: a quick change must not drop a link never checked. A type that
 /// is fitted to nothing keeps none.
 String? gearParentAfterType(
   EquipmentType type,

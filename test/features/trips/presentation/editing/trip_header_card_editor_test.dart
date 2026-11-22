@@ -7,7 +7,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
@@ -252,13 +254,14 @@ void main() {
 
       expect(find.byType(DatePickerDialog), findsNothing);
       expect(sessionOf(tester).working.startDate, DateTime(2030, 5, 20));
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('trip-edit-start')),
-          matching: find.textContaining('2030'),
-        ),
-        findsOneWidget,
+      // In the diver's date format, the picked date, not the stored one.
+      const format = UnitFormatter(AppSettings());
+      Finder onStartTile(DateTime date) => find.descendant(
+        of: find.byKey(const Key('trip-edit-start')),
+        matching: find.text(format.formatDate(date)),
       );
+      expect(onStartTile(DateTime(2030, 5, 20)), findsOneWidget);
+      expect(onStartTile(redSea.startDate), findsNothing);
     });
 
     testWidgets('a Day Trip moves its end with a start picked', (tester) async {

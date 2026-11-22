@@ -869,23 +869,6 @@ void main() {
       );
     });
 
-    test('updateTrip persists changes', () async {
-      final t = await tripRepo.createTrip(_makeTrip(name: 'Original'));
-
-      final container = makeContainer();
-      addTearDown(container.dispose);
-
-      while (container.read(tripListNotifierProvider).isLoading) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      final notifier = container.read(tripListNotifierProvider.notifier);
-      await notifier.updateTrip(t.copyWith(name: 'Updated'));
-
-      final read = await tripRepo.getTripById(t.id);
-      expect(read?.name, equals('Updated'));
-    });
-
     test('deleteTrip removes the trip', () async {
       final t = await tripRepo.createTrip(_makeTrip(name: 'Gone'));
 

@@ -10,7 +10,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 import '../../../helpers/test_app.dart';
 
-/// The equipment search lists types in the order the Add Equipment page
+/// The equipment search lists types in the order a gear item's Type menu
 /// does (#4244): by localized label, not by when each type was added.
 void main() {
   final typeField = appQueryRegistry
@@ -18,7 +18,7 @@ void main() {
       .field('type')!;
 
   for (final tag in ['en', 'fr', 'de']) {
-    testWidgets('search type order matches the edit page in $tag', (
+    testWidgets('search type order matches the item page in $tag', (
       tester,
     ) async {
       late List<String> searchOrder;

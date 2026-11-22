@@ -4,7 +4,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/scoped_tags_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The Tags field on the equipment edit page (issue #1942): the shared
+/// The Tags field in a gear item's header editor (issue #1942): the shared
 /// [ScopedTagsField] limited to equipment tags. A tag created here applies
 /// to equipment; a name already used by a dive or site tag widens that tag
 /// instead of creating a second one.
