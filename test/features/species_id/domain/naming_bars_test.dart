@@ -53,4 +53,21 @@ void main() {
     expect(bars, isNotNull);
     expect(bars!.levels, isEmpty);
   });
+
+  test('copyWith replaces each field and keeps the rest', () {
+    final bars = NamingBars.fromNaming(pack.naming);
+    expect(bars.copyWith(), bars);
+    final changed = bars.copyWith(
+      minCropSide: 32,
+      minOpenScore: 0.2,
+      suggestScore: 0.6,
+      suggestScoreNoLocation: 0.8,
+      levels: const [],
+    );
+    expect(changed.minCropSide, 32);
+    expect(changed.minOpenScore, 0.2);
+    expect(changed.suggestScore, 0.6);
+    expect(changed.suggestScoreNoLocation, 0.8);
+    expect(changed.levels, isEmpty);
+  });
 }

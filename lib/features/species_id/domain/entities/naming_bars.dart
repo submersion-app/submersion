@@ -34,6 +34,21 @@ class NamingBars extends Equatable {
   /// The measured levels below the suggest bars, surest first.
   final List<MeasuredNamingLevel> levels;
 
+  NamingBars copyWith({
+    int? minCropSide,
+    double? minOpenScore,
+    double? suggestScore,
+    double? suggestScoreNoLocation,
+    List<MeasuredNamingLevel>? levels,
+  }) => NamingBars(
+    minCropSide: minCropSide ?? this.minCropSide,
+    minOpenScore: minOpenScore ?? this.minOpenScore,
+    suggestScore: suggestScore ?? this.suggestScore,
+    suggestScoreNoLocation:
+        suggestScoreNoLocation ?? this.suggestScoreNoLocation,
+    levels: levels ?? this.levels,
+  );
+
   /// As stored on the run: the manifest's own field names, so the levels
   /// read back through the same checks as a manifest's ([measuredLevels]).
   String toJson() => jsonEncode({

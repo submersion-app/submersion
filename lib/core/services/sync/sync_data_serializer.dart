@@ -2228,6 +2228,9 @@ class SyncDataSerializer {
   /// #4727); without this the confirm would never reach a peer.
   static const Map<String, String> clockGuardedClearTables = {
     'mediaSpecies': 'media_species',
+    // A rescan from the start sets a video's scan back to nothing, and a
+    // run named again with no place clears its cell (issue #4876).
+    'mediaIdentificationRuns': 'media_identification_runs',
   };
 
   /// The only JSON keys a clock-guarded type's copy may clear: the marks a
@@ -2236,6 +2239,12 @@ class SyncDataSerializer {
   /// lacks them never erases what this device holds.
   static const Map<String, Set<String>> clockGuardedClearKeys = {
     'mediaSpecies': {'unconfirmed', 'createdSighting', 'createdSpecies'},
+    'mediaIdentificationRuns': {
+      'scannedMs',
+      'videoDurationMs',
+      'scannedRanges',
+      'locationCell',
+    },
   };
 
   /// The SQL table [clearChildColumns] writes for [entityType], or null for
@@ -2404,6 +2413,8 @@ class SyncDataSerializer {
     'divePlanEquipment': ['plan_id', 'equipment_id'],
     'equipmentSetItems': ['set_id', 'equipment_id'],
     'diveSafetyReviews': ['dive_id'],
+    // Clock-guarded, not parent-gated: listed for its clears (issue #4876).
+    'mediaIdentificationRuns': ['media_id'],
   };
 
   /// [ids] of a [parentGatedChildEntities] type in one query (per chunk the

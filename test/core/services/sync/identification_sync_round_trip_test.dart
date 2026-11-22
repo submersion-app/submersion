@@ -203,6 +203,34 @@ void main() {
     });
   });
 
+  test('a rescan from the start that sets a video\'s scan back to nothing '
+      'reaches the peer', () async {
+    await storeVideo();
+    final scanned = (await serializer.fetchRecord(
+      'mediaIdentificationRuns',
+      'v1',
+    ))!;
+    expect(scanned['scannedRanges'], isNotNull);
+    await SyncRepository().ensureSyncClockConfigured();
+    // The peer started over: nothing scanned yet, a newer clock.
+    await apply(
+      SyncData(
+        mediaIdentificationRuns: [
+          {
+            ...scanned,
+            'scannedMs': null,
+            'scannedRanges': null,
+            'hlc': SyncClock.instance.issue(),
+          },
+        ],
+      ),
+    );
+    final back = (await repo.runFor('v1'))!;
+    expect(back.scannedRanges, isNull);
+    expect(back.scannedMs, isNull);
+    expect(back.scanComplete, isFalse);
+  });
+
   group('decisions merge under their own clock (Review Focus 3)', () {
     Future<Map<String, dynamic>> localRow() async =>
         (await serializer.fetchRecord('mediaIdentifications', 'a'))!;
