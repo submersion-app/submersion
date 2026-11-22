@@ -299,6 +299,7 @@ void main() {
         'nl',
         'pt',
         'zh',
+        'ja',
         'hu',
         'ar',
         'he',
