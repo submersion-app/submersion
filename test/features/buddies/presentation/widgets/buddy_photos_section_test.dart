@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_photos_section.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
@@ -12,6 +13,10 @@ import '../../../media/presentation/widgets/people_tags/people_tag_test_host.dar
 /// The photos and videos a buddy is tagged in, on the buddy page
 /// (issue #1745).
 void main() {
+  // Not about marine life identification, which is on for Android (the
+  // test platform); its own tests cover these screens with it on.
+  setUp(() => marineLifeIdEnabled = false);
+
   setUp(() async {
     await setUpTestDatabase();
     await seedPeopleTagFixtures();

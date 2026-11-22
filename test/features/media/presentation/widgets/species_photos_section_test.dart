@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -86,6 +87,10 @@ String _formatDate(WidgetTester tester, DateTime date) =>
     ).read(unitFormatterProvider).formatDate(date);
 
 void main() {
+  // Not about marine life identification, which is on for Android (the
+  // test platform); its own tests cover these screens with it on.
+  setUp(() => marineLifeIdEnabled = false);
+
   final entries = [_entry('p1'), _entry('p2')];
 
   testWidgets('renders a titled section of tagged photos', (tester) async {

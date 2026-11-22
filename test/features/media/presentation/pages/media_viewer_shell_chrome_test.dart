@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -75,6 +76,10 @@ class _ShellState extends State<_Shell> {
 }
 
 void main() {
+  // Not about marine life identification, which is on for Android (the
+  // test platform); its own tests cover these screens with it on.
+  setUp(() => marineLifeIdEnabled = false);
+
   late SharedPreferences prefs;
 
   setUp(() async {

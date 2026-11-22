@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
@@ -35,6 +36,10 @@ import 'media_viewer_unlock_harness.dart';
 
 /// The photo viewer's own lock (issue #4527, plan 10).
 void main() {
+  // Not about marine life identification, which is on for Android (the
+  // test platform); its own tests cover these screens with it on.
+  setUp(() => marineLifeIdEnabled = false);
+
   late AppDatabase db;
 
   setUp(() async {

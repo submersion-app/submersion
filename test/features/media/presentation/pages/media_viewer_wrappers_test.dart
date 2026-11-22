@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 // reaches for it the same way.
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' show Override;
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -58,6 +59,10 @@ MediaItem item(String id, {String? diveId}) => MediaItem(
 /// two failure states are the point -- they are what a diver sees when the
 /// dive or trip query is slow or broken, and neither had any coverage.
 void main() {
+  // Not about marine life identification, which is on for Android (the
+  // test platform); its own tests cover these screens with it on.
+  setUp(() => marineLifeIdEnabled = false);
+
   late SharedPreferences prefs;
 
   setUp(() async {

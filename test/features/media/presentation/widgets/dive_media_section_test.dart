@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
@@ -18,6 +19,10 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 void main() {
+  // Not about marine life identification, which is on for Android (the
+  // test platform); its own tests cover these screens with it on.
+  setUp(() => marineLifeIdEnabled = false);
+
   test('showInOsFileManagerLabel returns OS-appropriate label', () {
     final label = showInOsFileManagerLabel();
     if (Platform.isMacOS) {

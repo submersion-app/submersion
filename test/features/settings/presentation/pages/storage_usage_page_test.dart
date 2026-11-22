@@ -91,7 +91,9 @@ void main() {
     );
     final expected = container.read(storageCategoriesProvider).length;
 
-    expect(expected, 15);
+    // 15, plus the species model and suggestions rows: marine life
+    // identification is on for Android, the test platform.
+    expect(expected, 17);
     expect(find.byType(StorageUsageRow), findsNWidgets(expected));
   });
 
