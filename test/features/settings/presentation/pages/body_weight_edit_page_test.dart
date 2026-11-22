@@ -234,6 +234,40 @@ void main() {
     },
   );
 
+  testWidgets('Delete still deletes when the page went while it asked', (
+    tester,
+  ) async {
+    final repository = DiverWeightEntryRepository();
+    final measured = DateTime(2026, 6, 1);
+    await repository.createEntry(
+      DiverWeightEntry(
+        id: '',
+        diverId: diverId,
+        measuredAt: measured,
+        weightKg: 80.0,
+        createdAt: measured,
+        updatedAt: measured,
+      ),
+    );
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Delete entry'));
+    await tester.pumpAndSettle();
+
+    // The page under the question goes (a route change on desktop).
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.removeRoute(
+      ModalRoute.of(tester.element(find.byType(BodyWeightEditPage)))!,
+    );
+    await tester.pump();
+    expect(find.byType(BodyWeightEditPage), findsNothing);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(await repository.getEntriesForDiver(diverId), isEmpty);
+  });
+
   group('body fat (issue #4525)', () {
     Future<void> openDialog(WidgetTester tester) async {
       await tester.tap(find.text('Add measurement'));

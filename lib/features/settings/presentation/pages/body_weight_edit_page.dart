@@ -46,6 +46,9 @@ class BodyWeightEditPage extends ConsumerWidget {
     DiverWeightEntry entry,
   ) async {
     final l10n = context.l10n;
+    // Read before asking: the page may be gone by the time the diver answers.
+    final repository = ref.read(diverWeightEntryRepositoryProvider);
+    final container = ProviderScope.containerOf(context, listen: false);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
@@ -76,8 +79,8 @@ class BodyWeightEditPage extends ConsumerWidget {
       },
     );
     if (confirmed != true) return;
-    await ref.read(diverWeightEntryRepositoryProvider).deleteEntry(entry.id);
-    ref.invalidate(diverWeightEntriesProvider);
+    await repository.deleteEntry(entry.id);
+    container.invalidate(diverWeightEntriesProvider);
   }
 
   /// The date, then whichever of height and body fat the entry carries.
