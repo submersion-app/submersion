@@ -78,6 +78,10 @@ class HomeHeaderBar extends ConsumerWidget {
   /// Height of the bar's content. Tall enough for 44-point hit areas.
   static const double barHeight = 48;
 
+  /// The app icon at the start of the bar: the largest that leaves the bar
+  /// a few points above and below it.
+  static const double logoSize = 40;
+
   static const Key switcherKey = ValueKey('home-header-switcher');
 
   @override
@@ -123,21 +127,21 @@ class HomeHeaderBar extends ConsumerWidget {
             return Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(10),
                   child: Image.asset(
                     'assets/icon/icon.png',
-                    width: 24,
-                    height: 24,
+                    width: logoSize,
+                    height: logoSize,
                     excludeFromSemantics: true,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Flexible(
                   child: Text(
                     'Submersion',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),

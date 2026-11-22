@@ -107,6 +107,26 @@ void main() {
     expect(find.text('Submersion'), findsOneWidget);
   });
 
+  for (final width in [400.0, 1280.0]) {
+    testWidgets('the logo is 40 points and fits the bar at $width wide', (
+      tester,
+    ) async {
+      await _pump(tester, width: width);
+      final logo = find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is AssetImage &&
+            (w.image as AssetImage).assetName == 'assets/icon/icon.png',
+      );
+      expect(logo, findsOneWidget);
+      expect(tester.getSize(logo), const Size(40, 40));
+      final bar = tester.getRect(find.byType(HomeHeaderBar));
+      final logoRect = tester.getRect(logo);
+      expect(logoRect.top, greaterThanOrEqualTo(bar.top));
+      expect(logoRect.bottom, lessThanOrEqualTo(bar.bottom));
+    });
+  }
+
   testWidgets('a switcher with two divers', (tester) async {
     await _pump(tester, width: 1280, divers: 2);
     expect(find.byKey(HomeHeaderBar.switcherKey), findsOneWidget);
