@@ -516,7 +516,6 @@ void main() {
           .first,
     );
     await tester.pump(const Duration(milliseconds: 50));
-    expect(find.byType(OutingSkyline), findsOneWidget);
     // Decoding runs outside the fake clock.
     for (var i = 0; i < 10; i++) {
       await tester.runAsync(
@@ -525,6 +524,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     expect(cover().opacity, 1);
+    // Once the photo shows, nothing is built behind it.
+    expect(find.byType(OutingSkyline), findsNothing);
+    expect(find.byType(OutingSitesMap), findsNothing);
   });
 
   group('a cover without a photo', () {

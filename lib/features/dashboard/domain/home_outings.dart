@@ -198,7 +198,10 @@ Outing _outingOf(List<OutingDive> dives) {
     sites: List.unmodifiable(
       {
         for (final d in dives)
-          if (d.siteLatitude != null && d.siteLongitude != null)
+          // 0,0 is the usual stand-in for an unknown position.
+          if (d.siteLatitude != null &&
+              d.siteLongitude != null &&
+              !(d.siteLatitude == 0 && d.siteLongitude == 0))
             (latitude: d.siteLatitude!, longitude: d.siteLongitude!),
       }.toList(),
     ),

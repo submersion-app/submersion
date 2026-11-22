@@ -95,19 +95,21 @@ class _OutingCardState extends ConsumerState<OutingCard> {
                         // Shown until the cover has drawn, and for good when
                         // it cannot: a missing file, a photo still on its
                         // way, a video with no poster. A map of the sites
-                        // dived, faded into the card as the dive details
-                        // header's is, or the depth skyline when no site
-                        // has a position.
-                        if (outing.sites.isNotEmpty)
-                          _MapCover(
-                            fadeColor: scheme.surface,
-                            child: OutingSitesMap(sites: outing.sites),
-                          )
-                        else
-                          OutingSkyline(
-                            depths: outing.depths,
-                            scaleMeters: widget.skylineScaleMeters,
-                          ),
+                        // dived, faded into the text strip, or the depth
+                        // skyline when no site has a position. Gone once
+                        // the photo has drawn, so a photo card holds no map
+                        // or tiles it never shows.
+                        if (cover == null || _coverFailed || !_coverReady)
+                          if (outing.sites.isNotEmpty)
+                            _MapCover(
+                              fadeColor: scheme.surface,
+                              child: OutingSitesMap(sites: outing.sites),
+                            )
+                          else
+                            OutingSkyline(
+                              depths: outing.depths,
+                              scaleMeters: widget.skylineScaleMeters,
+                            ),
                         if (cover != null && !_coverFailed)
                           Opacity(
                             opacity: _coverReady ? 1 : 0,

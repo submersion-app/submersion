@@ -211,6 +211,14 @@ void main() {
       ]);
     });
 
+    test('a site at 0,0 has no position', () {
+      final outings = groupOutings([
+        _dive('a', 5, 3, tripId: 't', at: (0, 0)),
+        _dive('b', 5, 4, tripId: 't', at: (18.4654, -66.0859)),
+      ]);
+      expect(outings.single.sites, [(latitude: 18.4654, longitude: -66.0859)]);
+    });
+
     test('no dives give no outings', () {
       expect(groupOutings(const []), isEmpty);
     });
