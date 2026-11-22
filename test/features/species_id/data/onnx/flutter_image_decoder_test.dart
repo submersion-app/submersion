@@ -6,6 +6,8 @@ import 'package:image/image.dart' as img;
 import 'package:submersion/features/species_id/data/engines/onnx/flutter_image_decoder.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
+import 'icc_test_profiles.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -71,5 +73,25 @@ void main() {
         'decode_failed',
       ),
     );
+  });
+
+  testWidgets('carries the conversion of an embedded colour profile, '
+      'which Flutter does not apply', (tester) async {
+    final decoded = await tester.runAsync(
+      () => decodeForAnalysis(jpegWith(displayP3Profile())),
+    );
+
+    expect(decoded!.colour, isNotNull);
+    // Flutter's decoder hands back the stored values, unconverted.
+    expect(decoded.bytes[0], closeTo(200, 2));
+  });
+
+  testWidgets('a photo with no colour profile carries no conversion', (
+    tester,
+  ) async {
+    final decoded = await tester.runAsync(
+      () => decodeForAnalysis(jpegWith(null)),
+    );
+    expect(decoded!.colour, isNull);
   });
 }

@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/colour_profile.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/resampling.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 
 /// The pixel steps of the ONNX pipeline: ports of `rgba`, `tensor`,
@@ -13,11 +15,25 @@ import 'package:submersion/features/species_id/domain/entities/species_pack_mani
 
 /// RGBA pixels, four bytes each, rows top to bottom.
 class RgbaImage {
-  const RgbaImage(this.width, this.height, this.bytes);
+  const RgbaImage(this.width, this.height, this.bytes, {this.colour});
 
   final int width;
   final int height;
   final Uint8List bytes;
+
+  /// The conversion of [bytes] to sRGB when they are in a photo's own
+  /// colour space (its embedded profile, which Flutter's decoder does not
+  /// apply); null when they are sRGB already or untagged. The pipeline
+  /// applies it first ([inSrgb]), in the worker isolate.
+  final SrgbConversion? colour;
+}
+
+/// [image] in sRGB: converted by its [RgbaImage.colour], or itself when it
+/// carries none.
+RgbaImage inSrgb(RgbaImage image) {
+  final colour = image.colour;
+  if (colour == null) return image;
+  return RgbaImage(image.width, image.height, toSrgbBytes(image.bytes, colour));
 }
 
 /// A crop in whole pixels of an image.
@@ -31,29 +47,40 @@ RgbaImage drawInto(
   PixelRect target, {
   required int canvas,
   List<double>? fill,
-}) {
-  final out = Uint8List(canvas * canvas * 4);
-  if (fill != null) {
-    final r = (fill[0] * 255).round(), g = (fill[1] * 255).round();
-    final b = (fill[2] * 255).round();
-    for (var i = 0; i < out.length; i += 4) {
-      out[i] = r;
-      out[i + 1] = g;
-      out[i + 2] = b;
-      out[i + 3] = 255;
+}) => CanvasDrawer(source).draw(target, canvas: canvas, fill: fill);
+
+/// Draws one image into several canvases as [drawInto] does, sharing the
+/// work of draws that resample an axis alike ([Resampler]): the detectors'
+/// square and letterbox from one photo or frame.
+class CanvasDrawer {
+  CanvasDrawer(RgbaImage source)
+    : _resampler = Resampler(source.bytes, source.width, source.height);
+
+  final Resampler _resampler;
+
+  RgbaImage draw(PixelRect target, {required int canvas, List<double>? fill}) {
+    final out = Uint8List(canvas * canvas * 4);
+    if (fill != null) {
+      final r = (fill[0] * 255).round(), g = (fill[1] * 255).round();
+      final b = (fill[2] * 255).round();
+      for (var i = 0; i < out.length; i += 4) {
+        out[i] = r;
+        out[i + 1] = g;
+        out[i + 2] = b;
+        out[i + 3] = 255;
+      }
     }
+    _resampler.draw(
+      out,
+      canvas,
+      canvas,
+      left: target.left,
+      top: target.top,
+      width: target.width,
+      height: target.height,
+    );
+    return RgbaImage(canvas, canvas, out);
   }
-  _resample(
-    source,
-    out,
-    canvas,
-    canvas,
-    target.left,
-    target.top,
-    target.width,
-    target.height,
-  );
-  return RgbaImage(canvas, canvas, out);
 }
 
 /// A `[1, 3, size, size]` tensor of a square image: R, G and B planes, each
@@ -128,7 +155,18 @@ RgbaImage fittedWithin(RgbaImage image, int side) {
   final w = math.max(1, (image.width * scale).round());
   final h = math.max(1, (image.height * scale).round());
   final out = Uint8List(w * h * 4);
-  _resample(image, out, w, h, 0, 0, w.toDouble(), h.toDouble());
+  resampleRgba(
+    image.bytes,
+    image.width,
+    image.height,
+    out,
+    w,
+    h,
+    left: 0,
+    top: 0,
+    width: w.toDouble(),
+    height: h.toDouble(),
+  );
   return RgbaImage(w, h, out);
 }
 
@@ -143,72 +181,3 @@ Uint8List jpegOf(RgbaImage image) => img.encodeJpg(
   ),
   quality: 85,
 );
-
-/// Resamples [source] into the rectangle at [left], [top] of [width] by
-/// [height] in [out] (a [outWidth] by [outHeight] RGBA buffer). The one
-/// place the pipeline chooses a filter, so the accuracy gate judges one
-/// choice: the average of the covered source pixels when shrinking by more
-/// than two, bilinear otherwise.
-void _resample(
-  RgbaImage source,
-  Uint8List out,
-  int outWidth,
-  int outHeight,
-  double left,
-  double top,
-  double width,
-  double height,
-) {
-  if (width <= 0 || height <= 0) return;
-  final scaleX = source.width / width, scaleY = source.height / height;
-  final average = scaleX > 2 || scaleY > 2;
-  final x0 = math.max(0, (left - 0.5).ceil());
-  final y0 = math.max(0, (top - 0.5).ceil());
-  final x1 = math.min(outWidth, (left + width - 0.5).ceil());
-  final y1 = math.min(outHeight, (top + height - 0.5).ceil());
-  final src = source.bytes;
-  final sw = source.width, sh = source.height;
-  for (var oy = y0; oy < y1; oy++) {
-    // The output pixel's footprint in source pixels.
-    final fy0 = (oy - top) * scaleY, fy1 = fy0 + scaleY;
-    for (var ox = x0; ox < x1; ox++) {
-      final fx0 = (ox - left) * scaleX, fx1 = fx0 + scaleX;
-      final o = (oy * outWidth + ox) * 4;
-      if (average) {
-        final sx0 = fx0.floor().clamp(0, sw - 1);
-        final sy0 = fy0.floor().clamp(0, sh - 1);
-        final sx1 = math.max(sx0 + 1, fx1.ceil().clamp(0, sw));
-        final sy1 = math.max(sy0 + 1, fy1.ceil().clamp(0, sh));
-        var r = 0, g = 0, b = 0;
-        for (var sy = sy0; sy < sy1; sy++) {
-          var i = (sy * sw + sx0) * 4;
-          for (var sx = sx0; sx < sx1; sx++, i += 4) {
-            r += src[i];
-            g += src[i + 1];
-            b += src[i + 2];
-          }
-        }
-        final n = (sx1 - sx0) * (sy1 - sy0);
-        out[o] = (r / n).round();
-        out[o + 1] = (g / n).round();
-        out[o + 2] = (b / n).round();
-      } else {
-        final cx = ((fx0 + fx1) / 2 - 0.5).clamp(0.0, sw - 1.0);
-        final cy = ((fy0 + fy1) / 2 - 0.5).clamp(0.0, sh - 1.0);
-        final ax = cx.floor(), ay = cy.floor();
-        final bx = math.min(ax + 1, sw - 1), by = math.min(ay + 1, sh - 1);
-        final tx = cx - ax, ty = cy - ay;
-        for (var c = 0; c < 3; c++) {
-          final p00 = src[(ay * sw + ax) * 4 + c];
-          final p10 = src[(ay * sw + bx) * 4 + c];
-          final p01 = src[(by * sw + ax) * 4 + c];
-          final p11 = src[(by * sw + bx) * 4 + c];
-          final top0 = p00 + (p10 - p00) * tx;
-          final bottom0 = p01 + (p11 - p01) * tx;
-          out[o + c] = (top0 + (bottom0 - top0) * ty).round();
-        }
-      }
-      out[o + 3] = 255;
-    }
-  }
-}

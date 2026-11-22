@@ -5,11 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker.dart';
+import 'package:image/image.dart' as img;
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/colour_profile.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
+
+import 'icc_test_profiles.dart';
 
 /// The worker isolate, the ONNX Runtime bindings and the pipeline together,
 /// through real ONNX Runtime and two constant-output models
@@ -84,6 +88,35 @@ void main() {
       ),
     );
   }, skip: skip);
+
+  test(
+    'converts a photo with a colour profile to sRGB in its isolate',
+    () async {
+      final worker = await OnnxWorker.spawn(
+        ortLibraryPath: Platform.isLinux ? null : libraryPath,
+      );
+      addTearDown(worker.close);
+      await worker.load(models);
+      final photo = RgbaImage(
+        40,
+        20,
+        Uint8List.fromList([
+          for (var i = 0; i < 40 * 20; i++) ...[200, 100, 50, 255],
+        ]),
+        colour: srgbConversionOf(jpegWith(displayP3Profile())),
+      );
+
+      final result = await worker.analyze(photo);
+
+      // The crop the worker cut is in sRGB: Display P3's (200, 100, 50).
+      final crop = img.decodeJpg(result.analysis.detections.single.cropJpeg)!;
+      final centre = crop.getPixel(crop.width ~/ 2, crop.height ~/ 2);
+      expect(centre.r, closeTo(215, 3));
+      expect(centre.g, closeTo(93, 3));
+      expect(centre.b, closeTo(31, 3));
+    },
+    skip: skip,
+  );
 
   test('a worker that dies while starting fails instead of hanging', () async {
     // No device makes the worker's core throw outside the guarded open,
