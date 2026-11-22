@@ -16,6 +16,7 @@ const List<String> appLocales = [
   'zh',
   'ar',
   'he',
+  'ja',
 ];
 
 final RegExp _idPattern = RegExp(r'^sp_[a-z0-9_]+$');
@@ -196,6 +197,7 @@ const Map<String, List<String>> _localeCandidates = {
   'zh': ['zh-CN', 'zh'],
   'ar': ['ar'],
   'he': ['he'],
+  'ja': ['ja'],
 };
 
 /// One name per app locale from a `/v1/taxa?...&all_names=true` taxon: the

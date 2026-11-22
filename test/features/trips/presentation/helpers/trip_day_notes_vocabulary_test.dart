@@ -17,7 +17,7 @@ void main() {
   ];
   final day3 = DateTime(2026, 11, 5);
 
-  for (final code in ['en', 'de', 'hu', 'zh', 'ar', 'he', 'fr']) {
+  for (final code in ['en', 'de', 'hu', 'zh', 'ja', 'ar', 'he', 'fr']) {
     test('$code reads back the day label it writes', () {
       final l10n = lookupAppLocalizations(Locale(code));
       final vocabulary = tripDayNotesVocabularyFor(l10n);

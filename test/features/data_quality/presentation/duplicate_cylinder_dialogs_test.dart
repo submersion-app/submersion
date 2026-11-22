@@ -82,6 +82,21 @@ void main() {
     );
   });
 
+  // #4833: Japanese sentences join with 。, not a Latin ". ".
+  test('a Japanese summary joins its sentences with 。', () {
+    final ja = lookupAppLocalizations(const Locale('ja'));
+    final summary = duplicateRemovalSummary(
+      ja,
+      result(merged: 2, skippedMixes: 1, failed: 1),
+    )!;
+    expect(
+      summary,
+      '${ja.dataQuality_bulk_removeDuplicates_done(2)}。'
+      '${ja.dataQuality_bulk_skippedMixes(1)}。'
+      '${ja.dataQuality_bulk_failed(1)}',
+    );
+  });
+
   testWidgets('the mix question always starts with the kept mix chosen', (
     tester,
   ) async {

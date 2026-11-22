@@ -4,8 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/text/join_sentences.dart';
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/tide/entities/tide_prediction.dart';
 import 'package:submersion/core/utils/number_display.dart';
@@ -234,26 +235,27 @@ class _TideChartState extends State<TideChart> {
     // Build a textual summary for screen readers
     final extremesSummary =
         widget.extremes != null && widget.extremes!.isNotEmpty
-        ? widget.extremes!
-              .map((e) {
-                final typeLabel = e.type == TideExtremeType.high
-                    ? context.l10n.tides_label_high
-                    : context.l10n.tides_label_low;
-                final displayHeight = DepthUnit.meters.convert(
-                  e.heightMeters,
-                  widget.depthUnit,
-                );
-                final timeStr = DateFormat(
-                  widget.timeFormat.pattern,
-                ).format(_display(e.time));
-                return context.l10n.tides_semantic_extremeItem(
-                  typeLabel,
-                  timeStr,
-                  formatFixedForDisplay(displayHeight, 1),
-                  widget.depthUnit.symbol,
-                );
-              })
-              .join('. ')
+        ? joinSentences(
+            widget.extremes!.map((e) {
+              final typeLabel = e.type == TideExtremeType.high
+                  ? context.l10n.tides_label_high
+                  : context.l10n.tides_label_low;
+              final displayHeight = DepthUnit.meters.convert(
+                e.heightMeters,
+                widget.depthUnit,
+              );
+              final timeStr = DateFormat(
+                widget.timeFormat.pattern,
+              ).format(_display(e.time));
+              return context.l10n.tides_semantic_extremeItem(
+                typeLabel,
+                timeStr,
+                formatFixedForDisplay(displayHeight, 1),
+                widget.depthUnit.symbol,
+              );
+            }).toList(),
+            context.l10n.localeName,
+          )
         : context.l10n.tides_noExtremesData;
 
     return Semantics(

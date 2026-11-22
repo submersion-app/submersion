@@ -18144,10 +18144,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get formatter_connector_at => 'um';
 
   @override
-  String get formatter_connector_from => 'Von';
+  String formatter_dateRange_from(String date) {
+    return 'Von $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Bis';
+  String formatter_dateRange_until(String date) {
+    return 'Bis $date';
+  }
 
   @override
   String get gas_air_description => 'Standardluft (21% O2)';

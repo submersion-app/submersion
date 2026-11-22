@@ -1,9 +1,6 @@
+import 'package:submersion/core/text/join_sentences.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-
-/// Sentence-final punctuation, including the CJK full stop, after which the
-/// kept-gear sentence follows with only a space.
-final _sentenceEnd = RegExp(r'[.!?。]$');
 
 /// The message after a profile delete: what went to whom (issues #2594,
 /// #2852).
@@ -22,7 +19,7 @@ String deleteDiverSnackbarText(
   if (result.handedOverCount > 0) {
     parts.add(l10n.divers_delete_handedOver(result.handedOverCount));
   }
-  if (!result.hasKeptEquipment) return _join(parts);
+  if (!result.hasKeptEquipment) return joinSentences(parts, l10n.localeName);
   final heirs = result.keptEquipmentHeirNames;
   parts.add(
     heirs.length == 1
@@ -32,15 +29,5 @@ String deleteDiverSnackbarText(
           )
         : l10n.divers_delete_keptEquipment_toMany(result.keptEquipmentCount),
   );
-  return _join(parts);
-}
-
-/// Joins sentences with a space, adding a full stop to one that lacks it.
-String _join(List<String> parts) {
-  var text = parts.first.trimRight();
-  for (final next in parts.skip(1)) {
-    final joiner = _sentenceEnd.hasMatch(text) ? ' ' : '. ';
-    text = '$text$joiner$next';
-  }
-  return text;
+  return joinSentences(parts, l10n.localeName);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/text/join_sentences.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/data_quality/data/services/duplicate_cylinder_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
@@ -29,12 +30,12 @@ String? duplicateRemovalSummary(
   if (result.merged == 0 && result.skippedMixes == 0 && result.failed == 0) {
     return null;
   }
-  return [
+  return joinSentences([
     l10n.dataQuality_bulk_removeDuplicates_done(result.merged),
     if (result.skippedMixes > 0)
       l10n.dataQuality_bulk_skippedMixes(result.skippedMixes),
     if (result.failed > 0) l10n.dataQuality_bulk_failed(result.failed),
-  ].join('. ');
+  ], l10n.localeName);
 }
 
 /// Asks before merging one dive's duplicate rows. When they disagree on gas

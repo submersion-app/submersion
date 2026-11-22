@@ -50,6 +50,7 @@ void main() {
     'nl',
     'pt',
     'zh',
+    'ja',
   ];
 
   for (final locale in locales) {

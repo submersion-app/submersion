@@ -96,8 +96,10 @@ void main() {
   testWidgets('an unsupported system language starts on English', (
     tester,
   ) async {
-    const japanese = Locale('ja');
-    final result = await _open(tester, japanese);
+    // Korean: a real system language the app does not ship (Japanese did
+    // until #4833 added it).
+    const korean = Locale('ko');
+    final result = await _open(tester, korean);
 
     expect(
       find.descendant(of: _languageField, matching: find.text('English')),
