@@ -348,7 +348,7 @@ class NavTrackWrites extends WritableEntry {
       // Read again: a dive change above may have moved the site and anchor.
       final current = await _route(id);
       // The anchor follows the site as the track page's site picker moves
-      // it: only one still on the old site's pin, never one placed by hand.
+      // it: only one still on the old site's pin; one anywhere else stays.
       final change = navTrackAnchorChangeForSite(
         current.anchor,
         await _sitePin(current.siteId),
@@ -373,7 +373,9 @@ class NavTrackWrites extends WritableEntry {
       );
     }
     if (v.keys.any(_correction.contains)) {
-      final c = route.correction;
+      // Read again: the dive and site steps above may have moved the
+      // anchor, and the stale one must not be written back.
+      final c = (await _route(id)).correction;
       double? number(String key, double? held) =>
           v.containsKey(key) ? (v[key] as num?)?.toDouble() : held;
       GeoPoint? point(String lat, String lon, GeoPoint? held) {

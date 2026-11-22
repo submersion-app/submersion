@@ -174,6 +174,22 @@ void main() {
       expect(await place(), ['sb', 30.0, 40.0]);
     });
 
+    test(
+      'a correction change in the same update keeps the moved anchor',
+      () async {
+        await sites();
+        await route('r1');
+        await placeOnSiteA(10.0, 20.0);
+
+        await h.run([
+          updateOp('nav_tracks', 'r1', {'site_id': 'sb', 'scale_factor': 1.2}),
+        ]);
+
+        expect(await place(), ['sb', 30.0, 40.0]);
+        expect((await h.one('nav_tracks', 'r1'))!['scale_factor'], 1.2);
+      },
+    );
+
     test('an anchor placed by hand stays', () async {
       await sites();
       await route('r1');

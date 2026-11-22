@@ -28,8 +28,9 @@ mixin _NavTrackRouteLinks {
   /// spec, which forbids a route ever writing INTO the dive's entry/exit
   /// coordinates automatically -- this only ever reads the dive's EXISTING
   /// site/location into the route. A route with no site takes the dive's,
-  /// even when it already has an anchor (#4851), and an anchor the diver
-  /// placed is never overwritten (see [_siteAndAnchorToInherit]).
+  /// even when it already has an anchor (#4851), and an anchor anywhere
+  /// but the old site's pin or entry fix is never overwritten (see
+  /// [_siteAndAnchorToInherit]).
   /// Returns true when [routeId] was actually linked. False (not an
   /// exception) means the row was gone or already linked when this write
   /// landed, for example deleted or linked by hand after a caller read it
@@ -178,8 +179,9 @@ mixin _NavTrackRouteLinks {
   /// site's pin, or (with no site) on the old dive's entry fix
   /// ([navTrackAnchorChangeForSite]): to the new site's pin, or the new
   /// dive's entry fix when that dive has no site. A site with no pin leaves
-  /// the route unanchored, as an import does. An anchor the diver placed by
-  /// hand is never moved.
+  /// the route unanchored, as an import does. An anchor anywhere else stays;
+  /// one placed exactly on the old pin or entry fix (the align page's "From
+  /// site" or "From dive entry") counts as taken from the old dive.
   ///
   /// With [keepPosition] (a fold), a route with a site or an anchor keeps
   /// both, and only one with neither takes the dive's.
