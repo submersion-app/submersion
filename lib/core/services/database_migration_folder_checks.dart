@@ -29,7 +29,11 @@ extension _FolderChecks on DatabaseMigrationService {
   Future<FolderIdentity> _compareToCurrent(
     String currentPath,
     String folderPath,
-  ) => compareFolders(p.dirname(currentPath), folderPath);
+  ) => compareFolders(
+    p.dirname(currentPath),
+    folderPath,
+    timeout: _folderTimeout,
+  );
 
   /// The refusal for a move or copy into [folderPath], or null when it is
   /// safe to go ahead because the folder is certainly another one.
@@ -52,24 +56,24 @@ extension _FolderChecks on DatabaseMigrationService {
       return !await _withTimeout(
         _locationService.verifyFolderAccessible(folderPath),
         'Folder check',
-        timeout: folderProbeTimeout,
+        timeout: _folderTimeout,
       );
     } on TimeoutException {
       return false;
     }
   }
 
-  /// The refusal for a plain move onto a dive log already at [newPath], or
-  /// null when there is none. The folder check found nothing there, or ran
-  /// out of time before it could tell (a NAS still waking, say), so one that
-  /// is there after all is overwritten only through Replace, which backs it
-  /// up first.
-  Future<MigrationResult?> _refuseIfOccupied(String newPath) async {
+  /// The refusal for a plain move into [folderPath] when a dive log is
+  /// already there, or null when there is none. The folder check found
+  /// nothing there, or ran out of time before it could tell (a NAS still
+  /// waking, say), so one that is there after all is overwritten only through
+  /// Replace, which backs it up first.
+  Future<MigrationResult?> _refuseIfOccupied(String folderPath) async {
     try {
       final occupied = await _withTimeout(
-        File(newPath).exists(),
+        _locationService.databaseExistsAt(folderPath),
         'Folder check',
-        timeout: folderProbeTimeout,
+        timeout: _folderTimeout,
       );
       return occupied ? MigrationResult.failure(_occupied) : null;
     } on TimeoutException {

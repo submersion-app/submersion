@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/common.dart' as sqlite3;
@@ -28,7 +30,14 @@ class DatabaseMigrationService {
   final DatabaseService _dbService;
   final DatabaseLocationService _locationService;
 
-  DatabaseMigrationService(this._dbService, this._locationService);
+  DatabaseMigrationService(
+    this._dbService,
+    this._locationService, {
+    @visibleForTesting Duration folderTimeout = folderProbeTimeout,
+  }) : _folderTimeout = folderTimeout;
+
+  /// How long one check of a folder may take: see [folderProbeTimeout].
+  final Duration _folderTimeout;
 
   static const Duration _functionalCheckTimeout = Duration(seconds: 10);
   static const Duration _infoQueryTimeout = Duration(seconds: 5);
@@ -63,7 +72,7 @@ class DatabaseMigrationService {
       final exists = await _withTimeout(
         file.exists(),
         'Folder check',
-        timeout: folderProbeTimeout,
+        timeout: _folderTimeout,
       );
       if (!exists) return null;
 
@@ -76,7 +85,7 @@ class DatabaseMigrationService {
       final stat = await _withTimeout(
         file.stat(),
         'Folder check',
-        timeout: folderProbeTimeout,
+        timeout: _folderTimeout,
       );
       final fileSize = stat.size;
       final lastModified = stat.modified;
@@ -210,7 +219,7 @@ class DatabaseMigrationService {
     }
 
     if (!replacing) {
-      final occupied = await _refuseIfOccupied(newPath);
+      final occupied = await _refuseIfOccupied(folderPath);
       if (occupied != null) return occupied;
     }
 

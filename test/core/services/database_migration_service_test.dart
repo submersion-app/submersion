@@ -9,6 +9,7 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_migration_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/same_folder_probe.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
@@ -29,8 +30,22 @@ class _FakeLocation implements DatabaseLocationService {
 
   bool accessible = true;
 
+  /// Set to make the write check never answer, as a stalled share does.
+  bool stallWriteCheck = false;
+
+  /// Set to make the dive log look-up never answer.
+  bool stallExistsCheck = false;
+
   @override
-  Future<bool> verifyFolderAccessible(String folderPath) async => accessible;
+  Future<bool> verifyFolderAccessible(String folderPath) =>
+      stallWriteCheck ? Completer<bool>().future : Future.value(accessible);
+
+  @override
+  Future<bool> databaseExistsAt(String folderPath) => stallExistsCheck
+      ? Completer<bool>().future
+      : File(
+          p.join(folderPath, DatabaseLocationService.databaseFilename),
+        ).exists();
 
   StorageConfig? savedConfig;
 
@@ -90,7 +105,10 @@ void main() {
 
   late _FakeLocation location;
 
-  Future<DatabaseMigrationService> initServiceAt(String defaultDir) async {
+  Future<DatabaseMigrationService> initServiceAt(
+    String defaultDir, {
+    Duration folderTimeout = folderProbeTimeout,
+  }) async {
     location = _FakeLocation(currentPath: currentPath, defaultDir: defaultDir);
     await DatabaseService.instance.initialize(locationService: location);
     // Force the background executor to materialize the file so the pre-close
@@ -98,7 +116,11 @@ void main() {
     await DatabaseService.instance.database
         .customSelect('SELECT 1')
         .getSingle();
-    return DatabaseMigrationService(DatabaseService.instance, location);
+    return DatabaseMigrationService(
+      DatabaseService.instance,
+      location,
+      folderTimeout: folderTimeout,
+    );
   }
 
   test('replaceExistingDatabase keeps the overwritten database recoverable, '
@@ -257,6 +279,59 @@ void main() {
         expect(result.success, isFalse);
         expect(result.errorMessage, contains('Cannot write'));
       }
+    } finally {
+      await Process.run('chmod', ['755', targetDir]);
+    }
+  }, skip: Platform.isWindows ? 'chmod is POSIX only' : false);
+
+  test('a plain move refuses when the folder does not answer whether it '
+      'holds a dive log, rather than copy over one it cannot see', () async {
+    final service = await initServiceAt(
+      p.join(root.path, 'default'),
+      folderTimeout: const Duration(seconds: 1),
+    );
+    final targetDir = p.join(root.path, 'target');
+    await Directory(targetDir).create();
+    location.stallExistsCheck = true;
+
+    final result = await service.migrateToCustomFolder(targetDir);
+
+    expect(result.success, isFalse);
+    expect(result.errorMessage, contains('did not answer in time'));
+    expect(
+      File(
+        p.join(targetDir, DatabaseLocationService.databaseFilename),
+      ).existsSync(),
+      isFalse,
+    );
+    expect(DatabaseService.instance.currentPath, currentPath);
+    expect(location.savedConfig, isNull);
+  });
+
+  test('a write check that does not answer is not taken for a refusal to '
+      'write', () async {
+    final service = await initServiceAt(
+      p.join(root.path, 'default'),
+      folderTimeout: const Duration(seconds: 1),
+    );
+    final targetDir = p.join(root.path, 'target');
+    await Directory(targetDir).create();
+    location.stallWriteCheck = true;
+    // Nothing can be opened through it, so the folders cannot be compared.
+    await Process.run('chmod', ['000', targetDir]);
+    try {
+      try {
+        Directory(targetDir).listSync();
+        markTestSkipped('permissions are not enforced for this user');
+        return;
+      } on FileSystemException {
+        // Unreadable, as intended.
+      }
+
+      final result = await service.replaceExistingDatabase(targetDir);
+
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('Could not tell'));
     } finally {
       await Process.run('chmod', ['755', targetDir]);
     }
