@@ -1,10 +1,11 @@
 part of 'site_detail_page.dart';
 
-/// Below this pane width the pane header has no room for a library's text
-/// button beside the site's name (issue #4928): Connect on this device
-/// moves to the top of the site's menu, and a reader's Suggest changes
-/// shows as an icon with its words as the tooltip.
-const double kSitePaneCompactHeaderWidth = 560;
+/// Below this pane width, at the normal text size, the pane header has no
+/// room for a library's text button beside the site's name (issue #4928):
+/// Connect on this device moves to the top of the site's menu, and a
+/// reader's Suggest changes shows as an icon with its words as the tooltip.
+/// It grows with the diver's text size, as the button's words do.
+const double _kSitePaneCompactHeaderWidth = 560;
 
 /// The pane menu's value for Connect on this device.
 const String _kConnectHereAction = 'connectHere';
@@ -208,7 +209,7 @@ extension _SiteDetailBars on _SiteDetailContentState {
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) {
               if (value == _kConnectHereAction) {
-                unawaited(_connectHere(context, ref, site));
+                _connectHere(context, ref, site);
                 return;
               }
               _handleMenuAction(context, ref, value, site);
@@ -240,7 +241,11 @@ extension _SiteDetailBars on _SiteDetailContentState {
     final libraryButtons = _libraryButtons(context, ref, site);
     final locked = LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < kSitePaneCompactHeaderWidth;
+        final compact =
+            constraints.maxWidth <
+            MediaQuery.textScalerOf(
+              context,
+            ).scale(_kSitePaneCompactHeaderWidth);
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(

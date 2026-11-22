@@ -27,7 +27,10 @@ void main() {
     location: const GeoPoint(12.08, -68.28),
   );
 
-  List<Override> library({required bool connected}) => [
+  List<Override> library({
+    required bool connected,
+    bool membershipFails = false,
+  }) => [
     libraryRoleProvider(
       'L',
     ).overrideWith((ref) async => SharedLibraryRole.reader),
@@ -35,16 +38,18 @@ void main() {
     siteLibraryStateProvider('s1').overrideWith((ref) async => null),
     libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
     currentMembershipProvider('L').overrideWith(
-      (ref) async => const SharedLibraryMembership(
-        id: 'm1',
-        diverId: 'me',
-        libraryId: 'L',
-        memberId: 'mem1',
-        displayName: 'Me',
-        libraryName: 'Club',
-        backendKind: 'folder',
-        locationHint: 'Drive: club/',
-      ),
+      (ref) async => membershipFails
+          ? throw StateError('no database')
+          : const SharedLibraryMembership(
+              id: 'm1',
+              diverId: 'me',
+              libraryId: 'L',
+              memberId: 'mem1',
+              displayName: 'Me',
+              libraryName: 'Club',
+              backendKind: 'folder',
+              locationHint: 'Drive: club/',
+            ),
     ),
   ];
 
@@ -69,6 +74,7 @@ void main() {
     required bool connected,
     double width = 390,
     String? initialLocation,
+    bool membershipFails = false,
   }) => pumpSitePage(
     tester,
     site: librarySite,
@@ -83,7 +89,7 @@ void main() {
         builder: (_, state) => Scaffold(body: Text('connect ${state.uri}')),
       ),
     ],
-    extra: library(connected: connected),
+    extra: library(connected: connected, membershipFails: membershipFails),
   );
 
   /// The pane header's menu button.
@@ -123,6 +129,27 @@ void main() {
       );
     });
 
+    testWidgets('a membership that cannot be read opens connect unfilled', (
+      tester,
+    ) async {
+      await pumpPane(
+        tester,
+        connected: false,
+        initialLocation: '/sites/s1',
+        membershipFails: true,
+      );
+      await tester.tap(menuButton());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.sharedLibrary_site_connectHere));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        find.text('connect /settings/shared-libraries/connect?prefix='),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a reader\'s Suggest changes is an icon that unlocks', (
       tester,
     ) async {
@@ -133,6 +160,13 @@ void main() {
       final suggest = find.byKey(suggestKey);
       expect(suggest, findsOneWidget);
       expect(find.byTooltip(l.sharedLibrary_suggest_title), findsOneWidget);
+
+      // A connected library has nothing to connect: the menu offers none.
+      await tester.tap(menuButton());
+      await tester.pumpAndSettle();
+      expect(find.text(l.sharedLibrary_site_connectHere), findsNothing);
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
 
       await tester.tap(suggest);
       await tester.pumpAndSettle();
@@ -171,6 +205,20 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text(l.sharedLibrary_suggest_title), findsOneWidget);
+    });
+
+    testWidgets('large text folds Connect into the menu on a wider pane', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pumpPane(tester, connected: false, width: 640);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(l.sharedLibrary_site_connectHere), findsNothing);
+      await tester.tap(menuButton());
+      await tester.pumpAndSettle();
+      expect(find.text(l.sharedLibrary_site_connectHere), findsOneWidget);
     });
   });
 }
