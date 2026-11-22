@@ -33,6 +33,8 @@ extension _ViewerChrome on _MediaViewerPageState {
           toolbarRef,
           currentItem,
           location,
+          // An Analyse's notice waits for the viewer still on this page.
+          showing: () => mounted && _currentIndex == currentIndex,
         );
         return MediaViewerToolbar(
           // Writing to the photo file is a whole-record operation (issue

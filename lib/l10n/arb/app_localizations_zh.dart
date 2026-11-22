@@ -56,7 +56,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_caption_travel => '潜伴、行程和潜点；连线表示它们有共同的潜水。';
 
   @override
-  String get connections_caption_reef => '潜点、海洋生物和潜水类型；连线表示它们有共同的潜水。';
+  String get connections_caption_reef => '潜点、物种和潜水类型；连线表示它们有共同的潜水。';
 
   @override
   String get connections_caption_gearRoad => '装备、行程和潜店；连线表示它们有共同的潜水。';
@@ -145,7 +145,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_preset_gearRoad => '旅途中的装备';
 
   @override
-  String get connections_preset_life => '按海洋生物看潜点';
+  String get connections_preset_life => '按物种看潜点';
 
   @override
   String get connections_preset_reef => '珊瑚礁生物';
@@ -5390,6 +5390,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get notesEditor_action_annotate => '标注';
+
+  @override
+  String get notesEditor_annotate_brokenLink => '请先修复损坏的标注链接，再在此处添加标注。';
 
   @override
   String get notesEditor_action_preview => '预览';
@@ -14928,7 +14931,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pdf_sectionTechnical => '技术参数';
 
   @override
-  String get pdf_sectionMarineLife => '海洋生物';
+  String get pdf_sectionMarineLife => '物种';
 
   @override
   String get pdf_sectionNotes => '备注';
@@ -40795,7 +40798,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get incidentCategory_buddySeparation => '与潜伴失散';
 
   @override
-  String get incidentCategory_marineLife => '海洋生物';
+  String get incidentCategory_marineLife => '水生生物';
 
   @override
   String get incidentCategory_boatSurface => '船只/水面';
@@ -49423,7 +49426,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => '海洋生物';
+  String get diveLog_filter_sectionSpecies => '物种';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -52358,7 +52361,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_listLocked => '解锁后可添加或忽略';
 
   @override
-  String get media_labels_action => '海洋生物标签';
+  String get media_labels_action => '物种标签';
 
   @override
   String get media_labels_names => '名称';
@@ -52399,6 +52402,19 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '发现 $count 个，均未命名',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => '显示所有生物';
 
   @override
   String get media_species_possibleMatches => '可能的匹配';

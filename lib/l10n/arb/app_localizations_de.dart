@@ -66,7 +66,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'Tauchplätze, Meeresleben und Tauchgangsarten; eine Linie heißt, sie teilen Tauchgänge.';
+      'Tauchplätze, Arten und Tauchgangsarten; eine Linie heißt, sie teilen Tauchgänge.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -158,7 +158,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get connections_preset_gearRoad => 'Ausrüstung unterwegs';
 
   @override
-  String get connections_preset_life => 'Plätze nach Meeresleben';
+  String get connections_preset_life => 'Plätze nach Arten';
 
   @override
   String get connections_preset_reef => 'Riffleben';
@@ -5705,6 +5705,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get notesEditor_action_annotate => 'Anmerken';
+
+  @override
+  String get notesEditor_annotate_brokenLink =>
+      'Repariere den beschädigten Link der Anmerkung, bevor du hier anmerkst.';
 
   @override
   String get notesEditor_action_preview => 'Vorschau';
@@ -15663,7 +15667,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pdf_sectionTechnical => 'Technisch';
 
   @override
-  String get pdf_sectionMarineLife => 'Meereslebewesen';
+  String get pdf_sectionMarineLife => 'Arten';
 
   @override
   String get pdf_sectionNotes => 'Notizen';
@@ -43276,7 +43280,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'Buddy-Trennung';
 
   @override
-  String get incidentCategory_marineLife => 'Meereslebewesen';
+  String get incidentCategory_marineLife => 'Wasserlebewesen';
 
   @override
   String get incidentCategory_boatSurface => 'Boot / Oberfläche';
@@ -52504,7 +52508,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'Meereslebewesen';
+  String get diveLog_filter_sectionSpecies => 'Arten';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -55724,7 +55728,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zum Hinzufügen oder Verwerfen entsperren';
 
   @override
-  String get media_labels_action => 'Meereslebewesen-Beschriftungen';
+  String get media_labels_action => 'Arten-Beschriftungen';
 
   @override
   String get media_labels_names => 'Namen';
@@ -55766,6 +55770,20 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gefunden, keines benannt',
+      one: '$count gefunden, ohne Namen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Alle Lebewesen zeigen';
 
   @override
   String get media_species_possibleMatches => 'Mögliche Treffer';

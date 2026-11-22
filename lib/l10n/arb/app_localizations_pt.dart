@@ -66,7 +66,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'Locais, vida marinha e tipos de mergulho; uma linha indica mergulhos em comum.';
+      'Locais, espécies e tipos de mergulho; uma linha indica mergulhos em comum.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -158,7 +158,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connections_preset_gearRoad => 'Equipamento em viagem';
 
   @override
-  String get connections_preset_life => 'Locais por vida marinha';
+  String get connections_preset_life => 'Locais por espécies';
 
   @override
   String get connections_preset_reef => 'Vida do recife';
@@ -5711,6 +5711,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get notesEditor_action_annotate => 'Marcar';
+
+  @override
+  String get notesEditor_annotate_brokenLink =>
+      'Conserte o link quebrado da marcação antes de marcar aqui.';
 
   @override
   String get notesEditor_action_preview => 'Pré-visualização';
@@ -15674,7 +15678,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdf_sectionTechnical => 'Técnico';
 
   @override
-  String get pdf_sectionMarineLife => 'Vida Marinha';
+  String get pdf_sectionMarineLife => 'Espécies';
 
   @override
   String get pdf_sectionNotes => 'Anotações';
@@ -43332,7 +43336,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'Separação do dupla';
 
   @override
-  String get incidentCategory_marineLife => 'Vida marinha';
+  String get incidentCategory_marineLife => 'Vida aquática';
 
   @override
   String get incidentCategory_boatSurface => 'Barco / superfície';
@@ -52595,7 +52599,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'Vida marinha';
+  String get diveLog_filter_sectionSpecies => 'Espécies';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -55834,7 +55838,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Desbloqueie para adicionar ou dispensar';
 
   @override
-  String get media_labels_action => 'Rótulos de vida marinha';
+  String get media_labels_action => 'Rótulos de espécies';
 
   @override
   String get media_labels_names => 'Nomes';
@@ -55877,6 +55881,20 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count encontrados, nenhum com nome',
+      one: '$count encontrado, sem nome',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Mostrar toda a vida';
 
   @override
   String get media_species_possibleMatches => 'Possíveis correspondências';

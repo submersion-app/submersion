@@ -66,7 +66,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'Siti, vita marina e tipi di immersione; una linea indica immersioni in comune.';
+      'Siti, specie e tipi di immersione; una linea indica immersioni in comune.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -158,7 +158,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get connections_preset_gearRoad => 'Attrezzatura in viaggio';
 
   @override
-  String get connections_preset_life => 'Siti per vita marina';
+  String get connections_preset_life => 'Siti per specie';
 
   @override
   String get connections_preset_reef => 'Vita della barriera';
@@ -5707,6 +5707,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get notesEditor_action_annotate => 'Annota';
+
+  @override
+  String get notesEditor_annotate_brokenLink =>
+      'Ripara il link dell\'annotazione rotto prima di annotare qui.';
 
   @override
   String get notesEditor_action_preview => 'Anteprima';
@@ -15673,7 +15677,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pdf_sectionTechnical => 'Dati tecnici';
 
   @override
-  String get pdf_sectionMarineLife => 'Vita marina';
+  String get pdf_sectionMarineLife => 'Specie';
 
   @override
   String get pdf_sectionNotes => 'Note';
@@ -43369,7 +43373,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'Separazione dal compagno';
 
   @override
-  String get incidentCategory_marineLife => 'Vita marina';
+  String get incidentCategory_marineLife => 'Vita acquatica';
 
   @override
   String get incidentCategory_boatSurface => 'Barca / superficie';
@@ -52627,7 +52631,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'Vita marina';
+  String get diveLog_filter_sectionSpecies => 'Specie';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -55848,7 +55852,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_species_listLocked => 'Sblocca per aggiungere o ignorare';
 
   @override
-  String get media_labels_action => 'Etichette della vita marina';
+  String get media_labels_action => 'Etichette delle specie';
 
   @override
   String get media_labels_names => 'Nomi';
@@ -55891,6 +55895,20 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trovati, nessuno con nome',
+      one: '$count trovato, senza nome',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Mostra tutta la vita';
 
   @override
   String get media_species_possibleMatches => 'Possibili corrispondenze';

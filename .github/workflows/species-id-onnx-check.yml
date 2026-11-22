@@ -1,0 +1,146 @@
+# Marine life identification on Windows and Linux, end to end (issue #4801,
+# task D3 of docs/design/plans/2026-11-20-marine-life-identification-3-other-platforms.md).
+#
+# The hand check on a Windows PC and a Linux PC, on GitHub's runners instead:
+# integration_test/species_id_onnx/species_id_onnx_test.dart builds the real
+# app and, inside it, downloads and installs the live species pack through the
+# app's own Download (about 633 MB), loads it with the app's ONNX engine,
+# analyses two photos and an EXIF-turned copy, asks Windows ML for vendor
+# engines, and on Windows scans a landscape and a portrait clip through the
+# Media Foundation frame reader. Each step prints what it saw and how long it
+# took, marked `[species-id-onnx]`, with a summary at the end of the log.
+#
+# The runners have no GPU (Windows lists only the Basic Render Driver, which
+# the engine never hands to a hardware engine), so the models run on the
+# processor; a vendor engine not being found is expected and reported, not a
+# failure. See docs/design/findings/2026-11-20-windows-ml-unpackaged.md.
+#
+# Run by hand (workflow_dispatch), and on a pull request only when this check
+# itself changes: every run downloads the whole pack, too much for every PR.
+
+name: Species ID ONNX Check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/species-id-onnx-check.yml'
+      - 'integration_test/species_id_onnx/**'
+      - 'tool/species_id_onnx_it/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: species-id-onnx-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
+
+jobs:
+  windows:
+    name: Species ID ONNX (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-version
+        shell: bash
+        run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      # Makes the two clips the frame reader scans.
+      - name: Install ffmpeg
+        run: choco install ffmpeg -y --no-progress
+
+      - name: Install dependencies
+        shell: bash
+        run: flutter pub get
+
+      - name: Run code generation
+        shell: bash
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Put the photos and clips where the app finds them
+        shell: bash
+        run: flutter test tool/species_id_onnx_it/prepare_test.dart
+
+      - name: Run the ONNX engine check
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/species_id_onnx.json"
+          flutter test integration_test/species_id_onnx/species_id_onnx_test.dart \
+            -d windows \
+            --file-reporter "json:$report"
+          # A skipped test exits 0; this fails the job if any step skipped.
+          python scripts/check_no_skipped_tests.py "$report"
+
+  linux:
+    name: Species ID ONNX (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      # The packages of ci.yaml's Integration Test (Linux) job: the Linux
+      # build's, and xvfb to give the app a display. The keyring that job
+      # sets up is for db_security_test; this check stores no secrets.
+      - name: Install Linux dependencies
+        run: |
+          sudo python3 scripts/apt_mirror.py
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libstdc++-12-dev \
+            libsecret-1-dev \
+            libwebkit2gtk-4.1-dev \
+            libssl-dev \
+            xvfb \
+            dbus-x11 \
+            gnome-keyring \
+            libsecret-tools
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # Linux scans no video, so only the photos.
+      - name: Put the photos where the app finds them
+        run: flutter test tool/species_id_onnx_it/prepare_test.dart
+
+      - name: Run the ONNX engine check
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/species_id_onnx.json"
+          xvfb-run -a flutter test integration_test/species_id_onnx/species_id_onnx_test.dart \
+            -d linux \
+            --file-reporter "json:$report"
+          # A skipped test exits 0; this fails the job if any step skipped.
+          python3 scripts/check_no_skipped_tests.py "$report"

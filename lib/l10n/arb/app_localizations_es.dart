@@ -66,7 +66,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'Puntos, vida marina y tipos de inmersión; una línea indica que comparten inmersiones.';
+      'Puntos, especies y tipos de inmersión; una línea indica que comparten inmersiones.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -158,7 +158,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get connections_preset_gearRoad => 'Equipo de viaje';
 
   @override
-  String get connections_preset_life => 'Puntos por vida marina';
+  String get connections_preset_life => 'Puntos por especies';
 
   @override
   String get connections_preset_reef => 'Vida del arrecife';
@@ -5710,6 +5710,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get notesEditor_action_annotate => 'Anotar';
+
+  @override
+  String get notesEditor_annotate_brokenLink =>
+      'Arregla el enlace roto de la anotación antes de anotar aquí.';
 
   @override
   String get notesEditor_action_preview => 'Vista previa';
@@ -43393,7 +43397,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'Separación del compañero';
 
   @override
-  String get incidentCategory_marineLife => 'Vida marina';
+  String get incidentCategory_marineLife => 'Vida acuática';
 
   @override
   String get incidentCategory_boatSurface => 'Barco / superficie';
@@ -52648,7 +52652,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'Vida marina';
+  String get diveLog_filter_sectionSpecies => 'Especies';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -55901,7 +55905,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_species_listLocked => 'Desbloquea para añadir o descartar';
 
   @override
-  String get media_labels_action => 'Etiquetas de vida marina';
+  String get media_labels_action => 'Etiquetas de especies';
 
   @override
   String get media_labels_names => 'Nombres';
@@ -55944,6 +55948,20 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count encontrados, ninguno con nombre',
+      one: '$count encontrado, sin nombre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Mostrar toda la vida';
 
   @override
   String get media_species_possibleMatches => 'Posibles coincidencias';

@@ -209,7 +209,7 @@ abstract class AppLocalizations {
   /// No description provided for @connections_caption_reef.
   ///
   /// In en, this message translates to:
-  /// **'Sites, marine life and dive types; a line means they share dives.'**
+  /// **'Sites, species and dive types; a line means they share dives.'**
   String get connections_caption_reef;
 
   /// No description provided for @connections_caption_gearRoad.
@@ -347,7 +347,7 @@ abstract class AppLocalizations {
   /// No description provided for @connections_preset_life.
   ///
   /// In en, this message translates to:
-  /// **'Sites by marine life'**
+  /// **'Sites by species'**
   String get connections_preset_life;
 
   /// No description provided for @connections_preset_reef.
@@ -8897,6 +8897,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Annotate'**
   String get notesEditor_action_annotate;
+
+  /// Snack bar when the diver taps the notes editor's pin (Annotate) with the caret inside or right after an annotation link whose markup is broken; nothing is pinned until the link is mended
+  ///
+  /// In en, this message translates to:
+  /// **'Mend the broken annotation link before pinning here.'**
+  String get notesEditor_annotate_brokenLink;
 
   /// Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed
   ///
@@ -25055,7 +25061,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdf_sectionMarineLife.
   ///
   /// In en, this message translates to:
-  /// **'Marine Life'**
+  /// **'Species'**
   String get pdf_sectionMarineLife;
 
   /// No description provided for @pdf_sectionNotes.
@@ -68119,7 +68125,7 @@ abstract class AppLocalizations {
   /// No description provided for @incidentCategory_marineLife.
   ///
   /// In en, this message translates to:
-  /// **'Marine life'**
+  /// **'Aquatic life'**
   String get incidentCategory_marineLife;
 
   /// No description provided for @incidentCategory_boatSurface.
@@ -82934,7 +82940,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_filter_sectionSpecies.
   ///
   /// In en, this message translates to:
-  /// **'Marine life'**
+  /// **'Species'**
   String get diveLog_filter_sectionSpecies;
 
   /// No description provided for @diveLog_filter_sectionVisibilityUnit.
@@ -87524,7 +87530,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_labels_action.
   ///
   /// In en, this message translates to:
-  /// **'Marine life labels'**
+  /// **'Species labels'**
   String get media_labels_action;
 
   /// No description provided for @media_labels_names.
@@ -87586,6 +87592,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}'**
   String media_labels_statusFound(int count);
+
+  /// Brief message after the diver asks for a photo or video to be analysed and it finds animals it cannot name, so no name label is drawn (issue #4872).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} found, none named} other{{count} found, none named}}'**
+  String media_labels_foundNoneNamed(int count);
+
+  /// Action on that message: switch the labels to All life, which draws the unnamed animals too.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all life'**
+  String get media_labels_showAllLife;
 
   /// No description provided for @media_species_possibleMatches.
   ///

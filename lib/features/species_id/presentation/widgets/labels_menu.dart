@@ -10,7 +10,11 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
+import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/labels_menu_model.dart';
 import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -21,8 +25,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// (issue #4825): what a tap does (null when [item] is not looked at on
 /// this device), whether labels are drawn, and the ring while it is being
 /// analysed. Read while the toolbar builds, so it follows them.
+///
+/// [showing] says whether [item] is still the one on screen in the viewer
+/// still open; a notice on what an Analyse found waits for it.
 ({void Function(BuildContext anchor)? onPressed, bool on, ToolbarRing? ring})
-marineLifeLabelsAction(WidgetRef ref, MediaItem item, GeoPoint? location) {
+marineLifeLabelsAction(
+  WidgetRef ref,
+  MediaItem item,
+  GeoPoint? location, {
+  bool Function()? showing,
+}) {
   // A Lightroom-linked video is only its poster here, never scanned.
   // Shown wherever results can be (issue #4876), analysed here or not.
   final applies =
@@ -46,7 +58,13 @@ marineLifeLabelsAction(WidgetRef ref, MediaItem item, GeoPoint? location) {
       .value;
   return (
     onPressed: (anchor) => unawaited(
-      showMarineLifeLabelsMenu(anchor, ref, item: item, location: location),
+      showMarineLifeLabelsMenu(
+        anchor,
+        ref,
+        item: item,
+        location: location,
+        showing: showing,
+      ),
     ),
     on: on,
     // A video fills its ring as it is scanned; a photo's spins.
@@ -58,11 +76,15 @@ enum _Pick { names, allLife, off, analyse }
 
 /// The labels menu for [item], anchored to [anchor] (issue #4825): what
 /// the app has found on it, the labels mode, and Analyse or Analyse again.
+/// Once an Analyse finishes, a brief notice says what it found when that
+/// would draw no name (issue #4872), while [showing] (by default, while
+/// [anchor] is mounted) says [item] is still on screen.
 Future<void> showMarineLifeLabelsMenu(
   BuildContext anchor,
   WidgetRef ref, {
   required MediaItem item,
   required GeoPoint? location,
+  bool Function()? showing,
 }) async {
   final l10n = anchor.l10n;
   // Where the menu opens, measured before anything is awaited.
@@ -112,6 +134,15 @@ Future<void> showMarineLifeLabelsMenu(
       marineLifeIdEnabled &&
       (item.mediaType == MediaType.photo ||
           visionVideoRuns(defaultTargetPlatform));
+  final tell = _AnalysedTeller(
+    messenger: ScaffoldMessenger.maybeOf(anchor),
+    l10n: l10n,
+    repository: ref.read(mediaIdentificationRepositoryProvider),
+    level: ref.read(levelInForceProvider),
+    mode: mode,
+    modes: modes,
+    showing: showing ?? () => anchor.mounted,
+  );
   CheckedPopupMenuItem<_Pick> modeItem(
     String key,
     _Pick pick,
@@ -172,14 +203,98 @@ Future<void> showMarineLifeLabelsMenu(
     case _Pick.off:
       await modes.setMode(LabelMode.off);
     case _Pick.analyse:
+      // Read as the request starts: an analysis stores long after.
+      final before = tell.runOf(item);
       unawaited(
-        service.request(
-          item,
-          location: location,
-          byHand: true,
-          fresh: model.action == AnalyseAction.analyseAgain,
+        service
+            .request(
+              item,
+              location: location,
+              byHand: true,
+              fresh: model.action == AnalyseAction.analyseAgain,
+            )
+            .then((_) async => tell(item, before: await before)),
+      );
+  }
+}
+
+/// Says what an Analyse the diver asked for found, once it has finished,
+/// when that would draw no name (issue #4872). Holds what it needs from
+/// the menu's moment, as the toolbar may be gone by then.
+class _AnalysedTeller {
+  const _AnalysedTeller({
+    required this.messenger,
+    required this.l10n,
+    required this.repository,
+    required this.level,
+    required this.mode,
+    required this.modes,
+    required this.showing,
+  });
+
+  final ScaffoldMessengerState? messenger;
+  final AppLocalizations l10n;
+  final MediaIdentificationRepository repository;
+  final LevelInForce? level;
+  final LabelMode mode;
+  final LabelModeNotifier modes;
+  final bool Function() showing;
+
+  /// What is stored for [item] now, or null (none, or not read).
+  Future<MediaIdentificationRun?> runOf(MediaItem item) async {
+    try {
+      return await repository.runFor(item.id);
+    } on Object {
+      return null;
+    }
+  }
+
+  /// Never throws: a notice that cannot be worked out is left unsaid.
+  /// Said only when the Analyse changed what is stored since [before]:
+  /// one that failed or was skipped leaves an earlier analysis, which is
+  /// not this tap's to report.
+  Future<void> call(
+    MediaItem item, {
+    required MediaIdentificationRun? before,
+  }) async {
+    final messenger = this.messenger;
+    if (messenger == null || !showing()) return;
+    try {
+      final run = await repository.runFor(item.id);
+      // Never analysed (dropped, or unreadable), or a video left part way:
+      // nothing to say of it.
+      if (run == null ||
+          run == before ||
+          (item.mediaType == MediaType.video && !run.scanComplete)) {
+        return;
+      }
+      final found = await identificationsAtLevel(repository, item.id, level);
+      final notice = analysedNotice(found);
+      if (notice == null || !showing()) return;
+      messenger.showSnackBar(
+        SnackBar(
+          key: const ValueKey('labels_analysed_notice'),
+          // Brief, action or not: it must never sit over the next page.
+          persist: false,
+          content: Text(switch (notice) {
+            AnalysedNotice.nothingFound => l10n.media_labels_statusFound(0),
+            AnalysedNotice.noneNamed => l10n.media_labels_foundNoneNamed(
+              foundCount(found),
+            ),
+          }),
+          // All life draws the unnamed ones already.
+          action:
+              notice == AnalysedNotice.noneNamed && mode != LabelMode.allLife
+              ? SnackBarAction(
+                  label: l10n.media_labels_showAllLife,
+                  onPressed: () => unawaited(modes.setMode(LabelMode.allLife)),
+                )
+              : null,
         ),
       );
+    } on Object {
+      // Left unsaid.
+    }
   }
 }
 

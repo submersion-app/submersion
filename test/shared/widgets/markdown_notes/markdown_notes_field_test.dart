@@ -114,6 +114,87 @@ void main() {
       expect(controller.text, 'First.\n[Octo free-flowed](annotation:a1)');
     });
 
+    // A pin into a link whose markup the diver broke would leave it harder
+    // to mend, so it is refused until the link is whole again (#4815).
+    group('next to a broken link', () {
+      const broken = 'Calm\n\n[Vomit buggy](annotation:a1';
+      const refusal = 'Mend the broken annotation link before pinning here.';
+
+      testWidgets('asks nothing, changes nothing and says why', (tester) async {
+        var asked = 0;
+        await pump(
+          tester,
+          text: broken,
+          onAnnotate: (_) async {
+            asked++;
+            return (id: 'b2', words: 'Fff');
+          },
+        );
+        controller.selection = const TextSelection.collapsed(
+          offset: broken.length,
+        );
+        await tester.tap(find.byTooltip('Annotate'));
+        await tester.pumpAndSettle();
+
+        expect(asked, 0);
+        expect(controller.text, broken);
+        expect(changes, isEmpty);
+        expect(find.text(refusal), findsOneWidget);
+      });
+
+      testWidgets('elsewhere in the notes the pin still works', (tester) async {
+        await pump(
+          tester,
+          text: broken,
+          onAnnotate: (_) async => (id: 'b2', words: 'Fff'),
+        );
+        controller.selection = const TextSelection.collapsed(offset: 4);
+        await tester.tap(find.byTooltip('Annotate'));
+        await tester.pumpAndSettle();
+
+        expect(find.text(refusal), findsNothing);
+        expect(controller.text, startsWith('Calm\n[Fff](annotation:b2)'));
+      });
+
+      testWidgets('notes broken while the sheet was up are checked again', (
+        tester,
+      ) async {
+        await pump(
+          tester,
+          text: 'Calm',
+          onAnnotate: (_) async {
+            controller.value = const TextEditingValue(
+              text: broken,
+              selection: TextSelection.collapsed(offset: broken.length),
+            );
+            return (id: 'b2', words: 'Fff');
+          },
+        );
+        controller.selection = const TextSelection.collapsed(offset: 4);
+        await tester.tap(find.byTooltip('Annotate'));
+        await tester.pumpAndSettle();
+
+        expect(controller.text, broken);
+        expect(find.text(refusal), findsOneWidget);
+      });
+
+      testWidgets('once mended, a pin after it goes through', (tester) async {
+        await pump(
+          tester,
+          text: '$broken)',
+          onAnnotate: (_) async => (id: 'b2', words: 'Fff'),
+        );
+        controller.selection = const TextSelection.collapsed(
+          offset: broken.length + 1,
+        );
+        await tester.tap(find.byTooltip('Annotate'));
+        await tester.pumpAndSettle();
+
+        expect(find.text(refusal), findsNothing);
+        expect(controller.text, '$broken)\n[Fff](annotation:b2)');
+      });
+    });
+
     testWidgets('a cancelled request changes nothing', (tester) async {
       await pump(tester, text: 'I felt sick', onAnnotate: (_) async => null);
       select(7, 11);

@@ -66,7 +66,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'Merülőhelyek, tengeri élővilág és merüléstípusok; egy vonal közös merüléseket jelent.';
+      'Merülőhelyek, fajok és merüléstípusok; egy vonal közös merüléseket jelent.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -158,7 +158,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_preset_gearRoad => 'Felszerelés úton';
 
   @override
-  String get connections_preset_life => 'Merülőhelyek élővilág szerint';
+  String get connections_preset_life => 'Merülőhelyek fajok szerint';
 
   @override
   String get connections_preset_reef => 'Zátonyélet';
@@ -5691,6 +5691,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get notesEditor_action_annotate => 'Megjelölés';
+
+  @override
+  String get notesEditor_annotate_brokenLink =>
+      'Javítsd ki a jelölés sérült hivatkozását, mielőtt itt jelölsz.';
 
   @override
   String get notesEditor_action_preview => 'Előnézet';
@@ -15630,7 +15634,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get pdf_sectionTechnical => 'Technikai adatok';
 
   @override
-  String get pdf_sectionMarineLife => 'Élővilág';
+  String get pdf_sectionMarineLife => 'Fajok';
 
   @override
   String get pdf_sectionNotes => 'Jegyzetek';
@@ -43122,7 +43126,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'Elszakadás a társtól';
 
   @override
-  String get incidentCategory_marineLife => 'Tengeri élővilág';
+  String get incidentCategory_marineLife => 'Vízi élővilág';
 
   @override
   String get incidentCategory_boatSurface => 'Hajó / felszín';
@@ -52333,7 +52337,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'Tengeri élővilág';
+  String get diveLog_filter_sectionSpecies => 'Fajok';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -55547,7 +55551,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Oldja fel a hozzáadáshoz vagy elvetéshez';
 
   @override
-  String get media_labels_action => 'Tengeri élővilág címkéi';
+  String get media_labels_action => 'Fajok címkéi';
 
   @override
   String get media_labels_names => 'Nevek';
@@ -55589,6 +55593,20 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count találat, egyiknek sincs neve',
+      one: '$count találat, név nélkül',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Minden élőlény mutatása';
 
   @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';

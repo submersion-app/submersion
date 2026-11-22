@@ -66,7 +66,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'Sites, marine life and dive types; a line means they share dives.';
+      'Sites, species and dive types; a line means they share dives.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -157,7 +157,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_preset_gearRoad => 'Gear on the road';
 
   @override
-  String get connections_preset_life => 'Sites by marine life';
+  String get connections_preset_life => 'Sites by species';
 
   @override
   String get connections_preset_reef => 'Reef life';
@@ -5619,6 +5619,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notesEditor_action_annotate => 'Annotate';
+
+  @override
+  String get notesEditor_annotate_brokenLink =>
+      'Mend the broken annotation link before pinning here.';
 
   @override
   String get notesEditor_action_preview => 'Preview';
@@ -15444,7 +15448,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdf_sectionTechnical => 'Technical';
 
   @override
-  String get pdf_sectionMarineLife => 'Marine Life';
+  String get pdf_sectionMarineLife => 'Species';
 
   @override
   String get pdf_sectionNotes => 'Notes';
@@ -42651,7 +42655,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'Buddy separation';
 
   @override
-  String get incidentCategory_marineLife => 'Marine life';
+  String get incidentCategory_marineLife => 'Aquatic life';
 
   @override
   String get incidentCategory_boatSurface => 'Boat / surface';
@@ -51839,7 +51843,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'Marine life';
+  String get diveLog_filter_sectionSpecies => 'Species';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -54987,7 +54991,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_listLocked => 'Unlock to add or dismiss';
 
   @override
-  String get media_labels_action => 'Marine life labels';
+  String get media_labels_action => 'Species labels';
 
   @override
   String get media_labels_names => 'Names';
@@ -55029,6 +55033,20 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count found, none named',
+      one: '$count found, none named',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Show all life';
 
   @override
   String get media_species_possibleMatches => 'Possible matches';

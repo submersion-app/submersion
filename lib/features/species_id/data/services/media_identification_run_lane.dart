@@ -139,8 +139,9 @@ class _Job {
   final Future<VideoFileReader?> Function(MediaItem)? resolveVideo;
 
   /// Asked for by the diver from the labels menu (issue #4825): it runs
-  /// whether or not media are identified on opening.
-  final bool byHand;
+  /// whether or not media are identified on opening. A by-hand request
+  /// that joins it running sets it (issue #4872).
+  bool byHand;
 
   /// Still to start over from the beginning: until its fresh start is
   /// stored ([freshStarted]), after which a job put back carries on.
@@ -161,6 +162,22 @@ class _Job {
 
   /// A video the diver left: its scan stops after the chunk in progress.
   var cancelled = false;
+
+  /// The scan saw [cancelled] and is stopping for it (issue #4872). The
+  /// diver coming back after that clears [cancelled] too late to keep the
+  /// scan going, so the job goes back in the queue when it ends.
+  var stopSeen = false;
+
+  /// Whether the scan should stop because the diver left, noting that it
+  /// saw it ([stopSeen]).
+  bool stopForLeaving() {
+    if (cancelled) stopSeen = true;
+    return cancelled;
+  }
+
+  /// The diver came back after the scan saw them leave: it is to carry on
+  /// in a fresh pass once this one ends.
+  bool get revived => stopSeen && !cancelled;
 
   /// This request asked again, in the logbook of [generation], by hand or
   /// fresh if either asking was.

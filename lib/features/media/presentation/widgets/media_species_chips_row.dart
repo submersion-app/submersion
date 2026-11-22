@@ -5,9 +5,12 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/recorded_nearby_pin.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -37,12 +40,17 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
   /// Opens the whole list, from the "+N" chip; null leaves it inert.
   final VoidCallback? onMoreTap;
 
+  /// The photo itself, whose dive or position picks the "Recorded nearby"
+  /// list that marks a suggestion (issue #4668); null marks none.
+  final MediaItem? item;
+
   const MediaSpeciesChipsRow({
     super.key,
     required this.mediaId,
     this.sitting,
     this.onSuggestionTap,
     this.onMoreTap,
+    this.item,
   });
 
   @override
@@ -57,12 +65,14 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
 
   Widget _chips(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final item = this.item;
     final chips = speciesChipWidgets(
       context,
       ref,
       mediaId,
       sitting,
       onSuggestionTap: onSuggestionTap,
+      nearbyRequest: item == null ? null : nearbyRequestForMedia(item),
     );
     if (chips.isEmpty) return const SizedBox.shrink();
     return Semantics(
@@ -96,7 +106,9 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
 /// the diver's tags, the app's tags not yet confirmed, then the app's
 /// suggestions. A tag opens its species page; the others call
 /// [onSuggestionTap], and are inert without it. [openUnconfirmed] has the
-/// app's tags open their species page instead, as the diver's do.
+/// app's tags open their species page instead, as the diver's do. A
+/// suggestion on the "Recorded nearby" list read for [nearbyRequest] ends
+/// with a pin.
 List<Widget> speciesChipWidgets(
   BuildContext context,
   WidgetRef ref,
@@ -104,6 +116,7 @@ List<Widget> speciesChipWidgets(
   EditSession<PhotoRecord>? sitting, {
   VoidCallback? onSuggestionTap,
   bool openUnconfirmed = false,
+  NearbyListRequest? nearbyRequest,
 }) {
   final l10n = context.l10n;
   final chips = speciesChipsShown(ref, mediaId, sitting);
@@ -138,11 +151,22 @@ List<Widget> speciesChipWidgets(
       ActionChip(
         key: ValueKey('media_suggested_chip_${s.top.candidate.gbifKey}'),
         avatar: const ExcludeSemantics(child: Icon(Icons.add, size: 16)),
-        label: Text(
-          l10n.media_species_suggestedChip(
-            candidateDisplayName(l10n, s.top.candidate),
-            (s.score * 100).round(),
-          ),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.media_species_suggestedChip(
+                candidateDisplayName(l10n, s.top.candidate),
+                (s.score * 100).round(),
+              ),
+            ),
+            if (nearbyRequest != null)
+              RecordedNearbyPin(
+                request: nearbyRequest,
+                gbifKey: s.top.candidate.gbifKey,
+                catalogId: s.top.candidate.catalogId,
+              ),
+          ],
         ),
         backgroundColor: Colors.transparent,
         side: BorderSide(color: outline),

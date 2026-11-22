@@ -103,6 +103,22 @@ void main() {
     expect(find.text(l.diveLog_annotation_brokenLink), findsOneWidget);
   });
 
+  testWidgets('a pin right after the broken link is refused until it is '
+      'mended', (tester) async {
+    await breakTheLink(tester);
+    final broken = linked.notes.substring(0, linked.notes.length - 1);
+    final controller = tester.widget<TextFormField>(field).controller!;
+    controller.selection = TextSelection.collapsed(offset: broken.length);
+
+    await tester.tap(find.byTooltip(l.notesEditor_action_annotate));
+    await settle(tester);
+
+    expect(find.text(l.notesEditor_annotate_brokenLink), findsOneWidget);
+    // No time sheet was asked for, and the notes are as the diver left them.
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(controller.text, broken);
+  });
+
   testWidgets('the link mended, the message goes and Save goes through', (
     tester,
   ) async {
