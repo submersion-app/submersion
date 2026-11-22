@@ -137,11 +137,22 @@ class MediaIdentification extends Equatable {
   /// no label, and is named when the scan resumes.
   bool get isPending => isTrack && bestMs == null;
 
-  /// Whether the diver said something on it: a decision, or a species
-  /// named from the frame. A rescan carries this to the fresh track of the
-  /// same animal; the app's own guesses are found again.
+  /// Whether the diver dismissed it and a re-analysis they asked for
+  /// brought it back (issue #4825): undecided again, with the time of that
+  /// still on it. It is shown and offered like any undecided one, and the
+  /// app never tags it by itself: the dismissal it came from is the only
+  /// record that the diver did not want that species here.
+  bool get reopened =>
+      decision == IdentificationDecision.undecided && decidedAt != null;
+
+  /// Whether the diver said something on it: a decision, a species named
+  /// from the frame, or a dismissal since brought back ([reopened]). A
+  /// rescan carries this to the fresh track of the same animal; the app's
+  /// own guesses are found again.
   bool get saidByDiver =>
-      decision != IdentificationDecision.undecided || claimedSpeciesId != null;
+      decision != IdentificationDecision.undecided ||
+      claimedSpeciesId != null ||
+      reopened;
 
   int get durationMs => isTrack ? (endMs ?? startMs!) - startMs! : 0;
 

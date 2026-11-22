@@ -55814,6 +55814,65 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'Naamloze vis';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'nog $count soorten',
+      one: 'nog $count soort',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked =>
+      'Ontgrendel om toe te voegen of te negeren';
+
+  @override
+  String get media_labels_action => 'Labels voor zeeleven';
+
+  @override
+  String get media_labels_names => 'Namen';
+
+  @override
+  String get media_labels_allLife => 'Al het leven';
+
+  @override
+  String get media_labels_off => 'Uit';
+
+  @override
+  String get media_labels_analyse => 'Analyseren';
+
+  @override
+  String get media_labels_analyseAgain => 'Opnieuw analyseren';
+
+  @override
+  String get media_labels_statusNoModel => 'Geen soortenmodel geïnstalleerd';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Nog niet geanalyseerd';
+
+  @override
+  String get media_labels_statusAnalysing => 'Bezig met analyseren...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Bezig met analyseren, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gevonden',
+      one: '$count gevonden',
+      zero: 'Niets gevonden',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';
 
   @override
@@ -55948,7 +56007,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get speciesReview_resume => 'Hervatten';
 
   @override
-  String get speciesReview_allChecked => 'Alle foto\'s gecontroleerd';
+  String get speciesReview_checkAgain => 'Opnieuw controleren';
+
+  @override
+  String get speciesReview_checkAgainTitle => 'Deze duik opnieuw controleren?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'Alle foto\'s en video\'s van deze duik worden opnieuw geanalyseerd. Je soortlabels blijven behouden. Suggesties die je hebt genegeerd komen terug.';
 
   @override
   String speciesReview_count(int count) {

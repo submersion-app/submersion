@@ -246,12 +246,61 @@ RefreshAction decideRefresh({
   return RefreshAction.none;
 }
 
+/// [stored]'s dismissed rows, undecided again: what a re-analysis the
+/// diver asked for does to them before it runs (issue #4825). Each keeps
+/// [now] as its decision time, which marks it
+/// ([MediaIdentification.reopened]) as one the app never tags by itself.
+/// Only the changed rows are returned.
+List<MediaIdentification> reopenDismissed(
+  List<MediaIdentification> stored, {
+  required DateTime now,
+}) => [
+  for (final i in stored)
+    if (i.decision == IdentificationDecision.rejected) _reopenedAt(i, now),
+];
+
+/// [i] undecided again since [now], naming no species: a row a tag was
+/// removed from still names that tag's species.
+MediaIdentification _reopenedAt(MediaIdentification i, DateTime now) =>
+    MediaIdentification(
+      id: i.id,
+      mediaId: i.mediaId,
+      box: i.box,
+      boxPixelWidth: i.boxPixelWidth,
+      boxPixelHeight: i.boxPixelHeight,
+      detectorScore: i.detectorScore,
+      openScore: i.openScore,
+      candidates: i.candidates,
+      locationLimited: i.locationLimited,
+      suggestable: i.suggestable,
+      decision: IdentificationDecision.undecided,
+      decidedAt: now,
+      createdAt: i.createdAt,
+      startMs: i.startMs,
+      endMs: i.endMs,
+      bestMs: i.bestMs,
+      path: i.path,
+      claimedSpeciesId: i.claimedSpeciesId,
+      confident: i.confident,
+      specific: i.specific,
+    );
+
 /// What to store after a photo is analysed again.
 ///
 /// Old undecided identifications are replaced by [fresh]. A decided one is
 /// kept, unless a fresh detection of the same top species overlaps it by at
 /// least [sameAnimalOverlap]: then the fresh detection carries its decision
 /// and replaces it, so a dismissal survives and the crop is restored.
+///
+/// A reopened one ([MediaIdentification.reopened]) is carried the same
+/// way, so the app goes on leaving it to the diver; one no fresh detection
+/// matches is dropped, being only an old guess.
+///
+/// A name the diver gave an animal from the picture and has not saved as
+/// a tag yet (a claim on an undecided row, issue #4825) is carried by
+/// place alone, to the fresh detection that overlaps it most: the diver
+/// named that animal, whatever the app calls it now. With none, the row is
+/// kept as it is.
 ({
   List<MediaIdentification> keep,
   List<MediaIdentification> insert,
@@ -261,13 +310,22 @@ carryDecisions({
   required List<MediaIdentification> previous,
   required List<MediaIdentification> fresh,
 }) {
+  // A name given from the picture, on a row with no decision (reopened or
+  // not), follows the animal by place.
+  bool claimOnly(MediaIdentification p) =>
+      p.decision == IdentificationDecision.undecided &&
+      p.claimedSpeciesId != null;
   final decided = [
     for (final p in previous)
-      if (p.decision != IdentificationDecision.undecided) p,
+      if (p.saidByDiver && !claimOnly(p)) p,
+  ];
+  final claimed = [
+    for (final p in previous)
+      if (claimOnly(p)) p,
   ];
   final deleteIds = [
     for (final p in previous)
-      if (p.decision == IdentificationDecision.undecided) p.id,
+      if (!p.saidByDiver) p.id,
   ];
   final carried = <String>{};
   final insert = <MediaIdentification>[];
@@ -284,13 +342,40 @@ carryDecisions({
         decision: match.decision,
         decidedSpeciesId: match.decidedSpeciesId,
         decidedAt: match.decidedAt,
+        claimedSpeciesId: () => match.claimedSpeciesId,
       ),
     );
+  }
+  final keptClaims = <MediaIdentification>[];
+  for (final claim in claimed) {
+    int? best;
+    var bestOverlap = sameAnimalOverlap;
+    for (var k = 0; k < insert.length; k++) {
+      if (insert[k].saidByDiver) continue;
+      final overlap = insert[k].box.iou(claim.box);
+      if (overlap >= bestOverlap) {
+        best = k;
+        bestOverlap = overlap;
+      }
+    }
+    if (best == null) {
+      keptClaims.add(claim);
+      continue;
+    }
+    insert[best] = insert[best].copyWith(
+      claimedSpeciesId: () => claim.claimedSpeciesId,
+      decidedAt: claim.decidedAt,
+    );
+    deleteIds.add(claim.id);
+  }
+  for (final d in decided) {
+    if (d.reopened && !carried.contains(d.id)) deleteIds.add(d.id);
   }
   return (
     keep: [
       for (final d in decided)
-        if (!carried.contains(d.id)) d,
+        if (!carried.contains(d.id) && !d.reopened) d,
+      ...keptClaims,
     ],
     insert: insert,
     deleteIds: deleteIds,

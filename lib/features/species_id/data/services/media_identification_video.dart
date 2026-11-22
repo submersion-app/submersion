@@ -19,15 +19,18 @@ extension _VideoScanning on MediaIdentificationService {
     required int generation,
   }) async {
     final manifest = pack.pack.manifest;
-    final action = decideVideoRefresh(
-      run: run,
-      packVersion: manifest.packVersion,
-      detectorId: _runDetectorId(manifest, video: true),
-      classifierId: manifest.classifier.embeddingId,
-      cell: cell,
-      cropsPresent: cropsPresent,
-      embeddingsPresent: embeddingsPresent,
-    );
+    // A fresh request scans from the start whatever the video needs.
+    final action = job.fresh
+        ? VideoRefreshAction.rescan
+        : decideVideoRefresh(
+            run: run,
+            packVersion: manifest.packVersion,
+            detectorId: _runDetectorId(manifest, video: true),
+            classifierId: manifest.classifier.embeddingId,
+            cell: cell,
+            cropsPresent: cropsPresent,
+            embeddingsPresent: embeddingsPresent,
+          );
     switch (action) {
       case VideoRefreshAction.none:
         return false;
@@ -67,15 +70,22 @@ extension _VideoScanning on MediaIdentificationService {
           job.outcome = RunItemOutcome.unreadable;
           return false;
         }
+        // Dismissals come back only for a video that is looked at again.
+        var rows = stored;
+        if (job.fresh) {
+          final reopened = await _reopen(job, stored);
+          if (reopened == null) return false;
+          rows = reopened;
+        }
         // What the diver said about a fish (a decision, or a claim from
         // the frame) is carried to the fresh track of the same fish; the
         // app's own guesses are found again.
         final carry = [
-          for (final i in stored)
+          for (final i in rows)
             if (i.saidByDiver) i,
         ];
         final dropped = [
-          for (final i in stored)
+          for (final i in rows)
             if (!carry.contains(i)) i.id,
         ];
         final start = MediaIdentificationRun(
@@ -89,6 +99,8 @@ extension _VideoScanning on MediaIdentificationService {
           imageHeight: run?.imageHeight ?? 0,
           detectionCount: carry.length,
           scannedMs: 0,
+          // Known already: the analysed stretches show from the start.
+          videoDurationMs: run?.videoDurationMs,
         );
         if (_databaseGeneration() != generation) return false;
         await _identifications.storeRun(
@@ -98,6 +110,8 @@ extension _VideoScanning on MediaIdentificationService {
         );
         await _embeddings.delete(dropped);
         await _crops.delete(job.item.id, dropped);
+        // From here a job put back carries on rather than starting over.
+        job.freshStarted();
         return _scanVideo(job, pack, cell, reader, start, generation, carry);
     }
   }
@@ -106,6 +120,11 @@ extension _VideoScanning on MediaIdentificationService {
   /// (its location arrived late) waits for the scan to end, then names
   /// what was found for the new place, rather than stopping the scan.
   bool _otherWaiting(_Job job) => _waiting.keys.any((id) => id != job.item.id);
+
+  /// Whether the diver asked for this same video again from the start
+  /// (issue #4825): the scan under way gives way to it.
+  bool _freshWaiting(_Job job) =>
+      (job.fromRun ? _runWaiting : _waiting)[job.item.id]?.fresh ?? false;
 
   /// Scans [job]'s video a chunk at a time from [from]. Between chunks it
   /// stops when the video was left, another logbook opened, a pack change
@@ -157,13 +176,17 @@ extension _VideoScanning on MediaIdentificationService {
           !_disposed &&
           _paused == 0 &&
           !_otherWaiting(job) &&
+          !_freshWaiting(job) &&
           _databaseGeneration() == generation,
     );
     _videoProgress = scan.progress;
     _changed();
     try {
       while (true) {
-        if (job.cancelled || _disposed || _databaseGeneration() != generation) {
+        if (job.cancelled ||
+            _disposed ||
+            _freshWaiting(job) ||
+            _databaseGeneration() != generation) {
           await scan.finish();
           return false;
         }

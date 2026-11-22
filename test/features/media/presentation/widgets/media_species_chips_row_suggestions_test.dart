@@ -63,23 +63,16 @@ void main() {
     }
   }
 
-  testWidgets('a video being scanned shows how far it has got (issue '
-      '#4675)', (tester) async {
-    final semantics = tester.ensureSemantics();
+  testWidgets('no scan progress is drawn in the row: it is on the scrub bar '
+      'and the labels button (issue #4825)', (tester) async {
     await pump(tester, progress: 0.4, settle: false);
-    expect(find.text('40%'), findsOneWidget);
-    expect(find.bySemanticsLabel('Looking for fish, 40%'), findsOneWidget);
-    semantics.dispose();
-  });
-
-  testWidgets('no progress chip once the scan is done', (tester) async {
-    await pump(tester);
     expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('40%'), findsNothing);
   });
 
-  testWidgets('a scan shows even before any tag or suggestion', (tester) async {
+  testWidgets('a scan with nothing found yet draws no row', (tester) async {
     await pump(tester, chips: const [], progress: 0.1, settle: false);
-    expect(find.text('10%'), findsOneWidget);
+    expect(find.byType(ActionChip), findsNothing);
   });
 
   testWidgets('with no suggestions the row is as before', (tester) async {
@@ -89,6 +82,10 @@ void main() {
   });
 
   testWidgets('suggestions follow the tags, with their scores', (tester) async {
+    // Wide enough for all three on the one line, in the tests' square font.
+    tester.view.physicalSize = const Size(1600, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await pump(
       tester,
       suggestions: [

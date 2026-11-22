@@ -58,6 +58,7 @@ import 'package:submersion/features/media/presentation/widgets/people_tags/peopl
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_people_layer.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_caption.dart';
+import 'package:submersion/features/media/presentation/widgets/media_species_list_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_auto_hide.dart';
@@ -76,7 +77,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
+import 'package:submersion/features/species_id/presentation/widgets/identification_labels.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
+import 'package:submersion/features/species_id/presentation/widgets/labels_menu.dart';
+import 'package:submersion/features/species_id/presentation/widgets/photo_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_playhead_reporter.dart';
 
@@ -172,14 +176,15 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   bool _showOverlay = true;
 
   /// The bottom panel's height as last laid out, which the fish labels on
-  /// a video keep above (issue #4762).
+  /// a video keep above (issue #4762), and an unlocked photo's (#4825).
   double _bottomPanelHeight = 0;
 
-  /// The bottom panel was laid out at [height]. Only a video's fish labels
-  /// read it, so a photo's panel just records it, without a rebuild.
+  /// The bottom panel was laid out at [height]. A video's fish labels read
+  /// it, and an unlocked photo's; a locked photo's panel just records it,
+  /// without a rebuild, and the unlock reads it.
   void _onBottomPanelHeight(double height, {required bool video}) {
     if (!mounted || height == _bottomPanelHeight) return;
-    if (!video) {
+    if (!video && photoLocked) {
       _bottomPanelHeight = height;
       return;
     }
@@ -505,7 +510,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 },
                 child: Stack(
                   children: [
-                    // Photo/video gallery
                     RepaintBoundary(
                       key: galleryBoundaryKey,
                       child: _PhotoGallery(
@@ -547,8 +551,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       ),
                     ),
 
-                    // Transparent tap target to toggle overlays (photos only)
-                    // Videos handle their own tap gestures for play/pause
+                    // A photo's tap layer; a video takes its own taps.
                     if (!currentItem.isVideo)
                       Positioned.fill(
                         child: Semantics(
@@ -556,23 +559,21 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                               context.l10n.media_photoViewer_toggleOverlayLabel,
                           child: GestureDetector(
                             behavior: HitTestBehavior.translucent,
-                            onTap: pickingWhite || taggingPeople
+                            onTapUp: taggingPeople && !pickingWhite
                                 ? null
-                                : isFullscreen
-                                ? toggleFullscreenControls
-                                : () {
-                                    cancelVideoOverlayClock();
-                                    setState(
-                                      () => _showOverlay = !_showOverlay,
-                                    );
-                                  },
-                            onTapUp: pickingWhite
-                                ? (details) => _pickWhiteAt(
+                                : _photoTapUp(
                                     currentItem,
-                                    details.localPosition,
-                                    context.size ?? Size.zero,
-                                  )
-                                : null,
+                                    () => context.size ?? Size.zero,
+                                    isFullscreen
+                                        ? toggleFullscreenControls
+                                        : () {
+                                            cancelVideoOverlayClock();
+                                            setState(
+                                              () =>
+                                                  _showOverlay = !_showOverlay,
+                                            );
+                                          },
+                                  ),
                             child: const SizedBox.expand(),
                           ),
                         ),
@@ -603,9 +604,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       location: _photoLocation(currentItem, diveAsync.value),
                     ),
 
-                    // Overlay controls (app bar and metadata)
-                    // While unlocked the bar never hides: it holds Cancel and
-                    // Save.
+                    // The controls; while unlocked the bar never hides: it
+                    // holds Cancel and Save.
                     if ((_showOverlay || photoUnlocked) &&
                         !isFullscreen &&
                         !pickingWhite) ...[
@@ -620,6 +620,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         perdixToggleAvailable: perdixToggleAvailable,
                         perdixEnabled: settings.perdixOverlayEnabled,
                         storedPhoto: storedPhoto,
+                        location: _photoLocation(currentItem, diveAsync.value),
                       ),
 
                       // What colour correction the item is drawn with.

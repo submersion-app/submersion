@@ -71,6 +71,13 @@ final diveSpeciesRunProvider =
           resolveImage: (i) => identificationImageOf(ref, i),
           resolveVideo: (i) => runVideoFileOf(ref, i),
         ),
+        requestFresh: (item, location) => service.requestFromRun(
+          item,
+          location: location,
+          resolveImage: (i) => identificationImageOf(ref, i),
+          resolveVideo: (i) => runVideoFileOf(ref, i),
+          fresh: true,
+        ),
         cancel: service.cancelRun,
         applyAll: (items, generation) => ref
             .read(autoApplierProvider)

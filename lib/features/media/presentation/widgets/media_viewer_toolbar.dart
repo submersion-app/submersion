@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 
 /// Height of [MediaViewerToolbar]'s content below the status bar: its 8 px
 /// vertical padding either side of a default 48 px [IconButton]. The Perdix
@@ -22,6 +23,15 @@ const double kToolbarButtonExtent = 48;
 /// 1x text; scaled with the diver's text size so large text is not clipped.
 const double _indicatorMinWidth = 72;
 
+/// A progress ring round a toolbar icon (issue #4825): filled to [value],
+/// or spinning when it is null.
+@immutable
+class ToolbarRing {
+  const ToolbarRing([this.value]);
+
+  final double? value;
+}
+
 /// One toolbar action, described as data so the toolbar can show it as an
 /// icon or move it into the overflow menu without knowing what it does.
 @immutable
@@ -34,6 +44,7 @@ class MediaViewerAction {
     required this.onPressed,
     this.iconColor,
     this.disabledReason,
+    this.ring,
   });
 
   /// Stable id; also names the widget key (`viewer_<id>`).
@@ -56,6 +67,9 @@ class MediaViewerAction {
   /// Why the action cannot be used now; non-null draws it disabled, with
   /// this as its tooltip and as a line under it in the overflow menu.
   final String? disabledReason;
+
+  /// Work under way, drawn round the icon when it is on the bar.
+  final ToolbarRing? ring;
 }
 
 /// The result of [splitToolbarActions]: both lists in toolbar order.
@@ -145,6 +159,9 @@ class MediaViewerToolbar extends ConsumerWidget {
     this.writeControls = true,
     this.writeMetadataDisabledReason,
     this.editBar,
+    this.onMarineLifeLabels,
+    this.marineLifeLabelsOn = true,
+    this.marineLifeRing,
   });
 
   final MediaItem item;
@@ -204,6 +221,16 @@ class MediaViewerToolbar extends ConsumerWidget {
   /// shared editing bar, with the actions inside it.
   final MediaViewerEditBar? editBar;
 
+  /// Opens the marine life labels menu (issue #4825), anchored to what was
+  /// tapped; null hides the action.
+  final void Function(BuildContext anchor)? onMarineLifeLabels;
+
+  /// Whether labels are drawn (tints the icon).
+  final bool marineLifeLabelsOn;
+
+  /// The item on screen is being analysed: a ring round the labels icon.
+  final ToolbarRing? marineLifeRing;
+
   /// [readOnly] drops every action that changes the media or its links:
   /// a browser views and shares, and nothing more (issue #4121).
   List<MediaViewerAction> _actions(
@@ -235,7 +262,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'write_metadata',
           icon: Icons.edit_note,
           label: l10n.media_photoViewer_writeDiveDataTooltip,
-          priority: 6,
+          priority: 7,
           disabledReason: writeMetadataDisabledReason,
           onPressed: (_) => onWriteMetadata(),
         ),
@@ -244,7 +271,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'perdix',
           icon: Icons.watch,
           label: l10n.media_perdixOverlay_toggleTooltip,
-          priority: 3,
+          priority: 4,
           iconColor: perdixEnabled
               ? Theme.of(context).colorScheme.primary
               : null,
@@ -255,7 +282,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'lightroom',
           icon: Icons.open_in_new,
           label: l10n.media_lightroom_openInLightroom,
-          priority: 7,
+          priority: 8,
           onPressed: (_) => onOpenInLightroom!(),
         ),
       if (writes)
@@ -263,7 +290,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'species',
           icon: Icons.sell_outlined,
           label: l10n.media_species_actionTooltip,
-          priority: 4,
+          priority: 5,
           onPressed: (_) => onTagSpecies(),
         ),
       if (onTagPeople != null && writes)
@@ -273,17 +300,31 @@ class MediaViewerToolbar extends ConsumerWidget {
           label: l10n.media_people_actionTooltip,
           // After Adjust color: on a narrow phone it moves to the overflow
           // menu rather than displacing an existing action.
-          priority: 6,
+          priority: 7,
           iconColor: peopleTaggingActive
               ? Theme.of(context).colorScheme.primary
               : null,
           onPressed: (_) => onTagPeople!(),
         ),
+      // Just before Info, with the rank Info had: on a phone it takes
+      // Info's place on the bar (issue #4825).
+      if (onMarineLifeLabels != null)
+        MediaViewerAction(
+          id: 'marine_life_labels',
+          icon: MdiIcons.fish,
+          label: l10n.media_labels_action,
+          priority: 2,
+          iconColor: marineLifeLabelsOn
+              ? Theme.of(context).colorScheme.primary
+              : null,
+          ring: marineLifeRing,
+          onPressed: (anchor) => onMarineLifeLabels!(anchor),
+        ),
       MediaViewerAction(
         id: 'info',
         icon: Icons.info_outline,
         label: l10n.media_info_title,
-        priority: 2,
+        priority: 3,
         onPressed: (_) => onShowInfo(),
       ),
       if (onAdjustColor != null && writes)
@@ -293,7 +334,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           label: l10n.media_color_adjustAction,
           // After the existing actions, so a phone keeps showing the ones
           // it showed before this was added (issue #3520).
-          priority: 5,
+          priority: 6,
           onPressed: (_) => onAdjustColor!(),
         ),
       MediaViewerAction(
@@ -310,7 +351,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'reupload',
           icon: Icons.tune,
           label: l10n.settings_mediaStorage_quality_section,
-          priority: 8,
+          priority: 9,
           onPressed: (anchor) => onReupload!(anchor),
         ),
     ];
@@ -446,10 +487,13 @@ List<Widget> toolbarActionButtons(
     Builder(
       key: ValueKey('viewer_${action.id}'),
       builder: (anchor) => IconButton(
-        icon: Icon(
-          action.icon,
-          color: action.iconColor ?? color,
-          semanticLabel: action.disabledReason == null ? null : action.label,
+        icon: _withRing(
+          Icon(
+            action.icon,
+            color: action.iconColor ?? color,
+            semanticLabel: action.disabledReason == null ? null : action.label,
+          ),
+          action.ring,
         ),
         tooltip: action.disabledReason ?? action.label,
         onPressed: action.disabledReason == null
@@ -495,3 +539,20 @@ List<Widget> toolbarActionButtons(
       ),
     ),
 ];
+
+/// [icon] inside [ring], when there is one.
+Widget _withRing(Widget icon, ToolbarRing? ring) {
+  if (ring == null) return icon;
+  return SizedBox.square(
+    dimension: 32,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(
+          child: CircularProgressIndicator(strokeWidth: 2, value: ring.value),
+        ),
+        icon,
+      ],
+    ),
+  );
+}

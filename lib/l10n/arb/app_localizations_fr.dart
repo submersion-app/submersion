@@ -56292,6 +56292,65 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'Poisson sans nom';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count autres espèces',
+      one: '$count autre espèce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked =>
+      'Déverrouillez pour ajouter ou ignorer';
+
+  @override
+  String get media_labels_action => 'Étiquettes de vie marine';
+
+  @override
+  String get media_labels_names => 'Noms';
+
+  @override
+  String get media_labels_allLife => 'Toute la vie';
+
+  @override
+  String get media_labels_off => 'Désactivées';
+
+  @override
+  String get media_labels_analyse => 'Analyser';
+
+  @override
+  String get media_labels_analyseAgain => 'Analyser à nouveau';
+
+  @override
+  String get media_labels_statusNoModel => 'Aucun modèle d\'espèces installé';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Pas encore analysé';
+
+  @override
+  String get media_labels_statusAnalysing => 'Analyse en cours...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Analyse en cours, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trouvés',
+      one: '$count trouvé',
+      zero: 'Rien trouvé',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Correspondances possibles';
 
   @override
@@ -56426,7 +56485,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get speciesReview_resume => 'Reprendre';
 
   @override
-  String get speciesReview_allChecked => 'Toutes les photos vérifiées';
+  String get speciesReview_checkAgain => 'Vérifier à nouveau';
+
+  @override
+  String get speciesReview_checkAgainTitle =>
+      'Vérifier à nouveau cette plongée ?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'Toutes les photos et vidéos de cette plongée sont analysées à nouveau. Vos étiquettes d\'espèces sont conservées. Les suggestions que vous avez ignorées réapparaissent.';
 
   @override
   String speciesReview_count(int count) {

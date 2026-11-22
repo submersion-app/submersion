@@ -10,6 +10,7 @@ import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/species_id/presentation/widgets/video_analysed_stretches.dart';
 
 /// Video playback controls: elapsed time, a scrub bar, and total time.
 ///
@@ -353,6 +354,13 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final width = constraints.maxWidth;
+                    // Analysed for marine life (#4825). Made once here, not
+                    // on each tick of the playhead below: the same widget
+                    // handed back is not built again.
+                    final analysed = VideoAnalysedStretches(
+                      mediaId: widget.mediaId,
+                      width: width,
+                    );
                     // A slider to assistive tech, stepping by a few seconds,
                     // since a screen reader cannot tap a point or drag.
                     return Semantics(
@@ -426,6 +434,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                                         borderRadius: BorderRadius.circular(2),
                                       ),
                                     ),
+                                    analysed,
                                     // Progress track
                                     FractionallySizedBox(
                                       widthFactor: progress,

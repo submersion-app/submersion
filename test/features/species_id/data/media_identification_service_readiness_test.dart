@@ -106,6 +106,25 @@ void main() {
     expect(await upToDate([photo('m1')]), {'m1'});
   });
 
+  test('rows the caller has read already are not read again (issue '
+      '#4825)', () async {
+    await lookAt(photo('m1'));
+    final read = await identifications.forMediaIdsWithRuns([
+      'm1',
+    ], withPaths: false);
+    identifications.reads.clear();
+    expect(
+      await service.upToDate(
+        [photo('m1')],
+        manifest: installed,
+        locationOf: (_) => null,
+        read: read,
+      ),
+      {'m1'},
+    );
+    expect(identifications.reads, isEmpty);
+  });
+
   test('a photo never looked at is not', () async {
     expect(await upToDate([photo('m1')]), isEmpty);
   });

@@ -56963,6 +56963,70 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'سمكة بلا اسم';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع آخر',
+      many: '$count نوعًا آخر',
+      few: '$count أنواع أخرى',
+      two: 'نوعان آخران',
+      one: 'نوع واحد آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked => 'افتح القفل للإضافة أو الرفض';
+
+  @override
+  String get media_labels_action => 'تسميات الحياة البحرية';
+
+  @override
+  String get media_labels_names => 'الأسماء';
+
+  @override
+  String get media_labels_allLife => 'كل الكائنات';
+
+  @override
+  String get media_labels_off => 'إيقاف';
+
+  @override
+  String get media_labels_analyse => 'تحليل';
+
+  @override
+  String get media_labels_analyseAgain => 'التحليل مرة أخرى';
+
+  @override
+  String get media_labels_statusNoModel => 'لا يوجد نموذج أنواع مثبت';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'لم يُحلَّل بعد';
+
+  @override
+  String get media_labels_statusAnalysing => 'جارٍ التحليل...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'جارٍ التحليل، $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عُثر على $count',
+      many: 'عُثر على $count',
+      few: 'عُثر على $count',
+      two: 'عُثر على اثنين',
+      one: 'عُثر على واحد',
+      zero: 'لم يُعثر على شيء',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
 
   @override
@@ -57102,7 +57166,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get speciesReview_resume => 'استئناف';
 
   @override
-  String get speciesReview_allChecked => 'تم فحص جميع الصور';
+  String get speciesReview_checkAgain => 'التحقق مرة أخرى';
+
+  @override
+  String get speciesReview_checkAgainTitle =>
+      'هل تريد التحقق من هذه الغطسة مرة أخرى؟';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'سيُعاد تحليل كل الصور ومقاطع الفيديو في هذه الغطسة. تبقى وسوم الأنواع كما هي. الاقتراحات التي رفضتها ستعود للظهور.';
 
   @override
   String speciesReview_count(int count) {
