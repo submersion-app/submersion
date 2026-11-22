@@ -65580,13 +65580,13 @@ class AppLocalizationsPt extends AppLocalizations {
       outings,
       locale: localeName,
       other: '$outings saídas',
-      one: '1 saída',
+      one: '$outings saída',
     );
     String _temp1 = intl.Intl.pluralLogic(
       dives,
       locale: localeName,
       other: '$dives mergulhos',
-      one: '1 mergulho',
+      one: '$dives mergulho',
     );
     return '$_temp0 · $_temp1';
   }
@@ -65597,7 +65597,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -65613,7 +65613,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count espécies',
-      one: '1 espécie',
+      one: '$count espécie',
     );
     return '$_temp0';
   }
