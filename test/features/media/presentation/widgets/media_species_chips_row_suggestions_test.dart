@@ -9,6 +9,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
+import 'package:submersion/features/media/presentation/widgets/viewer_tag_chips.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
@@ -28,6 +29,19 @@ const _tang = SpeciesTagChip(
 
 void main() {
   late List<NearbyListRequest> nearbyAsked;
+
+  /// The colour the chip draws the label starting with [prefix] in.
+  Color? labelColor(WidgetTester tester, String prefix) => tester
+      .widget<DefaultTextStyle>(
+        find
+            .ancestor(
+              of: find.textContaining(prefix),
+              matching: find.byType(DefaultTextStyle),
+            )
+            .first,
+      )
+      .style
+      .color;
 
   setUp(() {
     marineLifeIdEnabled = true;
@@ -139,6 +153,37 @@ void main() {
       find.byKey(const ValueKey('media_suggested_chip_1')),
     );
     expect(chip.onPressed, isNull);
+    // Dimmed, so it does not pass for a chip that answers a tap (issue
+    // #4921).
+    expect(
+      labelColor(tester, 'Queen Parrotfish'),
+      ViewerTagChips.foregroundInert,
+    );
+  });
+
+  testWidgets('in the viewer a suggestion has no fill, unlike a tag, and a '
+      'live one is not dimmed (issue #4921)', (tester) async {
+    tester.view.physicalSize = const Size(1600, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(
+      tester,
+      suggestions: [suggestion(parrotfish)],
+      onSuggestionTap: () {},
+    );
+    final chip = tester.widget<ActionChip>(
+      find.byKey(const ValueKey('media_suggested_chip_1')),
+    );
+    expect(chip.color?.resolve(const {}), Colors.transparent);
+    final tag = find.ancestor(
+      of: find.text('Blue Tang'),
+      matching: find.byType(ActionChip),
+    );
+    expect(
+      ChipTheme.of(tester.element(tag)).color?.resolve(const {}),
+      ViewerTagChips.fill,
+    );
+    expect(labelColor(tester, 'Queen Parrotfish'), ViewerTagChips.foreground);
   });
 
   testWidgets('a suggestion already shown as a tag is hidden', (tester) async {

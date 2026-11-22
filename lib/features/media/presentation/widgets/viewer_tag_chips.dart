@@ -31,6 +31,13 @@ abstract final class ViewerTagChips {
   /// The label and icon colour (90% white).
   static const Color foreground = Color(0xE6FFFFFF);
 
+  /// The label of a chip that does nothing, as on a locked photo (55%
+  /// white), so it does not pass for one that answers a tap.
+  static const Color foregroundInert = Color(0x8CFFFFFF);
+
+  /// The fill of a tag that does nothing (20% black).
+  static const Color fillInert = Color(0x33000000);
+
   /// A suggestion's fill: none, so it reads apart from a tag, with a faint
   /// light wash under the pointer or a press.
   static final WidgetStateProperty<Color> suggestionColor =
@@ -41,8 +48,19 @@ abstract final class ViewerTagChips {
 
   static final WidgetStateProperty<Color> _tagColor =
       WidgetStateProperty.resolveWith(
-        (states) => _active(states) ? fillActive : fill,
+        (states) => states.contains(WidgetState.disabled)
+            ? fillInert
+            : _active(states)
+            ? fillActive
+            : fill,
       );
+
+  /// The label colour, dimmed on an inert chip; the chip resolves it
+  /// against its own states.
+  static final Color _labelColor = WidgetStateColor.resolveWith(
+    (states) =>
+        states.contains(WidgetState.disabled) ? foregroundInert : foreground,
+  );
 
   static bool _active(Set<WidgetState> states) =>
       states.contains(WidgetState.hovered) ||
@@ -58,7 +76,7 @@ abstract final class ViewerTagChips {
       data: ChipTheme.of(context).copyWith(
         color: _tagColor,
         side: const BorderSide(color: outline, width: 0.5),
-        labelStyle: base.copyWith(fontSize: fontSize, color: foreground),
+        labelStyle: base.copyWith(fontSize: fontSize, color: _labelColor),
         iconTheme: const IconThemeData(color: foreground, size: iconSize),
         padding: const EdgeInsets.symmetric(horizontal: 2),
         labelPadding: const EdgeInsets.symmetric(horizontal: 4),
