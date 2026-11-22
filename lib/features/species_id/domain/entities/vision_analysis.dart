@@ -114,7 +114,11 @@ class VisionModels extends Equatable {
     this.cropFit = CropFit.padSquare,
     this.smallBoxPadding = videoSmallBoxPadding,
     this.smallBoxSide = videoSmallBoxSide,
-  });
+  }) : assert(
+         smallBoxPadding >= 0 && smallBoxPadding <= double.maxFinite,
+         'smallBoxPadding must be a finite number of 0 or more',
+       ),
+       assert(smallBoxSide >= 0, 'smallBoxSide must be 0 or more');
 
   /// [detectorPaths] holds one installed model per detector, in the
   /// manifest's order.
@@ -160,7 +164,8 @@ class VisionModels extends Equatable {
   final int cropThumbnailSize;
   final CropFit cropFit;
 
-  /// A video moment's crop padding when its box is small ([momentPadding]).
+  /// A video moment's crop padding when its box is small, or [cropPadding]
+  /// when that is larger ([momentPadding]).
   final double smallBoxPadding;
 
   /// Under this many pixels on its shorter side, a video moment's box is

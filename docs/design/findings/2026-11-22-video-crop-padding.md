@@ -67,7 +67,9 @@ By eye, on the 138 tracks whose suggestion changed (Eager):
 A video moment's box under 256 px on its shorter side, in the frame's
 pixels, is cropped with a padding of 0.6; a larger box, and every photo,
 keeps the pack's padding of 0.1 (`VisionModels.momentPadding`, both
-engines). It suggests more than twice as many tracks as before for about
+engines). A small box is never cropped tighter than the pack's padding, so
+a pack that pads more than 0.6 keeps its own padding for every box. It
+suggests more than twice as many tracks as before for about
 the same number of wrong names. Keeping 0.1 for big boxes keeps them on the
 crop the naming bars were measured with on photos, and avoids naming the
 scene around a box that already fills much of the frame. Padding 0.6 for

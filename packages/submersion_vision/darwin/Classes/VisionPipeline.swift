@@ -122,7 +122,8 @@ struct VisionModelSettings: Equatable {
   let maxBoxes: Int
   let cropPadding: Double
   /// A video moment's box under [smallBoxSide] pixels on its shorter side
-  /// is cropped with this padding instead (issue #4882).
+  /// is cropped with this padding, or [cropPadding] when that is larger
+  /// (issue #4882).
   let smallBoxPadding: Double
   /// 0 crops every video moment at [cropPadding].
   let smallBoxSide: Double
@@ -164,11 +165,11 @@ struct VisionModelSettings: Equatable {
     }
   }
 
-  /// [key] of [values]: nil when absent, else a number of 0 or more, which
-  /// anything else fails as bad arguments.
+  /// [key] of [values]: nil when absent, else a finite number of 0 or
+  /// more; anything else fails as bad arguments.
   private static func nonNegative(_ values: [String: Any], _ key: String) throws -> Double? {
     guard let value = values[key] else { return nil }
-    guard let number = value as? NSNumber, number.doubleValue >= 0 else {
+    guard let number = value as? NSNumber, number.doubleValue >= 0, number.doubleValue.isFinite else {
       throw VisionError.badArguments(key)
     }
     return number.doubleValue
@@ -271,7 +272,8 @@ final class VisionPipeline {
   /// embedded: `{pixelWidth, pixelHeight, crop, embedding}`, or nil when
   /// the crop is too small to read. Shared by photos and video moments: a
   /// [moment]'s box under `smallBoxSide` pixels on its shorter side takes
-  /// `smallBoxPadding` (issue #4882), every other box `cropPadding`.
+  /// `smallBoxPadding`, or `cropPadding` when that is larger (issue #4882);
+  /// every other box takes `cropPadding`.
   func cropAndEmbed(
     _ image: CGImage, x: Double, y: Double, w: Double, h: Double, moment: Bool = false
   ) throws -> [String: Any]? {

@@ -34,6 +34,23 @@ void main() {
       expect(models.momentPadding(boxWidth: 1800, boxHeight: 900), 0.1);
     });
 
+    test('a negative or infinite small-box setting is refused', () {
+      final models = _models();
+
+      expect(
+        () => models.copyWith(smallBoxPadding: -0.6),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => models.copyWith(smallBoxPadding: double.infinity),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => models.copyWith(smallBoxSide: -1),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
     test('a small box side of 0 crops every moment at the pack padding', () {
       final models = _models().copyWith(smallBoxSide: 0);
 
