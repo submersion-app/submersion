@@ -1390,6 +1390,7 @@
   "preDive_edit_strictOrderHelp": "Os itens devem ser concluídos de cima para baixo",
   "preDive_edit_addItem": "Adicionar item",
   "preDive_edit_nameRequired": "Insira um nome",
+  "preDive_edit_notFound": "Esta lista de verificação já não existe.",
   "preDive_item_title": "Título",
   "preDive_item_section": "Seção",
   "preDive_item_notes": "Notas",

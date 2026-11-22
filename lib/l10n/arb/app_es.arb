@@ -1390,6 +1390,7 @@
   "preDive_edit_strictOrderHelp": "Los elementos deben completarse de arriba abajo",
   "preDive_edit_addItem": "Agregar elemento",
   "preDive_edit_nameRequired": "Introduce un nombre",
+  "preDive_edit_notFound": "Esta lista de comprobación ya no existe.",
   "preDive_item_title": "Título",
   "preDive_item_section": "Sección",
   "preDive_item_notes": "Notas",

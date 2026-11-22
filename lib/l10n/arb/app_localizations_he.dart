@@ -5112,6 +5112,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_edit_nameRequired => 'הזן שם';
 
   @override
+  String get preDive_edit_notFound => 'רשימת הבדיקה הזו כבר לא קיימת.';
+
+  @override
   String get preDive_item_title => 'כותרת';
 
   @override

@@ -1390,6 +1390,7 @@
   "preDive_edit_strictOrderHelp": "Gli elementi devono essere completati dall'alto verso il basso",
   "preDive_edit_addItem": "Aggiungi elemento",
   "preDive_edit_nameRequired": "Inserisci un nome",
+  "preDive_edit_notFound": "Questa checklist non esiste più.",
   "preDive_item_title": "Titolo",
   "preDive_item_section": "Sezione",
   "preDive_item_notes": "Note",

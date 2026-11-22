@@ -5209,6 +5209,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get preDive_edit_nameRequired => 'Adjon meg egy nevet';
 
   @override
+  String get preDive_edit_notFound => 'Ez az ellenőrzőlista már nem létezik.';
+
+  @override
   String get preDive_item_title => 'Cím';
 
   @override

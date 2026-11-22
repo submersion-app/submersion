@@ -1470,6 +1470,7 @@
   "preDive_edit_strictOrderHelp": "各事项必须从上到下依次完成",
   "preDive_edit_addItem": "添加事项",
   "preDive_edit_nameRequired": "请输入名称",
+  "preDive_edit_notFound": "此检查清单已不存在。",
   "preDive_item_title": "标题",
   "preDive_item_section": "分组",
   "preDive_item_notes": "备注",

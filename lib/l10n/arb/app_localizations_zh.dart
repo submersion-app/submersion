@@ -4930,6 +4930,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get preDive_edit_nameRequired => '请输入名称';
 
   @override
+  String get preDive_edit_notFound => '此检查清单已不存在。';
+
+  @override
   String get preDive_item_title => '标题';
 
   @override

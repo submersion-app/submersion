@@ -1390,6 +1390,7 @@
   "preDive_edit_strictOrderHelp": "يجب إكمال العناصر من الأعلى إلى الأسفل",
   "preDive_edit_addItem": "إضافة عنصر",
   "preDive_edit_nameRequired": "أدخل اسمًا",
+  "preDive_edit_notFound": "لم تعد قائمة التحقق هذه موجودة.",
   "preDive_item_title": "العنوان",
   "preDive_item_section": "القسم",
   "preDive_item_notes": "ملاحظات",

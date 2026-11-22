@@ -5335,6 +5335,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preDive_edit_nameRequired => 'أدخل اسمًا';
 
   @override
+  String get preDive_edit_notFound => 'لم تعد قائمة التحقق هذه موجودة.';
+
+  @override
   String get preDive_item_title => 'العنوان';
 
   @override

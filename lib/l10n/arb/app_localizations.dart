@@ -8048,6 +8048,12 @@ abstract class AppLocalizations {
   /// **'Enter a name'**
   String get preDive_edit_nameRequired;
 
+  /// No description provided for @preDive_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This checklist no longer exists.'**
+  String get preDive_edit_notFound;
+
   /// No description provided for @preDive_item_title.
   ///
   /// In en, this message translates to:

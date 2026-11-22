@@ -1390,6 +1390,7 @@
   "preDive_edit_strictOrderHelp": "יש להשלים את הפריטים מלמעלה למטה",
   "preDive_edit_addItem": "הוסף פריט",
   "preDive_edit_nameRequired": "הזן שם",
+  "preDive_edit_notFound": "רשימת הבדיקה הזו כבר לא קיימת.",
   "preDive_item_title": "כותרת",
   "preDive_item_section": "מקטע",
   "preDive_item_notes": "הערות",

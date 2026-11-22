@@ -5234,6 +5234,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get preDive_edit_nameRequired => 'Introduce un nombre';
 
   @override
+  String get preDive_edit_notFound =>
+      'Esta lista de comprobación ya no existe.';
+
+  @override
   String get preDive_item_title => 'Título';
 
   @override

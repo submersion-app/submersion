@@ -1390,6 +1390,7 @@
   "preDive_edit_strictOrderHelp": "Items moeten van boven naar beneden worden afgewerkt",
   "preDive_edit_addItem": "Item toevoegen",
   "preDive_edit_nameRequired": "Voer een naam in",
+  "preDive_edit_notFound": "Deze checklist bestaat niet meer.",
   "preDive_item_title": "Titel",
   "preDive_item_section": "Sectie",
   "preDive_item_notes": "Notities",

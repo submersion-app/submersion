@@ -5226,6 +5226,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get preDive_edit_nameRequired => 'Namen eingeben';
 
   @override
+  String get preDive_edit_notFound => 'Diese Checkliste existiert nicht mehr.';
+
+  @override
   String get preDive_item_title => 'Titel';
 
   @override

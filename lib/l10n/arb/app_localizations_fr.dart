@@ -5241,6 +5241,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get preDive_edit_nameRequired => 'Saisissez un nom';
 
   @override
+  String get preDive_edit_notFound => 'Cette liste de contrôle n\'existe plus.';
+
+  @override
   String get preDive_item_title => 'Titre';
 
   @override

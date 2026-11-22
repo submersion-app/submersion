@@ -5198,6 +5198,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_edit_nameRequired => 'Voer een naam in';
 
   @override
+  String get preDive_edit_notFound => 'Deze checklist bestaat niet meer.';
+
+  @override
   String get preDive_item_title => 'Titel';
 
   @override
