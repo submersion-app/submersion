@@ -27,6 +27,7 @@ class _FakeAdapter extends RecordSharingAdapter<Set<String>> {
   /// Rows stored beside what [read] reports, which an owner's save clears.
   bool stale = false;
   bool failNeedsRewrite = false;
+  bool failWrite = false;
 
   @override
   Future<bool> needsRewrite(String recordId) async {
@@ -48,6 +49,7 @@ class _FakeAdapter extends RecordSharingAdapter<Set<String>> {
     required String? actingDiverId,
   }) async {
     writes.add((id: recordId, sharing: sharing, actingDiverId: actingDiverId));
+    if (failWrite) throw StateError('could not write');
     if (refuse) return false;
     current = sharing;
     return true;
@@ -203,6 +205,33 @@ void main() {
     await session.runHeldWrites();
     expect(adapter.writes, isEmpty);
   });
+
+  // Upkeep the diver never asked for must not cost them their edit: a
+  // check or a write of it that fails at Save is left for the next Save.
+  test('an upkeep that fails at Save fails nothing', () async {
+    adapter.stale = true;
+    await _sharing.load(session, adapter, actingDiverId: 'me');
+    adapter.failNeedsRewrite = true;
+
+    await session.runHeldWrites();
+
+    adapter
+      ..failNeedsRewrite = false
+      ..failWrite = true;
+    await session.runHeldWrites();
+    expect(adapter.writes, hasLength(1));
+  });
+
+  test(
+    "the diver's own choice that fails to write still fails the Save",
+    () async {
+      await _sharing.load(session, adapter);
+      _sharing.set(session, {'alex'}, actingDiverId: 'me');
+      adapter.failWrite = true;
+
+      await expectLater(session.runHeldWrites(), throwsStateError);
+    },
+  );
 
   test('nothing is held before the read answers', () async {
     final gate = adapter.readGate = Completer<void>();

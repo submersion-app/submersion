@@ -74,7 +74,8 @@ class RecordSharingSitting<T, S> {
   /// Save: a sharing changed meanwhile (another device's, synced in) is
   /// kept, and rows cleared meanwhile ask for nothing. A check that fails
   /// holds no rewrite and leaves the sharing as read, changeable, since it
-  /// only decides upkeep. That write is not a change of its own, and a
+  /// only decides upkeep, and a check or write that fails at Save is logged
+  /// and fails nothing. That write is not a change of its own, and a
   /// refusal of it (a profile that may not share) fails nothing: the save
   /// that clears such rows is the owner's. A sitting with no change of its
   /// own writes nothing at all, so the rows wait for the next Save that
@@ -116,18 +117,29 @@ class RecordSharingSitting<T, S> {
         if (rewrite) {
           session.remember(_rewriteKey, () async {
             // As stored now, inside the Save: never the older value read.
-            if (!await adapter.needsRewrite(recordId)) return true;
-            return adapter.write(
-              recordId,
-              await adapter.read(recordId),
-              actingDiverId: actingDiverId,
-            );
+            // Upkeep only, so a check or write that fails is logged and
+            // left for a later Save, never failing this one.
+            try {
+              if (!await adapter.needsRewrite(recordId)) return true;
+              return await adapter.write(
+                recordId,
+                await adapter.read(recordId),
+                actingDiverId: actingDiverId,
+              );
+            } catch (error, stackTrace) {
+              _log.warning(
+                'Could not clear the share rows of $recordId ($key)',
+                error: error,
+                stackTrace: stackTrace,
+              );
+              return false;
+            }
           });
           _holdRewrite(session);
         }
       } catch (error, stackTrace) {
         _log.warning(
-          'Could not read who $recordId is shared with',
+          'Could not read who $recordId is shared with ($key)',
           error: error,
           stackTrace: stackTrace,
         );
@@ -148,7 +160,7 @@ class RecordSharingSitting<T, S> {
       return await adapter.needsRewrite(recordId);
     } catch (error, stackTrace) {
       _log.warning(
-        'Could not tell whether $recordId has share rows to clear',
+        'Could not tell whether $recordId has share rows to clear ($key)',
         error: error,
         stackTrace: stackTrace,
       );
