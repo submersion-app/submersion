@@ -161,7 +161,7 @@ features.
 | certification, certification card | 認定, Cカード |
 | certification agency | 指導団体 |
 | course, instructor | コース, インストラクター |
-| marine life, species | 海洋生物, 種 |
+| species (the app's Species pages and sections) | 生物; 種 only inside compounds such as 種のカタログ. The app no longer says "marine life", so avoid 海洋生物 in labels |
 | sighting | 観察記録 |
 | species common name | the standard Japanese name (標準和名) in katakana when known with confidence; otherwise a katakana rendering of the English common name. Scientific names stay in Latin. |
 | statistics, insights, dashboard | 統計, インサイト, ダッシュボード |
@@ -176,6 +176,33 @@ features.
 | close, done, undo, retry | 閉じる, 完了, 元に戻す, 再試行 |
 | sign in, sign out | サインイン, サインアウト |
 | search, filter, sort | 検索, フィルター, 並べ替え |
+
+### Terms settled during translation
+
+These recurred across slices and were made consistent after the merge.
+
+| English | Japanese |
+| --- | --- |
+| finding (safety review, gear condition) | 所見 |
+| liveaboard | クルーズ船 (dive type: クルーズ) |
+| no-fly | 飛行機搭乗禁止 |
+| working pressure | 使用圧力 |
+| tissue compartment, leading compartment | 組織コンパートメント, 支配コンパートメント |
+| M-value | M値 |
+| isobaric counterdiffusion | 等圧逆拡散 |
+| turn pressure, rock bottom, minimum gas | ターンプレッシャー, ロックボトム, ミニマムガス |
+| contingency | コンティンジェンシー |
+| transmitter | トランスミッター |
+| near-miss | ヒヤリハット |
+| surface conditions | 海況 |
+| wreck | 沈船 |
+| fill station | 充填所 |
+| seascape (3D view) | 海中景観 |
+| draft dive | 下書き |
+| recovery code, passphrase | リカバリーコード, パスフレーズ |
+| sync conflict | 競合 |
+| rule, query | ルール, クエリ |
+| type-to-confirm words | translated, like other locales: 削除, 置き換え, 削除 {name} |
 
 ## Left to the builder
 
