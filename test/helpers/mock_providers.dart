@@ -42,6 +42,8 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
@@ -1040,6 +1042,14 @@ Future<List<Override>> getBaseOverrides({
     // Nor the Bluetooth radio the nearby link runs (issue #3731).
     nearbyLinkManagerProvider.overrideWithValue(
       nearbyLinkManager ?? FakeNearbyLinkManager(),
+    ),
+    // The app root starts the manifest subscription poller; a widget test
+    // must not reach a feed, the keychain or the database through it.
+    subscriptionPollerSchedulerProvider.overrideWithValue(
+      SubscriptionPollerScheduler.forTest(
+        pollAllDue: (_) async => 0,
+        activePollIntervals: () async => const [],
+      ),
     ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // Settings > Data health (#3390, #3394) reads live sync, backup, library

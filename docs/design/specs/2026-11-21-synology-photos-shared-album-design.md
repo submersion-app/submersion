@@ -215,6 +215,14 @@ The URL tab's manifest mode is the entry point; nothing new in navigation.
   page asks for one suggestion per row and rebuilds as each arrives; with
   several hundred rows that froze the app for minutes in the prototype test,
   and nobody wants to tick hundreds of rows by hand.
+- Automatic polling: the `SubscriptionPollerScheduler` existed but nothing
+  started it, so subscriptions were polled only by Poll now. The app root
+  now starts it after the first frame: one cycle 30 seconds after launch,
+  then a cadence of a quarter of the shortest interval, at most an hour,
+  each cycle polling only the subscriptions that are due. It runs while the
+  app runs; there is no background fetch when it is closed. The edit dialog
+  sets the interval, and moving it moves the next poll with it. Widget tests
+  get a scheduler that polls nothing (`getBaseOverrides`).
 - Poll now on a share's subscription (Settings, network sources) that fails
   for want of a password, none saved or the saved one refused
   (`synologyNeedsPassword`), opens a password dialog, saves the password for

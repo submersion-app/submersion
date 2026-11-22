@@ -93,8 +93,22 @@ class SubscriptionPollerScheduler {
     if (_warmupTimer != null) return;
     _warmupTimer = Timer(warmup, () async {
       _warmupTimer = null;
-      await pollNow();
-      await _scheduleNext();
+      // Nobody awaits a timer callback, so a failure here would surface as
+      // an unhandled error and leave the periodic cycle unscheduled.
+      try {
+        await pollNow();
+      } catch (e, st) {
+        _log.error('Launch poll cycle failed', error: e, stackTrace: st);
+      }
+      try {
+        await _scheduleNext();
+      } catch (e, st) {
+        _log.error(
+          'Scheduling the poll cycle failed',
+          error: e,
+          stackTrace: st,
+        );
+      }
     });
   }
 

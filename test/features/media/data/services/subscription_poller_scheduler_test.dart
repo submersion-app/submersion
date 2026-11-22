@@ -97,4 +97,28 @@ void main() {
       expect(calls, 0);
     });
   });
+
+  test('a failing launch poll still schedules the next cycle', () {
+    fakeAsync((async) {
+      var calls = 0;
+      final scheduler = SubscriptionPollerScheduler.forTest(
+        pollAllDue: (now) async {
+          calls++;
+          if (calls == 1) throw StateError('feed down');
+          return 0;
+        },
+        // A 2-minute interval gives a 30 s cadence.
+        activePollIntervals: () async => const [120],
+      );
+
+      scheduler.startAfterWarmup();
+      async.elapse(const Duration(seconds: 31));
+      expect(calls, 1);
+
+      // The failure was caught and the periodic cycle armed anyway.
+      async.elapse(const Duration(seconds: 31));
+      expect(calls, 2);
+      scheduler.dispose();
+    });
+  });
 }

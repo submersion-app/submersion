@@ -49,6 +49,7 @@ import 'package:submersion/features/cylinder_passports/presentation/services/rec
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
@@ -236,9 +237,19 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       DerivedMetricsScheduler.instance.scheduleStaleSweep();
       ChangeLogSettleScheduler.instance.start();
       _pruneChangeLog();
+      _startSubscriptionPolling();
       unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
       unawaited(_runHealthImport());
     });
+  }
+
+  /// Polls manifest subscriptions (photo feeds, shared albums) on their own:
+  /// once 30 seconds after launch, then at a cadence derived from their
+  /// intervals, each one only when it is due. Without this a subscription
+  /// was only ever polled by Poll now. The scheduler is kept for the
+  /// session; its provider cancels the timers when the scope goes.
+  void _startSubscriptionPolling() {
+    unawaited(ref.read(subscriptionPollerSchedulerProvider).startAfterWarmup());
   }
 
   /// Apple Watch dives imported without the wizard (issue #637).
