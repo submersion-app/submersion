@@ -168,6 +168,10 @@ Made by Eric, in the order they were made:
    compressed level, which drops the full-quality cloud copy. Other
    re-uploads stay one tap, and Re-upload stays outside the photo lock. Over
    leaving it as is.
+5. The species page's Add photos picker, which carries no hold scope, shows
+   its Gallery tab only, with the same hint as decision 2. Made after review
+   found that its Files, URL and Manifest tabs write past the species'
+   sitting.
 
 ## Design: the library's bulk mode
 
@@ -253,9 +257,9 @@ sitting can hold.
   a feed of photos is imported from Media, Import (decision 2). The Files and
   Gallery tabs already hold.
 - **A species sitting** (Add photos, no hold scope): the picker shows the
-  Gallery tab only, with the same hint. Files and URL rows would land on
-  dives, not on the species, and only the Gallery choice is handed back to
-  the sitting today, so nothing the species page can use is lost.
+  Gallery tab only, with the same hint (decision 5). Files and URL rows would
+  land on dives, not on the species, and only the Gallery choice is handed
+  back to the sitting today, so nothing the species page can use is lost.
 - Outside a sitting (Media, Import), every tab and Manifest mode are
   unchanged.
 
@@ -354,8 +358,6 @@ Eric has not explicitly confirmed these. Correct any of them:
 - The leaks (site Set category, Manifest in a sitting's picker, the species
   picker's Files and URL tabs) are fixed in this phase, as breaches of rules
   already decided.
-- The species page's picker shows the Gallery tab only, extending decision 2
-  to the one sitting picker with no hold scope.
 - Scan now's auto-applied relinks file as automatic, like the daily pass.
 - The two unreached immediate paths are removed rather than left for a
   future caller to find.
