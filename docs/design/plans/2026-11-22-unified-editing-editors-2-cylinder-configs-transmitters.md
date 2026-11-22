@@ -909,3 +909,52 @@ attached through the project's highest-numbered secret gist
 (`PR screenshots: submersion-app/submersion (N)`, pngquant first,
 `<pr>-<nn>-<screen>-<state>.png`, raw URLs pinned to the gist commit). Bind
 the PR and report its checks.
+
+## After the build
+
+Built natively on 2026-11-22 (commits 7f7dfcb to the PR head). What changed
+from this plan, for plan 3 to build on:
+
+- **The menu lives in its own file.** `RecordEditorOperation` and the bar's
+  `RecordEditorMenu` are in `record_editor_menu.dart`; the host re-exports
+  `RecordEditorOperation`, so an editor imports only the host.
+- **An editor leaves only once its route has come in.** A record found
+  missing while its page was still being pushed popped mid-push, and on a
+  route with `onExit` that trips a Navigator assertion. The host's `_pop`
+  now waits for the route's push animation, then a frame. This was latent
+  in plan 1's tank and weight editors too.
+- **The host's fake editor is shared.** `EditorProbe` and `FakeEditorPage`
+  are in `test/shared/widgets/record_editing/record_editor_host_harness.dart`;
+  each test file keeps its own pump.
+- **Widget tests read sittings by label.** `ChangeLogRepository().settleAll()`
+  hangs inside `testWidgets`' fake time, so the tests select
+  `change_log_operations` rows whose label starts `record_edit:`. A sitting
+  that rolled back leaves an empty operation row until the log settles, so
+  "nothing written" means no events under it, not no row.
+- **The transmitter page is split** to stay under 800 lines:
+  `transmitter_key_draft.dart` (the draft, `blankTransmitterKeyDraft`,
+  `transmitterKeyToSave`, `transmitterDraftNamesKey`),
+  `transmitter_key_after_save.dart` (`afterTransmitterKeySaved`: fold,
+  findings refresh, serial copy, each read from `ref` before the page goes),
+  `transmitter_key_saved.dart` and `transmitter_edit_routes.dart`.
+- **The two key routes are siblings now** (`transmitter` and
+  `transmitter/:transmitterId`), not parent and child: going to a key's
+  address built the new-key editor beneath it, with a seeded sitting of its
+  own. go_router's `push` builds only the leaf, `go` the whole chain.
+- **A configuration's cylinders merge onto storage at Save.** A cylinder the
+  diver left alone follows storage (kept, or gone when removed elsewhere), a
+  cylinder they changed or added is written as the form has it, and one
+  added elsewhere meanwhile stays. A configuration that fails to load logs
+  why.
+- **The card shows "Saved" through a messenger it holds before the push**,
+  so the message survives the card being rebuilt; the Apply offer goes with
+  the card that opened the editor.
+- **The snackbar's Apply on a locked item page runs at once**, with its
+  counts and confirmation, as the note reads; the card's own Apply button
+  stays disabled while locked, as phase 3 left it.
+- **A snackbar action is tapped, not called, in tests:** calling
+  `onPressed()` leaves the snackbar up, and the next one queues behind it.
+- **Review (code-review, high, all findings):** five findings, four fixed
+  test-first (the cylinder merge, the sibling routes, the load log, the
+  "Saved" message); a new key with no resolved diver refusing Save stays,
+  as the rule every phase 4 editor follows.
