@@ -162,6 +162,31 @@ void main() {
       expect(await preview('src-2'), isEmpty);
     });
 
+    test('an empty parse would replace nothing', () async {
+      final empty = await service.previewHandSetChanges(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: pigeon.ParsedDive(
+          fingerprint: 'fp',
+          dateTimeYear: 0,
+          dateTimeMonth: 0,
+          dateTimeDay: 0,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 0,
+          avgDepthMeters: 0,
+          durationSeconds: 0,
+          samples: const [],
+          tanks: const [],
+          gasMixes: const [],
+          events: const [],
+        ),
+        descriptorVendor: 'Mares',
+      );
+      expect(empty, isEmpty);
+    });
+
     test('a dive with nothing marked would lose nothing', () async {
       await db.customStatement('UPDATE dives SET hand_set_fields = NULL');
       expect(await preview('src-1'), isEmpty);

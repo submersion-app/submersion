@@ -230,6 +230,47 @@ void main() {
       },
     );
 
+    test('every marked field keeps all of its columns', () async {
+      final stored = await insertDive(
+        handSetFields: HandSetMarks.encode({
+          for (final field in HandSetField.values) field.name,
+        }),
+      );
+      final guarded = keepHandSetFields(
+        const DivesCompanion(
+          maxDepth: Value(1),
+          avgDepth: Value(1),
+          runtime: Value(1),
+          entryTime: Value(1),
+          diveDateTime: Value(1),
+          exitTime: Value(1),
+          bottomTime: Value(1),
+          waterTemp: Value(1),
+          diveMode: Value('ccr'),
+          gradientFactorLow: Value(1),
+          gradientFactorHigh: Value(1),
+          decoAlgorithm: Value('vpm'),
+          decoConservatism: Value(1),
+          diluentO2: Value(1),
+          diluentHe: Value(1),
+          updatedAt: Value(5),
+        ),
+        stored,
+      );
+      expect(guarded.companion, const DivesCompanion(updatedAt: Value(5)));
+    });
+
+    test('a kept start with no runtime leaves the parse\'s exit', () async {
+      await insertDive(handSetFields: '["entryTime"]');
+      await db.customStatement('UPDATE dives SET runtime = NULL');
+      final row = await db.select(db.dives).getSingle();
+      final guarded = keepHandSetFields(
+        const DivesCompanion(exitTime: Value(42)),
+        row,
+      );
+      expect(guarded.companion.exitTime, const Value(42));
+    });
+
     test('replace takes the parse and clears only that mark', () async {
       final stored = await insertDive(
         handSetFields: '["bottomTime","heartRate","waterTemp"]',

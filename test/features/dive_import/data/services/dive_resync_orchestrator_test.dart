@@ -294,6 +294,16 @@ void main() {
       expect(await orchestrator.previewHandSetChanges('dive-1'), isEmpty);
     });
 
+    test(
+      'the preview of a dive no source claims as primary is empty',
+      () async {
+        final orchestrator = await markedDive();
+        await db.customStatement('UPDATE dive_data_sources SET is_primary = 0');
+
+        expect(await orchestrator.previewHandSetChanges('dive-1'), isEmpty);
+      },
+    );
+
     test('the preview lists them and writes nothing', () async {
       final orchestrator = await markedDive();
 

@@ -75,8 +75,20 @@ void main() {
     );
   });
 
+  test('the exit reads as a time of day', () {
+    final instant = DateTime.utc(2026, 3, 1, 10, 15);
+    expect(
+      text(HandSetField.exitTime, instant.millisecondsSinceEpoch),
+      metric.formatTime(instant),
+    );
+  });
+
   test('mode, gradient factors and diluent read as on the dive page', () {
     expect(text(HandSetField.diveMode, 'ccr'), 'Closed Circuit Rebreather');
+    expect(text(HandSetField.diveMode, 'oc'), 'Open Circuit');
+    expect(text(HandSetField.diveMode, 'scr'), 'Semi-Closed Rebreather');
+    expect(text(HandSetField.diveMode, 'gauge'), 'Gauge');
+    expect(text(HandSetField.decoConservatism, 2), '2');
     expect(text(HandSetField.gradientFactorLow, 30), '30%');
     expect(text(HandSetField.diluent, (10.0, 50.0)), 'Tx 10/50');
   });
@@ -90,5 +102,54 @@ void main() {
     for (final field in HandSetField.values) {
       expect(handSetFieldLabel(field, l10n), isNotEmpty);
     }
+  });
+
+  testWidgets('a value switched to Replace and back is kept', (tester) async {
+    Set<HandSetField>? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async => result = await showHandSetReviewDialog(
+              context,
+              changes: const [
+                HandSetChange(
+                  field: HandSetField.waterTemp,
+                  storedValue: 26.0,
+                  parsedValue: 22.0,
+                ),
+                HandSetChange(
+                  field: HandSetField.bottomTime,
+                  storedValue: 2400,
+                  parsedValue: 2280,
+                ),
+              ],
+              source: HandSetReviewSource.file,
+              units: metric,
+            ),
+            child: const Text('Open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Resync this dive?'), findsOneWidget);
+
+    Finder choice(HandSetField field, String label) => find.descendant(
+      of: find.byKey(ValueKey('handSetChoice_${field.name}')),
+      matching: find.text(label),
+    );
+    await tester.tap(choice(HandSetField.waterTemp, 'Replace'));
+    await tester.tap(choice(HandSetField.bottomTime, 'Replace'));
+    await tester.pump();
+    await tester.tap(choice(HandSetField.waterTemp, 'Keep'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Resync'));
+    await tester.pumpAndSettle();
+
+    expect(result, {HandSetField.bottomTime});
   });
 }
