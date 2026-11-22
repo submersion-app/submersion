@@ -60,8 +60,13 @@ Future<bool> isLoneDownload(AppDatabase db, DiveDataSourcesData source) async =>
       earliestOwnSample: await _earliestOwnSampleOf(db, source),
     );
 
-/// The first timestamp of any series [source] owns, or null when it owns
-/// none or a partial migration fixture lacks the columns.
+/// The first timestamp of the live series [source] owns, or of any it owns
+/// when none is live; null when it owns none or a partial migration fixture
+/// lacks the columns.
+///
+/// The live samples are what a re-parse replaces, so they decide: a demoted
+/// generation on the row's own clock says nothing about a live one that is
+/// not.
 ///
 /// Ownership as `ProfileSeriesRepository` reads it: the series names the
 /// row, or, written before v154, names no source and the row's computer.
@@ -76,6 +81,7 @@ Future<int?> _earliestOwnSampleOf(
     'dive_id',
     'source_id',
     'computer_id',
+    'is_primary',
     'start_timestamp',
   })) {
     return null;
@@ -86,7 +92,8 @@ Future<int?> _earliestOwnSampleOf(
       : ' OR (dive_id = ? AND source_id IS NULL AND computer_id = ?)';
   final row = await db
       .customSelect(
-        'SELECT MIN(start_timestamp) AS start FROM dive_profile_series '
+        'SELECT MIN(CASE WHEN is_primary THEN start_timestamp END) AS live, '
+        'MIN(start_timestamp) AS earliest FROM dive_profile_series '
         'WHERE source_id = ?$byComputer',
         variables: [
           Variable<String>(source.id),
@@ -97,7 +104,7 @@ Future<int?> _earliestOwnSampleOf(
         ],
       )
       .getSingle();
-  return row.read<int?>('start');
+  return row.read<int?>('live') ?? row.read<int?>('earliest');
 }
 
 /// The dive's `runtime`, or null when it has none or the column is missing
@@ -122,8 +129,9 @@ Future<int?> _diveRuntimeOf(AppDatabase db, String diveId) async {
 /// made it primary again. The dive kept the coarser profile the v182 pack
 /// had written while the source's raw data could not replace it.
 ///
-/// A dive qualifies when it has exactly one source row, not primary, its
-/// runtime fits that row's own recording and the row's samples sit on its own
+/// A dive qualifies when it has exactly one source row, not primary or still
+/// slotted ("Set as primary" sets the flag and leaves the slot, which kept
+/// the refusal), its runtime fits that row's own recording and the row's samples sit on its own
 /// clock ([loneDownloadSpansDive]). Besides a lone download, that takes in
 /// the dive an Uncombine keeps when its first stretch was that row: an
 /// Uncombine leaves the kept row's flag and slot as the Combine wrote them,
@@ -183,7 +191,9 @@ Future<int> _repairDives(AppDatabase db, List<String>? ids) async {
         'SELECT dive_id FROM dive_data_sources $scoped '
         'GROUP BY dive_id '
         'HAVING COUNT(*) = 1 '
-        '   AND SUM(CASE WHEN is_primary THEN 1 ELSE 0 END) = 0',
+        '   AND (SUM(CASE WHEN is_primary THEN 1 ELSE 0 END) = 0 '
+        '        OR SUM(CASE WHEN merge_source_slot IS NULL '
+        '                    THEN 0 ELSE 1 END) > 0)',
         variables: [
           if (ids != null)
             for (final id in ids) Variable<String>(id),

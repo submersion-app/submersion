@@ -73,6 +73,7 @@ void main() {
     String diveId,
     String? sourceId, {
     String? computerId,
+    bool isPrimary = true,
     required int start,
     required int end,
   }) => db
@@ -83,6 +84,7 @@ void main() {
           diveId: diveId,
           sourceId: Value(sourceId),
           computerId: Value(computerId),
+          isPrimary: Value(isPrimary),
           sampleCount: 2,
           startTimestamp: start,
           endTimestamp: end,
@@ -349,6 +351,74 @@ void main() {
       await insertSeries(db, 'hand', 'lone', null, start: 0, end: 1800);
 
       expect(await repairLoneDownloadSources(db), 0);
+    });
+
+    test('the live samples decide, not a demoted generation', () async {
+      // History on its own clock beneath a live profile that is not.
+      await insertDive(db, 'kept', runtime: 3000);
+      await insertSource(
+        db,
+        'download',
+        'kept',
+        mergeSourceSlot: 0,
+        duration: 3000,
+      );
+      await insertSeries(
+        db,
+        'old',
+        'kept',
+        'download',
+        isPrimary: false,
+        start: 0,
+        end: 3000,
+      );
+      await insertSeries(
+        db,
+        'live',
+        'kept',
+        'download',
+        start: 2400,
+        end: 5400,
+      );
+
+      expect(await repairLoneDownloadSources(db), 0);
+    });
+
+    test('a lone download already made primary loses its slot', () async {
+      // "Set as primary" sets the flag and leaves the slot, which still
+      // refused the re-parse.
+      await insertDive(db, 'lone', runtime: 3000);
+      await insertSource(
+        db,
+        'download',
+        'lone',
+        isPrimary: true,
+        mergeSourceSlot: 0,
+        duration: 3000,
+      );
+
+      expect(await repairLoneDownloadSources(db), 1);
+
+      final rows = await rowsOf(db, 'lone');
+      expect(rows.single.isPrimary, isTrue);
+      expect(rows.single.mergeSourceSlot, isNull);
+      expect(sourceOwnsProfileStrand(rows.single, rows), isTrue);
+    });
+
+    test('a combined dive whose carried row was made primary keeps its '
+        'slot', () async {
+      await insertDive(db, 'combined', runtime: 5400);
+      await insertSource(
+        db,
+        'carried',
+        'combined',
+        isPrimary: true,
+        mergeSourceSlot: 0,
+        duration: 3000,
+      );
+
+      expect(await repairLoneDownloadSources(db), 0);
+      expect((await rowOf(db, 'carried')).mergeSourceSlot, 0);
     });
 
     test('a dive it cannot measure is left alone', () async {
