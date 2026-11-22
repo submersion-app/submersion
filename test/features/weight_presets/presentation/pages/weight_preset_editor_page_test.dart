@@ -64,6 +64,17 @@ class _RecordingRepo extends WeightPresetRepository {
     return _preset('new', displayName);
   }
 
+  final renamed = <({String id, String name})>[];
+
+  @override
+  Future<void> renamePreset({
+    required String id,
+    required String displayName,
+    String? notes,
+  }) async {
+    renamed.add((id: id, name: displayName));
+  }
+
   @override
   Future<void> updatePreset({
     required String id,
@@ -123,8 +134,8 @@ WeightPreset _preset(
 }
 
 /// A row's amount field (its label is the weight unit).
-Finder _amountField() => find.byWidgetPredicate(
-  (w) => w is TextField && w.decoration?.labelText == 'kg',
+Finder _amountField({String unit = 'kg'}) => find.byWidgetPredicate(
+  (w) => w is TextField && w.decoration?.labelText == unit,
 );
 
 /// A row's optional name field (issue #956).
@@ -268,6 +279,7 @@ void main() {
     expect(find.widgetWithText(TextFormField, 'Drysuit'), findsOneWidget);
 
     await tester.enterText(find.byType(TextFormField).first, 'Drysuit + argon');
+    await tester.enterText(_amountField().first, '7');
     await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
@@ -275,8 +287,37 @@ void main() {
     expect(repo.updated, hasLength(1));
     expect(repo.updated.single.id, 'p1');
     expect(repo.updated.single.name, 'Drysuit + argon');
-    expect(repo.updated.single.entries, hasLength(1));
+    expect(repo.updated.single.entries.single.amountKg, closeTo(7.0, 1e-6));
     expect(repo.created, isEmpty);
+  });
+
+  testWidgets('edit: a rename alone leaves the stored weights untouched', (
+    tester,
+  ) async {
+    repo.loadReturns = _preset('p1', 'Drysuit');
+    await pump(tester, presetId: 'p1');
+    await tester.enterText(find.byType(TextFormField).first, 'Drysuit cold');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(repo.renamed, [(id: 'p1', name: 'Drysuit cold')]);
+    expect(repo.updated, isEmpty);
+  });
+
+  testWidgets('edit: changing a weight keeps a name synced meanwhile', (
+    tester,
+  ) async {
+    repo.loadReturns = _preset('p1', 'Drysuit');
+    await pump(tester, presetId: 'p1');
+    repo.loadReturns = _preset('p1', 'Drysuit, from the phone');
+    await tester.enterText(_amountField().first, '5');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(repo.updated.single.name, 'Drysuit, from the phone');
+    expect(repo.updated.single.entries.single.amountKg, closeTo(5.0, 1e-6));
   });
 
   testWidgets('edit: a preset that no longer exists shows an error and pops', (
@@ -302,34 +343,44 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.updated, isEmpty);
+    expect(repo.renamed, isEmpty);
     expect(find.text('This weighting rig no longer exists.'), findsOneWidget);
     expect(find.byType(WeightPresetEditorPage), findsOneWidget);
   });
 
-  testWidgets('edit: renaming a preset in pounds keeps its stored weights', (
-    tester,
-  ) async {
-    repo.loadReturns = _preset(
-      'p1',
-      'Drysuit',
-      entries: const [
-        WeightPresetEntry(
-          id: 'p1-e0',
-          presetId: 'p1',
-          weightType: WeightType.belt,
-          amountKg: 1.0,
-        ),
-      ],
-    );
-    await pump(tester, presetId: 'p1', pounds: true);
-    expect(find.widgetWithText(TextFormField, '2.205'), findsOneWidget);
-    await tester.enterText(find.byType(TextFormField).first, 'Drysuit 2');
-    await tester.pump();
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'edit: in pounds a weight left alone keeps its stored kilograms',
+    (tester) async {
+      repo.loadReturns = _preset(
+        'p1',
+        'Drysuit',
+        entries: const [
+          WeightPresetEntry(
+            id: 'p1-e0',
+            presetId: 'p1',
+            weightType: WeightType.belt,
+            amountKg: 1.0,
+          ),
+          WeightPresetEntry(
+            id: 'p1-e1',
+            presetId: 'p1',
+            weightType: WeightType.trimWeights,
+            amountKg: 2.0,
+          ),
+        ],
+      );
+      await pump(tester, presetId: 'p1', pounds: true);
+      expect(find.widgetWithText(TextFormField, '2.205'), findsOneWidget);
+      await tester.enterText(_amountField(unit: 'lbs').last, '10');
+      await tester.pump();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
 
-    expect(repo.updated.single.entries.single.amountKg, 1.0);
-  });
+      final saved = repo.updated.single.entries;
+      expect(saved.first.amountKg, 1.0);
+      expect(saved.last.amountKg, closeTo(10 / 2.20462, 1e-3));
+    },
+  );
 
   testWidgets('edit: a preset that fails to load says so and leaves', (
     tester,
@@ -375,11 +426,9 @@ void main() {
       await pump(tester, presetId: 'p1');
 
       expect(find.widgetWithText(TextFormField, 'Top pocket'), findsOneWidget);
-      // Save is offered once something changed: rename the preset.
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Sidemount'),
-        'Sidemount, cave',
-      );
+      // Save is offered once something changed: change the weight, so the
+      // rows are written and the name must go with them.
+      await tester.enterText(_amountField().first, '3');
       await tester.pumpAndSettle();
       await tester.pump();
       await tester.tap(find.text('Save'));

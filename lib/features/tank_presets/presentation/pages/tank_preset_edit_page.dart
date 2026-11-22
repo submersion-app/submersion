@@ -443,8 +443,13 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         ? (volumeDisplay * 28.3168) / workingPressureBar
         : volumeDisplay;
 
-    if (stored != null && start != null) {
-      final nameChanged = nameText != start.name;
+    // A stored preset is always updated, never created again: with no
+    // start draft to compare with, every field counts as changed.
+    if (stored != null) {
+      final nameChanged = start == null || nameText != start.name;
+      final materialChanged = start == null || material != start.material;
+      final descriptionChanged =
+          start == null || descriptionText != start.description;
       await repository.updatePreset(
         stored.copyWith(
           name: nameChanged
@@ -453,10 +458,8 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
           displayName: nameChanged ? displayName : stored.displayName,
           volumeLiters: volumeLiters,
           workingPressureBar: workingPressureBar,
-          material: material != start.material ? material : stored.material,
-          description: descriptionText != start.description
-              ? description
-              : stored.description,
+          material: materialChanged ? material : stored.material,
+          description: descriptionChanged ? description : stored.description,
           updatedAt: DateTime.now(),
         ),
       );

@@ -251,17 +251,29 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
     final repo = ref.read(weightPresetRepositoryProvider);
     final name = _nameController.text.trim();
     final entries = _entries();
+    final start = editorStartDraft;
+    final draft = readEditorDraft();
     if (widget.isEditing) {
+      final stored = await repo.getPresetById(recordId);
       // Deleted elsewhere while it was edited (a sync from another device):
       // its weights would have no preset to belong to.
-      if (await repo.getPresetById(recordId) == null) {
+      if (stored == null) {
         throw RecordSittingRefusal(
           (l10n) => l10n.weightPresets_editor_notFound,
         );
       }
+      // Only what the diver changed is written, on top of the preset as
+      // stored now: a weight or a name synced in meanwhile is not written
+      // back over by the copy the page loaded.
+      final nameChanged = start == null || draft.name != start.name;
+      final rowsChanged = start == null || !listEquals(draft.rows, start.rows);
+      if (!rowsChanged) {
+        await repo.renamePreset(id: recordId, displayName: name);
+        return;
+      }
       await repo.updatePreset(
         id: recordId,
-        displayName: name,
+        displayName: nameChanged ? name : stored.displayName,
         entries: entries,
       );
       return;
