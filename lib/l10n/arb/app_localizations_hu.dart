@@ -59031,6 +59031,38 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String navTrack_match_confirmTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count víz alatti nyomvonal társítása?',
+      one: '$count víz alatti nyomvonal társítása?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_match_confirmBody =>
+      'Ezek a nyomvonalak időben pontosan egy merüléssel fedik egymást.';
+
+  @override
+  String get navTrack_match_confirmLink => 'Társítás';
+
+  @override
+  String get navTrack_match_notNow => 'Most nem';
+
+  @override
+  String navTrack_match_linkedResult(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count víz alatti nyomvonal társítva',
+      one: '$count víz alatti nyomvonal társítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get navTrack_seascape_trackTitle => 'Nyomvonal tengeri tája';
 
   @override

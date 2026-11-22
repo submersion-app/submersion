@@ -59222,6 +59222,38 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String navTrack_match_confirmTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Unterwasser-Tracks verknüpfen?',
+      one: '$count Unterwasser-Track verknüpfen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_match_confirmBody =>
+      'Jeder dieser Tracks überschneidet sich zeitlich mit genau einem Tauchgang.';
+
+  @override
+  String get navTrack_match_confirmLink => 'Verknüpfen';
+
+  @override
+  String get navTrack_match_notNow => 'Nicht jetzt';
+
+  @override
+  String navTrack_match_linkedResult(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Unterwasser-Tracks verknüpft',
+      one: '$count Unterwasser-Track verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get navTrack_seascape_trackTitle => 'Track-Unterwasserwelt';
 
   @override

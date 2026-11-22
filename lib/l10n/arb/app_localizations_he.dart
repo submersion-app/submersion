@@ -58095,6 +58095,40 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String navTrack_match_confirmTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לקשר $count מסלולים תת-ימיים?',
+      two: 'לקשר שני מסלולים תת-ימיים?',
+      one: 'לקשר מסלול תת-ימי אחד?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_match_confirmBody =>
+      'כל אחד מהמסלולים האלה חופף בזמן לצלילה אחת בדיוק.';
+
+  @override
+  String get navTrack_match_confirmLink => 'קישור';
+
+  @override
+  String get navTrack_match_notNow => 'לא עכשיו';
+
+  @override
+  String navTrack_match_linkedResult(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מסלולים תת-ימיים קושרו',
+      two: 'שני מסלולים תת-ימיים קושרו',
+      one: 'מסלול תת-ימי אחד קושר',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get navTrack_seascape_trackTitle => 'נוף תת-ימי של המסלול';
 
   @override

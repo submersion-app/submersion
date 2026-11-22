@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 
 int _sec(int y, int m, int d, int h, int min, [int s = 0]) =>
@@ -12,6 +13,18 @@ Dive _dive(String id, DateTime entry, {DateTime? exit, Duration? runtime}) =>
       entryTime: entry,
       exitTime: exit,
       runtime: runtime,
+    );
+
+NavTrack _route(String id, DateTime start, DateTime end, {String? diveId}) =>
+    NavTrack(
+      id: id,
+      diveId: diveId,
+      source: NavTrackSource.seacraftEnc,
+      startTime: start.millisecondsSinceEpoch,
+      endTime: end.millisecondsSinceEpoch,
+      pointCount: 2,
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
     );
 
 void main() {
@@ -276,6 +289,71 @@ void main() {
         NavTrackMatcher.nearestByStart(
           routeStartSeconds: _sec(2026, 8, 22, 10, 0),
           dives: const [],
+        ),
+        isEmpty,
+      );
+    });
+  });
+
+  group('NavTrackMatcher.linkProposals (#4851)', () {
+    final morning = _dive(
+      'd1',
+      DateTime.utc(2026, 8, 22, 10, 0),
+      exit: DateTime.utc(2026, 8, 22, 11, 0),
+    );
+    final afternoon = _dive(
+      'd2',
+      DateTime.utc(2026, 8, 22, 14, 0),
+      exit: DateTime.utc(2026, 8, 22, 15, 0),
+    );
+
+    test('proposes each unlinked route\'s sole overlapping dive, in the '
+        'order the routes came', () {
+      final late = _route(
+        'r2',
+        DateTime.utc(2026, 8, 22, 14, 5),
+        DateTime.utc(2026, 8, 22, 14, 50),
+      );
+      final early = _route(
+        'r1',
+        DateTime.utc(2026, 8, 22, 10, 5),
+        DateTime.utc(2026, 8, 22, 10, 50),
+      );
+
+      final proposals = NavTrackMatcher.linkProposals(
+        routes: [late, early],
+        dives: [morning, afternoon],
+      );
+
+      expect(
+        [for (final p in proposals) (p.route.id, p.dive.id)],
+        [('r2', 'd2'), ('r1', 'd1')],
+      );
+    });
+
+    test('leaves out a route no dive overlaps, one several dives overlap, '
+        'and one already linked', () {
+      final unmatched = _route(
+        'r1',
+        DateTime.utc(2026, 8, 23, 10, 0),
+        DateTime.utc(2026, 8, 23, 11, 0),
+      );
+      final ambiguous = _route(
+        'r2',
+        DateTime.utc(2026, 8, 22, 10, 0),
+        DateTime.utc(2026, 8, 22, 15, 0),
+      );
+      final linked = _route(
+        'r3',
+        DateTime.utc(2026, 8, 22, 10, 5),
+        DateTime.utc(2026, 8, 22, 10, 50),
+        diveId: 'd9',
+      );
+
+      expect(
+        NavTrackMatcher.linkProposals(
+          routes: [unmatched, ambiguous, linked],
+          dives: [morning, afternoon],
         ),
         isEmpty,
       );

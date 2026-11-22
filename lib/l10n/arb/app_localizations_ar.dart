@@ -60181,6 +60181,44 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String navTrack_match_confirmTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ربط $count مسار تحت الماء؟',
+      many: 'ربط $count مسارًا تحت الماء؟',
+      few: 'ربط $count مسارات تحت الماء؟',
+      two: 'ربط مسارين تحت الماء؟',
+      one: 'ربط مسار تحت الماء واحد؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_match_confirmBody =>
+      'كل مسار من هذه المسارات يتداخل زمنيًا مع غطسة واحدة فقط.';
+
+  @override
+  String get navTrack_match_confirmLink => 'ربط';
+
+  @override
+  String get navTrack_match_notNow => 'ليس الآن';
+
+  @override
+  String navTrack_match_linkedResult(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم ربط $count مسار تحت الماء',
+      many: 'تم ربط $count مسارًا تحت الماء',
+      few: 'تم ربط $count مسارات تحت الماء',
+      two: 'تم ربط مسارين تحت الماء',
+      one: 'تم ربط مسار تحت الماء واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get navTrack_seascape_trackTitle => 'المشهد البحري للمسار';
 
   @override

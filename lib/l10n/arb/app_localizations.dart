@@ -92945,6 +92945,36 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} underwater track needs your choice} other{{count} underwater tracks need your choice}}'**
   String navTrack_list_pendingTrackChoice(num count);
 
+  /// Title of the dialog the Tracks page's Match opens to link unlinked underwater tracks to the one dive each overlaps in time
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Link {count} underwater track?} other{Link {count} underwater tracks?}}'**
+  String navTrack_match_confirmTitle(num count);
+
+  /// Body of the Match dialog: why these tracks are proposed
+  ///
+  /// In en, this message translates to:
+  /// **'Each of these tracks overlaps exactly one dive in time.'**
+  String get navTrack_match_confirmBody;
+
+  /// Match dialog button that links every listed underwater track to its dive
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get navTrack_match_confirmLink;
+
+  /// Match dialog button that closes it and links nothing
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get navTrack_match_notNow;
+
+  /// Snackbar after Match linked underwater tracks to their dives
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} underwater track linked} other{{count} underwater tracks linked}}'**
+  String navTrack_match_linkedResult(num count);
+
   /// No description provided for @navTrack_seascape_trackTitle.
   ///
   /// In en, this message translates to:
