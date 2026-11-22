@@ -32,7 +32,9 @@ class JustifiedSpanCell {
 /// that keeps both nearest [targetHeight]. Every item keeps its ratio.
 ///
 /// A large item with less than [targetHeight] of pane beside it at two rows'
-/// height fills the pane width on its own, up to three rows' height. If no
+/// height fills the pane width on its own, up to three rows' height, whether
+/// or not tiles are left: a column that narrow holds no useful tile, and this
+/// rule comes before the others. If no
 /// split of plenty of tiles keeps each at [minTileWidth], it stands alone at
 /// two rows and the tiles flow on under it. One with no tiles left keeps two
 /// rows' height and is not stretched, and tiles too few to fill both rows

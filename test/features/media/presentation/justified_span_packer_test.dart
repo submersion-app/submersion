@@ -140,6 +140,22 @@ void main() {
       );
     });
 
+    test('a lone tile wider than the space beside it scales into it', () {
+      // 500 px pane, a 3:2 large item: 130 px beside it, and a 3:1 tile that
+      // is 360 wide at the target height.
+      final cells = pack(const [1.5], const [3.0], paneWidth: 500);
+      final tile = cells[1].rect;
+      expect(tile.left, closeTo(cells.first.rect.right + gap, 1e-9));
+      expect(tile.right, closeTo(500, 1e-9));
+      expect(tile.width / tile.height, closeTo(3, 1e-9));
+    });
+
+    test('with no tiles and no room beside it a large item fills the pane, as '
+        'the room rule comes first', () {
+      final cells = pack(const [4 / 3], const [], paneWidth: 390);
+      expect(cells.single.rect, const Rect.fromLTWH(0, 0, 390, 292.5));
+    });
+
     test('each large item opens its own block, in order', () {
       final cells = pack(const [4 / 3, 1.5], mixed);
       final larges = cells.where((c) => c.isLarge).toList();
