@@ -16,6 +16,11 @@ enum MediaAnalysisState {
   /// (issue #4876): what it found shows, nothing more is offered.
   foundNoModel,
 
+  /// As [foundNoModel], but a video the other device scanned only part
+  /// way (issue #4926): what it found shows, nothing more is offered, and
+  /// it is not done.
+  partFoundNoModel,
+
   /// Never looked at.
   notAnalysed,
 
@@ -85,7 +90,8 @@ LabelsMenuModel labelsMenuModel({
     // included.
     MediaAnalysisState.partial ||
     MediaAnalysisState.analysed ||
-    MediaAnalysisState.foundNoModel => LabelsStatusLine.found,
+    MediaAnalysisState.foundNoModel ||
+    MediaAnalysisState.partFoundNoModel => LabelsStatusLine.found,
   };
   return (
     line: line,
@@ -94,8 +100,47 @@ LabelsMenuModel labelsMenuModel({
     action: action,
     actionEnabled:
         state != MediaAnalysisState.noModel &&
-        state != MediaAnalysisState.foundNoModel,
+        state != MediaAnalysisState.foundNoModel &&
+        state != MediaAnalysisState.partFoundNoModel,
   );
+}
+
+/// What the labels button shows of the item on screen at a glance (issue
+/// #4926), so the diver can tell which items still need analysing without
+/// opening the menu.
+enum LabelsButtonStatus {
+  /// Never looked at, or nothing here can look at it.
+  notAnalysed,
+
+  /// Queued or being analysed now.
+  analysing,
+
+  /// Looked at, but not as the installed model would leave it, or a video
+  /// another device scanned only part way.
+  partial,
+
+  /// Looked at; analysing it would find nothing to do. Results another
+  /// device found count too, where no model here can look again.
+  analysed,
+}
+
+/// The labels button's status for an item in [state] (null while it has
+/// not been read), [busy] while queued or being analysed.
+LabelsButtonStatus labelsButtonStatus({
+  required MediaAnalysisState? state,
+  required bool busy,
+}) {
+  if (busy) return LabelsButtonStatus.analysing;
+  return switch (state) {
+    null ||
+    MediaAnalysisState.noModel ||
+    MediaAnalysisState.notAnalysed => LabelsButtonStatus.notAnalysed,
+    MediaAnalysisState.partial ||
+    MediaAnalysisState.partFoundNoModel => LabelsButtonStatus.partial,
+    // Another device's results count: what it found is on the item.
+    MediaAnalysisState.analysed ||
+    MediaAnalysisState.foundNoModel => LabelsButtonStatus.analysed,
+  };
 }
 
 /// What the viewer says once an Analyse the diver asked for has finished,

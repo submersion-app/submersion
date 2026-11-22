@@ -85,4 +85,39 @@ void main() {
     expect(m.found, 4);
     expect(m.actionEnabled, isFalse);
   });
+
+  test('a video part scanned on another device, with no model here, says '
+      'what was found and offers nothing (issue #4926)', () {
+    final m = model(MediaAnalysisState.partFoundNoModel, found: 2);
+    expect(m.line, LabelsStatusLine.found);
+    expect(m.found, 2);
+    expect(m.actionEnabled, isFalse);
+  });
+
+  group('the labels button says how far analysis has got (issue #4926)', () {
+    for (final (state, status) in [
+      (null, LabelsButtonStatus.notAnalysed),
+      (MediaAnalysisState.noModel, LabelsButtonStatus.notAnalysed),
+      (MediaAnalysisState.notAnalysed, LabelsButtonStatus.notAnalysed),
+      (MediaAnalysisState.partial, LabelsButtonStatus.partial),
+      (MediaAnalysisState.analysed, LabelsButtonStatus.analysed),
+      // Another device's results are an analysis, even with no model here.
+      (MediaAnalysisState.foundNoModel, LabelsButtonStatus.analysed),
+      // A video another device scanned only part way is not done.
+      (MediaAnalysisState.partFoundNoModel, LabelsButtonStatus.partial),
+    ]) {
+      test('${state?.name ?? 'not read yet'} reads ${status.name}', () {
+        expect(labelsButtonStatus(state: state, busy: false), status);
+      });
+    }
+
+    test('being analysed outranks what is stored', () {
+      for (final state in [null, ...MediaAnalysisState.values]) {
+        expect(
+          labelsButtonStatus(state: state, busy: true),
+          LabelsButtonStatus.analysing,
+        );
+      }
+    });
+  });
 }
