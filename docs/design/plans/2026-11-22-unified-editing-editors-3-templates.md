@@ -71,6 +71,42 @@ each with its "After the build", before starting.
   sync). Screenshots come from headless widget tests.
 - Commit only on this branch; push and open the PR only with Eric's say-so.
 
+## Shared code this plan changes
+
+Plans 4 (rules and incidents) and 5 (diver profile and chamber form) are
+written and built at the same time as this one, in sibling worktrees. The
+host is used as plans 1 and 2 shipped it; this plan changes nothing in
+`record_editor_host.dart`, `record_editor_menu.dart`, the leave guard, the
+exit blocker or `record_sitting_writer.dart`.
+
+- **Added:** `lib/shared/widgets/record_editing/editor_row_merge.dart`
+  (`mergeEditorRows`, Task 1), a new file with one pure function. Nothing
+  else imports it until this plan merges; plans 4 and 5 may adopt it after.
+- **Edited, shared with other plans:** `lib/core/router/app_router.dart`
+  (`onExit` on four routes: `/checklist-templates/new`,
+  `/checklist-templates/:templateId/edit`, `/pre-dive-checklists/new`,
+  `/pre-dive-checklists/:templateId/edit`); the 11
+  `lib/l10n/arb/app_*.arb` files (two keys:
+  `checklists_template_edit_notFound`, `preDive_edit_notFound`) and the
+  files `flutter gen-l10n` writes from them
+  (`lib/l10n/arb/app_localizations.dart` and the 11
+  `app_localizations_*.dart`). A clash in any of these after another plan
+  merges is resolved by merging main in and keeping both sides, then
+  running `flutter gen-l10n` again.
+
+**Read-only views need no host support.** The host already draws a plain
+`AppBar` (the editor's title, the back arrow, no actions) for as long as
+`openEditor` has not run, and while unopened it holds no sitting:
+`RecordEditLeaveGuard` is not in the tree, the exit blocker's controller is
+locked and clean, the shortcut target answers `isCurrent` false (Escape and
+Cmd or Ctrl+S do nothing), and the diver listener locks nothing. A
+read-only view is therefore an editor that loads its record and never calls
+`openEditor`, with `editorTitle` returning its view title while
+`editorOpen` is false. The built-in pre-dive template does exactly this
+(Task 6), and its test pins each point. Plan 4's read-only rule can do the
+same with no shared change; if a later plan wants a named member for it, it
+is additive (`bool get editorReadOnly`), not part of this plan.
+
 ## Review Focus
 
 1. **A Save that fails partway writes nothing.** Today a template saves in
