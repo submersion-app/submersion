@@ -11,12 +11,12 @@ const _perItemAttrKeys = {
   EquipmentAttrKeys.installedDate,
 };
 
-/// The item the Clone form starts from (issue #3184): [source] with no id,
+/// The item a clone starts from (issue #3184): [source] with no id,
 /// owner or creation time (the save assigns them), the name from [copyName],
 /// no serial number, none of the frozen legacy service fields, and without
 /// the per-item attributes above, nor any system attribute: a passport id
 /// names one physical item, so a clone starts untagged (issue #2652).
-/// Everything else on the form is kept.
+/// Everything else is kept.
 ///
 /// Every attribute leaves the source's rows behind: saveAttributes upserts a
 /// custom field by its id, so a kept id would move the original's field onto

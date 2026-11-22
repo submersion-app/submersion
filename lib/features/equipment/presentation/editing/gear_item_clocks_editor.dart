@@ -266,7 +266,7 @@ class _ClockRow extends StatelessWidget {
 }
 
 /// The item's own reminder days, or none, over the diver's settings, as the
-/// form edits them (#2025: owned gear only, which is all that shows clocks).
+/// form edited them (#2025: owned gear only, which is all that shows clocks).
 class _CustomReminderEditor extends StatelessWidget {
   const _CustomReminderEditor({required this.session});
 

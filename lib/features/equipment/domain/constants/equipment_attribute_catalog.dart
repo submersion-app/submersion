@@ -45,13 +45,13 @@ enum AttributeGroup {
   purchase,
 
   /// How the item looks: its colour, which tints its artwork on the diver
-  /// figure (issue #2326). Rendered as its own block of the edit form and
+  /// figure (issue #2326). Rendered as its own block of the Details editor and
   /// as its own row on the detail page.
   appearance,
 
   /// Written by the app, never by a form: identifiers a feature owns, such
   /// as a cylinder's passport id (issue #2334). No form section renders this
-  /// group, and the detail page's spec rows skip it, but the edit page save
+  /// group, and the detail page's spec rows skip it, but an item's save
   /// keeps it because it is in the type's catalog.
   system,
 }
@@ -256,7 +256,7 @@ abstract final class EquipmentAttributeCatalog {
       group: AttributeGroup.appearance,
     ),
     // Every spot an item can be moved to on the figure (issue #4493). The
-    // edit form offers only the ones that draw that item differently
+    // Details editor offers only the ones that draw that item differently
     // (`pickableFigureZones`); the keys match `figurePositionKeys`.
     EquipmentAttributeDef(
       key: EquipmentAttrKeys.figurePosition,
@@ -1070,7 +1070,8 @@ double? parsePrimaryThickness(String text) {
   return double.parse(match.group(1)!);
 }
 
-/// Whether [text] is an acceptable thickness designation for the edit form:
+/// Whether [text] is an acceptable thickness designation for the Details
+/// editor:
 /// one or more numeric panels separated by `/`, `,` or `-`, each optionally
 /// suffixed with `mm`. Accepts the legacy values the v124 migration preserves
 /// verbatim (e.g. "6mm") and multi-panel forms ("5/4/3"); empty is valid

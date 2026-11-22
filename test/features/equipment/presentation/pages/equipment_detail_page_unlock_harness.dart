@@ -234,6 +234,7 @@ Future<NewGearItemHarness> pumpNewGearItemPage(
   NewGearItemRequest request = const NewGearItemRequest(),
   bool embedded = false,
   Size size = const Size(700, 1600),
+  List<Object> extraOverrides = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -287,6 +288,7 @@ Future<NewGearItemHarness> pumpNewGearItemPage(
             ref.watch(_storedProvider.notifier),
           ),
         ),
+        ...extraOverrides,
       ].cast(),
       child: MaterialApp.router(
         locale: const Locale('en'),

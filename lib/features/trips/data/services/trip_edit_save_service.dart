@@ -129,7 +129,7 @@ class TripEditSaveService {
         trip.endDate,
       );
     } catch (e, stackTrace) {
-      // Cleanup only, as the form's save treats it: the trip is saved.
+      // Cleanup only, as the form's save treated it: the trip is saved.
       _log.error(
         'Failed to drop plan-only itinerary days for trip: ${trip.id}',
         error: e,

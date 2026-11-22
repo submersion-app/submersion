@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/new_record_diver.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -76,7 +77,7 @@ typedef GearCloneSource = ({
 });
 
 /// A new gear item's starting record under [id]: the active diver's, a
-/// regulator, active, in the diver's default currency, as the form starts
+/// regulator, active, in the diver's default currency, as the form started
 /// one. A diver that cannot be read leaves none, for Save to take.
 Future<EquipmentItem> newGearItemSeed(
   RecordSeedRead read, {
@@ -95,6 +96,8 @@ Future<EquipmentItem> newGearItemSeed(
 /// Reads [itemId] for a clone named by [copyName], or null when the active
 /// diver can neither own nor share it. Only the diver's own tags and place
 /// come with it: cloning shared gear must not bring the owner's (#2046).
+/// Tags or a place that cannot be read are left behind, as the form left
+/// them: the clone still opens.
 Future<GearCloneSource?> readGearClone(
   RecordSeedRead read,
   String itemId, {
@@ -103,18 +106,37 @@ Future<GearCloneSource?> readGearClone(
   final source = await read(cloneSourceProvider(itemId).future);
   if (source == null) return null;
   final diverId = await read(validatedCurrentDiverIdProvider.future);
-  final tags = await read(tagsForEquipmentProvider(itemId).future);
-  final place = (await read(currentEquipmentLocationsProvider.future))[itemId];
-  final mine = await read(equipmentLocationsProvider.future);
+  final tags = await _readOrNull(
+    () => read(tagsForEquipmentProvider(itemId).future),
+    'tags',
+  );
+  final place = await _readOrNull(() async {
+    final places = await read(currentEquipmentLocationsProvider.future);
+    final mine = await read(equipmentLocationsProvider.future);
+    final place = places[itemId];
+    return place != null && mine.any((l) => l.id == place.id) ? place : null;
+  }, 'place');
   return (
     sourceId: itemId,
     copy: cloneFormSeed(source, copyName: copyName),
     ownTags: [
-      for (final t in tags)
+      for (final t in tags ?? const <Tag>[])
         if (isOwnOrUnowned(ownerId: t.diverId, activeDiverId: diverId)) t,
     ],
-    ownPlace: place != null && mine.any((l) => l.id == place.id) ? place : null,
+    ownPlace: place,
   );
+}
+
+/// [readValue]'s value, or null, logged, when it cannot be read.
+Future<T?> _readOrNull<T>(Future<T> Function() readValue, String what) async {
+  try {
+    return await readValue();
+  } catch (e, st) {
+    const LoggerService(
+      'readGearClone',
+    ).warning('A clone opened without its $what', error: e, stackTrace: st);
+    return null;
+  }
 }
 
 /// The cards a new gear item opens with: the header block, Details and

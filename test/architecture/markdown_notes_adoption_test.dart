@@ -64,12 +64,8 @@ void main() {
     // A gear item's Notes card edited in place (issue #4527).
     'lib/features/equipment/presentation/editing/gear_item_edit_cards.dart':
         'MarkdownNotesField(',
-    'lib/features/equipment/presentation/pages/equipment_edit_page.dart':
-        'MarkdownNotesField(',
     // An equipment set's description edited in place (issue #4527).
     'lib/features/equipment/presentation/editing/equipment_set_card_editors.dart':
-        'MarkdownNotesField(',
-    'lib/features/equipment/presentation/pages/equipment_set_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart':
         'MarkdownNotesField(',
@@ -84,8 +80,6 @@ void main() {
     'lib/features/shared_library/presentation/widgets/library_about_section.dart':
         'MarkdownNotesField(',
     'lib/features/site_scape/presentation/site_feature_sheet.dart':
-        'MarkdownNotesField(',
-    'lib/features/trips/presentation/pages/trip_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/trips/presentation/widgets/itinerary_day_edit_sheet.dart':
         'MarkdownNotesField(',

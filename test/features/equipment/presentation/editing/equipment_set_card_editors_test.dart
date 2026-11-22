@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_set_card_editors.dart';
@@ -12,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -53,6 +56,7 @@ void main() {
     EquipmentSet? start,
     List<EquipmentItem> gear = const [],
     List<EquipmentSet>? sets,
+    List<DiveSite> sites = const [],
   }) async {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1.0;
@@ -69,6 +73,7 @@ void main() {
           ),
           weightPresetsProvider.overrideWith((ref) async => const []),
           cylinderConfigsProvider.overrideWith((ref) async => const []),
+          sitesProvider.overrideWith((ref) async => sites),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -81,6 +86,52 @@ void main() {
     await tester.pumpAndSettle();
     return session;
   }
+
+  // The Geofences card adds a fence from a dive site, and a tap on a fence
+  // reopens it to change it in place; all of it held until Save.
+  testWidgets('a geofence added from a site, then changed, is held in '
+      'place', (tester) async {
+    final l = AppLocalizationsEn();
+    final session = await pumpEditor(
+      tester,
+      (s) => EquipmentSetGeofencesEditor(session: s),
+      sites: const [
+        DiveSite(
+          id: 'site-1',
+          name: 'Breakwater',
+          location: GeoPoint(36.62, -121.90),
+        ),
+      ],
+    );
+    final saveFence = find.widgetWithText(FilledButton, 'Save geofence');
+
+    await tester.tap(find.text(l.equipment_setEdit_addGeofence));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('From dive site'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Breakwater').last);
+    await tester.pumpAndSettle();
+    await tester.tap(saveFence);
+    await tester.pumpAndSettle();
+
+    final added = session.working.geofences.single;
+    expect(added.label, 'Breakwater');
+    expect(added.latitude, 36.62);
+    expect(added.setId, 's1');
+    expect(session.changedCardIds, {'geofences'});
+
+    await tester.tap(find.text('Breakwater'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(Slider), const Offset(60, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(saveFence);
+    await tester.pumpAndSettle();
+
+    final changed = session.working.geofences.single;
+    expect(changed.id, added.id);
+    expect(changed.radiusMeters, isNot(added.radiusMeters));
+    expect(changed.latitude, 36.62);
+  });
 
   testWidgets("each editor sets only its card's fields", (tester) async {
     final header = await pumpEditor(

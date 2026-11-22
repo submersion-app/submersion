@@ -35,7 +35,7 @@ Map<String, String?> figureAttributesOf(EquipmentItem item) =>
     figureAttributesFrom(item.attributes);
 
 /// [figureAttributesOf] for attribute rows not yet saved to an item, such
-/// as the edit form's values.
+/// as a sitting's held values.
 Map<String, String?> figureAttributesFrom(
   Iterable<EquipmentAttribute> attributes,
 ) => {

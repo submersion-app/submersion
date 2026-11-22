@@ -4,7 +4,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 /// The status to badge on a row for gear that has left the kit, or null for
 /// gear still in it.
 ///
-/// Starts from the edit form's reading (#636): a legacy row that only ever
+/// Starts from the status an item shows (#636): a legacy row that only ever
 /// had `isActive` flipped counts as Retired, but Sold, which is also
 /// inactive, keeps its own status rather than being folded into Retired.
 ///

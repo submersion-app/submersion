@@ -300,15 +300,15 @@ Counts are `test(`/`testWidgets(` matches. "Plan N" means that plan's table alre
 | `buddy_rankings_form_detail_test` (*mixed*; renamed `buddy_rankings_merge_detail_test`) | 7 | Its detail and merge cases stay; the other form cases to `buddy_detail_page_new_test` (a new buddy), `buddy_detail_page_unlock_test` (the Statistics switch, on and off) and `buddy_edit_save_service_test` (an exclusion kept) |
 | `dive_center_edit_page_fill_hours_test`, `_logo_test`, `_closed_test` | 8, 3, 2 | `dive_center_edit_fields_test` (`fillHoursProblem`), `dive_center_detail_page_unlock_test`, `dive_center_detail_page_new_test`, `dive_center_edit_save_service_test`, and `dive_center_header_card_editor_test` (logo and closed switch, added in Part B; it held only the rating stars before); create cases plan 11 |
 | `certification_edit_custom_entries_test`, `certification_photo_pick_test`, `_instructor_test`, `_name_field_test`, `_credentials_test`, `_agency_level_test`, `_page_staging_test`, `_hidden_tab_test`, `_embedded_header_test` | 6, 3, 6, 15, 5, 14, 2, 2, 1 | `certification_details_custom_entries_test` and `certification_details_levels_test` (the custom entries and agency level files, re-pointed at the Details editor), `certification_photo_pick_test` (rewritten), `certification_card_editors_test`, `certification_edit_fields_test`, `certification_edit_save_service_test`, `certification_unknown_id_test`, `instructor_card_editor_test`, `buddy_certification_dialog_test` (staging), `certification_detail_page_unlock_test`, `certification_detail_page_new_test`, `record_edit_leave_guard_test` (the hidden tab, PR #4829); create cases plan 11. Two cases are form only. Plan 3 left no table |
-| `equipment_edit_advanced_test`, `_price_locale_test`, `_colour_test`, `_tags_test`, `_type_order_test`, `_save_navigation_test`, `_hidden_by_view_test`, `_device_type_test`, `_service_section_test`, `_wanted_test`, `_parent_picker_test` | 8, 5, 4, 7, 1, 3, 6, 5, 2, 3, 7 | Plan 6's table (`gear_item_header_editor_test`, `gear_item_details_editor_test`, `gear_item_edit_fields_test`, `equipment_detail_page_unlock_test`); create cases plan 11 |
-| `equipment_edit_clone_test` | 18 | Plan 11 (`gear_item_new_sitting_test`, `equipment_detail_page_new_test`) |
-| `equipment_set_edit_page_test`, `_discard_test`, `_folds_test`, `_figure_test`, `_assembly_parts_test`, `_history_test` | 12, 7, 2, 11, 3, 6 | Plan 8's table (`equipment_set_members_editor_test`, `equipment_set_card_editors_test`, `equipment_set_detail_page_unlock_test`); create cases plan 11 |
-| `equipment_set_edit_clone_test` | 9 | Plan 11 (`equipment_set_detail_clone_test`, `equipment_set_detail_page_new_test`) |
+| `equipment_edit_advanced_test`, `_price_locale_test`, `_colour_test`, `_tags_test`, `_type_order_test`, `_save_navigation_test`, `_hidden_by_view_test`, `_device_type_test`, `_service_section_test`, `_wanted_test`, `_parent_picker_test` | 8, 5, 4, 7, 1, 3, 6, 5, 2, 3, 7 | `gear_item_header_editor_test`, `gear_item_details_editor_test`, `gear_item_edit_fields_test`, `gear_item_new_sitting_test`, `equipment_detail_page_unlock_test`, `equipment_detail_page_new_test`, `equipment_edit_routes_test`, `equipment_device_name_test`. Plan 6's table missed the advanced, price and colour files and named a case never written; Part C added the cases ("Parts B and C" below) |
+| `equipment_edit_clone_test` | 18 | `gear_item_new_sitting_test`, `equipment_detail_page_new_test` (plan 11 named eight cases never written; Part C added them, and restored a clone that opens when its tags or place cannot be read) |
+| `equipment_set_edit_page_test`, `_discard_test`, `_folds_test`, `_figure_test`, `_assembly_parts_test`, `_history_test` | 12, 7, 2, 11, 3, 6 | `equipment_set_members_editor_test`, `equipment_set_card_editors_test`, `equipment_set_detail_page_unlock_test`, `equipment_set_detail_page_history_test`, `equipment_set_detail_page_new_test`, `equipment_set_edit_save_service_test` |
+| `equipment_set_edit_clone_test` | 9 | `equipment_set_detail_page_new_test` (Part C added the cases plan 11 named and never wrote) |
 | `equipment_set_arrangement_test` (*mixed*), `equipment_set_detail_unshared_test` (*mixed*) | 3, 2 | Their page cases stay; form cases to `equipment_set_members_editor_test` |
-| `trip_edit_page_test` | 79 | Plan 9's table (edit cases), plan 11 (New Trip group, defaults, sharing, save flow) |
+| `trip_edit_page_test` | 79 | The trip header, overview, new sitting, dates, day note, routes, unlock and new page tests (Part C added the cases plans 9 and 11 left out, and restored the end picker opening at a start just picked) |
 | `trip_edit_page_part_of_test`, `_type_change_test`, `_draft_test`, `_retry_test` | 2, 1, 2, 1 | Plan 9 (part of, type change), plan 11 (draft); the retry case is form only (call 6 of plan 11) |
 | `*_edit_routes_test` (nine), `app_router_test`, the list page tests, `trip_list_page_new_trip_test`, `bulk_dive_edit_new_trip_prefill_test` (*mixed*) | | Tasks 1 to 5 and 7 |
-| `equipment_location_field_test`, `initial_location_test`, `equipment_set_history_save_test` | | Deleted with their files (call 5); the first location is plan 11's held move (`gear_item_new_sitting_test`), the history replay plan 8's `beforeSave` (`equipment_set_detail_page_unlock_test`) |
+| `equipment_location_field_test`, `initial_location_test`, `equipment_set_history_save_test` | | Deleted with their files (call 5); the first location is plan 11's held move (`gear_item_new_sitting_test`), the history replay the set save service's one transaction (`equipment_set_edit_save_service_test`, `equipment_set_detail_page_history_test`) |
 
 ---
 
@@ -741,3 +741,354 @@ It now tests `pickCertificationCardPhoto` on its own, as the Card photos editor 
 | staging mode returns a Certification via onStaged without persisting | Added | `buddies/presentation/editing/buddy_certification_dialog_test` "Done returns the edited certification" now checks the buddy is kept, and "Done with nothing changed returns it as it was" (0f8b70e). The dialog has no repository, so it writes nothing |
 | constructor asserts against mixing staging and by-id modes | Form only | It tested the deleted widget's constructor |
 
+
+**Part C: where each old case lives now** (built 2026-11-21). The same form as Part B's tables, with two more kinds of `Now`:
+
+- **Fixed**: the case found the page did not do what the form did; the page is fixed, and a test now pins it (it failed before the fix).
+- **Form only (changed)**: a rule the sitting changed on purpose, pinned in its new form where it says.
+
+Three behaviours came back with the tests. Eric asked for two of them (2026-11-21, "Restore both"): a new trip's end picker opens at the start just picked (76f0cdd), and a gear clone whose tags or place cannot be read opens without them (fb5b5c2). The third restores what the form did, as `_pickType`'s own comment says it should: a gear item whose type changes drops a host the new type cannot be fitted to, also with only the header open (70b355d).
+
+Commits named below: 6270934 (set tests), fb5b5c2 (clone read fix and the item's new sitting), f541258 (the item's Details editor and fields), 70b355d (the header's host fix), 9209b06 (the item's pages), 76f0cdd (the trip end picker fix), fbf5fec (trip header), b5eb5ac (trip Plan and Vessel), 79370b2 (new trip seed), c6106dd (trip pages), 9a9ce3b (trip type, day note and opening).
+
+#### `equipment/presentation/equipment_edit_advanced_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| EquipmentEditPage advanced fields: populates existing buoyancy metadata and saves changes | Added | `equipment/presentation/editing/gear_item_details_editor_test` "a stored attribute shows as stored, and a number typed is held" (f541258) |
+| EquipmentEditPage advanced fields: de-dupes custom fields sharing a label on save | Pinned | `equipment/presentation/editing/gear_item_edit_fields_test` "custom fields are de-duplicated by key, first wins" and "custom fields edited are de-duplicated, the rest kept" |
+| EquipmentEditPage advanced fields: empty fields save as null | Added | `gear_item_details_editor_test` "an attribute cleared is taken off the item"; `gear_item_edit_fields_test` "an attribute set to none is gone from the saved item" (f541258) |
+| EquipmentEditPage advanced fields: a no-op save preserves attributes under a grouping-dot locale | Added | `gear_item_details_editor_test` "under a comma locale an item opens unchanged, its price written with a comma" (f541258); a save of an untouched sitting writes nothing (`equipment/data/services/gear_item_edit_save_service_test` "unchanged returns null") |
+| EquipmentEditPage advanced fields: shows the stored currency and its symbol on the price field | Added | `gear_item_details_editor_test` "the stored currency shows in its menu and its symbol on the price" (f541258) |
+| EquipmentEditPage advanced fields: a stored code outside the presets is offered by the menu | Added | `gear_item_details_editor_test` "a stored currency outside the presets leads its menu" (f541258) |
+| EquipmentEditPage advanced fields: a new item opens in the diver default currency | Pinned | `equipment/presentation/editing/gear_item_new_sitting_test` "a seed is a regulator, active, in the default currency, no dot"; the symbol by the stored currency case above |
+| EquipmentEditPage advanced fields: clearing the currency saves the diver default, not USD | Added | `gear_item_details_editor_test` "a currency cleared falls back to the diver default, not USD" (f541258) |
+
+#### `equipment/presentation/equipment_edit_colour_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| fins show their stored colour in the form | Added | `gear_item_details_editor_test` "fins show their stored colour, and a colour picked then cleared is held" (f541258) |
+| a battery has no colour field | Pinned | `equipment/domain/equipment_appearance_attributes_test` "every type but cells, batteries and other has a colour"; the editor's fields are that catalogue |
+| a colour on a battery survives a save as a custom field | Added | `gear_item_edit_fields_test` "a stray colour saved after a custom field edit is one custom field" (f541258); untouched, it is not written at all |
+| picking and then clearing a colour updates the form | Added | The fins case above (f541258) |
+
+#### `equipment/presentation/equipment_edit_price_locale_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| EquipmentEditPage purchase price: saves a price typed with a comma decimal separator | Added | `gear_item_details_editor_test` "a price typed with a comma decimal is read under a comma locale" (f541258) |
+| EquipmentEditPage purchase price: seeds the field using the locale decimal separator | Added | `gear_item_details_editor_test` "under a comma locale an item opens unchanged, its price written with a comma" (f541258) |
+| EquipmentEditPage purchase price: preserves the stored price on a save that never touches it | Added | The same case (f541258); `gear_item_edit_save_service_test` "a price changed underneath keeps its newer value" |
+| EquipmentEditPage purchase price: rejects an unreadable price instead of discarding it | Added | `gear_item_details_editor_test` "an unreadable price blocks the card until it is fixed" now checks the message (f541258); `equipment/presentation/pages/equipment_detail_page_unlock_test` "an unreadable price keeps the Save from writing" |
+| EquipmentEditPage purchase price: clearing the field still removes the stored price | Added | `gear_item_details_editor_test` "a price cleared is no price" (f541258) |
+
+#### `equipment/presentation/pages/equipment_edit_clone_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| opens titled Clone Equipment and pre-filled from the source | Added | `equipment/presentation/pages/equipment_detail_page_new_test` "a clone opens titled Clone, prefilled, and its Save replaces the page with the clone"; brand and model: `gear_item_new_sitting_test` "a clone saved carries the brand and model and the source's tags, and leaves the source as it was" (fb5b5c2) |
+| keeps the form when the source goes away mid-edit | Added | `equipment_detail_page_new_test` "a clone keeps its form when the source goes away mid-edit" (9209b06) |
+| keeps the form when re-reading the source fails mid-edit | Added | The same case (9209b06): the source is read once, as the clone opens, and never again |
+| a source the active diver cannot see: opens as not found, so nothing can be cloned | Added | `gear_item_new_sitting_test` "another diver's gear is cloned only once it is shared, and then without the owner's tags or place" (fb5b5c2); not found: `equipment_detail_page_new_test` "a clone whose source is gone opens as not found" |
+| a source the active diver cannot see: opens once it is shared with the diver | Added | The same new sitting case (fb5b5c2) |
+| starts with the source's tags | Pinned | `gear_item_new_sitting_test` "a tracked clone prefill ends, with the source's own tags" |
+| a sharee's clone leaves the owner's own tags behind | Added | The new sitting case above (fb5b5c2) |
+| first location: starts at the source's place, and saving puts it there | Pinned | `gear_item_new_sitting_test` "a clone's place is its held move, shown on Location and written once" |
+| first location: a sharee's clone does not start at the owner's place | Added | The new sitting case above (fb5b5c2) |
+| saving creates the clone and opens it | Added | `gear_item_new_sitting_test` "a clone saved carries the brand and model ..." (the tags written, the source untouched, fb5b5c2); `equipment_detail_page_new_test` clone case (opens it). "Equipment cloned" is form only |
+| a quick Save waits for the source's tags | Pinned | The source's tags are read before the page opens; "a tracked clone prefill ends, with the source's own tags" |
+| when a starting pick cannot be read: a failed tag read leaves the clone form usable | Fixed | `gear_item_new_sitting_test` "when a starting pick cannot be read: a failed tag read leaves a clone without tags" (fb5b5c2) |
+| when a starting pick cannot be read: a failed place read leaves the clone form usable | Fixed | The same group, "a failed place read leaves a clone without a place" (fb5b5c2) |
+| an embedded clone the list cannot vouch for says cloned | Added | `equipment/presentation/pages/equipment_edit_routes_test` "a visibility check that fails still confirms the Save" and `equipment_detail_page_new_test` "a new item's Save asks whether the list will show it" (9209b06). The words are the Save's, not "cloned" |
+| an embedded clone reports a step that could not be copied | Form only (changed) | A failed copy now fails the Save (plan 11, Question 8): `gear_item_new_sitting_test` "a failed set membership leaves no item, clock, move or tag" |
+| a clone the list view hides says so, once | Added | `equipment_detail_page_new_test` "a new item's Save asks whether the list will show it" (9209b06); `equipment/presentation/pages/equipment_detail_page_unlock_test` "a pane Save that hides the item offers its view". No other message is shown, so once holds |
+| tags the diver cleared before the source's arrived stay cleared | Form only | The source's tags are read before the page opens, so there is nothing to clear early |
+| a step that could not be copied is reported | Added | `gear_item_new_sitting_test` "a clone's extras are copied for the diver it is created for, the seed having none" now checks the source, clone and type (fb5b5c2); the message is form only, as above |
+
+#### `equipment/presentation/pages/equipment_edit_device_type_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the type field is locked for an item with a computer | Added | `equipment/data/repositories/equipment_device_name_test` "an item a computer or a transmitter names has a device; another does not" (9209b06); `equipment/presentation/editing/gear_item_header_editor_test` "the type is locked for an item a computer names" |
+| an item with no device keeps its type editable | Pinned | `gear_item_header_editor_test` "an item with no device can change type" |
+| ?type=transmitter starts the form on Transmitter | Pinned | `gear_item_new_sitting_test` "a type and a serial from the device lists are changes"; `equipment_detail_page_new_test` "a type from the device list is a change: Save at once" |
+| the type field stays locked while the device lookup loads (review) | Pinned | `gear_item_header_editor_test` "the type stays locked while the device lookup loads" |
+| a serial handed over starts in the serial field (review) | Pinned | The two device list cases above |
+
+#### `equipment/presentation/pages/equipment_edit_hidden_by_view_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| a Wanted item saved under the default view offers the Wanted view | Added | `equipment_detail_page_new_test` "a new item's Save asks whether the list will show it"; `equipment_edit_routes_test` "Show moves the list to that view and marks the item" (9209b06); the view: `equipment/presentation/helpers/saved_equipment_visibility_test` "a wanted item saved under the default view needs the Wanted view" |
+| an Active item the default view shows gets no hint | Pinned | `equipment_detail_page_unlock_test` "a pane Save the view still shows says nothing" |
+| a master-detail edit to Wanted offers the Wanted view | Pinned | `equipment_detail_page_unlock_test` "a pane Save that hides the item offers its view" |
+| a routed edit returns to the item, so it just confirms | Added | `equipment/presentation/pages/equipment_detail_page_full_save_view_test` "a full page Save of an item the view hides offers nothing" (9209b06, moved to its own file in the review) and `equipment_detail_page_unlock_test` "a full page Save stays on the item". "Equipment updated" on a full page is form only: the page locks |
+| a new item under a Service Due view offers the default view | Added | The new item case above (9209b06); the view: `saved_equipment_visibility_test` "an item hidden by another axis falls back to the default view" |
+| a failed visibility check still saves and confirms | Added | `equipment_edit_routes_test` "a visibility check that fails still confirms the Save" (9209b06) |
+
+#### `equipment/presentation/pages/equipment_edit_parent_picker_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| an O2 cell offers rebreathers as its parent and saves it | Pinned | `gear_item_details_editor_test` "an O2 cell offers rebreathers as its parent" |
+| a part added from its host starts fitted to it | Pinned | `gear_item_new_sitting_test` "a part's host is a change, dropped at Save for a type it cannot hold" |
+| switching child type drops a parent the new type cannot use | Fixed | `gear_item_header_editor_test` "a type its host cannot hold drops the host" (70b355d) |
+| saving while the active list is loading keeps the parent | Pinned | `gear_item_details_editor_test` "the parent stays while the candidates load" |
+| a deep-linked parent owned by another diver is not saved | Added | `gear_item_new_sitting_test` "a part fitted from a deep link is not saved into another diver's host" (fb5b5c2) |
+| a deep-linked parent shared with the diver is saved | Added | The same group, "is saved into a host shared with the diver" (fb5b5c2) |
+| a regulator shows no parent picker | Pinned | `gear_item_details_editor_test` "a regulator shows no parent picker" |
+
+#### `equipment/presentation/pages/equipment_edit_save_navigation_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| EquipmentEditPage full-page save: Save in the app bar is the only save action | Form only | The form's bottom button; the page's Save is the shared bar's |
+| EquipmentEditPage full-page save: Save stores the item and returns to the list | Pinned | `equipment_detail_page_new_test` "Save waits for the first entry, then pops the id" |
+| EquipmentEditPage full-page save: a unit picked with no number yet is saved (issue #4534) | Pinned | `gear_item_details_editor_test` "a unit picked with no number yet is kept" |
+
+#### `equipment/presentation/pages/equipment_edit_service_section_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| EquipmentEditPage legacy service section: the legacy Service Settings section is gone | Pinned | `gear_item_details_editor_test` "the Details editor has no legacy service section" |
+| EquipmentEditPage legacy service section: saving preserves the frozen legacy interval | Pinned | `gear_item_edit_save_service_test` "a service interval changed underneath keeps its newer value" and "a last service date changed underneath keeps its newer value" |
+
+#### `equipment/presentation/pages/equipment_edit_tags_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the Tags field follows Notes and shows the stored tags | Pinned | `gear_item_header_editor_test` "the header editor shows the stored tags"; the tags are in the header now |
+| removing a tag and saving writes the new set | Added | `gear_item_header_editor_test` "a tag chip's remove holds the tags without it" (70b355d) and "the held tags: a tag removed is written at Save" |
+| while the stored tags are still loading: the Tags field is disabled until they arrive | Pinned | `gear_item_header_editor_test` "the tags field is inert until the sitting's list has loaded" |
+| while the stored tags are still loading: a read that fails leaves the field locked and the stored tags untouched | Added | `gear_item_header_editor_test` "a tag read that failed says so and offers to read again" now checks the field is inert and nothing is held (70b355d) |
+| while the stored tags are still loading: a save leaves the stored tags alone | Pinned | `gear_item_header_editor_test` "the held tags: untouched tags are not written" |
+| suggestions list equipment tags only | Pinned | `gear_item_header_editor_test` "tag suggestions are equipment tags only" |
+| a tag typed on a new item applies everywhere and is saved with it | Added | `gear_item_new_sitting_test` "a tag typed on a new item is written with it" (fb5b5c2); the scope: `tags/data/repositories/tag_scope_equipment_test` "a tag created from the equipment picker applies everywhere (#4407)" |
+
+#### `equipment/presentation/pages/equipment_edit_type_order_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| offers every type alphabetically in $locale | Pinned | `gear_item_header_editor_test` "the type list is alphabetical in $locale" |
+
+#### `equipment/presentation/pages/equipment_edit_wanted_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| EquipmentEditPage for Wanted gear: a wanted item loads as Wanted, relabelled and trimmed | Added | `gear_item_details_editor_test` "a wanted item's Details editor is relabelled and trimmed"; `gear_item_edit_fields_test` "a legacy inactive Active row shows as Retired" now checks a Wanted row stays Wanted (f541258) |
+| EquipmentEditPage for Wanted gear: switching an owned item to Wanted and back keeps its fields | Pinned | `gear_item_details_editor_test` "Wanted and back keeps the serial and parent" |
+| EquipmentEditPage for Wanted gear: saving as Wanted stores isActive=false and keeps hidden values | Added | `gear_item_edit_fields_test` "Wanted, Retired and Sold store the item inactive" now checks the serial is kept, and "a purchase date stays while the item is Wanted" (f541258) |
+
+#### `equipment/presentation/pages/equipment_list_page_test.dart` (trimmed)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| new-equipment purchase date (#765): the purchase-date button opens the date picker | Added | `gear_item_details_editor_test` "a purchase date is picked, and cleared" (f541258) |
+| new-equipment currency: opens in the diver default currency rather than USD | Pinned | The new sitting's seed case; the symbol: "the stored currency shows in its menu and its symbol on the price" (f541258) |
+| new-equipment currency: a non-preset default currency is still offered | Added | `gear_item_details_editor_test` "a stored currency outside the presets leads its menu" (f541258) |
+| new-equipment type-specific attributes: the add form offers the selected type's catalog fields | Added | `gear_item_details_editor_test` "the attribute fields follow the type held in the sitting" (f541258) |
+| Every other case | Pinned | Kept in this file; none pumps the form |
+
+#### `equipment/presentation/widgets/location_picker_callers_test.dart` (trimmed), `equipment_location_field_test.dart` and `equipment/data/services/initial_location_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| the new item form offers no buddy | Form only | `EquipmentLocationField` is gone; a new item's first place is a move on its Location card, which runs the lend steps (`equipment/presentation/widgets/move_equipment_sheet_test`). "editing a past move offers no buddy" is kept in this file |
+| picking a place reports it; No location clears it | Form only | The same field |
+| records the first move and reports success | Pinned | `gear_item_new_sitting_test` "a clone's place is its held move, shown on Location and written once" |
+| reports a failed write instead of throwing | Form only (changed) | A held move that fails now fails the Save: `gear_item_new_sitting_test` "a failed set membership leaves no item, clock, move or tag" |
+
+#### `equipment/presentation/pages/equipment_set_edit_page_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| identical items are told apart (#1549) | Pinned | `equipment/presentation/editing/equipment_set_members_editor_test` "the Members editor tells identical items apart" |
+| toggles default and manages geofences before saving | Added | `equipment/presentation/editing/equipment_set_card_editors_test` "a geofence added from a site, then changed, is held in place" (6270934) and "the Default and auto-apply switches are held" |
+| the app bar Save is the only save action (issue #3174) | Form only | The form's Create Set button |
+| saving a new default set with a geofence persists both | Added | `equipment/presentation/pages/equipment_set_detail_page_new_test` "a new default set with a geofence saves both" (6270934) |
+| the app bar Save creates a new set without scrolling (issue #2266) | Pinned | `equipment_set_detail_page_new_test` "a new set opens unlocked, and Save creates it and pops its id" |
+| the app bar Save validates the form first (issue #2266) | Added | `equipment_set_detail_page_new_test` "Save on an untouched new set asks for a name and creates nothing" (6270934) |
+| the app bar Save is offered when editing an existing set (issue #2266) | Pinned | `equipment/presentation/pages/equipment_set_detail_page_unlock_test` "name and description in one sitting save as one entry and lock" |
+| a new set saves with the diver figure on | Pinned | `equipment_set_detail_page_new_test` "a new set opens unlocked, and Save creates it and pops its id" |
+| the diver figure switch starts on and saves with the set | Added | `equipment_set_detail_page_new_test` "a new set saved with the figure off stores it off" (6270934) |
+| saving a set survives a member being deleted while the form is open (issue #819) | Pinned | `equipment/data/services/equipment_set_edit_save_service_test` "a member deleted underneath is dropped, not re-inserted" |
+| bundle lists (issue #4525): saving an edited set keeps its lists | Pinned | `equipment_set_edit_save_service_test` "the weight presets untouched are kept"; `equipment/presentation/editing/equipment_set_edit_fields_test` "a weight preset added keeps the included sets another device changed" |
+| bundle lists (issue #4525): a weight preset added in the form is saved | Added | `equipment_set_detail_page_unlock_test` "a weight preset chosen in the Bundle editor is written at Save" (6270934) |
+
+#### `equipment/presentation/pages/equipment_set_edit_discard_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| new set: Back with nothing entered leaves without asking | Pinned | `equipment_set_detail_page_new_test` "an untouched new set leaves without asking" |
+| new set: Back after typing a name asks first | Pinned | `test/shared/widgets/record_editing/record_creating_test` "an entry asks before leaving" and "system Back with an entry asks, then leaves once" |
+| new set: a saved form leaves without asking | Pinned | `equipment_set_detail_page_new_test` "a new set opens unlocked, and Save creates it and pops its id" |
+| editing a set: Back with nothing changed leaves without asking | Pinned | `test/shared/widgets/record_editing/record_edit_leave_guard_test` "unlocked with no changes: back pops and locks" |
+| editing a set: Back after a switch is changed asks first | Pinned | `equipment_set_detail_page_unlock_test` "Cancel with changes asks first"; `equipment_set_card_editors_test` "the Default and auto-apply switches are held" |
+| editing a set: a member deleted meanwhile is not taken for a change | Pinned | `equipment_set_members_editor_test` "a member deleted underneath is not the diver's change" |
+| editing a set: a change put back as it was is no change | Pinned | `equipment_set_detail_page_unlock_test` "a name typed and put back leaves Save disabled"; `equipment_set_edit_fields_test` "ticking back what was stored leaves the session clean" |
+
+#### `equipment/presentation/pages/equipment_set_edit_folds_test.dart` and `_assembly_parts_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| groups holding members start open, others closed | Pinned | `equipment_set_members_editor_test` "folding (#3364): groups holding members start open, others closed" |
+| folding keeps the ticks and says so | Pinned | The same group, same name |
+| components of a listed assembly (#2514): wait behind a switch | Pinned | `equipment_set_members_editor_test`, the same group and name |
+| components of a listed assembly (#2514): stay listed when ticked, so they can be unticked | Pinned | The same group and name |
+| components of a listed assembly (#2514): stay listed once unticked, so the untick can be undone | Pinned | The same group and name |
+
+#### `equipment/presentation/pages/equipment_set_edit_figure_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| with the switch off the page has no figure and no badges | Pinned | `equipment/presentation/pages/equipment_set_detail_figure_test` "with the figure off, the page shows no figure and no numbers" |
+| with the switch off the form stays a lazily built list | Form only | The form's layout |
+| with it on the ticked items with a row are drawn and numbered | Pinned | `equipment_set_detail_page_unlock_test` "ticking a member redraws the Figure card and the count"; the editor has no row badges (plan 8, call 3), the read page's numbers are `equipment_set_detail_figure_test` |
+| with the figure on, ticked and unticked names line up | Form only | The editor's rows have no badges; the read page: `equipment_set_detail_figure_test` "with the figure on, numbered and child names line up" |
+| with large text, ticked and unticked names still line up | Form only | As above; the read page's large text case |
+| ticking an item redraws the figure at once | Pinned | `equipment_set_detail_page_unlock_test` "ticking a member redraws the Figure card and the count" |
+| the figure summary follows the name as it is typed | Pinned | `equipment_set_detail_page_unlock_test` "the Figure card's title follows the held name" |
+| a cleared name gives the figure the new set title | Form only (changed) | A blank held name keeps the stored name: "while the held name is blank the figure keeps the stored name" |
+| the switch shows and hides the figure | Added | `equipment_set_detail_page_unlock_test` "the Figure editor's switch hides and shows the figure" (6270934) |
+| a tap on a name flashes that item's row | Form only | The editor has no badges; the read page: `equipment_set_detail_figure_test` "tapping a label selects its row and the row badge" |
+| no ticked items means no figure | Pinned | `equipment_set_detail_page_unlock_test` "untick every member and the Figure card goes" |
+
+#### `equipment/presentation/pages/equipment_set_edit_history_test.dart` and `equipment/presentation/helpers/equipment_set_history_save_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| also update rewrites the logged and the planned dive | Added | `equipment_set_edit_save_service_test` "with alsoLogged the logged dives of s1 and s3 lose e2 too ..." now checks the dives keep naming their sets (6270934); `equipment/presentation/pages/equipment_set_detail_page_history_test` "Also update rewrites the logged and the planned dive in the entry" |
+| from now on saves the set and follows on planned dives | Added | `equipment_set_edit_save_service_test` "removing e2 rewrites the planned dive and unlinks the logged ones from s1 and s3" now checks the planned dive still names the set (6270934) |
+| cancel saves nothing and keeps the editor open | Pinned | `equipment_set_detail_page_history_test` "Cancel in the question saves nothing and keeps the sitting" |
+| a failed replay still saves the rest of the edit | Form only (changed) | Plan 8, Question 5: a sitting is one transaction. `equipment_set_detail_page_history_test` "a failed replay saves nothing and leaves the page unlocked"; `equipment_set_edit_save_service_test` "a failure in the replay writes nothing, the set included" |
+| a failed default save still replays the saved members | Form only (changed) | The same |
+| a save that leaves the members alone asks nothing | Added | `equipment_set_edit_save_service_test` "a save that cannot change the gear plans no replay" now checks the logged dive still names the set (6270934); `equipment_set_detail_page_history_test` "a name change alone asks nothing" |
+| runs the replay after the writes; a failed write still replays, and its error is the one thrown; a replay that also fails does not hide the write error; a failed replay after a clean write is thrown; no replay step is fine | Form only (changed) | `saveThenReplay` went with the form; the order and the one-transaction rule are the save service's, pinned as above |
+
+#### `equipment/presentation/pages/equipment_set_edit_clone_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| opens filled in from the source, named as a copy | Added | `equipment_set_detail_page_new_test` "a clone opens named as a copy, and saving leaves the source as it was" and "a clone copies the description, figure and only the gear the diver can see, not the default or auto-apply, and the source keeps them" (6270934) |
+| saving creates a second set and leaves the source as it was | Added | The same two cases (6270934). "Equipment set cloned" is form only |
+| Back on an untouched clone warns that it is not saved | Added | `equipment_set_detail_page_new_test` "Cancel on an untouched clone asks first, since nothing is saved yet" (6270934) |
+| a quick save keeps only the gear the diver can see | Added | The clone copies case above (6270934): the gear the diver can see is read before the page opens |
+| a profile switch before Save drops the clone | Pinned | `equipment_set_detail_page_new_test` "a profile switch before Save drops the clone" |
+| a switch while Save checks the gear does not save the clone | Form only | The form's awaited gear check at Save is gone, and a switch drops a clone before Save can run (the case above). A test that switched during Save passed against a mutation that reads the diver again at Save, so it pinned nothing and was not kept |
+| an unowned set is not cloned while a diver is active | Added | `equipment_set_detail_page_new_test` "a set with no owner is not cloned while a diver is active" (6270934) |
+| another diver's set is not cloned | Added | `equipment_set_detail_page_new_test` "another diver's set is not cloned" (6270934) |
+| a missing source says so | Pinned | `equipment_set_detail_page_new_test` "a clone of a set that is gone opens as not found" |
+
+#### `equipment/presentation/equipment_set_arrangement_test.dart` and `equipment/presentation/pages/equipment_set_detail_unshared_test.dart` (trimmed)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| set edit orders its groups instead of using insertion order | Added | `equipment_set_members_editor_test` "the groups follow the type order, and a tick after the reorder is held by id" (6270934) |
+| set edit keeps selection keyed by id across the reorder | Added | The same case (6270934) |
+| set detail groups its members in the chosen type order | Pinned | Kept in this file |
+| the edit page lists a member no longer shared, unchecked | Added | `equipment_set_members_editor_test` "a member no longer shared is listed without a checkbox and kept" now checks its label (6270934) |
+| a member no longer shared is kept and marked | Pinned | Kept in this file |
+
+#### `trips/presentation/pages/trip_edit_page_test.dart` (deleted)
+
+Paths below are under `trips/presentation/` unless they say otherwise. Header: `editing/trip_header_card_editor_test`; new page: `pages/trip_detail_page_new_test`.
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| TripEditPage - New Trip: should display Add Trip title for new trip | Pinned | New page "a new trip opens unlocked with its header and notes open" |
+| TripEditPage - New Trip: should display trip name field | Pinned | The same case |
+| TripEditPage - New Trip: should display Trip Dates section | Pinned | Header "the header editor shows every header value" |
+| TripEditPage - New Trip: should display Location section | Pinned | The same header case |
+| TripEditPage - New Trip: should display Resort Name field | Pinned | The same header case |
+| TripEditPage - New Trip: should display Liveaboard Name field | Pinned | The same header case |
+| TripEditPage - New Trip: should display Notes section | Pinned | New page "a new trip opens unlocked with its header and notes open" |
+| TripEditPage - New Trip: should display Save button in app bar | Pinned | New page "Save creates the trip and pops its id" |
+| TripEditPage - New Trip: Save in the app bar is the only save action (#3174) | Pinned | New page cases tap the one Save; `test/shared/widgets/record_editing/record_edit_bar_test` "shows Cancel, the title and Save". The bar has a Cancel on purpose |
+| TripEditPage - New Trip: should show validation error when name is empty | Pinned | Header "a blank name cannot be saved" |
+| TripEditPage - New Trip: a fractional expected dive count blocks save (#1900 review) | Added | `editing/trip_overview_card_editors_test` "a fractional expected dive count refuses the Save" now makes a real change first and checks the message (b5eb5ac) |
+| TripEditPage - New Trip: should accept input in name field | Pinned | New page "Save creates the trip and pops its id" |
+| TripEditPage - opening at a day note (#4625): adds the day heading with the caret under it | Added | `pages/trip_detail_page_day_note_test` "locked, Add day note unlocks with the Day plan open" now checks the focus and the caret (9a9ce3b) |
+| TripEditPage - opening at a day note (#4625): the added heading alone is not a change | Pinned | `pages/trip_detail_page_day_note_test`, same name |
+| TripEditPage - opening at a day note (#4625): a save for another reason leaves the empty heading out | Pinned | The same file, same name |
+| TripEditPage - opening at a day note (#4625): words under the heading are saved with it | Pinned | The same file, same name |
+| TripEditPage - opening at a day note (#4625): a tap that only moves the caret is not a change | Pinned | The same file, same name |
+| TripEditPage - opening at a day note (#4625): untouched Notes are saved as they were loaded | Pinned | The same file, "an existing passage is what the editor holds, and untouched notes are saved as they were loaded" |
+| TripEditPage - opening at a section (#2880): opens at the top by default | Added | `pages/trip_edit_routes_test` "opened with mode=edit, the page is unlocked" now checks no card opens and the page is at the top (9a9ce3b) |
+| TripEditPage - opening at a section (#2880): opens with the Planning section below the fold | Form only | The form's layout. On the page the Plan row sits near the top: a mutation that took away what would scroll to it still left it in view on a phone |
+| TripEditPage - opening at a section (#2880): scrolls the Planning section into view once loaded | Added | `pages/trip_edit_routes_test` "opened at section=planning, the Plan card is open and in view", now at a phone's height (9a9ce3b) |
+| TripEditPage - Edit Trip: should display Edit Trip title when editing | Added | `pages/trip_detail_page_unlock_test` "unlocked, the bar names the trip it is editing" (9a9ce3b) |
+| TripEditPage - Edit Trip: should load existing trip data | Pinned | Header "the header editor shows every header value" |
+| TripEditPage - Edit Trip: a new trip defaults to eight calendar days near midnight | Added | `editing/trip_new_sitting_test` "a seed opened just after midnight in a week the clocks change is eight calendar days" (79370b2); the file joins CI's Timezone Tests |
+| TripEditPage - Edit Trip: duration counts calendar days across a spring-forward | Added | Header "the editor's duration counts calendar days across a spring-forward", now evening to morning so it fails in any zone (fbf5fec) |
+| TripEditPage - day trip (#2625): the type selector describes the selected type | Pinned | Header "choosing Day Trip collapses the dates" |
+| TripEditPage - day trip (#2625): choosing Day Trip collapses the dates to one day | Pinned | The same header case |
+| TripEditPage - day trip (#2625): a Day Trip keeps its end date on a moved start date | Added | Header "a Day Trip moves its end with a start picked" (fbf5fec) |
+| TripEditPage - day trip (#2625): a Day Trip locks its end date to the start date | Pinned | Header "a one-day Day Trip locks its end date" |
+| TripEditPage - day trip (#2625): a stored multi-day Day Trip keeps its end date editable | Pinned | Header "a stored multi-day Day Trip keeps its end editable" |
+| TripEditPage - day trip (#2625): leaving Day Trip keeps the collapsed dates | Pinned | Header "leaving Day Trip keeps the dates" |
+| share toggle: hides the toggle when only one diver exists | Pinned | `test/shared/widgets/shared_items/item_sharing_field_test` "a single profile sees no field" |
+| share toggle: shows toggle with default from AppSettings when 2+ divers | Added | New page "a shared new trip shows who it is shared with, by the diver's default" (c6106dd) |
+| share toggle: un-share on existing shared trip shows confirmation dialog | Pinned | `item_sharing_field_test` "taking the son off asks to confirm first" and "cancelling the confirmation changes nothing" |
+| share toggle: a new trip shared with one profile saves its share | Added | New page "a new trip shared with one profile writes that share under its id, by the acting profile" (c6106dd) |
+| share toggle: saving an existing trip without touching sharing stores no share change | Pinned | Header "unchanged sharing holds nothing" |
+| share toggle: a sharing change the repository refuses says who may change it instead of Trip updated | Form only (changed) | The whole Save now fails with the sharing message: header "a refused change fails the whole Save with the sharing message and writes nothing" |
+| an owner save clears share rows left beside the everyone flag (issue #2151) | Pinned | Header "a stale share row is rewritten by the owner's Save" (a Save with no change writes nothing) |
+| a new trip keeps sharing locked until the active profile is known (issue #2151) | Added | `editing/trip_new_sitting_test` "a seed waits for the active profile, and is that profile's" (c6106dd): the page cannot open before it |
+| a failed sharing read never unshares an Everyone trip on save (issue #2151) | Pinned | Header "a failed read never unshares at Save" |
+| share toggle ownership (issue #2594): is locked for another profile, naming the owner | Pinned | Header "locked for another profile, naming the owner" |
+| share toggle ownership (issue #2594): is locked while a profile switch re-reads the profile (issue #2677 review) | Added | Header "locked while a profile switch reads the profile again" (fbf5fec) |
+| share toggle ownership (issue #2594): is locked while the profile cannot be read | Added | Header "locked while the profile cannot be read" (fbf5fec) |
+| share toggle ownership (issue #2594): stays open for the owner | Pinned | Header "open for the owner, and a change is written at Save" |
+| TripEditPage - liveaboard vessel section: shows vessel details fields when type is liveaboard | Added | `editing/trip_overview_card_editors_test` "vessel fields are shown for a liveaboard" now checks the ports (b5eb5ac); new page "a liveaboard lays out its Vessel, and its name is required" |
+| TripEditPage - liveaboard vessel section: shows vessel required validation on save for liveaboard | Pinned | `trip_overview_card_editors_test` "the vessel name is required for a liveaboard" |
+| TripEditPage - liveaboard vessel section: vessel type dropdown selection updates state | Pinned | `trip_overview_card_editors_test` "the vessel type selection is held until Save" |
+| TripEditPage - date picker: tapping start date opens date picker | Pinned | Header "tapping the start date opens the date picker" |
+| TripEditPage - date picker: tapping end date opens date picker | Pinned | Header "the end date picker opens at no earlier than the start" |
+| TripEditPage - date picker: end date picker opens positioned at the just-picked start date | Fixed | New page "the end picker opens at a start just picked, until an end is picked" (76f0cdd) |
+| TripEditPage - date picker: end date picker keeps opening at an explicitly picked end date | Fixed | The same case (76f0cdd) |
+| TripEditPage - save flow: save new trip calls addTrip and pops | Pinned | New page "Save creates the trip and pops its id". "Trip added successfully" is form only |
+| TripEditPage - save flow: save existing trip calls updateTrip | Pinned | `pages/trip_detail_page_unlock_test` "name, dates and notes in one sitting save as one entry". "Trip updated successfully" is form only |
+| TripEditPage - save flow: editing keeps the fill forecast fields | Pinned | `trips/data/services/trip_edit_save_service_test` "a divers sharing changed underneath keeps its newer value" and "a dives per day changed underneath keeps its newer value" |
+| TripEditPage - save flow: save with unchanged dates runs no scan and no diver lookup | Pinned | `pages/trip_detail_page_dates_test` "unchanged dates ask nothing"; the diver lookup is form only |
+| TripEditPage - save flow: post-save scan searches the active diver, not the trip owner | Added | `pages/trip_detail_page_dates_test` "a shared trip's new dates ask about the active profile's dives, not the owner's" (c6106dd) |
+| TripEditPage - save flow: picked dives are assigned to the trip the save returned | Added | New page "a new trip asks which dives in its dates join it at Save, and the picked ones join it" now checks the trip id, and "a dive taken from another trip leaves that trip read again" (c6106dd) |
+| TripEditPage - save flow: dismissing the dive dialog assigns nothing | Pinned | New page "dismissing the question creates the trip with no dives" |
+| TripEditPage - save flow: no active diver saves the trip without scanning | Pinned | New page "no active diver creates without asking" |
+| TripEditPage - save flow: the planning fields save as integers | Added | `trip_overview_card_editors_test` "the Plan editor's rows set only the plan card" now types the expected dives (b5eb5ac) |
+| TripEditPage - save flow: zero or negative planning fields save as null | Pinned | `editing/trip_edit_fields_test` "zero and below store null" |
+| TripEditPage - save flow: empty planning fields save as null | Added | `trip_new_sitting_test` "a seed is shore, eight calendar days, shared by default, with no dot" now checks the plan numbers are none (79370b2) |
+| TripEditPage - save flow: the fill forecast fields save as integers | Added | The Plan editor case above now types the divers sharing (b5eb5ac) |
+| TripEditPage - save flow: blank or non-positive fill forecast fields save as the defaults | Pinned | `trip_edit_fields_test` "divers sharing blank or zero stores one" |
+| TripEditPage - save flow: save errors show error snackbar | Pinned | New page "a Save that fails keeps everything, and a retry creates once with the same id" |
+| TripEditPage - discard changes: back with changes asks before discarding them | Pinned | New page "an entry asks before leaving, and nothing is written" |
+| TripEditPage - discard changes: back without changes leaves without a dialog | Pinned | New page "an untouched new trip leaves without asking" |
+| TripEditPage - embedded layout: renders embedded header with Save and Cancel buttons | Added | New page "in the pane, Save hands the id to the pane" now checks the title (c6106dd); the header icon is form only |
+| TripEditPage - embedded layout: embedded Save calls onSaved callback | Pinned | The same case |
+| TripEditPage - embedded layout: embedded Cancel with no changes calls onCancel | Pinned | New page "in the pane, Cancel tells the pane and creates nothing" |
+| TripEditPage - embedded layout: embedded Cancel with changes shows discard dialog | Added | New page "in the pane, Cancel with an entry asks first" (c6106dd) |
+| TripEditPage - embedded layout: embedded loading state shows progress indicator | Pinned | `pages/trip_detail_page_test` "shows embedded loading indicator when embedded" |
+| TripEditPage - error loading: shows error snackbar when load fails | Pinned | `pages/trip_detail_page_test` "shows non-embedded error scaffold on error" |
+| TripEditPage - date picker confirm: selecting a new start date updates display | Added | Header "a start picked in the dialog is held and shown" (fbf5fec) |
+| TripEditPage - unshare confirmation: confirming the unshare narrows the sharing | Pinned | `item_sharing_field_test` "taking the son off asks to confirm first" |
+| TripEditPage - unshare confirmation: cancelling the unshare keeps the sharing | Pinned | `item_sharing_field_test` "cancelling the confirmation changes nothing" |
+| TripEditPage - return flight: shows Not set and sets a flight via date + time pickers | Added | Header "a return flight is set through the date and time pickers" (fbf5fec) |
+| TripEditPage - return flight: clear icon reverts the flight to Not set | Pinned | Header "clearing the return flight is a change" |
+| TripEditPage - duration display: updates duration text when start date moves past end date | Pinned | `trip_new_sitting_test` seed case (eight days); header "the editor's duration counts calendar days across a spring-forward" |
+
+#### `trips/presentation/pages/trip_edit_page_part_of_test.dart`, `_type_change_test.dart`, `_draft_test.dart` and `_retry_test.dart` (deleted)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| choosing a larger trip saves it | Added | Header "a larger trip chosen is written at Save" (fbf5fec) |
+| a trip with side trips cannot become one | Pinned | Header "a trip with side trips offers no larger trip" |
+| changing a liveaboard to a resort trip keeps its itinerary | Added | `trips/data/services/trip_edit_save_service_test` "a type made resort removes the vessel details in the same entry, and reverting restores them" now checks the type and the kept itinerary (9a9ce3b) |
+| the draft fills the form and its dives move on save | Added | New page "the trips a draft took its dives from are read again" (c6106dd); `trip_new_sitting_test` "a draft's values are changes of the header block"; new page "a draft is a change of the header, is not asked about, and its dives join the trip" |
+| a failed move retried saves the same trip, not a second | Pinned | New page "a Save that fails keeps everything, and a retry creates once with the same id"; `trip_edit_save_service_test` "a failed held write leaves the dives on their old trips and no trip" |
+| a retried liveaboard save writes its details once | Form only (changed) | Plan 11, call 6: a create is one transaction, so no half-created trip is retried. `trip_edit_save_service_test` "a held write that throws leaves nothing" and "a new liveaboard gets its generated days once" |
+
+#### `dive_log/presentation/pages/bulk_dive_edit_new_trip_prefill_test.dart` (re-pointed)
+
+| Old case | Now | Where |
+| --- | --- | --- |
+| bulk edit's form spans the selected dives | Re-pointed | Kept in this file; it reads the draft from the new-trip page |

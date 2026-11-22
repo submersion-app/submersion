@@ -84,7 +84,7 @@ mixin _EquipmentSetDetailPageEditing
   /// Asks "Update past dives?" when the sitting changes the gear the set
   /// applies (its members, counting the sets it includes) and logged dives
   /// carry it or a set that includes it (issues #4283, #4525), before
-  /// anything is written, as the form does. Cancel leaves the sitting as it
+  /// anything is written, as the form did. Cancel leaves the sitting as it
   /// is. The answer goes to [saveSitting] through the session: planned
   /// dives follow the set always, logged ones when the diver says so.
   @override

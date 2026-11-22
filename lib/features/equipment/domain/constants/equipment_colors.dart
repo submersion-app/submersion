@@ -37,7 +37,7 @@ String? normalizeEquipmentColor(String? value) {
 /// A type without a colour (an O2 cell, a battery, Other) has no field for
 /// one, so a curated colour that reached it (from a CSV file, say) is the
 /// diver's own custom field named "color" instead: shown as one and kept by
-/// the edit form's save, which drops curated keys the type does not have.
+/// an item's save, which drops curated keys the type does not have.
 /// It moves after the diver's custom fields with an empty id, so the save
 /// gives it a custom field's id. A custom field of the same name already on
 /// the item wins, as the form's de-duplication would decide.

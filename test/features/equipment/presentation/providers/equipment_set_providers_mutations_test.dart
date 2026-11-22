@@ -1,21 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, EquipmentSetGeofence;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
-/// Drives [EquipmentSetListNotifier] through its mutations against a real test
-/// database and asserts that the geofence-hydrated [equipmentSetProvider]
-/// family and the selection-inputs provider reflect each change (guarding the
+/// Drives [EquipmentSetListNotifier] against a real test database and
+/// asserts that the geofence-hydrated [equipmentSetProvider] family and the
+/// selection-inputs provider reflect each change (guarding the
 /// cache-invalidation fixes).
 void main() {
   setUp(() async {
@@ -78,70 +76,86 @@ void main() {
     expect(sets.map((s) => s.id), contains('a'));
   });
 
-  test('setAsDefault refreshes the hydrated set family badge', () async {
+  // A set page's sitting writes through the save service, past the
+  // notifier; afterSittingSaved is what refreshes the caches it read.
+  test(
+    'after a sitting moves the default, the hydrated family shows it',
+    () async {
+      final c = makeContainer();
+      final notifier = c.read(equipmentSetListNotifierProvider.notifier);
+      final sets = EquipmentSetRepository();
+      await notifier.addSet(newSet('a', 'A'));
+      await notifier.addSet(newSet('b', 'B'));
+
+      // Prime the hydrated caches so invalidation is observable.
+      expect(
+        (await c.read(equipmentSetProvider('a').future))!.isDefault,
+        isFalse,
+      );
+      expect(
+        (await c.read(equipmentSetProvider('b').future))!.isDefault,
+        isFalse,
+      );
+
+      await sets.setAsDefault('a', diverId: 'd1');
+      await notifier.afterSittingSaved('a');
+      expect(
+        (await c.read(equipmentSetProvider('a').future))!.isDefault,
+        isTrue,
+      );
+
+      // Promoting b demotes a, whose page the sitting on b never named: the
+      // whole family is read again.
+      await sets.setAsDefault('b', diverId: 'd1');
+      await notifier.afterSittingSaved('b');
+      expect(
+        (await c.read(equipmentSetProvider('a').future))!.isDefault,
+        isFalse,
+      );
+      expect(
+        (await c.read(equipmentSetProvider('b').future))!.isDefault,
+        isTrue,
+      );
+    },
+  );
+
+  test('after a sitting changes its geofences, the set, its fences and the '
+      'selection inputs show them', () async {
     final c = makeContainer();
     final notifier = c.read(equipmentSetListNotifierProvider.notifier);
-    await notifier.addSet(newSet('a', 'A'));
-    await notifier.addSet(newSet('b', 'B'));
-
-    // Prime the hydrated caches so invalidation is observable.
-    expect(
-      (await c.read(equipmentSetProvider('a').future))!.isDefault,
-      isFalse,
-    );
-
-    await notifier.setAsDefault('a');
-    expect((await c.read(equipmentSetProvider('a').future))!.isDefault, isTrue);
-
-    // Promoting b must demote a in the hydrated family (whole-family invalidate).
-    await notifier.setAsDefault('b');
-    expect(
-      (await c.read(equipmentSetProvider('a').future))!.isDefault,
-      isFalse,
-    );
-    expect((await c.read(equipmentSetProvider('b').future))!.isDefault, isTrue);
-  });
-
-  test('clearDefault refreshes the hydrated set family', () async {
-    final c = makeContainer();
-    final notifier = c.read(equipmentSetListNotifierProvider.notifier);
-    await notifier.addSet(newSet('a', 'A'));
-    await notifier.setAsDefault('a');
-    expect((await c.read(equipmentSetProvider('a').future))!.isDefault, isTrue);
-
-    await notifier.clearDefault('a');
-    expect(
-      (await c.read(equipmentSetProvider('a').future))!.isDefault,
-      isFalse,
-    );
-  });
-
-  test('geofence add/update/remove re-hydrate equipmentSetProvider', () async {
-    final c = makeContainer();
-    final notifier = c.read(equipmentSetListNotifierProvider.notifier);
+    final sets = EquipmentSetRepository();
     await notifier.addSet(newSet('a', 'A'));
 
-    // Prime the hydrated cache (geofences empty).
+    // Prime the hydrated caches (geofences empty).
     expect(
       (await c.read(equipmentSetProvider('a').future))!.geofences,
       isEmpty,
     );
+    expect(await c.read(equipmentSetGeofencesProvider('a').future), isEmpty);
+    expect(
+      (await c.read(equipmentSetSelectionInputsProvider.future)).geofences,
+      isEmpty,
+    );
 
-    await notifier.addGeofence(fence('g1', 'a'));
+    await sets.addGeofence(fence('g1', 'a'));
+    await notifier.afterSittingSaved('a');
     expect(
       (await c.read(equipmentSetProvider('a').future))!.geofences,
       hasLength(1),
     );
-
-    await notifier.updateGeofence(fence('g1', 'a', radius: 55000));
+    expect(
+      (await c.read(equipmentSetGeofencesProvider('a').future)).single.id,
+      'g1',
+    );
     expect(
       (await c.read(
-        equipmentSetProvider('a').future,
-      ))!.geofences.first.radiusMeters,
-      55000,
+        equipmentSetSelectionInputsProvider.future,
+      )).geofences.single.id,
+      'g1',
     );
 
-    await notifier.removeGeofence('a', 'g1');
+    await sets.removeGeofence('g1');
+    await notifier.afterSittingSaved('a');
     expect(
       (await c.read(equipmentSetProvider('a').future))!.geofences,
       isEmpty,
@@ -152,7 +166,7 @@ void main() {
     final c = makeContainer();
     final notifier = c.read(equipmentSetListNotifierProvider.notifier);
     await notifier.addSet(newSet('a', 'A'));
-    await notifier.addGeofence(fence('g1', 'a'));
+    await EquipmentSetRepository().addGeofence(fence('g1', 'a'));
 
     final inputs = await c.read(equipmentSetSelectionInputsProvider.future);
     expect(inputs.sets.map((s) => s.id), contains('a'));
@@ -163,43 +177,10 @@ void main() {
     final c = makeContainer();
     final notifier = c.read(equipmentSetListNotifierProvider.notifier);
     await notifier.addSet(newSet('a', 'A'));
-    await notifier.addGeofence(fence('g1', 'a'));
+    await EquipmentSetRepository().addGeofence(fence('g1', 'a'));
 
     final fences = await c.read(equipmentSetGeofencesProvider('a').future);
     expect(fences.map((g) => g.id), contains('g1'));
-  });
-
-  test('updateSet returns the saved diff when the reload fails', () async {
-    // The set is written before the list reloads. A reload that fails must
-    // not hide what the save changed, or the dives that carry the set never
-    // follow it (issue #4283).
-    var failDiverLookup = false;
-    final c = ProviderContainer(
-      overrides: [
-        validatedCurrentDiverIdProvider.overrideWith((ref) async {
-          if (failDiverLookup) throw StateError('diver lookup failed');
-          return 'd1';
-        }),
-      ],
-    );
-    addTearDown(c.dispose);
-    final bcd = await EquipmentRepository().createEquipment(
-      const EquipmentItem(
-        id: '',
-        diverId: 'd1',
-        name: 'Wing',
-        type: EquipmentType.bcd,
-      ),
-    );
-    final notifier = c.read(equipmentSetListNotifierProvider.notifier);
-    final set = await notifier.addSet(newSet('a', 'A'));
-    failDiverLookup = true;
-    c.invalidate(validatedCurrentDiverIdProvider);
-
-    final diff = await notifier.updateSet(set.copyWith(equipmentIds: [bcd.id]));
-
-    expect(diff.added, [bcd.id]);
-    expect(diff.removed, isEmpty);
   });
 
   test('deleteSet removes it from the list', () async {

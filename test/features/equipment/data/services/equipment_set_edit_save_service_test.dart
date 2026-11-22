@@ -379,6 +379,8 @@ void main() {
     await save(session);
 
     expect(await gearOn('planned'), {'e1'});
+    // The planned dive still names the set, so it keeps following it.
+    expect(await setsOn('planned'), {'s1'});
     expect(await gearOn('logged'), {'e1', 'e2'});
     expect(await setsOn('logged'), {null});
     expect(await gearOn('outer'), {'e1', 'e2'});
@@ -395,6 +397,9 @@ void main() {
     expect(await gearOn('logged'), {'e1'});
     expect(await gearOn('outer'), {'e1'});
     expect(await gearOn('planned'), {'e1'});
+    // Rewritten along with the set, the logged dives keep naming it.
+    expect(await setsOn('logged'), {'s1'});
+    expect(await setsOn('outer'), {'s3'});
     await revertOnly();
     expect(await gearOn('logged'), {'e1', 'e2'});
     expect(await gearOn('outer'), {'e1', 'e2'});
@@ -427,6 +432,7 @@ void main() {
 
     expect(counting.allSetsReads, 0);
     expect(await gearOn('planned'), {'e1', 'e2'});
+    expect(await setsOn('logged'), {'s1'});
   });
 
   test('the rewritten dives are rescanned once, after the commit', () async {

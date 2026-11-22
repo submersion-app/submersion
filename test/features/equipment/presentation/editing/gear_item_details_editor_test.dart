@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -50,13 +51,18 @@ void main() {
     WidgetTester tester,
     EquipmentItem item, {
     Future<List<EquipmentItem>> Function()? active,
+    String? defaultCurrency,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 2600);
     addTearDown(tester.view.reset);
     final session = EditSession(item);
     addTearDown(session.dispose);
-    final overrides = await getBaseOverrides();
+    final settings = MockSettingsNotifier();
+    final overrides = await getBaseOverrides(settingsNotifier: settings);
+    if (defaultCurrency != null) {
+      await settings.setDefaultCurrency(defaultCurrency);
+    }
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -203,6 +209,7 @@ void main() {
     await tester.enterText(price, '4x0');
     await tester.pumpAndSettle();
     expect(gearDetailsValid(session), isFalse);
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
     expect(session.working.purchasePrice, 400);
 
     await tester.enterText(price, '450');
@@ -264,5 +271,206 @@ void main() {
     final saved = gearItemToSave(bcd, session.applyTo(bcd));
 
     expect(saved.attr(key)?.valueUnit, 'kg');
+  });
+
+  /// Runs the rest of a test under [locale], put back afterwards.
+  void underLocale(String locale) {
+    final previous = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previous);
+    Intl.defaultLocale = locale;
+  }
+
+  EquipmentItem wetsuit({double? price}) => EquipmentItem(
+    id: 'w1',
+    name: '7mm Wetsuit',
+    type: EquipmentType.wetsuit,
+    purchasePrice: price,
+    purchaseCurrency: 'EUR',
+    attributes: [
+      EquipmentAttribute.curated(
+        equipmentId: 'w1',
+        key: 'buoyancy_kg',
+        valueNum: 5.0,
+      ),
+      EquipmentAttribute.curated(
+        equipmentId: 'w1',
+        key: 'dry_weight_kg',
+        valueNum: 2.5,
+      ),
+    ],
+  );
+
+  final buoyancy = find.byKey(const ValueKey('attr-field-buoyancy_kg'));
+  final price = find.byKey(const ValueKey('equipment-purchase-price'));
+  final currencyMenu = find.byType(DropdownMenu<String>);
+
+  testWidgets('a stored attribute shows as stored, and a number typed is '
+      'held', (tester) async {
+    final session = await pumpEditor(tester, wetsuit());
+
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text('2.5'), findsOneWidget);
+    await tester.enterText(buoyancy, '-2.5');
+    await tester.pumpAndSettle();
+
+    expect(session.working.attrNum('buoyancy_kg'), -2.5);
+    expect(session.working.attrNum('dry_weight_kg'), 2.5);
+    expect(session.changedCardIds, {'details'});
+  });
+
+  testWidgets('an attribute cleared is taken off the item', (tester) async {
+    final session = await pumpEditor(tester, wetsuit());
+
+    await tester.enterText(buoyancy, '');
+    await tester.pumpAndSettle();
+
+    expect(session.working.attrNum('buoyancy_kg'), isNull);
+    expect(session.working.attrNum('dry_weight_kg'), 2.5);
+  });
+
+  testWidgets('under a comma locale an item opens unchanged, its price '
+      'written with a comma', (tester) async {
+    underLocale('de');
+    final session = await pumpEditor(tester, wetsuit(price: 12.5));
+
+    expect(find.text('12,5'), findsOneWidget);
+    expect(session.isDirty, isFalse);
+  });
+
+  testWidgets('a price typed with a comma decimal is read under a comma '
+      'locale', (tester) async {
+    underLocale('fr');
+    final session = await pumpEditor(tester, regulator);
+
+    await tester.enterText(price, '12,50');
+    await tester.pumpAndSettle();
+
+    expect(session.working.purchasePrice, 12.5);
+  });
+
+  testWidgets('a price cleared is no price', (tester) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 90, purchaseCurrency: 'EUR'),
+    );
+
+    await tester.enterText(price, '');
+    await tester.pumpAndSettle();
+
+    expect(session.working.purchasePrice, isNull);
+    expect(gearDetailsValid(session), isTrue);
+  });
+
+  testWidgets('the stored currency shows in its menu and its symbol on the '
+      'price', (tester) async {
+    await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+
+    expect(
+      tester.widget<DropdownMenu<String>>(currencyMenu).controller?.text,
+      'EUR',
+    );
+    expect(
+      tester.widget<TextField>(price).decoration?.prefixText,
+      contains('€'),
+    );
+  });
+
+  testWidgets('a stored currency outside the presets leads its menu', (
+    tester,
+  ) async {
+    await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'ISK'),
+    );
+
+    final entries = tester
+        .widget<DropdownMenu<String>>(currencyMenu)
+        .dropdownMenuEntries;
+    expect(entries.first.value, 'ISK');
+  });
+
+  testWidgets('a currency cleared falls back to the diver default, not '
+      'USD', (tester) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+      defaultCurrency: 'NOK',
+    );
+
+    await tester.enterText(
+      find.descendant(of: currencyMenu, matching: find.byType(TextField)),
+      '',
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.working.purchaseCurrency, 'NOK');
+  });
+
+  testWidgets('a purchase date is picked, and cleared', (tester) async {
+    final session = await pumpEditor(tester, regulator);
+
+    await tester.tap(find.byKey(const ValueKey('gear-edit-purchase-date')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(session.valueOf(gearPurchaseDateField), isNotNull);
+
+    await tester.tap(find.text(l.equipment_edit_clearDate));
+    await tester.pumpAndSettle();
+    expect(session.valueOf(gearPurchaseDateField), isNull);
+  });
+
+  testWidgets('fins show their stored colour, and a colour picked then '
+      'cleared is held', (tester) async {
+    final session = await pumpEditor(
+      tester,
+      EquipmentItem(
+        id: 'f1',
+        name: 'Jet fins',
+        type: EquipmentType.fins,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: 'f1',
+            key: 'color',
+            valueText: '#EF4444',
+          ),
+        ],
+      ),
+    );
+    final field = find.byKey(const ValueKey('attr-field-color'));
+    expect(find.descendant(of: field, matching: find.text('Red')), findsOne);
+
+    await tester.tap(field);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('color-swatch-#14B8A6')));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: field, matching: find.text('Teal')), findsOne);
+    expect(session.working.attrText('color'), '#14B8A6');
+
+    await tester.tap(
+      find.descendant(of: field, matching: find.byIcon(Icons.clear)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: field, matching: find.text('--')), findsOne);
+    expect(session.working.attrText('color'), isNull);
+  });
+
+  testWidgets('the attribute fields follow the type held in the sitting', (
+    tester,
+  ) async {
+    final session = await pumpEditor(tester, regulator);
+    Finder fieldOf(String key) => find.byKey(ValueKey('attr-field-$key'));
+    expect(fieldOf('connection'), findsOneWidget);
+    expect(fieldOf('thickness_mm'), findsNothing);
+
+    session.set(gearTypeField, EquipmentType.wetsuit);
+    await tester.pumpAndSettle();
+
+    expect(fieldOf('thickness_mm'), findsOneWidget);
+    expect(fieldOf('connection'), findsNothing);
   });
 }

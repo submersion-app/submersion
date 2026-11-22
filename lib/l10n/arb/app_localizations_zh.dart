@@ -16131,16 +16131,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => '复制装备';
 
   @override
-  String get equipment_edit_appBar_editTitle => '编辑装备';
-
-  @override
   String get equipment_edit_appBar_newTitle => '新建装备';
-
-  @override
-  String get equipment_edit_appBar_saveButton => '保存';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip => '保存装备更改';
 
   @override
   String get equipment_edit_brandLabel => '品牌';
@@ -16158,47 +16149,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_disableRemindersSubtitle => '关闭此物品的所有通知';
 
   @override
-  String get equipment_edit_discardDialog_content => '您有未保存的更改。确定要离开吗?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => '丢弃';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing => '继续编辑';
-
-  @override
-  String get equipment_edit_discardDialog_title => '丢弃更改？';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => '取消';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle => '编辑装备';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => '新建装备';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => '保存';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit => '保存装备更改';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new => '添加新装备';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return '错误： $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => '错误';
-
-  @override
-  String get equipment_edit_loadingTitle => '加载中...';
-
-  @override
   String get equipment_edit_modelLabel => '型号';
 
   @override
@@ -16211,25 +16161,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_nameValidation => '请输入名称';
 
   @override
-  String get equipment_edit_notFoundMessage => '此装备已不存在。';
-
-  @override
-  String get equipment_edit_notFoundTitle => '装备未找到';
-
-  @override
   String get equipment_edit_notesHint => '关于此装备的其他备注...';
 
   @override
   String get equipment_edit_notesLabel => '备注';
-
-  @override
-  String get equipment_edit_notificationsSubtitle => '覆盖此物品的全局通知设置';
-
-  @override
-  String get equipment_edit_notificationsTitle => '通知 (可选)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => '购买日期';
 
   @override
   String get equipment_edit_purchaseInfoTitle => '购买信息';
@@ -16253,14 +16188,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => '序列编号';
-
-  @override
-  String get equipment_edit_snackbar_added => '装备已添加';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return '保存装备出错：$error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView => '已保存，但当前列表视图将其隐藏';
@@ -16710,15 +16637,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_arrange_groupByLocationSubtitle => '每个地点一个标题，仅限此页';
 
   @override
-  String get equipment_edit_locationLabel => '位置';
-
-  @override
-  String get equipment_edit_locationNone => '未设置';
-
-  @override
-  String get equipment_edit_locationFailed => '已保存，但无法设置其位置。请在该物品上使用“移动”进行设置。';
-
-  @override
   String get equipment_locations_title => '位置';
 
   @override
@@ -16813,12 +16731,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name（副本）';
   }
-
-  @override
-  String get equipment_clone_partialCopy => '已复制，但部分维护倒计时、装备套装或文档未能复制。';
-
-  @override
-  String get equipment_clone_snackbar_cloned => '装备已复制';
 
   @override
   String get equipment_menu_clone => '复制';
@@ -17404,9 +17316,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_addEquipmentFirst => '请先添加装备再创建套装。';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => '编辑套装';
-
-  @override
   String get equipment_setEdit_appBar_newTitle => '新建装备套装';
 
   @override
@@ -17424,12 +17333,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => '错误';
-
-  @override
-  String get equipment_setEdit_loadingTitle => '加载中...';
-
-  @override
   String get equipment_setEdit_nameHint => 'e.g., 温暖水设置';
 
   @override
@@ -17442,36 +17345,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_noEquipmentAvailable => '无装备可用';
 
   @override
-  String get equipment_setEdit_notFoundMessage => '此装备套装已不存在。';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => '未找到套装';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit => '保存装备套装更改';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new => '创建新装备套装';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle => '选择要包含在此套装中的装备。';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle => '选择装备';
-
-  @override
-  String get equipment_setEdit_snackbar_created => '装备套装已创建';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned => '装备套装已复制';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return '保存出错装备套装: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated => '装备套装已更新';
 
   @override
   String get equipment_sets_appBar_title => '装备套装';
@@ -33634,27 +33508,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_appBar_add => '添加旅行';
 
   @override
-  String get trips_edit_appBar_edit => '编辑旅行';
-
-  @override
-  String get trips_edit_button_cancel => '取消';
-
-  @override
-  String get trips_edit_button_save => '保存';
-
-  @override
-  String get trips_edit_dialog_discard => '丢弃';
-
-  @override
-  String get trips_edit_dialog_discardContent => '您有未保存的更改。确定要离开吗?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => '丢弃更改？';
-
-  @override
-  String get trips_edit_dialog_keepEditing => '继续编辑';
-
-  @override
   String trips_edit_durationDays(int days) {
     return '$days 天';
   }
@@ -33712,30 +33565,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => '旅行名称 *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => '旅行日期';
-
-  @override
-  String get trips_edit_sectionTitle_location => '位置';
-
-  @override
-  String get trips_edit_sectionTitle_notes => '备注';
-
-  @override
-  String get trips_edit_semanticLabel_save => '保存旅行';
-
-  @override
-  String get trips_edit_snackBar_added => '旅行添加成功';
-
-  @override
-  String get trips_edit_snackBar_errorLoading => '无法加载旅行，请重试。';
-
-  @override
-  String get trips_edit_snackBar_errorSaving => '无法保存旅行，请重试。';
-
-  @override
-  String get trips_edit_snackBar_updated => '旅行更新成功';
 
   @override
   String get trips_edit_validation_nameRequired => '请输入旅行名称';
@@ -34025,9 +33854,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_type_description_shore => '一天或多天的岸潜';
 
   @override
-  String get trips_edit_sectionTitle_vessel => '船只详情';
-
-  @override
   String get trips_edit_label_vesselName => '船只名称 *';
 
   @override
@@ -34050,9 +33876,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => '乘客容量';
-
-  @override
-  String get trips_edit_sectionTitle_planning => '计划';
 
   @override
   String get trips_edit_label_diversSharing => '共用气瓶的潜水员';
@@ -34576,9 +34399,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => '自定义';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark => '上船/下船';
 
   @override
   String get trips_edit_label_embarkPort => '登船港口';
@@ -38761,9 +38581,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => '体重';
-
-  @override
-  String get equipment_edit_advanced_title => '高级';
 
   @override
   String get planner_gearWeights_accept => '用作计划配重';

@@ -1294,7 +1294,7 @@ void main() {
     });
 
     // Issue #2520: a battery has no colour, so one that reached it shows
-    // as the diver's own field, the way the edit form keeps it.
+    // as the diver's own field, the way the Details editor keeps it.
     testWidgets('a colour on a battery shows as a custom field', (
       tester,
     ) async {
