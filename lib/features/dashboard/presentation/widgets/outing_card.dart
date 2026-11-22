@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_outings_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/outing_sites_map.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One postcard on Home's Recent outings panel: a cover, then the outing's
-/// name, dates and numbers. The cover is the outing's chosen photo or video,
-/// or its depth skyline when it has none or the item cannot be drawn.
+/// name, dates and numbers. The cover is the outing's chosen photo or video;
+/// without one, or when it cannot be drawn, a map of the sites dived, or the
+/// depth skyline when no site has a position.
 class OutingCard extends ConsumerStatefulWidget {
   final HomeOuting outing;
 
@@ -92,11 +94,20 @@ class _OutingCardState extends ConsumerState<OutingCard> {
                       children: [
                         // Shown until the cover has drawn, and for good when
                         // it cannot: a missing file, a photo still on its
-                        // way, a video with no poster.
-                        OutingSkyline(
-                          depths: outing.depths,
-                          scaleMeters: widget.skylineScaleMeters,
-                        ),
+                        // way, a video with no poster. A map of the sites
+                        // dived, faded into the card as the dive details
+                        // header's is, or the depth skyline when no site
+                        // has a position.
+                        if (outing.sites.isNotEmpty)
+                          _MapCover(
+                            fadeColor: scheme.surface,
+                            child: OutingSitesMap(sites: outing.sites),
+                          )
+                        else
+                          OutingSkyline(
+                            depths: outing.depths,
+                            scaleMeters: widget.skylineScaleMeters,
+                          ),
                         if (cover != null && !_coverFailed)
                           Opacity(
                             opacity: _coverReady ? 1 : 0,
@@ -162,6 +173,55 @@ class _OutingCardState extends ConsumerState<OutingCard> {
       ),
     );
   }
+}
+
+/// A map cover that fades into the card's text strip below it. Lighter than
+/// the dive details header's fade, whose text sits on the map: here only
+/// the bottom edge needs to meet the strip. The map stops [_inset] short of
+/// the bottom, under a band the fade has made solid, so a sub-pixel offset
+/// during an overscroll cannot show its edge as a bright line (the header
+/// backdrop's reason for the same inset).
+class _MapCover extends StatelessWidget {
+  final Color fadeColor;
+  final Widget child;
+
+  const _MapCover({required this.fadeColor, required this.child});
+
+  static const double _inset = 6;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final h = box.maxHeight;
+      final solid = h > _inset ? (h - _inset) / h : 0.0;
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: _inset),
+            child: child,
+          ),
+          IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [0, 0.55 * solid, solid, 1],
+                  colors: [
+                    fadeColor.withValues(alpha: 0),
+                    fadeColor.withValues(alpha: 0.15),
+                    fadeColor,
+                    fadeColor,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 /// An outing's dates: one day, or the first through the last.

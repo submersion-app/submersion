@@ -9,6 +9,7 @@ import 'package:submersion/features/dashboard/domain/home_outings.dart';
 import 'package:submersion/features/dashboard/presentation/panels/recent_outings_panel.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_outings_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/outing_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/outing_sites_map.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -524,5 +525,58 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     expect(cover().opacity, 1);
+  });
+
+  group('a cover without a photo', () {
+    Outing sited(String id) => _outing(
+      id,
+      tripId: 't',
+    ).copyWith(sites: const [(latitude: 18.4654, longitude: -66.0859)]);
+
+    testWidgets('is a map of the outing\'s sites when they have a position', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        outings: () async => [HomeOuting(outing: sited('pr'))],
+      );
+      expect(find.byType(OutingSitesMap), findsOneWidget);
+      expect(find.byType(OutingSkyline), findsNothing);
+    });
+
+    testWidgets('is the skyline when no site has a position', (tester) async {
+      await _pump(tester, outings: () async => _many(1));
+      expect(find.byType(OutingSitesMap), findsNothing);
+      expect(find.byType(OutingSkyline), findsOneWidget);
+    });
+
+    testWidgets('a photo that cannot load falls back to the map', (
+      tester,
+    ) async {
+      final missing = MediaItem(
+        id: 'gone',
+        mediaType: MediaType.photo,
+        sourceType: MediaSourceType.platformGallery,
+        takenAt: DateTime(2026, 5, 3),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      await _pump(
+        tester,
+        outings: () async => [HomeOuting(outing: sited('pr'), cover: missing)],
+        extra: [
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.platformGallery: _Toggle(),
+            }),
+          ),
+        ],
+      );
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.byType(MediaItemView), findsNothing);
+      expect(find.byType(OutingSitesMap), findsOneWidget);
+    });
   });
 }

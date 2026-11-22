@@ -58,6 +58,8 @@ void main() {
           DiveSitesCompanion.insert(
             id: 's1',
             name: 'Invisibles',
+            latitude: const Value(12.0776),
+            longitude: const Value(-68.2802),
             createdAt: 0,
             updatedAt: 0,
           ),
@@ -106,6 +108,9 @@ void main() {
       expect(newest.tripId, 't1');
       expect(newest.tripName, 'Bonaire May 2026');
       expect(newest.siteName, 'Invisibles');
+      expect(newest.siteLatitude, 12.0776);
+      expect(newest.siteLongitude, -68.2802);
+      expect(dives.last.siteLatitude, isNull);
       expect(newest.maxDepth, 29.7);
       expect(newest.speciesIds, {'a', 'b'});
       expect(dives.last.speciesIds, {'a'});

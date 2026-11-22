@@ -114,8 +114,13 @@ site, in this order:
    photos before videos, earliest first.
 3. The earliest photo, then the earliest video.
 
-With no media, or when the chosen item cannot be loaded, the cover is the
-outing's depth skyline: a thin surface line with one bar per dive hanging
+With no media, or when the chosen item cannot be loaded, the cover is a map
+of the outing's dive sites (added after review, chosen by the maintainer from
+mockups): the app's tile layer with a diver pin per site that has a position,
+fitted to all of them (a single site at the dive details header's zoom, 12),
+not interactive, fading into the card's text strip only at its bottom edge.
+Only when no site has a position is the cover the outing's depth skyline: a
+thin surface line with one bar per dive hanging
 below it, each as long as that dive's maximum depth. Every card's skyline uses
 the same depth scale (the deepest dive among the outings shown), so a pool
 session reads shallow beside a reef trip. Bars use the theme's primary colour

@@ -14,6 +14,7 @@ OutingDive _dive(
   String? site,
   double? depth,
   Set<String> species = const {},
+  (double, double)? at,
 }) => OutingDive(
   id: id,
   dateTime: DateTime.utc(year, month, day, hour, minute),
@@ -22,6 +23,8 @@ OutingDive _dive(
   siteName: site,
   maxDepth: depth,
   speciesIds: species,
+  siteLatitude: at?.$1,
+  siteLongitude: at?.$2,
 );
 
 CoverCandidate _media(
@@ -194,6 +197,19 @@ void main() {
         expect(beyond, hasLength(2));
       },
     );
+
+    test('an outing lists its sites with a position once, in date order', () {
+      final outings = groupOutings([
+        _dive('a', 5, 3, tripId: 't', at: (12.1717, -68.2894)),
+        _dive('b', 5, 4, tripId: 't', at: (12.0776, -68.2802)),
+        _dive('c', 5, 5, tripId: 't', at: (12.1717, -68.2894)),
+        _dive('d', 5, 6, tripId: 't'),
+      ]);
+      expect(outings.single.sites, [
+        (latitude: 12.1717, longitude: -68.2894),
+        (latitude: 12.0776, longitude: -68.2802),
+      ]);
+    });
 
     test('no dives give no outings', () {
       expect(groupOutings(const []), isEmpty);

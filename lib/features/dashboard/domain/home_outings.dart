@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+/// A dive site's position, as an outing's map pins it.
+typedef OutingSite = ({double latitude, double longitude});
+
 /// One dive as the Home outings panel needs it.
 @immutable
 class OutingDive {
@@ -13,6 +16,10 @@ class OutingDive {
   final double? maxDepth;
   final Set<String> speciesIds;
 
+  /// The dive site's position, when the site has one.
+  final double? siteLatitude;
+  final double? siteLongitude;
+
   const OutingDive({
     required this.id,
     required this.dateTime,
@@ -21,6 +28,8 @@ class OutingDive {
     this.siteName,
     this.maxDepth,
     this.speciesIds = const {},
+    this.siteLatitude,
+    this.siteLongitude,
   });
 
   OutingDive copyWith({
@@ -31,6 +40,8 @@ class OutingDive {
     String? siteName,
     double? maxDepth,
     Set<String>? speciesIds,
+    double? siteLatitude,
+    double? siteLongitude,
   }) => OutingDive(
     id: id ?? this.id,
     dateTime: dateTime ?? this.dateTime,
@@ -39,6 +50,8 @@ class OutingDive {
     siteName: siteName ?? this.siteName,
     maxDepth: maxDepth ?? this.maxDepth,
     speciesIds: speciesIds ?? this.speciesIds,
+    siteLatitude: siteLatitude ?? this.siteLatitude,
+    siteLongitude: siteLongitude ?? this.siteLongitude,
   );
 }
 
@@ -63,6 +76,10 @@ class Outing {
   /// Each dive's maximum depth in date order, a missing depth as 0.
   final List<double> depths;
 
+  /// The positions of the sites dived, each once, in date order; empty when
+  /// no site has a position.
+  final List<OutingSite> sites;
+
   const Outing({
     required this.tripId,
     required this.name,
@@ -72,6 +89,7 @@ class Outing {
     required this.maxDepth,
     required this.speciesCount,
     required this.depths,
+    this.sites = const [],
   });
 
   int get diveCount => diveIds.length;
@@ -85,6 +103,7 @@ class Outing {
     double? maxDepth,
     int? speciesCount,
     List<double>? depths,
+    List<OutingSite>? sites,
   }) => Outing(
     tripId: tripId ?? this.tripId,
     name: name ?? this.name,
@@ -94,6 +113,7 @@ class Outing {
     maxDepth: maxDepth ?? this.maxDepth,
     speciesCount: speciesCount ?? this.speciesCount,
     depths: depths ?? this.depths,
+    sites: sites ?? this.sites,
   );
 }
 
@@ -175,6 +195,13 @@ Outing _outingOf(List<OutingDive> dives) {
     maxDepth: known.isEmpty ? null : known.reduce((a, b) => a > b ? a : b),
     speciesCount: {for (final d in dives) ...d.speciesIds}.length,
     depths: List.unmodifiable(depths),
+    sites: List.unmodifiable(
+      {
+        for (final d in dives)
+          if (d.siteLatitude != null && d.siteLongitude != null)
+            (latitude: d.siteLatitude!, longitude: d.siteLongitude!),
+      }.toList(),
+    ),
   );
 }
 

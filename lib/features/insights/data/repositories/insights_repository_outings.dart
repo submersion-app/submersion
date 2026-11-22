@@ -10,6 +10,8 @@ String _outingDivesSelect(String where) =>
           d.trip_id AS trip_id,
           t.name AS trip_name,
           s.name AS site_name,
+          s.latitude AS site_latitude,
+          s.longitude AS site_longitude,
           d.max_depth AS max_depth,
           (SELECT group_concat(DISTINCT g.species_id)
              FROM sightings g WHERE g.dive_id = d.id) AS species
@@ -26,6 +28,8 @@ OutingDive _outingDiveFromRow(QueryRow row) => OutingDive(
   tripName: row.readNullable<String>('trip_name'),
   siteName: row.readNullable<String>('site_name'),
   maxDepth: row.readNullable<double>('max_depth'),
+  siteLatitude: row.readNullable<double>('site_latitude'),
+  siteLongitude: row.readNullable<double>('site_longitude'),
   speciesIds: {
     for (final id in (row.readNullable<String>('species') ?? '').split(','))
       if (id.isNotEmpty) id,
