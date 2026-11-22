@@ -14,6 +14,9 @@ as `2026.11.18.0030`; scored on it, every number below came out the same,
 and "Two detectors in one pack" adds what is new (#4691,
 [design](../specs/2026-11-17-marine-life-two-detectors-design.md)).
 A rerun on it measured the naming levels, in "Naming levels" (#4721).
+The ONNX engine that runs on Android, Windows and Linux was gated against
+Core ML on pack `2026.11.20.0513`, in "The ONNX engine against Core ML"
+(#4801).
 All use BioCLIP 2 (`bioclip-2-vitl14-2957b32`), 16-bit Core ML on an
 Apple M5 Pro, through the app's own Swift pipeline. The numbers below are
 for the 9,151 pack unless they say otherwise; "The candidate list with
@@ -481,6 +484,123 @@ location:
 `relevel_manifest.py` adds the pair's levels and Surer's precision to the
 published manifest under the same pack version, so the app takes the new
 manifest in place, with nothing downloaded.
+
+## The ONNX engine against Core ML
+
+Task D1 of piece 3 (#4801,
+[design](../specs/2026-11-19-marine-life-identification-3-other-platforms-design.md),
+[plan](../plans/2026-11-20-marine-life-identification-3-other-platforms.md)),
+run on 2026-11-21 and 2026-11-22. The candidate was pack
+`2026.11.20.0513` with its ONNX files added and every Core ML and shared
+file byte for byte the live release's. Each engine scored the test set
+through the app's own pipeline: Core ML through the Swift one, ONNX
+through the Dart one (`tool/species_vision_onnx`, ONNX Runtime on the
+M5 Pro's processor). `engine_gate.py` compares the two at the pack's
+bars, and `gate.py --trained-onnx` runs the same checks inside the naming
+layer's gate. Nothing was published.
+
+### The first run failed
+
+| Check (held out, both detectors, centre crop) | Result |
+| --- | --- |
+| Named right, Core ML against ONNX (1,076 photos) | 602 against 586, not significantly fewer (McNemar) |
+| No group worse | passed |
+| Junk named by ONNX (limit 2%) | 1.96% |
+| Junk crops found by only one engine (3.1 of 62 allowed) | 9: failed |
+| Linux x64 against the Mac (100 photos, every crop's cosine 0.999 or more) | 1 of 203 crops at 0.99636: failed |
+
+The x64 failure was one crop whose box differed by about 3e-6 of the
+image's width between the machines, enough for its padded edge to round
+to the next pixel. The rest pointed at the pixels the Dart pipeline fed
+the models, not at the models: given the Swift pipeline's own pixels, the
+ONNX classifier matched Core ML at an embedding cosine of 0.99999, so the
+16-bit weights were not the cause. On 300 sample crops, the Dart
+pipeline's embeddings were at a median cosine of 0.951 to Core ML's for
+crops under 100 px (5th percentile 0.867), 0.992 for medium ones and
+0.995 for large ones.
+
+### Two causes, both fixed in the engine (#4853)
+
+- **The filter.** CoreGraphics' high quality interpolation, measured with
+  impulses, edges, noise and full response matrices drawn through
+  `CGContext`, is not the area average and bilinear filter the Dart
+  pipeline used. Enlarging, it blends the two nearest pixels on a curve
+  stepped in eighths (0, 1, 2, 4, 8, 12, 14, 15 and 16 sixteenths; half
+  an eighth rounds up). Shrinking, it maps the first and last source
+  pixels to the first and last output pixels and applies a Keys cubic
+  (a = -0.5) widened by the scale. `pipeline/resampling.dart` draws the
+  same way, to within a level or two; a shrink of under about 1.5 times
+  also snaps the phase in CoreGraphics, which is not modelled (up to 3
+  levels on noise, a fraction of one on photos). With this filter alone,
+  the small crops' median cosine rose to 0.996 (5th percentile 0.981).
+- **Colour.** Flutter's decoder ignores a photo's embedded colour profile
+  (its output equals a plain libjpeg decode), while ImageIO converts to
+  sRGB. 674 of the 3,668 test photos carry Display P3, whose red reached
+  the ONNX models about 9 levels high. `pipeline/colour_profile.dart`
+  reads matrix and curve profiles from JPEG and PNG files and converts to
+  sRGB as littleCMS does.
+
+What the engine cannot remove is JPEG decoding: on the photos checked,
+ImageIO and the decoder Flutter uses on every platform differ by 0.2 to
+1.3 levels on average, and by up to 10 at the 99th percentile. Detector
+boxes found by only one engine, on a sample of photos:
+
+| Detector | Before | Fixed | Identical pixels (the floor) |
+| --- | --- | --- | --- |
+| RF-DETR (295 boxes) | 42 | 28 | 10 (16-bit arithmetic alone) |
+| Megalodon (116 boxes) | 13 | 2 | |
+
+### The junk pairing rule
+
+The fixed engine still lost 4 of the 62 held-out junk crops: RF-DETR
+boxes Core ML scored 0.306 to 0.349, just over the 0.30 cut-off, and
+ONNX 0.27 to 0.295. Given identical pixels the two engines scored them
+within 0.006 of each other, so three were lost to JPEG decoding and one
+to the filter's small remaining difference. The junk rows were labelled
+on Core ML's boxes, so only another engine can lose one, and a crop the
+ONNX engine drew no box over cannot hide junk it named. The maintainer
+decided ("Count moved boxes too") that the 5% limit counts only crops
+ONNX alone found and crops it lost with a box still over the same object
+(overlap 0.5 or more); species-pack#5 made the change. None of the 4
+counts. Under the same rule, the unfixed engine's first run would have
+counted 3 (boxes moved to overlaps of 0.67, 0.87 and 0.88) against 3.1
+allowed, so this gate on its own would not have required the fix.
+
+### Speed
+
+Drawing as CoreGraphics does costs more: shrinking a 12 MP photo to a
+640 px detector input reads about 25 source pixels across and 19 down for
+each output pixel. The engine draws both detector inputs from one shared
+first pass, in whole-number arithmetic, and converts colour in fixed
+point. Measured in one process on the M5 Pro:
+
+| Per 12 MP photo | Before D1 | First fix | Merged |
+| --- | --- | --- | --- |
+| Both detector inputs | 105 ms | 419 ms | 161 ms |
+| Display P3 to sRGB | none | 447 ms | 125 ms |
+
+### The final run
+
+On the engine as merged (`061ba24`; the code scored was the same):
+
+| Check | Result |
+| --- | --- |
+| The pack's bars stand held out on ONNX | passed, none switched off |
+| Named right, Core ML against ONNX (1,076 photos) | 602 against 602 (22 only on each side, p = 1.0) |
+| No group worse | passed, every group p = 1.0 |
+| Junk named by ONNX (limit 2%) | 2.0% (Core ML 1.8%) |
+| Junk crops lost, counted against the 5% | 4 lost, none counted |
+| `gate.py` with the ONNX checks | ship, every check passing (602 named right against the baseline's 304) |
+| Linux x64 against the Mac (100 photos) | passed: 198 crops, lowest cosine 0.99999999678, same outcome on all |
+
+On x64 the three converted models were byte for byte the Mac's, and the
+photos matched by SHA-256.
+
+**Not measured:** the test photos are at most 1,024 px, so the path for
+photos over 4,096 px is untested. There Flutter shrinks the decode before
+the colour conversion, as ImageIO's capped decode does (it stays in the
+photo's own colour space; checked on a 6,000 px Display P3 photo), but
+the two shrink differently, as they decode differently.
 
 ## Licence notes
 
