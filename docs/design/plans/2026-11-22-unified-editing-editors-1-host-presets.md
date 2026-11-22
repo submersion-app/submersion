@@ -454,5 +454,33 @@ pinned to the gist commit). Bind the PR and report its checks.
 
 ## After the build
 
-Record here what changed from this plan while building it, for plan 2 to
-build on.
+Built natively on 2026-11-22 (commits 81d29d104a8 to afb700eb24d). What
+changed from this plan, for plan 2 to build on:
+
+- **The host gained two members.** `String? get editorDiverId`: the active
+  diver as Save resolved it, read before the transaction opens; a new
+  record is created under it (read it in `writeEditor`, never
+  `validatedCurrentDiverIdProvider` inside the write, which could wait on
+  the transaction's lock). `String? get editorLeaveLocation`: where the
+  page goes when nothing is under it (each editor returns its list route);
+  null stays.
+- **Save also closes the editor when the diver changed** while it resolved
+  the diver or while a failed write ran.
+- **A throw in `afterEditorSaved`** is logged; the page leaves anyway.
+- **The shared leave guard** (`record_edit_leave_guard.dart`) no longer pops
+  after its discard question when the page was closed meanwhile (an
+  editor's page sits in the shell navigator, the question in the root one).
+  This touches every record page; no record page test changed.
+- **New records open their sitting in `initState`**, not after the first
+  frame, so the first frame shows the tinted bar. Stored records open once
+  their load has filled the form.
+- **A tank preset that is missing or fails to load** says so and goes back
+  to the list, as the weight editor did. New string
+  `tankPresets_edit_notFound` in all locales. `tankPresets_edit_errorSaving`
+  stays: the dive's tank card uses it.
+- **Tests that type and tap Save in the same frame** need a `pump()` between:
+  Save enables on the next frame.
+- **A first-frame test must look offstage** (`skipOffstage: false`): a
+  pushed route's first frame builds offstage.
+- The weight preset repository test lives in
+  `test/features/weight_presets/weight_preset_repository_test.dart`.
