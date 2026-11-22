@@ -322,6 +322,54 @@ void main() {
     expect(location.savedConfig, isNull);
   });
 
+  test('replace refuses rather than overwrite a dive log it could not back '
+      'up, when the look-up fails or stalls', () async {
+    final service = await initServiceAt(
+      p.join(root.path, 'default'),
+      folderTimeout: const Duration(seconds: 1),
+    );
+    final targetDir = p.join(root.path, 'target');
+    final targetPath = p.join(
+      targetDir,
+      DatabaseLocationService.databaseFilename,
+    );
+    await _seedDatabase(targetPath);
+    final before = File(targetPath).readAsBytesSync();
+
+    location.failExistsCheck = true;
+    final failed = await service.replaceExistingDatabase(targetDir);
+    location
+      ..failExistsCheck = false
+      ..stallExistsCheck = true;
+    final stalled = await service.replaceExistingDatabase(targetDir);
+
+    for (final result in [failed, stalled]) {
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('Could not check'));
+    }
+    expect(File(targetPath).readAsBytesSync(), before);
+    expect(DatabaseService.instance.currentPath, currentPath);
+    expect(location.savedConfig, isNull);
+  });
+
+  test('replace into a folder the app may not write to refuses before it '
+      'writes a backup there', () async {
+    final service = await initServiceAt(p.join(root.path, 'default'));
+    final targetDir = p.join(root.path, 'target');
+    await _seedDatabase(
+      p.join(targetDir, DatabaseLocationService.databaseFilename),
+    );
+    location.accessible = false;
+
+    final result = await service.replaceExistingDatabase(targetDir);
+
+    expect(result.errorMessage, contains('Cannot write'));
+    expect(
+      Directory(targetDir).listSync().map((e) => p.basename(e.path)),
+      isNot(contains(contains('_backup_'))),
+    );
+  });
+
   test('a plain move refuses when the folder stops answering at its write '
       'check, rather than wait on it', () async {
     final service = await initServiceAt(

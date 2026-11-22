@@ -82,19 +82,48 @@ extension _FolderChecks on DatabaseMigrationService {
   /// none. The folder check found nothing there, or ran out of time before
   /// it could tell (a NAS still waking, say), so one that is there after all
   /// is overwritten only through Replace, which backs it up first.
-  Future<MigrationResult?> _refuseIfOccupied(String folderPath) async {
+  Future<MigrationResult?> _refuseIfOccupied(String folderPath) async =>
+      switch (await _holdsDiveLog(folderPath)) {
+        true => MigrationResult.failure(_occupied),
+        false => null,
+        null => MigrationResult.failure(_cannotCheck),
+      };
+
+  /// Readies a Replace into [folderPath]: the refusal when it cannot go
+  /// ahead, or null once the dive log there is backed up (or there is none).
+  /// The write check comes first, as the backup writes there too. The backup
+  /// is the only way back from the overwrite, so a look-up that fails or
+  /// stalls refuses rather than read as "nothing to back up".
+  Future<MigrationResult?> _backUpBeforeReplacing(String folderPath) async {
+    final unwritable = await _refuseUnlessWritable(folderPath);
+    if (unwritable != null) return unwritable;
+    final holds = await _holdsDiveLog(folderPath);
+    if (holds == null) return MigrationResult.failure(_cannotCheck);
+    if (holds) {
+      // Through _createBackup so the copy carries the target's `-wal`: that
+      // file is not ours and may well have been left with an uncheckpointed
+      // sidecar.
+      await _createBackup(
+        p.join(folderPath, DatabaseLocationService.databaseFilename),
+      );
+    }
+    return null;
+  }
+
+  /// Whether a dive log is in [folderPath], or null when the look-up fails
+  /// or does not answer in time: not "nothing there", since one may be
+  /// behind the error.
+  Future<bool?> _holdsDiveLog(String folderPath) async {
     try {
-      final occupied = await _withTimeout(
+      return await _withTimeout(
         _locationService.databaseExistsAt(folderPath),
         'Folder check',
         timeout: _folderTimeout,
       );
-      return occupied ? MigrationResult.failure(_occupied) : null;
     } on TimeoutException {
-      return MigrationResult.failure(_cannotCheck);
+      return null;
     } on FileSystemException {
-      // Not "nothing there": a dive log may be behind the error
-      return MigrationResult.failure(_cannotCheck);
+      return null;
     }
   }
 }

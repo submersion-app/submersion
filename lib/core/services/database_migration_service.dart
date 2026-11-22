@@ -536,18 +536,10 @@ class DatabaseMigrationService {
       folderPath,
     );
     if (refusal != null) return refusal;
-    final newPath = p.join(
-      folderPath,
-      DatabaseLocationService.databaseFilename,
-    );
 
-    // Create backup of the existing database at target before overwriting.
-    // Through _createBackup so the copy carries the target's `-wal`: that file
-    // is not ours and may well have been left with an uncheckpointed sidecar,
-    // and this copy is the only way back from an overwrite.
-    if (await File(newPath).exists()) {
-      await _createBackup(newPath);
-    }
+    // Back up the existing database at target before overwriting it
+    final notReady = await _backUpBeforeReplacing(folderPath);
+    if (notReady != null) return notReady;
 
     // Already inside this turn's SyncCoordinator.join
     return _migrateToCustomFolder(folderPath, replacing: true);
