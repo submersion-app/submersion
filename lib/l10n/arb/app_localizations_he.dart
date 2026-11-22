@@ -25388,6 +25388,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'החלפות גז נערכו ידנית';
 
   @override
+  String get settings_conflict_field_handSetFields => 'ערכים שהוגדרו ידנית';
+
+  @override
   String get settings_conflict_field_mediaTimeOffsetSeconds => 'הסטת זמן המדיה';
 
   @override
@@ -39057,6 +39060,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'צלילות ששמרו על ערכים שהגדרת ידנית: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'צלילות שנכשלו';
 
   @override
@@ -39082,6 +39090,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'צלילות נבחרות ללא נתונים גולמיים (ידולגו): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept => 'ערכים שהגדרת ידנית נשמרים.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -39244,6 +39255,40 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'סנכרן מחדש מהקובץ המקורי';
+
+  @override
+  String get handSetReview_reparseTitle => 'לנתח מחדש את הצלילה הזו?';
+
+  @override
+  String get handSetReview_resyncTitle => 'לסנכרן מחדש את הצלילה הזו?';
+
+  @override
+  String get handSetReview_message =>
+      'הגדרת את הערכים האלה ידנית, והקריאה החדשה שונה. שמור את שלך או החלף כל אחד מהם.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'שלך: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'מחשב: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'קובץ: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'שמור';
+
+  @override
+  String get handSetReview_replace => 'החלף';
+
+  @override
+  String get handSetReview_resyncAction => 'סנכרן מחדש';
 
   @override
   String get diveLog_detail_resyncSuccess => 'הצלילה עודכנה מהקובץ המקורי';

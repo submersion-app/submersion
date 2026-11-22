@@ -25590,6 +25590,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Gas switches edited by hand';
 
   @override
+  String get settings_conflict_field_handSetFields => 'Values set by hand';
+
+  @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
       'Media time shift';
 
@@ -39360,6 +39363,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Dives that kept values you set by hand: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Failed dives';
 
   @override
@@ -39385,6 +39393,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Selected dives without raw data (skipped): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Values you set by hand are kept.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -39546,6 +39558,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Resync from original file';
+
+  @override
+  String get handSetReview_reparseTitle => 'Re-parse this dive?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Resync this dive?';
+
+  @override
+  String get handSetReview_message =>
+      'You set these values by hand, and the new reading differs. Keep yours or replace each one.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Yours: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Computer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'File: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Keep';
+
+  @override
+  String get handSetReview_replace => 'Replace';
+
+  @override
+  String get handSetReview_resyncAction => 'Resync';
 
   @override
   String get diveLog_detail_resyncSuccess =>

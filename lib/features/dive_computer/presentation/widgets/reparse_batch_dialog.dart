@@ -60,6 +60,9 @@ Future<bool> confirmBatchReparse(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l10n.reparseBatch_confirmMessage(count)),
+          // A batch asks nothing per dive (issue #4909).
+          const SizedBox(height: 12),
+          Text(l10n.reparseBatch_confirmHandSetKept),
           if (skipped > 0) ...[
             const SizedBox(height: 12),
             Text(l10n.reparseBatch_confirmSkipped(skipped)),
@@ -169,6 +172,8 @@ class _ResultsDialog extends ConsumerWidget {
       if (result.skipped > 0) l10n.reparseBatch_resultSkipped(result.skipped),
       if (result.profilesPreserved > 0)
         l10n.reparseBatch_resultProfilesPreserved(result.profilesPreserved),
+      if (result.handSetKept > 0)
+        l10n.reparseBatch_resultHandSetKept(result.handSetKept),
     ];
 
     return AlertDialog(

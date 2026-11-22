@@ -26056,6 +26056,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Changements de gaz modifiés à la main';
 
   @override
+  String get settings_conflict_field_handSetFields =>
+      'Valeurs saisies à la main';
+
+  @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
       'Décalage horaire des médias';
 
@@ -40125,6 +40129,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Plongées ayant conservé des valeurs saisies à la main : $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Plongées en échec';
 
   @override
@@ -40151,6 +40160,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Plongées sélectionnées sans données brutes (ignorées) : $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Les valeurs saisies à la main sont conservées.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40318,6 +40331,40 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Resynchroniser depuis le fichier original';
+
+  @override
+  String get handSetReview_reparseTitle => 'Réanalyser cette plongée ?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Resynchroniser cette plongée ?';
+
+  @override
+  String get handSetReview_message =>
+      'Vous avez saisi ces valeurs à la main, et la nouvelle lecture diffère. Gardez les vôtres ou remplacez chacune.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Le vôtre : $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Ordinateur : $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Fichier : $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Garder';
+
+  @override
+  String get handSetReview_replace => 'Remplacer';
+
+  @override
+  String get handSetReview_resyncAction => 'Resynchroniser';
 
   @override
   String get diveLog_detail_resyncSuccess =>

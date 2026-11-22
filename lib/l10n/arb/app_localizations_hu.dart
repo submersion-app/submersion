@@ -25900,6 +25900,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gázváltások kézzel szerkesztve';
 
   @override
+  String get settings_conflict_field_handSetFields => 'Kézzel megadott értékek';
+
+  @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
       'Média időeltolása';
 
@@ -39811,6 +39814,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Merülések, amelyek megtartották a kézzel megadott értékeket: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Sikertelen merülések';
 
   @override
@@ -39837,6 +39845,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Kijelölt merülések nyers adat nélkül (kihagyva): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'A kézzel megadott értékek megmaradnak.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40000,6 +40012,40 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Újraszinkronizálás az eredeti fájlból';
+
+  @override
+  String get handSetReview_reparseTitle => 'Újraelemzed ezt a merülést?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Újraszinkronizálod ezt a merülést?';
+
+  @override
+  String get handSetReview_message =>
+      'Ezeket az értékeket kézzel adtad meg, és az új leolvasás eltér. Tartsd meg a sajátodat, vagy cseréld le egyenként.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Sajátod: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Komputer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Fájl: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Megtart';
+
+  @override
+  String get handSetReview_replace => 'Csere';
+
+  @override
+  String get handSetReview_resyncAction => 'Újraszinkronizálás';
 
   @override
   String get diveLog_detail_resyncSuccess =>

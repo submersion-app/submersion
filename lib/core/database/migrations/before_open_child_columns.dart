@@ -72,6 +72,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // reason.
     await _assertDiveMediaTimeOffsetColumn();
 
+    // v382: dives.hand_set_fields (issue #4909), for the same reason.
+    await _assertDiveHandSetFieldsColumn();
+
     // v350: sightings.abundance (issue #4337). Every sighting read selects
     // the whole row, for the same reason as the tank columns.
     await _assertSightingAbundanceColumn();

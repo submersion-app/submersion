@@ -26331,6 +26331,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تبديلات الغاز معدّلة يدويًا';
 
   @override
+  String get settings_conflict_field_handSetFields => 'قيم معدّلة يدويًا';
+
+  @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
       'إزاحة وقت الوسائط';
 
@@ -40539,6 +40542,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'غطسات احتفظت بقيم عيّنتها يدويًا: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'الغطسات التي فشلت';
 
   @override
@@ -40564,6 +40572,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'غطسات محددة بلا بيانات أولية (سيتم تخطيها): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'يتم الاحتفاظ بالقيم التي عيّنتها يدويًا.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40733,6 +40745,40 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'إعادة المزامنة من الملف الأصلي';
+
+  @override
+  String get handSetReview_reparseTitle => 'إعادة تحليل هذه الغطسة؟';
+
+  @override
+  String get handSetReview_resyncTitle => 'إعادة مزامنة هذه الغطسة؟';
+
+  @override
+  String get handSetReview_message =>
+      'لقد عيّنت هذه القيم يدويًا، والقراءة الجديدة مختلفة. احتفظ بقيمك أو استبدل كل واحدة منها.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'قيمتك: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'الحاسوب: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'الملف: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'احتفظ';
+
+  @override
+  String get handSetReview_replace => 'استبدل';
+
+  @override
+  String get handSetReview_resyncAction => 'إعادة المزامنة';
 
   @override
   String get diveLog_detail_resyncSuccess => 'تم تحديث الغطسة من الملف الأصلي';

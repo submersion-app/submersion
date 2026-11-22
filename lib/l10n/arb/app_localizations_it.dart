@@ -26000,6 +26000,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Cambi gas modificati a mano';
 
   @override
+  String get settings_conflict_field_handSetFields => 'Valori impostati a mano';
+
+  @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
       'Spostamento orario dei media';
 
@@ -40032,6 +40035,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Immersioni che hanno mantenuto valori impostati a mano: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Immersioni non riuscite';
 
   @override
@@ -40058,6 +40066,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Immersioni selezionate senza dati grezzi (saltate): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'I valori impostati a mano vengono mantenuti.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40224,6 +40236,40 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Risincronizza dal file originale';
+
+  @override
+  String get handSetReview_reparseTitle => 'Rianalizzare questa immersione?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Risincronizzare questa immersione?';
+
+  @override
+  String get handSetReview_message =>
+      'Hai impostato questi valori a mano e la nuova lettura è diversa. Mantieni i tuoi o sostituisci ciascuno.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Tuo: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Computer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'File: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Mantieni';
+
+  @override
+  String get handSetReview_replace => 'Sostituisci';
+
+  @override
+  String get handSetReview_resyncAction => 'Risincronizza';
 
   @override
   String get diveLog_detail_resyncSuccess =>

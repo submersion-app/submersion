@@ -24570,6 +24570,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_gasSwitchesEdited => '气体切换已手动编辑';
 
   @override
+  String get settings_conflict_field_handSetFields => '手动设置的数值';
+
+  @override
   String get settings_conflict_field_mediaTimeOffsetSeconds => '媒体时间平移';
 
   @override
@@ -37636,6 +37639,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return '保留了手动设置数值的潜水:$count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => '失败的潜水';
 
   @override
@@ -37661,6 +37669,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return '所选潜水中没有原始数据的(将跳过):$count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept => '你手动设置的数值会被保留。';
 
   @override
   String get reparseBatch_noneWithRawData => '所选潜水均没有可重新解析的原始数据。';
@@ -37812,6 +37823,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_resyncImportedFile => '从原始文件重新同步';
+
+  @override
+  String get handSetReview_reparseTitle => '重新解析这次潜水?';
+
+  @override
+  String get handSetReview_resyncTitle => '重新同步这次潜水?';
+
+  @override
+  String get handSetReview_message => '这些数值是你手动设置的,新读取的数值与之不同。保留你的数值,或逐个替换。';
+
+  @override
+  String handSetReview_yours(String value) {
+    return '你的:$value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return '电脑:$value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return '文件:$value';
+  }
+
+  @override
+  String get handSetReview_keep => '保留';
+
+  @override
+  String get handSetReview_replace => '替换';
+
+  @override
+  String get handSetReview_resyncAction => '重新同步';
 
   @override
   String get diveLog_detail_resyncSuccess => '潜水记录已根据原始文件更新';

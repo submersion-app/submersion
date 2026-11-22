@@ -51,6 +51,7 @@ const Set<String> kHumanDiveFields = {
   'excludedFromStats',
   'excludedFromGasStats',
   'gasSwitchesEdited',
+  'handSetFields',
   'mediaTimeOffsetSeconds',
   'airTemp',
   'visibility',

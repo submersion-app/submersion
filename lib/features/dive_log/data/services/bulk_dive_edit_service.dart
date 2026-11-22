@@ -11,6 +11,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_child_row_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_tank_undo_writer.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_snapshot.dart';
@@ -198,7 +199,14 @@ class BulkDiveEditService {
         await _diveRepo.bulkSetSite(ids, op.siteId);
       }
       if (req.hasScalarChanges) {
+        // Read here, after the site's snap, so only what the diver set is
+        // compared: the computer-written values this edit changes are theirs
+        // from now on, kept by a re-parse or resync (issue #4909).
+        final rowsBefore = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.isIn(ids))).get();
         await _diveRepo.bulkUpdateFields(ids, req.scalars);
+        await markHandSetChanges(_db, rowsBefore);
       }
       // Only the dives this edit moves: one already on the trip stays where
       // the diver left it, outside the dates or not.
