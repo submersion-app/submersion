@@ -4698,7 +4698,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => '更换';
 
   @override
+  String get checklists_addGear => '添加装备';
+
+  @override
+  String get checklists_addGearSet => '添加装备套装';
+
+  @override
   String get checklists_addItem => '添加事项';
+
+  @override
+  String get checklists_toPack => '待打包';
+
+  @override
+  String get checklists_packed => '已打包';
 
   @override
   String get checklists_item_titleLabel => '标题';

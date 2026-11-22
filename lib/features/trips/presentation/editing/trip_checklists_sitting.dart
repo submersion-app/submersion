@@ -11,6 +11,7 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_it
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/checklists/domain/services/checklist_rows.dart';
 import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -557,6 +558,30 @@ class HeldTripChecklistWrites implements TripChecklistWrites {
   Future<void> createItem(TripChecklistItem item) async => _set(
     _held.withItem(item.id.isEmpty ? item.copyWith(id: _uuid.v4()) : item),
   );
+
+  void addGear(String checklistId, Iterable<EquipmentItem> gear) {
+    var held = _held;
+    if (!held.checklists.any((checklist) => checklist.id == checklistId))
+      return;
+    final planned = {
+      for (final row in held.itemsOf(checklistId)) ?row.equipmentId,
+    };
+    final now = clock.now();
+    for (final item in gear) {
+      if (!planned.add(item.id)) continue;
+      held = held.withItem(
+        TripChecklistItem(
+          id: _uuid.v4(),
+          checklistId: checklistId,
+          title: item.name,
+          equipmentId: item.id,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
+    _set(held);
+  }
 
   @override
   Future<void> updateItem(TripChecklistItem item) async =>

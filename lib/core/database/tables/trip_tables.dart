@@ -383,6 +383,10 @@ class TripChecklistItems extends Table {
   TextColumn get checklistId => text().references(TripChecklists, #id)();
   TextColumn get title => text()();
 
+  /// Inventory identity for a planned piece of gear. A soft reference keeps
+  /// the row usable when equipment is deleted or arrives later through sync.
+  TextColumn get equipmentId => text().nullable()();
+
   /// The section this item is grouped under, if any (issue #3360). Replaces
   /// the free-text `category` column; deleting the section does not delete
   /// or hide the item, it falls back to "no section".

@@ -4910,7 +4910,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'Replace';
 
   @override
+  String get checklists_addGear => 'Add gear';
+
+  @override
+  String get checklists_addGearSet => 'Add gear set';
+
+  @override
   String get checklists_addItem => 'Add item';
+
+  @override
+  String get checklists_toPack => 'To pack';
+
+  @override
+  String get checklists_packed => 'Packed';
 
   @override
   String get checklists_item_titleLabel => 'Title';

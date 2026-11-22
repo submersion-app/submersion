@@ -4789,7 +4789,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => '置き換え';
 
   @override
+  String get checklists_addGear => '器材を追加';
+
+  @override
+  String get checklists_addGearSet => '器材セットを追加';
+
+  @override
   String get checklists_addItem => '項目を追加';
+
+  @override
+  String get checklists_toPack => 'パッキング予定';
+
+  @override
+  String get checklists_packed => 'パッキング済み';
 
   @override
   String get checklists_item_titleLabel => 'タイトル';

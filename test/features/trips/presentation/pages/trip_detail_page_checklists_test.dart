@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
@@ -12,7 +20,17 @@ import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart'
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
+import '../../../../helpers/folded_groups.dart';
+import '../widgets/gear/trip_gear_tab_harness.dart' show tickAndAdd;
 import 'trip_detail_page_unlock_harness.dart';
+
+class _Inventory extends EquipmentRepository {
+  @override
+  Future<Set<String>> visibleIdsAmong(
+    Iterable<String> ids,
+    String diverId,
+  ) async => ids.toSet();
+}
 
 /// A trip's checklists are held in its sitting behind the phase 3 switch
 /// (issue #4527): every change, ticks included, waits for Save.
@@ -98,6 +116,71 @@ void main() {
       'updateItem Mask done=true',
     ]);
   });
+
+  testWidgets(
+    'add gear and an overlapping set, then pack only the checked item',
+    (tester) async {
+      const wing = EquipmentItem(
+        id: 'wing',
+        name: 'Travel wing',
+        type: EquipmentType.bcd,
+      );
+      const fins = EquipmentItem(
+        id: 'fins',
+        name: 'Travel fins',
+        type: EquipmentType.fins,
+      );
+      final set = EquipmentSet(
+        id: 'set',
+        name: 'Travel set',
+        items: const [wing, fins],
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      final harness = await pumpTripPage(
+        tester,
+        checklists: packing,
+        activeDiverId: 'd1',
+        extraOverrides: [
+          activeEquipmentProvider.overrideWith((ref) async => [wing, fins]),
+          allEquipmentProvider.overrideWith((ref) async => [wing, fins]),
+          equipmentSetsProvider.overrideWith((ref) async => [set]),
+          equipmentSetWithItemsProvider(
+            set.id,
+          ).overrideWith((ref) async => set),
+          equipmentRepositoryProvider.overrideWithValue(_Inventory()),
+        ],
+      );
+      await unlock(tester);
+      await showChecklists(tester);
+      await tapText(tester, l.checklists_addGear);
+      expect(find.byType(EquipmentPickerSheet), findsOneWidget);
+      await openFoldedGroups(tester);
+      await tickAndAdd(tester, [wing.name]);
+      await tapText(tester, l.checklists_addGearSet);
+      await tapText(tester, set.name);
+
+      expect(find.text(l.checklists_toPack), findsNWidgets(2));
+      expect(harness.checklistWrites, isEmpty);
+      expect(harness.gearWrites, isEmpty);
+
+      final wingRow = find.widgetWithText(ListTile, wing.name);
+      await tester.tap(
+        find.descendant(of: wingRow, matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(l.checklists_toPack), findsOneWidget);
+      expect(find.text(l.checklists_packed), findsOneWidget);
+      expect(harness.gearWrites, isEmpty);
+
+      await tapText(tester, l.forms_save);
+      expect(harness.checklistWrites, [
+        'createItem Travel wing',
+        'createItem Travel fins',
+      ]);
+      expect(harness.gearWrites, ['pack wing']);
+    },
+  );
 
   testWidgets('Cancel after a tick writes nothing', (tester) async {
     final harness = await pumpTripPage(tester, checklists: packing);

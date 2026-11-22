@@ -3089,7 +3089,11 @@
     }
   },
   "checklists_replaceTemplate_confirm": "Replace",
+  "checklists_addGear": "Add gear",
+  "checklists_addGearSet": "Add gear set",
   "checklists_addItem": "Add item",
+  "checklists_toPack": "To pack",
+  "checklists_packed": "Packed",
   "checklists_item_titleLabel": "Title",
   "checklists_item_titleRequired": "Title is required",
   "checklists_item_categoryLabel": "Category",

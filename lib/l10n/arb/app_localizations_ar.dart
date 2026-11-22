@@ -5080,7 +5080,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'استبدال';
 
   @override
+  String get checklists_addGear => 'إضافة معدات';
+
+  @override
+  String get checklists_addGearSet => 'إضافة مجموعة معدات';
+
+  @override
   String get checklists_addItem => 'إضافة عنصر';
+
+  @override
+  String get checklists_toPack => 'للتعبئة';
+
+  @override
+  String get checklists_packed => 'تمت التعبئة';
 
   @override
   String get checklists_item_titleLabel => 'العنوان';

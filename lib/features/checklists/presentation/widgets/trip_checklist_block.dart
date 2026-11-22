@@ -50,6 +50,9 @@ class TripChecklistBlock extends ConsumerWidget {
   /// or section editing, and a menu that only saves it as a template, which
   /// makes a record of its own (the page is locked, issue #4527).
   final TripChecklistWrites? writes;
+  final Map<String, bool> packedStates;
+  final void Function(String, bool)? onTogglePacked;
+  final ValueChanged<bool>? onAddGear;
 
   const TripChecklistBlock({
     super.key,
@@ -60,9 +63,15 @@ class TripChecklistBlock extends ConsumerWidget {
     this.onMoveDown,
     this.held,
     this.writes,
+    this.packedStates = const {},
+    this.onTogglePacked,
+    this.onAddGear,
   });
 
   bool get readOnly => writes == null;
+
+  bool _isDone(TripChecklistItem item) =>
+      packedStates[item.equipmentId] ?? item.isDone;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,7 +105,7 @@ class TripChecklistBlock extends ConsumerWidget {
             ? null
             : Text(
                 context.l10n.checklists_progress(
-                  items.where((i) => i.isDone).length,
+                  items.where(_isDone).length,
                   items.length,
                 ),
               ),
@@ -189,18 +198,32 @@ class TripChecklistBlock extends ConsumerWidget {
         if (items.isEmpty && sections.isEmpty) _buildEmptyState(context),
         _buildGroupedItems(context, ref, items, sections, sectionTitles),
         if (!readOnly)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton.icon(
-              icon: const Icon(Icons.add),
-              label: Text(context.l10n.checklists_addItem),
-              onPressed: () => showChecklistItemEditSheet(
-                context: context,
-                checklistId: checklist.id,
-                categorySuggestions: sectionTitles,
-                writes: writes!,
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton.icon(
+                icon: const Icon(Icons.add),
+                label: Text(context.l10n.checklists_addItem),
+                onPressed: () => showChecklistItemEditSheet(
+                  context: context,
+                  checklistId: checklist.id,
+                  categorySuggestions: sectionTitles,
+                  writes: writes!,
+                ),
               ),
-            ),
+              if (onAddGear case final add?) ...[
+                TextButton.icon(
+                  icon: const Icon(Icons.inventory_2_outlined),
+                  label: Text(context.l10n.checklists_addGear),
+                  onPressed: () => add(false),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.layers_outlined),
+                  label: Text(context.l10n.checklists_addGearSet),
+                  onPressed: () => add(true),
+                ),
+              ],
+            ],
           ),
       ],
     );
@@ -482,12 +505,24 @@ class TripChecklistBlock extends ConsumerWidget {
       final sectionTitle = item.sectionId == null
           ? null
           : sectionById[item.sectionId]?.title;
+      final gearId = item.equipmentId;
+      final togglePacked = onTogglePacked;
+      final isDone = _isDone(item);
       return ChecklistItemTile(
-        item: item,
+        item: isDone == item.isDone ? item : item.copyWith(isDone: isDone),
         showOverdue: trip.isUpcoming,
         onToggle: readOnly
             ? null
-            : (value) => repository!.toggleDone(item.id, isDone: value),
+            : switch (gearId) {
+                null => (value) => repository!.toggleDone(
+                  item.id,
+                  isDone: value,
+                ),
+                final id?
+                    when packedStates.containsKey(id) && togglePacked != null =>
+                  (value) => togglePacked(id, value),
+                _ => null,
+              },
         onEdit: readOnly
             ? null
             : () => showChecklistItemEditSheet(
