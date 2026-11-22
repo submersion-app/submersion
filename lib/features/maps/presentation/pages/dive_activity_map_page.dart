@@ -26,6 +26,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_corner_control
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
@@ -154,12 +156,20 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
           onPressed: () => _backToList(context),
         ),
         IconButton(
-          icon: const Icon(Icons.my_location),
+          icon: const Icon(Icons.zoom_out_map),
           tooltip: context.l10n.diveLog_map_tooltip_fitAllSites,
           onPressed: () => _camera.fitAll(
             _sitePoints(sitesAsync.value?.map((s) => s.site) ?? const []),
           ),
         ),
+        // Only while the pane draws the map: a fix found during the load or
+        // an error would have no map to move (#4808).
+        if (sitesAsync.when(
+          data: (_) => true,
+          loading: () => false,
+          error: (_, _) => false,
+        ))
+          MyLocationButton(onLocated: _camera.animateTo),
       ],
     );
   }
@@ -331,6 +341,8 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
                   loading: () => const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),
                 ),
+              // The device, once Show my location has found it (#4808).
+              const MyLocationLayer(),
               const MapAttribution(),
             ],
           ),

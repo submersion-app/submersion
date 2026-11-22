@@ -5780,6 +5780,8 @@
   "importWizard_review_olderDivesSkipped": "{count, plural, other{已跳过 {count} 次较早的潜水 — 已在您的日志中}}",
   "maps_compass_resetLabel": "将地图方向重置为正北",
   "maps_compass_resetTooltip": "正北朝上",
+  "maps_myLocation_markerLabel": "当前位置",
+  "maps_myLocation_tooltip": "显示我的位置",
   "maps_heatMap_hide": "隐藏热力图",
   "maps_heatMap_overlayOff": "热力图叠加层已关闭",
   "maps_depthOverlay_show": "显示深度叠加层",

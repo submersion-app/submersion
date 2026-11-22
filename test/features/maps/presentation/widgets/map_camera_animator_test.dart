@@ -234,4 +234,22 @@ void main() {
 
     expect(controller.camera.zoom, MapCameraAnimator.fitAllMaxZoom);
   });
+
+  testWidgets('animateTo before the map has rendered leaves it alone', (
+    tester,
+  ) async {
+    // An app-bar Show my location can answer while the map pane is still
+    // loading (#4808): no FlutterMap has attached the controller yet.
+    final controller = MapController();
+    final animator = MapCameraAnimator(
+      controller: controller,
+      vsync: const TestVSync(),
+    );
+    addTearDown(animator.dispose);
+
+    await animator.animateTo(const LatLng(10, 20));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -38901,6 +38901,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get maps_compass_resetTooltip => 'Norden oben';
 
   @override
+  String get maps_myLocation_markerLabel => 'Aktueller Standort';
+
+  @override
+  String get maps_myLocation_tooltip => 'Meinen Standort anzeigen';
+
+  @override
   String get maps_heatMap_hide => 'Heatmap ausblenden';
 
   @override

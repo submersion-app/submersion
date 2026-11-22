@@ -38718,6 +38718,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get maps_compass_resetTooltip => 'Noorden boven';
 
   @override
+  String get maps_myLocation_markerLabel => 'Huidige locatie';
+
+  @override
+  String get maps_myLocation_tooltip => 'Mijn locatie tonen';
+
+  @override
   String get maps_heatMap_hide => 'Heatmap verbergen';
 
   @override

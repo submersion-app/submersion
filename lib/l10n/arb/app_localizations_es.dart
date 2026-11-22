@@ -39007,6 +39007,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get maps_compass_resetTooltip => 'Norte arriba';
 
   @override
+  String get maps_myLocation_markerLabel => 'Ubicación actual';
+
+  @override
+  String get maps_myLocation_tooltip => 'Mostrar mi ubicación';
+
+  @override
   String get maps_heatMap_hide => 'Ocultar mapa de calor';
 
   @override

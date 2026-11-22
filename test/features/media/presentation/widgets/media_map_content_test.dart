@@ -21,6 +21,7 @@ import 'package:submersion/features/media/presentation/widgets/media_map_marker.
 import 'package:submersion/features/media/presentation/widgets/media_place_strip.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -130,7 +131,8 @@ void main() {
 
     expect(find.byType(FlutterMap), findsOneWidget);
     expect(find.byType(MediaMapMarker), findsNWidgets(2));
-    expect(find.byIcon(Icons.my_location), findsOneWidget);
+    expect(find.byIcon(Icons.zoom_out_map), findsOneWidget);
+    expect(find.byType(MyLocationButton), findsOneWidget);
     await _flushMapTimers(tester);
   });
 
@@ -483,7 +485,7 @@ void main() {
     controller.move(const LatLng(60, -100), 10);
     await tester.pump();
 
-    await tester.tap(find.byIcon(Icons.my_location));
+    await tester.tap(find.byIcon(Icons.zoom_out_map));
     await tester.pump();
 
     // Centred between the two points, not where the diver had panned to.

@@ -23628,6 +23628,8 @@
   "gpsTrack_detail_noPoints": "This track has no recorded positions.",
   "maps_compass_resetLabel": "Reset map orientation to north",
   "maps_compass_resetTooltip": "North up",
+  "maps_myLocation_markerLabel": "Your location",
+  "maps_myLocation_tooltip": "Show my location",
   "maps_heatMap_hide": "Hide Heat Map",
   "maps_heatMap_overlayOff": "Heat map overlay is off",
   "maps_depthOverlay_show": "Show depth overlay",

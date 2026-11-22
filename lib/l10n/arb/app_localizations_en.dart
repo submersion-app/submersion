@@ -38331,6 +38331,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maps_compass_resetTooltip => 'North up';
 
   @override
+  String get maps_myLocation_markerLabel => 'Your location';
+
+  @override
+  String get maps_myLocation_tooltip => 'Show my location';
+
+  @override
   String get maps_heatMap_hide => 'Hide Heat Map';
 
   @override

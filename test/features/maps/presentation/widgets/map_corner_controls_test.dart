@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_style_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -14,6 +15,7 @@ void main() {
   Future<void> pumpControls(
     WidgetTester tester, {
     MapController? controller,
+    ValueChanged<LatLng>? onLocated,
   }) async {
     await tester.pumpWidget(
       testApp(
@@ -34,7 +36,10 @@ void main() {
             Positioned(
               top: 8,
               right: 8,
-              child: MapCornerControls(controller: controller),
+              child: MapCornerControls(
+                controller: controller,
+                onLocated: onLocated,
+              ),
             ),
           ],
         ),
@@ -50,6 +55,7 @@ void main() {
 
     expect(find.byType(MapStyleButton), findsOneWidget);
     expect(find.byType(MapCompassButton), findsNothing);
+    expect(find.byType(MyLocationButton), findsNothing);
   });
 
   testWidgets('with a controller stacks the compass below the style button', (
@@ -66,4 +72,25 @@ void main() {
       lessThan(tester.getTopLeft(find.byType(MapCompassButton)).dy),
     );
   });
+
+  testWidgets(
+    'with onLocated puts Show my location between style and compass',
+    (tester) async {
+      await pumpControls(
+        tester,
+        controller: MapController(),
+        onLocated: (_) {},
+      );
+
+      expect(find.byType(MyLocationButton), findsOneWidget);
+      // Always visible, so it sits right under the style button; the compass,
+      // hidden while north-up, keeps the bottom slot (#4808).
+      final style = tester.getRect(find.byType(MapStyleButton));
+      final locate = tester.getRect(find.byType(MyLocationButton));
+      final compass = tester.getRect(find.byType(MapCompassButton));
+      expect(locate.top, greaterThan(style.bottom));
+      expect(compass.top, greaterThan(locate.bottom));
+      expect(locate.size, style.size);
+    },
+  );
 }

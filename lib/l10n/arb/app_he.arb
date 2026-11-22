@@ -5520,6 +5520,8 @@
   "gas_tmx2135_displayName": "Tx 21/35",
   "maps_compass_resetLabel": "איפוס כיוון המפה לצפון",
   "maps_compass_resetTooltip": "צפון למעלה",
+  "maps_myLocation_markerLabel": "המיקום הנוכחי",
+  "maps_myLocation_tooltip": "הצג את המיקום שלי",
   "maps_heatMap_hide": "הסתר מפת חום",
   "maps_heatMap_overlayOff": "שכבת מפת חום כבויה",
   "maps_depthOverlay_show": "הצגת שכבת עומק",

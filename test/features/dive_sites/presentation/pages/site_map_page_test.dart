@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
@@ -13,6 +15,8 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_style_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -53,6 +57,7 @@ Future<void> _pumpPage(
   ],
   Size size = const Size(600, 900),
   Widget Function(SiteMapPage page)? home,
+  LocationService? location,
 }) async {
   // The default phone-sized surface keeps MapListScaffold in mobile mode,
   // which renders only the map pane (no list pane providers to mock).
@@ -69,6 +74,8 @@ Future<void> _pumpPage(
     ProviderScope(
       overrides: [
         ...base,
+        if (location != null)
+          locationServiceProvider.overrideWithValue(location),
         sitesWithCountsProvider.overrideWith((ref) async => sites),
         siteCoverageHeatMapProvider.overrideWith(
           (ref) async => <HeatMapPoint>[],
@@ -95,6 +102,19 @@ Future<void> _pumpPage(
 }
 
 // Far enough apart that neither clusters with the other at the fit-all zoom.
+/// A device that always finds a fix at (25, -80).
+class _FixedLocation implements LocationService {
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async => const LocationResult(latitude: 25, longitude: -80, accuracy: 5);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 const _apartSites = [
   SiteWithDiveCount(
     site: DiveSite(id: 's-a', name: 'Alpha', location: GeoPoint(10, 20)),
@@ -230,12 +250,56 @@ void main() {
     await tester.pump();
     expect(_camera(tester).zoom, closeTo(8, 1e-6));
 
-    await tester.tap(find.byIcon(Icons.my_location));
+    await tester.tap(find.byIcon(Icons.zoom_out_map));
     await tester.pump();
 
     final camera = _camera(tester);
     _expectCenteredOn(camera, framed.center);
     expect(camera.zoom, closeTo(framed.zoom, 1e-6));
+  });
+
+  testWidgets('Show my location sits on the map under the style button', (
+    tester,
+  ) async {
+    // On a phone the app bar is already full (#4808), so the crosshair
+    // joins the map's own control column instead.
+    await _pumpPage(tester, const SiteMapPage(), location: _FixedLocation());
+
+    final button = find.byType(MyLocationButton);
+    expect(button, findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: button),
+      findsNothing,
+    );
+    final style = tester.getRect(find.byType(MapStyleButton));
+    final locate = tester.getRect(button);
+    expect(locate.center.dx, closeTo(style.center.dx, 1));
+    expect(locate.top, greaterThan(style.bottom));
+  });
+
+  testWidgets('Show my location eases the camera onto the device', (
+    tester,
+  ) async {
+    await _pumpPage(
+      tester,
+      const SiteMapPage(),
+      sites: _apartSites,
+      location: _FixedLocation(),
+    );
+
+    await tester.tap(find.byTooltip('Show my location'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final camera = _camera(tester);
+    _expectCenteredOn(camera, const LatLng(25, -80));
+    expect(camera.zoom, closeTo(12, 1e-6));
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is Semantics && w.properties.label == 'Your location',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('tapping a marker selects it and eases the camera onto it', (

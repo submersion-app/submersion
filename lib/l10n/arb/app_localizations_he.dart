@@ -38037,6 +38037,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_compass_resetTooltip => 'צפון למעלה';
 
   @override
+  String get maps_myLocation_markerLabel => 'המיקום הנוכחי';
+
+  @override
+  String get maps_myLocation_tooltip => 'הצג את המיקום שלי';
+
+  @override
   String get maps_heatMap_hide => 'הסתר מפת חום';
 
   @override
