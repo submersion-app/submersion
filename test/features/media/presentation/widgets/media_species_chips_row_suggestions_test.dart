@@ -159,6 +159,49 @@ void main() {
     expect(labelColor(tester, 'Queen Parrotfish'), ViewerTagChips.foreground);
   });
 
+  testWidgets('on a locked photo an unconfirmed tag and the count are plain '
+      'chips, never faded disabled ones (issue #4921)', (tester) async {
+    tester.view.physicalSize = const Size(320, 400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(
+      tester,
+      chips: [
+        const SpeciesTagChip(
+          speciesId: 'sp_app',
+          storedName: 'Queen Parrotfish',
+          category: SpeciesCategory.fish,
+          isBuiltIn: true,
+          unconfirmed: true,
+        ),
+        // More of the app's tags than fit, so the count shows; the
+        // diver's own would come first and push the one above out.
+        for (var i = 0; i < 8; i++)
+          SpeciesTagChip(
+            speciesId: 'sp_$i',
+            storedName: 'Species $i',
+            category: SpeciesCategory.fish,
+            isBuiltIn: false,
+            unconfirmed: true,
+          ),
+      ],
+    );
+    for (final key in ['media_unconfirmed_chip_sp_app', 'media_species_more']) {
+      final holder = find.byKey(ValueKey(key));
+      expect(holder, findsOneWidget, reason: key);
+      expect(
+        find.descendant(of: holder, matching: find.byType(Chip)),
+        findsOneWidget,
+        reason: key,
+      );
+      expect(
+        find.descendant(of: holder, matching: find.byType(ActionChip)),
+        findsNothing,
+        reason: key,
+      );
+    }
+  });
+
   testWidgets('in the viewer tags and suggestions alike carry the dark '
       'wash, over a clear canvas the picture shows through (issue #4921)', (
     tester,

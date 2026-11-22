@@ -1,21 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/media/presentation/widgets/viewer_tag_chips.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'video_viewer_test_harness.dart';
+
+/// A photo whose file cannot be found: the viewer still draws its panel.
+class _UnavailableResolver implements MediaSourceResolver {
+  @override
+  MediaSourceType get sourceType => MediaSourceType.platformGallery;
+  @override
+  bool canResolveOnThisDevice(MediaItem item) => true;
+  @override
+  Future<MediaSourceData> resolve(MediaItem item) async =>
+      const UnavailableData(kind: UnavailableKind.notFound);
+  @override
+  Future<MediaSourceData> resolveThumbnail(
+    MediaItem item, {
+    required Size target,
+  }) => resolve(item);
+  @override
+  Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
+}
 
 /// The tag chips in the viewer's bottom panel against the mini dive
 /// profile chart in the corner (issue #4921): compact, translucent, and
@@ -131,6 +159,85 @@ void main() {
         find.text('+30:00'),
       ].map(tester.getRect);
       for (final rect in [...rects, ...readings]) {
+        expect(
+          rect.right <= chart.left || rect.bottom <= chart.top,
+          isTrue,
+          reason: '$rect clears the chart $chart',
+        );
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  /// A photo positioned in [dive], so the chart shows, in [locale].
+  Future<void> pumpPhoto(WidgetTester tester, Locale locale) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final photo = MediaItem(
+      id: 'm1',
+      diveId: 'd1',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.platformGallery,
+      takenAt: DateTime.utc(2026, 7, 1, 10),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+      enrichment: MediaEnrichment(
+        id: 'e-m1',
+        mediaId: 'm1',
+        diveId: 'd1',
+        elapsedSeconds: 1800,
+        depthMeters: 12,
+        matchConfidence: MatchConfidence.exact,
+        createdAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.platformGallery: _UnavailableResolver(),
+              }),
+            ),
+            diveProvider('d1').overrideWith((ref) async => dive),
+            mediaByIdProvider('m1').overrideWith((ref) async => photo),
+            mediaTagChipsProvider('m1').overrideWith((ref) async => manyTags),
+            mediaPeopleChipsProvider('m1').overrideWith((ref) async => people),
+          ],
+          child: MaterialApp(
+            locale: locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaViewerPage(mediaList: [photo], initialMediaId: 'm1'),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+    });
+  }
+
+  // A photo's panel has no scrub bar above it; right to left, the chips
+  // start at the right edge, beside the chart, so the inset must stay on
+  // the right whichever way the text runs.
+  for (final locale in [const Locale('en'), const Locale('he')]) {
+    testWidgets('on a photo in ${locale.languageCode} no chip or reading '
+        'runs over the mini profile chart', (tester) async {
+      await pumpPhoto(tester, locale);
+
+      final chart = tester.getRect(find.byType(MiniDiveProfileOverlay));
+      final rects = [
+        ...chipRects(tester),
+        tester.getRect(find.byIcon(Icons.arrow_downward)),
+        tester.getRect(find.byIcon(Icons.timer_outlined)),
+      ];
+      expect(rects.length, greaterThan(people.length));
+      for (final rect in rects) {
         expect(
           rect.right <= chart.left || rect.bottom <= chart.top,
           isTrue,

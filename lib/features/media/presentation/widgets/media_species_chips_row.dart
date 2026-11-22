@@ -91,11 +91,12 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
             button: onMoreTap != null,
             excludeSemantics: true,
             onTap: onMoreTap,
-            child: ActionChip(
+            // Never faded when inert, as a suggestion is not.
+            child: _chip(
+              overlay: true,
               label: Text('+$hidden'),
               onPressed: onMoreTap,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: ViewerTagChips.density,
+              density: ViewerTagChips.density,
             ),
           ),
           children: chips,
@@ -198,7 +199,7 @@ List<Widget> speciesChipWidgets(
 Widget _chip({
   Key? key,
   required bool overlay,
-  required Widget avatar,
+  Widget? avatar,
   required Widget label,
   required VoidCallback? onPressed,
   required VisualDensity density,
