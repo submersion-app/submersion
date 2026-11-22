@@ -58,7 +58,14 @@ void main() {
 
     expect(find.byType(RecordEditBar), findsOneWidget);
     expect(find.byType(TripDayPlanCardEditor), findsOneWidget);
-    expect(tester.widget<EditableText>(dayNote()).controller.text, isEmpty);
+    final note = tester.widget<EditableText>(dayNote());
+    expect(note.controller.text, isEmpty);
+    // Ready to write under the heading: the field has the caret, at the end.
+    expect(note.focusNode.hasFocus, isTrue);
+    expect(
+      note.controller.selection,
+      TextSelection.collapsed(offset: note.controller.text.length),
+    );
   });
 
   testWidgets('the added heading alone is not a change', (tester) async {

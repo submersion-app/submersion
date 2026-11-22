@@ -11,7 +11,13 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The three cylinder clocks the passport cares about, in this order.
@@ -21,9 +27,34 @@ const List<String> kPassportServiceKinds = ['hydro', 'vip', 'o2-clean'];
 /// catalog date attributes, so the passport cannot contradict the reminders
 /// (spec section 8, Service card).
 class PassportServiceCard extends ConsumerWidget {
-  const PassportServiceCard({super.key, required this.equipment});
+  const PassportServiceCard({super.key, required this.equipment, this.editing});
 
   final EquipmentItem equipment;
+
+  /// The open card's sitting (issue #4527, phase 3): Track O2 clean holds the
+  /// clock in the item's service clocks until Save. With no sitting given,
+  /// nothing is offered. The statuses stay as stored until Save, as on the
+  /// Service clocks card.
+  final EditSession<EquipmentItem>? editing;
+
+  /// The built-in O2 clean clock for this item.
+  ServiceSchedule _o2Clock() {
+    final now = DateTime.now();
+    return ServiceSchedule(
+      id: 'auto-o2-clean-${equipment.id}',
+      equipmentId: equipment.id,
+      serviceKindId: 'o2-clean',
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  /// Whether the sitting tracks O2 clean.
+  static bool _heldO2(EditSession<EquipmentItem>? session) =>
+      session != null &&
+      (gearItemClocksList.current(session) ?? const []).any(
+        (s) => s.serviceKindId == 'o2-clean',
+      );
 
   /// Attaches the built-in O2 clean schedule once. The id is derived from
   /// the item, as auto-attach does, so a second tap (or a peer doing the
@@ -35,17 +66,8 @@ class PassportServiceCard extends ConsumerWidget {
     try {
       final existing = await repository.getSchedulesForEquipment(equipment.id);
       if (existing.any((s) => s.serviceKindId == 'o2-clean')) return;
-      final now = DateTime.now();
       try {
-        await repository.createSchedule(
-          ServiceSchedule(
-            id: 'auto-o2-clean-${equipment.id}',
-            equipmentId: equipment.id,
-            serviceKindId: 'o2-clean',
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+        await repository.createSchedule(_o2Clock());
       } catch (_) {
         // Only the other tap winning the race is harmless; anything else is
         // a real failure.
@@ -64,7 +86,28 @@ class PassportServiceCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
+    final session = editing ?? scope?.session;
+    final mayAct = scope == null || editing != null;
+    if (session == null) return _build(context, ref, null, mayAct);
+    return ListenableBuilder(
+      listenable: gearItemClocksList.changes(session),
+      builder: (context, _) => _build(context, ref, session, mayAct),
+    );
+  }
+
+  Widget _build(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<EquipmentItem>? session,
+    bool mayAct,
+  ) {
     final l10n = context.l10n;
+    final editing = this.editing;
+    final canAct =
+        mayAct &&
+        (editing == null || gearItemClocksList.current(editing) != null);
+    final heldO2 = _heldO2(session);
     final units = ref.watch(unitFormatterProvider);
     final clocks =
         ref.watch(serviceClockStatusesProvider(equipment.id)).value ??
@@ -86,9 +129,21 @@ class PassportServiceCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.passport_service_title,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.passport_service_title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                // On the passport this is the item's Service clocks card.
+                RecordCardPencil(
+                  cardTitle: GearItemCardId.serviceClocks.localizedDisplayName(
+                    l10n,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             for (final kindId in kPassportServiceKinds)
@@ -136,16 +191,28 @@ class PassportServiceCard extends ConsumerWidget {
                 // the kind name (issue #2717).
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(kindNames[kindId] ?? kindId),
+                  title: heldO2
+                      ? Row(
+                          children: [
+                            Flexible(child: Text(kindNames[kindId] ?? kindId)),
+                            const SizedBox(width: 6),
+                            const RecordChangedDot(),
+                          ],
+                        )
+                      : Text(kindNames[kindId] ?? kindId),
                   subtitle: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(l10n.passport_service_notTracked),
-                      TileSubtitleAction(
-                        onPressed: () => _trackO2Clean(context, ref),
-                        label: l10n.passport_service_trackO2Clean,
-                      ),
+                      if (!heldO2) Text(l10n.passport_service_notTracked),
+                      if (canAct && !heldO2)
+                        TileSubtitleAction(
+                          onPressed: () => switch (editing) {
+                            final s? => holdClock(s, _o2Clock()),
+                            null => _trackO2Clean(context, ref),
+                          },
+                          label: l10n.passport_service_trackO2Clean,
+                        ),
                     ],
                   ),
                 ),

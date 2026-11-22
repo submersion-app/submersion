@@ -111,7 +111,6 @@ Future<_RecordingNavTrackRepository> _pump(
         builder: (context, state) => NavTrackAlignPage(
           routeId: state.pathParameters['id']!,
           joinedSitting: joined,
-          unlockEditing: true,
         ),
       ),
       GoRoute(
@@ -343,11 +342,8 @@ void main() {
                   onPressed: () => pushRecordSatellite<NavTrack, void>(
                     context,
                     sitting: sitting,
-                    builder: (joined) => NavTrackAlignPage(
-                      routeId: 'r1',
-                      joinedSitting: joined,
-                      unlockEditing: true,
-                    ),
+                    builder: (joined) =>
+                        NavTrackAlignPage(routeId: 'r1', joinedSitting: joined),
                   ),
                   child: const Text('open align'),
                 ),

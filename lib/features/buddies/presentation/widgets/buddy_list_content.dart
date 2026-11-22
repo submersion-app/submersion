@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/buddies/presentation/editing/buddy_new_sitting.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
@@ -455,8 +457,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           : null;
 
       // Centered automatically with no crop dialog: the user is mid-import and
-      // did not ask to frame a photo. They can adjust it afterwards from the
-      // edit page.
+      // did not ask to frame a photo. They can adjust it afterwards on the
+      // buddy's page.
       final rawPhoto =
           fullContact.photo?.fullSize ?? fullContact.photo?.thumbnail;
       Uint8List? photo;
@@ -482,9 +484,14 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         // rather than under the shell, which is why the old master-detail
         // special case was not just buggy (it carried no data, so an iPad in
         // landscape landed on a blank form) but unnecessary.
-        context.push(
-          '/buddies/new',
-          extra: {'name': name, 'email': email, 'phone': phone, 'photo': photo},
+        openNewBuddy(
+          context,
+          seed: NewBuddySeed(
+            name: name,
+            email: email,
+            phone: phone,
+            photo: photo,
+          ),
         );
       }
     } catch (e) {
@@ -1043,7 +1050,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                   final routerState = GoRouterState.of(context);
                   context.go('${routerState.uri.path}?mode=new');
                 } else {
-                  context.push('/buddies/new');
+                  openNewBuddy(context);
                 }
               },
               icon: const Icon(Icons.person_add),

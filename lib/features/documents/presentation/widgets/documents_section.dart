@@ -9,7 +9,8 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
-import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
+import 'package:submersion/features/documents/presentation/editing/document_new_sitting.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -27,10 +28,10 @@ class DocumentsSection<T> extends ConsumerWidget {
   /// The certification page shows its card images itself.
   final bool excludeCards;
 
-  /// The open Documents card's sitting on the record (issue #4527): Add
-  /// creates a Personal document at once and holds joining it to the record;
-  /// Remove holds detaching. On a page that offers editing and with no
-  /// sitting given, the card reads only.
+  /// The open Documents card's sitting on the record (issue #4527): Add opens
+  /// the new-document page, whose Save creates a Personal document, and holds
+  /// joining it to the record; Remove holds detaching. With no sitting given,
+  /// the card reads only.
   final EditSession<T>? editing;
 
   const DocumentsSection({
@@ -40,28 +41,28 @@ class DocumentsSection<T> extends ConsumerWidget {
     this.editing,
   });
 
-  /// A new document, filed as Personal until the sitting is saved.
+  /// A new document, filed as Personal until the sitting is saved: the
+  /// document page on a new document, its owner not offered, which pops
+  /// with the id of the document it created as Personal; that document is
+  /// then joined to the record in [session].
   Future<void> _addInSitting(
     BuildContext context,
     EditSession<T> session,
   ) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (pageContext) => Consumer(
-          builder: (pageContext, ref, _) => DocumentEditPage(
-            ownerFixed: true,
-            onSaved: (id) async {
-              final navigator = Navigator.of(pageContext);
-              final saved = await ref
-                  .read(documentRepositoryProvider)
-                  .getById(id);
-              if (saved != null) attachDocument(session, saved);
-              navigator.pop();
-            },
-          ),
+    final repository = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(documentRepositoryProvider);
+    final id = await Navigator.of(context).push<Object?>(
+      MaterialPageRoute<Object?>(
+        builder: (_) => const DocumentDetailPage.newDocument(
+          request: NewDocumentRequest(ownerFixed: true),
         ),
       ),
     );
+    if (id is! String || session.isDisposed) return;
+    final saved = await repository.getById(id);
+    if (saved != null && !session.isDisposed) attachDocument(session, saved);
   }
 
   @override

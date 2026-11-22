@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -141,6 +142,58 @@ void main() {
     expect(find.byKey(const Key('document-title')), findsNothing);
     await t.pumpWidget(form(DocumentType.permit));
     expect(find.byKey(const Key('document-title')), findsOneWidget);
+  });
+
+  testWidgets('insurance shows its insurer, phones and primary; a permit its '
+      'issuer and none of them', (t) async {
+    final l = AppLocalizationsEn();
+    final controllers = DocumentFormControllers();
+    addTearDown(controllers.dispose);
+    Widget form(DocumentType type) => testApp(
+      locale: const Locale('en'),
+      child: SingleChildScrollView(
+        child: DocumentFormFields(
+          type: type,
+          typeChoices: [type],
+          controllers: controllers,
+          issueDate: null,
+          expiryDate: null,
+          reminderLeadDays: 30,
+          isPrimary: false,
+          formatDate: (d) => '$d',
+          onTypeChanged: (_) {},
+          onPickIssueDate: () {},
+          onPickExpiryDate: () {},
+          onClearIssueDate: () {},
+          onClearExpiryDate: () {},
+          onLeadChanged: (_) {},
+          onPrimaryChanged: (_) {},
+        ),
+      ),
+    );
+    final insuranceOnly = [
+      l.documents_field_issuerInsurance,
+      l.documents_field_emergencyPhone,
+      l.documents_field_phone,
+      l.documents_field_isPrimary,
+    ];
+
+    await t.pumpWidget(form(DocumentType.insurance));
+    for (final label in insuranceOnly) {
+      expect(find.text(label), findsOneWidget, reason: label);
+    }
+
+    await t.pumpWidget(form(DocumentType.permit));
+    expect(find.text(l.documents_field_issuer), findsOneWidget);
+    for (final label in insuranceOnly) {
+      expect(find.text(label), findsNothing, reason: label);
+    }
+    expect(find.text(l.documents_field_expiryDate), findsOneWidget);
+
+    // A certification card's expiry lives on its certification.
+    await t.pumpWidget(form(DocumentType.certificationCard));
+    expect(find.text(l.documents_field_issueDate), findsOneWidget);
+    expect(find.text(l.documents_field_expiryDate), findsNothing);
   });
 
   testWidgets('viewer shows a Word page as a file tile with Open with', (

@@ -4,10 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
@@ -46,7 +44,6 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'nav_track_align_controls_panel.dart';
 
@@ -69,26 +66,20 @@ enum _Placing { none, start, end }
 /// it needs from a [NavTrack], and building one here keeps that widget
 /// untouched.
 ///
-/// Behind phase 3's switch ([unlockEditing]) it follows the track's lock
-/// (issue #4527, plan 5): handed the track page's sitting
-/// ([joinedSitting]) it hands its correction to that sitting with Done and
-/// writes nothing; otherwise it only reads.
+/// It follows the track's lock (issue #4527, plan 5): handed the track page's
+/// sitting ([joinedSitting]) it hands its correction to that sitting with Done
+/// and writes nothing; otherwise it only reads.
 class NavTrackAlignPage extends ConsumerStatefulWidget {
   const NavTrackAlignPage({
     super.key,
     required this.routeId,
     this.joinedSitting,
-    this.unlockEditing = kUnlockRecordEditing,
   });
 
   final String routeId;
 
   /// The track page's sitting, when the page was pushed during one.
   final RecordEditController<NavTrack>? joinedSitting;
-
-  /// Whether the track pages edit in place: phase 3's switch, a parameter
-  /// so a test can turn it on.
-  final bool unlockEditing;
 
   @override
   ConsumerState<NavTrackAlignPage> createState() => _NavTrackAlignPageState();
@@ -176,7 +167,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   /// The track page's sitting this page edits in, while it is open.
   RecordEditController<NavTrack>? get _joined {
     final joined = widget.joinedSitting;
-    if (!widget.unlockEditing || joined == null || !joined.isUnlocked) {
+    if (joined == null || !joined.isUnlocked) {
       return null;
     }
     final session = joined.session;
@@ -184,9 +175,9 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     return joined;
   }
 
-  /// Whether the page only shows the alignment: the track pages edit in
-  /// place and no sitting of the track is open.
-  bool get _readOnly => widget.unlockEditing && _joined == null;
+  /// Whether the page only shows the alignment: no sitting of the track is
+  /// open.
+  bool get _readOnly => _joined == null;
 
   void _initFromRoute(NavTrack route) {
     if (_initialized) return;
@@ -303,15 +294,6 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     );
   }
 
-  Future<void> _persistCorrection(NavTrack route) => ref
-      .read(navTrackRepositoryProvider)
-      .updateCorrection(route.id, _correction);
-
-  Future<void> _save(NavTrack route) async {
-    await _persistCorrection(route);
-    if (mounted) context.pop();
-  }
-
   /// Done in a sitting: hands the page's correction to the track's sitting,
   /// as a change of its Correction card, and goes back. Writes nothing.
   void _done() {
@@ -320,20 +302,9 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     Navigator.of(context).maybePop();
   }
 
-  /// Saves the in-progress correction, then opens the 3D view for it.
-  ///
-  /// The 3D page loads the route fresh from the repository, so without
-  /// saving first it would show whatever was last persisted -- not
-  /// necessarily what the diver is currently looking at on this page.
-  ///
-  /// Where the track pages edit in place, nothing is saved from here.
+  /// Opens the 3D view for the in-progress correction. Nothing is saved
+  /// from here.
   Future<void> _openIn3d(NavTrack route) async {
-    if (!widget.unlockEditing) {
-      await _persistCorrection(route);
-      if (!mounted) return;
-      context.push(underwaterTrackSeascapeLocation(route.id));
-      return;
-    }
     // In a sitting the view previews the route as the sitting holds it
     // (its site included) with the correction made here; reading only, it
     // shows the stored one. Pushed on this page's own navigator: the page

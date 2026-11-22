@@ -11,7 +11,11 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_findings_sitting.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/info_sheets.dart';
@@ -85,6 +89,7 @@ Widget host(
   List<EquipmentFinding>? findings, {
   AppSettings settings = const AppSettings(),
   EquipmentFindingsRepository? repo,
+  EditSession<EquipmentItem>? editing,
 }) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
@@ -92,11 +97,13 @@ Widget host(
     if (repo != null)
       equipmentFindingsRepositoryProvider.overrideWithValue(repo),
   ],
-  child: const MaterialApp(
-    locale: Locale('en'),
+  child: MaterialApp(
+    locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: ConditionFindingsCard(equipment: reg)),
+    home: Scaffold(
+      body: ConditionFindingsCard(equipment: reg, editing: editing),
+    ),
   ),
 );
 
@@ -110,6 +117,53 @@ void main() {
     Intl.defaultLocale = 'en_US';
   });
   tearDown(() => Intl.defaultLocale = savedIntlLocale);
+
+  // Issue #4527, phase 3: in the item's sitting a dismissal waits for Save.
+  group('in a sitting', () {
+    late _RecordingFindings repo;
+    late EditSession<EquipmentItem> session;
+
+    setUp(() {
+      repo = _RecordingFindings();
+      session = EditSession(reg);
+      addTearDown(session.dispose);
+      holdFindingDismissals(session, <T>(p) => repo as T);
+    });
+
+    testWidgets('dismiss and restore write nothing until Save', (tester) async {
+      await tester.pumpWidget(host(three, repo: repo, editing: session));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Dismiss').first);
+      await tester.pumpAndSettle();
+
+      expect(repo.calls, isEmpty);
+      expect(find.text('1 finding'), findsOneWidget);
+      expect(find.byType(RecordChangedDot), findsNothing);
+      expect(session.changedCardIds, {GearItemCardId.conditionFindings.name});
+      await tester.tap(find.text('Show 2 dismissed'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordChangedDot), findsOneWidget);
+
+      await session.runHeldWrites();
+      expect(repo.calls, [(three.first.id, true)]);
+    });
+
+    testWidgets('a dismissal restored again is no change', (tester) async {
+      await tester.pumpWidget(host(three, repo: repo, editing: session));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Dismiss').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show 2 dismissed'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Restore').first);
+      await tester.pumpAndSettle();
+
+      expect(session.changedCardIds, isEmpty);
+      expect(session.hasHeldWrites, isFalse);
+    });
+  });
 
   testWidgets('the findings card carries an info icon', (tester) async {
     await tester.pumpWidget(host(three));

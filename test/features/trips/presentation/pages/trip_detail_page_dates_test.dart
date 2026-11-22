@@ -87,6 +87,29 @@ void main() {
     expect(harness.tripDives.assigned, isEmpty);
   });
 
+  // A trip shared with the diver is another profile's: the dives that may
+  // join it are the active profile's own, as the form searched them.
+  testWidgets("a shared trip's new dates ask about the active profile's "
+      'dives, not the owner\'s', (tester) async {
+    final harness = await pumpTripPage(
+      tester,
+      divers: twoDivers,
+      activeDiverId: 'd2',
+      candidates: candidates,
+    );
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    controllerOf(tester).session!.set(tripDatesField, (
+      start: DateTime(2030, 5, 30),
+      end: DateTime(2030, 6, 8),
+    ));
+    await tester.pumpAndSettle();
+
+    await tapSave(tester);
+
+    expect(harness.tripDives.asked.single.diverId, 'd2');
+  });
+
   testWidgets('unchanged dates ask nothing', (tester) async {
     final harness = await pumpTripPage(
       tester,

@@ -265,6 +265,7 @@ flutter:
     - assets/data/tide/fes/
     - assets/data/tide/fes/coastal/
     - assets/icon/
+    - assets/licenses/
 
   shaders:
     - shaders/heatmap.frag

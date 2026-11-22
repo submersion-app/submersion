@@ -70,22 +70,19 @@ class RangeTableService {
   }) {
     final engine = PlanEngine(config: config);
     final maxDepth = plan.maxDepth;
-    final minBottomMinutes = _shortestBottomMinutes(plan);
+    final descentRate = config.resolvedFor(plan).descentRate;
 
     final cells = <List<RangeCell?>>[
       for (final depthDelta in depthDeltas)
-        [
-          for (final timeDelta in timeDeltas)
-            _cell(
-              engine,
-              plan,
-              depthDelta,
-              timeDelta,
-              maxDepth: maxDepth,
-              minBottomMinutes: minBottomMinutes,
-              startState: startState,
-            ),
-        ],
+        _row(
+          engine,
+          plan,
+          depthDelta,
+          timeDeltas,
+          maxDepth: maxDepth,
+          descentRate: descentRate,
+          startState: startState,
+        ),
     ];
 
     return RangeTable(
@@ -95,6 +92,39 @@ class RangeTableService {
     );
   }
 
+  /// One depth row. The shortest bottom is measured on the row's own
+  /// depth: a deeper rate-split descent spends longer travelling, so it has
+  /// less hold left to shrink than the base plan does.
+  List<RangeCell?> _row(
+    PlanEngine engine,
+    domain.DivePlan plan,
+    double depthDelta,
+    List<int> timeDeltas, {
+    required double maxDepth,
+    required double descentRate,
+    required TissueState? startState,
+  }) {
+    final minBottomMinutes = _shortestBottomMinutes(
+      depthDelta == 0
+          ? plan
+          : deviatePlan(plan, depthDelta: depthDelta, descentRate: descentRate),
+      descentRate,
+    );
+    return [
+      for (final timeDelta in timeDeltas)
+        _cell(
+          engine,
+          plan,
+          depthDelta,
+          timeDelta,
+          maxDepth: maxDepth,
+          minBottomMinutes: minBottomMinutes,
+          descentRate: descentRate,
+          startState: startState,
+        ),
+    ];
+  }
+
   RangeCell? _cell(
     PlanEngine engine,
     domain.DivePlan plan,
@@ -102,19 +132,24 @@ class RangeTableService {
     int timeDelta, {
     required double maxDepth,
     required int? minBottomMinutes,
+    required double descentRate,
     required TissueState? startState,
   }) {
     if (plan.segments.isEmpty) return null;
     // A variant must keep the bottom under water and its duration positive.
     if (maxDepth + depthDelta <= 0) return null;
-    if (minBottomMinutes != null && minBottomMinutes + timeDelta <= 0) {
-      return null;
+    if (timeDelta != 0) {
+      // With no bottom to vary, deviatePlan would leave the time unchanged
+      // and the cell would repeat the base value as if the time cost nothing.
+      if (minBottomMinutes == null) return null;
+      if (minBottomMinutes + timeDelta <= 0) return null;
     }
 
     final variant = deviatePlan(
       plan,
       depthDelta: depthDelta,
       timeDeltaMinutes: timeDelta,
+      descentRate: descentRate,
     );
     return RangeCell(
       depthDelta: depthDelta,
@@ -124,14 +159,25 @@ class RangeTableService {
   }
 
   /// Bottom time the table cannot shrink below, or null if the diver has
-  /// authored no level leg to shorten.
-  int? _shortestBottomMinutes(domain.DivePlan plan) {
+  /// authored no leg that holds at depth (see [SegmentChain.bottomLegIndex]).
+  ///
+  /// For a rate-split descent that is only the hold after its travel at the
+  /// plan's resolved [descentRate] (#4849): the travel is not bottom time,
+  /// and a delta that eats into it would leave a variant with no bottom.
+  int? _shortestBottomMinutes(domain.DivePlan plan, double descentRate) {
     final ordered = List<PlanSegment>.from(plan.segments)
       ..sort((a, b) => a.order.compareTo(b.order));
     const chain = SegmentChain();
     final legs = chain.resolve(ordered);
-    final bottomIndex = chain.bottomLegIndex(legs);
+    final bottomIndex = chain.bottomLegIndex(legs, descentRate: descentRate);
     if (bottomIndex == null) return null;
-    return legs[bottomIndex].durationSeconds ~/ 60;
+    final bottom = legs[bottomIndex];
+    if (!bottom.isDepthChange) return bottom.durationSeconds ~/ 60;
+    final travelSeconds = PlanSegment.travelSeconds(
+      metres: bottom.endDepth - bottom.startDepth,
+      ratePerMinute: descentRate,
+    );
+    final holdSeconds = bottom.durationSeconds - travelSeconds;
+    return holdSeconds <= 0 ? 0 : holdSeconds ~/ 60;
   }
 }

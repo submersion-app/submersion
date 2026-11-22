@@ -2,16 +2,12 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
-import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
+import 'package:submersion/shared/widgets/record_editing/open_new_record.dart';
 
 /// Where the old certification edit address (`/certifications/<id>/edit`)
-/// goes (issue #4527, phase 3): with [unlockEditing], the certification
-/// page opened unlocked; null, keeping the edit form, otherwise.
-String? certificationEditLocation(
-  String certificationId, {
-  bool unlockEditing = kUnlockRecordEditing,
-}) => unlockEditing ? '/certifications/$certificationId?mode=edit' : null;
+/// goes (issue #4527, phase 3): the certification page opened unlocked.
+String certificationEditLocation(String certificationId) =>
+    '/certifications/$certificationId?mode=edit';
 
 /// The edit route's redirect: [certificationEditLocation] for its address.
 String? certificationEditRedirect(BuildContext context, GoRouterState state) =>
@@ -28,32 +24,48 @@ String certificationPaneLocation(
     : '/certifications?selected=$certificationId';
 
 /// The certifications list's edit pane, as the master-detail scaffold's and
-/// table mode's `editBuilder`: with [unlockEditing], the certification page
-/// opened unlocked, back to the certification in view mode ([onCancel])
-/// once its sitting ends; else the edit form as before.
+/// table mode's `editBuilder`: the certification page opened unlocked, back
+/// to the certification in view mode ([onCancel]) once its sitting ends.
+/// [onSaved] is the scaffold's, and unused: a sitting saves in place.
 Widget certificationEditPane(
   BuildContext context,
   String id,
   void Function(String savedId) onSaved,
   VoidCallback onCancel, {
   VoidCallback? onDeleted,
-  bool unlockEditing = kUnlockRecordEditing,
-}) {
-  if (unlockEditing) {
-    return CertificationDetailPage(
-      certificationId: id,
-      embedded: true,
-      unlockEditing: unlockEditing,
-      openUnlocked: true,
-      onSittingEnded: onCancel,
-      // A delete from the pane returns it to the list, as from view mode.
-      onDeleted: onDeleted,
-    );
-  }
-  return CertificationEditPage(
-    certificationId: id,
-    embedded: true,
-    onSaved: onSaved,
-    onCancel: onCancel,
-  );
-}
+}) => CertificationDetailPage(
+  certificationId: id,
+  embedded: true,
+  openUnlocked: true,
+  onSittingEnded: onCancel,
+  // A delete from the pane returns it to the list, as from view mode.
+  onDeleted: onDeleted,
+);
+
+/// The new-certification address (`/certifications/new`; issue #4527,
+/// phase 3, plan 11): the certification page opened unlocked on a new
+/// certification, which pops its id.
+Widget newCertificationPage() =>
+    const CertificationDetailPage.newCertification();
+
+/// The certification list's new-certification pane (`?mode=new`), as the
+/// master-detail scaffold's `createBuilder`: the page on a new
+/// certification, whose created id is handed to [onSaved].
+Widget newCertificationPane(
+  BuildContext context,
+  void Function(String savedId) onSaved,
+  VoidCallback onCancel,
+) => CertificationDetailPage.newCertification(
+  embedded: true,
+  onCreated: onSaved,
+  onCreateCancelled: onCancel,
+);
+
+/// Opens a new certification from the list on a phone, its empty state or
+/// the wallet: the certification opens, locked, once created, as a new
+/// site does (plan 11, Question 3).
+Future<void> openNewCertification(BuildContext context) => openNewRecord(
+  context,
+  newLocation: '/certifications/new',
+  recordLocation: (id) => '/certifications/$id',
+);

@@ -24,9 +24,10 @@ mixin _NavTrackRouteImports on _NavTrackRouteLinks {
   /// default anchor is the route's site pin ... so a freshly imported route
   /// already sits on the right stretch of shore before any correction").
   /// The stored anchor IS the site pin from the start; a later "Set start
-  /// here" or a drag on the alignment page explicitly overrides it. No site
-  /// chosen, or a site with no coordinates yet, leaves the anchor null, same
-  /// as before.
+  /// here" or a drag on the alignment page explicitly overrides it. With no
+  /// [siteId], a route pre-linked to [diveId] takes that dive's site (or its
+  /// entry fix when it has none), as [link] would give it. A site with no
+  /// coordinates yet, or no site at all, leaves the anchor null.
   ///
   /// An explicit [anchorLatitude]/[anchorLongitude] pair, given when the
   /// source file carries its own origin fix (a Suunto `DiveRouteOrigin`,
@@ -65,30 +66,32 @@ mixin _NavTrackRouteImports on _NavTrackRouteLinks {
       final now = DateTime.now().millisecondsSinceEpoch;
       final stats = NavTrackStats.of(points);
       final isPrimary = diveId == null || await _shouldBePrimary(diveId);
-      final explicitAnchor = anchorLatitude != null && anchorLongitude != null
-          ? GeoPoint(anchorLatitude, anchorLongitude)
-          : null;
-      var anchor =
-          explicitAnchor ??
-          (siteId == null
-              ? null
-              : (await _siteRepository.getSiteById(siteId))?.location);
-      // No site chosen on the review page but the route is being pre-linked
-      // to a dive: fall back to the dive's own entry fix, the same
-      // inheritance `link()`'s `_siteAndAnchorToInherit` already gives a
-      // route linked afterward. Without this, whether a route ends up
-      // anchored depends on which of the two otherwise-equivalent linking
-      // paths (pre-link at import vs. link after the fact) the diver used.
-      // A site the diver did choose wins even without coordinates: the
-      // route stays unanchored rather than sitting at a different point.
       final diveRow = diveId == null
           ? null
           : await (_db.select(
               _db.dives,
             )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      // No site chosen but the route is being pre-linked to a dive: it takes
+      // the dive's site and then its pin, or the dive's own entry fix when
+      // the dive has no site, the same inheritance `link()`'s
+      // `_siteAndAnchorToInherit` gives a route linked afterward (#4851).
+      // Without this, a route's site and anchor depend on which of the two
+      // otherwise-equivalent linking paths (pre-link at import vs. link
+      // after the fact) the diver used. A site with no coordinates leaves
+      // the route unanchored rather than sitting at a different point, and
+      // an explicit anchor wins over both.
+      final storedSiteId = siteId ?? diveRow?.siteId;
+      final explicitAnchor = anchorLatitude != null && anchorLongitude != null
+          ? GeoPoint(anchorLatitude, anchorLongitude)
+          : null;
+      var anchor =
+          explicitAnchor ??
+          (storedSiteId == null
+              ? null
+              : (await _siteRepository.getSiteById(storedSiteId))?.location);
       if (explicitAnchor == null &&
           anchor == null &&
-          siteId == null &&
+          storedSiteId == null &&
           diveRow != null) {
         final entryLat = diveRow.entryLatitude;
         final entryLon = diveRow.entryLongitude;
@@ -109,7 +112,7 @@ mixin _NavTrackRouteImports on _NavTrackRouteLinks {
                     : domain.NavTrackLinkMode.manual.wireValue,
               ),
               isPrimary: Value(isPrimary),
-              siteId: Value(siteId),
+              siteId: Value(storedSiteId),
               source: source.wireValue,
               sourceRef: Value(sourceRef),
               deviceName: Value(deviceName),

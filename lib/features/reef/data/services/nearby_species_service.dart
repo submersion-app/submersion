@@ -8,6 +8,7 @@ import 'package:submersion/features/reef/data/services/reef_request_timeout.dart
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/services/species_catalog_matcher.dart';
+import 'package:submersion/features/reef/data/services/reef_failure.dart';
 
 /// Fetches species recorded near a dive site from GBIF.
 ///
@@ -112,20 +113,27 @@ class NearbySpeciesService {
             .whereType<String>()
             .toList(),
         namesIncomplete: resolved.any((r) => r.failed),
+        speciesKeys: {for (final c in counts) c.key},
       );
-      if (result.isEmpty) {
-        // Nothing to show because the lookups failed is not "nothing nearby".
-        return result.namesIncomplete
-            ? const ReefPart.unavailable()
-            : const ReefPart.empty();
+      // Nothing to show because the lookups failed is not "nothing nearby".
+      // Lookups that got no answer at all (the connection dropped) say
+      // nothing about the source, so that failure is not saved.
+      if (result.isEmpty && result.namesIncomplete) {
+        return ReefPart.unavailable(
+          unanswered: resolved
+              .where((r) => r.failed)
+              .every((r) => r.unanswered),
+        );
       }
+      // Nothing GBIF could name still keeps its keys, so marine life
+      // suggestions can be matched; the site page shows nothing either way.
       return ReefPart.ok(result);
     } catch (e) {
       developer.log(
         'Nearby species fetch failed: $e',
         name: 'NearbySpeciesService',
       );
-      return const ReefPart.unavailable();
+      return reefFailure(e);
     }
   }
 
@@ -156,10 +164,13 @@ class NearbySpeciesService {
   /// Resolves a taxon key to its scientific name. The name is null when the
   /// record is unusable or belongs to a [_terrestrialFamilies] family, which
   /// is a finished answer, as is a permanent client error such as 404: asking
-  /// again would get the same reply. `failed` means a later try could succeed.
-  Future<({String? name, bool failed})> _scientificName(int key) async {
-    const lookupFailed = (name: null, failed: true);
-    const noName = (name: null, failed: false);
+  /// again would get the same reply. `failed` means a later try could succeed;
+  /// `unanswered` that the lookup got no reply at all.
+  Future<({String? name, bool failed, bool unanswered})> _scientificName(
+    int key,
+  ) async {
+    const lookupFailed = (name: null, failed: true, unanswered: false);
+    const noName = (name: null, failed: false, unanswered: false);
     try {
       final response = await _client
           .get(Uri.https(_host, '$_speciesPath/$key'), headers: _headers)
@@ -173,10 +184,10 @@ class NearbySpeciesService {
       if (_terrestrialFamilies.contains(decoded['family'])) return noName;
       final name = decoded['scientificName'];
       return name is String && name.isNotEmpty
-          ? (name: name, failed: false)
+          ? (name: name, failed: false, unanswered: false)
           : noName;
-    } catch (_) {
-      return lookupFailed;
+    } catch (e) {
+      return (name: null, failed: true, unanswered: gotNoAnswer(e));
     }
   }
 }

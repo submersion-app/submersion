@@ -5,8 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_scan_in_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
@@ -22,9 +23,6 @@ class TripOverviewTab extends ConsumerWidget {
   /// DefaultTabController.
   final ValueChanged<TripDetailTab>? onOpenTab;
 
-  /// Where the Prepare overview's Plan row goes; null pushes the edit page.
-  final VoidCallback? onEditPlan;
-
   /// Which page of the story shows, held above the tabs so it survives a
   /// visit to another tab; null lets the story keep its own.
   final ValueNotifier<TripStorySelection?>? selection;
@@ -36,7 +34,6 @@ class TripOverviewTab extends ConsumerWidget {
     super.key,
     required this.tripWithStats,
     this.onOpenTab,
-    this.onEditPlan,
     this.selection,
     this.onEditDayNote,
   });
@@ -70,21 +67,22 @@ class TripOverviewTab extends ConsumerWidget {
     // Before the first day there is nothing to tell: the page prepares.
     // From the first day on, in progress or past, it tells the story.
     if (layout.startsAfter(clock.now())) {
-      return TripPrepareOverview(
-        story: story,
-        onOpenTab: onOpenTab,
-        onEditPlan: onEditPlan,
-      );
+      return TripPrepareOverview(story: story, onOpenTab: onOpenTab);
     }
     return TripStoryView(
       story: story,
       stats: tripWithStats,
       selection: selection,
-      // Scanning joins the page's sitting in phase 3's next trip plan; until
-      // then a page that edits in place offers none here.
-      onScanForDives: slots != null
+      // The scan is the Dives card's: it unlocks a locked page, and the
+      // dives it finds wait for Save. Outside a trip page it is not offered.
+      onScanForDives: slots == null
           ? null
-          : () => scanForTripDives(context, ref, trip),
+          : () {
+              final session = slots.session ?? slots.unlockAt(TripCardId.dives);
+              if (session != null) {
+                scanForTripDivesInSitting(context, ref, session);
+              }
+            },
       onEditDayNote: onEditDayNote,
     );
   }

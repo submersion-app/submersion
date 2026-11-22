@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -20,12 +20,8 @@ void main() {
   final today = DateTime(now.year, now.month, now.day);
 
   group('addresses', () {
-    test('the edit address redirects with the switch on, not off', () {
-      expect(tripEditLocation('t1'), isNull);
-      expect(
-        tripEditLocation('t1', unlockEditing: true),
-        '/trips/t1?mode=edit',
-      );
+    test('the edit address opens the page unlocked', () {
+      expect(tripEditLocation('t1'), '/trips/t1?mode=edit');
     });
 
     test('moving into the pane keeps an edit address asking for edit', () {
@@ -55,40 +51,80 @@ void main() {
 
     test('the redirect keeps the section and the day', () {
       expect(
-        tripEditLocation(
-          't1',
-          section: TripEditSection.planning,
-          unlockEditing: true,
-        ),
+        tripEditLocation('t1', section: TripEditSection.planning),
         '/trips/t1?mode=edit&section=planning',
       );
       expect(
         tripEditLocation(
           't1',
           noteDay: TripNoteDay(date: DateTime(2030, 6, 2), dayNumber: 2),
-          unlockEditing: true,
         ),
         '/trips/t1?mode=edit&section=notes&noteDate=2030-06-02&noteDay=2',
       );
     });
   });
 
+  // Review Focus 2 (issue #4527, plan 12): an old address's section and
+  // day survive the redirect; a malformed day is dropped, so the trip opens
+  // unlocked at no card.
+  for (final (from, to) in [
+    ('/trips/t1/edit', '/trips/t1?mode=edit'),
+    ('/trips/t1/edit?section=planning', '/trips/t1?mode=edit&section=planning'),
+    (
+      '/trips/t1/edit?section=notes&noteDate=2030-06-02&noteDay=2',
+      '/trips/t1?mode=edit&section=notes&noteDate=2030-06-02&noteDay=2',
+    ),
+    ('/trips/t1/edit?noteDate=2030-02-31&noteDay=2', '/trips/t1?mode=edit'),
+  ]) {
+    testWidgets('the old address $from lands on $to', (tester) async {
+      final router = GoRouter(
+        initialLocation: from,
+        routes: [
+          GoRoute(
+            path: '/trips/:tripId',
+            builder: (_, state) => Text('TRIP ${state.uri}'),
+            routes: [GoRoute(path: 'edit', redirect: tripEditRedirect)],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpAndSettle();
+
+      expect(find.text('TRIP $to'), findsOneWidget);
+    });
+  }
+
   testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
     await pumpTripPage(tester, openUnlocked: true);
 
     expect(find.byType(RecordEditBar), findsOneWidget);
+    // At the top, with no card opened for it.
+    expect(find.byType(TripPlanCardEditor), findsNothing);
+    expect(
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .pixels,
+      0,
+    );
   });
 
   testWidgets('opened at section=planning, the Plan card is open and in '
       'view', (tester) async {
+    // A phone's height, where the Plan card starts below the fold.
+    const phone = Size(400, 700);
     await pumpTripPage(
       tester,
       openUnlocked: true,
       openSection: TripEditSection.planning,
+      size: phone,
     );
 
     expect(find.byType(TripPlanCardEditor), findsOneWidget);
-    expect(tester.getRect(find.byType(TripPlanCardEditor)).top, lessThan(1600));
+    final top = tester.getRect(find.byType(TripPlanCardEditor)).top;
+    expect(top, greaterThanOrEqualTo(0));
+    expect(top, lessThan(phone.height));
   });
 
   testWidgets('opened at a note day, that day is shown with its Day plan '
@@ -120,13 +156,8 @@ void main() {
       embedded: true,
       wrap: (_) => Scaffold(
         body: Builder(
-          builder: (context) => tripEditPane(
-            context,
-            't1',
-            (_) {},
-            () => cancelled++,
-            unlockEditing: true,
-          ),
+          builder: (context) =>
+              tripEditPane(context, 't1', (_) {}, () => cancelled++),
         ),
       ),
     );
@@ -146,8 +177,7 @@ void main() {
       embedded: true,
       wrap: (_) => Scaffold(
         body: Builder(
-          builder: (context) =>
-              tripEditPane(context, 't1', (_) {}, () {}, unlockEditing: true),
+          builder: (context) => tripEditPane(context, 't1', (_) {}, () {}),
         ),
       ),
     );
@@ -165,27 +195,6 @@ void main() {
 
     expect(harness.save.calls.single.after.id, 't1');
     expect(harness.save.calls.single.after.notes, 'Windy');
-  });
-
-  testWidgets('with the switch off the pane opens the form', (tester) async {
-    late Widget pane;
-    await tester.pumpWidget(
-      Builder(
-        builder: (context) {
-          pane = tripEditPane(
-            context,
-            't1',
-            (_) {},
-            () {},
-            unlockEditing: false,
-          );
-          return const SizedBox();
-        },
-      ),
-    );
-
-    expect(pane, isA<TripEditPage>());
-    expect((pane as TripEditPage).tripId, 't1');
   });
 
   testWidgets('opened at section=planning on a trip under way, the story '

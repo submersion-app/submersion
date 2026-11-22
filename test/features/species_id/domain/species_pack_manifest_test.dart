@@ -800,33 +800,47 @@ void main() {
           addLevels(m);
           (m['naming']! as Map<String, Object?>)['precision'] = 0.9;
         });
-        expect(withLevels.adoptableFrom(published((_) {})), isTrue);
+        expect(
+          withLevels.adoptableFrom(published((_) {}), engine: 'coreml'),
+          isTrue,
+        );
       });
 
       test('when it adds levels, a precision or credits', () {
-        expect(installed.adoptableFrom(published(addLevels)), isTrue);
+        expect(
+          installed.adoptableFrom(published(addLevels), engine: 'coreml'),
+          isTrue,
+        );
         expect(
           installed.adoptableFrom(
             published(
               (m) => (m['naming']! as Map<String, Object?>)['precision'] = 0.9,
             ),
+            engine: 'coreml',
           ),
           isTrue,
         );
         expect(
-          installed.adoptableFrom(published((m) => m['credits'] = [])),
+          installed.adoptableFrom(
+            published((m) => m['credits'] = []),
+            engine: 'coreml',
+          ),
           isTrue,
         );
       });
 
       test('only when nothing else changes', () {
-        expect(installed.adoptableFrom(published((_) {})), isFalse);
+        expect(
+          installed.adoptableFrom(published((_) {}), engine: 'coreml'),
+          isFalse,
+        );
         expect(
           installed.adoptableFrom(
             published((m) {
               addLevels(m);
               (m['naming']! as Map<String, Object?>)['suggestScore'] = 0.6;
             }),
+            engine: 'coreml',
           ),
           isFalse,
         );
@@ -836,6 +850,7 @@ void main() {
               addLevels(m);
               ((m['files']! as List)[2] as Map)['sha256'] = 'b' * 64;
             }),
+            engine: 'coreml',
           ),
           isFalse,
         );
@@ -845,6 +860,7 @@ void main() {
               addLevels(m);
               m['packVersion'] = '2026.11.2';
             }),
+            engine: 'coreml',
           ),
           isFalse,
         );
@@ -854,6 +870,37 @@ void main() {
               addLevels(m);
               (m['detector']! as Map)['scoreThreshold'] = 0.4;
             }),
+            engine: 'coreml',
+          ),
+          isFalse,
+        );
+      });
+
+      test('when it only adds another engine\'s files', () {
+        expect(
+          installed.adoptableFrom(
+            published(
+              (m) => (m['files']! as List).add({
+                'name': 'classifier.onnx.zip',
+                'engine': 'onnx',
+                'size': 1,
+                'sha256': 'c' * 64,
+              }),
+            ),
+            engine: 'coreml',
+          ),
+          isTrue,
+        );
+      });
+
+      test('not when it changes a file of this engine', () {
+        expect(
+          installed.adoptableFrom(
+            published((m) {
+              addLevels(m);
+              ((m['files']! as List)[0] as Map)['sha256'] = 'b' * 64;
+            }),
+            engine: 'coreml',
           ),
           isFalse,
         );

@@ -74,6 +74,49 @@ void main() {
     expect(await logEvents(db), isEmpty);
   });
 
+  Future<void> addSeries() => db.customStatement(
+    'INSERT INTO dive_profile_series (id, dive_id, sample_count, '
+    'start_timestamp, end_timestamp, max_depth, first_depth, last_depth, '
+    'codec_version, samples, is_primary, created_at, updated_at) VALUES '
+    "('added', 'dive', 1, 0, 0, 5.0, 5.0, 5.0, 1, ?, 0, 0, 0)",
+    [
+      Uint8List.fromList([7]),
+    ],
+  );
+
+  test(
+    'a series insert outside an opted-in operation records nothing',
+    () async {
+      await addSeries();
+      await ChangeLogScope.bulk(
+        db,
+        label: ChangeLogLabels.qualityRepair,
+        body: () => db.customStatement(
+          "DELETE FROM dive_profile_series WHERE id = 'added'",
+        ),
+      );
+      await ChangeLogScope.automatic(db, label: 'download', body: addSeries);
+      await repository.settleAll();
+
+      expect(await logEvents(db), isEmpty);
+    },
+  );
+
+  test('a series insert in a re-parse is recorded and survives settling '
+      'while its dive lives', () async {
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.reparse,
+      body: addSeries,
+    );
+    await repository.settleAll();
+
+    final events = await logEvents(db);
+    expect(events.map((e) => (e['table_name'], e['record_id'], e['action'])), [
+      ('dive_profile_series', 'added', 'I'),
+    ]);
+  });
+
   test('a series update in a quality repair records nothing', () async {
     await ChangeLogScope.bulk(
       db,
@@ -269,6 +312,42 @@ void main() {
     expect(row['is_primary'], 0);
   });
 
+  // A series rewritten in place updates its lineage row's content hash, and
+  // that row is raw SQL that never syncs (issue #4848).
+  test('revert restores a lineage row an opted-in operation updated', () async {
+    await db.customStatement(
+      'INSERT INTO dive_profile_series_history (series_id, dive_id, '
+      'root_series_id, content_hash, revision_kind, created_at) VALUES '
+      "('series', 'dive', 'series', 'old-hash', 'create', 0)",
+    );
+    await forget();
+    String? operationId;
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.removeSource,
+      body: () async {
+        operationId = ChangeLogScope.currentOperationId;
+        await editSeries();
+        await db.customStatement(
+          "UPDATE dive_profile_series_history SET content_hash = 'new-hash' "
+          "WHERE series_id = 'series'",
+        );
+      },
+    );
+    await repository.settleAll();
+
+    await service.execute(await service.planOperation(operationId!));
+
+    final lineage = await db
+        .customSelect(
+          'SELECT content_hash FROM dive_profile_series_history '
+          "WHERE series_id = 'series'",
+        )
+        .getSingle();
+    expect(lineage.data['content_hash'], 'old-hash');
+    expect((await seriesRow())['samples'], [1, 2, 3]);
+  });
+
   test('the opt-in sources are the agent and a revert', () {
     expect(changeLogSeriesUpdateSources, {
       ChangeLogSource.agent.name,
@@ -276,11 +355,13 @@ void main() {
     });
   });
 
-  test('the opt-in labels are the removals and the planned dives update', () {
+  test('the opt-in labels are the removals, the planned dives update and '
+      'a re-parse', () {
     expect(changeLogSeriesUpdateLabels, {
       ChangeLogLabels.removeSource,
       ChangeLogLabels.removeDuplicateCylinders,
       ChangeLogLabels.updatePlannedDives,
+      ChangeLogLabels.reparse,
     });
   });
 

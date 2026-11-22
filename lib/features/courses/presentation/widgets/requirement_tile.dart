@@ -13,30 +13,27 @@ import 'package:submersion/features/courses/presentation/editing/course_requirem
 /// dive requirements offer suggestion chips (one tap credits the dive) and
 /// a picker that reaches every other dive.
 ///
-/// What a tap does is [actions]'s: written at once, as before, when none is
-/// given, or held in a course page's sitting (issue #4527, phase 3). With
-/// [readOnly] (the page edits in place and is locked, or the card is closed)
-/// it offers no action and shows the tick as it is.
-class RequirementTile extends ConsumerWidget {
+/// What a tap does is [actions]'s, held in a course page's sitting (issue
+/// #4527, phase 3). With none (the page is locked, or the card is closed) it
+/// offers no action and shows the tick as it is.
+class RequirementTile extends StatelessWidget {
   const RequirementTile({
     super.key,
     required this.progress,
     required this.suggestions,
     this.actions,
-    this.readOnly = false,
   });
 
   final CourseRequirementProgress progress;
   final List<RequirementDiveSummary> suggestions;
+
+  /// Null where the tile offers no action.
   final RequirementActions? actions;
-  final bool readOnly;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final requirement = progress.requirement;
-    final actions = readOnly
-        ? null
-        : this.actions ?? StoredRequirementActions(ref, requirement.courseId);
+    final actions = this.actions;
     if (requirement.kind == RequirementKind.checklist) {
       return CheckboxListTile(
         value: requirement.completedAt != null,

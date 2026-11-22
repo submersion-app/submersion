@@ -14,6 +14,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_interaction_op
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 import 'package:submersion/features/media/domain/entities/media_map_point.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
@@ -344,6 +346,8 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
                     onClusterTap: (node) => _onClusterTap(node, byId, orderOf),
                   ),
                 ),
+                // The device, once Show my location has found it (#4808).
+                const MyLocationLayer(),
                 const MapAttribution(),
               ],
             ),
@@ -384,11 +388,15 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
                       onPressed: () => ref.invalidate(mediaMapPointsProvider),
                     ),
                   IconButton(
-                    icon: const Icon(Icons.my_location, size: 20),
+                    icon: const Icon(Icons.zoom_out_map, size: 20),
                     tooltip: l10n.diveLog_map_tooltip_fitAllSites,
                     onPressed: () => _animator.fitAll(
                       state.points.map((p) => p.point).toList(),
                     ),
+                  ),
+                  MyLocationButton(
+                    onLocated: _animator.animateTo,
+                    iconSize: 20,
                   ),
                 ],
               ),

@@ -64,6 +64,16 @@ void main() {
       );
     });
 
+    test('a reading that says the system is low on memory says so', () {
+      expect(
+        describeMemory(
+          'photo',
+          const VisionMemory(footprintBytes: 612 * _mib, lowMemory: true),
+        ),
+        endsWith(', low memory'),
+      );
+    });
+
     test('a reading with only the footprint', () {
       expect(
         describeMemory('load', const VisionMemory(footprintBytes: 612 * _mib)),

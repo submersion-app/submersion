@@ -208,7 +208,7 @@ class ContingencyPreviewChip extends ConsumerWidget {
       value: '✕',
       tint: Theme.of(context).colorScheme.tertiary,
       onTap: () {
-        ref.read(selectedDeviationProvider.notifier).state = null;
+        ref.read(selectedDeviationProvider.notifier).select(null);
         ref.read(selectedLostGasTankIdProvider.notifier).state = null;
       },
     );

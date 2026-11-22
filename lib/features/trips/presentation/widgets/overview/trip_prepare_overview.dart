@@ -20,20 +20,21 @@ class TripPrepareOverview extends StatelessWidget {
   final TripStory story;
   final ValueChanged<TripDetailTab>? onOpenTab;
 
-  /// Where the summary card's Plan row goes; see [TripOverviewSummaryCard].
-  final VoidCallback? onEditPlan;
+  /// Whether the summary card's rows that open the other tabs show; see
+  /// [TripOverviewSummaryCard.tabRows].
+  final bool tabRows;
 
   const TripPrepareOverview({
     super.key,
     required this.story,
     this.onOpenTab,
-    this.onEditPlan,
+    this.tabRows = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Where the page edits in place, the cards show the sitting's trip and
-    // sit in its frames (issue #4527).
+    // On the trip page, the cards show the sitting's trip and sit in its frames
+    // (issue #4527).
     final slots = TripCardSlotsScope.maybeOf(context);
     final trip = slots?.shown ?? story.trip;
     Widget framed(TripCardId id, Widget child) =>
@@ -56,10 +57,10 @@ class TripPrepareOverview extends StatelessWidget {
         TripOverviewSummaryCard(
           trip: trip,
           onOpenTab: onOpenTab,
-          onEditPlan: onEditPlan,
+          tabRows: tabRows,
         ),
-        // A liveaboard's vessel, before departure too, where the page edits
-        // in place (issue #4527).
+        // A liveaboard's vessel, before departure too, on the trip page
+        // (issue #4527).
         if (slots != null && trip.isLiveaboard)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

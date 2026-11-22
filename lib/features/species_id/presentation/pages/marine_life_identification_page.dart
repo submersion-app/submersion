@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
@@ -50,7 +52,11 @@ class _MarineLifeIdentificationPageState
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(l10n.settings_speciesId_intro),
+            child: Text(
+              visionVideoRuns(defaultTargetPlatform)
+                  ? l10n.settings_speciesId_intro
+                  : l10n.settings_speciesId_introPhotos,
+            ),
           ),
           ListTile(
             leading: const Icon(Icons.memory_outlined),
@@ -80,7 +86,11 @@ class _MarineLifeIdentificationPageState
           const Divider(),
           SwitchListTile(
             key: const ValueKey('species_id_toggle'),
-            title: Text(l10n.settings_speciesId_toggle),
+            title: Text(
+              visionVideoRuns(defaultTargetPlatform)
+                  ? l10n.settings_speciesId_toggle
+                  : l10n.settings_speciesId_togglePhotos,
+            ),
             value: ref.watch(identifyFishOnOpenProvider),
             onChanged: (value) =>
                 ref.read(identifyFishOnOpenProvider.notifier).setEnabled(value),
@@ -210,11 +220,19 @@ class _MarineLifeIdentificationPageState
   Future<void> _confirmDownload(BuildContext context, int bytes) async {
     final l10n = context.l10n;
     final size = formatBytes(bytes);
+    final fetchesEngine = await ref
+        .read(speciesPackControllerProvider.notifier)
+        .downloadFetchesHardwareEngine();
+    if (!context.mounted) return;
     final go = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.settings_speciesId_downloadConfirmTitle),
-        content: Text(l10n.settings_speciesId_downloadConfirmBody(size)),
+        content: Text(
+          fetchesEngine
+              ? l10n.settings_speciesId_downloadConfirmBodyHardware(size)
+              : l10n.settings_speciesId_downloadConfirmBody(size),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),

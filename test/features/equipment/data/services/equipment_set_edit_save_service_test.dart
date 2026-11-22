@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, EquipmentSetGeofence;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -378,6 +379,8 @@ void main() {
     await save(session);
 
     expect(await gearOn('planned'), {'e1'});
+    // The planned dive still names the set, so it keeps following it.
+    expect(await setsOn('planned'), {'s1'});
     expect(await gearOn('logged'), {'e1', 'e2'});
     expect(await setsOn('logged'), {null});
     expect(await gearOn('outer'), {'e1', 'e2'});
@@ -394,6 +397,9 @@ void main() {
     expect(await gearOn('logged'), {'e1'});
     expect(await gearOn('outer'), {'e1'});
     expect(await gearOn('planned'), {'e1'});
+    // Rewritten along with the set, the logged dives keep naming it.
+    expect(await setsOn('logged'), {'s1'});
+    expect(await setsOn('outer'), {'s3'});
     await revertOnly();
     expect(await gearOn('logged'), {'e1', 'e2'});
     expect(await gearOn('outer'), {'e1', 'e2'});
@@ -426,6 +432,7 @@ void main() {
 
     expect(counting.allSetsReads, 0);
     expect(await gearOn('planned'), {'e1', 'e2'});
+    expect(await setsOn('logged'), {'s1'});
   });
 
   test('the rewritten dives are rescanned once, after the commit', () async {
@@ -520,5 +527,111 @@ void main() {
     await sets.deleteSet('s1');
 
     await expectLater(save(session), throwsStateError);
+  });
+
+  /// A new set's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    EquipmentSet fresh({String id = 'n1', bool isDefault = false}) =>
+        EquipmentSet(
+          id: id,
+          diverId: 'd1',
+          name: 'Travel kit',
+          equipmentIds: const ['e1'],
+          isDefault: isDefault,
+          geofences: [fence('nf')],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+
+    test('creates the set with its id, as one History entry', () async {
+      final created = await service.create(
+        set: fresh(),
+        changedCardIds: const ['header', 'members'],
+      );
+
+      expect(created.id, 'n1');
+      final read = await stored('n1');
+      expect(read.equipmentIds, ['e1']);
+      expect(read.geofences.single.id, 'nf');
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(
+        ops.single['label'],
+        'record_edit:equipment_sets:n1:header,members',
+      );
+    });
+
+    test('a new default set takes the default, in the same entry', () async {
+      await service.create(
+        set: fresh(isDefault: true),
+        changedCardIds: const ['header'],
+      );
+
+      expect(await isDefault('n1'), isTrue);
+      expect(await isDefault('s2'), isFalse);
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a write that fails leaves the old default default', () async {
+      await expectLater(
+        service.create(
+          set: fresh(isDefault: true),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await sets.getSetById('n1'), isNull);
+      expect(await isDefault('s2'), isTrue);
+      expect(await operations(), isEmpty);
+    });
+
+    // The set's own repository write runs in a transaction nested in the
+    // sitting's: nothing of it is kept, marked for sync or told to sync
+    // when a later write rolls the sitting back.
+    test('a write that fails leaves no pending sync mark and tells sync '
+        'nothing', () async {
+      var told = 0;
+      final listening = SyncEventBus.changes.listen((_) => told++);
+      addTearDown(listening.cancel);
+
+      await expectLater(
+        service.create(
+          set: fresh(isDefault: true),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final marks = await db
+          .customSelect("SELECT id FROM sync_records WHERE record_id = 'n1'")
+          .get();
+      expect(marks, isEmpty);
+      expect(told, 0);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          set: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          set: fresh(id: 's1'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).name, isNot('Travel kit'));
+      expect(await operations(), isEmpty);
+    });
   });
 }

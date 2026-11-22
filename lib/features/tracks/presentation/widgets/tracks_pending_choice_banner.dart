@@ -7,8 +7,9 @@ import 'package:submersion/features/tracks/presentation/providers/tracks_provide
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// "N underwater tracks need your choice": every unlinked underwater track,
-/// since only the diver links one, from each track's detail page (#2394).
-/// Hidden when none are waiting.
+/// since only the diver links one (#2394), on the track's detail page or by
+/// confirming the dives Match proposes (#4851). Hidden when none are
+/// waiting.
 class TracksPendingChoiceBanner extends ConsumerWidget {
   const TracksPendingChoiceBanner({super.key});
 

@@ -11,26 +11,24 @@ import 'package:submersion/features/equipment/presentation/widgets/location_conf
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
-/// Edits one history entry's place, date and note, or deletes it. The
-/// current location recomputes from what is left.
-///
-/// With [onHold] (an item page's sitting, issue #4527, phase 3) it writes
-/// nothing: Save hands back the edited move and Delete, still asked first,
-/// hands back null.
+/// Edits one history entry's place, date and note, or deletes it, in an
+/// item page's sitting (issue #4527, phase 3). It writes nothing: Save hands
+/// [onHold] the edited move and Delete, still asked first, hands it null.
+/// The current location recomputes from what is left.
 Future<void> showLocationMoveEditDialog(
   BuildContext context,
   WidgetRef ref,
   EquipmentLocationMove move, {
-  void Function(EquipmentLocationMove? edited)? onHold,
+  required void Function(EquipmentLocationMove? edited) onHold,
 }) => showDialog<void>(
   context: context,
   builder: (_) => _LocationMoveEditDialog(move: move, onHold: onHold),
 );
 
 class _LocationMoveEditDialog extends ConsumerStatefulWidget {
-  const _LocationMoveEditDialog({required this.move, this.onHold});
+  const _LocationMoveEditDialog({required this.move, required this.onHold});
   final EquipmentLocationMove move;
-  final void Function(EquipmentLocationMove? edited)? onHold;
+  final void Function(EquipmentLocationMove? edited) onHold;
 
   @override
   ConsumerState<_LocationMoveEditDialog> createState() =>
@@ -112,10 +110,7 @@ class _LocationMoveEditDialogState
     );
   }
 
-  Future<void> _save() async {
-    final repo = ref.read(equipmentLocationMoveRepositoryProvider);
-    final messenger = ScaffoldMessenger.of(context);
-    final failed = context.l10n.common_error_tryAgain;
+  void _save() {
     final locationId = _locationId;
     final edited = locationId == null
         ? widget.move.copyWith(
@@ -128,43 +123,18 @@ class _LocationMoveEditDialogState
             movedAt: _movedAt,
             note: _note.text,
           );
-    if (widget.onHold case final hold?) {
-      hold(edited);
-      Navigator.of(context).pop();
-      return;
-    }
-    try {
-      await repo.updateMove(edited);
-    } catch (_) {
-      // Keep the dialog and the diver's edits so they can try again.
-      showLocationWriteFailed(messenger, failed);
-      return;
-    }
-    if (mounted) Navigator.of(context).pop();
+    widget.onHold(edited);
+    Navigator.of(context).pop();
   }
 
   Future<void> _delete() async {
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
     if (!await confirmLocationDelete(
       context,
-      l10n.equipment_location_deleteMoveConfirm,
+      context.l10n.equipment_location_deleteMoveConfirm,
     )) {
       return;
     }
-    if (widget.onHold case final hold?) {
-      hold(null);
-      if (mounted) Navigator.of(context).pop();
-      return;
-    }
-    try {
-      await ref
-          .read(equipmentLocationMoveRepositoryProvider)
-          .deleteMove(widget.move.id);
-    } catch (_) {
-      showLocationWriteFailed(messenger, l10n.common_error_tryAgain);
-      return;
-    }
+    widget.onHold(null);
     if (mounted) Navigator.of(context).pop();
   }
 

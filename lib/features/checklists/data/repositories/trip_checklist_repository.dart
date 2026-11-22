@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
+import 'package:submersion/features/checklists/domain/services/checklist_rows.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
@@ -16,6 +17,12 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_se
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_section_repository.dart';
+
+/// One checklist's sections and items, as a caller holds them.
+typedef ChecklistRows = ({
+  List<domain.TripChecklistSection> sections,
+  List<domain.TripChecklistItem> items,
+});
 
 /// Item CRUD for one of a trip's checklists (issue #3356).
 class TripChecklistRepository {
@@ -31,6 +38,10 @@ class TripChecklistRepository {
   Stream<void> watchTripChecklistSectionChanges() =>
       _sections.watchTripChecklistSectionChanges();
 
+  /// Every section of every checklist of [tripId], in one read.
+  Future<List<domain.TripChecklistSection>> getSectionsForTrip(String tripId) =>
+      _sections.getSectionsForTrip(tripId);
+
   Future<List<domain.TripChecklistSection>> getSectionsForChecklist(
     String checklistId,
   ) => _sections.getSectionsForChecklist(checklistId);
@@ -39,7 +50,8 @@ class TripChecklistRepository {
   Future<domain.TripChecklistSection> createSection({
     required String checklistId,
     required String title,
-  }) => _sections.createSection(checklistId: checklistId, title: title);
+    String? id,
+  }) => _sections.createSection(checklistId: checklistId, title: title, id: id);
 
   Future<void> renameSection(String id, String title) =>
       _sections.renameSection(id, title);
@@ -189,13 +201,18 @@ class TripChecklistRepository {
     }
   }
 
+  /// Adds [item] at the end of its checklist, or, with [keepSortOrder], at
+  /// its own sort order (an editing sitting's rows, issue #4527).
   Future<domain.TripChecklistItem> createItem(
-    domain.TripChecklistItem item,
-  ) async {
+    domain.TripChecklistItem item, {
+    bool keepSortOrder = false,
+  }) async {
     try {
       final id = item.id.isEmpty ? _uuid.v4() : item.id;
       final now = DateTime.now().millisecondsSinceEpoch;
-      final sortOrder = await _nextSortOrder(item.checklistId);
+      final sortOrder = keepSortOrder
+          ? item.sortOrder
+          : await _nextSortOrder(item.checklistId);
       await _db
           .into(_db.tripChecklistItems)
           .insert(
@@ -436,99 +453,45 @@ class TripChecklistRepository {
         );
         final templateSections = await templateRepository
             .getSectionsForTemplate(templateId);
-        final templateSectionTitleById = {
-          for (final s in templateSections) s.id: s.title,
-        };
-        final existing = await getByChecklistId(checklistId);
-        final existingKeys = existing
-            .map((i) => (i.title, i.sectionId))
-            .toSet();
-        var sortOrder = await _nextSortOrder(checklistId);
-        var added = 0;
-        var skipped = 0;
-        // Fetched once and grown immutably below as sections are created
-        // mid-loop, rather than re-querying every checklist section on
-        // every template item.
-        var knownSections = await getSectionsForChecklist(checklistId);
-
-        for (final item in templateItems) {
-          // Bridge the template's section (its own table now) to a
-          // checklist section by title: find an existing one
-          // case-insensitively before creating one, the same resolution the
-          // item editor's picker uses. The match is looked up (not created)
-          // before the skip check below, so a fully-skipped re-apply creates
-          // no sections. A placeholder key standing in for "this section
-          // doesn't exist among the checklist's sections yet" cannot equal
-          // any persisted item's real sectionId (null or an existing uuid),
-          // so it never causes a false-positive skip either.
-          final trimmedSectionTitle = item.sectionId == null
-              ? null
-              : templateSectionTitleById[item.sectionId]?.trim();
-          final hasSectionTitle =
-              trimmedSectionTitle != null && trimmedSectionTitle.isNotEmpty;
-          final matchedSectionId = hasSectionTitle
-              ? _sections.matchSectionByTitle(
-                  trimmedSectionTitle,
-                  knownSections,
-                )
-              : null;
-          final comparisonSectionId =
-              matchedSectionId ??
-              (hasSectionTitle
-                  ? '__pending_section__:${trimmedSectionTitle.toLowerCase()}'
-                  : null);
-          if (existingKeys.contains((item.title, comparisonSectionId))) {
-            skipped++;
-            continue;
-          }
-          var sectionId = matchedSectionId;
-          if (sectionId == null && hasSectionTitle) {
-            // One past the highest sortOrder, not the section count:
-            // deleting a section leaves a gap rather than renumbering, so
-            // the count can equal a sortOrder already in use.
-            final created = await _sections.createSectionRow(
-              checklistId,
-              trimmedSectionTitle,
-              knownSections.fold<int>(
-                    -1,
-                    (highest, s) =>
-                        s.sortOrder > highest ? s.sortOrder : highest,
-                  ) +
-                  1,
-            );
-            knownSections = [...knownSections, created];
-            pendingSectionIds.add(created.id);
-            sectionId = created.id;
-          }
-          final id = _uuid.v4();
-          final dueDate = item.dueOffsetDays == null
-              ? null
-              : DateTime(
-                  trip.startDate.year,
-                  trip.startDate.month,
-                  trip.startDate.day - item.dueOffsetDays!,
-                ).millisecondsSinceEpoch;
+        final rows = checklistRowsFromTemplate(
+          templateItems: templateItems,
+          templateSections: templateSections,
+          checklistId: checklistId,
+          tripStart: trip.startDate,
+          existingItems: await getByChecklistId(checklistId),
+          existingSections: await getSectionsForChecklist(checklistId),
+          newId: _uuid.v4,
+          now: DateTime.fromMillisecondsSinceEpoch(now),
+        );
+        for (final section in rows.sections) {
+          await _sections.createSectionRow(
+            checklistId,
+            section.title,
+            section.sortOrder,
+            id: section.id,
+          );
+          pendingSectionIds.add(section.id);
+        }
+        for (final item in rows.items) {
           await _db
               .into(_db.tripChecklistItems)
               .insert(
                 TripChecklistItemsCompanion(
-                  id: Value(id),
+                  id: Value(item.id),
                   checklistId: Value(checklistId),
                   title: Value(item.title),
-                  sectionId: Value(sectionId),
+                  sectionId: Value(item.sectionId),
                   notes: Value(item.notes),
-                  dueDate: Value(dueDate),
+                  dueDate: Value(item.dueDate?.millisecondsSinceEpoch),
                   isDone: const Value(false),
-                  sortOrder: Value(sortOrder++),
+                  sortOrder: Value(item.sortOrder),
                   createdAt: Value(now),
                   updatedAt: Value(now),
                 ),
               );
-          pendingIds.add(id);
-          added++;
+          pendingIds.add(item.id);
         }
-
-        return (added: added, skipped: skipped);
+        return (added: rows.added, skipped: rows.skipped);
       });
 
       // Sync bookkeeping for both the items and any section the loop above
@@ -567,16 +530,22 @@ class TripChecklistRepository {
   /// Absolute due dates convert back to offsets from the trip start date
   /// (only when the due date is on or before the start); dateless items
   /// stay dateless.
+  ///
+  /// With [rows], the checklist is taken as they have it rather than as
+  /// stored: a trip page's sitting, whose changes wait for its Save (issue
+  /// #4527).
   Future<domain.ChecklistTemplate> saveAsTemplate({
     required String checklistId,
     required DateTime tripStartDate,
     required String name,
     String? diverId,
+    ChecklistRows? rows,
   }) async {
     try {
       final templateRepository = ChecklistTemplateRepository();
-      final items = await getByChecklistId(checklistId);
-      final sections = await getSectionsForChecklist(checklistId);
+      final items = rows?.items ?? await getByChecklistId(checklistId);
+      final sections =
+          rows?.sections ?? await getSectionsForChecklist(checklistId);
       final template = await templateRepository.createTemplate(
         domain.ChecklistTemplate(
           id: '',

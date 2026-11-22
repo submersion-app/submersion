@@ -240,10 +240,23 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
             ],
           ),
         ),
-        if (showEverywhere) ...[
-          SearchEverywhereRow(text: _text),
-          ...?widget.extraRows?.call(_text, _cleanTree(editorContext, _text)),
-        ],
+        // Shown only while the field has focus, and a tap off the field
+        // drops it (#4813): in its tap region, so a row is still there when
+        // the finger lifts.
+        if (showEverywhere)
+          TextFieldTapRegion(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SearchEverywhereRow(text: _text),
+                ...?widget.extraRows?.call(
+                  _text,
+                  _cleanTree(editorContext, _text),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/core/router/section_navigation.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/query/presentation/entity_query_editor.dart'
 import 'package:submersion/features/query/presentation/query_error_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// The field and results stop growing here on a wide window.
 const double _kMaxResultsWidth = 720;
@@ -47,9 +49,17 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
     if (request != null) {
       _text = request.text;
       _override = QueryTextOverride(request.text, commit: true);
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => ref.read(globalSearchRequestProvider.notifier).state = null,
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(globalSearchRequestProvider.notifier).state = null;
+      });
+    }
+    // Ctrl+K pressed before the page was up: the field takes the caret once
+    // it is built, autofocus or not.
+    if (ref.read(globalSearchFocusPendingProvider)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _takeFocusRequest();
+      });
     }
   }
 
@@ -59,12 +69,21 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
     super.dispose();
   }
 
+  /// On a phone or tablet under the bottom bar's width the on-screen keyboard
+  /// covers the bar, and this page, a nav destination, has no back arrow: the
+  /// keyboard comes up only when asked for there (#4813). A narrow desktop
+  /// window has no on-screen keyboard, so it keeps the focus. Reads only the
+  /// size, so the keyboard's own inset does not rebuild the page.
+  bool get _keyboardCoversNav =>
+      !isDesktopTargetPlatform(Theme.of(context).platform) &&
+      MediaQuery.sizeOf(context).width < ResponsiveBreakpoints.desktop;
+
   void _take(GlobalSearchRequest request) {
     setState(() {
       _text = request.text;
       _override = QueryTextOverride(request.text, commit: true);
     });
-    _focus.requestFocus();
+    if (!_keyboardCoversNav) _focus.requestFocus();
     ref.read(globalSearchRequestProvider.notifier).state = null;
   }
 
@@ -73,9 +92,12 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
     _focus.requestFocus();
   }
 
-  void _focusField() {
+  /// Puts the caret in the field with its text selected, for Ctrl+K, and
+  /// clears the request.
+  void _takeFocusRequest() {
     _focus.requestFocus();
     setState(() => _override = QueryTextOverride(_text, selectAll: true));
+    ref.read(globalSearchFocusPendingProvider.notifier).state = false;
   }
 
   void _open(GlobalSearchKind kind, String id) =>
@@ -83,7 +105,9 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(globalSearchFocusTickProvider, (_, _) => _focusField());
+    ref.listen(globalSearchFocusPendingProvider, (_, wanted) {
+      if (wanted) _takeFocusRequest();
+    });
     ref.listen(globalSearchRequestProvider, (_, request) {
       if (request != null) _take(request);
     });
@@ -104,6 +128,8 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
               constraints: const BoxConstraints(maxWidth: _kMaxResultsWidth),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                // A tap anywhere else puts the keyboard away and brings the
+                // bottom bar back: the app's actions do that for every field.
                 child: QueryTextField(
                   fieldKey: const ValueKey('global-search-field'),
                   context: editorContext,
@@ -116,7 +142,7 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
                   clearTooltip: l10n.globalSearch_clear,
                   describeError: (e) => describeQueryError(l10n, e),
                   focusNode: _focus,
-                  autofocus: true,
+                  autofocus: !_keyboardCoversNav,
                   textOverride: _override,
                   // Empty leaves Esc to whatever sits outside the field.
                   onEscape: _text.isEmpty ? null : _clear,

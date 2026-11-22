@@ -18,6 +18,7 @@ import 'package:submersion/features/tracks/presentation/widgets/delete_track_dia
 import 'package:submersion/features/tracks/presentation/widgets/tracks_list_pane.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_map_pane.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_match_snackbar.dart';
+import 'package:submersion/features/tracks/presentation/widgets/tracks_link_proposals_dialog.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_overview_map.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
@@ -106,7 +107,22 @@ class _TracksPageState extends ConsumerState<TracksPage> {
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
     setState(() => _matching = true);
-    final outcome = await ref.read(tracksMatchControllerProvider).matchAll();
+    final controller = ref.read(tracksMatchControllerProvider);
+    var outcome = await controller.matchAll();
+    // Underwater tracks with one overlapping dive are linked only once the
+    // diver confirms them (#2394, #4851); the button stays disabled until
+    // the answer is in.
+    final proposals = outcome.linkProposals;
+    if (proposals.isNotEmpty && mounted) {
+      final confirmed = await showTracksLinkProposalsDialog(context, proposals);
+      if (confirmed) {
+        final result = await controller.linkProposals(proposals);
+        outcome = outcome.afterLinking(
+          linked: result.linked,
+          failed: result.failed,
+        );
+      }
+    }
     if (!mounted) return;
     setState(() => _matching = false);
     showTracksMatchOutcome(

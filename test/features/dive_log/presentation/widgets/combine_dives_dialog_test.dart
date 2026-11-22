@@ -526,6 +526,70 @@ void main() {
         expect(find.text('Keep as one dive with both computers'), findsNothing);
       },
     );
+
+    testWidgets(
+      'a same-computer copy of a stretch of the other dive can be combined and '
+      'says its raw data is kept',
+      (tester) async {
+        final whole = _reef();
+        // The second half of the same dive, re-downloaded from the same
+        // computer as its own entry: same samples, clock restarted at 0.
+        final secondHalf = [
+          for (final p in whole)
+            if (p.timestamp >= 1300)
+              domain.DiveProfilePoint(
+                timestamp: p.timestamp - 1300,
+                depth: p.depth,
+              ),
+        ];
+        await pumpCombineDialog(
+          tester,
+          dives: [
+            diveAt(
+              'a',
+              DateTime.utc(2026, 7, 1, 9),
+              runtimeMin: 48,
+              diveComputerSerial: 'same-serial',
+              profile: whole,
+            ),
+            diveAt(
+              'b',
+              DateTime.utc(2026, 7, 1, 9, 21, 40),
+              runtimeMin: 26,
+              diveComputerSerial: 'same-serial',
+              profile: secondHalf,
+            ),
+          ],
+        );
+
+        expect(
+          find.textContaining('imported again as its own dive'),
+          findsOneWidget,
+        );
+        // No second computer joins the dive, so the button does not say so.
+        expect(find.text('Keep as one dive'), findsOneWidget);
+        expect(find.text('Keep as one dive with both computers'), findsNothing);
+        expect(find.textContaining("can't be merged this way"), findsNothing);
+        // Only the whole dive can be the primary: the copy's radio is off, so
+        // the diver cannot pick it and lose the panel to an error.
+        RadioListTile<String> tile(String id) => tester.widget(
+          find.byWidgetPredicate(
+            (w) => w is RadioListTile<String> && w.value == id,
+          ),
+        );
+        expect(tile('a').enabled, isTrue);
+        expect(tile('b').enabled, isFalse);
+      },
+    );
+
+    testWidgets('two different computers show no copy hint', (tester) async {
+      await pumpCombineDialog(tester, dives: consolidatableDives());
+
+      expect(
+        find.textContaining('imported again as its own dive'),
+        findsNothing,
+      );
+    });
   });
 
   group('opened for a duplicate finding (consolidateOnly)', () {

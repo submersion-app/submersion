@@ -70,8 +70,8 @@ that page.
 
 The dive editor and a trip only take gear you still use, as their pickers
 do. Scanning an item marked Wanted, Retired or Sold, or Lost and no longer
-active, says so and adds nothing; set the item back in service on its edit
-page first. Lost gear still marked active is added, as the pickers offer
+active, says so and adds nothing; set the item back in service on its page
+first (unlock it and change **Status** on its **Details** card). Lost gear still marked active is added, as the pickers offer
 it. Spare gear is added when you scan it, though the pickers leave spares
 out to keep their lists short.
 

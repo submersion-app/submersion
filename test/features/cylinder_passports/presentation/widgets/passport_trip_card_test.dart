@@ -4,16 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_trip_card.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
+import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/test_database.dart';
+import '../../../trips/presentation/pages/new_trip_test_helpers.dart';
 
 /// The passport's Trip card (issue #2338).
 void main() {
@@ -35,6 +45,7 @@ void main() {
     List<PackedTrip> trips = const [],
     List<Trip> allTrips = const [],
     bool failing = false,
+    EditSession<EquipmentItem>? editing,
   }) async {
     final fake = _FakePacks(failing: failing);
     final overrides = await getBaseOverrides();
@@ -46,8 +57,8 @@ void main() {
           allTripsProvider.overrideWith((ref) async => allTrips),
           tripEquipmentRepositoryProvider.overrideWithValue(fake),
         ],
-        child: const SingleChildScrollView(
-          child: PassportTripCard(equipmentId: 'tank'),
+        child: SingleChildScrollView(
+          child: PassportTripCard(equipmentId: 'tank', editing: editing),
         ),
       ),
     );
@@ -57,6 +68,30 @@ void main() {
     );
     return (l10n, fake);
   }
+
+  // Issue #4527: in the gear item's sitting packing waits for Save.
+  testWidgets('in a sitting Pack for a trip holds the trip', (tester) async {
+    final session = EditSession(
+      const EquipmentItem(id: 'tank', name: 'Tank', type: EquipmentType.tank),
+    );
+    addTearDown(session.dispose);
+    gearItemTripsList.loadNone(session);
+    final (l10n, fake) = await pump(
+      tester,
+      allTrips: [trip('a')],
+      editing: session,
+    );
+
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trip a'));
+    await tester.pumpAndSettle();
+
+    expect(fake.packed, isEmpty);
+    expect(find.text(l10n.passport_trip_packedFor('Trip a')), findsOneWidget);
+    expect(find.byType(RecordChangedDot), findsOneWidget);
+    expect(gearItemTripsList.current(session), ['a']);
+  });
 
   testWidgets('with no trips it says so and offers Pack for a trip', (
     tester,
@@ -248,6 +283,71 @@ void main() {
     await tester.tap(find.text('save trip'));
     await tester.pumpAndSettle();
     expect(fake.packed.map((p) => p.$1), ['new-trip']);
+    expect(fake.packed.single.$2, ['tank']);
+  });
+
+  // Behind the phase 3 switch the new trip is the trip page itself, which
+  // pops the id of the trip it created (issue #4527, plan 11).
+  testWidgets('New trip on the new trip page packs for the trip it creates', (
+    tester,
+  ) async {
+    // The new page reads its sharing default, the dives in its dates and
+    // its Documents from the database.
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final fake = _FakePacks();
+    final save = CreatingTripSave();
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(
+            body: SingleChildScrollView(
+              child: PassportTripCard(equipmentId: 'tank'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/trips/new',
+          builder: (context, state) => newTripPage(state.extra),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          ...overrides,
+          equipmentTripsProvider('tank').overrideWith((ref) async => const []),
+          allTripsProvider.overrideWith((ref) async => const []),
+          tripEquipmentRepositoryProvider.overrideWithValue(fake),
+          tripEditSaveServiceProvider.overrideWithValue(save),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTripCard)),
+    );
+    final nameField = find.byKey(const Key('trip-edit-name'));
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.trips_picker_empty_createButton));
+    await pumpUntilNewTripPageOpens(tester);
+    await tester.enterText(nameField, 'Malta');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.forms_save));
+    await pumpUntilRealAsync(
+      tester,
+      () => fake.packed.isNotEmpty,
+      reason: 'the created trip to be packed for',
+    );
+    await tester.pumpAndSettle();
+
+    final created = save.created.single;
+    expect(fake.packed.map((p) => p.$1), [created]);
     expect(fake.packed.single.$2, ['tank']);
   });
 

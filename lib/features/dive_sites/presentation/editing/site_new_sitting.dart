@@ -221,7 +221,7 @@ void _copy(
   siteTagsList.set(session, duplicate.tags);
   siteSpeciesList.set(session, duplicate.species);
   siteFeaturesList.set(session, duplicate.features);
-  setSiteSharing(
+  siteSharing.set(
     session,
     duplicate.sharing,
     actingDiverId: session.stored.diverId,

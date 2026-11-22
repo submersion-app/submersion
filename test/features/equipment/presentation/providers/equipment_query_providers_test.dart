@@ -253,10 +253,11 @@ void main() {
           const EquipmentFilterState(status: EquipmentStatus.wanted);
       expect(await settledItems(), isEmpty);
       final added = await container
-          .read(equipmentListNotifierProvider.notifier)
-          .addEquipment(
+          .read(equipmentRepositoryProvider)
+          .createEquipment(
             const EquipmentItem(
               id: '',
+              diverId: 'me',
               name: 'Wish',
               type: EquipmentType.fins,
               status: EquipmentStatus.wanted,

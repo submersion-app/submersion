@@ -88,13 +88,11 @@ class GpsTrackPageHarness {
 
 final _storedProvider = StateProvider<GpsTrack?>((ref) => null);
 
-/// Pumps the GPS track page with the phase 3 switch on (unless
-/// [unlockEditing] is false), at phone width. The map draws the stored
+/// Pumps the GPS track page, at phone width. The map draws the stored
 /// track's trimmed fixes, as the geometry cache would once evicted.
 Future<GpsTrackPageHarness> pumpGpsTrackPage(
   WidgetTester tester, {
   GpsTrack? track,
-  bool unlockEditing = true,
   List<Dive> dives = const [],
   bool evictFails = false,
   bool splitRefused = false,
@@ -152,10 +150,7 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
       ],
       child: PushedPageLauncher(
         theme: brightness,
-        page: GpsTrackDetailPage(
-          trackId: initial.id,
-          unlockEditing: unlockEditing,
-        ),
+        page: GpsTrackDetailPage(trackId: initial.id),
       ),
     ),
   );

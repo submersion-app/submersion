@@ -1,10 +1,7 @@
-import 'dart:async';
-
 import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, DiveTanksCompanion;
@@ -29,12 +26,12 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/features/trips/presentation/providers/trip_gas_record_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
-import '../../helpers/failing_trip_cylinder_repository.dart';
 
 void main() {
   late AppDatabase db;
@@ -95,7 +92,12 @@ void main() {
     FillForecast? forecast,
     ItineraryDayRepository? itinerary,
     TripGasRecord? record,
+    bool unlock = false,
+    Object? tripReadError,
   }) async {
+    // The lock shows only once the board has read its states, so an
+    // unlock needs the page settled.
+    assert(!unlock || settle, 'unlock needs settle');
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -121,6 +123,10 @@ void main() {
             tripCylinderRepositoryProvider.overrideWithValue(repository),
           if (states != null)
             tripCylinderStatesProvider(tripId).overrideWith((ref) => states),
+          if (tripReadError != null)
+            tripByIdProvider(
+              tripId,
+            ).overrideWith((ref) async => throw tripReadError),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -134,6 +140,12 @@ void main() {
       await tester.pumpAndSettle();
     } else {
       await tester.pump();
+    }
+    // Opened alone the board has its own lock (issue #4527, decision 9):
+    // what it changes is held until its Save.
+    if (unlock) {
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
     }
   }
 
@@ -171,15 +183,35 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('an empty board offers to add cylinders', (tester) async {
+  testWidgets('a board whose trip is gone says so instead of waiting', (
+    tester,
+  ) async {
+    await TripRepository().deleteTrip(tripId);
     await pumpBoard(tester);
-    expect(find.text('No cylinders on this trip yet'), findsOneWidget);
-    final fillSeveral = tester.widget<IconButton>(
-      find.byKey(const Key('board-fill-several')),
-    );
-    expect(fillSeveral.onPressed, isNull);
 
-    await tester.tap(find.byKey(const Key('board-add')));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      find.text(AppLocalizationsEn().trips_detail_error_loading),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a board whose trip cannot be read says so', (tester) async {
+    await pumpBoard(tester, tripReadError: StateError('broken'));
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      find.text(AppLocalizationsEn().trips_detail_error_loading),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an empty board offers to add cylinders', (tester) async {
+    await pumpBoard(tester, unlock: true);
+    expect(find.text('No cylinders on this trip yet'), findsOneWidget);
+
+    // In the board's sitting (issue #4527): Add sits under the message.
+    await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
     expect(find.text('Rental'), findsOneWidget);
   });
@@ -216,7 +248,7 @@ void main() {
     (tester) async {
       final a = await slot('Truck 1', 0);
       final b = await slot('Truck 2', 1);
-      await pumpBoard(tester);
+      await pumpBoard(tester, unlock: true);
 
       // One handle per card: the list draws none of its own on top.
       expect(find.byIcon(Icons.drag_handle), findsNWidgets(2));
@@ -240,7 +272,7 @@ void main() {
   ) async {
     await slot('Truck 1', 0);
     final b = await slot('Truck 2', 1);
-    await pumpBoard(tester);
+    await pumpBoard(tester, unlock: true);
 
     final handle = find.byKey(Key('slot-drag-${b.id}'));
     final gesture = await tester.startGesture(tester.getCenter(handle));
@@ -250,8 +282,11 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
 
+    // Held in the board's sitting until its Save (issue #4527).
+    double top(String label) => tester.getTopLeft(find.text(label)).dy;
+    expect(top('Truck 2'), lessThan(top('Truck 1')));
     final saved = await repo.getCylindersForTrip(tripId);
-    expect([for (final c in saved) c.label], ['Truck 2', 'Truck 1']);
+    expect([for (final c in saved) c.label], ['Truck 1', 'Truck 2']);
   }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
   testWidgets(
@@ -259,7 +294,7 @@ void main() {
     (tester) async {
       await slot('Truck 1', 0);
       await slot('Truck 2', 1);
-      await pumpBoard(tester);
+      await pumpBoard(tester, unlock: true);
 
       expect(find.byIcon(Icons.drag_handle), findsNothing);
       expect(
@@ -296,7 +331,7 @@ void main() {
             endPressure: const Value(60.0),
           ),
         );
-    await pumpBoard(tester);
+    await pumpBoard(tester, unlock: true);
 
     await tester.tap(find.byKey(Key('slot-menu-${a.id}')));
     await tester.pumpAndSettle();
@@ -312,6 +347,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Truck 1'), findsNothing);
+    // Held in the board's sitting until its Save (issue #4527): the dive
+    // keeps its tank and, until then, its link too.
     final tank = await db
         .customSelect(
           'SELECT end_pressure, trip_cylinder_id FROM dive_tanks WHERE id = ?',
@@ -319,7 +356,7 @@ void main() {
         )
         .getSingle();
     expect(tank.read<double>('end_pressure'), 60);
-    expect(tank.readNullable<String>('trip_cylinder_id'), isNull);
+    expect(tank.readNullable<String>('trip_cylinder_id'), a.id);
   });
 
   testWidgets('fill several preselects the slots that are not full', (
@@ -328,7 +365,7 @@ void main() {
     final a = await slot('Truck 1', 0);
     final b = await slot('Truck 2', 1);
     await fill(a.id);
-    await pumpBoard(tester);
+    await pumpBoard(tester, unlock: true);
 
     await tester.tap(find.byKey(const Key('board-fill-several')));
     await tester.pumpAndSettle();
@@ -342,33 +379,13 @@ void main() {
     expect(notFull.value, isTrue);
   });
 
-  testWidgets('a failed slot delete says so and keeps the slot', (
-    tester,
-  ) async {
-    final a = await slot('Truck 1', 0);
-    await pumpBoard(tester, repository: FailingTripCylinderRepository());
-
-    await tester.tap(find.byKey(Key('slot-menu-${a.id}')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete').last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
-    expect(find.text('Truck 1'), findsOneWidget);
-  });
-
-  testWidgets('a reorder shows the new order at once and is written', (
+  testWidgets('a reorder shows the new order at once and is held for Save', (
     tester,
   ) async {
     await slot('Truck 1', 0);
     await slot('Truck 2', 1);
     await slot('Truck 3', 2);
-    await pumpBoard(tester);
+    await pumpBoard(tester, unlock: true);
 
     tester
         .widget<ReorderableListView>(find.byType(ReorderableListView))
@@ -378,100 +395,10 @@ void main() {
     expect(top('Truck 3'), lessThan(top('Truck 1')));
 
     await tester.pumpAndSettle();
+    // Held in the board's sitting until its Save (issue #4527).
     final stored = await repo.getCylindersForTrip(tripId);
-    expect(stored.map((c) => c.label), ['Truck 3', 'Truck 1', 'Truck 2']);
+    expect(stored.map((c) => c.label), ['Truck 1', 'Truck 2', 'Truck 3']);
     expect(top('Truck 3'), lessThan(top('Truck 1')));
-  });
-
-  testWidgets('a failed reorder says so and puts the slots back', (
-    tester,
-  ) async {
-    await slot('Truck 1', 0);
-    await slot('Truck 2', 1);
-    await pumpBoard(tester, repository: FailingTripCylinderRepository());
-
-    tester
-        .widget<ReorderableListView>(find.byType(ReorderableListView))
-        .onReorderItem!(1, 0);
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
-    double top(String label) => tester.getTopLeft(find.text(label)).dy;
-    expect(top('Truck 1'), lessThan(top('Truck 2')));
-  });
-
-  testWidgets('adding waits until the slots on the trip are known', (
-    tester,
-  ) async {
-    final pending = Completer<List<TripCylinderState>>();
-    await pumpBoard(tester, states: pending.future, settle: false);
-    IconButton add() =>
-        tester.widget<IconButton>(find.byKey(const Key('board-add')));
-    expect(add().onPressed, isNull);
-
-    pending.completeError(StateError('db gone'));
-    await tester.pump();
-    await tester.pump();
-    expect(add().onPressed, isNull);
-  });
-
-  testWidgets('two quick drops never show the older order in between', (
-    tester,
-  ) async {
-    await slot('A', 0);
-    await slot('B', 1);
-    await slot('C', 2);
-    final gated = _GatedRepository();
-    await pumpBoard(tester, repository: gated);
-    List<String> shown() {
-      final labels = ['A', 'B', 'C'];
-      return labels..sort(
-        (x, y) => tester
-            .getTopLeft(find.text(x))
-            .dy
-            .compareTo(tester.getTopLeft(find.text(y)).dy),
-      );
-    }
-
-    void drop(int from, int to) => tester
-        .widget<ReorderableListView>(find.byType(ReorderableListView))
-        .onReorderItem!(from, to);
-    drop(2, 0); // C A B
-    await tester.pump();
-    drop(2, 0); // B C A
-    await tester.pump();
-    expect(shown(), ['B', 'C', 'A']);
-
-    // The first write lands while the second still runs.
-    gated.release(0);
-    await tester.pumpAndSettle();
-    expect(shown(), ['B', 'C', 'A']);
-
-    gated.release(1);
-    await tester.pumpAndSettle();
-    expect(shown(), ['B', 'C', 'A']);
-    final stored = await repo.getCylindersForTrip(tripId);
-    expect(stored.map((c) => c.label), ['B', 'C', 'A']);
-  });
-
-  testWidgets('a failure before the delete dialog says so', (tester) async {
-    final a = await slot('Truck 1', 0);
-    await pumpBoard(tester, repository: _CountFailingRepository());
-
-    await tester.tap(find.byKey(Key('slot-menu-${a.id}')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete').last);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(AlertDialog), findsNothing);
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
-    expect(find.text('Truck 1'), findsOneWidget);
   });
 
   testWidgets('Log dive opens a new dive on that slot', (tester) async {
@@ -566,77 +493,6 @@ void main() {
     expect(find.textContaining('1 dive'), findsOneWidget);
   });
 
-  testWidgets('saving a day writes its plan to the itinerary', (tester) async {
-    final a = await slot('Truck 1', 0);
-    await fill(a.id);
-    await pumpBoard(
-      tester,
-      forecast: forecastWithDays([
-        FillForecastDay(date: DateTime(2026, 3, 10), plannedDives: 2),
-      ]),
-    );
-    await tester.tap(find.byKey(const Key('forecast-day-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('plan-more')));
-    await tester.pump();
-    expect(find.text('3'), findsOneWidget);
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    final days = await ItineraryDayRepository().getByTripId(tripId);
-    expect(days, hasLength(1));
-    expect(days.single.date, DateTime(2026, 3, 10));
-    expect(days.single.dayNumber, 3);
-    expect(days.single.dayType, DayType.diveDay);
-    expect(days.single.plannedDives, 3);
-  });
-
-  testWidgets('clearing the plan returns a planned day to blank', (
-    tester,
-  ) async {
-    final a = await slot('Truck 1', 0);
-    await fill(a.id);
-    await ItineraryDayRepository().setPlannedDives(
-      tripId: tripId,
-      date: DateTime(2026, 3, 10),
-      plannedDives: 4,
-    );
-    await pumpBoard(
-      tester,
-      forecast: forecastWithDays([
-        FillForecastDay(
-          date: DateTime(2026, 3, 10),
-          plannedDives: 4,
-          isOverride: true,
-        ),
-      ]),
-    );
-    await tester.tap(find.byKey(const Key('forecast-day-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('plan-clear')));
-    await tester.pumpAndSettle();
-
-    final day = (await ItineraryDayRepository().getByTripId(tripId)).single;
-    expect(day.plannedDives, isNull);
-  });
-
-  testWidgets('cancel writes nothing', (tester) async {
-    final a = await slot('Truck 1', 0);
-    await fill(a.id);
-    await pumpBoard(
-      tester,
-      forecast: forecastWithDays([
-        FillForecastDay(date: DateTime(2026, 3, 10), plannedDives: 2),
-      ]),
-    );
-    await tester.tap(find.byKey(const Key('forecast-day-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('plan-more')));
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-    expect(await ItineraryDayRepository().getByTripId(tripId), isEmpty);
-  });
-
   testWidgets('a day the diver planned says so to a screen reader', (
     tester,
   ) async {
@@ -654,51 +510,6 @@ void main() {
     );
     final icon = tester.widget<Icon>(find.byIcon(Icons.edit_calendar));
     expect(icon.semanticLabel, 'Planned by you');
-  });
-
-  testWidgets('a failed plan save says so and frees the strip', (tester) async {
-    final a = await slot('Truck 1', 0);
-    await fill(a.id);
-    await pumpBoard(
-      tester,
-      itinerary: _FailingItineraryRepository(),
-      forecast: forecastWithDays([
-        FillForecastDay(date: DateTime(2026, 3, 10), plannedDives: 2),
-      ]),
-    );
-    await tester.tap(find.byKey(const Key('forecast-day-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    expect(find.text("Couldn't save the plan. Try again."), findsOneWidget);
-    expect(find.textContaining('disk full'), findsNothing);
-    final chip = tester.widget<ActionChip>(
-      find.byKey(const Key('forecast-day-0')),
-    );
-    expect(chip.onPressed, isNotNull);
-  });
-
-  testWidgets('the plan count reads as dives to a screen reader', (
-    tester,
-  ) async {
-    final handle = tester.ensureSemantics();
-    final a = await slot('Truck 1', 0);
-    await fill(a.id);
-    await pumpBoard(
-      tester,
-      forecast: forecastWithDays([
-        FillForecastDay(date: DateTime(2026, 3, 10), plannedDives: 2),
-      ]),
-    );
-    await tester.tap(find.byKey(const Key('forecast-day-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('plan-more')));
-    await tester.pump();
-    expect(
-      tester.getSemantics(find.byKey(const Key('plan-count'))).label,
-      '3 dives',
-    );
-    handle.dispose();
   });
   testWidgets('the board has a Record segment', (tester) async {
     final a = await slot('Truck 1', 0);
@@ -719,36 +530,4 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('record-empty')), findsOneWidget);
   });
-}
-
-/// Holds each reorder until the test releases it, then writes it for real.
-class _GatedRepository extends TripCylinderRepository {
-  final _gates = <Completer<void>>[];
-
-  void release(int i) => _gates[i].complete();
-
-  @override
-  Future<void> reorderCylinders(List<String> orderedIds) async {
-    final gate = Completer<void>();
-    _gates.add(gate);
-    await gate.future;
-    await super.reorderCylinders(orderedIds);
-  }
-}
-
-/// Cannot count the dives that used a slot.
-class _CountFailingRepository extends TripCylinderRepository {
-  @override
-  Future<int> countLinkedDives(String cylinderId) async =>
-      throw StateError('count failed');
-}
-
-/// Cannot write a day's plan.
-class _FailingItineraryRepository extends ItineraryDayRepository {
-  @override
-  Future<void> setPlannedDives({
-    required String tripId,
-    required DateTime date,
-    required int? plannedDives,
-  }) async => throw StateError('disk full');
 }

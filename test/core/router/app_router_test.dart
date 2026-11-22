@@ -3,7 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_routes.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
@@ -42,9 +55,6 @@ import 'package:submersion/features/shared_library/presentation/pages/connect_sh
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
 import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
 import 'package:submersion/features/settings/presentation/pages/raw_dive_data_page.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
-import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
@@ -64,6 +74,9 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
@@ -196,61 +209,6 @@ void main() {
 
   tearDown(() {
     container.dispose();
-  });
-
-  group('trip edit (#2880)', () {
-    test('openTripEdit pushes the editTrip route', () {
-      // openTripEdit writes the path by hand; it must stay this route's.
-      expect(
-        _locationOfRoute(router.configuration.routes, 'editTrip'),
-        '/trips/:tripId/edit',
-      );
-    });
-
-    testWidgets('editTrip opens the form at the section in the URL', (
-      tester,
-    ) async {
-      late BuildContext capturedContext;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (context) {
-              capturedContext = context;
-              return const SizedBox.shrink();
-            },
-          ),
-        ),
-      );
-      TripEditPage build(String location) =>
-          _findRouteByName(router.configuration.routes, 'editTrip')!.builder!(
-                capturedContext,
-                GoRouterState(
-                  router.configuration,
-                  uri: Uri.parse(location),
-                  matchedLocation: Uri.parse(location).path,
-                  fullPath: '/trips/:tripId/edit',
-                  pathParameters: const {'tripId': 't1'},
-                  pageKey: ValueKey(location),
-                ),
-              )
-              as TripEditPage;
-
-      final planning = build('/trips/t1/edit?section=planning');
-      expect(planning.tripId, 't1');
-      expect(planning.initialSection, TripEditSection.planning);
-      expect(build('/trips/t1/edit').initialSection, isNull);
-
-      // Add note on a day opens the form at that day's note (#4625).
-      final dayNote = build(
-        '/trips/t1/edit?section=notes&noteDate=2026-11-05&noteDay=3',
-      );
-      expect(dayNote.initialSection, TripEditSection.notes);
-      expect(
-        dayNote.noteDay,
-        TripNoteDay(date: DateTime(2026, 11, 5), dayNumber: 3),
-      );
-      expect(build('/trips/t1/edit').noteDay, isNull);
-    });
   });
 
   group('universal import wizard (#4223)', () {
@@ -412,7 +370,7 @@ void main() {
 
   // The old dive centre, buddy and certification edit addresses open the
   // page unlocked (issue #4527, phase 3).
-  test('the dive centre edit address redirects with the switch', () {
+  test('the dive centre edit address opens the page unlocked', () {
     final route = _findRouteByName(
       router.configuration.routes,
       'editDiveCenter',
@@ -425,7 +383,7 @@ void main() {
     expect(detail?.onExit, same(confirmLeaveRecordSitting));
   });
 
-  test('the buddy edit address redirects with the switch', () {
+  test('the buddy edit address opens the page unlocked', () {
     final route = _findRouteByName(router.configuration.routes, 'editBuddy');
     expect(route?.redirect, same(buddyEditRedirect));
     final detail = _findRouteByName(router.configuration.routes, 'buddyDetail');
@@ -434,7 +392,7 @@ void main() {
     expect(merge?.redirect, same(buddyMergeRedirect));
   });
 
-  test('the certification edit address redirects with the switch', () {
+  test('the certification edit address opens the page unlocked', () {
     final route = _findRouteByName(
       router.configuration.routes,
       'editCertification',
@@ -447,7 +405,7 @@ void main() {
     expect(detail?.onExit, same(confirmLeaveRecordSitting));
   });
 
-  test('the course edit address redirects with the switch', () {
+  test('the course edit address opens the page unlocked', () {
     final route = _findRouteByName(router.configuration.routes, 'editCourse');
     expect(route?.redirect, same(courseEditRedirect));
     for (final name in const ['courses', 'courseDetail']) {
@@ -456,21 +414,18 @@ void main() {
     }
   });
 
-  test('the trip edit address redirects with the switch', () {
+  test('the trip edit address opens the page unlocked', () {
     final route = _findRouteByName(router.configuration.routes, 'editTrip');
     expect(route?.redirect, same(tripEditRedirect));
-    for (final name in const ['trips', 'tripDetail']) {
+    // The cylinder board has a lock of its own (issue #4527, plan 10).
+    for (final name in const ['trips', 'tripDetail', 'tripCylinders']) {
       final route = _findRouteByName(router.configuration.routes, name);
       expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
     }
   });
 
-  test('the equipment set edit address redirects with the switch', () {
-    expect(
-      equipmentSetEditLocation('s1', unlockEditing: true),
-      '/equipment/sets/s1?mode=edit',
-    );
-    expect(equipmentSetEditLocation('s1', unlockEditing: false), isNull);
+  test('the equipment set edit address opens the page unlocked', () {
+    expect(equipmentSetEditLocation('s1'), '/equipment/sets/s1?mode=edit');
     final route = _findRouteByName(
       router.configuration.routes,
       'editEquipmentSet',
@@ -487,6 +442,37 @@ void main() {
     }
   });
 
+  // Every phase 3 type's old edit address is a redirect with no builder:
+  // the page opens unlocked (issue #4527, plan 12).
+  test('every old edit address opens the page unlocked', () {
+    final redirects = <String, GoRouterRedirect>{
+      'editBuddy': buddyEditRedirect,
+      'editDiveCenter': diveCenterEditRedirect,
+      'editCertification': certificationEditRedirect,
+      'editCourse': courseEditRedirect,
+      'editDocument': documentEditRedirect,
+      'editEquipment': gearItemEditRedirect,
+      'editEquipmentSet': equipmentSetEditRedirect,
+      'editTrip': tripEditRedirect,
+      'editSpecies': speciesEditRedirect,
+    };
+    for (final MapEntry(key: name, value: redirect) in redirects.entries) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route, isNotNull, reason: name);
+      expect(route!.builder, isNull, reason: name);
+      expect(route.redirect, same(redirect), reason: name);
+    }
+    expect(buddyEditLocation('x1'), '/buddies/x1?mode=edit');
+    expect(diveCenterEditLocation('x1'), '/dive-centers/x1?mode=edit');
+    expect(certificationEditLocation('x1'), '/certifications/x1?mode=edit');
+    expect(courseEditLocation('x1'), '/courses/x1?mode=edit');
+    expect(documentEditLocation('x1'), '/documents/x1?mode=edit');
+    expect(gearItemEditLocation('x1'), '/equipment/x1?mode=edit');
+    expect(equipmentSetEditLocation('x1'), '/equipment/sets/x1?mode=edit');
+    expect(tripEditLocation('x1'), '/trips/x1?mode=edit');
+    expect(speciesEditLocation('x1'), '/species/x1?mode=edit');
+  });
+
   // The merge address handed fewer than two sites goes back to the list
   // (issue #4527, phase 2, plan 7).
   test('the site merge address checks it was handed sites to merge', () {
@@ -500,6 +486,121 @@ void main() {
       final route = _findRouteByName(router.configuration.routes, name);
       expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
     }
+  });
+
+  // A new record opens on its own page (issue #4527, phase 3, plan 11).
+  test('a new document opens the page', () {
+    const query = {'ownerKind': 'trip', 'ownerId': 't1', 'type': 'permit'};
+    final page = newDocumentPage(query);
+    expect(page, isA<DocumentDetailPage>());
+    final request = (page as DocumentDetailPage).newDocument!;
+    expect(request.owner, const DocumentOwner(DocumentOwnerKind.trip, 't1'));
+    expect(request.type, DocumentType.permit);
+    final route = _findRouteByName(router.configuration.routes, 'newDocument');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new species opens the page', () {
+    final page = newSpeciesPage();
+    expect(page, isA<SpeciesDetailPage>());
+    expect((page as SpeciesDetailPage).newSpecies, isTrue);
+    final route = _findRouteByName(router.configuration.routes, 'newSpecies');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new buddy opens the page', () {
+    const extra = {'name': 'Kai', 'email': 'kai@example.com'};
+    final page = newBuddyPage(extra);
+    expect(page, isA<BuddyDetailPage>());
+    final seed = (page as BuddyDetailPage).newBuddy!.seed!;
+    expect(seed.name, 'Kai');
+    expect(seed.email, 'kai@example.com');
+    final route = _findRouteByName(router.configuration.routes, 'newBuddy');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+    // Still on the root navigator, over a dialog it is opened from.
+    expect(route?.parentNavigatorKey, isNotNull);
+  });
+
+  test('a new dive centre opens the page', () {
+    final page = newDiveCenterPage();
+    expect(page, isA<DiveCenterDetailPage>());
+    expect((page as DiveCenterDetailPage).newDiveCenter, isTrue);
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newDiveCenter',
+    );
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new certification opens the page', () {
+    final page = newCertificationPage();
+    expect(page, isA<CertificationDetailPage>());
+    expect((page as CertificationDetailPage).newCertification, isTrue);
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newCertification',
+    );
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new course opens the page', () {
+    final page = newCoursePage();
+    expect(page, isA<CourseDetailPage>());
+    expect((page as CourseDetailPage).newCourse, isTrue);
+    final route = _findRouteByName(router.configuration.routes, 'newCourse');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new gear item opens the page, every seed '
+      'carried', () {
+    const query = {
+      'type': 'computer',
+      'serial': 'S9',
+      'parent': 'host',
+      'cloneFrom': 'src',
+    };
+    final page = newGearItemPage(query);
+    expect(page, isA<EquipmentDetailPage>());
+    final request = (page as EquipmentDetailPage).newItem!;
+    expect(request.type, EquipmentType.computer);
+    expect(request.serial, 'S9');
+    expect(request.parentId, 'host');
+    expect(request.cloneFromId, 'src');
+    final route = _findRouteByName(router.configuration.routes, 'newEquipment');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new trip opens the page, a draft carried', () {
+    final draft = TripDraft(
+      trip: Trip(
+        id: '',
+        name: 'Bonaire',
+        startDate: DateTime(2030, 5, 1),
+        endDate: DateTime(2030, 5, 4),
+        createdAt: DateTime(2030),
+        updatedAt: DateTime(2030),
+      ),
+      diveIds: const ['a'],
+    );
+    final page = newTripPage(draft);
+    expect(page, isA<TripDetailPage>());
+    expect((page as TripDetailPage).newTrip?.draft, same(draft));
+    final blank = newTripPage(null) as TripDetailPage;
+    expect(blank.newTrip, isNotNull);
+    expect(blank.newTrip?.draft, isNull);
+    final route = _findRouteByName(router.configuration.routes, 'newTrip');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new set opens the page, a clone carried', () {
+    final page = newEquipmentSetPage(cloneFromId: 's1');
+    expect(page, isA<EquipmentSetDetailPage>());
+    expect((page as EquipmentSetDetailPage).newSet?.cloneFromId, 's1');
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newEquipmentSet',
+    );
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 
   // A track's sitting is asked about before a `go` leaves it (issue #4527,

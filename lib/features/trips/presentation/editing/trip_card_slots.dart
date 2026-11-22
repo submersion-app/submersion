@@ -21,6 +21,7 @@ class TripCardSlots {
     required this.dayPlanFrame,
     required this.showsWhileEmpty,
     required this.openCard,
+    required this.unlockAt,
   });
 
   /// The trip the cards show: the sitting's while unlocked.
@@ -50,6 +51,12 @@ class TripCardSlots {
   /// Opens the card [id], unlocking the page first when it is locked: the
   /// Plan row and a day's note button do what their edit addresses do.
   final void Function(TripCardId id) openCard;
+
+  /// Unlocks the page when it is locked and brings [id]'s tab forward;
+  /// answers the open sitting, or null when the page could not unlock. For
+  /// the cards a tab edits in place, with no frame: a locked tab's Scan
+  /// unlocks, then scans into the sitting.
+  final EditSession<Trip>? Function(TripCardId id) unlockAt;
 
   bool get isUnlocked => session != null;
 }

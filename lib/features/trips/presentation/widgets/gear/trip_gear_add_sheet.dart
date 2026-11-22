@@ -15,12 +15,13 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
 import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -29,6 +30,14 @@ import 'package:submersion/features/trips/data/services/trip_set_bundle.dart';
 const _log = LoggerService('tripGearAddSheet');
 
 enum _Way { equipment, set, scan, rental }
+
+/// Where a set's lead goes (issue #4525): the trip's checklists, as stored
+/// or as a trip page's sitting holds them (issue #4527).
+typedef TripLeadChecklists = ({
+  Future<List<TripChecklist>> Function() checklists,
+  Future<List<TripChecklistItem>> Function(String checklistId) itemsOf,
+  Future<Object?> Function(TripChecklistItem item) createItem,
+});
 
 /// The Gear tab's one Add (#2845): a chooser that opens the equipment
 /// picker, the set picker, a tag scan (#2652), or the rental cylinder form. A cylinder picked
@@ -40,6 +49,8 @@ Future<void> showTripGearAddSheet(
   required Trip trip,
   required List<EquipmentItem> packed,
   required List<TripCylinder> slots,
+  required TripGearWrites writes,
+  required TripLeadChecklists lead,
 }) async {
   final l10n = context.l10n;
   final way = await showModalBottomSheet<_Way>(
@@ -77,7 +88,16 @@ Future<void> showTripGearAddSheet(
     case _Way.equipment:
       final picked = await _pickItems(context, packed, slots);
       if (picked == null || picked.isEmpty || !context.mounted) return;
-      await _apply(context, ref, trip, slots, picked, setName: null);
+      await _apply(
+        context,
+        ref,
+        trip,
+        slots,
+        picked,
+        writes: writes,
+        lead: lead,
+        setName: null,
+      );
     case _Way.set:
       final picked = await _pickSet(context);
       if (picked == null || !context.mounted) return;
@@ -97,6 +117,8 @@ Future<void> showTripGearAddSheet(
         trip,
         slots,
         items,
+        writes: writes,
+        lead: lead,
         setName: set.name,
         bundle: bundle,
       );
@@ -115,9 +137,16 @@ Future<void> showTripGearAddSheet(
         );
         return;
       }
-      final added = await _apply(context, ref, trip, slots, [
-        item,
-      ], setName: null);
+      final added = await _apply(
+        context,
+        ref,
+        trip,
+        slots,
+        [item],
+        writes: writes,
+        lead: lead,
+        setName: null,
+      );
       // A failure already said so. Nothing new written means the item got
       // onto the trip after this tab last loaded.
       if (added == null) return;
@@ -136,6 +165,7 @@ Future<void> showTripGearAddSheet(
         tripId: trip.id,
         existing: slots,
         rentalOnly: true,
+        hold: writes.createCylinders,
       );
   }
 }
@@ -199,13 +229,13 @@ Future<int?> _apply(
   Trip trip,
   List<TripCylinder> slots,
   List<EquipmentItem> items, {
+  required TripGearWrites writes,
+  required TripLeadChecklists lead,
   required String? setName,
   SetBundle? bundle,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
-  final checklists = ref.read(tripChecklistsRepositoryProvider);
-  final checklistItems = ref.read(tripChecklistRepositoryProvider);
   final leadTitle = bundle == null || bundle.weights.isEmpty
       ? ''
       : l10n.trips_gear_leadItem(
@@ -216,8 +246,6 @@ Future<int?> _apply(
   final container = ProviderScope.containerOf(context);
   // Everything from ref is read before the first await: the tab can be gone
   // by the time the diver resolves.
-  final packs = ref.read(tripEquipmentRepositoryProvider);
-  final cylinders = ref.read(tripCylinderRepositoryProvider);
   final equipment = ref.read(equipmentRepositoryProvider);
   final diverIdFuture = ref.read(validatedCurrentDiverIdProvider.future);
   try {
@@ -246,7 +274,7 @@ Future<int?> _apply(
     ];
     var addedCount = 0;
     if (others.isNotEmpty) {
-      addedCount = await packs.pack(trip.id, [for (final i in others) i.id]);
+      addedCount = await writes.pack(others);
     }
     if (tanks.isNotEmpty) {
       final now = DateTime.now().toUtc();
@@ -254,7 +282,7 @@ Future<int?> _apply(
       // tank already on it: [slots] is the board as the tab last built it,
       // which an Add opened again before it refreshed would not show. Only
       // the slots written are counted.
-      final created = await cylinders.appendCylinders(trip.id, [
+      final created = await writes.appendCylinders([
         for (final t in tanks)
           tripCylinderDraftFromEquipment(
             t,
@@ -267,13 +295,15 @@ Future<int?> _apply(
     }
     var leadSkipped = false;
     if (bundle != null) {
-      final applied = await applySetBundleToTrip(
+      final applied = await applySetBundle(
         bundle: bundle,
         tripId: trip.id,
         leadTitle: leadTitle,
-        cylinders: cylinders,
-        checklists: checklists,
-        items: checklistItems,
+        slots: writes.slots,
+        appendSlots: writes.appendCylinders,
+        checklists: lead.checklists,
+        itemsOf: lead.itemsOf,
+        createItem: lead.createItem,
         // The sheet is long gone; the tab's context asks, when it is still
         // there.
         pickChecklist: (all) async =>

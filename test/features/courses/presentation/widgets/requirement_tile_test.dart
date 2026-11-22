@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
+import 'package:submersion/features/courses/presentation/editing/course_requirements_sitting.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
+import 'package:submersion/features/courses/presentation/widgets/credit_dive_picker_sheet.dart';
 import 'package:submersion/features/courses/presentation/widgets/requirement_tile.dart';
 
 import '../../../../helpers/test_app.dart';
 
-class _RecordingRepository extends Fake implements CourseRequirementRepository {
+/// Records the dives the tile credits; the picker opens as the sitting's
+/// actions open it ([HeldRequirementActions.credit]).
+class _RecordingActions extends Fake implements RequirementActions {
   final linked = <(String, String)>[];
 
   @override
-  Future<void> linkDive({
-    required String requirementId,
-    required String diveId,
-  }) async {
-    linked.add((requirementId, diveId));
+  Future<void> credit(
+    BuildContext context,
+    CourseRequirement requirement,
+    RequirementDiveSummary? suggestion,
+  ) async {
+    final dive =
+        suggestion ??
+        await showCreditDivePickerSheet(
+          context,
+          courseId: requirement.courseId,
+        );
+    if (dive != null) linked.add((requirement.id, dive.diveId));
   }
 }
 
@@ -51,19 +61,18 @@ void main() {
   }
 
   /// Pumps the tile and expands it, where its dive actions live.
-  Future<_RecordingRepository> pumpTile(
+  Future<_RecordingActions> pumpTile(
     WidgetTester tester, {
     required CourseRequirementProgress progress,
     List<RequirementDiveSummary> suggestions = const [],
     List<RequirementDiveSummary> creditable = const [],
   }) async {
-    final repository = _RecordingRepository();
+    final actions = _RecordingActions();
 
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
         overrides: [
-          courseRequirementRepositoryProvider.overrideWithValue(repository),
           suggestedDivesProvider.overrideWith(
             (ref, courseId) async => suggestions,
           ),
@@ -72,14 +81,18 @@ void main() {
           ),
         ],
         child: SingleChildScrollView(
-          child: RequirementTile(progress: progress, suggestions: suggestions),
+          child: RequirementTile(
+            progress: progress,
+            suggestions: suggestions,
+            actions: actions,
+          ),
         ),
       ),
     );
     await tester.tap(find.text(name));
     await tester.pumpAndSettle();
 
-    return repository;
+    return actions;
   }
 
   testWidgets('a requirement with no suggestions can still choose a dive', (

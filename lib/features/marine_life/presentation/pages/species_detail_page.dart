@@ -17,7 +17,6 @@ import 'package:submersion/features/marine_life/presentation/helpers/species_sug
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_sightings_section.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_where_seen_section.dart';
-import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/presentation/pages/species_tag_picker_page.dart';
 import 'package:submersion/features/media/presentation/helpers/species_photo_import_helper.dart';
 import 'package:submersion/features/media/presentation/widgets/species_photos_section.dart';
@@ -29,6 +28,7 @@ import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dar
 import 'package:submersion/features/marine_life/data/services/species_edit_save_service.dart';
 import 'package:submersion/features/marine_life/presentation/editing/species_card_ids.dart';
 import 'package:submersion/features/marine_life/presentation/editing/species_edit_cards.dart';
+import 'package:submersion/features/marine_life/presentation/editing/species_new_sitting.dart';
 import 'package:submersion/features/marine_life/presentation/editing/species_photos_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -40,32 +40,37 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'species_detail_page_creating.dart';
 part 'species_detail_page_editing.dart';
 
-/// A species' page. Behind phase 3's switch ([unlockEditing]) it opens
-/// locked and edits in place (issue #4527): its names and description are
-/// held in one sitting and written by one Save.
+/// A species' page. It opens locked and edits in place (issue #4527): its names
+/// and description are held in one sitting and written by one Save.
 class SpeciesDetailPage extends ConsumerStatefulWidget {
   final String speciesId;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
 
+  /// A new species (issue #4527, phase 3, plan 11): the page opened
+  /// unlocked on a species not yet created.
+  final bool newSpecies;
+
   const SpeciesDetailPage({
     super.key,
     required this.speciesId,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
-  });
+  }) : newSpecies = false;
+
+  /// A new species' page.
+  const SpeciesDetailPage.newSpecies({super.key})
+    : speciesId = '',
+      openUnlocked = false,
+      newSpecies = true;
 
   @override
   ConsumerState<SpeciesDetailPage> createState() => _SpeciesDetailPageState();
@@ -75,7 +80,9 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
     with
         RecordEditHost<SpeciesDetailPage, Species>,
         RecordOpenUnlocked<SpeciesDetailPage, Species>,
-        _SpeciesDetailPageEditing {
+        _SpeciesDetailPageEditing,
+        RecordCreating<SpeciesDetailPage, Species>,
+        _SpeciesDetailPageCreating {
   String get speciesId => widget.speciesId;
 
   @override
@@ -93,12 +100,7 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
       onPressed: () => context.pop(),
     ),
     actions: [
-      if (hostsEditing && species != null) lockButton(species),
-      IconButton(
-        icon: const Icon(Icons.edit_outlined),
-        tooltip: context.l10n.marineLife_speciesDetail_editTooltip,
-        onPressed: () => context.push('/species/$speciesId/edit'),
-      ),
+      if (species != null) lockButton(species),
       if (species != null) _menu(species),
     ],
   );
@@ -131,17 +133,17 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
           value: 'suggest',
           child: Text(context.l10n.marineLife_speciesDetail_suggestForCatalog),
         ),
-      // Delete, where the manage page allows it (a custom species),
-      // and only on a page that edits in place: a whole-record
-      // operation, under the lock.
+      // Delete, where the manage page allows it (a custom species): a
+      // whole-record operation, under the lock.
       ..._speciesRecordMenuItems(species),
     ],
   );
 
   @override
   Widget build(BuildContext context) {
+    if (isCreating) return newRecordWaiting(context) ?? _buildNewSpecies();
     final speciesAsync = ref.watch(speciesProvider(speciesId));
-    if (hostsEditing) followStored(speciesProvider(speciesId));
+    followStored(speciesProvider(speciesId));
     final stored = speciesAsync.value;
     if (stored == null) {
       return Scaffold(
@@ -159,9 +161,6 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
         ),
       );
     }
-    if (!hostsEditing) {
-      return Scaffold(appBar: _lockedBar(stored), body: _body(stored));
-    }
     openUnlockedOnce(stored);
     final shown = shownRecord(stored);
     return editScaffold(
@@ -169,6 +168,21 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
       shown: shown,
       lockedBar: _lockedBar(shown),
       unlockedActions: [_menu(shown)],
+      content: _body(shown),
+    );
+  }
+
+  /// A new species' page on its seed: its header and description, with no
+  /// menu and none of what a species not yet created cannot have (its
+  /// statistics, photos, places and sightings).
+  Widget _buildNewSpecies() {
+    final seed = newRecordSeed!;
+    final shown = shownRecord(seed);
+    return editScaffold(
+      record: seed,
+      shown: shown,
+      // Never shown: a new species' page leaves once its sitting ends.
+      lockedBar: AppBar(title: Text(newRecordTitle(context))),
       content: _body(shown),
     );
   }
@@ -196,13 +210,9 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
                   species.localizedCommonName(l10n),
                   species.scientificName,
                   species.category,
-                  pencil: hostsEditing
-                      ? RecordCardPencil(
-                          cardTitle: SpeciesCardId.header.localizedDisplayName(
-                            l10n,
-                          ),
-                        )
-                      : null,
+                  pencil: RecordCardPencil(
+                    cardTitle: SpeciesCardId.header.localizedDisplayName(l10n),
+                  ),
                 ),
                 if (species.taxonomyClass != null) ...[
                   const SizedBox(height: 8),
@@ -218,32 +228,23 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
               _buildDescription(
                 context,
                 description ?? '',
-                pencil: hostsEditing
-                    ? RecordCardPencil(
-                        cardTitle: SpeciesCardId.description
-                            .localizedDisplayName(l10n),
-                      )
-                    : null,
+                pencil: RecordCardPencil(
+                  cardTitle: SpeciesCardId.description.localizedDisplayName(
+                    l10n,
+                  ),
+                ),
               ),
             ),
           ],
-          const SizedBox(height: 24),
-          _calculated(_buildStatisticsSection(context, ref)),
-          if (hostsEditing)
-            _photosInSitting()
-          else
-            SpeciesPhotosSection(
-              speciesId: speciesId,
-              onTagPhotos: () => _openTagPicker(context),
-              onAddPhotos: () =>
-                  SpeciesPhotoImportHelper.importPhotosForSpecies(
-                    context,
-                    ref,
-                    speciesId: speciesId,
-                  ),
-            ),
-          _calculated(SpeciesWhereSeenSection(speciesId: speciesId)),
-          _calculated(SpeciesSightingsSection(speciesId: speciesId)),
+          // A species not yet created has none of these (plan 11,
+          // Question 9).
+          if (!isCreating) ...[
+            const SizedBox(height: 24),
+            _calculated(_buildStatisticsSection(context, ref)),
+            _photosInSitting(),
+            _calculated(SpeciesWhereSeenSection(speciesId: speciesId)),
+            _calculated(SpeciesSightingsSection(speciesId: speciesId)),
+          ],
         ],
       ),
     );
@@ -601,21 +602,6 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
       context,
       uri,
       launch: ref.read(speciesSuggestionLaunchProvider),
-    );
-  }
-
-  Future<void> _openTagPicker(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    final result = await Navigator.of(context).push<TagPhotosResult>(
-      MaterialPageRoute<TagPhotosResult>(
-        fullscreenDialog: true,
-        builder: (_) => SpeciesTagPickerPage(speciesId: speciesId),
-      ),
-    );
-    if (result == null) return;
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.marineLife_tagPicker_tagged(result.tagged))),
     );
   }
 }

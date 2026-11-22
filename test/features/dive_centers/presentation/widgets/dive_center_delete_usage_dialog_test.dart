@@ -84,7 +84,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.more_vert));
+      // Delete is a whole-record operation, under the lock (issue #4527).
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();

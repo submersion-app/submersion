@@ -18,9 +18,8 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
-import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -73,20 +72,26 @@ void main() {
 
   final notes = l.equipment_detail_notesTitle;
 
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpGearPage(tester);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
+  testWidgets('the pane header has the lock and no Edit pencil', (
+    tester,
+  ) async {
+    await pumpGearPage(tester, embedded: true);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
   group('the page on the host', () {
-    testWidgets('with the switch off there is no lock and the page is as '
-        'before', (tester) async {
-      await pumpGearPage(tester, unlockEditing: false);
-
-      expect(find.byIcon(Icons.lock_outline), findsNothing);
-      expect(find.byIcon(Icons.edit), findsOneWidget);
-      expect(find.byType(RecordCardFade<EquipmentItem>), findsWidgets);
-      final components = tester.widget<ComponentsCard>(
-        find.byType(ComponentsCard),
-      );
-      expect(components.readOnly, isFalse);
-    });
-
     testWidgets('locked, no tap writes', (tester) async {
       final harness = await pumpGearPage(
         tester,
@@ -176,22 +181,16 @@ void main() {
       );
     });
 
-    testWidgets('with the switch on, Components and Condition findings offer '
-        'no action', (tester) async {
+    testWidgets('unlocked, Components acts only in its open card', (
+      tester,
+    ) async {
       await pumpGearPage(tester);
-
-      expect(
-        tester.widget<ComponentsCard>(find.byType(ComponentsCard)).readOnly,
-        isTrue,
-      );
-      expect(
-        tester
-            .widget<ConditionFindingsCard>(find.byType(ConditionFindingsCard))
-            .readOnly,
-        isTrue,
-      );
       await unlock(tester);
       expect(find.text(l.equipment_components_add), findsNothing);
+
+      await openCard(tester, l.equipment_components_title);
+
+      expect(find.text(l.equipment_components_add), findsOneWidget);
     });
 
     testWidgets('Cancel with changes asks first', (tester) async {
@@ -729,14 +728,6 @@ void main() {
       await pumpGearPage(tester, item: wanted);
 
       expect(find.text(l.equipment_detail_markPurchased), findsNothing);
-    });
-
-    testWidgets('with the switch off the chip still buys in one tap', (
-      tester,
-    ) async {
-      await pumpGearPage(tester, item: wanted, unlockEditing: false);
-
-      expect(find.text(l.equipment_detail_markPurchased), findsOneWidget);
     });
 
     testWidgets('Mark purchased, then Cancel: still wanted', (tester) async {

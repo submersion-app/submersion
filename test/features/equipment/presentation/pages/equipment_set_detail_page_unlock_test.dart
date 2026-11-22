@@ -13,6 +13,7 @@ import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'equipment_set_detail_page_unlock_harness.dart';
@@ -85,14 +86,13 @@ void main() {
   Finder inStrip(String title) =>
       find.descendant(of: find.byType(AddStrip), matching: find.text(title));
 
-  testWidgets('with the switch off there is no lock and the menu is '
-      'unchanged', (tester) async {
-    await pumpSetPage(tester, unlockEditing: false);
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpSetPage(tester);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    await openMenu(tester);
-    expect(find.text(l.equipment_setDetail_showFigure), findsOneWidget);
-    expect(find.text(l.equipment_setDetail_setAsDefault), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
   });
 
   testWidgets('a long name fills the header row, with the switch on or off', (
@@ -102,20 +102,14 @@ void main() {
     await DatabaseService.instance.database.customStatement(
       "UPDATE equipment_sets SET name = '$long' WHERE id = 's1'",
     );
-    for (final unlockEditing in [false, true]) {
-      await pumpSetPage(tester, unlockEditing: unlockEditing);
-      final name = find.descendant(
-        of: find.byType(Card).first,
-        matching: find.text(long),
-      );
-      // The avatar and its gap take about 100 of the 600 wide page; the
-      // name must have the rest, not half of it.
-      expect(
-        tester.getSize(name).width,
-        greaterThan(330),
-        reason: 'unlockEditing: $unlockEditing',
-      );
-    }
+    await pumpSetPage(tester);
+    final name = find.descendant(
+      of: find.byType(Card).first,
+      matching: find.text(long),
+    );
+    // The avatar and its gap take about 100 of the 600 wide page; the name
+    // must have the rest, not half of it.
+    expect(tester.getSize(name).width, greaterThan(330));
   });
 
   testWidgets('default on in a sitting moves the default for the rest of the '
@@ -169,14 +163,10 @@ void main() {
     expect((await storedSet(tester)).name, 'Cold water');
   });
 
-  testWidgets('with the switch on the menu has no Set as default or Show '
-      'figure', (tester) async {
+  testWidgets('the menu offers Clone while locked', (tester) async {
     await pumpSetPage(tester);
     await openMenu(tester);
 
-    expect(find.text(l.equipment_setDetail_showFigure), findsNothing);
-    expect(find.text(l.equipment_setDetail_hideFigure), findsNothing);
-    expect(find.text(l.equipment_setDetail_setAsDefault), findsNothing);
     expect(find.text(l.equipment_menu_clone), findsOneWidget);
   });
 
@@ -287,6 +277,32 @@ void main() {
     expect((await storedSet(tester)).includedSetIds, ['s2']);
   });
 
+  testWidgets('a weight preset chosen in the Bundle editor is written at '
+      'Save', (tester) async {
+    final preset = (await tester.runAsync(
+      () => WeightPresetRepository().createPreset(
+        diverId: 'd1',
+        displayName: 'Cold 8 kg',
+        entries: const [],
+      ),
+    ))!;
+    await pumpSetPage(tester);
+    await unlock(tester);
+    final chip = inStrip(bundle);
+    await tester.ensureVisible(chip);
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('set-bundle-add-presets')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('set-bundle-option-${preset.id}')));
+    await tester.pumpAndSettle();
+    expect((await storedSet(tester)).weightPresetIds, isEmpty);
+
+    await save(tester);
+
+    expect((await storedSet(tester)).weightPresetIds, [preset.id]);
+  });
+
   testWidgets('auto-apply on shows its row in the header', (tester) async {
     await DatabaseService.instance.database.customStatement(
       "UPDATE equipment_sets SET auto_apply_on_computer_import = 1 "
@@ -320,18 +336,6 @@ void main() {
     expect(find.text(l.equipment_setDetail_noGeofences), findsOneWidget);
     expect(find.byTooltip(l.recordEdit_editCardTooltip(members)), findsOne);
     expect(find.byTooltip(l.recordEdit_editCardTooltip(geofences)), findsOne);
-  });
-
-  testWidgets('the empty Members card has no Add Equipment button with the '
-      'switch on', (tester) async {
-    await pumpSetPage(tester, setId: 's2');
-    expect(find.text(l.equipment_setDetail_addEquipmentButton), findsNothing);
-  });
-
-  testWidgets('the empty Members card keeps Add Equipment with the switch '
-      'off', (tester) async {
-    await pumpSetPage(tester, setId: 's2', unlockEditing: false);
-    expect(find.text(l.equipment_setDetail_addEquipmentButton), findsOne);
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {
@@ -521,6 +525,30 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(figureShown(tester)!.title, 'Cold water');
+    });
+
+    // The figure is drawn on the closed card; the open one is its editor.
+    testWidgets("the Figure editor's switch hides and shows the figure", (
+      tester,
+    ) async {
+      await pumpSetPage(tester);
+      await unlock(tester);
+      final toggle = find.byKey(const ValueKey('set-edit-show-figure'));
+
+      await openCard(tester, figure);
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await closeCards(tester);
+      expect(figureShown(tester), isNull);
+
+      final chip = inStrip(figure);
+      await tester.ensureVisible(chip);
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await closeCards(tester);
+      expect(figureShown(tester), isNotNull);
     });
 
     testWidgets('untick every member and the Figure card goes', (tester) async {

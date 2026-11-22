@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/documents/presentation/editing/document_card
 import 'package:submersion/features/documents/presentation/editing/document_details_card_editor.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_cards.dart';
+import 'package:submersion/features/documents/presentation/editing/document_new_sitting.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
 import 'package:submersion/features/documents/presentation/providers/document_record_provider.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
@@ -28,27 +30,23 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'document_detail_page_creating.dart';
 part 'document_detail_page_editing.dart';
 
-/// One document: its pages, its details and what it is filed under. Behind
-/// phase 3's switch ([unlockEditing]) it opens locked and edits in place
-/// (issue #4527): its details and pages are held in one sitting and
-/// written by one Save.
+/// One document: its pages, its details and what it is filed under. It
+/// opens locked and edits in place (issue #4527): its details and pages are
+/// held in one sitting and written by one Save.
 class DocumentDetailPage extends ConsumerStatefulWidget {
   final String documentId;
 
   /// True inside the master-detail pane on wide screens.
   final bool embedded;
   final VoidCallback? onDeleted;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit addresses ask (`?mode=edit`).
   final bool openUnlocked;
@@ -57,15 +55,39 @@ class DocumentDetailPage extends ConsumerStatefulWidget {
   /// for editing returns to view mode.
   final VoidCallback? onSittingEnded;
 
+  /// A new document (issue #4527, phase 3, plan 11): the page opened
+  /// unlocked on a document not yet created, with what [request] brings.
+  final NewDocumentRequest? newDocument;
+
+  /// The pane's own: given the new document's id once created.
+  final void Function(String documentId)? onCreated;
+
+  /// The pane's own: told when a new document's page leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const DocumentDetailPage({
     super.key,
     required this.documentId,
     this.embedded = false,
     this.onDeleted,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newDocument = null,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new document's page.
+  const DocumentDetailPage.newDocument({
+    super.key,
+    NewDocumentRequest request = const NewDocumentRequest(),
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newDocument = request,
+       documentId = '',
+       onDeleted = null,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<DocumentDetailPage> createState() => _DocumentDetailPageState();
@@ -75,7 +97,9 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
     with
         RecordEditHost<DocumentDetailPage, DocumentRecord>,
         RecordOpenUnlocked<DocumentDetailPage, DocumentRecord>,
-        _DocumentDetailPageEditing {
+        _DocumentDetailPageEditing,
+        RecordCreating<DocumentDetailPage, DocumentRecord>,
+        _DocumentDetailPageCreating {
   @override
   void dispose() {
     disposeEditing();
@@ -94,6 +118,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    if (isCreating) return newRecordWaiting(context) ?? _buildNewDocument();
     final l10n = context.l10n;
     // A full page reached directly (a deep link, the home chip) belongs in
     // the list's detail pane on a wide screen. One pushed from an owner
@@ -104,7 +129,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
         !context.canPop()) {
       _redirected = true;
       // Asked to open unlocked and not yet: the pane opens it unlocked.
-      final unlock = hostsEditing && widget.openUnlocked && !hasOpenedUnlocked;
+      final unlock = widget.openUnlocked && !hasOpenedUnlocked;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.go(
@@ -114,12 +139,10 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
       });
     }
     final entry = ref.watch(documentEntryProvider(widget.documentId));
-    final pages = ref.watch(documentPagesProvider(widget.documentId));
     final units = ref.watch(unitFormatterProvider);
-    if (hostsEditing) followStored(documentRecordProvider(widget.documentId));
-    final record = hostsEditing
-        ? ref.watch(documentRecordProvider(widget.documentId)).value
-        : null;
+    followStored(documentRecordProvider(widget.documentId));
+    final recordAsync = ref.watch(documentRecordProvider(widget.documentId));
+    final record = recordAsync.value;
     return entry.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -141,16 +164,19 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
           l10n,
           catalog: ref.watch(certificationCatalogSyncProvider),
         );
-        if (!hostsEditing) {
-          final doc = named.document;
-          return Scaffold(
-            appBar: _bar(named, doc),
-            body: _body(named, doc, named.ownerText(units), pages),
-          );
-        }
         if (record == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          // The page edits the record: until it is read there is nothing to
+          // show, and a read that failed or found nothing says so.
+          final error = recordAsync.error;
+          return Scaffold(
+            appBar: AppBar(automaticallyImplyLeading: !widget.embedded),
+            body: Center(
+              child: error != null
+                  ? Text(l10n.documents_error_load('$error'))
+                  : recordAsync.hasValue
+                  ? Text(l10n.documents_empty)
+                  : const CircularProgressIndicator(),
+            ),
           );
         }
         openUnlockedOnce(record);
@@ -185,28 +211,41 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
     );
   }
 
-  /// The page's top bar while locked: its title, the lock where the page
-  /// edits in place, Edit and the menu.
+  /// A new document's page on its seed: the sitting's document, its
+  /// details and pages, with no menu, as nothing acts on a document not
+  /// yet created.
+  Widget _buildNewDocument() {
+    final seed = newRecordSeed!;
+    final shown = shownRecord(seed);
+    final doc = shown.document;
+    final entry = DocumentListEntry(doc, null, shown.pages.length);
+    return editScaffold(
+      record: seed,
+      shown: shown,
+      // Never shown: a new document's page leaves once its sitting ends.
+      lockedBar: AppBar(title: Text(newRecordTitle(context))),
+      content: _body(
+        entry,
+        doc,
+        entry.ownerText(ref.watch(unitFormatterProvider)),
+        AsyncData(shown.pages),
+      ),
+    );
+  }
+
+  /// The page's top bar while locked: its title, the lock and the menu.
   PreferredSizeWidget _bar(
     DocumentListEntry entry,
-    Document doc, [
-    DocumentRecord? shown,
-  ]) {
+    Document doc,
+    DocumentRecord shown,
+  ) {
     final l10n = context.l10n;
     return AppBar(
       automaticallyImplyLeading: !widget.embedded,
       title: Text(
         documentDisplayTitle(l10n, doc, ownerLabel: entry.ownerLabel),
       ),
-      actions: [
-        if (shown != null) lockButton(shown),
-        IconButton(
-          tooltip: l10n.common_action_edit,
-          icon: const Icon(Icons.edit_outlined),
-          onPressed: () => _edit(doc.id),
-        ),
-        _menu(doc),
-      ],
+      actions: [lockButton(shown), _menu(doc)],
     );
   }
 
@@ -320,8 +359,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
               child: DocumentDetailsPanel(
                 entry: entry,
                 forceOpen: isSittingOpen,
-                frame: hostsEditing ? _framedDetails : null,
-                showReminder: hostsEditing,
+                frame: _framedDetails,
                 pencil: _detailsPencil(),
                 tags: _heldTags(),
               ),
@@ -338,32 +376,10 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
     final card = DocumentDetailsCard(
       document: doc,
       ownerLabel: owner,
-      showReminder: hostsEditing,
       pencil: _detailsPencil(),
       tags: _heldTags(),
     );
-    return hostsEditing ? _framedDetails(card) : card;
-  }
-
-  /// In the list's detail pane the editor opens in that pane, as every
-  /// master-detail feature's does; a full page pushes the edit route.
-  void _edit(String id) {
-    if (!widget.embedded) {
-      context.push('/documents/$id/edit');
-      return;
-    }
-    final uri = GoRouterState.of(context).uri;
-    context.go(
-      uri
-          .replace(
-            queryParameters: {
-              ...uri.queryParameters,
-              'selected': id,
-              'mode': 'edit',
-            },
-          )
-          .toString(),
-    );
+    return _framedDetails(card);
   }
 
   /// Deletes [doc] after asking, and leaves the page. Answers whether it

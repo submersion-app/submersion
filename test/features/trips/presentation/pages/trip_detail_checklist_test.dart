@@ -51,12 +51,6 @@ class _MockTripListNotifier
   Future<void> refresh() async {}
 
   @override
-  Future<Trip> addTrip(Trip trip) async => trip;
-
-  @override
-  Future<void> updateTrip(Trip trip) async {}
-
-  @override
   Future<bool> deleteTrip(String id) async => true;
 
   @override
@@ -165,9 +159,9 @@ void main() {
       await tester.tap(find.byType(ExpansionTile));
       await tester.pumpAndSettle();
 
-      // TripChecklistSection renders its own "Add item" affordance for an
-      // empty checklist.
-      expect(find.text('Add item'), findsOneWidget);
+      // Locked, the checklist only shows: its "Add item" is offered in the
+      // trip's sitting (issue #4527).
+      expect(find.text('Add item'), findsNothing);
     });
 
     testWidgets('a shore trip shows a Checklist tab', (tester) async {
@@ -240,9 +234,9 @@ void main() {
       await tester.tap(find.byType(ExpansionTile));
       await tester.pumpAndSettle();
 
-      // TripChecklistSection renders its own "Add item" affordance for an
-      // empty checklist.
-      expect(find.text('Add item'), findsOneWidget);
+      // Locked, the checklist only shows: its "Add item" is offered in the
+      // trip's sitting (issue #4527).
+      expect(find.text('Add item'), findsNothing);
     });
   });
 }

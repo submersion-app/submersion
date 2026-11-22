@@ -155,7 +155,6 @@ void main() {
     >
     pumpFlow(
       WidgetTester tester, {
-      Buddy? lendTo,
       Map<String, EquipmentStatus> parts = const {},
     }) async {
       final locations = _FakeLocations(annasPlace);
@@ -175,12 +174,8 @@ void main() {
           ],
           child: Consumer(
             builder: (context, ref, _) => TextButton(
-              onPressed: () => showMoveEquipmentFlow(
-                context,
-                ref,
-                items: const [wetsuit],
-                lendTo: lendTo,
-              ),
+              onPressed: () =>
+                  showMoveEquipmentFlow(context, ref, items: const [wetsuit]),
               child: const Text('open'),
             ),
           ),
@@ -193,8 +188,19 @@ void main() {
 
     final confirm = find.byKey(const ValueKey('move_equipment_confirm'));
 
+    /// Picks Anna in the sheet's place picker, as the diver lends.
+    Future<void> lendToAnna(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('move_equipment_to')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lend to a buddy'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Anna Lindqvist'));
+      await tester.pumpAndSettle();
+    }
+
     testWidgets('a buddy shows by name and enables Move', (tester) async {
-      await pumpFlow(tester, lendTo: anna);
+      await pumpFlow(tester);
+      await lendToAnna(tester);
 
       expect(find.text('Anna Lindqvist'), findsOneWidget);
       expect(tester.widget<FilledButton>(confirm).onPressed, isNotNull);
@@ -203,7 +209,8 @@ void main() {
     testWidgets('confirming resolves the place and offers Loaned Out', (
       tester,
     ) async {
-      final fakes = await pumpFlow(tester, lendTo: anna);
+      final fakes = await pumpFlow(tester);
+      await lendToAnna(tester);
 
       await tester.tap(confirm);
       await tester.pumpAndSettle();
@@ -216,7 +223,8 @@ void main() {
     });
 
     testWidgets('answering No leaves the status alone', (tester) async {
-      final fakes = await pumpFlow(tester, lendTo: anna);
+      final fakes = await pumpFlow(tester);
+      await lendToAnna(tester);
 
       await tester.tap(confirm);
       await tester.pumpAndSettle();
@@ -228,7 +236,8 @@ void main() {
     });
 
     testWidgets('cancelling creates no place', (tester) async {
-      final fakes = await pumpFlow(tester, lendTo: anna);
+      final fakes = await pumpFlow(tester);
+      await lendToAnna(tester);
 
       await tester.tapAt(const Offset(20, 20));
       await tester.pumpAndSettle();
@@ -240,9 +249,9 @@ void main() {
     testWidgets('a lend asks whether the parts go too', (tester) async {
       final fakes = await pumpFlow(
         tester,
-        lendTo: anna,
         parts: const {'hood': EquipmentStatus.active},
       );
+      await lendToAnna(tester);
 
       await tester.tap(confirm);
       await tester.pumpAndSettle();
@@ -256,12 +265,7 @@ void main() {
     testWidgets('the picker path lends through the same steps', (tester) async {
       final fakes = await pumpFlow(tester);
 
-      await tester.tap(find.byKey(const ValueKey('move_equipment_to')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Lend to a buddy'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Anna Lindqvist'));
-      await tester.pumpAndSettle();
+      await lendToAnna(tester);
       expect(fakes.locations.calls, isEmpty);
 
       await tester.tap(confirm);

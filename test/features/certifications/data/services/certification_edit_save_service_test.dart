@@ -262,4 +262,75 @@ void main() {
     await expectLater(save(session), throwsStateError);
     expect(await operations(), isEmpty);
   });
+
+  /// A new certification's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    domain.Certification fresh({String id = 'n1'}) => domain.Certification(
+      id: id,
+      diverId: 'd',
+      name: 'Ice Diver',
+      agency: 'padi',
+      photoFront: Uint8List.fromList([1, 2]),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test(
+      'creates the certification with its id, as one History entry',
+      () async {
+        final created = await service.create(
+          certification: fresh(),
+          changedCardIds: const ['details'],
+        );
+
+        expect(created.id, 'n1');
+        expect((await stored('n1')).name, 'Ice Diver');
+        final ops = await operations();
+        expect(ops, hasLength(1));
+        expect(ops.single['source'], 'manual');
+        expect(ops.single['label'], 'record_edit:certifications:n1:details');
+      },
+    );
+
+    test('card photos are written with the row', () async {
+      await service.create(
+        certification: fresh(),
+        changedCardIds: const ['cardPhotos'],
+      );
+
+      expect((await stored('n1')).photoFront, [1, 2]);
+    });
+
+    test('a held write that throws leaves nothing', () async {
+      await expectLater(
+        service.create(
+          certification: fresh(),
+          changedCardIds: const ['details'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await certifications.getCertificationById('n1'), isNull);
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          certification: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          certification: fresh(id: 'c1'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      expect(await operations(), isEmpty);
+    });
+  });
 }

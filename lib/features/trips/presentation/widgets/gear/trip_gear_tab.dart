@@ -1,16 +1,20 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
+import 'package:submersion/features/trips/presentation/helpers/open_trip_cylinder_board.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -21,6 +25,7 @@ import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_ad
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_packed_item_row.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_unslotted_tank_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 const _log = LoggerService('tripGearTab');
 
@@ -29,18 +34,19 @@ const _log = LoggerService('tripGearTab');
 class TripGearTab extends ConsumerWidget {
   final Trip trip;
 
-  /// Offers no action (no Add, unpack or put on board): the trip page edits
-  /// in place (issue #4527), and the gear is not in its sitting yet. Open
-  /// board still opens the board.
-  final bool readOnly;
+  /// The trip page's open sitting: the packed gear and the board it holds
+  /// are shown, and every change waits for its Save. Null, the page is
+  /// locked (issue #4527): the gear only shows, with no Add, unpack or put
+  /// on board, and Open board still opens the board.
+  final EditSession<Trip>? editing;
 
-  const TripGearTab({super.key, required this.trip, this.readOnly = false});
+  const TripGearTab({super.key, required this.trip, this.editing});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final editing = this.editing;
+    if (editing != null) return _buildHeld(context, ref, editing);
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final units = ref.watch(unitFormatterProvider);
     final gearAsync = ref.watch(tripGearProvider(trip.id));
     final statesAsync = ref.watch(tripCylinderStatesProvider(trip.id));
     final gear = gearAsync.value;
@@ -61,6 +67,99 @@ class TripGearTab extends ConsumerWidget {
       }
       return const Center(child: CircularProgressIndicator.adaptive());
     }
+    return _buildGear(context, ref, gear: gear, states: states);
+  }
+
+  /// The gear and board [editing] holds, drawn as they change.
+  Widget _buildHeld(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<Trip> editing,
+  ) {
+    final packed = tripPackedGearList(
+      read: (id) => ref.read(tripGearProvider(id).future),
+      packs: ref.read(tripEquipmentRepositoryProvider),
+    );
+    final board = tripCylindersList(
+      cylinders: ref.read(tripCylinderRepositoryProvider),
+      copier: ref.read(tripFillPassportCopierProvider),
+    );
+    final checklists = tripChecklistsList(
+      checklists: ref.read(tripChecklistsRepositoryProvider),
+      items: ref.read(tripChecklistRepositoryProvider),
+    );
+    final checklistWrites = HeldTripChecklistWrites(
+      session: editing,
+      list: checklists,
+      templates: ref.read(checklistTemplateRepositoryProvider),
+    );
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        packed.changes(editing),
+        board.changes(editing),
+        checklists.changes(editing),
+      ]),
+      builder: (context, _) {
+        final gear = packed.current(editing);
+        final held = heldCylindersOf(editing, board);
+        // Add can put a set's lead on a checklist: it waits for the held
+        // checklists too, so it never takes a trip still being read for
+        // one with none. A failed read leaves the lead off, as with none.
+        final checklistsPending =
+            heldChecklistsOf(editing, checklists) == null &&
+            !checklists.failed(editing);
+        if (gear == null || held == null || checklistsPending) {
+          if (packed.failed(editing) || board.failed(editing)) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(
+                  context.l10n.common_error_tryAgain,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+          return const Center(child: CircularProgressIndicator.adaptive());
+        }
+        // A Consumer of its own, so what the gear watches is watched by the
+        // element that rebuilds with the held lists.
+        return Consumer(
+          builder: (context, ref, _) => _buildGear(
+            context,
+            ref,
+            gear: gear,
+            states: held.states,
+            writes: HeldTripGearWrites(
+              session: editing,
+              packed: packed,
+              board: board,
+            ),
+            lead: (
+              checklists: () async =>
+                  heldChecklistsOf(editing, checklists)?.checklists ?? const [],
+              itemsOf: (id) async =>
+                  heldChecklistsOf(editing, checklists)?.itemsOf(id) ??
+                  const [],
+              createItem: checklistWrites.createItem,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGear(
+    BuildContext context,
+    WidgetRef ref, {
+    required List<EquipmentItem> gear,
+    required List<TripCylinderState> states,
+    TripGearWrites? writes,
+    TripLeadChecklists? lead,
+  }) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final units = ref.watch(unitFormatterProvider);
     final now = clock.now();
     final started = !trip.startsAfter(now);
     final upcoming = trip.isUpcoming;
@@ -99,20 +198,24 @@ class TripGearTab extends ConsumerWidget {
     // is a tank packed without a slot (#2873), offered to the board.
     final (:packed, :unslottedTanks) = splitTripGear(gear, slots);
 
-    Future<void> add() => showTripGearAddSheet(
-      context,
-      ref,
-      trip: trip,
-      packed: gear,
-      slots: slots,
-    );
-    void openBoard() => context.push('/trips/${trip.id}/cylinders');
-    final addButton = FilledButton.tonalIcon(
-      key: const Key('trip-gear-add'),
-      icon: const Icon(Icons.add),
-      label: Text(l10n.trips_gear_add_action),
-      onPressed: add,
-    );
+    void openBoard() => openTripCylinderBoard(context, trip.id);
+    // Only the open sitting changes the gear: locked, nothing is offered.
+    final addButton = writes == null || lead == null || !upcoming
+        ? null
+        : FilledButton.tonalIcon(
+            key: const Key('trip-gear-add'),
+            icon: const Icon(Icons.add),
+            label: Text(l10n.trips_gear_add_action),
+            onPressed: () => showTripGearAddSheet(
+              context,
+              ref,
+              trip: trip,
+              packed: gear,
+              slots: slots,
+              writes: writes,
+              lead: lead,
+            ),
+          );
 
     if (packed.isEmpty && unslottedTanks.isEmpty && states.isEmpty) {
       return Center(
@@ -130,10 +233,7 @@ class TripGearTab extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (upcoming && !readOnly) ...[
-                const SizedBox(height: 16),
-                addButton,
-              ],
+              if (addButton != null) ...[const SizedBox(height: 16), addButton],
             ],
           ),
         ),
@@ -143,7 +243,7 @@ class TripGearTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
       children: [
-        if (upcoming && !readOnly)
+        if (addButton != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Align(
@@ -158,7 +258,9 @@ class TripGearTab extends ConsumerWidget {
               item: item,
               alerts: alertsByItem[item.id] ?? const [],
               margin: marginByItem[item.id],
-              onUnpack: readOnly ? null : () => _unpack(context, ref, item.id),
+              onUnpack: writes == null
+                  ? null
+                  : () => _unpack(context, writes, item.id),
             ),
         ],
         if (states.isNotEmpty || unslottedTanks.isNotEmpty) ...[
@@ -193,10 +295,12 @@ class TripGearTab extends ConsumerWidget {
               units: units,
               alerts: alertsByItem[item.id] ?? const [],
               // An ended trip's board is history: no prompt to put it on.
-              onPutOnBoard: ended || readOnly
+              onPutOnBoard: ended || writes == null
                   ? null
-                  : () => _putOnBoard(context, ref, item),
-              onUnpack: readOnly ? null : () => _unpack(context, ref, item.id),
+                  : () => _putOnBoard(context, writes, item),
+              onUnpack: writes == null
+                  ? null
+                  : () => _unpack(context, writes, item.id),
             ),
         ],
       ],
@@ -212,16 +316,14 @@ class TripGearTab extends ConsumerWidget {
   /// append skips a tank already on the board) but retries the unpack.
   Future<void> _putOnBoard(
     BuildContext context,
-    WidgetRef ref,
+    TripGearWrites writes,
     EquipmentItem item,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    final cylinders = ref.read(tripCylinderRepositoryProvider);
-    final packs = ref.read(tripEquipmentRepositoryProvider);
     try {
       final now = clock.now().toUtc();
-      await cylinders.appendCylinders(trip.id, [
+      await writes.appendCylinders([
         tripCylinderDraftFromEquipment(
           item,
           tripId: trip.id,
@@ -229,7 +331,7 @@ class TripGearTab extends ConsumerWidget {
           now: now,
         ),
       ]);
-      await packs.unpack(trip.id, item.id);
+      await writes.unpack(item.id);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to put a packed tank on the board',
@@ -240,11 +342,15 @@ class TripGearTab extends ConsumerWidget {
     }
   }
 
-  Future<void> _unpack(BuildContext context, WidgetRef ref, String id) async {
+  Future<void> _unpack(
+    BuildContext context,
+    TripGearWrites writes,
+    String id,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     try {
-      await ref.read(tripEquipmentRepositoryProvider).unpack(trip.id, id);
+      await writes.unpack(id);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to unpack trip gear',

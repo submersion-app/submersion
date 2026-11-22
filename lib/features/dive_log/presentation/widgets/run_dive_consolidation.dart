@@ -20,6 +20,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// Only [context] is read synchronously, before the first `await`, so a caller
 /// may dismiss its own route first.
+///
+/// [onlyCopies] says every secondary is a same-computer copy of a stretch of
+/// the target, so the SnackBar does not announce an additional computer.
 Future<void> runDiveConsolidation({
   required BuildContext context,
   required DiveConsolidationService service,
@@ -27,6 +30,7 @@ Future<void> runDiveConsolidation({
   required List<String> secondaryDiveIds,
   required VoidCallback onConsolidated,
   ConsolidationAlignment? alignment,
+  bool onlyCopies = false,
 }) async {
   final l10n = context.l10n;
   final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -59,7 +63,11 @@ Future<void> runDiveConsolidation({
   scaffoldMessenger.clearSnackBars();
   scaffoldMessenger.showSnackBar(
     SnackBar(
-      content: Text(l10n.diveLog_consolidate_snackbar),
+      content: Text(
+        onlyCopies
+            ? l10n.diveLog_consolidate_duplicateSnackbar
+            : l10n.diveLog_consolidate_snackbar,
+      ),
       duration: const Duration(seconds: 5),
       // #406: an action defaults to persist: true; force auto-dismiss
       // and allow closing without triggering Undo.

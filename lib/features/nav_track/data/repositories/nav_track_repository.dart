@@ -17,6 +17,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.d
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_source_file_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_source_metadata_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
@@ -476,6 +477,8 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
   /// How each link came about carries over. [link] settles the rest as for
   /// any new link: the owner follows the dive, a route with no position
   /// inherits the dive's, and a primary already on [toDiveId] stays primary.
+  /// A route with a site or an anchor keeps both, as the two dives are one
+  /// ([_relinkForFold]): [restoreLinks] relies on that.
   /// Moving in [linkedRowsForDives]' order means that with none there, the
   /// earliest of the routes coming in takes the role.
   Future<void> moveLinks({
@@ -486,7 +489,7 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
       final linkMode =
           domain.NavTrackLinkMode.fromWireValue(route.linkMode) ??
           domain.NavTrackLinkMode.manual;
-      await relink(
+      await _relinkForFold(
         route.id,
         fromDiveId: route.diveId!,
         toDiveId: toDiveId,

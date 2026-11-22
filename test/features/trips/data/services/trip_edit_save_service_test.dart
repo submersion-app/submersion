@@ -253,6 +253,11 @@ void main() {
     await save(session);
 
     expect(await vessels.getByTripId('t1'), isNull);
+    expect((await stored()).tripType, TripType.resort);
+    // The itinerary is the trip's days, not the boat's: it stays (#2845).
+    final kept = await days.getByTripId('t1');
+    expect(kept.first.id, 'i1');
+    expect(kept.first.notes, 'Embark');
     final ops = await operations();
     expect(ops, hasLength(1));
 
@@ -506,5 +511,221 @@ void main() {
     );
 
     expect(await dayDates(), hasLength(3));
+  });
+  // A new trip's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    Trip fresh({
+      String id = 'n1',
+      TripType type = TripType.shore,
+      String? parent,
+    }) => Trip(
+      id: id,
+      diverId: 'me',
+      name: 'Bonaire',
+      startDate: DateTime(2026, 9, 1),
+      endDate: DateTime(2026, 9, 4),
+      tripType: type,
+      parentTripId: parent,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    Future<void> dive(String id, {String? tripId}) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            // Dives keep their wall clock as UTC: 10:00 on 2 September.
+            diveDateTime: DateTime.utc(2026, 9, 2, 10).millisecondsSinceEpoch,
+            tripId: Value(tripId),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+
+    // What a test seeds is not a sitting.
+    Future<void> clearLog() async {
+      await changeLog.settleAll();
+      await db.customStatement('DELETE FROM change_log_operations');
+    }
+
+    Future<String?> tripOf(String diveId) async =>
+        (await db
+                .customSelect("SELECT trip_id FROM dives WHERE id = '$diveId'")
+                .getSingle())
+            .readNullable<String>('trip_id');
+
+    test('creates the trip with its id, as one History entry', () async {
+      final created = await service.create(
+        trip: fresh(),
+        changedCardIds: const ['header'],
+      );
+
+      expect(created.id, 'n1');
+      expect((await stored('n1')).name, 'Bonaire');
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(ops.single['label'], 'record_edit:trips:n1:header');
+    });
+
+    test('held writes run after the row, in the same entry', () async {
+      var readBack = false;
+      await service.create(
+        trip: fresh(),
+        changedCardIds: const ['header', 'notes'],
+        alsoWrite: () async {
+          readBack = await trips.getTripById('n1') != null;
+          await vessels.createOrUpdate(
+            LiveaboardDetails(
+              id: 'v9',
+              tripId: 'n1',
+              vesselName: 'MV Green',
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          );
+        },
+      );
+
+      expect(readBack, isTrue);
+      expect((await vessels.getByTripId('n1'))?.vesselName, 'MV Green');
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a held write that throws leaves nothing', () async {
+      await expectLater(
+        service.create(
+          trip: fresh(),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await trips.getTripById('n1'), isNull);
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          trip: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          trip: fresh(id: 't1'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).name, 'Red Sea');
+      expect(await operations(), isEmpty);
+    });
+
+    test('a new liveaboard gets its generated days once', () async {
+      await service.create(
+        trip: fresh(type: TripType.liveaboard),
+        changedCardIds: const ['header'],
+      );
+
+      final generated = await days.getByTripId('n1');
+      expect(generated, hasLength(4));
+      expect(generated.first.date, DateTime(2026, 9, 1));
+      expect(await operations(), hasLength(1));
+    });
+
+    test(
+      'a liveaboard with days in the sitting gets no generated ones',
+      () async {
+        await service.create(
+          trip: fresh(type: TripType.liveaboard),
+          changedCardIds: const ['header'],
+          alsoWrite: () => days.saveAll([
+            day('k1', DateTime(2026, 9, 2)).copyWith(tripId: 'n1'),
+          ]),
+        );
+
+        expect([for (final d in await days.getByTripId('n1')) d.id], ['k1']);
+      },
+    );
+
+    test('a shore trip gets no generated days', () async {
+      await service.create(trip: fresh(), changedCardIds: const ['header']);
+
+      expect(await days.getByTripId('n1'), isEmpty);
+    });
+
+    test("a draft's dives move to the new trip", () async {
+      await dive('a', tripId: 't1');
+      await dive('b');
+      await clearLog();
+
+      await service.create(
+        trip: fresh(),
+        changedCardIds: const ['header'],
+        draftDiveIds: const ['a', 'b'],
+      );
+
+      expect(await tripOf('a'), 'n1');
+      expect(await tripOf('b'), 'n1');
+      expect(await operations(), hasLength(1));
+    });
+
+    test("a liveaboard's days cover the dates its draft's dives stretch it "
+        'to', () async {
+      // Dived on 2 September; the diver moved the draft's start to the 3rd.
+      await dive('a');
+      await clearLog();
+
+      final created = await service.create(
+        trip: fresh(
+          type: TripType.liveaboard,
+        ).copyWith(startDate: DateTime(2026, 9, 3)),
+        changedCardIds: const ['header'],
+        draftDiveIds: const ['a'],
+      );
+
+      final generated = await days.getByTripId('n1');
+      expect(generated, hasLength(created.durationDays));
+      expect(generated.first.date, DateTime(2026, 9, 2));
+    });
+
+    test('a failed held write leaves the dives on their old trips and no '
+        'trip', () async {
+      await dive('a', tripId: 't1');
+      await clearLog();
+
+      await expectLater(
+        service.create(
+          trip: fresh(),
+          changedCardIds: const ['header'],
+          draftDiveIds: const ['a'],
+          alsoWrite: () async => throw StateError('vessel refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await tripOf('a'), 't1');
+      expect(await trips.getTripById('n1'), isNull);
+      expect(await operations(), isEmpty);
+    });
+
+    test('a parent that is a side trip itself is dropped, as the form '
+        'drops it', () async {
+      await trips.createTrip(fresh(id: 'side', parent: 't1'));
+
+      final created = await service.create(
+        trip: fresh(parent: 'side'),
+        changedCardIds: const ['header'],
+      );
+
+      expect(created.parentTripId, isNull);
+      expect((await stored('n1')).parentTripId, isNull);
+    });
   });
 }

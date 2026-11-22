@@ -38,6 +38,30 @@ class CertificationEditSaveService {
     alsoWrite: alsoWrite,
     alsoWriteIsAChange: alsoWriteIsAChange,
   );
+
+  /// Creates [certification], a new certification's sitting (issue #4527,
+  /// phase 3, plan 11), keeping its id: the row with its card images, then
+  /// [alsoWrite], the sitting's held writes (documents), in one transaction
+  /// and one History entry naming [changedCardIds]. If any of them throws
+  /// nothing is left. Throws [StateError] when [certification] has no id,
+  /// or one a stored certification has.
+  Future<Certification> create({
+    required Certification certification,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<Certification>(
+    table: 'certifications',
+    recordId: certification.id,
+    changedCardIds: changedCardIds,
+    isStored: () async =>
+        await _certifications.getCertificationById(certification.id) != null,
+    // The sitting tells sync once, after its commit.
+    insert: () =>
+        _certifications.createCertification(certification, notify: false),
+    alsoWrite: alsoWrite,
+    readBack: () => _certifications.getCertificationById(certification.id),
+    created: certification,
+  );
 }
 
 final certificationEditSaveServiceProvider =

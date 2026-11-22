@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,8 +35,14 @@ class _Controller extends SpeciesPackController {
   var cancels = 0;
   var removals = 0;
 
+  /// Whether the download would also fetch a hardware engine.
+  var fetchesEngine = false;
+
   @override
   SpeciesPackState build() => initial;
+
+  @override
+  Future<bool> downloadFetchesHardwareEngine() async => fetchesEngine;
 
   @override
   Future<void> refresh() async => refreshes++;
@@ -121,6 +128,25 @@ void main() {
     return controller;
   }
 
+  testWidgets('on Linux the page speaks of photos only', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await pump(
+      tester,
+      const PackNotInstalled(bytes: 660000000, resumable: false),
+    );
+    expect(
+      find.text(
+        'Suggests the species in your photos. Runs on this device. Your '
+        'photos never leave it.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Identify species when I open a photo'), findsOneWidget);
+    expect(find.textContaining('photos and videos'), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('opening the page checks the model', (tester) async {
     final controller = await pump(tester, const PackChecking());
     expect(controller.refreshes, 1);
@@ -158,6 +184,40 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('species_id_download_confirm')));
     await tester.pumpAndSettle();
     expect(controller.downloads, 1);
+  });
+
+  testWidgets('where the download also fetches a hardware engine, the '
+      'confirmation says Windows may download one', (tester) async {
+    final controller = await pump(
+      tester,
+      const PackNotInstalled(bytes: 660000000, resumable: false),
+    );
+    controller.fetchesEngine = true;
+    await tester.tap(find.byKey(const ValueKey('species_id_download')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining(
+        'Windows may also download an engine for your graphics card or NPU '
+        'from Microsoft.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('elsewhere the confirmation does not mention an engine', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const PackNotInstalled(bytes: 660000000, resumable: false),
+    );
+    await tester.tap(find.byKey(const ValueKey('species_id_download')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('You can remove it at any time.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Windows may'), findsNothing);
   });
 
   testWidgets('downloading shows progress and can be cancelled', (

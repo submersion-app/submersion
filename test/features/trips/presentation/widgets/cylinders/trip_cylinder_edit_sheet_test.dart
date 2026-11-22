@@ -61,6 +61,7 @@ void main() {
     MockSettingsNotifier? settings,
     Future<List<TankPresetEntity>>? presetsLoad,
     bool settle = true,
+    Future<void> Function(TripCylinder cylinder)? hold,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -82,8 +83,11 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(
-                onPressed: () =>
-                    showTripCylinderEditSheet(context, cylinder: slot),
+                onPressed: () => showTripCylinderEditSheet(
+                  context,
+                  cylinder: slot,
+                  hold: hold,
+                ),
                 child: const Text('open'),
               ),
             ),
@@ -121,6 +125,18 @@ void main() {
     expect(stored.presetName, isNull);
     expect(stored.notes, 'sticky valve');
     expect(find.text('Edit cylinder'), findsNothing);
+  });
+
+  testWidgets('with hold, Save hands the slot back and writes nothing (a '
+      'trip page sitting, issue #4527)', (tester) async {
+    TripCylinder? held;
+    await pumpAndOpen(tester, hold: (c) async => held = c);
+    await tester.enterText(field('Label'), 'Truck A');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(held!.label, 'Truck A');
+    expect((await repo.getCylinderById(slot.id))!.label, slot.label);
   });
 
   testWidgets('picking a preset fills and stores its specs', (tester) async {

@@ -6,8 +6,8 @@ import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dar
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 
-/// The trip page's values a sitting edits, and the rules its form keeps
-/// (issue #4527, phase 3).
+/// The trip page's values a sitting edits, and the rules the trip form
+/// kept (issue #4527, phase 3).
 
 final String _header = TripCardId.header.name;
 final String _plan = TripCardId.plan.name;
@@ -17,7 +17,7 @@ final String _notes = TripCardId.notes.name;
 /// the end along is one change.
 typedef TripDates = ({DateTime start, DateTime end});
 
-/// A blank optional value is stored as none, as the form stores it.
+/// A blank optional value is stored as none, as the form stored it.
 String? _orNone(String? value) {
   final trimmed = value?.trim();
   return trimmed == null || trimmed.isEmpty ? null : trimmed;
@@ -26,7 +26,7 @@ String? _orNone(String? value) {
 bool _sameText(String? a, String? b) => _orNone(a) == _orNone(b);
 
 /// A whole number above zero, or null for none and for zero or below, as
-/// the form stores its planning numbers: zero or a negative is not a plan.
+/// the form stored its planning numbers: zero or a negative is not a plan.
 int? tripPositiveOrNull(num? value) =>
     value != null && value > 0 ? value.toInt() : null;
 
@@ -138,7 +138,7 @@ final tripDiversSharingField = EditField<Trip, double?>(
       (tripPositiveOrNull(a) ?? 1) == (tripPositiveOrNull(b) ?? 1),
 );
 
-/// The notes, day passages included. Trimmed at Save, as the form saves
+/// The notes, day passages included. Trimmed at Save, as the form saved
 /// them.
 final tripNotesField = EditField<Trip, String>(
   id: 'notes',

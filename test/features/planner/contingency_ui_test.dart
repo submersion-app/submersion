@@ -94,6 +94,114 @@ void main() {
     expect(backdropPainter().ceiling, baseCeiling);
   });
 
+  testWidgets('time chips are hidden while the plan has no bottom', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(overrides: _overrides(), child: const ContingencyChips()),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ContingencyChips)),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+
+    expect(find.text('+5\u2032'), findsOneWidget);
+    await tester.tap(find.text('+5\u2032'));
+    await tester.pumpAndSettle();
+    expect(container.read(selectedContingencyProvider), isNotNull);
+
+    // Drop the bottom: only the linear descent is left, so a time delta has
+    // nothing to lengthen and the time chips go, along with the preview.
+    final hold = container.read(divePlanNotifierProvider).segments.last;
+    notifier.removeSegment(hold.id);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Base'), findsOneWidget);
+    expect(find.text('+5m'), findsOneWidget);
+    expect(find.text('+5\u2032'), findsNothing);
+    expect(find.text('+5m +5\u2032'), findsNothing);
+    expect(container.read(selectedContingencyProvider), isNull);
+
+    // The selection went with the chips: restoring a bottom brings the time
+    // chips back but no preview the diver did not ask for.
+    expect(container.read(selectedDeviationProvider), isNull);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+    expect(find.text('+5\u2032'), findsOneWidget);
+    expect(container.read(selectedContingencyProvider), isNull);
+  });
+
+  testWidgets('chips mounted on a plan with no bottom clear a stale +time '
+      'selection', (tester) async {
+    final showChips = ValueNotifier(false);
+    addTearDown(showChips.dispose);
+    await tester.pumpWidget(
+      testApp(
+        overrides: _overrides(),
+        child: ValueListenableBuilder<bool>(
+          key: const Key('chipsHost'),
+          valueListenable: showChips,
+          builder: (_, show, _) =>
+              show ? const ContingencyChips() : const SizedBox.shrink(),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const Key('chipsHost'))),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    container.read(selectedDeviationProvider.notifier).select('longer');
+    // The bottom goes while the chips are not on screen.
+    final hold = container.read(divePlanNotifierProvider).segments.last;
+    notifier.removeSegment(hold.id);
+
+    showChips.value = true;
+    await tester.pumpAndSettle();
+    expect(container.read(selectedDeviationProvider), isNull);
+
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+    expect(container.read(selectedContingencyProvider), isNull);
+  });
+
+  testWidgets('losing the bottom clears a +time selection with no chips on '
+      'screen', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: _overrides(),
+        child: const SizedBox.shrink(key: Key('noChips')),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const Key('noChips'))),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    container.read(selectedDeviationProvider.notifier).select('both');
+    await tester.pump();
+
+    // Edited elsewhere (the segment list, say) while the chart is not shown.
+    final hold = container.read(divePlanNotifierProvider).segments.last;
+    notifier.removeSegment(hold.id);
+    await tester.pump();
+    expect(container.read(selectedDeviationProvider), isNull);
+
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pump();
+    expect(container.read(selectedContingencyProvider), isNull);
+
+    // +depth still applies without a bottom, so it stays selected.
+    container.read(selectedDeviationProvider.notifier).select('deeper');
+    final newHold = container.read(divePlanNotifierProvider).segments.last;
+    notifier.removeSegment(newHold.id);
+    await tester.pump();
+    expect(container.read(selectedDeviationProvider), 'deeper');
+    expect(container.read(selectedContingencyProvider), isNotNull);
+  });
+
   testWidgets('overlay chips render a single row strip and drive selection', (
     tester,
   ) async {

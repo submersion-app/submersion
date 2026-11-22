@@ -9,6 +9,11 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
+/// What a device holds behind one of the app's tags: the accepted
+/// identification whose crop shows it, and the tagged species' own score and
+/// GBIF key in it, null when that identification no longer lists the species.
+typedef TagEvidence = ({double? score, String identificationId, int? gbifKey});
+
 /// One row per species per dive: a species the app tagged on some media and
 /// only suggested on others is one tagged row. Groups go dives newest first,
 /// then photos with a site and no dive, then the rest. Media with nothing
@@ -18,7 +23,7 @@ List<ReviewGroup> buildReviewGroups({
   required Map<String, List<MediaSpeciesTag>> unconfirmedByMedia,
   required Map<String, List<SpeciesSuggestion>> suggestionsByMedia,
   required Map<String, Species> speciesById,
-  Map<String, ({double score, String identificationId})> tagEvidence = const {},
+  Map<String, TagEvidence> tagEvidence = const {},
 }) {
   final byGroup = <String, List<ReviewMedia>>{};
   for (final m in media) {
@@ -50,6 +55,7 @@ List<ReviewGroup> buildReviewGroups({
                 tag: tag,
                 score: evidence?.score,
                 cropIdentificationId: evidence?.identificationId,
+                tagGbifKey: evidence?.gbifKey,
               ),
             );
       }

@@ -118,7 +118,6 @@ Future<({List<TripDetailTab> opened, List<String> pushed})> _pump(
   List<DueClock>? alerts,
   List<ItineraryDay>? days,
   bool loading = false,
-  VoidCallback? onEditPlan,
 }) async {
   final opened = <TripDetailTab>[];
   final pushed = <String>[];
@@ -131,7 +130,6 @@ Future<({List<TripDetailTab> opened, List<String> pushed})> _pump(
           body: TripOverviewSummaryCard(
             trip: trip ?? _trip(),
             onOpenTab: opened.add,
-            onEditPlan: onEditPlan,
           ),
         ),
       ),
@@ -312,9 +310,23 @@ void main() {
     expect(find.textContaining(' of '), findsNothing);
   });
 
-  testWidgets('each row opens its tab, and Plan opens the edit page', (
+  testWidgets('outside a trip page the plan row shows nothing to open', (
     tester,
   ) async {
+    // No TripCardSlotsScope: there is no Plan card for the row to open.
+    await _pump(tester);
+    final row = find.ancestor(
+      of: find.text('Plan'),
+      matching: find.byType(ListTile),
+    );
+    expect(tester.widget<ListTile>(row).onTap, isNull);
+    expect(
+      find.descendant(of: row, matching: find.byIcon(Icons.chevron_right)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('each row opens its tab', (tester) async {
     final h = await _pump(tester);
     await tester.tap(find.text('Checklist'));
     await tester.tap(find.text('Gear'));
@@ -324,20 +336,5 @@ void main() {
       TripDetailTab.gear,
       TripDetailTab.itinerary,
     ]);
-    await tester.tap(find.text('Plan'));
-    await tester.pumpAndSettle();
-    // Without a handler the edit page opens at its Planning section (#2880).
-    expect(h.pushed, ['/trips/t1/edit?section=planning']);
-  });
-
-  testWidgets('Plan goes to the handler when one is given (#2880)', (
-    tester,
-  ) async {
-    var edits = 0;
-    final h = await _pump(tester, onEditPlan: () => edits++);
-    await tester.tap(find.text('Plan'));
-    await tester.pumpAndSettle();
-    expect(edits, 1);
-    expect(h.pushed, isEmpty);
   });
 }

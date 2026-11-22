@@ -48,6 +48,32 @@ class BuddyEditSaveService {
     alsoWriteIsAChange: alsoWriteIsAChange,
   );
 
+  /// Creates [buddy], a new buddy's sitting (issue #4527, phase 3, plan
+  /// 11), keeping its id: the row, then [alsoWrite], the sitting's held
+  /// writes (certifications, documents), in one transaction and one History
+  /// entry naming [changedCardIds]. A profile link is checked inside, as on
+  /// a save: one refused fails the whole create ([RecordSittingRefusal]),
+  /// and if anything throws nothing is left. Throws [StateError] when
+  /// [buddy] has no id, or one a stored buddy has.
+  Future<Buddy> create({
+    required Buddy buddy,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<Buddy>(
+    table: 'buddies',
+    recordId: buddy.id,
+    changedCardIds: changedCardIds,
+    isStored: () async => await _buddies.getBuddyById(buddy.id) != null,
+    insert: () async {
+      final link = buddy.linkedDiverId;
+      if (link != null) await _assertLinkAllowed(buddy, link);
+      await _buddies.createBuddy(buddy);
+    },
+    alsoWrite: alsoWrite,
+    readBack: () => _buddies.getBuddyById(buddy.id),
+    created: buddy,
+  );
+
   Future<void> _assertLinkAllowed(Buddy buddy, String link) async {
     try {
       await _links.assertLinkAllowed(

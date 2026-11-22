@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 /// Pushes a satellite page of a record of type [T] (issue #4527, phase 3):
 /// a page of the same record holding some of its cards, such as a gear
@@ -29,8 +30,14 @@ Future<R?> pushRecordSatellite<T, R>(
   final joined = controller != null && controller.isUnlocked
       ? controller
       : null;
-  return Navigator.of(
-    context,
-    rootNavigator: rootNavigator,
-  ).push<R>(MaterialPageRoute<R>(builder: (_) => builder(joined)));
+  return Navigator.of(context, rootNavigator: rootNavigator).push<R>(
+    MaterialPageRoute<R>(
+      // Not a page itself: it answers for the record page under it, so
+      // leaving that page asks about a sitting the satellite holds.
+      settings: RecordSatelliteRouteSettings(
+        recordPage: recordSittingPageOf(context),
+      ),
+      builder: (_) => builder(joined),
+    ),
+  );
 }

@@ -104,7 +104,7 @@ void main() {
       expect(find.byIcon(Icons.star_border), findsNothing);
     });
 
-    testWidgets('tapping the star toggles favorite without triggering onTap', (
+    testWidgets('tapping the star writes nothing and opens the buddy', (
       tester,
     ) async {
       final notifier = FakeBuddyListNotifier();
@@ -123,8 +123,10 @@ void main() {
       await tester.tap(find.byIcon(Icons.star_border));
       await tester.pump();
 
-      expect(notifier.toggledFavoriteIds, ['b1']);
-      expect(rowTaps, 0);
+      // The star only shows the favourite (issue #4527, plan 12): a tap
+      // on it is the row's.
+      expect(notifier.calls, isEmpty);
+      expect(rowTaps, 1);
     });
   });
 

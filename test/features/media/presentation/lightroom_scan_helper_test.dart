@@ -85,6 +85,7 @@ void main() {
     WidgetTester tester, {
     domain.ConnectedAccount? withAccount,
     EditSession<Dive>? sitting,
+    List<Dive>? forDives,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -111,6 +112,13 @@ void main() {
                     ? runLightroomScan(context, ref, [
                         Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1, 10)),
                       ])
+                    : forDives != null
+                    ? runLightroomScanForDivesInSitting(
+                        context,
+                        ref,
+                        sitting,
+                        forDives,
+                      )
                     : runLightroomScanInSitting(context, ref, sitting),
                 child: const Text('scan'),
               ),
@@ -213,6 +221,30 @@ void main() {
       expect(sittingMedia(session).added.map((a) => a.preview.remoteAssetId), [
         'lr1',
       ]);
+    });
+
+    testWidgets("a trip's scan prepares each of its dives, holds what it "
+        'finds once, and suggests nothing (issue #4527, plan 10)', (
+      tester,
+    ) async {
+      final session = openSitting();
+      final (service, _) = await pump(
+        tester,
+        withAccount: account,
+        sitting: session,
+        forDives: [
+          Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1, 10)),
+          Dive(id: 'd2', dateTime: DateTime.utc(2026, 7, 1, 14)),
+        ],
+      );
+      service.found = [(item: found, enrichment: null)];
+
+      await tester.tap(find.text('scan'));
+      await tester.pumpAndSettle();
+
+      expect(service.prepareCalls, 2);
+      expect(service.scanCalls, 0);
+      expect(sittingMedia(session).added, hasLength(1));
     });
 
     testWidgets('a second scan does not hold the same photo twice', (

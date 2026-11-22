@@ -18,6 +18,8 @@ import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart'
 import 'package:submersion/core/database/combine_source_slot_stamp.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/cylinder_volume_repair.dart';
+import 'package:submersion/core/database/duplicate_primary_series_repair.dart';
+import 'package:submersion/core/database/lone_download_source_repair.dart';
 import 'package:submersion/core/database/dive_rating_repair.dart';
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/database/dive_water_temp_fill.dart';

@@ -15,9 +15,6 @@ mixin _DocumentDetailPageEditing
   String recordIdOf(DocumentRecord record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(DocumentDetailPage widget) => widget.openUnlocked;
 
   @override
@@ -115,12 +112,10 @@ mixin _DocumentDetailPageEditing
     child: details,
   );
 
-  /// The Details card's pencil, where the page edits in place.
-  Widget? _detailsPencil() => hostsEditing
-      ? RecordCardPencil(
-          cardTitle: DocumentCardId.details.localizedDisplayName(context.l10n),
-        )
-      : null;
+  /// The Details card's pencil.
+  Widget _detailsPencil() => RecordCardPencil(
+    cardTitle: DocumentCardId.details.localizedDisplayName(context.l10n),
+  );
 
   /// The tags the sitting holds, shown on the closed card until Save; null
   /// when none are held.
@@ -129,10 +124,9 @@ mixin _DocumentDetailPageEditing
     return session == null ? null : heldDocumentTags(session);
   }
 
-  /// Whether the record's operations may run now, or why not; null where
-  /// the page edits nothing in place.
+  /// Whether the record's operations may run now, or why not.
   RecordOperationBlock? get _documentOperationBlock =>
-      recordOperationBlockOf(hostsEditing ? editController : null);
+      recordOperationBlockOf(editController);
 
   bool get _documentOperationsAvailable {
     final block = _documentOperationBlock;
@@ -151,12 +145,8 @@ mixin _DocumentDetailPageEditing
     ];
   }
 
-  /// Delete, through the sitting where the page edits in place.
+  /// Delete, through the sitting.
   void _requestDelete(Document doc) {
-    if (!hostsEditing) {
-      _delete(doc);
-      return;
-    }
     recordOperationRunnerOf(
       editController,
       record: 'document ${widget.documentId}',

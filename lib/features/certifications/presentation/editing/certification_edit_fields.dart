@@ -23,7 +23,7 @@ T? _or<T>(Object? value, T? kept) =>
 
 /// [c] with the given values, every other one kept. [Certification.copyWith]
 /// cannot clear a value, so the fields build the certification whole, as
-/// the edit form's save does.
+/// the old edit form's save did.
 Certification _with(
   Certification c, {
   String? name,

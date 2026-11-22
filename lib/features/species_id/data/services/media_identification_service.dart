@@ -29,6 +29,7 @@ import 'package:submersion/features/species_id/domain/services/video_scan_order.
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
+part 'media_identification_fresh.dart';
 part 'media_identification_readiness.dart';
 part 'media_identification_run_lane.dart';
 part 'media_identification_video.dart';
@@ -61,6 +62,7 @@ class MediaIdentificationService {
     required Future<List<TaggedSpecies>> Function(String mediaId) taggedSpecies,
     required bool Function() enabled,
     bool Function()? runEnabled,
+    bool Function()? videoRuns,
     int Function()? databaseGeneration,
     DateTime Function()? now,
     String Function()? newId,
@@ -79,6 +81,7 @@ class MediaIdentificationService {
        _taggedSpecies = taggedSpecies,
        _enabled = enabled,
        _runEnabled = runEnabled ?? enabled,
+       _videoRuns = videoRuns ?? (() => true),
        _databaseGeneration =
            databaseGeneration ?? (() => DatabaseService.instance.generation),
        _now = now ?? DateTime.now,
@@ -104,6 +107,10 @@ class MediaIdentificationService {
   /// Whether a Find species run is served (issue #4727): the feature, not
   /// the identify-on-open toggle, since the diver asked for the run.
   final bool Function() _runEnabled;
+
+  /// Whether videos are scanned here: not on Linux, which has no video
+  /// player, so neither the viewer nor a Find species run reads a video.
+  final bool Function() _videoRuns;
 
   /// Moves when another logbook is opened: what an analysis found for the
   /// one it started in is then dropped, not stored in the new one.
@@ -170,10 +177,22 @@ class MediaIdentificationService {
   /// A [location] that arrives after the first request (the dive was still
   /// loading) is not lost: a queued request takes it, and one already
   /// running is followed by another that names the photo again.
-  Future<void> request(MediaItem item, {GeoPoint? location}) {
+  ///
+  /// [byHand] is the diver asking (issue #4825): it runs whether or not
+  /// photos are identified on opening. [fresh] is the diver asking for it
+  /// again from the start: analysed whatever it needs, dismissals brought
+  /// back ([reopenDismissed]), and nothing tagged by the app after it.
+  Future<void> request(
+    MediaItem item, {
+    GeoPoint? location,
+    bool byHand = false,
+    bool fresh = false,
+  }) {
     if (_disposed) return Future<void>.value();
     final running = _running;
-    if (running != null &&
+    // A fresh request never joins the one running: it starts over after it.
+    if (!fresh &&
+        running != null &&
         running.item.id == item.id &&
         (location == null || location == running.location)) {
       // Back on a video whose scan was told to stop: it carries on.
@@ -183,10 +202,18 @@ class MediaIdentificationService {
     final queued = _waiting.remove(item.id);
     // A later location replaces a queued one; the callers' future stays.
     final job = queued == null
-        ? _Job(item, location, _databaseGeneration())
+        ? _Job.byViewer(
+            item,
+            location,
+            _databaseGeneration(),
+            byHand: byHand || fresh,
+            fresh: fresh,
+          )
         : queued.withLocation(
             location ?? queued.location,
             _databaseGeneration(),
+            byHand: byHand || fresh,
+            fresh: fresh,
           );
     // Re-inserting moves it to the newest end.
     _waiting[item.id] = job;
@@ -297,7 +324,8 @@ class MediaIdentificationService {
     }
   }
 
-  /// The diver dismissed these suggestions; they do not come back. Never
+  /// The diver dismissed these suggestions; they come back only when the
+  /// diver asks for the item to be analysed again (issue #4825). Never
   /// throws, and writes nothing if another logbook opened while it read.
   Future<void> reject(String mediaId, List<String> identificationIds) async {
     final ids = identificationIds.toSet();
@@ -449,7 +477,11 @@ class MediaIdentificationService {
         job.outcome = RunItemOutcome.skipped;
         return false;
       }
-      if (!(job.fromRun ? _runEnabled() : _enabled())) {
+      if (video && !_videoRuns()) {
+        job.outcome = RunItemOutcome.skipped;
+        return false;
+      }
+      if (!(job.fromRun || job.byHand ? _runEnabled() : _enabled())) {
         job.outcome = RunItemOutcome.skipped;
         return false;
       }
@@ -510,15 +542,18 @@ class MediaIdentificationService {
           generation: generation,
         );
       } else {
-        switch (decideRefresh(
-          run: run,
-          packVersion: manifest.packVersion,
-          detectorId: _runDetectorId(manifest, video: false),
-          classifierId: manifest.classifier.embeddingId,
-          cell: cell,
-          cropsPresent: cropsPresent,
-          embeddingsPresent: embeddingsPresent,
-        )) {
+        final action = job.fresh
+            ? RefreshAction.analyse
+            : decideRefresh(
+                run: run,
+                packVersion: manifest.packVersion,
+                detectorId: _runDetectorId(manifest, video: false),
+                classifierId: manifest.classifier.embeddingId,
+                cell: cell,
+                cropsPresent: cropsPresent,
+                embeddingsPresent: embeddingsPresent,
+              );
+        switch (action) {
           case RefreshAction.none:
             break;
           case RefreshAction.rename:
@@ -532,6 +567,7 @@ class MediaIdentificationService {
             );
           case RefreshAction.analyse:
             await _analyse(pack, job, stored, cell, generation);
+            job.freshStarted();
         }
       }
       if (_databaseGeneration() != generation) return false;
@@ -545,56 +581,23 @@ class MediaIdentificationService {
     }
   }
 
-  /// [_onItemSettled] for [job]'s item, its failure logged and swallowed.
-  /// A run's items are left to the run, which applies them together.
-  Future<void> _settled(_Job job) async {
-    if (job.fromRun) return;
-    final item = job.item;
-    try {
-      await _onItemSettled(item, job.generation);
-    } on Object catch (e) {
-      _log.debug('Could not auto-apply species on ${item.id}', error: e);
-    }
-  }
-
-  Future<void> _rename(
-    LoadedPack pack,
-    MediaIdentificationRun run,
-    List<MediaIdentification> undecided,
-    Map<String, Float32List> embeddings,
-    int? cell,
-    int generation,
-  ) async {
-    final results = await nameCrops(pack, [
-      for (final i in undecided)
-        (embedding: embeddings[i.id]!, shorterSide: i.boxShorterSide),
-    ], cell);
-    final naming = pack.pack.manifest.naming;
-    final changed = [
-      for (var k = 0; k < undecided.length; k++)
-        _renamed(undecided[k], _named(undecided[k], results[k], naming)),
-    ];
-    if (_databaseGeneration() != generation) return;
-    await _identifications.updateNames(
-      changed,
-      run: run.copyWith(
-        packVersion: pack.pack.manifest.packVersion,
-        locationCell: () => cell,
-      ),
-    );
-  }
-
   Future<void> _analyse(
     LoadedPack pack,
     _Job job,
-    List<MediaIdentification> stored,
+    List<MediaIdentification> storedBefore,
     int? cell,
     int generation,
   ) async {
+    var stored = storedBefore;
     final item = job.item;
     final image = await (job.resolveImage ?? _resolveImage)(item);
     if (image == null) {
       job.outcome = RunItemOutcome.unreadable;
+      return;
+    }
+    // Another logbook opened while the photo was read: not worth analysing.
+    if (_databaseGeneration() != generation) {
+      job.outcome = RunItemOutcome.skipped;
       return;
     }
     final VisionAnalysis analysis;
@@ -644,6 +647,13 @@ class MediaIdentificationService {
           pack.pack.manifest.naming,
         ),
       );
+    }
+    // Dismissals come back only for a photo that was looked at again: an
+    // analysis or naming that failed leaves them as they were.
+    if (job.fresh) {
+      final reopened = await _reopen(job, stored);
+      if (reopened == null) return;
+      stored = reopened;
     }
     final carried = carryDecisions(previous: stored, fresh: fresh);
     final manifest = pack.pack.manifest;

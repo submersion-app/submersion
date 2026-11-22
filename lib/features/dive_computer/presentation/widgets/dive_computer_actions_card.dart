@@ -25,7 +25,7 @@ class DiveComputerActionsCard extends ConsumerWidget {
 
   final DiveComputer computer;
 
-  /// Where the computer's gear item edits in place (issue #4527, phase 3):
+  /// On the computer's gear item page (issue #4527, phase 3):
   /// re-parse all is a whole-record operation. Downloads work locked.
   final DiveComputerOperations? operations;
 

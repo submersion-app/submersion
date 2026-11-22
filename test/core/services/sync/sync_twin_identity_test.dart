@@ -185,7 +185,7 @@ void main() {
       expect(manifest, isNotNull);
       expect(manifest!.uploadNonce, isNotNull);
       expect(
-        initializer.isForeignUploadNonce(
+        await initializer.isForeignUploadNonce(
           manifest.uploadNonce,
           cloud.providerId,
         ),
@@ -587,15 +587,21 @@ void main() {
       }
 
       expect(
-        initializer.isForeignUploadNonce('nonce-0', 'fake'),
+        await initializer.isForeignUploadNonce('nonce-0', 'fake'),
         isTrue,
         reason: 'the oldest entry is evicted once the ring is full',
       );
-      expect(initializer.isForeignUploadNonce('nonce-8', 'fake'), isFalse);
-      expect(initializer.isForeignUploadNonce('nonce-1', 'fake'), isFalse);
+      expect(
+        await initializer.isForeignUploadNonce('nonce-8', 'fake'),
+        isFalse,
+      );
+      expect(
+        await initializer.isForeignUploadNonce('nonce-1', 'fake'),
+        isFalse,
+      );
       await initializer.recordUploadNonce('other-nonce', 'other-provider');
       expect(
-        initializer.isForeignUploadNonce('nonce-8', 'other-provider'),
+        await initializer.isForeignUploadNonce('nonce-8', 'other-provider'),
         isTrue,
         reason: 'rings are isolated per provider',
       );

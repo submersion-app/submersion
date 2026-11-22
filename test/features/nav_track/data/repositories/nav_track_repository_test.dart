@@ -278,6 +278,44 @@ void main() {
       expect((await repo.getById(id))!.anchor, const GeoPoint(47.2, 8.4));
     });
 
+    test('a route pre-linked with no site chosen takes the dive\'s site, '
+        'keeping an explicit anchor (#4851)', () async {
+      await _insertSite(db, 's1', latitude: 10.0, longitude: 20.0);
+      await _insertDiveWithSite(db, 'd1', 's1');
+
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.suuntoRoute,
+        sourceRef: 'suunto:x',
+        diveId: 'd1',
+        anchorLatitude: 1.0,
+        anchorLongitude: 2.0,
+      );
+
+      final route = await repo.getById(id);
+      expect(route!.siteId, 's1');
+      expect(route.anchorLatitude, 1.0);
+      expect(route.anchorLongitude, 2.0);
+    });
+
+    test('a route pre-linked with no site and no anchor takes the dive\'s '
+        'site and its pin', () async {
+      await _insertSite(db, 's1', latitude: 10.0, longitude: 20.0);
+      await _insertDiveWithSite(db, 'd1', 's1');
+
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'a.csv',
+        diveId: 'd1',
+      );
+
+      final route = await repo.getById(id);
+      expect(route!.siteId, 's1');
+      expect(route.anchorLatitude, 10.0);
+      expect(route.anchorLongitude, 20.0);
+    });
+
     test('leaves the anchor null when no site is chosen', () async {
       final id = await repo.insertImportedRoute(
         points: _samplePoints(),
@@ -804,8 +842,8 @@ void main() {
         expect(route.anchorLongitude, 40.0);
       });
 
-      test('linking a route that already has its own anchor (no site) does '
-          'NOT overwrite it, even though it has no siteId', () async {
+      test('linking a route that already has its own anchor but no site '
+          'takes the dive\'s site and keeps the anchor (#4851)', () async {
         await _insertSite(db, 's1', latitude: 10.0, longitude: 20.0);
         await _insertDiveWithSite(db, 'd1', 's1');
         final id = await repo.insertImportedRoute(
@@ -824,7 +862,7 @@ void main() {
         await repo.link(id, 'd1', linkMode: NavTrackLinkMode.manual);
 
         final route = await repo.getById(id);
-        expect(route!.siteId, isNull);
+        expect(route!.siteId, 's1');
         expect(route.anchorLatitude, 55.0);
         expect(route.anchorLongitude, 66.0);
       });
@@ -854,6 +892,31 @@ void main() {
         },
       );
 
+      test('a dive site with no coordinates leaves the route unanchored, '
+          'even when the dive has an entry fix (as an import does)', () async {
+        await db.customStatement(
+          "INSERT INTO dive_sites (id, name, created_at, updated_at) "
+          "VALUES ('s0', 'Unpinned', 1, 1)",
+        );
+        await db.customStatement(
+          "INSERT INTO dives (id, dive_date_time, site_id, entry_latitude, "
+          "entry_longitude, created_at, updated_at) "
+          "VALUES ('d1', 1700000000000, 's0', 12.0, 34.0, 1, 1)",
+        );
+        final id = await repo.insertImportedRoute(
+          points: _samplePoints(),
+          source: NavTrackSource.seacraftEnc,
+          sourceRef: 'a.csv',
+        );
+
+        await repo.link(id, 'd1', linkMode: NavTrackLinkMode.manual);
+
+        final route = await repo.getById(id);
+        expect(route!.siteId, 's0');
+        expect(route.anchorLatitude, isNull);
+        expect(route.anchorLongitude, isNull);
+      });
+
       test('linking to a dive with no site and no location leaves the '
           'route\'s site/anchor untouched (null stays null)', () async {
         await _insertMinimalDive(db, 'd1');
@@ -869,6 +932,158 @@ void main() {
         expect(route!.siteId, isNull);
         expect(route.anchorLatitude, isNull);
         expect(route.anchorLongitude, isNull);
+      });
+    });
+    group('relink follows the new dive\'s site (#4851)', () {
+      Future<String> linkedToD1() async {
+        await _insertSite(db, 's1', latitude: 10.0, longitude: 20.0);
+        await _insertSite(db, 's2', latitude: 30.0, longitude: 40.0);
+        await _insertDiveWithSite(db, 'd1', 's1');
+        final id = await repo.insertImportedRoute(
+          points: _samplePoints(),
+          source: NavTrackSource.seacraftEnc,
+          sourceRef: 'a.csv',
+        );
+        await repo.link(id, 'd1', linkMode: NavTrackLinkMode.manual);
+        return id;
+      }
+
+      test('a site taken from the old dive moves to the new dive\'s, and an '
+          'anchor on the old site\'s pin moves with it', () async {
+        final id = await linkedToD1();
+        await _insertDiveWithSite(db, 'd2', 's2');
+
+        await repo.relink(
+          id,
+          fromDiveId: 'd1',
+          toDiveId: 'd2',
+          linkMode: NavTrackLinkMode.manual,
+        );
+
+        final route = await repo.getById(id);
+        expect(route!.diveId, 'd2');
+        expect(route.siteId, 's2');
+        expect(route.anchorLatitude, 30.0);
+        expect(route.anchorLongitude, 40.0);
+      });
+
+      test('an anchor the diver moved stays where it is', () async {
+        final id = await linkedToD1();
+        await _insertDiveWithSite(db, 'd2', 's2');
+        await repo.updateCorrection(
+          id,
+          const NavTrackCorrection(
+            anchor: GeoPoint(55.0, 66.0),
+            endMode: NavTrackEndMode.none,
+          ),
+        );
+
+        await repo.relink(
+          id,
+          fromDiveId: 'd1',
+          toDiveId: 'd2',
+          linkMode: NavTrackLinkMode.manual,
+        );
+
+        final route = await repo.getById(id);
+        expect(route!.siteId, 's2');
+        expect(route.anchorLatitude, 55.0);
+        expect(route.anchorLongitude, 66.0);
+      });
+
+      test(
+        'a site the diver chose that is not the old dive\'s stays',
+        () async {
+          final id = await linkedToD1();
+          await _insertSite(db, 's3', latitude: 50.0, longitude: 60.0);
+          await _insertDiveWithSite(db, 'd2', 's2');
+          await repo.setSite(id, 's3', anchor: const GeoPoint(50.0, 60.0));
+
+          await repo.relink(
+            id,
+            fromDiveId: 'd1',
+            toDiveId: 'd2',
+            linkMode: NavTrackLinkMode.manual,
+          );
+
+          final route = await repo.getById(id);
+          expect(route!.siteId, 's3');
+          expect(route.anchorLatitude, 50.0);
+          expect(route.anchorLongitude, 60.0);
+        },
+      );
+
+      test('a site picked by hand that is the old dive\'s own counts as the '
+          'old dive\'s: a route keeps no record of where its site came '
+          'from', () async {
+        final id = await linkedToD1();
+        await _insertDiveWithSite(db, 'd2', 's2');
+        await repo.setSite(id, 's1', anchor: const GeoPoint(10.0, 20.0));
+
+        await repo.relink(
+          id,
+          fromDiveId: 'd1',
+          toDiveId: 'd2',
+          linkMode: NavTrackLinkMode.manual,
+        );
+
+        final route = await repo.getById(id);
+        expect(route!.siteId, 's2');
+        expect(route.anchorLatitude, 30.0);
+        expect(route.anchorLongitude, 40.0);
+      });
+
+      test('an anchor taken from the old dive\'s entry fix moves to the new '
+          'dive\'s site pin', () async {
+        await _insertDiveWithEntryLocation(
+          db,
+          'd1',
+          latitude: 12.0,
+          longitude: 34.0,
+        );
+        await _insertSite(db, 's2', latitude: 30.0, longitude: 40.0);
+        await _insertDiveWithSite(db, 'd2', 's2');
+        final id = await repo.insertImportedRoute(
+          points: _samplePoints(),
+          source: NavTrackSource.seacraftEnc,
+          sourceRef: 'a.csv',
+        );
+        await repo.link(id, 'd1', linkMode: NavTrackLinkMode.manual);
+
+        await repo.relink(
+          id,
+          fromDiveId: 'd1',
+          toDiveId: 'd2',
+          linkMode: NavTrackLinkMode.manual,
+        );
+
+        final route = await repo.getById(id);
+        expect(route!.siteId, 's2');
+        expect(route.anchorLatitude, 30.0);
+        expect(route.anchorLongitude, 40.0);
+      });
+
+      test('moving to a dive with no site but an entry fix drops the old '
+          'dive\'s site and anchors on the entry fix', () async {
+        final id = await linkedToD1();
+        await _insertDiveWithEntryLocation(
+          db,
+          'd2',
+          latitude: 12.0,
+          longitude: 34.0,
+        );
+
+        await repo.relink(
+          id,
+          fromDiveId: 'd1',
+          toDiveId: 'd2',
+          linkMode: NavTrackLinkMode.manual,
+        );
+
+        final route = await repo.getById(id);
+        expect(route!.siteId, isNull);
+        expect(route.anchorLatitude, 12.0);
+        expect(route.anchorLongitude, 34.0);
       });
     });
   });

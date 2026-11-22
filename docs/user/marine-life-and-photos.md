@@ -31,12 +31,12 @@ Each entry carries a common name, optional scientific name, taxonomy class, desc
 
 ### Adding a custom species
 
-1. Open the catalog (**Settings > Manage > Species**, or **Manage catalog** on the Species page) and add a species.
-2. **Look up online** searches iNaturalist by common or scientific name and fills in the details and a photo from the result. **Create without lookup** starts from a blank form.
+1. Open the catalog (**Settings > Manage > Species**, or **Manage catalog** on the Species page) and add a species. It opens on its own page, unlocked.
+2. In its header, **Look up online** searches iNaturalist by common or scientific name and fills in the details from the result.
 3. Enter or correct the common name (required), scientific name, taxonomy class, description and category.
-4. Save. The species is immediately available when you log a sighting.
+4. Tap **Save**. The species is immediately available when you log a sighting.
 
-If you later realize the identification was wrong, open the species and edit it. If a species you logged should be in the built-in catalog for everyone, **Suggest for the catalog** on its page sends the suggestion to the project.
+If you later realize the identification was wrong, open the species, tap the lock and correct it, then **Save**. If a species you logged should be in the built-in catalog for everyone, **Suggest for the catalog** on its page sends the suggestion to the project.
 
 ### Logging a sighting on a dive
 

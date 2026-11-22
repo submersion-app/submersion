@@ -322,10 +322,11 @@ void main() {
           await tester.tap(fitAllSitesButton.first);
           await _settle(tester);
         } else {
-          // Try finding by icon as fallback
-          final myLocationIcon = find.byIcon(Icons.my_location);
-          if (myLocationIcon.evaluate().isNotEmpty) {
-            await tester.tap(myLocationIcon.first);
+          // Try finding by icon as fallback. The crosshair is Show my
+          // location now (#4808); Fit all wears zoom_out_map.
+          final fitAllIcon = find.byIcon(Icons.zoom_out_map);
+          if (fitAllIcon.evaluate().isNotEmpty) {
+            await tester.tap(fitAllIcon.first);
             await _settle(tester);
           }
         }

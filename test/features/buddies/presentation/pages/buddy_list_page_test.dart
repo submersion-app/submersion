@@ -7,8 +7,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_new_sitting.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
-import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_list_content.dart';
@@ -655,8 +656,8 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      // The create builder closure body was invoked, creating BuddyEditPage
-      expect(find.byType(BuddyEditPage), findsOneWidget);
+      // The create builder closure body was invoked, creating BuddyDetailPage
+      expect(find.byType(BuddyDetailPage), findsOneWidget);
     });
 
     testWidgets('table mode edit builder invoked via edit query param', (
@@ -686,8 +687,80 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      // The edit builder closure body was invoked, creating BuddyEditPage
-      expect(find.byType(BuddyEditPage), findsOneWidget);
+      // The edit builder closure body was invoked, creating BuddyDetailPage
+      expect(find.byType(BuddyDetailPage), findsOneWidget);
     });
+  });
+
+  // A new buddy opens on the buddy page behind the phase 3 switch (issue
+  // #4527, phase 3, plan 11).
+  testWidgets("the pane's new buddy is the page", (tester) async {
+    void onSaved(String id) {}
+    void onCancel() {}
+    late BuildContext context;
+    await tester.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    final page = newBuddyPane(context, onSaved, onCancel) as BuddyDetailPage;
+    expect(page.embedded, isTrue);
+    expect(page.newBuddy, isNotNull);
+    expect(page.onCreated, same(onSaved));
+    expect(page.onCreateCancelled, same(onCancel));
+  });
+
+  testWidgets('Add on a phone opens the new buddy once created', (
+    tester,
+  ) async {
+    final created = Buddy(
+      id: 'n1',
+      name: 'Kai',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final router = GoRouter(
+      initialLocation: '/buddies',
+      routes: [
+        GoRoute(
+          path: '/buddies',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () =>
+                  openNewBuddy(context, seed: const NewBuddySeed(name: 'Kai')),
+              child: const Text('add'),
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, state) => Scaffold(
+                body: TextButton(
+                  // The page pops the buddy itself.
+                  onPressed: () => context.pop(created),
+                  child: Text('NEW ${(state.extra as Map?)?['name']}'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (_, state) =>
+                  Text('BUDDY ${state.pathParameters['id']}'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.tap(find.text('add'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('NEW Kai'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('BUDDY n1'), findsOneWidget);
   });
 }

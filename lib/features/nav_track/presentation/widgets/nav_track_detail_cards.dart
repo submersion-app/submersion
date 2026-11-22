@@ -11,7 +11,6 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The underwater track page's cards (issue #4022, #4023), shared by the
 /// page as it is and as it edits in place (issue #4527, plan 5).
@@ -26,7 +25,7 @@ class NavTrackTitleCard extends StatelessWidget {
 
   final String title;
 
-  /// The card's pencil where the page edits in place (issue #4527).
+  /// The card's pencil (issue #4527).
   final Widget? pencil;
 
   @override
@@ -114,21 +113,11 @@ class NavTrackStatsCard extends ConsumerWidget {
 }
 
 class NavTrackLinkCard extends ConsumerWidget {
-  const NavTrackLinkCard({
-    super.key,
-    required this.route,
-    required this.onChooseDive,
-    this.pencil,
-  });
+  const NavTrackLinkCard({super.key, required this.route, this.pencil});
 
   final NavTrack route;
 
-  /// Picks the dive, or a different one once one is linked (#4023):
-  /// [chooseNavTrackDive] finds it. Null offers no action, as on a page
-  /// that edits in place while it is locked (issue #4527).
-  final VoidCallback? onChooseDive;
-
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   @override
@@ -140,8 +129,6 @@ class NavTrackLinkCard extends ConsumerWidget {
         key: const ValueKey('nav-track-no-dive'),
         icon: Icons.link_off,
         label: l10n.navTrack_detail_noDiveLinked,
-        actionLabel: l10n.navTrack_detail_chooseDive,
-        onAction: onChooseDive,
         pencil: pencil,
       );
     }
@@ -152,13 +139,6 @@ class NavTrackLinkCard extends ConsumerWidget {
         key: const ValueKey('nav-track-linked-dive'),
         leading: const Icon(Icons.link),
         title: Text(navTrackDiveLabel(l10n, diveId, dive)),
-        subtitle: onChooseDive == null
-            ? null
-            : TileSubtitleAction(
-                actionKey: const ValueKey('nav-track-change-dive'),
-                onPressed: onChooseDive!,
-                label: l10n.navTrack_detail_menuChangeDive,
-              ),
         trailing: _trailing(pencil, opens: true),
         onTap: () => context.push('/dives/$diveId'),
       ),
@@ -168,23 +148,13 @@ class NavTrackLinkCard extends ConsumerWidget {
 
 /// The route's dive site row, built from the same [NavTrackActionCard] as
 /// [NavTrackLinkCard]'s "no dive linked" row: a site name or a "no site"
-/// placeholder, with "Change site" / "Choose site" below it, opening the
-/// same site-picker flow the overflow menu's "Change site" item used to
-/// trigger (item 4).
+/// placeholder (item 4). The site is changed in the Site card's editor.
 class NavTrackSiteCard extends ConsumerWidget {
-  const NavTrackSiteCard({
-    super.key,
-    required this.route,
-    required this.onChangeSite,
-    this.pencil,
-  });
+  const NavTrackSiteCard({super.key, required this.route, this.pencil});
 
   final NavTrack route;
 
-  /// Null offers no action (a locked page that edits in place).
-  final VoidCallback? onChangeSite;
-
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   @override
@@ -198,36 +168,23 @@ class NavTrackSiteCard extends ConsumerWidget {
       key: const ValueKey('nav-track-site-row'),
       icon: Icons.place_outlined,
       label: siteName ?? l10n.navTrack_detail_noSite,
-      actionKey: const ValueKey('nav-track-change-site'),
-      actionLabel: siteId == null
-          ? l10n.navTrack_detail_chooseSite
-          : l10n.navTrack_detail_menuChangeSite,
-      onAction: onChangeSite,
       onTap: siteId == null ? null : () => context.push('/sites/$siteId'),
       pencil: pencil,
     );
   }
 }
 
-/// The route's device/equipment row, built from the same [NavTrackActionCard] as
-/// [NavTrackSiteCard]: an equipment or device name, or a "no device" placeholder,
-/// with "Change device" / "Choose device" below it. Mirrors the site row
-/// so the two "set this once at import, change it any time afterward"
-/// fields read the same way.
+/// The route's device/equipment row, built from the same [NavTrackActionCard]
+/// as [NavTrackSiteCard]: an equipment or device name, or a "no device"
+/// placeholder. Mirrors the site row so the two "set this once at import,
+/// change it any time afterward" fields read the same way. The device is
+/// changed in the Device card's editor.
 class NavTrackEquipmentCard extends ConsumerWidget {
-  const NavTrackEquipmentCard({
-    super.key,
-    required this.route,
-    required this.onChangeDevice,
-    this.pencil,
-  });
+  const NavTrackEquipmentCard({super.key, required this.route, this.pencil});
 
   final NavTrack route;
 
-  /// Null offers no action (a locked page that edits in place).
-  final VoidCallback? onChangeDevice;
-
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   @override
@@ -242,19 +199,10 @@ class NavTrackEquipmentCard extends ConsumerWidget {
         ? null
         : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
     final label = equipmentName ?? route.deviceName;
-    // Choose vs Change follows what is stored, as NavTrackSiteCard's does, not the
-    // resolved name: a route whose equipment is set but has not resolved
-    // yet (or carries no deviceName) still has a device to change.
-    final hasDevice = equipmentId != null || route.deviceName != null;
     return NavTrackActionCard(
       key: const ValueKey('nav-track-equipment-row'),
       icon: Icons.directions_boat_filled_outlined,
       label: label ?? l10n.navTrack_detail_noEquipment,
-      actionKey: const ValueKey('nav-track-change-device'),
-      actionLabel: hasDevice
-          ? l10n.navTrack_detail_menuChangeDevice
-          : l10n.navTrack_detail_chooseDevice,
-      onAction: onChangeDevice,
       onTap: equipmentId == null
           ? null
           : () => context.push('/equipment/$equipmentId'),
@@ -274,22 +222,14 @@ class NavTrackActionCard extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
-    required this.actionLabel,
-    required this.onAction,
-    this.actionKey,
     this.onTap,
     this.pencil,
   });
 
   final IconData icon;
   final String label;
-  final String actionLabel;
 
-  /// Null shows the label with no action below it.
-  final VoidCallback? onAction;
-  final Key? actionKey;
-
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   /// Opens whatever this card is about (the site, the equipment item);
@@ -304,13 +244,6 @@ class NavTrackActionCard extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),
-        subtitle: onAction == null
-            ? null
-            : TileSubtitleAction(
-                actionKey: actionKey,
-                onPressed: onAction!,
-                label: actionLabel,
-              ),
         trailing: _trailing(pencil, opens: onTap != null),
         onTap: onTap,
       ),
@@ -318,8 +251,8 @@ class NavTrackActionCard extends StatelessWidget {
   }
 }
 
-/// A card row's trailing widgets: the pencil where the page edits in place,
-/// then the chevron of a card that opens what it is about.
+/// A card row's trailing widgets: the pencil, then the chevron of a card
+/// that opens what it is about.
 Widget? _trailing(Widget? pencil, {required bool opens}) {
   if (pencil == null) return opens ? const Icon(Icons.chevron_right) : null;
   return Row(

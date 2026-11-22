@@ -2,12 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/providers/provider.dart' show StateController;
+import 'package:submersion/features/buddies/data/services/buddy_edit_save_service.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_pick_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart' show getBaseOverrides;
+import '../../../../helpers/test_database.dart';
+import '../pages/buddy_detail_page_unlock_harness.dart';
 
 void main() {
   Buddy buddy(String id, String name) => Buddy(
@@ -25,8 +34,10 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     List<Buddy> buddies,
-    void Function(Buddy?) onPicked,
-  ) async {
+    void Function(Buddy?) onPicked, {
+    Widget Function(GoRouterState state)? newBuddy,
+    List<Override> overrides = const [],
+  }) async {
     final router = GoRouter(
       routes: [
         GoRoute(
@@ -43,18 +54,23 @@ void main() {
         ),
         GoRoute(
           path: '/buddies/new',
-          builder: (context, state) => Scaffold(
-            body: TextButton(
-              onPressed: () => context.pop(added),
-              child: const Text('save buddy'),
-            ),
-          ),
+          builder: (context, state) =>
+              newBuddy?.call(state) ??
+              Scaffold(
+                body: TextButton(
+                  onPressed: () => context.pop(added),
+                  child: const Text('save buddy'),
+                ),
+              ),
         ),
       ],
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [allBuddiesProvider.overrideWith((ref) async => buddies)],
+        overrides: [
+          allBuddiesProvider.overrideWith((ref) async => buddies),
+          ...overrides,
+        ],
         child: MaterialApp.router(
           locale: const Locale('en'),
           routerConfig: router,
@@ -176,5 +192,42 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(picked, isNull);
+  });
+  // Behind the phase 3 switch Add New Buddy opens the buddy page on a new
+  // buddy, which pops the buddy it created (issue #4527, plan 11).
+  testWidgets('with the switch on, Add New Buddy returns the buddy created', (
+    tester,
+  ) async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final base = await getBaseOverrides();
+    late FakeBuddySave save;
+    Buddy? picked;
+    await pump(
+      tester,
+      [anna],
+      (b) => picked = b,
+      newBuddy: (state) => newBuddyPage(state.extra),
+      overrides: [
+        ...base.cast<Override>(),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        buddyEditSaveServiceProvider.overrideWith(
+          (ref) => save = FakeBuddySave(StateController<Buddy?>(null)),
+        ),
+      ],
+    );
+
+    await tester.tap(find.text('Add New Buddy'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('buddy-edit-name')),
+      'New Student',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(picked?.name, 'New Student');
+    expect(picked?.id, save.creates.single.buddy.id);
   });
 }

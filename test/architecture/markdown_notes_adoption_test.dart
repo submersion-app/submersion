@@ -25,22 +25,14 @@ void main() {
     // The merge of two or more buddies (issue #4527).
     'lib/features/buddies/presentation/pages/buddy_merge_page_fields.dart':
         'MarkdownNotesField(',
-    'lib/features/buddies/presentation/pages/buddy_edit_page.dart':
-        'MarkdownNotesField(',
     // A certification's Notes card edited in place (issue #4527).
     'lib/features/certifications/presentation/editing/certification_card_editors.dart':
-        'MarkdownNotesField(',
-    'lib/features/certifications/presentation/pages/certification_edit_page.dart':
         'MarkdownNotesField(',
     // A course's Notes card edited in place (issue #4527).
     'lib/features/courses/presentation/editing/course_card_editors.dart':
         'MarkdownNotesField(',
-    'lib/features/courses/presentation/pages/course_edit_page.dart':
-        'MarkdownNotesField(',
     // A dive centre's Notes card edited in place (issue #4527).
     'lib/features/dive_centers/presentation/editing/dive_center_edit_cards.dart':
-        'MarkdownNotesField(',
-    'lib/features/dive_centers/presentation/pages/dive_center_edit_page.dart':
         'MarkdownNotesField(',
     // The bulk notes field.
     'lib/features/dive_log/presentation/pages/bulk_dive_edit_page_form.dart':
@@ -69,23 +61,15 @@ void main() {
         'markdown: true',
     'lib/features/documents/presentation/editing/document_details_card_editor.dart':
         'MarkdownNotesField(',
-    'lib/features/documents/presentation/pages/document_edit_page.dart':
-        'MarkdownNotesField(',
     // A gear item's Notes card edited in place (issue #4527).
     'lib/features/equipment/presentation/editing/gear_item_edit_cards.dart':
-        'MarkdownNotesField(',
-    'lib/features/equipment/presentation/pages/equipment_edit_page.dart':
         'MarkdownNotesField(',
     // An equipment set's description edited in place (issue #4527).
     'lib/features/equipment/presentation/editing/equipment_set_card_editors.dart':
         'MarkdownNotesField(',
-    'lib/features/equipment/presentation/pages/equipment_set_edit_page.dart':
-        'MarkdownNotesField(',
     'lib/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart':
         'MarkdownNotesField(',
     'lib/features/marine_life/presentation/editing/species_edit_cards.dart':
-        'MarkdownNotesField(',
-    'lib/features/marine_life/presentation/pages/species_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/rules/presentation/widgets/rule_action_editor.dart':
         'MarkdownNotesField(',
@@ -96,8 +80,6 @@ void main() {
     'lib/features/shared_library/presentation/widgets/library_about_section.dart':
         'MarkdownNotesField(',
     'lib/features/site_scape/presentation/site_feature_sheet.dart':
-        'MarkdownNotesField(',
-    'lib/features/trips/presentation/pages/trip_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/trips/presentation/widgets/itinerary_day_edit_sheet.dart':
         'MarkdownNotesField(',

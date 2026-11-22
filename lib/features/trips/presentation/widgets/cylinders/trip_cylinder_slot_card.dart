@@ -10,17 +10,22 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_adjust_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_edit_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_cylinder_events_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// Asks before deleting [cylinder], naming how many dives used it, then
 /// deletes it. The dives keep their tanks; only the link goes. Returns true
 /// when the slot is gone.
+///
+/// With [hold] the delete is handed to it rather than written: a trip's
+/// sitting, which deletes the slot at its Save (issue #4527).
 Future<bool> confirmDeleteTripCylinder(
   BuildContext context,
   WidgetRef ref,
-  TripCylinder cylinder,
-) async {
+  TripCylinder cylinder, {
+  Future<void> Function(String id)? hold,
+}) async {
   final l10n = context.l10n;
   final repo = ref.read(tripCylinderRepositoryProvider);
   final int used;
@@ -53,7 +58,7 @@ Future<bool> confirmDeleteTripCylinder(
   );
   if (confirmed != true || !context.mounted) return false;
   try {
-    await repo.deleteCylinder(cylinder.id);
+    await (hold ?? repo.deleteCylinder)(cylinder.id);
     return true;
   } catch (_) {
     if (context.mounted) showTripCylinderChangeFailed(context);
@@ -80,12 +85,22 @@ class TripCylinderSlotCard extends ConsumerWidget {
   final List<TripCylinderState> allStates;
   final Map<String, String> centerNames;
 
+  /// The trip's sitting the board's changes are held in (issue #4527):
+  /// each action hands it what it would write.
+  final TripBoardHold? hold;
+
+  /// A board that edits in place and is locked: the menu offers only Log
+  /// dive, which makes another record.
+  final bool readOnly;
+
   const TripCylinderSlotCard({
     super.key,
     required this.state,
     required this.allStates,
     required this.centerNames,
     required this.reorderIndex,
+    this.hold,
+    this.readOnly = false,
   });
 
   Future<void> _act(BuildContext context, WidgetRef ref, _SlotAction action) {
@@ -95,8 +110,13 @@ class TripCylinderSlotCard extends ConsumerWidget {
         context,
         slots: allStates,
         preselected: {c.id},
+        hold: hold?.fills,
       ),
-      _SlotAction.adjust => showTripCylinderAdjustSheet(context, cylinder: c),
+      _SlotAction.adjust => showTripCylinderAdjustSheet(
+        context,
+        cylinder: c,
+        hold: hold?.adjustment,
+      ),
       // A new dive on this trip, its first tank breathing from this slot.
       _SlotAction.logDive => context.push(
         Uri(
@@ -104,8 +124,17 @@ class TripCylinderSlotCard extends ConsumerWidget {
           queryParameters: {'tripId': c.tripId, 'tripCylinderId': c.id},
         ).toString(),
       ),
-      _SlotAction.edit => showTripCylinderEditSheet(context, cylinder: c),
-      _SlotAction.delete => confirmDeleteTripCylinder(context, ref, c),
+      _SlotAction.edit => showTripCylinderEditSheet(
+        context,
+        cylinder: c,
+        hold: hold?.editSlot,
+      ),
+      _SlotAction.delete => confirmDeleteTripCylinder(
+        context,
+        ref,
+        c,
+        hold: hold?.deleteSlot,
+      ),
     };
   }
 
@@ -123,7 +152,9 @@ class TripCylinderSlotCard extends ConsumerWidget {
       centerNames: centerNames,
     );
     final small = theme.textTheme.bodySmall;
-    final handle = _dragsByHandle(theme.platform);
+    // A locked board is not reordered.
+    final drags = !readOnly;
+    final handle = drags && _dragsByHandle(theme.platform);
     final card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
@@ -173,7 +204,7 @@ class TripCylinderSlotCard extends ConsumerWidget {
         ),
       ),
     );
-    if (handle) return card;
+    if (handle || !drags) return card;
     return ReorderableDelayedDragStartListener(
       index: reorderIndex,
       child: card,
@@ -192,26 +223,33 @@ class TripCylinderSlotCard extends ConsumerWidget {
       key: Key('slot-menu-${c.id}'),
       onSelected: (action) => _act(context, ref, action),
       itemBuilder: (_) => [
-        PopupMenuItem(
-          value: _SlotAction.fill,
-          child: Text(l10n.trips_cylinders_action_fill),
-        ),
-        PopupMenuItem(
-          value: _SlotAction.adjust,
-          child: Text(l10n.trips_cylinders_action_adjust),
-        ),
-        PopupMenuItem(
-          value: _SlotAction.logDive,
-          child: Text(l10n.trips_cylinders_action_logDive),
-        ),
-        PopupMenuItem(
-          value: _SlotAction.edit,
-          child: Text(l10n.common_action_edit),
-        ),
-        PopupMenuItem(
-          value: _SlotAction.delete,
-          child: Text(l10n.common_action_delete),
-        ),
+        if (!readOnly) ...[
+          PopupMenuItem(
+            value: _SlotAction.fill,
+            child: Text(l10n.trips_cylinders_action_fill),
+          ),
+          PopupMenuItem(
+            value: _SlotAction.adjust,
+            child: Text(l10n.trips_cylinders_action_adjust),
+          ),
+        ],
+        // A dive links only to a stored slot: one made in the sitting
+        // offers it after Save.
+        if (hold?.isStored(c.id) ?? true)
+          PopupMenuItem(
+            value: _SlotAction.logDive,
+            child: Text(l10n.trips_cylinders_action_logDive),
+          ),
+        if (!readOnly) ...[
+          PopupMenuItem(
+            value: _SlotAction.edit,
+            child: Text(l10n.common_action_edit),
+          ),
+          PopupMenuItem(
+            value: _SlotAction.delete,
+            child: Text(l10n.common_action_delete),
+          ),
+        ],
       ],
     );
   }

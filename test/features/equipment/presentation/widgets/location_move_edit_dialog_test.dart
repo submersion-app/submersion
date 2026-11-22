@@ -15,6 +15,8 @@ void main() {
     EquipmentLocationMove move, {
     void Function(EquipmentLocationMove? edited)? onHold,
   }) async {
+    // The dialog edits in an item page's sitting (issue #4527, phase 3).
+    final hold = onHold ?? (_) {};
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
@@ -25,7 +27,7 @@ void main() {
         child: Consumer(
           builder: (context, ref, _) => TextButton(
             onPressed: () =>
-                showLocationMoveEditDialog(context, ref, move, onHold: onHold),
+                showLocationMoveEditDialog(context, ref, move, onHold: hold),
             child: const Text('open'),
           ),
         ),
@@ -127,20 +129,5 @@ void main() {
 
     expect(held, [null]);
     expect(find.text('Edit move'), findsNothing);
-  });
-
-  testWidgets('a save that fails says so and keeps the dialog open', (
-    tester,
-  ) async {
-    // No database behind this test: the repository write throws.
-    await openDialog(tester, pastMove());
-    await tester.tap(find.byKey(const ValueKey('location_move_save')));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
-    expect(find.text('Edit move'), findsOneWidget);
   });
 }

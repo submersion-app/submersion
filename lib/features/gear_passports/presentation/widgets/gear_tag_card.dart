@@ -9,7 +9,6 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/link
 import 'package:submersion/features/cylinder_passports/presentation/widgets/nfc_write_sheet.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_qr_view.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/tag_stale_banner.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -18,7 +17,12 @@ import 'package:submersion/features/gear_passports/domain/services/gear_tag_code
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_fit.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_rules.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_tag_write.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// QR of the current gear tag, print and link actions, NFC write, and the
 /// stale hint when a scanned tag no longer matches (gear tag spec 9).
@@ -28,17 +32,43 @@ class GearTagCard extends ConsumerWidget {
     required this.equipment,
     this.scannedTag,
     this.onPrintLabel,
+    this.editing,
   });
 
   final EquipmentItem equipment;
   final GearTagPayload? scannedTag;
   final Future<void> Function(BuildContext buttonContext)? onPrintLabel;
 
+  /// The open card's sitting (issue #4527, phase 3): Link existing tag is held
+  /// there until Save. With no sitting given, the tag cannot be linked; during
+  /// a sitting every view shows the linked tag. Writing the tag and printing
+  /// are not changes.
+  final EditSession<EquipmentItem>? editing;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
+    final session = editing ?? scope?.session;
+    final canLink = scope == null || editing != null;
+    if (session == null) return _build(context, ref, null, canLink);
+    return ListenableBuilder(
+      listenable: session,
+      builder: (context, _) => _build(context, ref, session, canLink),
+    );
+  }
+
+  Widget _build(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<EquipmentItem>? session,
+    bool canLink,
+  ) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    final passportId = ref.watch(passportIdProvider(equipment.id)).value;
+    final storedId = ref.watch(passportIdProvider(equipment.id)).value;
+    final passportId = session == null
+        ? storedId
+        : passportIdInSitting(session, storedId);
     final recordsState = ref.watch(
       serviceRecordsForEquipmentProvider(equipment.id),
     );
@@ -71,9 +101,26 @@ class GearTagCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.passport_tag_title,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          l10n.passport_tag_title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      if (session != null && holdsPassportTag(session)) ...[
+                        const SizedBox(width: 6),
+                        const RecordChangedDot(),
+                      ],
+                    ],
+                  ),
+                ),
+                RecordCardPencil(cardTitle: l10n.passport_tag_title),
+              ],
             ),
             const SizedBox(height: 12),
             if (payload != null)
@@ -113,28 +160,19 @@ class GearTagCard extends ConsumerWidget {
                     label: Text(l10n.passport_tag_printLabel),
                   ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final diverId = await ref.read(
-                      validatedCurrentDiverIdProvider.future,
-                    );
-                    if (!context.mounted) return;
-                    final linked = await showLinkExistingTagDialog(
+                if (canLink)
+                  OutlinedButton.icon(
+                    onPressed: () => linkExistingTag(
                       context,
-                      equipmentId: equipment.id,
-                      diverId: diverId,
+                      ref,
+                      equipment,
                       passportIdOf: tagPassportIdOf,
                       invalidText: (l10n) => l10n.tagScan_linkInvalid,
-                    );
-                    if (linked != null && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.passport_tag_linked)),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.link),
-                  label: Text(l10n.passport_tag_linkExisting),
-                ),
+                      editing: editing,
+                    ),
+                    icon: const Icon(Icons.link),
+                    label: Text(l10n.passport_tag_linkExisting),
+                  ),
                 OutlinedButton.icon(
                   key: const Key('gearTag_writeNfc'),
                   onPressed: canWriteNfc ? write : null,

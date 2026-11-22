@@ -15,9 +15,6 @@ mixin _CourseDetailPageEditing
   String recordIdOf(Course record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(CourseDetailPage widget) => widget.openUnlocked;
 
   @override
@@ -104,7 +101,7 @@ mixin _CourseDetailPageEditing
   bool _isEmptyInSitting(CourseCardId id, Course working) {
     if (id == CourseCardId.earnedCertifications) {
       final certifications = _certificationsInSitting(
-        ref.read(certificationsForCourseProvider(widget.courseId)).value,
+        ref.read(certificationsForCourseProvider(hostRecordId)).value,
       );
       return certifications != null && certifications.isEmpty;
     }
@@ -140,8 +137,8 @@ mixin _CourseDetailPageEditing
       );
 }
 
-/// A section's title row: its icon and title, and the card's pencil where
-/// the page edits in place ([editing]).
+/// A section's title row: its icon and title, and for a card the diver
+/// edits ([editing]) its pencil. A calculated card has none.
 Widget _sectionHeader(
   BuildContext context,
   String title,

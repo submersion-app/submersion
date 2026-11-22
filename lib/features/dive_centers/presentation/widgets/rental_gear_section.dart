@@ -20,9 +20,8 @@ import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dar
 /// and edit on tap. Matches the page's other sections: a titled column with
 /// a 16 px gutter, no card.
 ///
-/// On a page that edits in place (issue #4527, phase 3) it offers nothing
-/// while locked ([readOnly]); in the page's sitting ([editing]) notes
-/// added, edited and removed are held until Save, a removal asking
+/// It offers nothing outside the open Rental gear card (issue #4527, phase
+/// 3); in the page's sitting ([editing]) notes added, edited and removed are held until Save, a removal asking
 /// nothing, and the notes the sitting holds show the changed dot.
 class RentalGearSection extends ConsumerWidget {
   final String centerId;
@@ -31,10 +30,6 @@ class RentalGearSection extends ConsumerWidget {
   /// editor, drawn inside the open card.
   final EditSession<DiveCenter>? editing;
 
-  /// Offers no action: the page edits in place and is locked, or its card
-  /// is closed.
-  final bool readOnly;
-
   /// The sitting whose notes a closed card shows.
   final EditSession<DiveCenter>? shown;
 
@@ -42,7 +37,6 @@ class RentalGearSection extends ConsumerWidget {
     super.key,
     required this.centerId,
     this.editing,
-    this.readOnly = false,
     this.shown,
   });
 
@@ -118,7 +112,7 @@ class RentalGearSection extends ConsumerWidget {
                   style: theme.textTheme.titleMedium,
                 ),
               ),
-              if (readOnly)
+              if (editing == null)
                 RecordCardPencil(
                   cardTitle: l10n.diveCenters_rental_sectionTitle,
                 )
@@ -127,12 +121,7 @@ class RentalGearSection extends ConsumerWidget {
                   key: const ValueKey('rental_gear_add'),
                   icon: const Icon(Icons.add),
                   tooltip: l10n.diveCenters_rental_addNote,
-                  onPressed: () => editing != null
-                      ? _hold(context, null)
-                      : showRentalGearNoteSheet(
-                          context,
-                          diveCenterId: centerId,
-                        ),
+                  onPressed: () => _hold(context, null),
                 ),
             ],
           ),
@@ -155,15 +144,9 @@ class RentalGearSection extends ConsumerWidget {
                     child: RentalNoteTile(
                       note: note,
                       units: units,
-                      onTap: readOnly
+                      onTap: editing == null
                           ? null
-                          : editing != null
-                          ? () => _hold(context, note)
-                          : () => showRentalGearNoteSheet(
-                              context,
-                              diveCenterId: centerId,
-                              editing: note,
-                            ),
+                          : () => _hold(context, note),
                     ),
                   ),
                   if (loaded != null && loaded[note.id] != note)

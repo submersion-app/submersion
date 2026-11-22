@@ -121,6 +121,10 @@ class SettingsKeys {
   /// naming level's id (issue #4721).
   static const String marineLifeNamingLevel = 'species_id_naming_level';
 
+  /// What the viewer draws over photos and videos for the animals found
+  /// (issue #4825): names, allLife or off. Unset reads as names.
+  static const String marineLifeLabelMode = 'species_id_label_mode';
+
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
   static const String viewerFullscreenMode = 'viewer_fullscreen_mode';

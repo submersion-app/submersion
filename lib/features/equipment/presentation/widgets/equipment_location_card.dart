@@ -15,23 +15,20 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/location_move_edit_dialog.dart';
-import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Where an item is now, a Move button, and its recent moves (the full log
 /// behind "Show all"). Tapping a move edits or deletes it.
 ///
-/// Where the item's page edits in place (issue #4527, phase 3), it offers
-/// nothing while locked ([readOnly]); in the page's sitting ([editing]) a
-/// move and the edits of past moves are held until Save, and a closed card
-/// shows what a sitting holds ([shown]).
+/// It offers nothing outside the open Location card (issue #4527, phase 3);
+/// in the page's sitting ([editing]) a move and the edits of past moves are
+/// held until Save, and a closed card shows what a sitting holds ([shown]).
 class EquipmentLocationCard extends ConsumerStatefulWidget {
   const EquipmentLocationCard({
     super.key,
     required this.equipment,
     this.editing,
     this.shown,
-    this.readOnly = false,
   });
 
   final EquipmentItem equipment;
@@ -42,9 +39,6 @@ class EquipmentLocationCard extends ConsumerStatefulWidget {
   /// The sitting whose moves a closed card shows.
   final EditSession<EquipmentItem>? shown;
 
-  /// Offers no action: the page edits in place and is locked.
-  final bool readOnly;
-
   @override
   ConsumerState<EquipmentLocationCard> createState() =>
       _EquipmentLocationCardState();
@@ -54,18 +48,15 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
   static const _recentCount = 3;
   bool _showAll = false;
 
-  /// Whether a tap may act: not on a locked page, and in a sitting only in
-  /// the open card.
-  bool get _canAct =>
-      !widget.readOnly && (widget.shown == null || widget.editing != null);
+  /// Whether a tap may act: only in the open card.
+  bool get _canAct => widget.editing != null;
 
-  /// Whether a past move may be edited: as [_canAct], and in the open card
-  /// only once the sitting has read the moves, so an edit has a list to go
-  /// into.
-  bool get _canEditPastMoves =>
-      _canAct &&
-      (widget.editing == null ||
-          gearItemMovesList.current(widget.editing!) != null);
+  /// Whether a past move may be edited: in the open card, once the sitting
+  /// has read the moves, so an edit has a list to go into.
+  bool get _canEditPastMoves => switch (widget.editing) {
+    final editing? => gearItemMovesList.current(editing) != null,
+    null => false,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -82,10 +73,7 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
 
   Future<void> _move() async {
     final editing = widget.editing;
-    if (editing == null) {
-      await showMoveEquipmentFlow(context, ref, items: [widget.equipment]);
-      return;
-    }
+    if (editing == null) return;
     // The item as the sitting has it: a status changed in it decides what
     // the move offers.
     final move = await planGearItemMove(context, ref, editing.working);
@@ -229,8 +217,6 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
           : null,
       onTap: !_canEditPastMoves
           ? null
-          : widget.editing == null
-          ? () => showLocationMoveEditDialog(context, ref, m)
           : () => showLocationMoveEditDialog(
               context,
               ref,

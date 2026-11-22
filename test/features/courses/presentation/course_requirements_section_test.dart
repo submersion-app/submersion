@@ -47,6 +47,27 @@ void main() {
     await tearDownTestDatabase();
   });
 
+  /// Opens the seeded course's Requirements card in a sitting whose rows
+  /// are read, as the course page's open card is (issue #4527, phase 3).
+  Future<EditSession<Course>> pumpOpenCard(WidgetTester tester) async {
+    late EditSession<Course> session;
+    await tester.runAsync(() async {
+      session = EditSession(
+        (await CourseRepository().getCourseById('course-1'))!,
+      );
+      await courseRequirementsList.load(session);
+    });
+    addTearDown(session.dispose);
+    await tester.pumpWidget(
+      _wrap(CourseRequirementsSection(courseId: 'course-1', editing: session)),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    return session;
+  }
+
   testWidgets('renders requirement rows with progress header', (tester) async {
     await tester.runAsync(() async {
       await _seed();
@@ -77,7 +98,9 @@ void main() {
     expect(find.text('1 of 2 complete'), findsOneWidget);
   });
 
-  testWidgets('checklist checkbox toggles completion', (tester) async {
+  testWidgets('the checklist checkbox ticks it, written at Save', (
+    tester,
+  ) async {
     late String requirementId;
     await tester.runAsync(() async {
       await _seed();
@@ -89,14 +112,7 @@ void main() {
       );
       requirementId = req.id;
     });
-
-    await tester.pumpWidget(
-      _wrap(const CourseRequirementsSection(courseId: 'course-1')),
-    );
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
-    await tester.pumpAndSettle();
+    final session = await pumpOpenCard(tester);
 
     await tester.ensureVisible(find.byType(Checkbox));
     await tester.tap(find.byType(Checkbox));
@@ -106,6 +122,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.runAsync(() async {
+      await session.runHeldWrites();
       final progress = await CourseRequirementRepository().getCourseProgress(
         'course-1',
       );
@@ -118,7 +135,9 @@ void main() {
     });
   });
 
-  testWidgets('suggestion chip links the dive', (tester) async {
+  testWidgets('a suggestion chip credits the dive, written at Save', (
+    tester,
+  ) async {
     await tester.runAsync(() async {
       await _seed();
       final db = DatabaseService.instance.database;
@@ -133,14 +152,7 @@ void main() {
         kind: RequirementKind.dive,
       );
     });
-
-    await tester.pumpWidget(
-      _wrap(const CourseRequirementsSection(courseId: 'course-1')),
-    );
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
-    await tester.pumpAndSettle();
+    final session = await pumpOpenCard(tester);
 
     // Expand the dive requirement tile to reveal suggestions.
     await tester.tap(find.text('Deep adventure dive'));
@@ -161,6 +173,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.runAsync(() async {
+      await session.runHeldWrites();
       final progress = await CourseRequirementRepository().getCourseProgress(
         'course-1',
       );
@@ -212,15 +225,13 @@ void main() {
     ].join('|');
   }
 
-  testWidgets('locked with the switch on, no tap writes', (tester) async {
+  testWidgets('locked, no tap writes', (tester) async {
     await seedTracker(tester);
     late String before;
     await tester.runAsync(() async => before = await storedState());
 
     await tester.pumpWidget(
-      _wrap(
-        const CourseRequirementsSection(courseId: 'course-1', readOnly: true),
-      ),
+      _wrap(const CourseRequirementsSection(courseId: 'course-1')),
     );
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 100)),

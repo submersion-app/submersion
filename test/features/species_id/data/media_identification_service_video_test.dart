@@ -22,6 +22,7 @@ import 'package:submersion/features/species_id/domain/services/video_tracker.dar
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
+import '../../../helpers/wait_until.dart';
 import 'fake_vision_engine.dart';
 import 'media_identification_service_fixtures.dart';
 
@@ -163,6 +164,61 @@ void main() {
       };
     }
 
+    group('where videos are not scanned (Linux)', () {
+      late MediaIdentificationService photosOnly;
+      var resolved = 0;
+
+      setUp(() {
+        resolved = 0;
+        photosOnly = MediaIdentificationService(
+          engine: engine,
+          loadPack: () async => installed,
+          identifications: identifications,
+          embeddings: embeddings,
+          crops: crops,
+          resolveImage: (item) async => imageFor(item),
+          resolveVideo: (item) async {
+            resolved++;
+            return null;
+          },
+          taggedSpecies: (_) async => tagged,
+          enabled: () => enabled,
+          videoRuns: () => false,
+          databaseGeneration: () => generation,
+          now: () => DateTime.utc(2026, 11, 17),
+          newId: () => 'id-${ids++}',
+          idleUnload: const Duration(milliseconds: 50),
+        );
+      });
+      tearDown(() => photosOnly.dispose());
+
+      test('a viewer video request is skipped, its file never read', () async {
+        oneFish();
+        await photosOnly.request(video());
+        expect(engine.detectCalls, isEmpty);
+        expect(resolved, 0);
+        expect(await identifications.runFor('v1'), isNull);
+      });
+
+      test('a run passes over a video without counting it as failed', () async {
+        final outcome = await photosOnly.requestFromRun(
+          video(),
+          resolveImage: (item) async => imageFor(item),
+          resolveVideo: (item) async {
+            resolved++;
+            return null;
+          },
+        );
+        expect(outcome, RunItemOutcome.skipped);
+        expect(resolved, 0);
+      });
+
+      test('a photo is still analysed', () async {
+        await photosOnly.request(photo('p1'));
+        expect(await identifications.runFor('p1'), isNotNull);
+      });
+    });
+
     test('a video is scanned to the end and its fish stored', () async {
       oneFish();
       await service.request(video());
@@ -177,7 +233,7 @@ void main() {
         'next time', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       expect(service.cancelPending('v1'), isTrue);
       engine.videoGate!.complete();
       await done;
@@ -204,7 +260,7 @@ void main() {
       () async {
         engine.videoGate = Completer<void>();
         final run = fromRun(video());
-        await until(() => engine.detectCalls.length == 1);
+        await _until(() => engine.detectCalls.length == 1);
         expect(service.cancelPending('v1'), isFalse);
         engine.videoGate!.complete();
         engine.videoGate = null;
@@ -217,7 +273,7 @@ void main() {
         'the end when the viewer leaves', () async {
       engine.videoGate = Completer<void>();
       final viewing = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       final run = fromRun(video());
       expect(service.cancelPending('v1'), isTrue);
       engine.videoGate!.complete();
@@ -232,7 +288,7 @@ void main() {
       () async {
         engine.videoGate = Completer<void>();
         final first = service.request(video());
-        await until(() => engine.detectCalls.length == 1);
+        await _until(() => engine.detectCalls.length == 1);
         expect(service.cancelPending('v1'), isTrue);
         final again = service.request(video());
         engine.videoGate!.complete();
@@ -248,7 +304,7 @@ void main() {
       oneFish();
       engine.videoGate = Completer<void>();
       final first = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       final located = service.request(
         video(),
         location: const GeoPoint(20.5, -87.0),
@@ -267,7 +323,7 @@ void main() {
         'it returns', () async {
       engine.videoGate = Completer<void>();
       final scanning = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       final queued = service.request(photo('m1'));
       final settling = service.settleAll();
       engine.videoGate!.complete();
@@ -282,7 +338,7 @@ void main() {
     test('a pack change waits for one chunk, not the whole video', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       final change = service.packChanged();
       engine.videoGate!.complete();
       await change;
@@ -297,7 +353,7 @@ void main() {
       () async {
         engine.videoGate = Completer<void>();
         final scanning = service.request(video());
-        await until(() => engine.detectCalls.length == 1);
+        await _until(() => engine.detectCalls.length == 1);
         final opened = service.request(photo('m1'));
         engine.videoGate!.complete();
         engine.videoGate = null;
@@ -382,7 +438,7 @@ void main() {
     test('another logbook opening mid-scan drops the chunk', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       generation++;
       engine.videoGate!.complete();
       await done;
@@ -498,7 +554,7 @@ void main() {
       await service.packChanged();
       engine.videoGate = Completer<void>();
       final stopped = service.request(video());
-      await until(() => engine.detectCalls.length == 4);
+      await _until(() => engine.detectCalls.length == 4);
       expect(service.cancelPending('v1'), isTrue);
       engine.videoGate!.complete();
       engine.videoGate = null;
@@ -541,7 +597,7 @@ void main() {
     test('a resume with nothing to rename reads the rows once', () async {
       engine.videoGate = Completer<void>();
       final stopped = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       service.cancelPending('v1');
       engine.videoGate!.complete();
       engine.videoGate = null;
@@ -589,7 +645,7 @@ void main() {
       };
       engine.videoGate = Completer<void>();
       final stopped = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       service.cancelPending('v1');
       engine.videoGate!.complete();
       engine.videoGate = null;
@@ -749,7 +805,7 @@ void main() {
         'chunk', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       service.followPlayhead('v1', 40000, seek: true);
       engine.videoGate!.complete();
       engine.videoGate = null;
@@ -828,8 +884,8 @@ void main() {
         return null;
       };
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 2);
-      await until(() => service.progressOf('v1') != null);
+      await _until(() => engine.detectCalls.length == 2);
+      await _until(() => service.progressOf('v1') != null);
       final fish = (await identifications.forMedia('v1')).single;
       expect(fish.decision, IdentificationDecision.accepted);
       expect(fish.decidedSpeciesId, 'sp_queen_parrotfish');
@@ -840,3 +896,9 @@ void main() {
     });
   });
 }
+
+/// Waits for [done] on the shared wall-clock budget, not a count of
+/// event-loop turns: the scan's real file writes can need more turns than
+/// any fixed number when CI runs many test files in one isolate (issue
+/// #4796). Every wait here is behind a gate, so the state holds still.
+Future<void> _until(bool Function() done) => waitUntil(() async => done());

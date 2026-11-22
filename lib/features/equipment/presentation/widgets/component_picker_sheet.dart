@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'package:uuid/uuid.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -17,15 +17,18 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/presentation/widgets/foldable_type_group_rows.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// Opens the add-components sheet for [parentId]. With [replacing], the
 /// sheet picks one item to take that row's place instead (issue #1487,
 /// replace a part): same candidates, single select, the row keeps its role
-/// and order.
+/// and order. The choice is held in [editing], the assembly's sitting
+/// (issue #4527), until Save.
 Future<void> showComponentPicker(
   BuildContext context, {
   required String parentId,
   EquipmentComponent? replacing,
+  required EditSession<EquipmentItem> editing,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -40,6 +43,7 @@ Future<void> showComponentPicker(
         parentId: parentId,
         scrollController: scrollController,
         replacing: replacing,
+        editing: editing,
       ),
     ),
   );
@@ -56,11 +60,16 @@ class ComponentPickerSheet extends ConsumerStatefulWidget {
   /// The template row being replaced, or null when adding.
   final EquipmentComponent? replacing;
 
+  /// The assembly's sitting, which holds the choice until Save: its parts
+  /// are the ones left out.
+  final EditSession<EquipmentItem> editing;
+
   const ComponentPickerSheet({
     super.key,
     required this.parentId,
     required this.scrollController,
     this.replacing,
+    required this.editing,
   });
 
   @override
@@ -71,7 +80,6 @@ class ComponentPickerSheet extends ConsumerStatefulWidget {
 class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
     with FoldableTypeGroupsState<ComponentPickerSheet> {
   final _selected = <String>{};
-  bool _saving = false;
 
   bool get _replacing => widget.replacing != null;
 
@@ -79,9 +87,10 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
     List<EquipmentItem> active,
     ComponentsIndex index,
   ) {
+    final parts = gearItemComponentsList.current(widget.editing);
     final excluded = <String>{
       widget.parentId,
-      for (final part in index.byParent[widget.parentId] ?? const [])
+      for (final part in parts ?? index.byParent[widget.parentId] ?? const [])
         part.componentEquipmentId,
       ...index.ancestorsOf(widget.parentId),
       ...index.descendantsOf(widget.parentId),
@@ -108,10 +117,9 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
   }
 
   Future<void> _confirm() async {
-    if (_selected.isEmpty || _saving) return;
+    if (_selected.isEmpty) return;
     final replacing = widget.replacing;
     final messenger = ScaffoldMessenger.of(context);
-    final cycleText = context.l10n.equipment_components_cycleError;
     // Asked once per batch, before any write, so a cancel costs nothing.
     // The count behind the question is a database read, so it fails like
     // any write below rather than escaping the button callback.
@@ -130,84 +138,52 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
       return;
     }
     if (choice == null || !mounted) return;
-    setState(() => _saving = true);
-    final repository = ref.read(equipmentComponentRepositoryProvider);
-    final dives = ref.read(diveRepositoryProvider);
-    final alsoPast = choice == AssemblyHistoryChoice.alsoPast;
-    // What actually reached the template, so a partial save can drop those
-    // from the selection: they stop being candidates once they are parts,
-    // and a selected id with no row left on screen cannot be unticked.
-    final applied = <String>[];
-    var popped = false;
-    try {
-      // A snapshot: the checkboxes are disabled while saving, but a copy
-      // keeps the loop safe regardless of what mutates the set later.
-      final ids = _selected.toList();
-      final changes = <GearHistoryRewrite>[];
-      // The first failure is the one the diver sees: a replay that fails
-      // after a refused part must not hide the refusal's own message.
-      Object? failure;
-      StackTrace? failureTrace;
-      try {
-        if (replacing != null) {
-          final newId = ids.single;
-          await repository.replaceComponent(replacing.id, newId);
-          applied.add(newId);
-          changes.add(
-            GearPartReplaced(
-              oldPartId: replacing.componentEquipmentId,
-              newPartId: newId,
-            ),
-          );
-        } else {
-          for (final id in ids) {
-            await repository.addComponent(
-              parentId: widget.parentId,
-              componentId: id,
-            );
-            applied.add(id);
-            changes.add(GearPartAdded(id));
-          }
-        }
-      } catch (e, st) {
-        failure = e;
-        failureTrace = st;
-      }
-      // One pass over the dives for the whole batch rather than one per
-      // part, and it runs even when a later part was refused, so what
-      // reached the template and what reached the dives cannot drift.
-      // Planned dives follow on every answer (issue #4283).
-      if (changes.isNotEmpty) {
-        try {
-          await dives.rewriteAssemblyOnDives(
-            widget.parentId,
-            changes,
-            alsoLogged: alsoPast,
-          );
-        } catch (e, st) {
-          failure ??= e;
-          failureTrace ??= st;
-        }
-      }
-      if (failure != null) Error.throwWithStackTrace(failure, failureTrace!);
-      popped = true;
-      // The sheet may have been swiped away or dismissed during the awaits;
-      // popping then would take the page underneath instead.
-      if (mounted) Navigator.of(context).pop();
-    } on EquipmentComponentCycleException {
-      messenger.showSnackBar(SnackBar(content: Text(cycleText)));
-    } catch (e) {
-      // Any other failure (a closed database, a constraint) must not leave
-      // the sheet disabled with no way out.
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
-    } finally {
-      if (!popped && mounted) {
-        setState(() {
-          _selected.removeAll(applied);
-          _saving = false;
-        });
-      }
+    _hold(widget.editing, replacing, choice);
+    Navigator.of(context).pop();
+  }
+
+  /// Holds the choice in the assembly's [session], with the answer to
+  /// "Update past dives?" for each part it brings in.
+  void _hold(
+    EditSession<EquipmentItem> session,
+    EquipmentComponent? replacing,
+    AssemblyHistoryChoice choice,
+  ) {
+    final parts = gearItemComponentsList.current(session);
+    if (parts == null) return;
+    final items = {
+      for (final item
+          in ref.read(activeEquipmentProvider).value ?? const <EquipmentItem>[])
+        item.id: item,
+    };
+    final ids = _selected.toList();
+    for (final id in ids) {
+      rememberPartAnswer(session, id, choice);
     }
+    if (replacing != null) {
+      final newId = ids.single;
+      gearItemComponentsList.set(session, [
+        for (final p in parts)
+          p.id == replacing.id
+              ? p.copyWith(componentEquipmentId: newId, component: items[newId])
+              : p,
+      ]);
+      return;
+    }
+    final now = DateTime.now();
+    gearItemComponentsList.set(session, [
+      ...parts,
+      for (final (i, id) in ids.indexed)
+        EquipmentComponent(
+          id: const Uuid().v4(),
+          parentEquipmentId: widget.parentId,
+          componentEquipmentId: id,
+          sortOrder: parts.length + i,
+          createdAt: now,
+          updatedAt: now,
+          component: items[id],
+        ),
+    ]);
   }
 
   @override
@@ -231,7 +207,7 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
                 ),
               ),
               FilledButton(
-                onPressed: _selected.isEmpty || _saving ? null : _confirm,
+                onPressed: _selected.isEmpty ? null : _confirm,
                 child: Text(
                   _replacing
                       ? l10n.equipment_components_pickerReplaceConfirm
@@ -301,11 +277,7 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
                   onToggle: toggleTypeGroup,
                   rowBuilder: (item) => CheckboxListTile(
                     value: _selected.contains(item.id),
-                    // Frozen while the adds run, so the selection being
-                    // saved is the one that was confirmed.
-                    onChanged: _saving
-                        ? null
-                        : (value) => _toggle(item.id, value == true),
+                    onChanged: (value) => _toggle(item.id, value == true),
                     title: Text(item.name),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

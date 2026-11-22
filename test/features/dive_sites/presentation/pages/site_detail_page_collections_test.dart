@@ -142,7 +142,7 @@ void main() {
         name: 'Buoy',
       ),
     );
-    setSiteSharing(
+    siteSharing.set(
       session,
       const ItemSharing(profileIds: {'ana'}),
       actingDiverId: 'me',

@@ -122,6 +122,18 @@ void main() {
     expect((await stored()).scientificName, isNull);
   });
 
+  test('clearing the taxonomy class and the description stores null', () async {
+    final session = EditSession(await stored())
+      ..set(speciesTaxonomyClassField, '')
+      ..set(speciesDescriptionField, '');
+
+    await save(session);
+
+    final after = await stored();
+    expect(after.taxonomyClass, isNull);
+    expect(after.description, isNull);
+  });
+
   test('unchanged returns null and writes nothing', () async {
     final result = await save(EditSession(await stored()));
 
@@ -139,5 +151,87 @@ void main() {
 
     await expectLater(save(session), throwsStateError);
     expect(await operations(), isEmpty);
+  });
+
+  /// A new species' sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    Species fresh({String id = 'n1'}) => Species(
+      id: id,
+      commonName: 'Frogfish',
+      category: SpeciesCategory.fish,
+      description: 'Lumpy',
+    );
+
+    test('creates the species with its id, as one History entry', () async {
+      final created = await service.create(
+        species: fresh(),
+        changedCardIds: const ['header', 'description'],
+      );
+
+      expect(created.id, 'n1');
+      expect((await species.getSpeciesById('n1'))?.description, 'Lumpy');
+      expect(created.isBuiltIn, isFalse);
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(ops.single['label'], 'record_edit:species:n1:description,header');
+    });
+
+    test('held writes run after the row, in the same entry', () async {
+      Species? seen;
+      await service.create(
+        species: fresh(),
+        changedCardIds: const ['header'],
+        alsoWrite: () async => seen = await species.getSpeciesById('n1'),
+      );
+
+      expect(seen?.commonName, 'Frogfish');
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a held write that throws leaves nothing', () async {
+      await expectLater(
+        service.create(
+          species: fresh(),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await species.getSpeciesById('n1'), isNull);
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          species: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          species: fresh(id: 'manta'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).commonName, 'Manta');
+      expect(await operations(), isEmpty);
+    });
+
+    test('createSpecies keeps an id it is given', () async {
+      final made = await species.createSpecies(
+        id: 'given',
+        commonName: 'Goby',
+        category: SpeciesCategory.fish,
+      );
+
+      expect(made.id, 'given');
+      expect((await species.getSpeciesById('given'))?.commonName, 'Goby');
+    });
   });
 }

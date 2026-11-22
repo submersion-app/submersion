@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_photos_section.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_clocks_editor.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/twin_set_card.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
@@ -16,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_car
 import 'package:submersion/features/equipment/presentation/editing/gear_item_details_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_cards.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -30,7 +34,7 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     title: (context) =>
         GearItemCardId.header.localizedDisplayName(context.l10n),
     isEmpty: (_) => false,
-    // A name, as the form's validator has it.
+    // A name, as the form's validator had it.
     isValid: (session) => gearNameValid(session.working.name),
     editorBuilder: (context, session) => GearItemHeaderEditor(session: session),
   ),
@@ -48,7 +52,7 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     title: (context) =>
         GearItemCardId.details.localizedDisplayName(context.l10n),
     isEmpty: (_) => false,
-    // A readable price, as the form's validator has it.
+    // A readable price, as the form's validator had it.
     isValid: gearDetailsValid,
     editorBuilder: (context, session) =>
         GearItemDetailsEditor(session: session),
@@ -61,6 +65,19 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         EquipmentLocationCard(equipment: session.working, editing: session),
+  ),
+  GearItemCardId.twinSet: EditCard<EquipmentItem>(
+    id: GearItemCardId.twinSet.name,
+    title: (context) =>
+        GearItemCardId.twinSet.localizedDisplayName(context.l10n),
+    // A tank's, with none it says so; it hides itself for doubles kept as
+    // one item.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => TwinSetCard(
+      equipmentId: session.stored.id,
+      working: session.working,
+      editing: session,
+    ),
   ),
   GearItemCardId.serviceClocks: EditCard<EquipmentItem>(
     id: GearItemCardId.serviceClocks.name,
@@ -77,6 +94,16 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         ServiceHistorySection(equipmentId: session.stored.id, editing: session),
+  ),
+  GearItemCardId.conditionFindings: EditCard<EquipmentItem>(
+    id: GearItemCardId.conditionFindings.name,
+    title: (context) =>
+        GearItemCardId.conditionFindings.localizedDisplayName(context.l10n),
+    // Calculated rows the diver can dismiss; it hides itself when it has
+    // nothing to show.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        ConditionFindingsCard(equipment: session.working, editing: session),
   ),
   GearItemCardId.photos: EditCard<EquipmentItem>(
     id: GearItemCardId.photos.name,
@@ -95,6 +122,15 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         ObservationsCard(equipment: session.working, editing: session),
+  ),
+  GearItemCardId.components: EditCard<EquipmentItem>(
+    id: GearItemCardId.components.name,
+    title: (context) =>
+        GearItemCardId.components.localizedDisplayName(context.l10n),
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        ComponentsCard(equipmentId: session.stored.id, editing: session),
   ),
   GearItemCardId.legacyFiles: EditCard<EquipmentItem>(
     id: GearItemCardId.legacyFiles.name,
@@ -127,6 +163,11 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
       editing: session,
     ),
   ),
+  // The passports' cards (plan 7): the item page shows none of them, but a
+  // passport joins its sitting, so its Save checks them too.
+  GearItemCardId.passportFills: passportFillsCard,
+  GearItemCardId.passportTag: passportTagCard(),
+  GearItemCardId.passportTrip: passportTripCard,
 };
 
 /// The cards the page leaves out while they are empty, offered in the

@@ -12,7 +12,6 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
@@ -656,7 +655,7 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(TripEditPage), findsOneWidget);
+      expect(find.byType(TripDetailPage), findsOneWidget);
     });
 
     testWidgets('table mode edit builder invoked via edit query param', (
@@ -686,7 +685,7 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(TripEditPage), findsOneWidget);
+      expect(find.byType(TripDetailPage), findsOneWidget);
     });
 
     // The Plan row's edit lands on Planning in the pane too (#2880).
@@ -717,9 +716,12 @@ void main() {
           await tester.pump();
           tester.takeException();
 
-          final page = tester.widget<TripEditPage>(find.byType(TripEditPage));
+          final page = tester.widget<TripDetailPage>(
+            find.byType(TripDetailPage),
+          );
           expect(page.embedded, isTrue);
-          expect(page.initialSection, TripEditSection.planning);
+          expect(page.openUnlocked, isTrue);
+          expect(page.openSection, TripEditSection.planning);
         },
       );
     }
@@ -750,10 +752,11 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      final page = tester.widget<TripEditPage>(find.byType(TripEditPage));
-      expect(page.initialSection, TripEditSection.notes);
+      final page = tester.widget<TripDetailPage>(find.byType(TripDetailPage));
+      expect(page.openUnlocked, isTrue);
+      expect(page.openSection, TripEditSection.notes);
       expect(
-        page.noteDay,
+        page.openNoteDay,
         TripNoteDay(date: DateTime(2026, 11, 5), dayNumber: 3),
       );
     });

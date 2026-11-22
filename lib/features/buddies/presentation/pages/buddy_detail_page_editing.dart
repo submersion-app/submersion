@@ -15,9 +15,6 @@ mixin _BuddyDetailPageEditing
   String recordIdOf(Buddy record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(BuddyDetailPage widget) => widget.openUnlocked;
 
   @override
@@ -91,7 +88,8 @@ mixin _BuddyDetailPageEditing
     return [
       for (final id in [
         ...buddyOptionalCards,
-        BuddyCardId.gear,
+        // Lending needs a buddy that exists (plan 11, Question 9).
+        if (!isCreating) BuddyCardId.gear,
       ]..sort((a, b) => a.index.compareTo(b.index)))
         if (empty(id) && !_showsWhileEmpty(id))
           AddStripEntry(
@@ -130,27 +128,20 @@ mixin _BuddyDetailPageEditing
       RecordCardFrame<Buddy>(card: buddyEditCards[id]!, child: child);
 }
 
-/// A section's title row: its title, and the card's pencil where the page
-/// edits in place ([editing]).
-Widget _sectionTitle(
-  BuildContext context,
-  String title, {
-  required bool editing,
-}) {
-  final text = Text(
-    title,
-    style: Theme.of(
-      context,
-    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-  );
-  if (!editing) return text;
-  return Row(
-    children: [
-      Expanded(child: text),
-      RecordCardPencil(cardTitle: title),
-    ],
-  );
-}
+/// A section's title row: its title, and the card's pencil.
+Widget _sectionTitle(BuildContext context, String title) => Row(
+  children: [
+    Expanded(
+      child: Text(
+        title,
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      ),
+    ),
+    RecordCardPencil(cardTitle: title),
+  ],
+);
 
 /// [child], faded and labelled for [reason] while unlocked.
 Widget _faded(RecordCardFadeReason reason, Widget child) =>
@@ -158,18 +149,15 @@ Widget _faded(RecordCardFadeReason reason, Widget child) =>
 
 /// The buddy page's menu and its whole-record operations.
 extension _BuddyDetailMenus on _BuddyDetailContent {
-  /// History, Open in Connections, Lend gear (where the page does not edit
-  /// in place: lending is on the Gear card there), Share dives and Delete.
+  /// History, Open in Connections, Share dives and Delete. Lending is on
+  /// the Gear card.
   Widget _menu(BuildContext context, WidgetRef ref, {bool compact = false}) {
-    final host = this.host;
     final size = compact ? 20.0 : null;
     return PopupMenuButton<String>(
       icon: compact ? const Icon(Icons.more_vert, size: 20) : null,
       onSelected: (value) async {
         if (value == kOpenInConnectionsAction) {
           openInConnections(context, NodeRef(ConnectionKind.buddy, buddy.id));
-        } else if (value == 'lend') {
-          await showLendGearFlow(context, ref, buddy);
         } else if (value == 'share') {
           await shareDivesWithBuddy(context, ref, buddy.id);
         } else if (value == 'delete') {
@@ -183,17 +171,6 @@ extension _BuddyDetailMenus on _BuddyDetailContent {
           rootId: buddy.id,
         ),
         openInConnectionsMenuItem(context),
-        if (host == null)
-          PopupMenuItem(
-            value: 'lend',
-            child: Row(
-              children: [
-                Icon(Icons.volunteer_activism_outlined, size: size),
-                const SizedBox(width: 8),
-                Text(context.l10n.buddies_action_lendGear),
-              ],
-            ),
-          ),
         PopupMenuItem(
           value: 'share',
           child: Row(
@@ -205,10 +182,10 @@ extension _BuddyDetailMenus on _BuddyDetailContent {
           ),
         ),
         // Delete is a whole-record operation, under the lock.
-        ...recordOperationMenuCaption<String>(context, host?.editController),
+        ...recordOperationMenuCaption<String>(context, host.editController),
         PopupMenuItem(
           value: 'delete',
-          enabled: recordOperationsAvailable(host?.editController),
+          enabled: recordOperationsAvailable(host.editController),
           child: Row(
             children: [
               Icon(Icons.delete, color: Colors.red, size: size),
@@ -224,13 +201,8 @@ extension _BuddyDetailMenus on _BuddyDetailContent {
     );
   }
 
-  /// Delete, through the sitting where the page edits in place.
+  /// Delete, through the sitting.
   void _requestDelete(BuildContext context, WidgetRef ref) {
-    final host = this.host;
-    if (host == null) {
-      _handleDelete(context, ref);
-      return;
-    }
     recordOperationRunnerOf(host.editController, record: 'buddy ${buddy.id}')(
       () => _handleDelete(context, ref),
     );

@@ -330,19 +330,6 @@ class CertificationListNotifier
     _ref.invalidate(expiredCertificationsProvider);
   }
 
-  Future<Certification> addCertification(Certification cert) async {
-    // Get fresh validated diver ID before creating
-    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
-
-    // Always set diverId to the current validated diver for new items
-    final certWithDiver = validatedId != null
-        ? cert.copyWith(diverId: validatedId)
-        : cert;
-    final newCert = await _repository.createCertification(certWithDiver);
-    await refresh();
-    return newCert;
-  }
-
   Future<void> updateCertification(Certification cert) async {
     await _repository.updateCertification(cert);
     await refresh();

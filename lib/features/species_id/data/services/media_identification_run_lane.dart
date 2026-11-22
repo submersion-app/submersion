@@ -14,6 +14,7 @@ extension RunLane on MediaIdentificationService {
     GeoPoint? location,
     required Future<IdentificationImage?> Function(MediaItem) resolveImage,
     required Future<VideoFileReader?> Function(MediaItem) resolveVideo,
+    bool fresh = false,
   }) {
     if (_disposed) return Future.value(RunItemOutcome.skipped);
     final job = _Job(
@@ -24,12 +25,18 @@ extension RunLane on MediaIdentificationService {
       true,
       resolveImage,
       resolveVideo,
+      false,
+      fresh,
     );
     // Joins only a run's own job: a viewer's scan of the same video may be
     // stopped when the diver leaves it, so the run queues its own, which
     // carries on from wherever the viewer's stopped.
+    // A fresh one (issue #4825) starts over after it instead.
     final running = _running;
-    if (running != null && running.fromRun && running.item.id == item.id) {
+    if (!fresh &&
+        running != null &&
+        running.fromRun &&
+        running.item.id == item.id) {
       return running.done.future.then((_) => running.outcome);
     }
     final replaced = _runWaiting.remove(item.id);
@@ -103,7 +110,18 @@ class _Job {
     this.fromRun = false,
     this.resolveImage,
     this.resolveVideo,
+    this.byHand = false,
+    this.fresh = false,
   ]) : done = done ?? Completer<void>();
+
+  /// The viewer's request.
+  _Job.byViewer(
+    MediaItem item,
+    GeoPoint? location,
+    int generation, {
+    required bool byHand,
+    required bool fresh,
+  }) : this(item, location, generation, null, false, null, null, byHand, fresh);
 
   final MediaItem item;
   final GeoPoint? location;
@@ -120,14 +138,38 @@ class _Job {
   final Future<IdentificationImage?> Function(MediaItem)? resolveImage;
   final Future<VideoFileReader?> Function(MediaItem)? resolveVideo;
 
+  /// Asked for by the diver from the labels menu (issue #4825): it runs
+  /// whether or not media are identified on opening.
+  final bool byHand;
+
+  /// Still to start over from the beginning: until its fresh start is
+  /// stored ([freshStarted]), after which a job put back carries on.
+  bool fresh;
+
+  /// It started over: nothing is applied by the app when it settles.
+  var wasFresh = false;
+
+  /// The fresh start is stored.
+  void freshStarted() {
+    if (!fresh) return;
+    fresh = false;
+    wasFresh = true;
+  }
+
   /// What became of it, for a run's summary.
   var outcome = RunItemOutcome.done;
 
   /// A video the diver left: its scan stops after the chunk in progress.
   var cancelled = false;
 
-  /// This request asked again, in the logbook of [generation].
-  _Job withLocation(GeoPoint? location, int generation) => _Job(
+  /// This request asked again, in the logbook of [generation], by hand or
+  /// fresh if either asking was.
+  _Job withLocation(
+    GeoPoint? location,
+    int generation, {
+    bool byHand = false,
+    bool fresh = false,
+  }) => _Job(
     item,
     location,
     generation,
@@ -135,5 +177,7 @@ class _Job {
     fromRun,
     resolveImage,
     resolveVideo,
-  );
+    this.byHand || byHand,
+    this.fresh || fresh,
+  )..wasFresh = wasFresh;
 }

@@ -11,6 +11,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/services/sync/parent_clock_children.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_dependencies.dart';
@@ -161,14 +162,85 @@ class ChangeLogRevertService {
       dependencies: dependencies,
       restoring: restoring,
     );
-    return [
-      ...restores,
-      ...edits,
-      ...await planner.planRemovals(
+    final paired = await planner.pairReadings(
+      restores,
+      await planner.planRemovals(
         events,
         releasing: ChangeLogRecordPlanner.releasedLinks(edits),
       ),
-    ];
+    );
+    final held = await _holdWithRestores(
+      paired.restores,
+      edits,
+      dependencies: dependencies,
+      restoring: restoring,
+    );
+    return [...held.restores, ...held.edits, ...paired.removals];
+  }
+
+  /// [restores] and [edits], with what needs a record whose restore is held
+  /// back as changed since held too: a restore that needs that record, as a
+  /// series' lineage row needs its series, an edit to it, or a link to it.
+  /// A revert of only the rest could not write them without it (issue
+  /// #4848).
+  Future<
+    ({List<ChangeLogRevertItem> restores, List<ChangeLogRevertItem> edits})
+  >
+  _holdWithRestores(
+    List<ChangeLogRevertItem> restores,
+    List<ChangeLogRevertItem> edits, {
+    required ChangeLogDependencyIndex dependencies,
+    required Set<String> restoring,
+  }) async {
+    String keyOf(ChangeLogRevertItem item) =>
+        changeLogRecordKey(item.event.table, item.event.recordId);
+    bool holdable(ChangeLogRevertItem item) =>
+        !item.isBlocked && !item.changedSince;
+    final held = {
+      for (final item in restores)
+        if (!item.isBlocked && item.changedSince) keyOf(item),
+    };
+    if (held.isEmpty) return (restores: restores, edits: edits);
+    Future<bool> needsHeld(
+      ChangeLogRevertItem item,
+      Map<String, Object?> row,
+    ) async =>
+        held.contains(keyOf(item)) ||
+        (await dependencies.missingParents(
+          item.event.table,
+          row,
+          restoring.difference(held),
+        )).any(held.contains);
+
+    // Holding a restore can hold another that needs it, so this repeats.
+    var grew = true;
+    while (grew) {
+      grew = false;
+      for (final item in restores) {
+        if (!holdable(item) || held.contains(keyOf(item))) continue;
+        final row = {for (final f in item.event.fields) f.column: f.oldValue};
+        if (!await needsHeld(item, row)) continue;
+        held.add(keyOf(item));
+        grew = true;
+      }
+    }
+    return (
+      restores: [
+        for (final item in restores)
+          if (holdable(item) && held.contains(keyOf(item)))
+            item.copyWith(changedSince: true)
+          else
+            item,
+      ],
+      edits: [
+        for (final item in edits)
+          if (holdable(item) &&
+              await needsHeld(item, {item.column!: item.target}))
+            item.copyWith(changedSince: true)
+          else
+            item,
+      ],
+    );
   }
 
   ChangeLogRecordPlanner _plannerWith(ChangeLogDependencyIndex dependencies) =>
@@ -427,6 +499,36 @@ class ChangeLogRevertService {
       localUpdatedAt: now,
       alsoStamp: SyncFactGroups.of(entity),
     );
+    await _markParentPending(table, event.recordId, now);
+  }
+
+  /// A row with no clock of its own reaches other devices through its
+  /// parent's ([syncRidesParentClockTables]): a finding's dismissal put back
+  /// is exported only once its gear item is marked too, as the dismissal
+  /// itself was.
+  Future<void> _markParentPending(
+    String table,
+    String recordId,
+    int now,
+  ) async {
+    if (!syncRidesParentClockTables.contains(table)) return;
+    final parent = changeLogParents[table];
+    final column = parent?.column;
+    if (parent == null || column == null) return;
+    final match = changeLogKeyMatch(_repository.specOf(table)!, recordId);
+    final row = await _db
+        .customSelect(
+          'SELECT "$column" AS parent FROM "$table" WHERE ${match.where}',
+          variables: match.variables,
+        )
+        .getSingleOrNull();
+    final parentId = row?.data['parent'] as String?;
+    if (parentId == null) return;
+    await _sync.markRecordPending(
+      entityType: changeLogEntityType(parent.rootTable),
+      recordId: parentId,
+      localUpdatedAt: now,
+    );
   }
 
   /// What the delete queued may already have taken the media's blobs, so
@@ -515,6 +617,9 @@ class ChangeLogRevertService {
     List<ChangeLogRevertItem> edits,
     int now,
   ) async {
+    // A series' lineage row is raw SQL and never syncs, as in
+    // [_restoreRecord]: no Drift table to notify and nothing to stage.
+    final deviceLocal = changeLogDeviceLocalTables.contains(table);
     final hasUpdatedAt = (await _repository.liveColumns(
       table,
     )).contains('updated_at');
@@ -527,8 +632,9 @@ class ChangeLogRevertService {
         if (hasUpdatedAt) Variable<Object>(now),
         ...match.variables,
       ],
-      updates: {_infoOf(table)},
+      updates: deviceLocal ? const {} : {_infoOf(table)},
     );
+    if (deviceLocal) return;
 
     final entity = changeLogEntityType(table);
     final columns = {for (final edit in edits) edit.column!};
@@ -546,6 +652,7 @@ class ChangeLogRevertService {
       alsoStamp: groups,
       stampClock: !onlyFacts,
     );
+    await _markParentPending(table, recordId, now);
 
     // A dive put back on its old trip keeps no tank link into the trip it
     // leaves, as every other trip change does.

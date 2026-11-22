@@ -5,6 +5,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -67,6 +68,49 @@ class TripEditSaveService {
     return result;
   }
 
+  /// Creates [trip], a new trip's sitting (issue #4527, phase 3, plan 11),
+  /// keeping its id: the row (its parent checked inside, as the form's
+  /// create checks it), then [alsoWrite], the sitting's held writes
+  /// (sharing, the vessel, itinerary days, documents, the dives chosen at
+  /// Save), then the dives of a trip made from selected ones
+  /// ([draftDiveIds]), then a liveaboard's days, generated as the form
+  /// generated them when the sitting held none, over the dates the dives
+  /// may have stretched it to, all in one transaction and one History
+  /// entry naming [changedCardIds]. If any of them throws nothing is left,
+  /// and the dives stay on their trips. Throws [StateError] when [trip] has
+  /// no id, or one a stored trip has.
+  Future<Trip> create({
+    required Trip trip,
+    required Iterable<String> changedCardIds,
+    List<String> draftDiveIds = const [],
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<Trip>(
+    table: 'trips',
+    recordId: trip.id,
+    changedCardIds: changedCardIds,
+    isStored: () async => await _trips.getTripById(trip.id) != null,
+    insert: () => _trips.createTrip(trip),
+    alsoWrite: () async {
+      await alsoWrite?.call();
+      await _trips.assignDivesToTrip(draftDiveIds, trip.id);
+      // From the dates as stored now: a dive assigned outside them has
+      // stretched the trip to cover it.
+      final stored = await _trips.getTripById(trip.id) ?? trip;
+      if (stored.tripType == TripType.liveaboard &&
+          (await _days.getByTripId(trip.id)).isEmpty) {
+        await _days.saveAll(
+          ItineraryDay.generateForTrip(
+            tripId: trip.id,
+            startDate: stored.startDate,
+            endDate: stored.endDate,
+          ),
+        );
+      }
+    },
+    readBack: () => _trips.getTripById(trip.id),
+    created: trip,
+  );
+
   /// What the trip's new values leave behind: the vessel of a liveaboard
   /// that is one no longer, and plan-only days outside its dates. [written]
   /// is null when the sitting left the trip's own row as it was.
@@ -85,7 +129,7 @@ class TripEditSaveService {
         trip.endDate,
       );
     } catch (e, stackTrace) {
-      // Cleanup only, as the form's save treats it: the trip is saved.
+      // Cleanup only, as the form's save treated it: the trip is saved.
       _log.error(
         'Failed to drop plan-only itinerary days for trip: ${trip.id}',
         error: e,

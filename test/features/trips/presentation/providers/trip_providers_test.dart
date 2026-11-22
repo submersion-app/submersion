@@ -754,32 +754,6 @@ void main() {
   });
 
   group('TripListNotifier CRUD', () {
-    test('addTrip creates and returns a new trip', () async {
-      final diver = await diverRepo.createDiver(
-        Diver(
-          id: '',
-          name: 'D',
-          isDefault: true,
-          createdAt: DateTime(2024),
-          updatedAt: DateTime(2024),
-        ),
-      );
-      await prefs.setString(currentDiverIdKey, diver.id);
-
-      final container = makeContainer();
-      addTearDown(container.dispose);
-
-      while (container.read(tripListNotifierProvider).isLoading) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      final notifier = container.read(tripListNotifierProvider.notifier);
-      final newTrip = await notifier.addTrip(_makeTrip(name: 'Added'));
-      expect(newTrip.name, equals('Added'));
-      expect(newTrip.id, isNotEmpty);
-      expect(newTrip.diverId, equals(diver.id));
-    });
-
     test('auto-refreshes the list when a trip is written directly to the DB '
         '(sync scenario)', () async {
       final diver = await diverRepo.createDiver(
@@ -893,23 +867,6 @@ void main() {
             'TripListNotifier should reload trip stats after a direct dive '
             'write, since the dives-table subscription drives the refresh',
       );
-    });
-
-    test('updateTrip persists changes', () async {
-      final t = await tripRepo.createTrip(_makeTrip(name: 'Original'));
-
-      final container = makeContainer();
-      addTearDown(container.dispose);
-
-      while (container.read(tripListNotifierProvider).isLoading) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      final notifier = container.read(tripListNotifierProvider.notifier);
-      await notifier.updateTrip(t.copyWith(name: 'Updated'));
-
-      final read = await tripRepo.getTripById(t.id);
-      expect(read?.name, equals('Updated'));
     });
 
     test('deleteTrip removes the trip', () async {

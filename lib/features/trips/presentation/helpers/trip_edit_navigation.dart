@@ -1,12 +1,9 @@
-import 'package:flutter/widgets.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 
-/// A section of the trip edit form that it can open at (#2880), named in
-/// the URL's `section` query parameter.
+/// The card a trip page opened unlocked opens at (#2880, issue #4527),
+/// named in the URL's `section` query parameter.
 enum TripEditSection {
   planning,
 
@@ -52,40 +49,4 @@ TripNoteDay? tripNoteDayFromQuery(Map<String, String> query) {
   final dayNumber = int.parse(number[0]!);
   if (dayNumber < 1) return null;
   return TripNoteDay(date: date, dayNumber: dayNumber);
-}
-
-/// Opens trip [tripId]'s edit form, at [section] when one is given, or at
-/// the note of [noteDay] (in the notes section) when that is.
-///
-/// A trip shown [embedded] in the master-detail pane edits in that pane, the
-/// way the pane's own edit button does; anywhere else the edit page is pushed.
-void openTripEdit(
-  BuildContext context,
-  String tripId, {
-  required bool embedded,
-  TripEditSection? section,
-  TripNoteDay? noteDay,
-}) {
-  final opened = noteDay == null ? section : TripEditSection.notes;
-  final sectionQuery = {
-    if (opened != null) 'section': opened.name,
-    if (noteDay != null) ...tripNoteDayQuery(noteDay),
-  };
-  if (embedded) {
-    final path = GoRouterState.of(context).uri.path;
-    context.goInPlace(
-      Uri(
-        path: path,
-        queryParameters: {'selected': tripId, 'mode': 'edit', ...sectionQuery},
-      ).toString(),
-    );
-  } else {
-    context.push(
-      Uri(
-        path: '/trips/$tripId/edit',
-        // An empty map would leave a bare '?' on the location.
-        queryParameters: sectionQuery.isEmpty ? null : sectionQuery,
-      ).toString(),
-    );
-  }
 }

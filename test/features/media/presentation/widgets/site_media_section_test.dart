@@ -13,6 +13,7 @@ import 'package:submersion/features/media/data/services/media_unlink_service.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_media_section.dart';
@@ -107,6 +108,11 @@ void main() {
     );
     return mediaTestApp(
       overrides: [
+        // Tiles wait for the learned shapes (issue #4741); none, and no
+        // database behind them.
+        mediaAspectCacheRepositoryProvider.overrideWithValue(
+          FakeAspectCacheRepository(),
+        ),
         mediaForSiteProvider('site-1').overrideWith((ref) {
           if (loadAttachments != null) return loadAttachments(ref);
           if (pendingAttachments != null) return pendingAttachments;

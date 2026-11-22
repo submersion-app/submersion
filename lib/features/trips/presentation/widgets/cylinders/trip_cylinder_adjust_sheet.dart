@@ -17,12 +17,14 @@ Future<void> showTripCylinderAdjustSheet(
   BuildContext context, {
   required TripCylinder cylinder,
   TripCylinderEvent? editing,
+  Future<void> Function(TripCylinderEvent event)? hold,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => _AdjustSheet(cylinder: cylinder, editing: editing),
+    builder: (_) =>
+        _AdjustSheet(cylinder: cylinder, editing: editing, hold: hold),
   );
 }
 
@@ -30,7 +32,15 @@ class _AdjustSheet extends ConsumerStatefulWidget {
   final TripCylinder cylinder;
   final TripCylinderEvent? editing;
 
-  const _AdjustSheet({required this.cylinder, required this.editing});
+  /// Where the adjustment goes instead of the repository: a trip's sitting
+  /// (issue #4527).
+  final Future<void> Function(TripCylinderEvent event)? hold;
+
+  const _AdjustSheet({
+    required this.cylinder,
+    required this.editing,
+    this.hold,
+  });
 
   @override
   ConsumerState<_AdjustSheet> createState() => _AdjustSheetState();
@@ -116,8 +126,9 @@ class _AdjustSheetState extends ConsumerState<_AdjustSheet> {
       final bar = pressure == null ? null : units.pressureToBar(pressure);
       final hePercent = o2 == null ? null : (he ?? 0.0);
       final e = widget.editing;
+      final hold = widget.hold;
       if (e != null) {
-        await repo.updateEvent(
+        await (hold ?? repo.updateEvent)(
           e.copyWith(
             occurredAt: _when,
             pressure: bar,
@@ -128,7 +139,7 @@ class _AdjustSheetState extends ConsumerState<_AdjustSheet> {
         );
       } else {
         final now = DateTime.now().toUtc();
-        await repo.createEvent(
+        await (hold ?? repo.createEvent)(
           TripCylinderEvent(
             id: '',
             tripCylinderId: widget.cylinder.id,

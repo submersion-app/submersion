@@ -88,10 +88,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: ServiceClocksCard(
-              equipmentId: 'rb1',
-              equipmentType: EquipmentType.rebreather,
-            ),
+            child: ServiceClocksCard(equipmentId: 'rb1'),
           ),
         ),
       ),

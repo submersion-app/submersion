@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_new_sitting.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/icon_detail_row.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
@@ -30,6 +32,7 @@ import 'package:submersion/features/certifications/presentation/editing/certific
 import 'package:submersion/features/certifications/presentation/editing/certification_currency_sitting.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_edit_cards.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -41,23 +44,19 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'certification_detail_page_creating.dart';
 part 'certification_detail_page_editing.dart';
+part 'certification_detail_page_sections.dart';
 part 'certification_detail_page_photos.dart';
 
-/// A certification's page. Behind phase 3's switch ([unlockEditing]) it
-/// opens locked and edits in place (issue #4527): its cards are held in one
-/// sitting and written by one Save.
+/// A certification's page. It opens locked and edits in place (issue #4527):
+/// its cards are held in one sitting and written by one Save.
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
   final bool embedded;
   final VoidCallback? onDeleted;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
@@ -66,15 +65,37 @@ class CertificationDetailPage extends ConsumerStatefulWidget {
   /// edit returns to the certification in view.
   final VoidCallback? onSittingEnded;
 
+  /// A new certification (issue #4527, phase 3, plan 11).
+  final bool newCertification;
+
+  /// The pane's own: given the new certification's id once created.
+  final void Function(String certificationId)? onCreated;
+
+  /// The pane's own: told when a new certification's page leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const CertificationDetailPage({
     super.key,
     required this.certificationId,
     this.embedded = false,
     this.onDeleted,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newCertification = false,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new certification's page.
+  const CertificationDetailPage.newCertification({
+    super.key,
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newCertification = true,
+       certificationId = '',
+       onDeleted = null,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<CertificationDetailPage> createState() =>
@@ -86,7 +107,9 @@ class _CertificationDetailPageState
     with
         RecordEditHost<CertificationDetailPage, Certification>,
         RecordOpenUnlocked<CertificationDetailPage, Certification>,
-        _CertificationDetailPageEditing {
+        _CertificationDetailPageEditing,
+        RecordCreating<CertificationDetailPage, Certification>,
+        _CertificationDetailPageCreating {
   bool _hasRedirected = false;
 
   @override
@@ -97,6 +120,16 @@ class _CertificationDetailPageState
 
   @override
   Widget build(BuildContext context) {
+    if (isCreating) {
+      final seed = newRecordSeed;
+      return newRecordWaiting(context) ??
+          _CertificationDetailContent(
+            certification: shownRecord(seed!),
+            stored: seed,
+            embedded: widget.embedded,
+            host: this,
+          );
+    }
     // Desktop redirect: a root visit (deep link, sidebar) moves into the
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it
@@ -123,9 +156,7 @@ class _CertificationDetailPageState
     final certificationAsync = ref.watch(
       certificationByIdProvider(widget.certificationId),
     );
-    if (hostsEditing) {
-      followStored(certificationByIdProvider(widget.certificationId));
-    }
+    followStored(certificationByIdProvider(widget.certificationId));
 
     return certificationAsync.when(
       data: (certification) {
@@ -142,14 +173,6 @@ class _CertificationDetailPageState
             body: Center(
               child: Text(context.l10n.certifications_detail_notFound),
             ),
-          );
-        }
-        if (!hostsEditing) {
-          return _CertificationDetailContent(
-            certification: certification,
-            stored: certification,
-            embedded: widget.embedded,
-            onDeleted: widget.onDeleted,
           );
         }
         openUnlockedOnce(certification);
@@ -196,25 +219,26 @@ class _CertificationDetailContent extends ConsumerWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
 
-  /// The page, where it edits in place.
-  final _CertificationDetailPageState? host;
+  /// The page, which edits in place.
+  final _CertificationDetailPageState host;
 
   const _CertificationDetailContent({
     required this.certification,
     required this.stored,
+    required this.host,
     this.embedded = false,
     this.onDeleted,
-    this.host,
   });
 
-  bool get _editing => host != null;
+  /// A certification not yet created: what it cannot have yet is left out.
+  bool get _creating => host.isCreating;
 
-  /// [child] as the card [id] where the page edits in place.
+  /// [child] as the card [id].
   Widget _framed(CertificationCardId id, Widget child) =>
-      host?._framed(id, child) ?? child;
+      host._framed(id, child);
 
   /// Whether the empty card [id] is shown in the sitting.
-  bool _shows(CertificationCardId id) => host?._showsWhileEmpty(id) ?? false;
+  bool _shows(CertificationCardId id) => host._showsWhileEmpty(id);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -227,11 +251,11 @@ class _CertificationDetailContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Status banner
-          if (_editing)
-            _calculated(_buildStatusBanner(context, units))
+          if (_creating)
+            const SizedBox.shrink()
           else
-            _buildStatusBanner(context, units),
-          const SizedBox(height: 24),
+            _calculated(_buildStatusBanner(context, units)),
+          if (!_creating) const SizedBox(height: 24),
 
           // Header with agency logo
           _buildHeader(context),
@@ -249,17 +273,16 @@ class _CertificationDetailContent extends ConsumerWidget {
           const SizedBox(height: 16),
           // Refresher and renewal currency (issue #2267). Carries its own
           // bottom gap, so an absent section leaves no extra space.
-          if (_editing)
+          if (_creating)
+            const SizedBox.shrink()
+          else
             _framed(
               CertificationCardId.currency,
               CertificationCurrencySection(
                 certification: certification,
-                readOnly: true,
-                shown: this.host?.maybeEditController?.session,
+                shown: host.maybeEditController?.session,
               ),
-            )
-          else
-            CertificationCurrencySection(certification: certification),
+            ),
 
           // Instructor info
           if (certification.instructorName != null ||
@@ -274,7 +297,7 @@ class _CertificationDetailContent extends ConsumerWidget {
           ],
 
           // Training course
-          _buildCourseSection(context, ref),
+          if (!_creating) _buildCourseSection(context, ref),
 
           // Card photos
           if (certification.hasPhotos ||
@@ -307,26 +330,16 @@ class _CertificationDetailContent extends ConsumerWidget {
       ),
     );
 
-    final host = this.host;
     if (embedded) {
-      final header = _buildEmbeddedHeader(context, ref);
-      if (host != null) {
-        return host.editPane(
-          header: RecordPaneRow(
-            locked: header,
-            unlocked: host.isSittingOpen
-                ? host.editingPaneRow(stored, menu: _menu(context, ref))
-                : null,
-          ),
-          shown: certification,
-          content: body,
-        );
-      }
-      return Column(
-        children: [
-          header,
-          Expanded(child: body),
-        ],
+      return host.editPane(
+        header: RecordPaneRow(
+          locked: _buildEmbeddedHeader(context, ref),
+          unlocked: host.isSittingOpen
+              ? host.editingPaneRow(stored, menu: _menu(context, ref))
+              : null,
+        ),
+        shown: certification,
+        content: body,
       );
     }
 
@@ -338,67 +351,16 @@ class _CertificationDetailContent extends ConsumerWidget {
           catalog: context.certificationCatalog,
         ),
       ),
-      actions: [
-        if (host != null) host.lockButton(certification),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.certifications_detail_tooltip_edit,
-          // Where the page edits in place, Edit unlocks it as the lock does.
-          onPressed: host != null
-              ? () => host.editController.unlock(certification)
-              : () => context.push('/certifications/${certification.id}/edit'),
-        ),
-        _menu(context, ref),
-      ],
+      actions: [host.lockButton(certification), _menu(context, ref)],
     );
-    if (host != null) {
-      return host.editScaffold(
-        record: stored,
-        shown: certification,
-        lockedBar: bar,
-        unlockedActions: [_menu(context, ref)],
-        content: body,
-      );
-    }
-    return Scaffold(appBar: bar, body: body);
+    return host.editScaffold(
+      record: stored,
+      shown: certification,
+      lockedBar: bar,
+      unlockedActions: [_menu(context, ref)],
+      content: body,
+    );
   }
-
-  /// The page's menu: History and Delete.
-  Widget _menu(BuildContext context, WidgetRef ref, {bool compact = false}) =>
-      PopupMenuButton<String>(
-        icon: compact ? const Icon(Icons.more_vert, size: 20) : null,
-        tooltip: context.l10n.certifications_detail_tooltip_moreOptions,
-        onSelected: (value) {
-          if (value == 'delete') _requestDelete(context, ref);
-        },
-        itemBuilder: (context) => [
-          changeLogHistoryMenuItem(
-            context,
-            rootTable: 'certifications',
-            rootId: certification.id,
-          ),
-          // Delete is a whole-record operation, under the lock.
-          ...recordOperationMenuCaption<String>(context, host?.editController),
-          PopupMenuItem(
-            value: 'delete',
-            enabled: recordOperationsAvailable(host?.editController),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.delete,
-                  color: Colors.red,
-                  size: compact ? 20 : null,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.certifications_detail_action_delete,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -463,32 +425,15 @@ class _CertificationDetailContent extends ConsumerWidget {
               ],
             ),
           ),
-          if (host != null) host!.lockButton(certification, compact: true),
-          IconButton(
-            icon: const Icon(Icons.edit, size: 20),
-            tooltip: context.l10n.certifications_detail_tooltip_editShort,
-            onPressed: host != null
-                ? () => host!.editController.unlock(certification)
-                : () {
-                    final state = GoRouterState.of(context);
-                    context.go(
-                      '${state.uri.path}?selected=${certification.id}&mode=edit',
-                    );
-                  },
-          ),
+          host.lockButton(certification, compact: true),
           _menu(context, ref, compact: true),
         ],
       ),
     );
   }
 
-  /// Delete, through the sitting where the page edits in place.
+  /// Delete, through the sitting.
   void _requestDelete(BuildContext context, WidgetRef ref) {
-    final host = this.host;
-    if (host == null) {
-      _handleDelete(context, ref);
-      return;
-    }
     recordOperationRunnerOf(
       host.editController,
       record: 'certification ${certification.id}',
@@ -672,7 +617,6 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_details,
-                editing: _editing,
               ),
               const SizedBox(height: 12),
               // Only shown when the stored name says something the agency and
@@ -750,7 +694,6 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_dates,
-                editing: _editing,
               ),
               const SizedBox(height: 12),
               if (certification.issueDate != null)
@@ -809,7 +752,6 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_instructor,
-                editing: _editing,
               ),
               const SizedBox(height: 12),
               if (displayName != null)
@@ -857,97 +799,6 @@ class _CertificationDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildCourseSection(BuildContext context, WidgetRef ref) {
-    final courseAsync = ref.watch(
-      courseForCertificationProvider(certification.id),
-    );
-
-    return courseAsync.when(
-      data: (course) {
-        if (course == null) {
-          return const SizedBox.shrink();
-        }
-
-        final colorScheme = Theme.of(context).colorScheme;
-
-        return Column(
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: DetailRowGroup(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context
-                            .l10n
-                            .certifications_detail_sectionTitle_trainingCourse,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: course.isCompleted
-                                ? Colors.green.withValues(alpha: 0.15)
-                                : colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            course.isCompleted
-                                ? Icons.check_circle_outline
-                                : Icons.school_outlined,
-                            color: course.isCompleted
-                                ? Colors.green
-                                : colorScheme.onPrimaryContainer,
-                            size: 20,
-                          ),
-                        ),
-                        title: Text(
-                          course.name,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        subtitle: Text(
-                          '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          if (embedded) {
-                            context.go('/courses?selected=${course.id}');
-                          } else {
-                            context.push('/courses/${course.id}');
-                          }
-                        },
-                      ),
-                      if (course.instructorDisplay.isNotEmpty) ...[
-                        const Divider(),
-                        IconDetailRow(
-                          icon: Icons.person,
-                          label: 'Instructor',
-                          value: course.instructorDisplay,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (error, stack) => const SizedBox.shrink(),
-    );
-  }
-
   Widget _buildNotesSection(BuildContext context) {
     return Card(
       child: Padding(
@@ -958,7 +809,6 @@ class _CertificationDetailContent extends ConsumerWidget {
             _sectionTitle(
               context,
               context.l10n.certifications_detail_sectionTitle_notes,
-              editing: _editing,
             ),
             const SizedBox(height: 12),
             MarkdownNotesView(certification.notes),

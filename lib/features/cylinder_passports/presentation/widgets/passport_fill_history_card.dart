@@ -12,16 +12,32 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/cylinder_passports/presentation/widgets/tied_fill_dialogs.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 const _log = LoggerService('passportFillHistoryCard');
 
 /// Every fill, newest first, with the count since the last hydro
 /// (spec section 8, Fill history card).
 class PassportFillHistoryCard extends ConsumerWidget {
-  const PassportFillHistoryCard({super.key, required this.equipmentId});
+  const PassportFillHistoryCard({
+    super.key,
+    required this.equipmentId,
+    this.editing,
+  });
 
   final String equipmentId;
+
+  /// The open card's sitting (issue #4527, phase 3): edits and deletes are held
+  /// there until Save, today's questions asked as they are made. With no
+  /// sitting given, the fills read only; during a sitting every view shows the
+  /// sitting's fills.
+  final EditSession<EquipmentItem>? editing;
 
   Future<void> _confirmDelete(
     BuildContext context,
@@ -40,6 +56,10 @@ class PassportFillHistoryCard extends ConsumerWidget {
       if (tied != null) {
         final both = await askDeleteTiedFill(context);
         if (both == null) return;
+        if (editing case final session?) {
+          holdDeletedFill(session, fill, tiedToo: both);
+          return;
+        }
         await ref.read(twinFillServiceProvider).delete(fill, tiedToo: both);
         return;
       }
@@ -76,9 +96,12 @@ class PassportFillHistoryCard extends ConsumerWidget {
         ],
       ),
     );
-    if (ok == true) {
-      await ref.read(cylinderFillRepositoryProvider).delete(fill.id);
+    if (ok != true) return;
+    if (editing case final session?) {
+      holdDeletedFill(session, fill);
+      return;
     }
+    await ref.read(cylinderFillRepositoryProvider).delete(fill.id);
   }
 
   /// "Filled with `partner`" for a fill whose twin set fill's other fill is
@@ -94,21 +117,46 @@ class PassportFillHistoryCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _edit(BuildContext context, CylinderFill fill) =>
+  Future<void> _edit(BuildContext context, WidgetRef ref, CylinderFill fill) =>
       showLogFillSheet(
         context,
         passportId: fill.passportId,
         equipmentId: equipmentId,
         editing: fill,
+        onHold: switch (editing) {
+          final session? =>
+            (edited, {twinPartnerId, toTied = false}) =>
+                holdEditedFill(session, edited, toTied: toTied),
+          null => null,
+        },
       );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
+    final session = editing ?? scope?.session;
+    final mayAct = scope == null || editing != null;
+    if (session == null) return _build(context, ref, null, mayAct);
+    return ListenableBuilder(
+      listenable: gearItemFillsList.changes(session),
+      builder: (context, _) => _build(context, ref, session, mayAct),
+    );
+  }
+
+  Widget _build(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<EquipmentItem>? session,
+    bool mayAct,
+  ) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
+    final held = session == null ? null : gearItemFillsList.current(session);
     final fills =
+        held ??
         ref.watch(fillsForEquipmentProvider(equipmentId)).value ??
         const <CylinderFill>[];
+    final canAct = mayAct && (editing == null || held != null);
     final clocks = ref.watch(serviceClockStatusesProvider(equipmentId)).value;
     final records =
         ref.watch(serviceRecordsForEquipmentProvider(equipmentId)).value ??
@@ -134,9 +182,16 @@ class PassportFillHistoryCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.passport_history_title,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.passport_history_title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                RecordCardPencil(cardTitle: l10n.passport_history_title),
+              ],
             ),
             if (sinceHydro != null)
               Text(l10n.passport_history_sinceHydro(sinceHydro)),
@@ -145,10 +200,18 @@ class PassportFillHistoryCard extends ConsumerWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 // A fill the diver typed in opens for editing (issue #4242).
-                onTap: isEditableFill(fill, tripCopyIds: tripCopies)
-                    ? () => _edit(context, fill)
+                onTap: canAct && isEditableFill(fill, tripCopyIds: tripCopies)
+                    ? () => _edit(context, ref, fill)
                     : null,
-                title: Text(fill.gasMix.name),
+                title: session != null && isHeldFill(session, fill)
+                    ? Row(
+                        children: [
+                          Flexible(child: Text(fill.gasMix.name)),
+                          const SizedBox(width: 6),
+                          const RecordChangedDot(),
+                        ],
+                      )
+                    : Text(fill.gasMix.name),
                 subtitle: Text(
                   [
                     units.formatDate(fill.filledAt),
@@ -162,17 +225,18 @@ class PassportFillHistoryCard extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     FillSourceBadge(fill: fill),
-                    if (isEditableFill(fill, tripCopyIds: tripCopies))
+                    if (canAct && isEditableFill(fill, tripCopyIds: tripCopies))
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
                         tooltip: l10n.passport_history_edit,
-                        onPressed: () => _edit(context, fill),
+                        onPressed: () => _edit(context, ref, fill),
                       ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      tooltip: l10n.passport_history_delete,
-                      onPressed: () => _confirmDelete(context, ref, fill),
-                    ),
+                    if (canAct)
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        tooltip: l10n.passport_history_delete,
+                        onPressed: () => _confirmDelete(context, ref, fill),
+                      ),
                   ],
                 ),
               ),

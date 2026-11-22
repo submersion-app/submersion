@@ -221,6 +221,18 @@ void main() {
     expect(await operations(), hasLength(1));
   });
 
+  test("changing the dive brings the new dive's site, and the anchor that "
+      "sat on the old site's pin (#4851)", () async {
+    final session = EditSession(await route(r1))..set(navTrackDiveField, 'd2');
+
+    await save(r1, session);
+
+    final moved = await route(r1);
+    expect(moved.diveId, 'd2');
+    expect(moved.siteId, 's2');
+    expect(moved.anchor, s2Pin);
+  });
+
   test(
     "a dive another device moved meanwhile goes to the diver's choice",
     () async {

@@ -11,7 +11,11 @@ abstract class VisionEngine {
   /// The engine name a model pack's files are labelled with.
   static const String coreMlEngine = 'coreml';
 
-  /// [coreMlEngine] on iPhone, iPad and Mac; null where there is no engine.
+  /// ONNX Runtime's, on Android, Windows and Linux.
+  static const String onnxEngine = 'onnx';
+
+  /// [coreMlEngine] on iPhone, iPad and Mac, [onnxEngine] on Android,
+  /// Windows and Linux; null where there is no engine.
   String? get engineName;
 
   Future<VisionAvailability> availability();
@@ -50,6 +54,18 @@ abstract class VisionEngine {
 
   /// Marks [directory] as not to be included in device backups.
   Future<void> excludeFromBackup(String directory);
+}
+
+/// An engine that can fetch a hardware engine for this device's GPU or NPU
+/// (Windows ML on Windows), as part of the pack's download and never at
+/// another time, so the confirmation can say so.
+abstract interface class HardwareEngineSource {
+  /// Whether the pack's download would also fetch an engine.
+  Future<bool> offersEngineToFetch();
+
+  /// Fetches it; true when one became ready. Never fails the download: the
+  /// models still run on DirectML or the processor without it.
+  Future<bool> fetchEngine();
 }
 
 /// A failure the native engine reported.

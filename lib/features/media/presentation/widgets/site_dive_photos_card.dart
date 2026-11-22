@@ -1,22 +1,29 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/helpers/media_layout_aspect.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_block.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_row_packer.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Smallest side of a strip tile; the tiles that fit grow to fill the row.
-const double _kStripTileMinSize = 88;
-const double _kTileGap = 8;
+/// The height the card's rows aim for (issue #4741).
+const double kSiteDivePhotoRowHeight = 100;
+
+/// The space between the card's tiles, across and down (issue #4741).
+const double kSiteDivePhotoGap = 4;
 
 /// Site Details card showing photos from the dives logged at the site
-/// (issue #4502): one row of the newest, and the full grid on "Show all".
+/// (issue #4502): one justified row of the newest, flush with the card, and
+/// every photo in justified rows on "Show all" (issue #4741). Each photo
+/// keeps its shape.
 ///
 /// The page builds it only when [count] is non-zero. The strip reads
 /// [recentMediaFromDivesAtSiteProvider], a capped query, so opening the page
@@ -62,6 +69,14 @@ class _SiteDivePhotosCardState extends ConsumerState<SiteDivePhotosCard> {
     final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    // The first layout waits for the learned shapes, as the library's does,
+    // so a photo stored sideways never lays out wide and then jumps. A cache
+    // that cannot be read loads as empty, so this never waits for good.
+    final learned = ref.watch(mediaLearnedAspectsProvider).value;
+    final async = _expanded
+        ? ref.watch(flatMediaFromDivesAtSiteProvider(widget.siteId))
+        : ref.watch(recentMediaFromDivesAtSiteProvider(widget.siteId));
+    final photos = learned == null ? null : async.value;
 
     return Card(
       child: Padding(
@@ -69,14 +84,15 @@ class _SiteDivePhotosCardState extends ConsumerState<SiteDivePhotosCard> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
-            final fit = math.max(
-              1,
-              (width + _kTileGap) ~/ (_kStripTileMinSize + _kTileGap),
-            );
-            // The strip shows at most the query's cap however wide the card,
-            // so anything past either limit needs Show all to be reached.
+            final ratios = photos == null
+                ? null
+                : mediaLayoutRatios(photos, learned!);
+            // The strip shows its first row of what it read, and reads at
+            // most the query's cap: anything past either needs Show all.
             final hasMore =
-                widget.count > math.min(fit, kSiteDivePhotoStripLimit);
+                !_expanded &&
+                ratios != null &&
+                widget.count > _firstRowCount(ratios, width);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -108,20 +124,7 @@ class _SiteDivePhotosCardState extends ConsumerState<SiteDivePhotosCard> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (_expanded)
-                  _AllPhotosGrid(
-                    siteId: widget.siteId,
-                    settings: settings,
-                    onOpen: (item) => _open(context, item),
-                  )
-                else
-                  _RecentPhotosStrip(
-                    siteId: widget.siteId,
-                    settings: settings,
-                    width: width,
-                    fit: fit,
-                    onOpen: (item) => _open(context, item),
-                  ),
+                _body(context, async, photos, ratios, settings),
               ],
             );
           },
@@ -129,96 +132,55 @@ class _SiteDivePhotosCardState extends ConsumerState<SiteDivePhotosCard> {
       ),
     );
   }
-}
 
-/// One row of the newest photos: [fit] square tiles sized to fill [width].
-class _RecentPhotosStrip extends ConsumerWidget {
-  final String siteId;
-  final UnitFormatterSettings settings;
-  final double width;
-  final int fit;
-  final ValueChanged<MediaItem> onOpen;
+  /// How many of [ratios] the strip's one row holds across [width].
+  static int _firstRowCount(List<double> ratios, double width) {
+    if (ratios.isEmpty || width <= 0) return 0;
+    return packJustifiedRows(
+      ratios: ratios,
+      paneWidth: width,
+      targetHeight: kSiteDivePhotoRowHeight,
+      gap: kSiteDivePhotoGap,
+      minTileWidth: kMediaThumbnailMinTileWidth,
+    ).first.count;
+  }
 
-  const _RecentPhotosStrip({
-    required this.siteId,
-    required this.settings,
-    required this.width,
-    required this.fit,
-    required this.onOpen,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tileSize = (width - _kTileGap * (fit - 1)) / fit;
-    return _AsyncPhotos(
-      async: ref.watch(recentMediaFromDivesAtSiteProvider(siteId)),
-      loadingHeight: tileSize,
-      builder: (photos) => Row(
-        children: [
-          for (final (i, item) in photos.take(fit).indexed) ...[
-            if (i > 0) const SizedBox(width: _kTileGap),
-            SizedBox.square(
-              dimension: tileSize,
-              child: _PhotoTile(item: item, settings: settings, onOpen: onOpen),
+  Widget _body(
+    BuildContext context,
+    AsyncValue<List<MediaItem>> async,
+    List<MediaItem>? photos,
+    List<double>? ratios,
+    UnitFormatterSettings settings,
+  ) {
+    if (photos != null && ratios != null) {
+      return JustifiedMediaBlock(
+        ratios: ratios,
+        rowHeight: kSiteDivePhotoRowHeight,
+        gap: kSiteDivePhotoGap,
+        maxRows: _expanded ? null : 1,
+        cellBuilder: (context, cell) {
+          final item = photos[cell.index];
+          return GestureDetector(
+            key: ValueKey(item.id),
+            onTap: () => _open(context, item),
+            child: MediaThumbnailTile(
+              item: item,
+              settings: settings,
+              isSelectionMode: false,
+              isSelected: false,
+              semanticsLabel:
+                  context.l10n.media_siteMediaSection_divePhotoLabel,
+              targetSize: mediaThumbnailDecodeTarget(cell.size),
+              // Teaches the library a photo's displayed shape, which lays
+              // this card out again too.
+              onImageSize: (size) => ref
+                  .read(mediaLearnedAspectsProvider.notifier)
+                  .report(item, size),
             ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Every photo from the site's dives, chronological, as the old Site Media
-/// group showed them. Mounted only once the card is expanded.
-class _AllPhotosGrid extends ConsumerWidget {
-  final String siteId;
-  final UnitFormatterSettings settings;
-  final ValueChanged<MediaItem> onOpen;
-
-  const _AllPhotosGrid({
-    required this.siteId,
-    required this.settings,
-    required this.onOpen,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return _AsyncPhotos(
-      async: ref.watch(flatMediaFromDivesAtSiteProvider(siteId)),
-      loadingHeight: 100,
-      builder: (photos) => GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          crossAxisSpacing: _kTileGap,
-          mainAxisSpacing: _kTileGap,
-        ),
-        itemCount: photos.length,
-        itemBuilder: (context, index) =>
-            _PhotoTile(item: photos[index], settings: settings, onOpen: onOpen),
-      ),
-    );
-  }
-}
-
-/// Loading and error handling shared by the strip and the grid. A reload
-/// that holds its rows keeps showing them.
-class _AsyncPhotos extends StatelessWidget {
-  final AsyncValue<List<MediaItem>> async;
-  final double loadingHeight;
-  final Widget Function(List<MediaItem> photos) builder;
-
-  const _AsyncPhotos({
-    required this.async,
-    required this.loadingHeight,
-    required this.builder,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final photos = async.value;
-    if (photos != null) return builder(photos);
+          );
+        },
+      );
+    }
     if (async.hasError) {
       return Text(
         context.l10n.media_diveMediaSection_errorLoading,
@@ -227,35 +189,9 @@ class _AsyncPhotos extends StatelessWidget {
         ),
       );
     }
-    return SizedBox(
-      height: loadingHeight,
-      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-    );
-  }
-}
-
-class _PhotoTile extends StatelessWidget {
-  final MediaItem item;
-  final UnitFormatterSettings settings;
-  final ValueChanged<MediaItem> onOpen;
-
-  const _PhotoTile({
-    required this.item,
-    required this.settings,
-    required this.onOpen,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onOpen(item),
-      child: MediaThumbnailTile(
-        item: item,
-        settings: settings,
-        isSelectionMode: false,
-        isSelected: false,
-        semanticsLabel: context.l10n.media_siteMediaSection_divePhotoLabel,
-      ),
+    return const SizedBox(
+      height: kSiteDivePhotoRowHeight,
+      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
     );
   }
 }

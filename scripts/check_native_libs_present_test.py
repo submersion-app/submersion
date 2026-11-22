@@ -48,10 +48,22 @@ def _open_zip(names):
     return zipfile.ZipFile(io.BytesIO(_zip_bytes(names)))
 
 
+# ONNX Runtime, the marine life engine on Android, ships for the 64-bit ABIs
+# only (piece 3 of marine life identification).
+ONNX = "libonnxruntime.so"
+
+
 def _apk(prefix="lib", libs=None, abis=ABIS):
-    """Entry names for an archive bundling ``libs`` under each ABI."""
-    libs = libs if libs is not None else (REQUIRED, "libflutter.so")
-    return [f"{prefix}/{abi}/{lib}" for abi in abis for lib in libs]
+    """Entry names for an archive bundling ``libs`` under each ABI; by
+    default every required library, ONNX Runtime on the 64-bit ABIs only."""
+    if libs is not None:
+        return [f"{prefix}/{abi}/{lib}" for abi in abis for lib in libs]
+    return [
+        f"{prefix}/{abi}/{lib}"
+        for abi in abis
+        for lib in (REQUIRED, "libflutter.so")
+        + ((ONNX,) if abi in guard.SIXTY_FOUR_BIT_ABIS else ())
+    ]
 
 
 class AbiToLibsTests(unittest.TestCase):
@@ -64,7 +76,7 @@ class AbiToLibsTests(unittest.TestCase):
         self.assertEqual(m, {"arm64-v8a": {REQUIRED}})
 
     def test_groups_multiple_libs_per_abi(self):
-        m = guard.abi_to_libs(_open_zip(_apk()))
+        m = guard.abi_to_libs(_open_zip(_apk(libs=(REQUIRED, "libflutter.so"))))
         self.assertEqual(set(m), set(ABIS))
         for abi in ABIS:
             self.assertEqual(m[abi], {REQUIRED, "libflutter.so"})
@@ -116,6 +128,24 @@ class CheckArchiveTests(unittest.TestCase):
         self.assertTrue(
             any("armeabi-v7a" in line and "missing" in line for line in lines)
         )
+
+    def test_onnx_runtime_missing_from_arm64_fails(self):
+        names = [n for n in _apk() if not n.endswith(f"arm64-v8a/{ONNX}")]
+        ok, lines = self._run(names)
+        self.assertFalse(ok)
+        self.assertTrue(
+            any("arm64-v8a" in line and f"missing {ONNX}" in line for line in lines)
+        )
+
+    def test_onnx_runtime_missing_from_x86_64_fails(self):
+        names = [n for n in _apk() if not n.endswith(f"x86_64/{ONNX}")]
+        ok, _ = self._run(names)
+        self.assertFalse(ok)
+
+    def test_32_bit_abi_needs_no_onnx_runtime(self):
+        ok, lines = self._run(_apk())
+        self.assertTrue(ok)
+        self.assertFalse(any(f"armeabi-v7a: missing" in line for line in lines))
 
     def test_aab_layout_passes(self):
         ok, lines = self._run(_apk(prefix="base/lib"))

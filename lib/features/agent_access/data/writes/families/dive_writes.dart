@@ -8,6 +8,7 @@ import 'package:submersion/features/agent_access/data/documents/document_dates.d
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_entry_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_link_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_notes_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_rules.dart'
     show foreignSlotLinks;
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -213,6 +214,8 @@ class DiveWrites extends WritableEntry {
         diveTimesProblem(check.values, check.document) ??
         visibilityProblem(check.values, check.document);
     if (entered != null) return entered;
+    final notes = await annotationLinksProblem(_annotations, check);
+    if (notes != null) return notes;
     if (check.values.containsKey('buddy_roles')) {
       if (check.relations['buddies'] case final delta? when !delta.isEmpty) {
         return const PlanBlock(

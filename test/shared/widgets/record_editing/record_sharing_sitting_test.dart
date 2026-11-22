@@ -26,9 +26,14 @@ class _FakeAdapter extends RecordSharingAdapter<Set<String>> {
 
   /// Rows stored beside what [read] reports, which an owner's save clears.
   bool stale = false;
+  bool failNeedsRewrite = false;
+  bool failWrite = false;
 
   @override
-  Future<bool> needsRewrite(String recordId) async => stale;
+  Future<bool> needsRewrite(String recordId) async {
+    if (failNeedsRewrite) throw StateError('could not check the rows');
+    return stale;
+  }
 
   @override
   Future<Set<String>> read(String recordId) async {
@@ -44,6 +49,7 @@ class _FakeAdapter extends RecordSharingAdapter<Set<String>> {
     required String? actingDiverId,
   }) async {
     writes.add((id: recordId, sharing: sharing, actingDiverId: actingDiverId));
+    if (failWrite) throw StateError('could not write');
     if (refuse) return false;
     current = sharing;
     return true;
@@ -164,6 +170,69 @@ void main() {
     expect(adapter.writes.single.sharing, {'sam'});
   });
 
+  // The rewrite is upkeep, not the diver's choice: a sharing that changed
+  // after the sitting read it (another device's, synced in) is what it
+  // rewrites, never the older value it read.
+  test('a sharing changed underneath is rewritten as stored at Save', () async {
+    adapter.stale = true;
+    await _sharing.load(session, adapter, actingDiverId: 'me');
+    adapter.current = {'alex'};
+
+    await session.runHeldWrites();
+
+    expect(adapter.writes.single.sharing, {'alex'});
+  });
+
+  test('rows cleared underneath are not rewritten', () async {
+    adapter.stale = true;
+    await _sharing.load(session, adapter, actingDiverId: 'me');
+    adapter.stale = false;
+
+    await session.runHeldWrites();
+
+    expect(adapter.writes, isEmpty);
+  });
+
+  // Whether rows need clearing only decides upkeep: a check that fails
+  // leaves the sharing as read, changeable, with no rewrite held.
+  test('an upkeep check that fails leaves the sharing read', () async {
+    adapter.failNeedsRewrite = true;
+
+    await _sharing.load(session, adapter, actingDiverId: 'me');
+
+    expect(_sharing.unread(session), isFalse);
+    expect(_sharing.loaded(session), {'sam'});
+    await session.runHeldWrites();
+    expect(adapter.writes, isEmpty);
+  });
+
+  // Upkeep the diver never asked for must not cost them their edit: a
+  // check or a write of it that fails at Save is left for the next Save.
+  test('an upkeep that fails at Save fails nothing', () async {
+    adapter.stale = true;
+    await _sharing.load(session, adapter, actingDiverId: 'me');
+    adapter.failNeedsRewrite = true;
+
+    await session.runHeldWrites();
+
+    adapter
+      ..failNeedsRewrite = false
+      ..failWrite = true;
+    await session.runHeldWrites();
+    expect(adapter.writes, hasLength(1));
+  });
+
+  test(
+    "the diver's own choice that fails to write still fails the Save",
+    () async {
+      await _sharing.load(session, adapter);
+      _sharing.set(session, {'alex'}, actingDiverId: 'me');
+      adapter.failWrite = true;
+
+      await expectLater(session.runHeldWrites(), throwsStateError);
+    },
+  );
+
   test('nothing is held before the read answers', () async {
     final gate = adapter.readGate = Completer<void>();
     final loading = _sharing.load(session, adapter);
@@ -173,5 +242,19 @@ void main() {
     expect(session.isDirty, isFalse);
     gate.complete();
     await loading;
+  });
+  test("a new record's sharing is the seed's, read from nowhere", () async {
+    adapter.failRead = true;
+    final fresh = EditSession(const _Rec('n1', ''), isNew: true);
+    addTearDown(fresh.dispose);
+
+    await _sharing.load(fresh, adapter, newRecordSharing: {'everyone'});
+
+    expect(_sharing.loaded(fresh), {'everyone'});
+    expect(_sharing.unread(fresh), isFalse);
+    expect(fresh.isDirty, isFalse);
+    _sharing.set(fresh, <String>{}, actingDiverId: 'me');
+    expect(fresh.isDirty, isTrue);
+    expect(fresh.changedCardIds, {'header'});
   });
 }

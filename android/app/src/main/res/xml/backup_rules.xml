@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup on Android 11 and earlier (android:fullBackupContent). Everything
+  is backed up as before, except the marine life model pack: it is large (about
+  800 MB), can be downloaded again, and would push the app over Auto Backup's
+  25 MB limit, which skips the whole backup. Application support is the app's
+  files directory, so the pack is species_id/pack/ there.
+-->
+<full-backup-content>
+    <exclude domain="file" path="species_id/pack/" />
+</full-backup-content>

@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
@@ -26,6 +27,8 @@ class _MockDCListNotifier extends StateNotifier<AsyncValue<List<DiveCenter>>>
     implements DiveCenterListNotifier {
   _MockDCListNotifier(List<DiveCenter> centers)
     : super(AsyncValue.data(centers));
+
+  _MockDCListNotifier.loading() : super(const AsyncValue.loading());
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -56,6 +59,7 @@ Future<void> _pumpPage(
   WidgetTester tester,
   List<DiveCenter> centers, {
   double width = 600,
+  bool loading = false,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = Size(width, 900);
@@ -76,7 +80,9 @@ Future<void> _pumpPage(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
         diveCenterListNotifierProvider.overrideWith(
-          (ref) => _MockDCListNotifier(centers),
+          (ref) => loading
+              ? _MockDCListNotifier.loading()
+              : _MockDCListNotifier(centers),
         ),
         diveCenterDiveCountProvider.overrideWith((ref, centerId) => 0),
         diveCenterListViewModeProvider.overrideWith(
@@ -304,5 +310,29 @@ void main() {
       findsWidgets,
     );
     expect(find.byIcon(Icons.store), findsNothing);
+  });
+
+  group('Show my location (#4808)', () {
+    testWidgets('sits in the app bar once the map is up', (tester) async {
+      await _pumpPage(tester, [_southWest]);
+
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(MyLocationButton),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('is left out while the centers load and no map is drawn', (
+      tester,
+    ) async {
+      // A fix found now would have no map to move.
+      await _pumpPage(tester, [_southWest], loading: true);
+
+      expect(find.byType(FlutterMap), findsNothing);
+      expect(find.byType(MyLocationButton), findsNothing);
+    });
   });
 }

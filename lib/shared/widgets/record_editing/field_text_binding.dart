@@ -135,6 +135,18 @@ class FieldTextBinding<T, V> {
     controller.replaceTextKeepingCaret(text);
   }
 
+  /// Shows the session's value as [format] gives it now, even when the text
+  /// already reads as that value: for a [format] that has started to give
+  /// another text for the same value, such as a title shown blank once it
+  /// only repeats a name that has since loaded. Not an edit.
+  void reformat() {
+    if (_disposed || _isUnreadable) return;
+    final text = format(session.valueOf(field));
+    if (text == controller.text) return;
+    _lastText = text;
+    controller.replaceTextKeepingCaret(text);
+  }
+
   void _setUnreadable(bool unreadable) {
     if (unreadable == _isUnreadable) return;
     _isUnreadable = unreadable;

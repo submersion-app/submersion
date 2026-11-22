@@ -16,9 +16,6 @@ mixin _NavTrackDetailPageEditing
   String recordIdOf(NavTrack record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   Iterable<EditCard<NavTrack>> get hostEditCards => navTrackEditCards.values;
 
   /// The 3D views' preview of this route, read as the page opens: the
@@ -44,7 +41,7 @@ mixin _NavTrackDetailPageEditing
   /// views to preview: a preview a view left behind goes with it.
   @override
   void onEditChanged() {
-    if (hostsEditing && !isSittingOpen) dropNavTrackPreview(_preview);
+    if (!isSittingOpen) dropNavTrackPreview(_preview);
     super.onEditChanged();
   }
 
@@ -88,29 +85,24 @@ mixin _NavTrackDetailPageEditing
   @override
   List<AddStripEntry> addStripEntries(NavTrack working) => const [];
 
-  /// [child] as the card [id], framed for editing in place while the page
-  /// offers it; as it is otherwise.
-  Widget _framed(NavTrackCardId id, Widget child) => hostsEditing
-      ? RecordCardFrame<NavTrack>(card: navTrackEditCards[id]!, child: child)
-      : child;
+  /// [child] as the card [id], framed for editing in place.
+  Widget _framed(NavTrackCardId id, Widget child) =>
+      RecordCardFrame<NavTrack>(card: navTrackEditCards[id]!, child: child);
 
-  /// The pencil of the card [id], where the page edits in place.
-  Widget? _pencil(NavTrackCardId id) => hostsEditing
-      ? RecordCardPencil(cardTitle: id.localizedDisplayName(context.l10n))
-      : null;
+  /// The pencil of the card [id].
+  Widget _pencil(NavTrackCardId id) =>
+      RecordCardPencil(cardTitle: id.localizedDisplayName(context.l10n));
 
   /// [child], a section the page calculates, faded and labelled
   /// "Calculated" while unlocked.
-  Widget _calculated(Widget child) => hostsEditing
-      ? RecordCardFade<NavTrack>(
-          reason: RecordCardFadeReason.calculated,
-          child: child,
-        )
-      : child;
+  Widget _calculated(Widget child) => RecordCardFade<NavTrack>(
+    reason: RecordCardFadeReason.calculated,
+    child: child,
+  );
 
   /// Whether the record's operations may run now, or why not.
   RecordOperationBlock? get _operationBlock =>
-      recordOperationBlockOf(hostsEditing ? editController : null);
+      recordOperationBlockOf(editController);
 
   /// The menu's whole-record operations, Update from file (an ENC route
   /// only) and Delete, under the caption that says why they are

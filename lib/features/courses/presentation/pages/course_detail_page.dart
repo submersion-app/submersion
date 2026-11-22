@@ -7,12 +7,13 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
+import 'package:submersion/features/courses/presentation/editing/course_new_sitting.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
@@ -43,26 +44,22 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'course_detail_page_creating.dart';
 part 'course_detail_page_editing.dart';
 part 'course_detail_page_sections.dart';
 
-/// A course's page. Behind phase 3's switch ([unlockEditing]) it opens
-/// locked and edits in place (issue #4527): its cards are held in one
-/// sitting and written by one Save.
+/// A course's page. It opens locked and edits in place (issue #4527): its cards
+/// are held in one sitting and written by one Save.
 class CourseDetailPage extends ConsumerStatefulWidget {
   final String courseId;
   final bool embedded;
   final VoidCallback? onDeleted;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
@@ -71,15 +68,37 @@ class CourseDetailPage extends ConsumerStatefulWidget {
   /// edit returns to the course in view.
   final VoidCallback? onSittingEnded;
 
+  /// A new course (issue #4527, phase 3, plan 11).
+  final bool newCourse;
+
+  /// The pane's own: given the new course's id once created.
+  final void Function(String courseId)? onCreated;
+
+  /// The pane's own: told when a new course's page leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const CourseDetailPage({
     super.key,
     required this.courseId,
     this.embedded = false,
     this.onDeleted,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newCourse = false,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new course's page.
+  const CourseDetailPage.newCourse({
+    super.key,
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newCourse = true,
+       courseId = '',
+       onDeleted = null,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<CourseDetailPage> createState() => _CourseDetailPageState();
@@ -89,7 +108,9 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage>
     with
         RecordEditHost<CourseDetailPage, Course>,
         RecordOpenUnlocked<CourseDetailPage, Course>,
-        _CourseDetailPageEditing {
+        _CourseDetailPageEditing,
+        RecordCreating<CourseDetailPage, Course>,
+        _CourseDetailPageCreating {
   @override
   void dispose() {
     disposeEditing();
@@ -99,20 +120,22 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage>
   @override
   Widget build(BuildContext context) {
     ref.watch(certificationCatalogSyncProvider);
+    if (isCreating) {
+      final seed = newRecordSeed;
+      return newRecordWaiting(context) ??
+          _CourseDetailContent(
+            course: shownRecord(seed!),
+            stored: seed,
+            embedded: widget.embedded,
+            host: this,
+          );
+    }
     final courseAsync = ref.watch(courseByIdProvider(widget.courseId));
-    if (hostsEditing) followStored(courseByIdProvider(widget.courseId));
+    followStored(courseByIdProvider(widget.courseId));
 
     return courseAsync.when(
       data: (course) {
         if (course == null) return _buildNotFound(context);
-        if (!hostsEditing) {
-          return _CourseDetailContent(
-            course: course,
-            stored: course,
-            embedded: widget.embedded,
-            onDeleted: widget.onDeleted,
-          );
-        }
         openUnlockedOnce(course);
         return _CourseDetailContent(
           course: shownRecord(course),
@@ -178,25 +201,26 @@ class _CourseDetailContent extends ConsumerWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
 
-  /// The page, where it edits in place.
-  final _CourseDetailPageState? host;
+  /// The page, which edits in place.
+  final _CourseDetailPageState host;
 
   const _CourseDetailContent({
     required this.course,
     required this.stored,
+    required this.host,
     this.embedded = false,
     this.onDeleted,
-    this.host,
   });
 
-  bool get _editing => host != null;
+  /// A course not yet created: what it cannot have yet is left out.
+  bool get _creating => host.isCreating;
 
-  /// [child] as the card [id] where the page edits in place.
+  /// [child] as the card [id].
   Widget _framed(CourseCardId id, Widget child, {double topGap = 0}) =>
-      host?._framed(id, child, topGap: topGap) ?? child;
+      host._framed(id, child, topGap: topGap);
 
   /// Whether the empty card [id] is shown in the sitting.
-  bool _shows(CourseCardId id) => host?._showsWhileEmpty(id) ?? false;
+  bool _shows(CourseCardId id) => host._showsWhileEmpty(id);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -231,22 +255,25 @@ class _CourseDetailContent extends ConsumerWidget {
           // Earned certifications, one row each (#2515)
           _buildCertificationSection(context, ref),
 
-          // Requirement tracker. Carries its own top gap.
-          if (_editing)
+          // Requirement tracker. Carries its own top gap. Its progress and
+          // creditable dives read the stored course (plan 11, Question 9).
+          if (_creating)
+            const SizedBox.shrink()
+          else
             _framed(
               CourseCardId.requirements,
               CourseRequirementsSection(
                 courseId: course.id,
-                readOnly: true,
-                shown: this.host?.maybeEditController?.session,
+                shown: host.maybeEditController?.session,
               ),
               topGap: 16,
-            )
-          else
-            CourseRequirementsSection(courseId: course.id),
+            ),
 
           // Training dives: set from the dive's side.
-          if (_editing) _calculated(trainingDives) else trainingDives,
+          if (_creating)
+            const SizedBox.shrink()
+          else
+            _calculated(trainingDives),
           const SizedBox(height: 16),
 
           if (course.notes.isNotEmpty || _shows(CourseCardId.notes)) ...[
@@ -260,80 +287,38 @@ class _CourseDetailContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Where the page edits in place, Mark completed is on the Status
-          // card's editor.
-          if (!course.isCompleted && !_editing) ...[
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => _markCompleted(context, ref),
-                icon: const Icon(Icons.check),
-                label: Text(context.l10n.courses_action_markCompleted),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
         ],
       ),
     );
 
-    final host = this.host;
     if (embedded) {
-      final header = _buildEmbeddedHeader(context, ref);
-      if (host != null) {
-        return host.editPane(
-          header: RecordPaneRow(
-            locked: header,
-            unlocked: host.isSittingOpen
-                ? host.editingPaneRow(
-                    stored,
-                    menu: _buildMoreMenu(context, ref),
-                  )
-                : null,
-          ),
-          shown: course,
-          content: body,
-        );
-      }
-      return Column(
-        children: [
-          header,
-          Expanded(child: body),
-        ],
+      return host.editPane(
+        header: RecordPaneRow(
+          locked: _buildEmbeddedHeader(context, ref),
+          unlocked: host.isSittingOpen
+              ? host.editingPaneRow(stored, menu: _buildMoreMenu(context, ref))
+              : null,
+        ),
+        shown: course,
+        content: body,
       );
     }
 
     final bar = AppBar(
       title: Text(course.name),
-      actions: [
-        if (host != null) host.lockButton(course),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.courses_action_edit,
-          // Where the page edits in place, Edit unlocks it as the lock does.
-          onPressed: host != null
-              ? () => host.editController.unlock(course)
-              : () => context.push('/courses/${course.id}/edit'),
-        ),
-        _buildMoreMenu(context, ref),
-      ],
+      actions: [host.lockButton(course), _buildMoreMenu(context, ref)],
     );
-    if (host != null) {
-      return host.editScaffold(
-        record: stored,
-        shown: course,
-        lockedBar: bar,
-        unlockedActions: [_buildMoreMenu(context, ref)],
-        content: body,
-      );
-    }
-    return Scaffold(appBar: bar, body: body);
+    return host.editScaffold(
+      record: stored,
+      shown: course,
+      lockedBar: bar,
+      unlockedActions: [_buildMoreMenu(context, ref)],
+      content: body,
+    );
   }
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final host = this.host;
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 8, 8),
       decoration: BoxDecoration(
@@ -349,26 +334,7 @@ class _CourseDetailContent extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (host != null) host.lockButton(course, compact: true),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: context.l10n.courses_action_edit,
-            onPressed: host != null
-                ? () => host.editController.unlock(course)
-                : () {
-                    if (ResponsiveBreakpoints.isMasterDetail(context)) {
-                      final state = GoRouterState.of(context);
-                      final currentPath = state.uri.path;
-                      // Use 'selected' param (not 'id') per
-                      // MasterDetailScaffold convention
-                      context.go(
-                        '$currentPath?selected=${course.id}&mode=edit',
-                      );
-                    } else {
-                      context.push('/courses/${course.id}/edit');
-                    }
-                  },
-          ),
+          host.lockButton(course, compact: true),
           _buildMoreMenu(context, ref),
         ],
       ),
@@ -377,6 +343,8 @@ class _CourseDetailContent extends ConsumerWidget {
 
   /// The overflow menu shared by the standalone and embedded headers.
   Widget _buildMoreMenu(BuildContext context, WidgetRef ref) {
+    // Nothing acts on a course not yet created (plan 11, call 3).
+    if (_creating) return const SizedBox.shrink();
     return PopupMenuButton<String>(
       tooltip: context.l10n.courses_action_moreOptions,
       onSelected: (value) {
@@ -408,10 +376,10 @@ class _CourseDetailContent extends ConsumerWidget {
           ),
         ),
         // Delete is a whole-record operation, under the lock.
-        ...recordOperationMenuCaption<String>(context, host?.editController),
+        ...recordOperationMenuCaption<String>(context, host.editController),
         PopupMenuItem(
           value: 'delete',
-          enabled: recordOperationsAvailable(host?.editController),
+          enabled: recordOperationsAvailable(host.editController),
           child: Row(
             children: [
               const Icon(Icons.delete_outline, color: Colors.red),
@@ -429,39 +397,8 @@ class _CourseDetailContent extends ConsumerWidget {
     );
   }
 
-  Future<void> _markCompleted(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.courses_dialog_markCompletedTitle),
-        content: Text(context.l10n.courses_dialog_markCompletedMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.l10n.common_action_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(context.l10n.courses_dialog_complete),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      final updated = course.copyWith(completionDate: DateTime.now());
-      await ref.read(courseListNotifierProvider.notifier).updateCourse(updated);
-      ref.invalidate(courseByIdProvider(course.id));
-    }
-  }
-
-  /// Delete, through the sitting where the page edits in place.
+  /// Delete, through the sitting.
   void _requestDelete(BuildContext context, WidgetRef ref) {
-    final host = this.host;
-    if (host == null) {
-      _confirmDelete(context, ref);
-      return;
-    }
     recordOperationRunnerOf(host.editController, record: 'course ${course.id}')(
       () => _confirmDelete(context, ref),
     );

@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The tappable logo at the top of the dive center edit page (#4460): the
+/// The tappable logo at the top of the dive center header editor (#4460): the
 /// logo or the store icon in a rounded square, as the list and the detail
-/// header draw it, with the buddy edit page's camera badge.
+/// header draw it, with the buddy photo's camera badge.
 class DiveCenterLogoField extends StatefulWidget {
   const DiveCenterLogoField({
     super.key,

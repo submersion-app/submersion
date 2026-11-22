@@ -705,10 +705,6 @@ void main() {
       read: (c) => c.read(serviceKindsProvider.future),
     ),
     (
-      name: 'serviceRecordByIdProvider',
-      read: (c) => c.read(serviceRecordByIdProvider(_id).future),
-    ),
-    (
       name: 'serviceRecordCountProvider',
       read: (c) => c.read(serviceRecordCountProvider(_id).future),
     ),

@@ -231,7 +231,7 @@ class GearPhotoRepository {
   }
 
   /// Chooses [mediaId] as the photo that stands for [equipmentId], or clears
-  /// the choice when null. A targeted write: the edit form's save never
+  /// the choice when null. A targeted write: an item's save never
   /// touches this column. Throws a [StateError] when the item is gone (a
   /// peer's delete arriving mid-tap), so nothing is marked for sync and the
   /// caller can say the cover did not change, and an [ArgumentError] for a

@@ -63,12 +63,31 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
   Future<void> play(int playerId) async {}
   @override
   Future<void> pause(int playerId) async {}
+
+  /// Every volume each player was given, oldest first.
+  final Map<int, List<double>> volumes = {};
+
   @override
-  Future<void> setVolume(int playerId, double volume) async {}
+  Future<void> setVolume(int playerId, double volume) async =>
+      (volumes[playerId] ??= []).add(volume);
   @override
   Future<void> setPlaybackSpeed(int playerId, double speed) async {}
+
+  /// When set, player [gatedSeekPlayer]'s seeks wait for it, holding a
+  /// reopen between the new player's opening and its handover.
+  Completer<void>? seekGate;
+  int? gatedSeekPlayer;
+  bool seekHeld = false;
+
   @override
-  Future<void> seekTo(int playerId, Duration position) async {}
+  Future<void> seekTo(int playerId, Duration position) async {
+    final gate = seekGate;
+    if (gate != null && playerId == gatedSeekPlayer) {
+      seekHeld = true;
+      await gate.future;
+    }
+  }
+
   @override
   Future<Duration> getPosition(int playerId) async => Duration.zero;
   @override
@@ -237,6 +256,39 @@ void main() {
       expect(find.text('Failed to load video'), findsNothing);
     },
   );
+
+  // Issue #4817: a mute toggled while a reopened player is still being
+  // readied (after it took the viewer's volume, before the handover) reaches
+  // the new player too, not only the failed one.
+  testWidgets('a mute toggled during a reopen reaches the new player', (
+    tester,
+  ) async {
+    await pump(tester, freshLinks());
+    expect(platform.volumes[1]!.last, 0.0);
+    final gate = platform.seekGate = Completer<void>();
+    platform.gatedSeekPlayer = 2;
+    await tester.runAsync(() async {
+      platform.failAfterStart(1);
+      for (var i = 0; i < 20 && !platform.seekHeld; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+    });
+    expect(platform.seekHeld, isTrue);
+    expect(platform.volumes[2]!.last, 0.0);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyM);
+    await tester.pump();
+
+    await tester.runAsync(() async {
+      gate.complete();
+      for (var i = 0; i < 3; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pump();
+      }
+    });
+    expect(find.byKey(const ValueKey('player-2')), findsOneWidget);
+    expect(platform.volumes[2]!.last, 1.0);
+  });
 
   testWidgets('a second failure in a row shows the error', (tester) async {
     await pump(tester, freshLinks());

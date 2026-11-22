@@ -40,19 +40,15 @@ enum CurrencyRowAction { log, interval, mapping, mute }
 /// refresher row), so mute, interval and mapping changes write prefs for
 /// every member, and the row means what it appears to mean.
 ///
-/// On a page that edits in place (issue #4527, phase 3) it offers nothing
-/// while locked ([readOnly]); in the page's sitting ([editing]) what it
-/// logs, deletes and sets is held until Save.
+/// It offers nothing outside the open Currency card (issue #4527, phase 3);
+/// in the page's sitting ([editing]) what it logs, deletes and sets is held
+/// until Save.
 class CertificationCurrencySection extends ConsumerWidget {
   final Certification certification;
 
   /// The sitting its changes are held in: it is the Currency card's
   /// editor, drawn inside the open card.
   final EditSession<Certification>? editing;
-
-  /// Offers no action: the page edits in place and is locked, or its card
-  /// is closed.
-  final bool readOnly;
 
   /// The sitting whose events and preferences a closed card shows.
   final EditSession<Certification>? shown;
@@ -61,7 +57,6 @@ class CertificationCurrencySection extends ConsumerWidget {
     super.key,
     required this.certification,
     this.editing,
-    this.readOnly = false,
     this.shown,
   });
 
@@ -115,7 +110,7 @@ class CertificationCurrencySection extends ConsumerWidget {
     final credentialHeld =
         editing != null &&
         !listEquals(editing.working.credentials, editing.stored.credentials);
-    final rowsReadOnly = readOnly || credentialHeld;
+    final rowsReadOnly = editing == null || credentialHeld;
     final rows = <Widget>[
       if (credentialHeld)
         Padding(
@@ -183,7 +178,7 @@ class CertificationCurrencySection extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  if (readOnly) RecordCardPencil(cardTitle: title),
+                  RecordCardPencil(cardTitle: title),
                 ],
               ),
               const SizedBox(height: 4),
@@ -376,40 +371,21 @@ class _CurrencyRow extends ConsumerWidget {
               ? CurrencyEventType.refresher
               : CurrencyEventType.renewal,
         );
-        if (logged == null) return;
         final editing = this.editing;
-        if (editing != null) {
-          final current = await _heldEvents(editing);
-          if (current == null || editing.isDisposed) return;
-          certificationEventsList.set(editing, [
-            ...current,
-            newCurrencyEvent(
-              certificationId: certification.id,
-              ruleId: s.rule.id,
-              type: logged.type,
-              date: logged.date,
-              provider: logged.provider,
-              notes: logged.notes,
-            ),
-          ]);
-          return;
-        }
-        final now = DateTime.now();
-        await ref
-            .read(certificationCurrencyRepositoryProvider)
-            .createEvent(
-              CurrencyEvent(
-                id: '',
-                certificationId: certification.id,
-                ruleId: s.rule.id,
-                eventType: logged.type,
-                eventDate: logged.date,
-                provider: logged.provider,
-                notes: logged.notes,
-                createdAt: now,
-                updatedAt: now,
-              ),
-            );
+        if (logged == null || editing == null) return;
+        final current = await _heldEvents(editing);
+        if (current == null || editing.isDisposed) return;
+        certificationEventsList.set(editing, [
+          ...current,
+          newCurrencyEvent(
+            certificationId: certification.id,
+            ruleId: s.rule.id,
+            type: logged.type,
+            date: logged.date,
+            provider: logged.provider,
+            notes: logged.notes,
+          ),
+        ]);
       case CurrencyRowAction.interval:
         final pref = await _currentPref(ref, s.rule.id);
         if (!context.mounted) return;
@@ -470,27 +446,22 @@ class _CurrencyRow extends ConsumerWidget {
     return prefs.where((p) => p.ruleId == ruleId).firstOrNull;
   }
 
-  /// Writes [change] of each member's pref (or a fresh one) by full value,
-  /// so every card the row stands for changes together; in a sitting,
-  /// holds it until Save.
+  /// Holds [change] of each member's pref (or a fresh one) until Save, by
+  /// full value, so every card the row stands for changes together.
   Future<void> _writePrefs(
     WidgetRef ref,
     CurrencyPref Function(CurrencyPref existing) change,
   ) async {
+    final editing = this.editing;
+    if (editing == null) return;
     final repo = ref.read(certificationCurrencyRepositoryProvider);
     final stored = await storedCurrencyPrefs(group, repository: repo);
-    final editing = this.editing;
-    if (editing != null) {
-      holdCurrencyPrefs(editing, group, stored, change);
-      return;
-    }
-    for (final pref in currencyPrefsFor(group, stored, change)) {
-      await repo.upsertPref(pref);
-    }
+    if (editing.isDisposed) return;
+    holdCurrencyPrefs(editing, group, stored, change);
   }
 }
 
-class _EventTile extends ConsumerWidget {
+class _EventTile extends StatelessWidget {
   final CurrencyEvent event;
   final UnitFormatter units;
   final EditSession<Certification>? editing;
@@ -508,7 +479,7 @@ class _EventTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final details = [
@@ -543,55 +514,22 @@ class _EventTile extends ConsumerWidget {
           : IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: l10n.common_action_delete,
-              onPressed: () => _delete(context, ref),
+              onPressed: _delete,
             ),
     );
   }
 
-  /// In a sitting, takes the event out of the held list, asking nothing:
-  /// Cancel brings it back. Otherwise asks, then deletes it.
-  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+  /// Takes the event out of the sitting's held list, asking nothing:
+  /// Cancel brings it back.
+  Future<void> _delete() async {
     final editing = this.editing;
-    if (editing != null) {
-      final current = await _heldEvents(editing);
-      if (current == null) return;
-      certificationEventsList.set(editing, [
-        for (final e in current)
-          if (e.id != event.id) e,
-      ]);
-      return;
-    }
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.certifications_currency_deleteEvent_title),
-        content: Text(
-          l10n.certifications_currency_deleteEvent_content(
-            event.eventType.label(l10n),
-            units.formatDate(event.eventDate),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.common_action_cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.common_action_delete),
-          ),
-        ],
-      ),
-    );
-    if (confirmed ?? false) {
-      await ref
-          .read(certificationCurrencyRepositoryProvider)
-          .deleteEvent(event.id);
-    }
+    if (editing == null) return;
+    final current = await _heldEvents(editing);
+    if (current == null || editing.isDisposed) return;
+    certificationEventsList.set(editing, [
+      for (final e in current)
+        if (e.id != event.id) e,
+    ]);
   }
 }
 

@@ -5,6 +5,10 @@ import 'package:clock/clock.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -38,23 +42,13 @@ final tripFillForecastProvider = FutureProvider.autoDispose
       final center = centerId == null
           ? null
           : await ref.watch(diveCenterByIdProvider(centerId).future);
-      final counts = tripCylinderCounts(states);
-      final forecast = computeFillForecast(
-        FillForecastInputs(
-          now: now,
-          tripStart: trip.startDate,
-          tripEnd: trip.endDate,
-          slotCount: states.length,
-          fullCount: counts.full,
-          partialCount: counts.partial,
-          itinerary: itinerary,
-          divesPerDayTarget: trip.divesPerDayTarget,
-          expectedDives: trip.expectedDives,
-          diversSharing: trip.diversSharingCylinders,
-          divesLoggedToday: logged,
-          fillOpensAt: center?.fillOpensAt,
-          fillClosesAt: center?.fillClosesAt,
-        ),
+      final forecast = tripFillForecastOf(
+        trip: trip,
+        states: states,
+        itinerary: itinerary,
+        loggedToday: logged,
+        center: center,
+        now: now,
       );
       // A build invalidated during an await above is already disposed: no
       // timer for it. The tick goes through invalidateSelfWhen, so a paused
@@ -72,4 +66,50 @@ final tripFillForecastProvider = FutureProvider.autoDispose
         ref.invalidateSelfWhen(tick.stream);
       }
       return forecast;
+    });
+
+/// The fill forecast of [trip] with [states] on its board and [itinerary]
+/// as its days, [loggedToday] dive rounds logged today and [center] the
+/// station of the trip's last fill: what [tripFillForecastProvider] works
+/// out, and what a trip's editing sitting works out from what it holds
+/// (issue #4527).
+FillForecast? tripFillForecastOf({
+  required Trip trip,
+  required List<TripCylinderState> states,
+  required List<ItineraryDay> itinerary,
+  required int loggedToday,
+  required DiveCenter? center,
+  required DateTime now,
+}) {
+  final counts = tripCylinderCounts(states);
+  return computeFillForecast(
+    FillForecastInputs(
+      now: now,
+      tripStart: trip.startDate,
+      tripEnd: trip.endDate,
+      slotCount: states.length,
+      fullCount: counts.full,
+      partialCount: counts.partial,
+      itinerary: itinerary,
+      divesPerDayTarget: trip.divesPerDayTarget,
+      expectedDives: trip.expectedDives,
+      diversSharing: trip.diversSharingCylinders,
+      divesLoggedToday: loggedToday,
+      fillOpensAt: center?.fillOpensAt,
+      fillClosesAt: center?.fillClosesAt,
+    ),
+  );
+}
+
+/// The dive rounds of a trip logged on [day] (its calendar day), for a
+/// forecast worked out from a sitting: keyed by the day, so asking on the
+/// next day reads the next day's count. Refreshes when dives change.
+final tripDiveRoundsOnProvider = FutureProvider.autoDispose
+    .family<int, ({String tripId, DateTime day})>((ref, key) async {
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDivesChanges(),
+      );
+      return ref
+          .watch(tripCylinderRepositoryProvider)
+          .countTripDiveRoundsOn(key.tripId, key.day);
     });

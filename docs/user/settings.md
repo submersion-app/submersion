@@ -153,6 +153,8 @@ fixed limits, so changing them never alters dives you have already reviewed.
 destinations to reorder them: the ones at the top appear in the bottom bar, as
 many as your screen width allows. On a desktop, drag to reorder the
 sidebar; Home always stays at the top. **Always hide labels** shows icons only.
+The layout is saved on each device and does not sync, so arrange it on every
+phone and computer you use (see [Multi-Device Sync](multi-device-sync.md)).
 
 ### Home
 

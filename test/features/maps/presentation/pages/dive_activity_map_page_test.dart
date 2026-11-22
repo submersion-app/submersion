@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +16,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/pages/dive_activity_map_page.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -60,6 +63,7 @@ Future<void> _pumpPage(
   WidgetTester tester, {
   required List<DiveSite> sites,
   double width = 600,
+  bool sitesPending = false,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = Size(width, 900);
@@ -75,10 +79,12 @@ Future<void> _pumpPage(
       overrides: [
         ...base,
         sitesWithCountsProvider.overrideWith(
-          (ref) async => [
-            for (final site in sites)
-              SiteWithDiveCount(site: site, diveCount: 1),
-          ],
+          (ref) => sitesPending
+              ? Completer<List<SiteWithDiveCount>>().future
+              : Future.value([
+                  for (final site in sites)
+                    SiteWithDiveCount(site: site, diveCount: 1),
+                ]),
         ),
         sortedFilteredDivesProvider.overrideWithValue(AsyncValue.data(dives)),
         paginatedDiveListProvider.overrideWith(
@@ -220,7 +226,7 @@ void main() {
       await tester.pump();
       expect(_camera(tester).center.latitude, closeTo(45.0, 1e-6));
 
-      await tester.tap(find.byIcon(Icons.my_location));
+      await tester.tap(find.byIcon(Icons.zoom_out_map));
       await tester.pump();
 
       // Back to the framing the page opened with, which shows both sites.
@@ -352,5 +358,29 @@ void main() {
         expect(router.canPop(), isTrue, reason: '$control must not go()');
       });
     }
+  });
+
+  group('Show my location (#4808)', () {
+    testWidgets('sits in the app bar once the map is up', (tester) async {
+      await _pumpPage(tester, sites: const [_reefA]);
+
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(MyLocationButton),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('is left out while the sites load and no map is drawn', (
+      tester,
+    ) async {
+      // A fix found now would have no map to move.
+      await _pumpPage(tester, sites: const [_reefA], sitesPending: true);
+
+      expect(find.byType(FlutterMap), findsNothing);
+      expect(find.byType(MyLocationButton), findsNothing);
+    });
   });
 }

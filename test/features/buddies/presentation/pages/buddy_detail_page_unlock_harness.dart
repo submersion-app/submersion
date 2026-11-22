@@ -8,10 +8,12 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/data/services/buddy_edit_save_service.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_new_sitting.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -65,6 +67,21 @@ class FakeBuddySave implements BuddyEditSaveService {
     stored.state = after;
     return (before: before, after: after);
   }
+
+  /// Each new buddy the page asked to create, failed ones included.
+  final creates = <({Buddy buddy, Set<String> cards})>[];
+
+  @override
+  Future<Buddy> create({
+    required Buddy buddy,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) async {
+    creates.add((buddy: buddy, cards: changedCardIds.toSet()));
+    if (throwing case final error?) throw error;
+    if (runHeld) await alsoWrite?.call();
+    return buddy;
+  }
 }
 
 class BuddyPageHarness {
@@ -76,13 +93,11 @@ class BuddyPageHarness {
 
 final _storedProvider = StateProvider<Buddy?>((ref) => alex);
 
-/// Pumps the buddy page with the phase 3 switch on (unless [unlockEditing]
-/// is false), its calculated sections empty.
+/// Pumps the buddy page, its calculated sections empty.
 Future<BuddyPageHarness> pumpBuddyPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Buddy? buddy,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   Size size = const Size(700, 1600),
@@ -98,7 +113,6 @@ Future<BuddyPageHarness> pumpBuddyPage(
   late BuddyPageHarness harness;
   final page = BuddyDetailPage(
     buddyId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     embedded: embedded,
     onSittingEnded: onSittingEnded,
@@ -145,5 +159,83 @@ Future<BuddyPageHarness> pumpBuddyPage(
     tester.element(find.byType(BuddyDetailPage)),
   );
   container.read(buddyEditSaveServiceProvider);
+  return harness;
+}
+
+/// What a test of a new buddy's page pumped: the fake save, and how the
+/// page ended.
+class NewBuddyHarness {
+  late FakeBuddySave save;
+  Object? popped;
+  bool poppedAtAll = false;
+  final createdIds = <String>[];
+  int cancelled = 0;
+}
+
+/// Pumps a new buddy's page (issue #4527, phase 3, plan 11) with [seed]: a
+/// full page pushed over a launcher, or the pane's ([embedded]). Needs the
+/// test database: the cards read nothing for an id not stored.
+Future<NewBuddyHarness> pumpNewBuddyPage(
+  WidgetTester tester, {
+  NewBuddySeed? seed,
+  bool embedded = false,
+  Brightness brightness = Brightness.light,
+  Size size = const Size(700, 1600),
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final overrides = await getBaseOverrides();
+  final harness = NewBuddyHarness();
+  final page = BuddyDetailPage.newBuddy(
+    seed: seed,
+    embedded: embedded,
+    onCreated: harness.createdIds.add,
+    onCreateCancelled: () => harness.cancelled++,
+  );
+  await tester.pumpWidget(
+    testApp(
+      overrides: [
+        ...overrides,
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        allEquipmentProvider.overrideWith((ref) async => const []),
+        currentEquipmentLocationsProvider.overrideWith(
+          (ref) async => const <String, EquipmentLocation>{},
+        ),
+        buddyEditSaveServiceProvider.overrideWith(
+          (ref) =>
+              harness.save = FakeBuddySave(ref.watch(_storedProvider.notifier)),
+        ),
+      ],
+      child: Theme(
+        data: AppThemeRegistry.resolveTheme(
+          AppThemeRegistry.presets.first,
+          brightness,
+        ),
+        child: embedded
+            ? Scaffold(body: page)
+            : Builder(
+                builder: (context) => Scaffold(
+                  body: TextButton(
+                    onPressed: () async {
+                      final result = await Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute<Object?>(builder: (_) => page));
+                      harness
+                        ..poppedAtAll = true
+                        ..popped = result;
+                    },
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+      ),
+    ),
+  );
+  if (!embedded) await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
+  ProviderScope.containerOf(
+    tester.element(find.byType(BuddyDetailPage)),
+  ).read(buddyEditSaveServiceProvider);
   return harness;
 }

@@ -15,9 +15,6 @@ mixin _EquipmentSetDetailPageEditing
   String recordIdOf(EquipmentSet record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(EquipmentSetDetailPage widget) => widget.openUnlocked;
 
   @override
@@ -87,7 +84,7 @@ mixin _EquipmentSetDetailPageEditing
   /// Asks "Update past dives?" when the sitting changes the gear the set
   /// applies (its members, counting the sets it includes) and logged dives
   /// carry it or a set that includes it (issues #4283, #4525), before
-  /// anything is written, as the form does. Cancel leaves the sitting as it
+  /// anything is written, as the form did. Cancel leaves the sitting as it
   /// is. The answer goes to [saveSitting] through the session: planned
   /// dives follow the set always, logged ones when the diver says so.
   @override
@@ -183,14 +180,12 @@ mixin _EquipmentSetDetailPageEditing
         controller.addedCardIds.contains(id.name);
   }
 
-  /// [child] as the card [id], framed for editing in place where the page
-  /// does.
-  Widget _framed(EquipmentSetCardId id, Widget child) => hostsEditing
-      ? RecordCardFrame<EquipmentSet>(
-          card: equipmentSetEditCards[id]!,
-          child: child,
-        )
-      : child;
+  /// [child] as the card [id], framed for editing in place.
+  Widget _framed(EquipmentSetCardId id, Widget child) =>
+      RecordCardFrame<EquipmentSet>(
+        card: equipmentSetEditCards[id]!,
+        child: child,
+      );
 }
 
 /// The session note holding the answer to "Update past dives?": whether

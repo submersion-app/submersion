@@ -139,12 +139,16 @@ class _DocumentDetailsCardEditorState
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DocumentOwnerField(
-              owner: doc.owner,
-              locked: documentOwnerLocked(doc),
-              onTap: () => _pickOwner(doc.owner),
-            ),
-            const SizedBox(height: 12),
+            // Not offered for a document another record's open Documents
+            // card is creating: that record holds the link itself.
+            if (!documentOwnerFixed(_session)) ...[
+              DocumentOwnerField(
+                owner: doc.owner,
+                locked: documentOwnerLocked(doc),
+                onTap: () => _pickOwner(doc.owner),
+              ),
+              const SizedBox(height: 12),
+            ],
             DocumentFormFields(
               type: doc.type,
               typeChoices: documentTypeChoices(doc),

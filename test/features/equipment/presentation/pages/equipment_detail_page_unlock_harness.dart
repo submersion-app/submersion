@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -11,8 +12,10 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -21,8 +24,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_e
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 
 /// The item the page shows, as stored: a regulator owned by no profile
@@ -70,6 +75,20 @@ class FakeGearItemSave implements GearItemEditSaveService {
     stored.state = after;
     return (before: before, after: after);
   }
+
+  /// Each new item the page asked to create, failed ones included.
+  final creates = <({EquipmentItem item, Set<String> cards})>[];
+
+  @override
+  Future<EquipmentItem> create({
+    required EquipmentItem item,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) async {
+    creates.add((item: item, cards: changedCardIds.toSet()));
+    if (fail) throw StateError('the create failed');
+    return item;
+  }
 }
 
 class GearPageHarness {
@@ -100,20 +119,19 @@ class CountingServiceRecords
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-/// Pumps the gear item page with the phase 3 switch on (unless
-/// [unlockEditing] is false), at phone width, or as the list's pane when
+/// Pumps the gear item page, at phone width, or as the list's pane when
 /// [embedded]. The page's other reads answer with nothing.
 Future<GearPageHarness> pumpGearPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   EquipmentItem? item,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   Size size = const Size(600, 2400),
   VoidCallback? onSittingEnded,
   VoidCallback? onDeleted,
   List<EquipmentItem> children = const [],
+  List<EquipmentFinding> findings = const [],
   List<Object> extraOverrides = const [],
 }) async {
   final shown = item ?? apex;
@@ -125,7 +143,6 @@ Future<GearPageHarness> pumpGearPage(
   final serviceRecords = CountingServiceRecords();
   final page = EquipmentDetailPage(
     equipmentId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     embedded: embedded,
     onSittingEnded: onSittingEnded,
@@ -152,7 +169,7 @@ Future<GearPageHarness> pumpGearPage(
         ).overrideWith((ref) async => EquipmentExposureTotals.empty),
         equipmentConditionProvider(
           shown.id,
-        ).overrideWith((ref) async => const []),
+        ).overrideWith((ref) async => findings),
         conditionTrendProvider((
           equipmentId: shown.id,
           kind: null,
@@ -194,5 +211,113 @@ Future<GearPageHarness> pumpGearPage(
     tester.element(find.byType(EquipmentDetailPage)),
   );
   container.read(gearItemEditSaveServiceProvider);
+  return harness;
+}
+
+/// What a test of a new gear item's page pumped: the fake save, the router
+/// it is pushed in, and how the page ended.
+class NewGearItemHarness {
+  late FakeGearItemSave save;
+  late GoRouter router;
+  Object? popped;
+  bool poppedAtAll = false;
+  final createdIds = <String>[];
+}
+
+/// Pumps a new gear item's page (issue #4527, phase 3, plan 11) with
+/// [request], pushed over a launcher at `/equipment/new` in a router whose
+/// `/equipment/:id` shows the item's id; or the pane's ([embedded]). Needs
+/// the test database: the cards read nothing for an id not stored, and a
+/// clone reads its source there.
+Future<NewGearItemHarness> pumpNewGearItemPage(
+  WidgetTester tester, {
+  NewGearItemRequest request = const NewGearItemRequest(),
+  bool embedded = false,
+  Size size = const Size(700, 1600),
+  List<Object> extraOverrides = const [],
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final overrides = await getBaseOverrides();
+  final harness = NewGearItemHarness();
+  harness.router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, _) => Scaffold(
+          body: embedded
+              ? EquipmentDetailPage.newItem(
+                  request: request,
+                  embedded: true,
+                  onCreated: harness.createdIds.add,
+                )
+              : TextButton(
+                  onPressed: () async {
+                    final result = await context.push<Object?>(
+                      '/equipment/new',
+                    );
+                    harness
+                      ..poppedAtAll = true
+                      ..popped = result;
+                  },
+                  child: const Text('open'),
+                ),
+        ),
+      ),
+      GoRoute(
+        path: '/equipment/new',
+        builder: (context, _) => EquipmentDetailPage.newItem(request: request),
+      ),
+      GoRoute(
+        path: '/equipment/:id',
+        builder: (_, state) =>
+            Scaffold(body: Text('ITEM ${state.pathParameters['id']}')),
+      ),
+    ],
+  );
+  addTearDown(harness.router.dispose);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...overrides,
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        defaultCurrencyProvider.overrideWithValue('EUR'),
+        gearItemEditSaveServiceProvider.overrideWith(
+          (ref) => harness.save = FakeGearItemSave(
+            ref.watch(_storedProvider.notifier),
+          ),
+        ),
+        ...extraOverrides,
+      ].cast(),
+      child: MaterialApp.router(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: harness.router,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  if (!embedded) {
+    await tester.tap(find.text('open'));
+    await tester.pump();
+  }
+  // A clone's seed reads its source from the database, which answers only
+  // outside the test's fake clock.
+  await pumpUntilRealAsync(
+    tester,
+    () =>
+        find.byType(EquipmentDetailPage).evaluate().isNotEmpty &&
+        find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    reason: "the new item's page to open or say why not",
+  );
+  await tester.pumpAndSettle();
+  final page = find.byType(EquipmentDetailPage);
+  if (page.evaluate().isNotEmpty) {
+    ProviderScope.containerOf(
+      tester.element(page),
+    ).read(gearItemEditSaveServiceProvider);
+  }
   return harness;
 }

@@ -11,16 +11,26 @@ class ReefPart<T> extends Equatable {
   final ReefDataStatus status;
   final T? value;
 
-  const ReefPart.ok(T this.value) : status = ReefDataStatus.ok;
-  const ReefPart.empty() : status = ReefDataStatus.empty, value = null;
-  const ReefPart.unavailable()
+  /// An unavailable part whose request got no answer at all: no network,
+  /// or the connection dropped. It says nothing about the source, so it is
+  /// not saved as a failure, and the next view asks again.
+  final bool unanswered;
+
+  const ReefPart.ok(T this.value)
+    : status = ReefDataStatus.ok,
+      unanswered = false;
+  const ReefPart.empty()
+    : status = ReefDataStatus.empty,
+      value = null,
+      unanswered = false;
+  const ReefPart.unavailable({this.unanswered = false})
     : status = ReefDataStatus.unavailable,
       value = null;
 
   bool get hasValue => status == ReefDataStatus.ok && value != null;
 
   @override
-  List<Object?> get props => [status, value];
+  List<Object?> get props => [status, value, unanswered];
 }
 
 /// The four reef-data providers, each with its own cache lifetime.

@@ -38,6 +38,10 @@ class _VideoItem extends ConsumerStatefulWidget {
   final void Function(String mediaId, VideoPlayerController? controller)
   onControllerChanged;
 
+  /// The viewer's sound: this page's player plays at it and follows each
+  /// change, and M toggles it (issue #4817).
+  final ViewerAudio audio;
+
   /// The viewer's people tag mode (issue #1745).
   final PeopleTagSession people;
 
@@ -58,6 +62,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     required this.onSetOverlay,
     required this.onHoldChanged,
     required this.onControllerChanged,
+    required this.audio,
     required this.people,
     this.identificationsEditable = true,
     this.hideIdentifications = false,
@@ -99,6 +104,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   void initState() {
     super.initState();
+    widget.audio.addListener(_applyAudio);
     // A neighbour built ahead holds no native player: only the page on
     // screen gets a decoder and texture, as before neighbours stayed built
     // (#1175 is the memory budget this protects).
@@ -108,6 +114,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   void didUpdateWidget(covariant _VideoItem oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // One sound for the viewer's whole life: the page owns it, so the
+    // listener added in initState stays on the right one.
+    assert(
+      identical(oldWidget.audio, widget.audio),
+      'a video page keeps the ViewerAudio it was built with',
+    );
     if (!oldWidget.isCurrent && widget.isCurrent) {
       _initializeVideo();
     } else if (oldWidget.isCurrent && !widget.isCurrent) {
@@ -136,8 +148,35 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _releaseController(controller, widget.item.id);
   }
 
+  /// Gives the live player the viewer's sound: after the sound changes, and
+  /// when a player is handed over. The opener sets it before any play; this
+  /// catches a change made while the player was still being readied.
+  void _applyAudio() {
+    final controller = _controller;
+    if (controller == null ||
+        controller.value.volume == widget.audio.effectiveVolume) {
+      return;
+    }
+    unawaited(
+      widget.audio.applyTo(controller).catchError((Object e) {
+        _log.warning('Video ${widget.item.id} volume change failed', error: e);
+      }),
+    );
+  }
+
   /// Handle keyboard events for video playback
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    // M mutes or unmutes, in tag mode too: it does not move the frame. A
+    // chord with Ctrl, Cmd or Alt is some other shortcut's to take.
+    final keyboard = HardwareKeyboard.instance;
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.keyM &&
+        !keyboard.isControlPressed &&
+        !keyboard.isMetaPressed &&
+        !keyboard.isAltPressed) {
+      widget.audio.toggleMute();
+      return KeyEventResult.handled;
+    }
     // In people tag mode the video stays on the frame its boxes are drawn
     // on (issue #1745), so Space does not play it.
     if (event is KeyDownEvent &&
@@ -175,6 +214,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       final opener = VideoPlaybackOpener(
         playback,
         release: (controller) => _releaseController(controller, mediaId),
+        // Read at each open, a reopen included: never a moment of sound
+        // while the viewer is muted.
+        volume: () => widget.audio.effectiveVolume,
       );
       final controller = await opener.open();
 
@@ -191,6 +233,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
         _isInitialized = true;
         _isLoading = false;
       });
+      // As for a reopen: any toggle since the opener set its volume.
+      _applyAudio();
       // Ownership has moved to _controller; dispose() owns it from here.
       widget.onControllerChanged(mediaId, controller);
       opener.watch(controller, onReplaced: _onReplaced);
@@ -227,11 +271,15 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       return;
     }
     setState(() => _controller = next);
+    // It took the viewer's sound when it opened; a toggle since, while it
+    // seeked and resumed, reached only the failed player.
+    _applyAudio();
     widget.onControllerChanged(mediaId, next);
   }
 
   @override
   void dispose() {
+    widget.audio.removeListener(_applyAudio);
     final controller = _controller;
     _opener?.dispose();
     if (controller != null) {
@@ -451,6 +499,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               child: VideoControlsBar(
                 controller: controller,
                 mediaId: widget.item.id,
+                audio: widget.audio,
                 // The controls hide 3 s after a reveal: hold them up while
                 // scrubbing or under the mouse, so the bar is not pulled from
                 // under the pointer, then restart the clock only if the video

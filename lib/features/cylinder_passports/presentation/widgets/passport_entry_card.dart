@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -11,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/open_item_passport.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The tank detail page's doorway to the passport: a QR thumbnail once the
@@ -41,7 +41,7 @@ class PassportEntryCard extends ConsumerWidget {
     );
     return Card(
       child: InkWell(
-        onTap: () => context.push('/equipment/${equipment.id}/passport'),
+        onTap: () => openItemPassport(context, equipment),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -81,8 +81,7 @@ class PassportEntryCard extends ConsumerWidget {
                 ),
               ),
               TextButton(
-                onPressed: () =>
-                    context.push('/equipment/${equipment.id}/passport'),
+                onPressed: () => openItemPassport(context, equipment),
                 child: Text(l10n.passport_open),
               ),
             ],

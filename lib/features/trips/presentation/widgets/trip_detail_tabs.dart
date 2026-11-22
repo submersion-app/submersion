@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab
 import 'package:submersion/features/trips/presentation/widgets/trip_photos_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_tabs.dart';
 
 export 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
@@ -25,13 +26,11 @@ export 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.d
 class TripDetailTabs extends ConsumerStatefulWidget {
   final TripWithStats tripWithStats;
 
-  /// Where the Overview's Plan row goes; null pushes the edit page.
-  final VoidCallback? onEditPlan;
-
-  /// Opens the trip editor at a day's note (#4625); null hides the action.
+  /// Opens the Notes card at a day's note (#4625, issue #4527); null hides
+  /// the action.
   final ValueChanged<TripNoteDay>? onEditDayNote;
 
-  /// The tab controller of a page that edits in place (issue #4527), which
+  /// The trip page's tab controller (issue #4527), which
   /// needs to know the tab in view and to bring another forward. With one,
   /// each tab is kept alive while the trip is unlocked. Null uses a tab
   /// controller of its own.
@@ -44,7 +43,6 @@ class TripDetailTabs extends ConsumerStatefulWidget {
   const TripDetailTabs({
     super.key,
     required this.tripWithStats,
-    this.onEditPlan,
     this.onEditDayNote,
     this.controller,
     this.storySelection,
@@ -85,7 +83,6 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final tripWithStats = widget.tripWithStats;
-    final onEditPlan = widget.onEditPlan;
     final trip = tripWithStats.trip;
     // Held here for the same reason as the selection above: the story's day
     // picker reads which plans were dived, and that read is dropped with the
@@ -99,9 +96,10 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
     if (!trip.startsAfter(clock.now())) {
       ref.listen(tripUndivedPlanIdsProvider(trip.id), (_, _) {});
     }
-    // A page that edits in place keeps the gear and checklists read only
-    // until they join its sitting (issue #4527).
-    final editsInPlace = TripCardSlotsScope.maybeOf(context) != null;
+    // The trip page holds the gear and checklists in its sitting while it
+    // is unlocked, and shows them read only while it is locked (issue
+    // #4527).
+    final editing = TripCardSlotsScope.maybeOf(context)?.session;
     final controller = widget.controller;
     // Kept alive while unlocked, so an open card survives a visit to
     // another tab.
@@ -137,14 +135,13 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
                   onOpenTab: controller == null
                       ? null
                       : (tab) => controller.animateTo(tab.index),
-                  onEditPlan: onEditPlan,
                   selection: _storySelection,
                   onEditDayNote: widget.onEditDayNote,
                 ),
               ),
               kept(TripItineraryTab(tripId: trip.id)),
-              kept(TripGearTab(trip: trip, readOnly: editsInPlace)),
-              kept(_ChecklistTab(trip: trip, readOnly: editsInPlace)),
+              kept(TripGearTab(trip: trip, editing: editing)),
+              kept(_ChecklistTab(trip: trip, editing: editing)),
               kept(TripDivesTab(tripId: trip.id)),
               kept(TripPhotosTab(tripId: trip.id)),
             ],
@@ -168,11 +165,12 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
 class _ChecklistTab extends StatelessWidget {
   final Trip trip;
 
-  /// The checklists offer no change; starting a pre-dive session, which
-  /// makes a record of its own, still works.
-  final bool readOnly;
+  /// The trip page's open sitting, which holds the checklists' changes.
+  /// Null, the checklists offer no change; starting a pre-dive session,
+  /// which makes a record of its own, still works.
+  final EditSession<Trip>? editing;
 
-  const _ChecklistTab({required this.trip, this.readOnly = false});
+  const _ChecklistTab({required this.trip, this.editing});
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +188,7 @@ class _ChecklistTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          TripChecklistsPanel(trip: trip, readOnly: readOnly),
+          TripChecklistsPanel(trip: trip, editing: editing),
         ],
       ),
     );

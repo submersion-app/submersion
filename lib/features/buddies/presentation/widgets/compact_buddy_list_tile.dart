@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
@@ -140,12 +139,9 @@ class CompactBuddyListTile extends ConsumerWidget {
                                 BuddyField.diveCount,
                               ),
                             ),
-                            // Favoriting (issue #1336), independent of bulk
-                            // selection.
+                            // The favorite (issue #1336), shown whatever the
+                            // bulk selection; set on the buddy's page.
                             BuddyFavoriteButton(
-                              // Set on the buddy's page where buddies edit in place.
-                              readOnly: kUnlockRecordEditing,
-                              buddyId: buddy.id,
                               isFavorite: buddy.isFavorite,
                               iconSize: 18,
                               unselectedColor: secondaryTextColor,

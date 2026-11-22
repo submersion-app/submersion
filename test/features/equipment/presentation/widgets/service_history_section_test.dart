@@ -13,8 +13,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/detail_row_finders.dart';
@@ -64,6 +66,7 @@ void main() {
     AsyncValue<List<ServiceRecord>>? recordsState,
     _MockServiceRecordNotifier? notifier,
     _FakeExportService? exportService,
+    EditSession<EquipmentItem>? editing,
     bool settle = true,
   }) async {
     tester.view.devicePixelRatio = 1.0;
@@ -102,9 +105,12 @@ void main() {
           locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(
+          home: Scaffold(
             body: SingleChildScrollView(
-              child: ServiceHistorySection(equipmentId: equipmentId),
+              child: ServiceHistorySection(
+                equipmentId: equipmentId,
+                editing: editing,
+              ),
             ),
           ),
         ),
@@ -501,11 +507,43 @@ void main() {
   });
 
   group('record actions', () {
-    testWidgets('Add opens the record dialog', (tester) async {
+    /// The open Service history card: a sitting holding [records].
+    EditSession<EquipmentItem> openCard(List<ServiceRecord> records) {
+      final session = EditSession(
+        const EquipmentItem(
+          id: equipmentId,
+          name: 'JJ-CCR',
+          type: EquipmentType.rebreather,
+        ),
+      );
+      addTearDown(session.dispose);
+      gearItemServiceRecordsList
+        ..loadNone(session)
+        ..set(session, records);
+      return session;
+    }
+
+    testWidgets('locked, it offers no Add and a row opens nothing', (
+      tester,
+    ) async {
       await pumpSection(
         tester,
         records: [record(id: 'r1', kindId: 'disinfect')],
         kinds: [kind('disinfect', 'Disinfect')],
+      );
+
+      expect(find.text('Add'), findsNothing);
+      await tester.tap(find.text('Disinfect'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Service Record'), findsNothing);
+    });
+
+    testWidgets('Add opens the record dialog', (tester) async {
+      await pumpSection(
+        tester,
+        records: const [],
+        kinds: [kind('disinfect', 'Disinfect')],
+        editing: openCard([record(id: 'r1', kindId: 'disinfect')]),
       );
 
       await tester.tap(find.text('Add'));
@@ -517,8 +555,9 @@ void main() {
     testWidgets('tapping a row opens the dialog in edit mode', (tester) async {
       await pumpSection(
         tester,
-        records: [record(id: 'r1', kindId: 'disinfect')],
+        records: const [],
         kinds: [kind('disinfect', 'Disinfect')],
+        editing: openCard([record(id: 'r1', kindId: 'disinfect')]),
       );
 
       await tester.tap(find.text('Disinfect'));
@@ -530,8 +569,9 @@ void main() {
     testWidgets('the row menu offers edit and delete', (tester) async {
       await pumpSection(
         tester,
-        records: [record(id: 'r1', kindId: 'disinfect')],
+        records: const [],
         kinds: [kind('disinfect', 'Disinfect')],
+        editing: openCard([record(id: 'r1', kindId: 'disinfect')]),
       );
 
       await tester.tap(find.byIcon(Icons.more_vert).last);
@@ -540,54 +580,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Edit Service Record'), findsOneWidget);
-    });
-
-    testWidgets('deleting asks for confirmation and can be cancelled', (
-      tester,
-    ) async {
-      final notifier = _MockServiceRecordNotifier([
-        record(id: 'r1', kindId: 'disinfect'),
-      ]);
-      await pumpSection(
-        tester,
-        records: const [],
-        kinds: [kind('disinfect', 'Disinfect')],
-        notifier: notifier,
-      );
-
-      await tester.tap(find.byIcon(Icons.more_vert).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Delete Service Record?'), findsOneWidget);
-
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-
-      expect(notifier.deletedIds, isEmpty);
-    });
-
-    testWidgets('confirming a delete removes the record', (tester) async {
-      final notifier = _MockServiceRecordNotifier([
-        record(id: 'r1', kindId: 'disinfect'),
-      ]);
-      await pumpSection(
-        tester,
-        records: const [],
-        kinds: [kind('disinfect', 'Disinfect')],
-        notifier: notifier,
-      );
-
-      await tester.tap(find.byIcon(Icons.more_vert).last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Delete'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
-      await tester.pumpAndSettle();
-
-      expect(notifier.deletedIds, ['r1']);
-      expect(find.text('Service record deleted'), findsOneWidget);
     });
   });
 
@@ -768,15 +760,10 @@ void main() {
 class _MockServiceRecordNotifier
     extends StateNotifier<AsyncValue<List<ServiceRecord>>>
     implements ServiceRecordNotifier {
-  final List<String> deletedIds = [];
-
   _MockServiceRecordNotifier(
     List<ServiceRecord> records, {
     AsyncValue<List<ServiceRecord>>? state,
   }) : super(state ?? AsyncValue.data(records));
-
-  @override
-  Future<void> deleteRecord(String id) async => deletedIds.add(id);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

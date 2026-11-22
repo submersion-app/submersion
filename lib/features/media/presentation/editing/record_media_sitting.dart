@@ -78,6 +78,18 @@ class SittingMediaWriters {
             throw UnsupportedError('a gear item sitting relinks no media'),
       );
 
+  /// A trip's (issue #4527, phase 3, plan 10): its scans hold photos for
+  /// several of its dives, each row naming its own dive. A trip's sitting
+  /// unlinks and relinks nothing.
+  factory SittingMediaWriters.forTrip(ProviderRead read) =>
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (_, _) async =>
+            throw UnsupportedError('a trip sitting unlinks no media'),
+        replace: (_, _, _) async =>
+            throw UnsupportedError('a trip sitting relinks no media'),
+      );
+
   /// The app's writers, every record's alike but for what an unlink
   /// unlinks from ([unlinkFrom]) and how a link is replaced ([replace]).
   factory SittingMediaWriters._app(

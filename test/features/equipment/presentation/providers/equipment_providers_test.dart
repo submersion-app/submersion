@@ -298,8 +298,8 @@ void main() {
       // leave the list the notifier's refresh feeds.
       final now = DateTime.now();
       await container
-          .read(serviceRecordNotifierProvider(reg.id).notifier)
-          .addRecord(
+          .read(serviceRecordRepositoryProvider)
+          .createRecord(
             ServiceRecord(
               id: '',
               equipmentId: reg.id,
@@ -310,6 +310,9 @@ void main() {
               updatedAt: now,
             ),
           );
+      await container
+          .read(serviceRecordNotifierProvider(reg.id).notifier)
+          .refresh();
 
       expect(
         await container.read(

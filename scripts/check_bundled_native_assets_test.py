@@ -28,21 +28,38 @@ guard = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(guard)
 
 SQLITE = guard.REQUIRED_ASSET_ID
+ORT = guard.ONNX_RUNTIME_ASSET_ID
 PDFIUM = "package:pdfium_dart/libpdfium"
 
+# Every real bundle also carries ONNX Runtime, the marine life engine; the
+# helpers add it unless a test asks for a bundle without it.
+_ORT_FILES = {"windows_x64": "onnxruntime.dll", "linux_x64": "lib/libonnxruntime.so"}
 
-def _windows_manifest(assets):
-    return {"format-version": [1, 0, 0], "native-assets": {"windows_x64": assets}}
+
+def _manifest(target, assets, ort):
+    if ort:
+        assets = {**assets, ORT: ["absolute", os.path.basename(_ORT_FILES[target])]}
+    return {"format-version": [1, 0, 0], "native-assets": {target: assets}}
 
 
-def _linux_manifest(assets):
-    return {"format-version": [1, 0, 0], "native-assets": {"linux_x64": assets}}
+def _windows_manifest(assets, ort=True):
+    return _manifest("windows_x64", assets, ort)
+
+
+def _linux_manifest(assets, ort=True):
+    return _manifest("linux_x64", assets, ort)
 
 
 class BundleBuilder:
     """Builds a throwaway app bundle on disk for one test case."""
 
-    def __init__(self, test, manifest=None, files=(), manifest_missing=False):
+    def __init__(
+        self, test, manifest=None, files=(), manifest_missing=False, ort_file=True
+    ):
+        if manifest and ort_file:
+            for target, assets in manifest["native-assets"].items():
+                if ORT in assets and target in _ORT_FILES:
+                    files = (*files, _ORT_FILES[target])
         self.root = tempfile.mkdtemp()
         test.addCleanup(self._cleanup)
         assets_dir = os.path.join(self.root, "data", "flutter_assets")
@@ -151,6 +168,27 @@ class CheckBundleTests(unittest.TestCase):
         )
         self.assertFalse(ok)
         self.assertTrue(any(SQLITE in line for line in lines))
+
+    def test_manifest_without_onnx_runtime_fails_closed(self):
+        # The marine life engine's library was dropped from the hook: the app
+        # still opens, but identification cannot run on this platform.
+        ok, lines = self._check(
+            manifest=_windows_manifest(
+                {SQLITE: ["absolute", "sqlcipher.dll"]}, ort=False
+            ),
+            files=("sqlcipher.dll",),
+        )
+        self.assertFalse(ok)
+        self.assertTrue(any(ORT in line for line in lines))
+
+    def test_onnx_runtime_declared_but_not_bundled_fails(self):
+        ok, lines = self._check(
+            manifest=_linux_manifest({SQLITE: ["absolute", "libsqlcipher.so"]}),
+            files=("lib/libsqlcipher.so",),
+            ort_file=False,
+        )
+        self.assertFalse(ok)
+        self.assertTrue(any("libonnxruntime.so" in line for line in lines))
 
     def test_manifest_with_no_native_assets_fails_closed(self):
         ok, lines = self._check(manifest=_windows_manifest({}))

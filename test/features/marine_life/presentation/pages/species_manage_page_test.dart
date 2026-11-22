@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_routes.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -293,6 +295,88 @@ void main() {
     container.read(speciesCatalogCategoryProvider.notifier).state = null;
     await tester.pumpAndSettle();
     expect(find.text('Bbb coral'), findsOneWidget);
+  });
+
+  // A row has no lock to tap, so its Edit opens the species unlocked
+  // (issue #4527, plan 12, Question 3).
+  testWidgets("the row's Edit opens the species unlocked", (tester) async {
+    final router = GoRouter(
+      initialLocation: '/species/manage',
+      routes: [
+        GoRoute(
+          path: '/species/manage',
+          builder: (_, _) => const SpeciesManagePage(),
+        ),
+        GoRoute(
+          path: '/species/:id',
+          builder: (_, state) => Text(
+            'SPECIES ${state.pathParameters['id']} '
+            '${state.uri.queryParameters['mode']}',
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    final species = [_species(id: 'c1', name: 'Custom fish')];
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          _visibleSpeciesProvider.overrideWith((ref) => species),
+          speciesListNotifierProvider.overrideWith(
+            (ref) => _MockSpeciesNotifier(ref.watch(_visibleSpeciesProvider)),
+          ),
+          speciesTagCountsProvider.overrideWith((ref) async => const {}),
+          speciesSightingCountsProvider.overrideWith((ref) async => const {}),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SPECIES c1 edit'), findsOneWidget);
+  });
+
+  // A new species opens on the species page behind the phase 3 switch, and
+  // once created the manage page's Add opens it (issue #4527, plan 11).
+  testWidgets('Add opens the new species once created', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/species/manage',
+      routes: [
+        GoRoute(
+          path: '/species/manage',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => openNewSpecies(context),
+              child: const Text('add'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/species/new',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => context.pop('n1'),
+              child: const Text('NEW'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/species/:id',
+          builder: (_, state) => Text('SPECIES ${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.tap(find.text('add'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('NEW'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SPECIES n1'), findsOneWidget);
   });
 }
 

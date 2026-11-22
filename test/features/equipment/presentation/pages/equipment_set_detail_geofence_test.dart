@@ -91,16 +91,4 @@ void main() {
 
     expect(find.text('Monterey'), findsOneWidget);
   });
-
-  testWidgets('"Set as default" action promotes the set', (tester) async {
-    await tester.pumpWidget(await page());
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Set as default'));
-    await tester.pumpAndSettle();
-
-    expect((await repo.getSetById('a'))!.isDefault, isTrue);
-  });
 }

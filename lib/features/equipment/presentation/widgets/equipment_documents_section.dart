@@ -22,10 +22,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// keeping it out leaves this widget a pure function of its provider and
 /// its callback.
 ///
-/// Where the item's page edits in place (issue #4527, phase 3), it offers
-/// no remove while locked ([readOnly]); in the page's sitting ([editing]) a
-/// remove asks nothing and is held until Save, and a closed card shows what
-/// a sitting holds ([shown]).
+/// It offers no remove outside the open Legacy files card (issue #4527,
+/// phase 3); in the page's sitting ([editing]) a remove asks nothing and is
+/// held until Save, and a closed card shows what a sitting holds ([shown]).
 class EquipmentDocumentsSection extends ConsumerWidget {
   final String equipmentId;
 
@@ -38,21 +37,13 @@ class EquipmentDocumentsSection extends ConsumerWidget {
   /// The sitting whose removes a closed card shows.
   final EditSession<EquipmentItem>? shown;
 
-  /// Offers no remove: the page edits in place and is locked.
-  final bool readOnly;
-
   const EquipmentDocumentsSection({
     super.key,
     required this.equipmentId,
     this.onOpenDocument,
     this.editing,
     this.shown,
-    this.readOnly = false,
   });
-
-  /// Whether a remove may be offered: not on a locked page, and in a
-  /// sitting only in the open card.
-  bool get _canAct => !readOnly && (shown == null || editing != null);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -125,7 +116,7 @@ class EquipmentDocumentsSection extends ConsumerWidget {
             documentsAsync.when(
               data: (_) => Column(
                 children: [
-                  for (final item in leftovers) _buildTile(context, ref, item),
+                  for (final item in leftovers) _buildTile(context, item),
                 ],
               ),
               loading: () => const Padding(
@@ -147,7 +138,7 @@ class EquipmentDocumentsSection extends ConsumerWidget {
     return Padding(padding: const EdgeInsets.only(top: 24), child: card);
   }
 
-  Widget _buildTile(BuildContext context, WidgetRef ref, MediaItem item) {
+  Widget _buildTile(BuildContext context, MediaItem item) {
     return ListTile(
       key: ValueKey('equipment-document-${item.id}'),
       contentPadding: EdgeInsets.zero,
@@ -165,69 +156,15 @@ class EquipmentDocumentsSection extends ConsumerWidget {
       // Null, not a no-op closure: a non-null onTap gives the tile ripple
       // feedback and a tap target it cannot honour when no opener was wired.
       onTap: onOpenDocument == null ? null : () => onOpenDocument!(item),
-      trailing: !_canAct
-          ? null
-          : IconButton(
-              icon: const Icon(Icons.close),
-              tooltip: context.l10n.common_action_remove,
-              onPressed: switch (editing) {
-                // In a sitting a remove asks nothing: Cancel brings it back.
-                final session? => () => unlinkLegacyFileInSitting(
-                  session,
-                  item.id,
-                ),
-                null => () => _confirmRemove(context, ref, item),
-              },
-            ),
-    );
-  }
-
-  Future<void> _confirmRemove(
-    BuildContext context,
-    WidgetRef ref,
-    MediaItem item,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(ctx.l10n.equipment_documents_removeTitle),
-        content: Text(ctx.l10n.equipment_documents_removeContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(ctx.l10n.common_action_cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(ctx.l10n.common_action_remove),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
-
-    // Captured before the await so no BuildContext is dereferenced across the
-    // async gap -- and then checked for mounted before showing, because that
-    // capture does not make the ScaffoldMessengerState itself safe to use:
-    // showSnackBar builds its AnimationController with `vsync: this`, so
-    // firing it at a state disposed during the unlink throws.
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    final errorColor = Theme.of(context).colorScheme.error;
-    try {
-      await unlinkEquipmentMedia(ref, equipmentId, [item.id]);
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.equipment_documents_removed)),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.equipment_documents_removeError('$e')),
-          backgroundColor: errorColor,
+      trailing: switch (editing) {
+        null => null,
+        // A remove asks nothing: Cancel brings it back.
+        final session => IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: context.l10n.common_action_remove,
+          onPressed: () => unlinkLegacyFileInSitting(session, item.id),
         ),
-      );
-    }
+      },
+    );
   }
 }

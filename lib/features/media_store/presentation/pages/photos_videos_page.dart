@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -64,7 +65,11 @@ class PhotosVideosPage extends ConsumerWidget {
               key: const ValueKey('photos-marine-life-identification'),
               leading: Icon(iconForSpeciesCategory(SpeciesCategory.fish)),
               title: Text(l10n.settings_speciesId_title),
-              subtitle: Text(l10n.settings_speciesId_entrySubtitle),
+              subtitle: Text(
+                visionVideoRuns(defaultTargetPlatform)
+                    ? l10n.settings_speciesId_entrySubtitle
+                    : l10n.settings_speciesId_entrySubtitlePhotos,
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.pushSettingsPage(
                 '/settings/marine-life-identification',

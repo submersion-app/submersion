@@ -30,6 +30,8 @@ void main() {
     WidgetTester tester, {
     String initialLocation = '/dives',
   }) async {
+    // The bindings keep the container they were built under, process-wide.
+    addTearDown(AppShortcuts.debugReset);
     final router = GoRouter(
       initialLocation: initialLocation,
       routes: [
@@ -87,18 +89,20 @@ void main() {
 
       expect(find.text('Global search'), findsOneWidget);
       expect(router.routerDelegate.canPop(), isTrue);
+      // Left for the page to take on arrival, so it focuses its field even
+      // where it does not autofocus (#4813).
+      expect(container.read(globalSearchFocusPendingProvider), isTrue);
     });
 
     testWidgets('on the search page the global shortcut asks for the field', (
       tester,
     ) async {
       final router = await pumpShortcutHost(tester, initialLocation: '/search');
-      final before = container.read(globalSearchFocusTickProvider);
 
       await pressControl(tester, LogicalKeyboardKey.keyK);
 
       expect(router.routerDelegate.canPop(), isFalse);
-      expect(container.read(globalSearchFocusTickProvider), before + 1);
+      expect(container.read(globalSearchFocusPendingProvider), isTrue);
     });
 
     testWidgets('search shortcut opens and focuses the dive search row', (

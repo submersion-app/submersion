@@ -148,7 +148,7 @@ class DocumentPageCapture {
   // Platform pickers and the isolate encoder: no Dart-side test double.
 
   /// No maxWidth / imageQuality: the desktop pickers ignore them, so the
-  /// encoder does the sizing (as certification_edit_page.dart does).
+  /// encoder does the sizing (as pickCertificationCardPhoto does).
   static Future<PickedBytes?> _platformPickImage(ImageSource source) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final picked = await ImagePicker().pickImage(source: source);
