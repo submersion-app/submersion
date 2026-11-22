@@ -124,8 +124,9 @@ class IncidentWrites extends WritableEntry {
   /// Writes only the fields the change names, on the report as stored. A
   /// read gives a check-in link that does not stand just now as none, so
   /// writing a read back would erase a link the change never named (#4924).
-  /// A move to another item drops the link, as the near-miss editor does:
-  /// [refuse] lets a move through only when the link does not stand.
+  /// A move to another item that names no link drops the stored one, as the
+  /// near-miss editor does; [refuse] lets such a move through only when the
+  /// link does not stand.
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
     final current = await _incident(id);

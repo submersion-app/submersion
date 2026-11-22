@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -13,13 +14,23 @@ void main() {
   late AppDatabase db;
   late ChildWriteHarness h;
 
+  /// The items each apply asked to work the condition findings out for.
+  late List<Set<String>> refreshed;
+
   Future<String> make(String entity, Map<String, Object?> values) async =>
       (await h.run([createOp(entity, values)])).created.single.id;
 
   setUp(() async {
     db = await setUpTestDatabase();
     addTearDown(SyncCoordinator.reset);
-    h = ChildWriteHarness(db);
+    refreshed = [];
+    h = ChildWriteHarness(
+      db,
+      catalog: (repositories) => WriteCatalog(
+        repositories,
+        refreshFindings: (ids) => refreshed.add(ids.toSet()),
+      ),
+    );
     await h.seed();
     await db
         .into(db.equipment)
@@ -162,7 +173,8 @@ void main() {
       expect([row.severity, row.observationId], ['moderate', checkIn]);
     });
 
-    test('goes with a move to another item, as in the editor', () async {
+    test('goes with a move to another item, as in the editor; both items '
+        'have their findings worked out again', () async {
       await db
           .into(db.equipment)
           .insert(
@@ -176,12 +188,17 @@ void main() {
             ),
           );
 
+      refreshed.clear();
+
       await h.run([
         updateOp('incidents', report, {'equipment_id': 'bcd'}),
       ]);
 
       final row = await stored();
       expect([row.equipmentId, row.observationId], ['bcd', null]);
+      expect(refreshed, [
+        {'reg', 'bcd'},
+      ]);
     });
   });
 
