@@ -442,7 +442,28 @@ final planCanLengthenProvider = Provider<bool>((ref) {
 /// Which deviation is ghosted on the chart ('deeper'|'longer'|'both'; null =
 /// none). Mutually exclusive with [selectedLostGasTankIdProvider] -- only one
 /// contingency can be previewed at a time.
-final selectedDeviationProvider = StateProvider<String?>((_) => null);
+final selectedDeviationProvider =
+    NotifierProvider<SelectedDeviationNotifier, String?>(
+      SelectedDeviationNotifier.new,
+    );
+
+/// Holds [selectedDeviationProvider]'s key.
+class SelectedDeviationNotifier extends Notifier<String?> {
+  @override
+  String? build() {
+    // Rebuilt when the plan gains or loses its bottom. A time preview goes
+    // with the bottom, wherever the plan was edited from: left in place it
+    // would come back on its own once a bottom is added again (#4849). Done
+    // as a rebuild rather than a listener that writes state, so it is safe
+    // when the first read comes from a widget mid-build.
+    final canLengthen = ref.watch(planCanLengthenProvider);
+    final previous = stateOrNull;
+    return canLengthen || previous == 'deeper' ? previous : null;
+  }
+
+  /// Ghosts the deviation [key] ('deeper' | 'longer' | 'both'), or none.
+  void select(String? key) => state = key;
+}
 
 /// Which carried cylinder is being marked lost and previewed; null = none.
 /// Mutually exclusive with [selectedDeviationProvider].

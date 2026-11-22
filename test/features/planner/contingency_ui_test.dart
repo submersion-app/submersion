@@ -153,7 +153,7 @@ void main() {
     );
     final notifier = container.read(divePlanNotifierProvider.notifier);
     notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
-    container.read(selectedDeviationProvider.notifier).state = 'longer';
+    container.read(selectedDeviationProvider.notifier).select('longer');
     // The bottom goes while the chips are not on screen.
     final hold = container.read(divePlanNotifierProvider).segments.last;
     notifier.removeSegment(hold.id);
@@ -165,6 +165,41 @@ void main() {
     notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
     await tester.pumpAndSettle();
     expect(container.read(selectedContingencyProvider), isNull);
+  });
+
+  testWidgets('losing the bottom clears a +time selection with no chips on '
+      'screen', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: _overrides(),
+        child: const SizedBox.shrink(key: Key('noChips')),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const Key('noChips'))),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    container.read(selectedDeviationProvider.notifier).select('both');
+    await tester.pump();
+
+    // Edited elsewhere (the segment list, say) while the chart is not shown.
+    final hold = container.read(divePlanNotifierProvider).segments.last;
+    notifier.removeSegment(hold.id);
+    await tester.pump();
+    expect(container.read(selectedDeviationProvider), isNull);
+
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pump();
+    expect(container.read(selectedContingencyProvider), isNull);
+
+    // +depth still applies without a bottom, so it stays selected.
+    container.read(selectedDeviationProvider.notifier).select('deeper');
+    final newHold = container.read(divePlanNotifierProvider).segments.last;
+    notifier.removeSegment(newHold.id);
+    await tester.pump();
+    expect(container.read(selectedDeviationProvider), 'deeper');
+    expect(container.read(selectedContingencyProvider), isNotNull);
   });
 
   testWidgets('overlay chips render a single row strip and drive selection', (

@@ -21,26 +21,13 @@ class ContingencyChips extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final canLengthen = ref.watch(planCanLengthenProvider);
     final rawSelected = ref.watch(selectedDeviationProvider);
+    // SelectedDeviationNotifier drops a time selection once the plan loses
+    // its bottom; until it has, that selection reads as Base here rather
+    // than as no chip at all.
     final staleTimeSelection =
         !canLengthen && rawSelected != null && rawSelected != 'deeper';
-    if (staleTimeSelection) {
-      // Without a bottom the time chips go, and so does a time preview the
-      // diver picked: left in place it would come back on its own the moment
-      // a bottom is added again. Checked on every build, so it also catches
-      // a selection that went stale while these chips were not on screen.
-      // Cleared after the frame, since a provider cannot change mid-build.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        final notifier = ref.read(selectedDeviationProvider.notifier);
-        if (notifier.state == rawSelected &&
-            !ref.read(planCanLengthenProvider)) {
-          notifier.state = null;
-        }
-      });
-    }
     final state = ref.watch(divePlanNotifierProvider);
     if (state.segments.isEmpty) return const SizedBox.shrink();
-    // Until then, the stale selection reads as Base rather than as no chip.
     final selected = staleTimeSelection ? null : rawSelected;
     final units = ref.watch(unitFormatterProvider);
 
@@ -51,7 +38,7 @@ class ContingencyChips extends ConsumerWidget {
     final timeLabel = '+${resolved.deviationTimeMinutes}′';
 
     void select(String? key) {
-      ref.read(selectedDeviationProvider.notifier).state = key;
+      ref.read(selectedDeviationProvider.notifier).select(key);
       // Only one contingency ghost can be on the chart at a time.
       if (key != null) {
         ref.read(selectedLostGasTankIdProvider.notifier).state = null;

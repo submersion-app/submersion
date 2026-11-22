@@ -206,9 +206,9 @@ class PlanResultsSheet extends ConsumerWidget {
 
     void toggleDeviation(String key) {
       final isSelected = selectedDeviation == key;
-      ref.read(selectedDeviationProvider.notifier).state = isSelected
-          ? null
-          : key;
+      ref
+          .read(selectedDeviationProvider.notifier)
+          .select(isSelected ? null : key);
       // Only one contingency ghost/preview can be active at a time.
       if (!isSelected) {
         ref.read(selectedLostGasTankIdProvider.notifier).state = null;
@@ -222,7 +222,7 @@ class PlanResultsSheet extends ConsumerWidget {
           : tankId;
       // Only one contingency ghost/preview can be active at a time.
       if (!isSelected) {
-        ref.read(selectedDeviationProvider.notifier).state = null;
+        ref.read(selectedDeviationProvider.notifier).select(null);
       }
     }
 
