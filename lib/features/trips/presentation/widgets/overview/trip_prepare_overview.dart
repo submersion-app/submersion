@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_overview_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
@@ -13,8 +14,9 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
-/// The Overview before departure (#2845): the hero with its countdown, one
-/// summary card whose rows open the other tabs, and the notes. No map, no
+/// The Overview before departure (#2845): the hero with its countdown, the
+/// line of the trip's type, location, resort and sharing, one summary card
+/// whose rows open the other tabs, and the notes. No map, no
 /// stats, no story: there is nothing to tell yet.
 class TripPrepareOverview extends StatelessWidget {
   final TripStory story;
@@ -53,6 +55,13 @@ class TripPrepareOverview extends StatelessWidget {
             showEmptyState: false,
             showChecklist: false,
           ),
+        ),
+        // The trip's type, where it is, its resort and who it is shared
+        // with, on one line under the hero, and the header block's editor
+        // (issue #4927).
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: framed(TripCardId.header, TripHeaderRows(trip: trip)),
         ),
         TripOverviewSummaryCard(
           trip: trip,
