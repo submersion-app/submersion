@@ -40,6 +40,14 @@ Diver _diver(String name) => Diver(
   updatedAt: DateTime(2020),
 );
 
+/// The app icon in the bar.
+final _logo = find.byWidgetPredicate(
+  (w) =>
+      w is Image &&
+      w.image is AssetImage &&
+      (w.image as AssetImage).assetName == 'assets/icon/icon.png',
+);
+
 int _gaugeBuilds = 0;
 
 Future<void> _pump(
@@ -106,26 +114,50 @@ void main() {
     expect(find.byKey(HomeHeaderBar.switcherKey), findsNothing);
   });
 
-  // The logo stands alone: the lights take the room a wordmark would.
-  testWidgets('no wordmark, and the lights start just after the logo', (
-    tester,
-  ) async {
-    await _pump(tester, width: 1280);
-    expect(find.text('Submersion'), findsNothing);
-    final logo = tester.getRect(
-      find.byWidgetPredicate(
-        (w) =>
-            w is Image &&
-            w.image is AssetImage &&
-            (w.image as AssetImage).assetName == 'assets/icon/icon.png',
-      ),
+  // The logo stands alone at the end of the bar, after every control, and
+  // the lights start at the bar's leading edge.
+  for (final (locale, rtl) in [
+    (const Locale('en'), false),
+    (const Locale('he'), true),
+  ]) {
+    testWidgets(
+      'the logo ends the bar and the lights lead it (${locale.languageCode})',
+      (tester) async {
+        await _pump(tester, width: 1280, divers: 2, locale: locale);
+        expect(find.text('Submersion'), findsNothing);
+        final bar = tester.getRect(find.byType(HomeHeaderBar));
+        final logo = tester.getRect(_logo);
+        final switcher = tester.getRect(find.byKey(HomeHeaderBar.switcherKey));
+        final lights = [
+          for (final e in find.byType(HomeLightChip).evaluate())
+            tester.getRect(find.byWidget(e.widget)),
+        ];
+        if (rtl) {
+          expect(logo.left - bar.left, lessThanOrEqualTo(12));
+          expect(logo.right, lessThanOrEqualTo(switcher.left));
+          final lead = lights
+              .map((r) => r.right)
+              .reduce((a, b) => a > b ? a : b);
+          expect(bar.right - lead, lessThanOrEqualTo(16));
+        } else {
+          expect(bar.right - logo.right, lessThanOrEqualTo(12));
+          expect(logo.left, greaterThanOrEqualTo(switcher.right));
+          final lead = lights
+              .map((r) => r.left)
+              .reduce((a, b) => a < b ? a : b);
+          expect(lead - bar.left, lessThanOrEqualTo(16));
+        }
+      },
     );
-    final firstLight = find
-        .byType(HomeLightChip)
-        .evaluate()
-        .map((e) => tester.getRect(find.byWidget(e.widget)).left)
-        .reduce((a, b) => a < b ? a : b);
-    expect(firstLight - logo.right, lessThanOrEqualTo(16));
+  }
+
+  testWidgets('on a phone the logo ends the bar after More', (tester) async {
+    await _pump(tester, width: 400);
+    final bar = tester.getRect(find.byType(HomeHeaderBar));
+    final logo = tester.getRect(_logo);
+    final more = tester.getRect(find.byTooltip('More'));
+    expect(bar.right - logo.right, lessThanOrEqualTo(12));
+    expect(logo.left, greaterThanOrEqualTo(more.right));
   });
 
   for (final width in [400.0, 1280.0]) {

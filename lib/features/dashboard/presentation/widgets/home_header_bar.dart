@@ -69,18 +69,18 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
       context.push('/dives/new', extra: const DivePrefill(isPlanned: true)),
 );
 
-/// Home's slim header: the logo (no wordmark), the status lights filling
-/// the space after it (tablet and up), the main actions, a More menu and,
-/// with more than one diver profile, the diver switcher. Every control has
-/// at least a 44 by 44 hit area.
+/// Home's slim header: the status lights from the leading edge (tablet and
+/// up), the main actions, a More menu, the diver switcher with more than
+/// one diver profile, and the logo (no wordmark) closing the bar. Every
+/// control has at least a 44 by 44 hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
 
   /// Height of the bar's content. Tall enough for 44-point hit areas.
   static const double barHeight = 48;
 
-  /// The app icon at the start of the bar: the largest that leaves the bar
-  /// a few points above and below it.
+  /// The app icon at the end of the bar: the largest that leaves the bar a
+  /// few points above and below it.
   static const double logoSize = 40;
 
   static const Key switcherKey = ValueKey('home-header-switcher');
@@ -110,7 +110,7 @@ class HomeHeaderBar extends ConsumerWidget {
       color: theme.colorScheme.surface,
       child: Container(
         height: barHeight,
-        padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+        padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: theme.colorScheme.outlineVariant),
@@ -127,19 +127,8 @@ class HomeHeaderBar extends ConsumerWidget {
                     _labelledWidth * MediaQuery.textScalerOf(context).scale(1);
             return Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    'assets/icon/icon.png',
-                    width: logoSize,
-                    height: logoSize,
-                    excludeFromSemantics: true,
-                  ),
-                ),
-                // No wordmark: the logo stands alone and the lights take the
-                // rest of the bar up to the actions. On a phone they sit in
-                // the strip below instead.
-                const SizedBox(width: 12),
+                // The lights lead the bar, taking the room up to the
+                // actions. On a phone they sit in the strip below instead.
                 Expanded(child: phone ? const SizedBox() : lightsRow()),
                 if (compact)
                   IconButton(
@@ -165,6 +154,18 @@ class HomeHeaderBar extends ConsumerWidget {
                 ],
                 _MoreMenu(includePlan: compact),
                 _DiverSwitcher(showName: !compact),
+                // The logo closes the bar, at its end (the left in a
+                // right-to-left language), with no wordmark.
+                const SizedBox(width: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    'assets/icon/icon.png',
+                    width: logoSize,
+                    height: logoSize,
+                    excludeFromSemantics: true,
+                  ),
+                ),
               ],
             );
           },
