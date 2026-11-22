@@ -16,6 +16,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/about_submersion.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
@@ -69,22 +70,24 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
       context.push('/dives/new', extra: const DivePrefill(isPlanned: true)),
 );
 
-/// Home's slim header: the status lights from the leading edge (tablet and
-/// up), the diver switcher with more than one diver profile, and the logo
-/// (no wordmark) closing the bar. The logo opens the quick actions: logging
-/// and planning a dive, the buddy swap and the emergency card. Every control
-/// has at least a 44 by 44 hit area.
+/// Home's slim header: a + button at the leading edge for the quick actions
+/// (logging and planning a dive, the buddy swap and the emergency card), the
+/// status lights after it (tablet and up), the diver switcher with more than
+/// one diver profile, and the logo (no wordmark) closing the bar, which
+/// opens About Submersion. Every control has at least a 44 by 44 hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
 
   /// Height of the bar's content. Tall enough for 44-point hit areas.
   static const double barHeight = 48;
 
-  /// The app icon at the end of the bar, which opens the quick actions: the
+  /// The app icon at the end of the bar, which opens About Submersion: the
   /// largest that leaves the bar a few points above and below it.
   static const double logoSize = 40;
 
   static const Key switcherKey = ValueKey('home-header-switcher');
+
+  static const Key quickActionsKey = ValueKey('home-header-quick-actions');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -110,7 +113,8 @@ class HomeHeaderBar extends ConsumerWidget {
       color: theme.colorScheme.surface,
       child: Container(
         height: barHeight,
-        padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+        // The + button's own 44-point target spaces it from the edge.
+        padding: const EdgeInsetsDirectional.only(start: 4, end: 8),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: theme.colorScheme.outlineVariant),
@@ -126,14 +130,17 @@ class HomeHeaderBar extends ConsumerWidget {
                     _labelledWidth * MediaQuery.textScalerOf(context).scale(1);
             return Row(
               children: [
-                // The lights lead the bar, taking the room up to the
-                // switcher. On a phone they sit in the strip below instead.
+                // The quick actions open from the bar's leading edge (the
+                // right in a right-to-left language).
+                const _QuickActionsMenu(),
+                const SizedBox(width: 4),
+                // The lights take the room up to the switcher. On a phone
+                // they sit in the strip below instead.
                 Expanded(child: phone ? const SizedBox() : lightsRow()),
                 _DiverSwitcher(showName: !compact),
-                // The logo closes the bar, at its end (the left in a
-                // right-to-left language), and opens the quick actions.
+                // The logo closes the bar and opens About Submersion.
                 const SizedBox(width: 4),
-                const _QuickActionsMenu(),
+                const _AboutLogo(),
               ],
             );
           },
@@ -149,9 +156,9 @@ const double _labelledWidth = 900;
 
 enum _QuickAction { logDive, planDive, swap, emergency }
 
-/// The logo, which opens every quick action: logging and planning a dive
-/// first, then the buddy swap (where the device has the radios for it) and
-/// the emergency card. Its tap target is 44 points square around the icon.
+/// The + button, which opens every quick action: logging and planning a
+/// dive first, then the buddy swap (where the device has the radios for it)
+/// and the emergency card.
 class _QuickActionsMenu extends ConsumerWidget {
   const _QuickActionsMenu();
 
@@ -175,7 +182,10 @@ class _QuickActionsMenu extends ConsumerWidget {
       ),
     );
     return PopupMenuButton<_QuickAction>(
+      key: HomeHeaderBar.quickActionsKey,
       tooltip: l10n.dashboard_header_quickActions,
+      icon: const Icon(Icons.add),
+      style: IconButton.styleFrom(minimumSize: const Size.square(44)),
       position: PopupMenuPosition.under,
       onSelected: (action) => switch (action) {
         _QuickAction.logDive => _logDive(context),
@@ -205,18 +215,32 @@ class _QuickActionsMenu extends ConsumerWidget {
           l10n.dashboard_quickAction_emergency,
         ),
       ],
-      child: SizedBox.square(
-        dimension: 44,
-        child: Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              'assets/icon/icon.png',
-              width: HomeHeaderBar.logoSize,
-              height: HomeHeaderBar.logoSize,
-              excludeFromSemantics: true,
-            ),
-          ),
+    );
+  }
+}
+
+/// The app icon closing the bar: opens About Submersion, as Settings' About
+/// section does. Its tap target is 44 points square around the icon.
+class _AboutLogo extends StatelessWidget {
+  const _AboutLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    // An icon button, as the + is: one node that a screen reader names by
+    // the tooltip and can tap.
+    return IconButton(
+      tooltip: context.l10n.settings_about_aboutSubmersion,
+      onPressed: () => showAboutSubmersion(context),
+      padding: EdgeInsets.zero,
+      iconSize: HomeHeaderBar.logoSize,
+      style: IconButton.styleFrom(minimumSize: const Size.square(44)),
+      icon: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.asset(
+          'assets/icon/icon.png',
+          width: HomeHeaderBar.logoSize,
+          height: HomeHeaderBar.logoSize,
+          excludeFromSemantics: true,
         ),
       ),
     );

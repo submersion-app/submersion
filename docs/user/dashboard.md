@@ -11,11 +11,12 @@ The Dashboard is your home screen: a dense, at-a-glance view of your diving, the
 
 A slim bar across the top holds:
 
+- a **+** button for the quick actions (see below),
 - the **status lights** (see below),
 - when you have more than one [diver profile](diver-profile.md), your avatar. Tap it to switch diver,
-- and the Submersion logo at the end of the bar.
+- and the Submersion logo at the end of the bar. Tap it for **About Submersion**: the version you are running and when it was built.
 
-Tap the logo for the **quick actions**:
+Tap **+** for the **quick actions**:
 
 - **Log Dive** (log manually or download from a computer),
 - **Plan Dive** (the [dive planner](planning.md)),

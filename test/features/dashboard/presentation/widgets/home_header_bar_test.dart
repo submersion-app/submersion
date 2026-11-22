@@ -10,6 +10,7 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_light_chip.dart';
+import 'package:submersion/features/settings/presentation/widgets/submersion_about_dialog.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -48,6 +49,9 @@ final _logo = find.byWidgetPredicate(
       w.image is AssetImage &&
       (w.image as AssetImage).assetName == 'assets/icon/icon.png',
 );
+
+/// The + button that opens the quick actions.
+final _plus = find.byKey(HomeHeaderBar.quickActionsKey);
 
 int _gaugeBuilds = 0;
 
@@ -121,42 +125,51 @@ void main() {
     (const Locale('en'), false),
     (const Locale('he'), true),
   ]) {
-    testWidgets(
-      'the logo ends the bar and the lights lead it (${locale.languageCode})',
-      (tester) async {
-        await _pump(tester, width: 1280, divers: 2, locale: locale);
-        expect(find.text('Submersion'), findsNothing);
-        final bar = tester.getRect(find.byType(HomeHeaderBar));
-        final logo = tester.getRect(_logo);
-        final switcher = tester.getRect(find.byKey(HomeHeaderBar.switcherKey));
-        final lights = [
-          for (final e in find.byType(HomeLightChip).evaluate())
-            tester.getRect(find.byWidget(e.widget)),
-        ];
-        if (rtl) {
-          expect(logo.left - bar.left, lessThanOrEqualTo(12));
-          expect(logo.right, lessThanOrEqualTo(switcher.left));
-          final lead = lights
-              .map((r) => r.right)
-              .reduce((a, b) => a > b ? a : b);
-          expect(bar.right - lead, lessThanOrEqualTo(16));
-        } else {
-          expect(bar.right - logo.right, lessThanOrEqualTo(12));
-          expect(logo.left, greaterThanOrEqualTo(switcher.right));
-          final lead = lights
-              .map((r) => r.left)
-              .reduce((a, b) => a < b ? a : b);
-          expect(lead - bar.left, lessThanOrEqualTo(16));
-        }
-      },
-    );
+    testWidgets('+ starts the bar, the lights follow, the logo ends it '
+        '(${locale.languageCode})', (tester) async {
+      await _pump(tester, width: 1280, divers: 2, locale: locale);
+      expect(find.text('Submersion'), findsNothing);
+      final bar = tester.getRect(find.byType(HomeHeaderBar));
+      final plus = tester.getRect(_plus);
+      final logo = tester.getRect(_logo);
+      final switcher = tester.getRect(find.byKey(HomeHeaderBar.switcherKey));
+      final lights = [
+        for (final e in find.byType(HomeLightChip).evaluate())
+          tester.getRect(find.byWidget(e.widget)),
+      ];
+      if (rtl) {
+        expect(bar.right - plus.right, lessThanOrEqualTo(12));
+        expect(logo.left - bar.left, lessThanOrEqualTo(12));
+        expect(logo.right, lessThanOrEqualTo(switcher.left));
+        final lead = lights.map((r) => r.right).reduce((a, b) => a > b ? a : b);
+        expect(lead, lessThanOrEqualTo(plus.left));
+        expect(plus.left - lead, lessThanOrEqualTo(16));
+      } else {
+        expect(plus.left - bar.left, lessThanOrEqualTo(12));
+        expect(bar.right - logo.right, lessThanOrEqualTo(12));
+        expect(logo.left, greaterThanOrEqualTo(switcher.right));
+        final lead = lights.map((r) => r.left).reduce((a, b) => a < b ? a : b);
+        expect(lead, greaterThanOrEqualTo(plus.right));
+        expect(lead - plus.right, lessThanOrEqualTo(16));
+      }
+    });
   }
 
-  testWidgets('on a phone the logo ends the bar', (tester) async {
+  testWidgets('on a phone + starts the bar and the logo ends it', (
+    tester,
+  ) async {
     await _pump(tester, width: 400);
     final bar = tester.getRect(find.byType(HomeHeaderBar));
-    final logo = tester.getRect(_logo);
-    expect(bar.right - logo.right, lessThanOrEqualTo(12));
+    expect(tester.getRect(_plus).left - bar.left, lessThanOrEqualTo(12));
+    expect(bar.right - tester.getRect(_logo).right, lessThanOrEqualTo(12));
+  });
+
+  testWidgets('the logo opens About Submersion', (tester) async {
+    await _pump(tester, width: 1280);
+    await tester.tap(_logo);
+    await tester.pumpAndSettle();
+    expect(find.byType(SubmersionAboutDialog), findsOneWidget);
+    expect(find.text('Log Dive'), findsNothing);
   });
 
   for (final width in [400.0, 1280.0]) {
@@ -242,7 +255,7 @@ void main() {
     ) async {
       await _pump(tester, width: width);
       expect(find.byTooltip('Quick actions'), findsOneWidget);
-      await tester.tap(_logo);
+      await tester.tap(_plus);
       await tester.pumpAndSettle();
       expect(find.text('Log Dive'), findsOneWidget);
       expect(find.text('Plan Dive'), findsOneWidget);
@@ -254,20 +267,22 @@ void main() {
     tester,
   ) async {
     await _pump(tester, width: 1280);
-    await tester.tap(_logo);
+    await tester.tap(_plus);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Log Dive'));
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsOneWidget);
   });
 
-  testWidgets('the logo reads as a quick actions button', (tester) async {
+  testWidgets('+ and the logo read as buttons with their own names', (
+    tester,
+  ) async {
     final handle = tester.ensureSemantics();
     await _pump(tester, width: 1280);
-    final data = tester
-        .getSemantics(find.byTooltip('Quick actions'))
-        .getSemanticsData();
-    expect(data.hasAction(SemanticsAction.tap), isTrue);
+    for (final tip in ['Quick actions', 'About Submersion']) {
+      final data = tester.getSemantics(find.byTooltip(tip)).getSemanticsData();
+      expect(data.hasAction(SemanticsAction.tap), isTrue, reason: tip);
+    }
     handle.dispose();
   });
 
@@ -300,6 +315,7 @@ void main() {
     await _pump(tester, width: 390, divers: 2);
     for (final finder in [
       find.byTooltip('Quick actions'),
+      find.byTooltip('About Submersion'),
       find.byKey(HomeHeaderBar.switcherKey),
     ]) {
       final size = tester.getSize(finder);
