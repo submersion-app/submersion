@@ -41,7 +41,7 @@ class _ChecklistItemDialogState extends State<ChecklistItemDialog> {
   /// names a section in the current draft. A dangling id (the section was
   /// deleted from the list while this dialog's value carried over from a
   /// stale item) would otherwise make DropdownButtonFormField assert, the
-  /// same hazard _PreDiveItemDialog's _selectedSourceId guards against.
+  /// same hazard PreDiveItemDialog's _selectedSourceId guards against.
   String? get _selectedSectionId =>
       widget.sections.any((s) => s.id == _sectionId) ? _sectionId : null;
 

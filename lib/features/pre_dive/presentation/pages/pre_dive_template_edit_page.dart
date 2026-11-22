@@ -212,8 +212,8 @@ class _PreDiveTemplateEditPageState
     });
   }
 
-  /// Whether [item] is a linearity item whose source sorts after it in
-  /// [_items], the same list order [_save] passes to the repository.
+  /// Whether [item] is a linearity item whose source sorts after it in the
+  /// order shown, the order Save writes ([writePreDiveTemplate]).
   ///
   /// Deliberately not gated on strict order. Strict order makes the trap
   /// unavoidable, because the runner will not let the diver reach the air
@@ -237,7 +237,7 @@ class _PreDiveTemplateEditPageState
 
   /// [_items] in the order the editor shows them: each section's items in
   /// section order, then the unsectioned ones (a dangling sectionId counts
-  /// as unsectioned, as it does on screen). [_save] assigns sortOrder from
+  /// as unsectioned, as it does on screen). Save assigns sortOrder from
   /// this order, so a strict-order session enforces the order the diver
   /// saw rather than the order items happened to be added in.
   List<EditablePreDiveItem> _itemsInDisplayOrder() {
@@ -296,8 +296,9 @@ class _PreDiveTemplateEditPageState
   @override
   String? get editorLeaveLocation => '/pre-dive-checklists';
 
-  /// The edit title only once the sitting is open: while a template loads,
-  /// and for a built-in, the page claims no editing.
+  /// The edit title once a template that can be edited has loaded (see
+  /// [_editable]): while one loads, and for a built-in, the page claims no
+  /// editing, and it keeps the title as it leaves.
   @override
   String editorTitle(BuildContext context) => !widget.isEditing
       ? context.l10n.preDive_edit_titleNew
