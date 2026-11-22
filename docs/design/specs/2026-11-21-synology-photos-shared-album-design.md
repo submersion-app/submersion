@@ -160,14 +160,22 @@ has said everything it knows, and the pipeline skips extraction for it.
 ### 5. Credentials and headers
 
 `NetworkCredentialsService` gains the auth type `synologyShare` (password
-only, stored under the host like the other types). Its `headersFor(uri)`:
+only). Synology gives every share link its own password, so it is stored per
+share, under `synologyShareKey(link)` = `<host>:<port>/mo/sharing/<code>`,
+not per host: with one slot per host, saving a second album's password
+locked the first one out. The key is also the row's name in the saved hosts
+list, one row per album. A share password saved per host (the first
+prototype) is still read as a fallback; the share's own password wins.
 
-- basic / bearer: unchanged.
-- synologyShare: if the URI belongs to a share (link or API URL), returns
-  the session headers from `SynologyShareSessions`; otherwise null.
+`headersFor(uri)`:
 
-The keychain secret is cached per host as before; the session itself is not
-cached there, because it changes.
+- A share URI (link or API URL) with a password for its share: the session
+  headers from `SynologyShareSessions`.
+- Otherwise the host's secret as before: basic / bearer headers unchanged, a
+  host-wide share password yields nothing for non-share URLs.
+
+Secrets are cached per key as before; the session itself is not cached
+there, because it changes.
 
 ### 6. Serving images
 
@@ -192,7 +200,7 @@ The URL tab's manifest mode is the entry point; nothing new in navigation.
 - Paste the share link, tap Fetch.
 - Without a saved password the fetch fails as unauthorized. For a share link
   the panel then shows a password field and a "Save password and fetch"
-  button, which saves the `synologyShare` credential for the host and fetches
+  button, which saves the `synologyShare` credential for the share and fetches
   again.
 - From there: preview, Subscribe, Import. A share link skips the per-row
   import review: it links every photo with a confident dive match (the same
@@ -251,8 +259,9 @@ format, not only Synology:
    the share (observed from one client; not yet confirmed across clients),
    phone and desktop knock each other out. The validation step limits the
    damage to a two-minute gap; a real fix might need one share per device.
-3. **Several shares on one host.** Credentials are per host, so two password
-   protected albums on the same NAS share one password slot.
+3. **Several shares on one host.** Resolved: passwords are stored per share
+   (section 5). Open: whether the host-wide fallback is still worth keeping
+   once nobody has a prototype-era password saved.
 4. **Format identity.** A dedicated `ManifestFormat.synologyPhotos` with its
    label and l10n, instead of URL detection.
 5. **Unofficial API.** Any DSM update may change it; the client must fail

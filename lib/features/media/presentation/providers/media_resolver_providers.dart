@@ -298,8 +298,7 @@ final manifestFetchServiceProvider = Provider<ManifestFetchService>((ref) {
     synologyAlbums: SynologyAlbumSource(
       client: client,
       sessions: ref.watch(synologyShareSessionsProvider),
-      passwordFor: (link) =>
-          credentials.synologySharePassword(link.origin.host),
+      passwordFor: credentials.synologySharePassword,
     ),
   );
 });

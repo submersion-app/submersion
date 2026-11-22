@@ -141,35 +141,56 @@ class NetworkCredentialsService {
   /// session headers, and only for that share's URLs: see
   /// [_synologyHeaders].
   Future<Map<String, String>?> headersFor(Uri uri) async {
+    final share = SynologyShareLink.tryParseAny(uri);
+    if (share != null) {
+      final password = await synologySharePassword(share);
+      if (password != null) return _synologyHeaders(share, password);
+    }
     final secret = await _secretFor(uri.host);
     return switch (secret) {
       null => null,
       _HeaderSecret(:final headers) => headers,
-      _SynologyShareSecret(:final password) => _synologyHeaders(uri, password),
+      // A share password opens its share only; any other URL on the host
+      // goes without.
+      _SynologyShareSecret() => null,
     };
   }
 
-  /// The Synology share password saved for [host], or null when the host has
-  /// no credentials or credentials of another type.
-  Future<String?> synologySharePassword(String host) async {
-    final secret = await _secretFor(host);
-    return secret is _SynologyShareSecret ? secret.password : null;
+  /// The key a Synology share's password is saved under: the NAS address
+  /// plus the share code, so every share keeps its own password. Synology
+  /// gives each share link its own; one password per host meant saving the
+  /// second share's password locked the first share out. It doubles as the
+  /// row's name in the saved hosts list.
+  static String synologyShareKey(SynologyShareLink link) =>
+      '${link.origin.authority}/mo/sharing/${link.code}';
+
+  /// The password saved for [link], or null when none is saved.
+  ///
+  /// Falls back to a share password saved for the whole host, which is how
+  /// the first prototype stored it, so a password saved then keeps working.
+  /// Saving the share's own password then takes precedence.
+  Future<String?> synologySharePassword(SynologyShareLink link) async {
+    final own = await _secretFor(synologyShareKey(link));
+    if (own is _SynologyShareSecret) return own.password;
+    final legacy = await _secretFor(link.origin.host);
+    return legacy is _SynologyShareSecret ? legacy.password : null;
   }
 
   /// Session headers for a share URL. A failing login yields no headers
   /// rather than an exception: callers treat a missing header as "fetch
   /// without credentials", and the share then answers with its own error.
   Future<Map<String, String>?> _synologyHeaders(
-    Uri uri,
+    SynologyShareLink link,
     String password,
   ) async {
     final sessions = _synologySessions;
-    final link = SynologyShareLink.tryParseAny(uri);
-    if (sessions == null || link == null) return null;
+    if (sessions == null) return null;
     try {
       return await sessions.headersFor(link, password);
     } on SynologyShareException catch (e) {
-      _log.warning('No Synology share session for ${uri.host}: ${e.kind}');
+      _log.warning(
+        'No Synology share session for ${link.origin.host}: ${e.kind}',
+      );
       return null;
     }
   }

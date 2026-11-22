@@ -578,7 +578,7 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
       await ref
           .read(networkCredentialsServiceProvider)
           .save(
-            hostname: widget.share.origin.host,
+            hostname: NetworkCredentialsService.synologyShareKey(widget.share),
             authType: kSynologyShareAuthType,
             password: password,
             // TODO(media): l10n

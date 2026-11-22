@@ -39,17 +39,23 @@ void main() {
   late InMemoryKeychain keychain;
   late _FakeRepo repo;
   late int logins;
+  late List<String> loginPasswords;
   late NetworkCredentialsService service;
+
+  // Each share accepts only its own password.
+  const passwords = {'code1': 'secret', 'code2': 'other'};
 
   setUp(() {
     keychain = InMemoryKeychain();
     repo = _FakeRepo();
     logins = 0;
+    loginPasswords = [];
     final client = MockClient((request) async {
       final form = request.bodyFields;
       if (form['api'] == 'SYNO.Core.Sharing.Login') {
         logins++;
-        if (form['password'] != 'secret') {
+        loginPasswords.add(form['password'] ?? '');
+        if (form['password'] != passwords[form['sharing_id']]) {
           return _json({
             'success': false,
             'error': {'code': 101},
@@ -69,7 +75,19 @@ void main() {
     );
   });
 
-  final shareLink = Uri.parse('https://$host:5001/mo/sharing/code1');
+  final share1 = SynologyShareLink.tryParseShareLink(
+    Uri.parse('https://$host:5001/mo/sharing/code1'),
+  )!;
+  final share2 = SynologyShareLink.tryParseShareLink(
+    Uri.parse('https://$host:5001/mo/sharing/code2'),
+  )!;
+
+  Future<void> saveShare(SynologyShareLink link, String password) =>
+      service.save(
+        hostname: NetworkCredentialsService.synologyShareKey(link),
+        authType: 'synologyShare',
+        password: password,
+      );
 
   test('saving a share password needs a password', () async {
     expect(
@@ -78,34 +96,88 @@ void main() {
     );
   });
 
-  test('a saved share password is stored for the host', () async {
+  test('the key names the NAS and the share', () {
+    expect(
+      NetworkCredentialsService.synologyShareKey(share1),
+      '$host:5001/mo/sharing/code1',
+    );
+    // The /photo spelling of a link reaches the same share and key.
+    final prefixed = SynologyShareLink.tryParseShareLink(
+      Uri.parse('https://$host:5001/photo/mo/sharing/code1/'),
+    )!;
+    expect(
+      NetworkCredentialsService.synologyShareKey(prefixed),
+      NetworkCredentialsService.synologyShareKey(share1),
+    );
+  });
+
+  test('a saved share password belongs to its share only', () async {
+    await saveShare(share1, 'secret');
+    expect(repo.authTypes['$host:5001/mo/sharing/code1'], 'synologyShare');
+    expect(await service.synologySharePassword(share1), 'secret');
+    expect(await service.synologySharePassword(share2), isNull);
+  });
+
+  test('two shares on one NAS keep their own passwords', () async {
+    await saveShare(share1, 'secret');
+    await saveShare(share2, 'other');
+    expect(await service.synologySharePassword(share1), 'secret');
+    expect(await service.synologySharePassword(share2), 'other');
+
+    final h1 = await service.headersFor(
+      share1.originalUri(id: 1, cacheKey: '1_1'),
+    );
+    final h2 = await service.headersFor(
+      share2.originalUri(id: 2, cacheKey: '2_2'),
+    );
+    expect(h1?['X-SYNO-SHARING'], 'code1');
+    expect(h2?['X-SYNO-SHARING'], 'code2');
+    expect(loginPasswords, ['secret', 'other']);
+  });
+
+  test('a password saved for the whole host still opens a share', () async {
+    // How the first prototype stored it.
     await service.save(
       hostname: host,
       authType: 'synologyShare',
       password: 'secret',
     );
-    expect(repo.authTypes[host], 'synologyShare');
-    expect(await service.synologySharePassword(host), 'secret');
+    expect(await service.synologySharePassword(share1), 'secret');
+    final headers = await service.headersFor(
+      share1.originalUri(id: 1, cacheKey: '1_1'),
+    );
+    expect(headers?['X-SYNO-SHARING'], 'code1');
+  });
+
+  test("a share's own password wins over a host-wide one", () async {
+    await service.save(
+      hostname: host,
+      authType: 'synologyShare',
+      password: 'secret',
+    );
+    await saveShare(share2, 'other');
+    expect(await service.synologySharePassword(share2), 'other');
+    expect(await service.synologySharePassword(share1), 'secret');
   });
 
   test('share API URLs get session headers', () async {
-    await service.save(
-      hostname: host,
-      authType: 'synologyShare',
-      password: 'secret',
-    );
-    final link = SynologyShareLink.tryParseShareLink(shareLink)!;
+    await saveShare(share1, 'secret');
     final headers = await service.headersFor(
-      link.thumbnailUri(id: 1, cacheKey: '1_1', size: SynologyThumbnailSize.m),
+      share1.thumbnailUri(
+        id: 1,
+        cacheKey: '1_1',
+        size: SynologyThumbnailSize.m,
+      ),
     );
     expect(headers, {'Cookie': 'sharing_sid=sid-1', 'X-SYNO-SHARING': 'code1'});
 
     // The secret is cached, the session reused.
-    await service.headersFor(link.originalUri(id: 2, cacheKey: '2_2'));
+    await service.headersFor(share1.originalUri(id: 2, cacheKey: '2_2'));
     expect(logins, 1);
   });
 
   test('other URLs on the same host get no headers', () async {
+    await saveShare(share1, 'secret');
     await service.save(
       hostname: host,
       authType: 'synologyShare',
@@ -119,14 +191,9 @@ void main() {
   });
 
   test('a rejected password yields no headers instead of throwing', () async {
-    await service.save(
-      hostname: host,
-      authType: 'synologyShare',
-      password: 'wrong',
-    );
-    final link = SynologyShareLink.tryParseShareLink(shareLink)!;
+    await saveShare(share1, 'wrong');
     expect(
-      await service.headersFor(link.originalUri(id: 1, cacheKey: '1_1')),
+      await service.headersFor(share1.originalUri(id: 1, cacheKey: '1_1')),
       isNull,
     );
   });
@@ -138,9 +205,23 @@ void main() {
       username: 'u',
       password: 'p',
     );
-    expect(await service.synologySharePassword(host), isNull);
+    expect(await service.synologySharePassword(share1), isNull);
     final headers = await service.headersFor(Uri.parse('https://$host/a.jpg'));
     expect(headers?['Authorization'], startsWith('Basic '));
+  });
+
+  test('a share without a password falls back to host credentials', () async {
+    await service.save(
+      hostname: host,
+      authType: 'basic',
+      username: 'u',
+      password: 'p',
+    );
+    final headers = await service.headersFor(
+      share1.originalUri(id: 1, cacheKey: '1_1'),
+    );
+    expect(headers?['Authorization'], startsWith('Basic '));
+    expect(logins, 0);
   });
 
   test('without sessions a share secret yields no headers', () async {
@@ -149,13 +230,12 @@ void main() {
       storage: keychain,
     );
     await plain.save(
-      hostname: host,
+      hostname: NetworkCredentialsService.synologyShareKey(share1),
       authType: 'synologyShare',
       password: 'secret',
     );
-    final link = SynologyShareLink.tryParseShareLink(shareLink)!;
     expect(
-      await plain.headersFor(link.originalUri(id: 1, cacheKey: '1_1')),
+      await plain.headersFor(share1.originalUri(id: 1, cacheKey: '1_1')),
       isNull,
     );
     // The stored secret stays: it is valid, this instance just cannot use it.
