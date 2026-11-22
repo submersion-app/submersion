@@ -554,7 +554,7 @@ Widget _withRing(Widget icon, ToolbarRing? ring) {
     alignment: Alignment.center,
     clipBehavior: Clip.none,
     children: [
-      icon,
+      // Under the icon, as before; the icon still sizes the stack.
       Positioned(
         left: -_ringOverhang,
         top: -_ringOverhang,
@@ -562,6 +562,7 @@ Widget _withRing(Widget icon, ToolbarRing? ring) {
         bottom: -_ringOverhang,
         child: CircularProgressIndicator(strokeWidth: 2, value: ring.value),
       ),
+      icon,
     ],
   );
 }
