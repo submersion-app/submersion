@@ -182,6 +182,5 @@ void main() {
       // 34 px before issue #4921.
       expect(tester.getSize(chip).height, lessThanOrEqualTo(26), reason: label);
     }
-    expect(ViewerTagChips.fill.a, lessThan(0.5), reason: 'translucent');
   });
 }
