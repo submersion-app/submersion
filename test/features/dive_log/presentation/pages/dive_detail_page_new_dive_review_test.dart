@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/data/services/dive_mirror_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/entities/new_dive_request.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/features/media/data/services/media_import_service.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_database.dart';
@@ -163,14 +165,15 @@ void main() {
     await tester.tap(find.text('Discard'));
     await settle(tester);
     expect(await leaving, isTrue);
-    // The fresh sitting's seed is read from the database, real IO.
-    await pumpUntilRealAsync(
-      tester,
-      () =>
-          newDiveController(tester).isUnlocked &&
-          !newDiveController(tester).isDirty,
-      reason: 'the fresh sitting opens',
-    );
+    // The fresh sitting's seed is read from the database, real IO. While
+    // it loads the page shows a spinner with no sitting scope in the tree.
+    await pumpUntilRealAsync(tester, () {
+      if (find.byType(RecordEditScope<Dive>).evaluate().isEmpty) return false;
+      final controller = newDiveController(tester);
+      return controller.isUnlocked && !controller.isDirty;
+    }, reason: 'the fresh sitting opens');
+    // The sitting can open in the last pump's microtasks, after its frame.
+    await settle(tester);
 
     final controller = newDiveController(tester);
     expect(controller.isUnlocked, isTrue);
