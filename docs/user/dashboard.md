@@ -11,13 +11,18 @@ The Dashboard is your home screen: a dense, at-a-glance view of your diving, the
 
 A slim bar across the top holds:
 
-- the Submersion logo,
 - the **status lights** (see below),
-- **Log Dive** (log manually or download from a computer) and **Plan Dive** (the [dive planner](planning.md)),
-- a **More** menu with **Swap with a buddy** and the **Emergency card** (hotlines, chambers and your medical details; see [Safety](safety.md)),
-- and, when you have more than one [diver profile](diver-profile.md), your avatar. Tap it to switch diver.
+- when you have more than one [diver profile](diver-profile.md), your avatar. Tap it to switch diver,
+- and the Submersion logo at the end of the bar.
 
-On a phone the bar shows **+** for logging a dive, and **Plan Dive** moves into the **More** menu.
+Tap the logo for the **quick actions**:
+
+- **Log Dive** (log manually or download from a computer),
+- **Plan Dive** (the [dive planner](planning.md)),
+- **Swap with a buddy** (not in a web browser),
+- and the **Emergency card** (hotlines, chambers and your medical details; see [Safety](safety.md)).
+
+On a phone the status lights sit in a strip under the bar.
 
 ## Status lights
 

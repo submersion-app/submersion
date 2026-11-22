@@ -19253,7 +19253,7 @@
   "diverProfile_birthYear_label": "Anno di nascita",
   "diverProfile_birthYear_invalid": "Inserisci un anno dal 1900 al {year}",
   "diverProfile_bodyEstimate_note": "Usato solo per stimare la composizione corporea nella previsione della zavorra.",
-  "dashboard_header_more": "Altro",
+  "dashboard_header_quickActions": "Azioni rapide",
   "dashboard_header_allClear": "Tutto a posto",
   "dashboard_header_clearCount": "{count} a posto",
   "dashboard_header_statusTitle": "Stato",

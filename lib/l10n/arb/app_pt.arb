@@ -19253,7 +19253,7 @@
   "diverProfile_birthYear_label": "Ano de nascimento",
   "diverProfile_birthYear_invalid": "Introduza um ano de 1900 a {year}",
   "diverProfile_bodyEstimate_note": "Usado apenas para estimar a composição corporal na previsão de lastro.",
-  "dashboard_header_more": "Mais",
+  "dashboard_header_quickActions": "Ações rápidas",
   "dashboard_header_allClear": "Tudo certo",
   "dashboard_header_clearCount": "{count} em ordem",
   "dashboard_header_statusTitle": "Estado",

@@ -65907,7 +65907,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Usato solo per stimare la composizione corporea nella previsione della zavorra.';
 
   @override
-  String get dashboard_header_more => 'Altro';
+  String get dashboard_header_quickActions => 'Azioni rapide';
 
   @override
   String get dashboard_header_allClear => 'Tutto a posto';

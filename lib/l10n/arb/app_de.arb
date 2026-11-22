@@ -19378,7 +19378,7 @@
   "diverProfile_birthYear_label": "Geburtsjahr",
   "diverProfile_birthYear_invalid": "Gib ein Jahr von 1900 bis {year} ein",
   "diverProfile_bodyEstimate_note": "Wird nur verwendet, um die Körperzusammensetzung für die Bleivorhersage zu schätzen.",
-  "dashboard_header_more": "Mehr",
+  "dashboard_header_quickActions": "Schnellaktionen",
   "dashboard_header_allClear": "Alles in Ordnung",
   "dashboard_header_clearCount": "{count} in Ordnung",
   "dashboard_header_statusTitle": "Status",

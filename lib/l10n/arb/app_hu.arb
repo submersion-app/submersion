@@ -19253,7 +19253,7 @@
   "diverProfile_birthYear_label": "Születési év",
   "diverProfile_birthYear_invalid": "Adjon meg egy évet 1900 és {year} között",
   "diverProfile_bodyEstimate_note": "Csak a testösszetétel becslésére szolgál az ólomszükséglet előrejelzéséhez.",
-  "dashboard_header_more": "Továbbiak",
+  "dashboard_header_quickActions": "Gyors műveletek",
   "dashboard_header_allClear": "Minden rendben",
   "dashboard_header_clearCount": "{count} rendben",
   "dashboard_header_statusTitle": "Állapot",

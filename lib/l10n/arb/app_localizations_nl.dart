@@ -65511,7 +65511,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Wordt alleen gebruikt om de lichaamssamenstelling te schatten voor de loodvoorspelling.';
 
   @override
-  String get dashboard_header_more => 'Meer';
+  String get dashboard_header_quickActions => 'Snelle acties';
 
   @override
   String get dashboard_header_allClear => 'Alles in orde';

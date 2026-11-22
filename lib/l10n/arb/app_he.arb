@@ -19253,7 +19253,7 @@
   "diverProfile_birthYear_label": "שנת לידה",
   "diverProfile_birthYear_invalid": "הזינו שנה בין 1900 ל-{year}",
   "diverProfile_bodyEstimate_note": "משמש רק להערכת הרכב הגוף לצורך חיזוי משקולות.",
-  "dashboard_header_more": "עוד",
+  "dashboard_header_quickActions": "פעולות מהירות",
   "dashboard_header_allClear": "הכול תקין",
   "dashboard_header_clearCount": "{count} תקינים",
   "dashboard_header_statusTitle": "מצב",

@@ -19253,7 +19253,7 @@
   "diverProfile_birthYear_label": "出生年份",
   "diverProfile_birthYear_invalid": "请输入 1900 到 {year} 之间的年份",
   "diverProfile_bodyEstimate_note": "仅用于估算身体成分以预测配重。",
-  "dashboard_header_more": "更多",
+  "dashboard_header_quickActions": "快捷操作",
   "dashboard_header_allClear": "一切正常",
   "dashboard_header_clearCount": "{count} 项正常",
   "dashboard_header_statusTitle": "状态",

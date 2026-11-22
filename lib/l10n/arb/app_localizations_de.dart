@@ -65770,7 +65770,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wird nur verwendet, um die Körperzusammensetzung für die Bleivorhersage zu schätzen.';
 
   @override
-  String get dashboard_header_more => 'Mehr';
+  String get dashboard_header_quickActions => 'Schnellaktionen';
 
   @override
   String get dashboard_header_allClear => 'Alles in Ordnung';

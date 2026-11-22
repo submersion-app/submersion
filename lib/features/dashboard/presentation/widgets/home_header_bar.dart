@@ -70,17 +70,18 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
 );
 
 /// Home's slim header: the status lights from the leading edge (tablet and
-/// up), the main actions, a More menu, the diver switcher with more than
-/// one diver profile, and the logo (no wordmark) closing the bar. Every
-/// control has at least a 44 by 44 hit area.
+/// up), the diver switcher with more than one diver profile, and the logo
+/// (no wordmark) closing the bar. The logo opens the quick actions: logging
+/// and planning a dive, the buddy swap and the emergency card. Every control
+/// has at least a 44 by 44 hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
 
   /// Height of the bar's content. Tall enough for 44-point hit areas.
   static const double barHeight = 48;
 
-  /// The app icon at the end of the bar: the largest that leaves the bar a
-  /// few points above and below it.
+  /// The app icon at the end of the bar, which opens the quick actions: the
+  /// largest that leaves the bar a few points above and below it.
   static const double logoSize = 40;
 
   static const Key switcherKey = ValueKey('home-header-switcher');
@@ -88,7 +89,6 @@ class HomeHeaderBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final l10n = context.l10n;
     final phone = homeWidthTierOf(context) == HomeWidthTier.phone;
     final gaugesAsync = ref.watch(dashboardGaugesProvider);
     final lights = _watchLights(context, ref);
@@ -116,9 +116,8 @@ class HomeHeaderBar extends ConsumerWidget {
             bottom: BorderSide(color: theme.colorScheme.outlineVariant),
           ),
         ),
-        // Compact controls (an icon to log, Plan in More, no name on the
-        // switcher) on a phone, and wherever the bar's own width cannot fit
-        // the labelled buttons at the current text size.
+        // The switcher drops the diver's name on a phone, and wherever the
+        // bar's own width cannot fit it at the current text size.
         child: LayoutBuilder(
           builder: (context, box) {
             final compact =
@@ -128,44 +127,13 @@ class HomeHeaderBar extends ConsumerWidget {
             return Row(
               children: [
                 // The lights lead the bar, taking the room up to the
-                // actions. On a phone they sit in the strip below instead.
+                // switcher. On a phone they sit in the strip below instead.
                 Expanded(child: phone ? const SizedBox() : lightsRow()),
-                if (compact)
-                  IconButton(
-                    tooltip: l10n.dashboard_quickActions_logDive,
-                    onPressed: () => _logDive(context),
-                    style: _iconStyle,
-                    icon: const Icon(Icons.add),
-                  )
-                else ...[
-                  const SizedBox(width: 8),
-                  FilledButton.icon(
-                    onPressed: () => _logDive(context),
-                    style: _compactButton(context),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: Text(l10n.dashboard_quickActions_logDive),
-                  ),
-                  const SizedBox(width: 6),
-                  OutlinedButton(
-                    onPressed: () => context.push('/planning/dive-planner'),
-                    style: _compactButton(context),
-                    child: Text(l10n.dashboard_quickActions_planDive),
-                  ),
-                ],
-                _MoreMenu(includePlan: compact),
                 _DiverSwitcher(showName: !compact),
                 // The logo closes the bar, at its end (the left in a
-                // right-to-left language), with no wordmark.
-                const SizedBox(width: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    'assets/icon/icon.png',
-                    width: logoSize,
-                    height: logoSize,
-                    excludeFromSemantics: true,
-                  ),
-                ),
+                // right-to-left language), and opens the quick actions.
+                const SizedBox(width: 4),
+                const _QuickActionsMenu(),
               ],
             );
           },
@@ -175,68 +143,82 @@ class HomeHeaderBar extends ConsumerWidget {
   }
 }
 
-/// The bar width, at text scale 1, below which the labelled buttons and
-/// the switcher's name give way to their compact forms.
+/// The bar width, at text scale 1, below which the switcher gives way to
+/// its compact form, the avatar alone.
 const double _labelledWidth = 900;
 
-/// Text buttons in the bar: drawn small to suit a slim bar, with the
-/// default padded tap target keeping the hit area at 48 points. A partial
-/// style, merged by the button over its defaults; the text style comes from
-/// the theme so the preset's typeface carries through.
-ButtonStyle _compactButton(BuildContext context) => ButtonStyle(
-  visualDensity: VisualDensity.compact,
-  padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
-  textStyle: WidgetStatePropertyAll(
-    Theme.of(
-      context,
-    ).textTheme.labelLarge?.copyWith(fontSize: 13, fontWeight: FontWeight.w600),
-  ),
-);
+enum _QuickAction { logDive, planDive, swap, emergency }
 
-/// Icon buttons in the bar reach the 44-point minimum hit area.
-final ButtonStyle _iconStyle = IconButton.styleFrom(
-  minimumSize: const Size.square(44),
-);
-
-enum _MoreAction { plan, swap, emergency }
-
-class _MoreMenu extends ConsumerWidget {
-  final bool includePlan;
-
-  const _MoreMenu({required this.includePlan});
+/// The logo, which opens every quick action: logging and planning a dive
+/// first, then the buddy swap (where the device has the radios for it) and
+/// the emergency card. Its tap target is 44 points square around the icon.
+class _QuickActionsMenu extends ConsumerWidget {
+  const _QuickActionsMenu();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     // A browser has none of the radios the swap runs over (issue #4121).
     final swap = ref.watch(deviceCapabilitiesProvider).nearby;
-    return PopupMenuButton<_MoreAction>(
-      tooltip: l10n.dashboard_header_more,
-      style: _iconStyle,
-      icon: const Icon(Icons.more_vert),
+    PopupMenuItem<_QuickAction> item(
+      _QuickAction value,
+      IconData icon,
+      String label,
+    ) => PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 12),
+          Flexible(child: Text(label)),
+        ],
+      ),
+    );
+    return PopupMenuButton<_QuickAction>(
+      tooltip: l10n.dashboard_header_quickActions,
+      position: PopupMenuPosition.under,
       onSelected: (action) => switch (action) {
-        _MoreAction.plan => context.push('/planning/dive-planner'),
-        _MoreAction.swap => openBuddySwap(context),
-        _MoreAction.emergency => context.push(
+        _QuickAction.logDive => _logDive(context),
+        _QuickAction.planDive => context.push('/planning/dive-planner'),
+        _QuickAction.swap => openBuddySwap(context),
+        _QuickAction.emergency => context.push(
           '/settings/diver-profile/emergency-card',
         ),
       },
       itemBuilder: (context) => [
-        if (includePlan)
-          PopupMenuItem(
-            value: _MoreAction.plan,
-            child: Text(l10n.dashboard_quickActions_planDive),
-          ),
+        item(
+          _QuickAction.logDive,
+          Icons.add,
+          l10n.dashboard_quickActions_logDive,
+        ),
+        item(
+          _QuickAction.planDive,
+          Icons.route_outlined,
+          l10n.dashboard_quickActions_planDive,
+        ),
+        const PopupMenuDivider(),
         if (swap)
-          PopupMenuItem(
-            value: _MoreAction.swap,
-            child: Text(l10n.buddySwap_title),
-          ),
-        PopupMenuItem(
-          value: _MoreAction.emergency,
-          child: Text(l10n.dashboard_quickAction_emergency),
+          item(_QuickAction.swap, Icons.swap_horiz, l10n.buddySwap_title),
+        item(
+          _QuickAction.emergency,
+          Icons.medical_information_outlined,
+          l10n.dashboard_quickAction_emergency,
         ),
       ],
+      child: SizedBox.square(
+        dimension: 44,
+        child: Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.asset(
+              'assets/icon/icon.png',
+              width: HomeHeaderBar.logoSize,
+              height: HomeHeaderBar.logoSize,
+              excludeFromSemantics: true,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

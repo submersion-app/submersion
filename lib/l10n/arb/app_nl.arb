@@ -19253,7 +19253,7 @@
   "diverProfile_birthYear_label": "Geboortejaar",
   "diverProfile_birthYear_invalid": "Voer een jaar in van 1900 tot {year}",
   "diverProfile_bodyEstimate_note": "Wordt alleen gebruikt om de lichaamssamenstelling te schatten voor de loodvoorspelling.",
-  "dashboard_header_more": "Meer",
+  "dashboard_header_quickActions": "Snelle acties",
   "dashboard_header_allClear": "Alles in orde",
   "dashboard_header_clearCount": "{count} in orde",
   "dashboard_header_statusTitle": "Status",

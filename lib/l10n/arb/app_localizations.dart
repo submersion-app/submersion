@@ -103266,11 +103266,11 @@ abstract class AppLocalizations {
   /// **'Used only to estimate body composition for weight prediction.'**
   String get diverProfile_bodyEstimate_note;
 
-  /// No description provided for @dashboard_header_more.
+  /// No description provided for @dashboard_header_quickActions.
   ///
   /// In en, this message translates to:
-  /// **'More'**
-  String get dashboard_header_more;
+  /// **'Quick actions'**
+  String get dashboard_header_quickActions;
 
   /// No description provided for @dashboard_header_allClear.
   ///

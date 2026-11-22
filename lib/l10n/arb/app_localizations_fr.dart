@@ -66049,7 +66049,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Sert uniquement à estimer la composition corporelle pour la prévision du lest.';
 
   @override
-  String get dashboard_header_more => 'Plus';
+  String get dashboard_header_quickActions => 'Actions rapides';
 
   @override
   String get dashboard_header_allClear => 'Tout est en ordre';

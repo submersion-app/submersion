@@ -19253,7 +19253,7 @@
   "diverProfile_birthYear_label": "Année de naissance",
   "diverProfile_birthYear_invalid": "Saisissez une année entre 1900 et {year}",
   "diverProfile_bodyEstimate_note": "Sert uniquement à estimer la composition corporelle pour la prévision du lest.",
-  "dashboard_header_more": "Plus",
+  "dashboard_header_quickActions": "Actions rapides",
   "dashboard_header_allClear": "Tout est en ordre",
   "dashboard_header_clearCount": "{count} en ordre",
   "dashboard_header_statusTitle": "État",

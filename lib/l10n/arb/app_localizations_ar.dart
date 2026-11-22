@@ -66853,7 +66853,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يُستخدمان فقط لتقدير تكوين الجسم من أجل توقّع الأثقال.';
 
   @override
-  String get dashboard_header_more => 'المزيد';
+  String get dashboard_header_quickActions => 'إجراءات سريعة';
 
   @override
   String get dashboard_header_allClear => 'كل شيء على ما يرام';

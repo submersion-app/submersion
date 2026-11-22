@@ -19253,7 +19253,7 @@
   "diverProfile_birthYear_label": "سنة الميلاد",
   "diverProfile_birthYear_invalid": "أدخل سنة من 1900 إلى {year}",
   "diverProfile_bodyEstimate_note": "يُستخدمان فقط لتقدير تكوين الجسم من أجل توقّع الأثقال.",
-  "dashboard_header_more": "المزيد",
+  "dashboard_header_quickActions": "إجراءات سريعة",
   "dashboard_header_allClear": "كل شيء على ما يرام",
   "dashboard_header_clearCount": "{count} على ما يرام",
   "dashboard_header_statusTitle": "الحالة",

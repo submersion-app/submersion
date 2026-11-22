@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -151,13 +152,11 @@ void main() {
     );
   }
 
-  testWidgets('on a phone the logo ends the bar after More', (tester) async {
+  testWidgets('on a phone the logo ends the bar', (tester) async {
     await _pump(tester, width: 400);
     final bar = tester.getRect(find.byType(HomeHeaderBar));
     final logo = tester.getRect(_logo);
-    final more = tester.getRect(find.byTooltip('More'));
     expect(bar.right - logo.right, lessThanOrEqualTo(12));
-    expect(logo.left, greaterThanOrEqualTo(more.right));
   });
 
   for (final width in [400.0, 1280.0]) {
@@ -186,10 +185,14 @@ void main() {
     expect(find.byTooltip('Switch Diver'), findsOneWidget);
   });
 
-  testWidgets('desktop shows Log dive, Plan and the lights', (tester) async {
+  // The actions live in the logo's menu: the bar itself holds no buttons
+  // for them, and no separate More menu.
+  testWidgets('desktop shows the lights and no action buttons', (tester) async {
     await _pump(tester, width: 1280);
-    expect(find.text('Log Dive'), findsOneWidget);
-    expect(find.text('Plan Dive'), findsOneWidget);
+    expect(find.text('Log Dive'), findsNothing);
+    expect(find.text('Plan Dive'), findsNothing);
+    expect(find.byTooltip('More'), findsNothing);
+    expect(find.byTooltip('Log Dive'), findsNothing);
     expect(find.text('Insurance OK'), findsOneWidget);
     expect(find.byType(HomeStatusStrip), findsOneWidget);
     // The phone strip renders nothing at desktop width.
@@ -233,12 +236,39 @@ void main() {
     expect(find.text('Insurance OK'), findsOneWidget);
   });
 
-  testWidgets('phone: More holds Plan and the emergency card', (tester) async {
-    await _pump(tester, width: 390);
-    await tester.tap(find.byTooltip('More'));
+  for (final width in [390.0, 1280.0]) {
+    testWidgets('the logo opens every quick action at $width wide', (
+      tester,
+    ) async {
+      await _pump(tester, width: width);
+      expect(find.byTooltip('Quick actions'), findsOneWidget);
+      await tester.tap(_logo);
+      await tester.pumpAndSettle();
+      expect(find.text('Log Dive'), findsOneWidget);
+      expect(find.text('Plan Dive'), findsOneWidget);
+      expect(find.text('Emergency card'), findsOneWidget);
+    });
+  }
+
+  testWidgets('Log dive in the logo menu offers the ways to add a dive', (
+    tester,
+  ) async {
+    await _pump(tester, width: 1280);
+    await tester.tap(_logo);
     await tester.pumpAndSettle();
-    expect(find.text('Plan Dive'), findsOneWidget);
-    expect(find.text('Emergency card'), findsOneWidget);
+    await tester.tap(find.text('Log Dive'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+  });
+
+  testWidgets('the logo reads as a quick actions button', (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester, width: 1280);
+    final data = tester
+        .getSemantics(find.byTooltip('Quick actions'))
+        .getSemanticsData();
+    expect(data.hasAction(SemanticsAction.tap), isTrue);
+    handle.dispose();
   });
 
   testWidgets('a long diver name does not overflow the bar at 800 wide', (
@@ -269,8 +299,7 @@ void main() {
   testWidgets('phone: every button is at least 44 by 44', (tester) async {
     await _pump(tester, width: 390, divers: 2);
     for (final finder in [
-      find.byTooltip('Log Dive'),
-      find.byTooltip('More'),
+      find.byTooltip('Quick actions'),
       find.byKey(HomeHeaderBar.switcherKey),
     ]) {
       final size = tester.getSize(finder);

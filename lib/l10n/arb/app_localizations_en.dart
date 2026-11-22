@@ -64899,7 +64899,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Used only to estimate body composition for weight prediction.';
 
   @override
-  String get dashboard_header_more => 'More';
+  String get dashboard_header_quickActions => 'Quick actions';
 
   @override
   String get dashboard_header_allClear => 'All clear';

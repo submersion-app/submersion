@@ -65884,7 +65884,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Usado apenas para estimar a composição corporal na previsão de lastro.';
 
   @override
-  String get dashboard_header_more => 'Mais';
+  String get dashboard_header_quickActions => 'Ações rápidas';
 
   @override
   String get dashboard_header_allClear => 'Tudo certo';

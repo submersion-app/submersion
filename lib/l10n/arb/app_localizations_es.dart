@@ -65947,7 +65947,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Solo se usa para estimar la composición corporal en la predicción de lastre.';
 
   @override
-  String get dashboard_header_more => 'Más';
+  String get dashboard_header_quickActions => 'Acciones rápidas';
 
   @override
   String get dashboard_header_allClear => 'Todo en orden';

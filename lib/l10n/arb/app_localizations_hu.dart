@@ -65544,7 +65544,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csak a testösszetétel becslésére szolgál az ólomszükséglet előrejelzéséhez.';
 
   @override
-  String get dashboard_header_more => 'Továbbiak';
+  String get dashboard_header_quickActions => 'Gyors műveletek';
 
   @override
   String get dashboard_header_allClear => 'Minden rendben';

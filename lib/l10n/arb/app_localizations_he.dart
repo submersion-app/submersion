@@ -64557,7 +64557,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'משמש רק להערכת הרכב הגוף לצורך חיזוי משקולות.';
 
   @override
-  String get dashboard_header_more => 'עוד';
+  String get dashboard_header_quickActions => 'פעולות מהירות';
 
   @override
   String get dashboard_header_allClear => 'הכול תקין';
