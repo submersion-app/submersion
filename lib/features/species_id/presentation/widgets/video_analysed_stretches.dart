@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
@@ -21,7 +22,10 @@ class VideoAnalysedStretches extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!marineLifeLabelsShown) return const SizedBox.shrink();
+    // As the labels over a video (issue #4876): not where they never show.
+    if (!marineLifeLabelsShown || !videoLabelsShown(defaultTargetPlatform)) {
+      return const SizedBox.shrink();
+    }
     final stretches = ref.watch(videoScanStretchesProvider(mediaId)).value;
     // Null too for a scan with no length, so there is always one here.
     if (stretches == null) return const SizedBox.shrink();

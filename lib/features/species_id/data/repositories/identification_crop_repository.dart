@@ -83,6 +83,43 @@ class IdentificationCropRepository {
     await _marks?.cropsWritten([identificationId]);
   }
 
+  /// [put], only while [identificationId] is still stored on [mediaId]
+  /// (issue #4876): a promotion worked out from rows a sync has deleted
+  /// since must not bring back, and publish, a crop for a row that is gone
+  /// on every device. Checked and written in one transaction. Returns
+  /// whether it wrote.
+  Future<bool> putIfIdentified(
+    String identificationId,
+    String mediaId,
+    Uint8List jpeg,
+  ) async {
+    final db = _db;
+    final wrote = await db.transaction(() async {
+      final rows = db.mediaIdentifications;
+      final stored =
+          await (db.selectOnly(rows)
+                ..addColumns([rows.id])
+                ..where(
+                  rows.id.equals(identificationId) &
+                      rows.mediaId.equals(mediaId),
+                ))
+              .getSingleOrNull();
+      if (stored == null) return false;
+      await db
+          .into(db.mediaIdentificationCrops)
+          .insertOnConflictUpdate(
+            MediaIdentificationCropsCompanion.insert(
+              id: identificationId,
+              mediaId: mediaId,
+              jpeg: jpeg,
+            ),
+          );
+      return true;
+    });
+    if (wrote) await _marks?.cropsWritten([identificationId]);
+    return wrote;
+  }
+
   /// Publishes the crops here that never got a clock: one whose mark failed
   /// after its write. No sync backfill covers crops, which have no time to
   /// order them by, so this runs at launch instead. Returns how many.

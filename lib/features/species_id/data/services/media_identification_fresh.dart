@@ -55,7 +55,7 @@ extension _FreshRuns on MediaIdentificationService {
         _renamed(undecided[k], _named(undecided[k], results[k], naming)),
     ];
     if (_databaseGeneration() != generation) return;
-    await _identifications.updateNames(
+    final written = await _identifications.updateNames(
       changed,
       run: run.copyWith(
         packVersion: pack.pack.manifest.packVersion,
@@ -63,6 +63,11 @@ extension _FreshRuns on MediaIdentificationService {
         namingBars: () => NamingBars.fromNaming(naming),
       ),
     );
-    await _promoteNamed(run.mediaId, changed);
+    // Only what was written: nothing when a run synced in meanwhile, whose
+    // rows these crops are not (issue #4876).
+    await _promoteNamed(run.mediaId, [
+      for (final c in changed)
+        if (written.contains(c.id)) c,
+    ]);
   }
 }

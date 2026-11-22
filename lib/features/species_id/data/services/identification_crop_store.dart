@@ -134,7 +134,14 @@ class IdentificationCropStore {
         if (synced.contains(id)) continue;
         final file = await fileFor(mediaId, id);
         if (!await file.exists()) continue;
-        await table.put(id, mediaId, await file.readAsBytes());
+        // Not for an identification a sync deleted since it was read.
+        if (!await table.putIfIdentified(
+          id,
+          mediaId,
+          await file.readAsBytes(),
+        )) {
+          continue;
+        }
         await file.delete();
         moved++;
       }
