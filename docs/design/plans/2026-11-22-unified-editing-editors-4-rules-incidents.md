@@ -83,7 +83,8 @@ main. Whichever merges later merges main in (never a rebase) and adapts.
   editor keeps its behaviour (Task 1). **Pending Eric's choice**, see
   "Choices for Eric" below: with option A this file is not touched.
 - `test/shared/widgets/record_editing/record_editor_host_harness.dart`: one
-  new optional `FakeEditorPage` constructor parameter, `canSave` (Task 1,
+  new `EditorProbe` field, `canSave` (built there, beside the probe's other
+  options, rather than as a `FakeEditorPage` constructor parameter; Task 1,
   option B only).
 - `lib/core/router/app_router.dart`: `onExit: confirmLeaveRecordSitting` on
   the four routes `/rules/new`, `/rules/:id`, `/incidents/new` and
@@ -938,6 +939,13 @@ on:
   writer's `updateIncident`. That writer still writes the check-in link from
   the domain copy, so an agent edit can erase a link that does not stand:
   a follow-up of its own.
+- **Review on the PR (Copilot):** `RuleRepository.patch` read the rule and
+  updated it in two statements and answered true whatever the update
+  wrote. It is now one transaction (nested inside the sitting's when the
+  editor calls it) answering whether a row was written, and `_update`
+  answers its row count and stamps a rule for sync only when it wrote one,
+  so `setEnabled` and the agent's `update` no longer stamp a rule that is
+  gone.
 - **Shared files touched:** `record_editor_host.dart` (one getter, two
   reads), `record_editor_host_harness.dart` (one probe option),
   `app_router.dart` (`onExit` on the four rule and near-miss editing
