@@ -120,7 +120,9 @@ how an editor with no lock and no cards takes them on.
    `EditField`. These editors have no cards, so nothing visible is gained,
    for the most work by far.
 
-**Picked: 1**, by Eric (decision 5).
+**Picked: 1**, by Eric (decision 5). Planning plan 1 refined what the
+sitting holds: a draft of the form as shown, not the record (see "What is
+generalised"), so `Rule` needs no equality of its own.
 
 ## Decisions
 
@@ -192,17 +194,18 @@ page, and holds what every phase 4 editor shares:
   the editor does today (pop, with its result where a caller waits for one),
   with today's snackbars. There is no locked state to fall back to: the
   sitting ends when the page goes.
-- The sitting holds one value, the whole record, under one card id (the
-  builder names it; it labels the History entry). The editor's form keeps
-  its own text controllers and widgets; on each change it gives the sitting
-  its current record. Dirty means the working record differs from the
-  stored one, by value.
-- The current record is the stored record with the form's fields applied,
-  and nothing else: no fresh `updatedAt`, no re-encoded JSON. Several
-  entities carry `updatedAt` in their `props` (`Diver`, `Incident`,
-  `TankPresetEntity`, `WeightPreset`, `PreDiveChecklistTemplate`) and `Rule`
-  carries `conditionJson` and `actionsJson`, so a stamp or a re-encode would
-  read as a change the diver never made. Timestamps are set by the save.
+- The sitting holds one value under one card id: a **draft** of the form,
+  its fields as they read on screen (text as typed, choices as picked). The
+  editor's form keeps its own text controllers and widgets; on each change
+  it gives the sitting its draft. Dirty means the draft differs from the one
+  the form was filled with, by value. The History entry names no card, so
+  it reads "Edited" (or "Added").
+- A draft compares what the diver sees, never values converted back: a
+  pressure shown in psi or a volume in cubic feet and converted back to bar
+  or litres can drift, and an untouched editor would read as changed. Nor
+  does a draft carry anything the save stamps (`updatedAt`) or encodes
+  (`Rule`'s `conditionJson` and `actionsJson`), so neither can make a
+  change the diver never made. Save parses the form as it does today.
 - It watches the active diver. When it changes under the page, the sitting
   ends without a word and the page closes (decision 7). With unsaved
   changes the switcher has already asked, through the exit guard; the paths
@@ -211,13 +214,16 @@ page, and holds what every phase 4 editor shares:
   is therefore always created under the diver it was opened for.
 - Save validates the form first, as today. A form that fails stays open
   with its errors and nothing is written.
-- Save runs the editor's save function inside `runRecordSitting` (or
-  `createRecordSitting` for a new record) on that editor's table and id: one
-  transaction, one change log operation, labelled with the record. Writes
-  that need the network or schedule work (findings refresh) run after the
-  commit, best effort, as today.
+- Save runs the editor's save function inside `runRecordSitting` on that
+  editor's table and id, for a new record as for a stored one: one
+  transaction, one change log operation, labelled with the record. The
+  editors create through their repositories' own creates, so
+  `createRecordSitting` is not needed. Writes that need the network or
+  schedule work (findings refresh) run after the commit, best effort, as
+  today.
 - A new record's id is chosen when the sitting opens, as on record pages.
-  Two repositories mint their own id today and gain a caller-supplied one:
+  Three repositories mint their own id today and gain a caller-supplied
+  one: `WeightPresetRepository.createPreset`,
   `CylinderConfigRepository.createConfig` and
   `EmergencyChamberRepository.createChamber`.
 - A failed Save leaves the page open with the diver's values and shows the
@@ -341,8 +347,9 @@ alike and does not touch the item's sitting.
 | List: reorder, enabled switch | Immediate | Unchanged |
 | List: run on all, duplicate, delete; history page undo, delete run, clear | Immediate, with today's confirmations | Unchanged |
 
-`Rule` gains value equality (its condition and actions compared by value), so
-that a changed rule can be told from a stored one.
+The rule's draft holds its condition and actions as the editor shows them,
+compared by value (`QueryNode` and `RuleAction` already define `==`), so a
+changed rule can be told from a stored one without comparing re-encoded JSON.
 
 ### Incidents
 
@@ -408,7 +415,7 @@ against the names the previous one shipped. Each goes live as it merges
    downloaded keys; the takeover's fold after the commit.
 3. **Checklist templates and pre-dive templates.** Three-write saves become
    one transaction; the pre-dive built-in stays read only.
-4. **Rules and incidents.** `Rule` equality; the incident's Save moves to the
+4. **Rules and incidents.** The rule's draft; the incident's Save moves to the
    bar and its Delete to the menu; seeded new incidents.
 5. **The diver profile and the chamber form.** Five edit pages, the new-diver
    page, the switch-diver fix with its test, the body weight delete
@@ -435,6 +442,8 @@ Eric has not explicitly confirmed these. Correct any of them:
   slot matching, confirmation, the item page's gate), which is how this
   note reads decision 1's "the same confirmation".
 - The tank preset list's row keeps opening the editor only from its pencil.
+- The sitting holds a draft of the form as shown, not the record, so a value
+  converted for display never reads as a change (made while planning plan 1).
 - The hub and the body weight list are not editors and gain no bar.
 - Equipment locations stay a settings list (as phase 3 said), and so do
   currency rules, saved queries and import presets.
@@ -445,9 +454,9 @@ Eric has not explicitly confirmed these. Correct any of them:
 
 - Names and file layout of the editor host, and the card id the sitting
   uses.
-- How each form hands its current record to the sitting (a listener on its
+- How each form hands its draft to the sitting (a listener on its
   controllers, or a rebuild hook), as long as dirty means "differs from
-  stored".
+  what the form was filled with".
 - The wording of the bar titles and of any new strings. Every new string goes
   into all locales.
 - The confirmation text reused for the transmitter's snackbar Apply, taken
