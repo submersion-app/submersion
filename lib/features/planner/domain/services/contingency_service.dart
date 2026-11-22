@@ -225,8 +225,8 @@ domain.DivePlan deviatePlan(
 
   if (timeDeltaMinutes != 0) {
     // The delta buys bottom time once, on the bottom leg (see
-    // SegmentChain.bottomLegIndex), rather than
-    // once per level leg as the old per-type loop did on a multi-level plan.
+    // SegmentChain.bottomLegIndex), rather than once per level leg as the old
+    // per-type loop did on a multi-level plan.
     final ordered = List<PlanSegment>.from(segments)
       ..sort((a, b) => a.order.compareTo(b.order));
     const chain = SegmentChain();

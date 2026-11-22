@@ -70,7 +70,8 @@ class RangeTableService {
   }) {
     final engine = PlanEngine(config: config);
     final maxDepth = plan.maxDepth;
-    final minBottomMinutes = _shortestBottomMinutes(plan);
+    final descentRate = config.resolvedFor(plan).descentRate;
+    final minBottomMinutes = _shortestBottomMinutes(plan, descentRate);
 
     final cells = <List<RangeCell?>>[
       for (final depthDelta in depthDeltas)
@@ -83,6 +84,7 @@ class RangeTableService {
               timeDelta,
               maxDepth: maxDepth,
               minBottomMinutes: minBottomMinutes,
+              descentRate: descentRate,
               startState: startState,
             ),
         ],
@@ -102,6 +104,7 @@ class RangeTableService {
     int timeDelta, {
     required double maxDepth,
     required int? minBottomMinutes,
+    required double descentRate,
     required TissueState? startState,
   }) {
     if (plan.segments.isEmpty) return null;
@@ -115,7 +118,7 @@ class RangeTableService {
       plan,
       depthDelta: depthDelta,
       timeDeltaMinutes: timeDelta,
-      descentRate: config.resolvedFor(plan).descentRate,
+      descentRate: descentRate,
     );
     return RangeCell(
       depthDelta: depthDelta,
@@ -128,9 +131,9 @@ class RangeTableService {
   /// authored no leg that holds at depth (see [SegmentChain.bottomLegIndex]).
   ///
   /// For a rate-split descent that is only the hold after its travel at the
-  /// plan's descent rate (#4849): the travel is not bottom time, and a delta
-  /// that eats into it would leave a variant with no bottom at all.
-  int? _shortestBottomMinutes(domain.DivePlan plan) {
+  /// plan's resolved [descentRate] (#4849): the travel is not bottom time,
+  /// and a delta that eats into it would leave a variant with no bottom.
+  int? _shortestBottomMinutes(domain.DivePlan plan, double descentRate) {
     final ordered = List<PlanSegment>.from(plan.segments)
       ..sort((a, b) => a.order.compareTo(b.order));
     const chain = SegmentChain();
@@ -141,7 +144,7 @@ class RangeTableService {
     if (!bottom.isDepthChange) return bottom.durationSeconds ~/ 60;
     final travelSeconds = PlanSegment.travelSeconds(
       metres: bottom.endDepth - bottom.startDepth,
-      ratePerMinute: config.resolvedFor(plan).descentRate,
+      ratePerMinute: descentRate,
     );
     final holdSeconds = bottom.durationSeconds - travelSeconds;
     return holdSeconds <= 0 ? 0 : holdSeconds ~/ 60;
