@@ -32,8 +32,23 @@ reuses all of that machinery.
 
 ## The Synology share API (observed, unofficial)
 
-Observed against DSM 7 with Synology Photos. The API behind share links is not
-documented by Synology, so every call below is an observation, not a contract.
+Observed against DSM 7 with Synology Photos 1.9.1-10928. The API behind share
+links is not documented by Synology, so every call below is an observation, not
+a contract.
+
+API versions the NAS advertised through `SYNO.API.Info` (no login needed), and
+the ones the prototype calls:
+
+| API | Advertised | Used |
+|---|---|---|
+| `SYNO.Core.Sharing.Login` | 1 | 1 |
+| `SYNO.Foto.Browse.Item` | 1-7 | 1 |
+| `SYNO.Foto.Browse.Album` | 1-5 | 1 |
+| `SYNO.Foto.Thumbnail` | 1-2 | 2 |
+| `SYNO.Foto.Download` | 1-2 | 2 |
+
+If a later Synology Photos release breaks the integration, compare its
+`SYNO.API.Info` answer against this table first.
 
 All calls go to `https://<host>:<port>/mo/sharing/webapi/entry.cgi`.
 `<code>` is the share code from the link `https://<host>:<port>/mo/sharing/<code>`.
