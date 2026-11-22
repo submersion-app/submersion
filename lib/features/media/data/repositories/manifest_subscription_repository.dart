@@ -13,6 +13,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
+import 'package:submersion/features/media/data/services/manifest_url_identity.dart';
 
 /// Domain entity joining `MediaSubscriptions` (synced) with
 /// `MediaSubscriptionState` (per-device).
@@ -213,6 +214,36 @@ class ManifestSubscriptionRepository {
           .toList();
     } catch (e, st) {
       _log.error('listAllActive failed', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
+  /// The subscription that already reads [manifestUrl], active or not, or
+  /// null. URLs are compared through [canonicalManifestUrl], so a share link
+  /// pasted with a trailing slash still finds its subscription.
+  ///
+  /// Read in full and compared here rather than in SQL: the comparison form
+  /// is Dart logic, and a device holds a handful of subscriptions.
+  Future<ManifestSubscription?> findByManifestUrl(String manifestUrl) async {
+    try {
+      final wanted = canonicalManifestUrl(manifestUrl);
+      final query = _db.select(_db.mediaSubscriptions).join([
+        leftOuterJoin(
+          _db.mediaSubscriptionState,
+          _db.mediaSubscriptionState.subscriptionId.equalsExp(
+            _db.mediaSubscriptions.id,
+          ),
+        ),
+      ])..orderBy([OrderingTerm.asc(_db.mediaSubscriptions.createdAt)]);
+      for (final r in await query.get()) {
+        final row = r.readTable(_db.mediaSubscriptions);
+        if (canonicalManifestUrl(row.manifestUrl) == wanted) {
+          return _toEntity(row, r.readTableOrNull(_db.mediaSubscriptionState));
+        }
+      }
+      return null;
+    } catch (e, st) {
+      _log.error('findByManifestUrl failed', error: e, stackTrace: st);
       rethrow;
     }
   }

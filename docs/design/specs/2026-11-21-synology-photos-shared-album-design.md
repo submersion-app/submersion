@@ -209,6 +209,29 @@ The URL tab's manifest mode is the entry point; nothing new in navigation.
 Strings follow the panel's existing hard-coded English with `TODO(media):
 l10n` markers; localisation comes with the real feature.
 
+### 8. Importing the same feed twice
+
+Each subscription keys its rows on its own id, so a second subscription to
+the same feed used to import every entry again, and deleting a subscription
+(which keeps its rows on purpose) and subscribing again showed every photo
+twice. The prototype test hit exactly this. It applies to every manifest
+format, not only Synology:
+
+- Import looks for a subscription that already reads the URL
+  (`ManifestSubscriptionRepository.findByManifestUrl`, compared through
+  `canonicalManifestUrl`, which reduces a share link to origin and code). If
+  there is one, the import writes under it: entries it already holds are
+  skipped, Subscribe switches an inactive one on, and Undo never deletes it.
+- New entries are first matched by media URL against manifest rows whose
+  subscription is gone (`planManifestAdoption`). Those rows are taken over
+  (`subscription_id` and `entry_key` rewritten, missing mark cleared) instead
+  of imported again, keeping their dive links, notes and edits. Import and
+  the poller both do this.
+- Rows of a live subscription are never taken over. Known gap: when the
+  media rows sync to a device before their subscription row, they look
+  detached there for a moment, and a local subscription to the same URL
+  could take them over.
+
 ## Security
 
 - The share code alone does not open a password-protected share; the password

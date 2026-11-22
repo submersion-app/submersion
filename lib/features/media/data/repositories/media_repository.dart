@@ -861,6 +861,92 @@ class MediaRepository {
     }
   }
 
+  /// Manifest rows at one of [urls] whose subscription is gone: deleted, or
+  /// never set. Keyed by URL; where several rows share one, the oldest wins.
+  ///
+  /// Deleting a subscription keeps its rows on purpose (their dive links,
+  /// notes and edits are the user's), so subscribing to the same feed again
+  /// finds them here and takes them over instead of importing each one a
+  /// second time.
+  Future<Map<String, domain.MediaItem>> getDetachedManifestEntriesByUrl(
+    Iterable<String> urls,
+  ) async {
+    final wanted = urls.toSet().toList();
+    final found = <String, domain.MediaItem>{};
+    if (wanted.isEmpty) return found;
+    try {
+      final liveSubscriptions = _db.selectOnly(_db.mediaSubscriptions)
+        ..addColumns([_db.mediaSubscriptions.id]);
+      const chunkSize = 500;
+      for (var i = 0; i < wanted.length; i += chunkSize) {
+        final chunk = wanted.sublist(
+          i,
+          i + chunkSize > wanted.length ? wanted.length : i + chunkSize,
+        );
+        final query = _db.select(_db.media)
+          ..where(
+            (t) =>
+                t.sourceType.equals('manifestEntry') &
+                t.url.isIn(chunk) &
+                (t.subscriptionId.isNull() |
+                    t.subscriptionId.isNotInQuery(liveSubscriptions)),
+          )
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
+        for (final row in await query.get()) {
+          final url = row.url;
+          if (url == null) continue;
+          found.putIfAbsent(url, () => mediaItemFromRow(row, null));
+        }
+      }
+      return found;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to find detached manifest entries',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Moves detached manifest rows under [subscriptionId], each with the
+  /// entry key the subscription's manifest gives it. Only the ownership
+  /// columns change; the dive link and everything the user added stay.
+  Future<void> adoptManifestEntries(
+    Map<String, String> entryKeyByMediaId,
+    String subscriptionId,
+  ) async {
+    if (entryKeyByMediaId.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    try {
+      await _db.transaction(() async {
+        for (final MapEntry(key: id, value: entryKey)
+            in entryKeyByMediaId.entries) {
+          await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+            MediaCompanion(
+              subscriptionId: Value(subscriptionId),
+              entryKey: Value(entryKey),
+              updatedAt: Value(now),
+            ),
+          );
+          await _syncRepository.markRecordPending(
+            entityType: 'media',
+            recordId: id,
+            localUpdatedAt: now,
+          );
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to adopt manifest entries into $subscriptionId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Set the `is_orphaned` flag on a media row.
   ///
   /// Unlike [markAsOrphaned] (which always sets to true and is the v1

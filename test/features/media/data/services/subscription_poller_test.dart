@@ -22,6 +22,7 @@ import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/dive_link_matcher.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
@@ -735,6 +736,82 @@ void main() {
       (await mediaRepo.getAllBySubscription(sub.id)).single.originalFilename,
       'P1.JPG',
     );
+  });
+
+  test('rows a deleted subscription left behind are taken over, not imported '
+      'again', () async {
+    const feed = 'https://feed.example.com/m.json';
+    final fetcher = _StaticFetcher({
+      feed: ManifestFetchSuccess(
+        parsed: _parsed([
+          _entry('k1', 'https://feed.example.com/photo1.jpg'),
+          _entry('k2', 'https://feed.example.com/photo2.jpg'),
+        ]),
+      ),
+    });
+    SubscriptionPoller pollerFor() => SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final first = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await pollerFor().pollNow(first.id, DateTime.utc(2024, 4, 27, 10));
+    final before = await mediaRepo.getAllBySubscription(first.id);
+    expect(before, hasLength(2));
+    // The old subscription had marked one row missing.
+    await mediaRepo.markOrphaned(before.first.id, true);
+
+    // Deleting a subscription keeps its rows; subscribing again finds them.
+    await subscriptions.deleteById(first.id);
+    final second = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await pollerFor().pollNow(second.id, DateTime.utc(2024, 4, 28, 10));
+
+    final after = await mediaRepo.getAllBySubscription(second.id);
+    expect(after.map((m) => m.id).toSet(), before.map((m) => m.id).toSet());
+    expect(after.map((m) => m.entryKey).toSet(), {'k1', 'k2'});
+    expect(after.every((m) => m.diveId == 'd1'), isTrue);
+    expect(after.every((m) => !m.isOrphaned), isTrue);
+    final all = await mediaRepo.getAllBySourceType(
+      MediaSourceType.manifestEntry,
+    );
+    expect(all, hasLength(2));
+  });
+
+  test('rows of a live subscription are never taken over', () async {
+    const feed = 'https://feed.example.com/m.json';
+    final fetcher = _StaticFetcher({
+      feed: ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/photo1.jpg')]),
+      ),
+    });
+    SubscriptionPoller pollerFor() => SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final first = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    final second = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await pollerFor().pollNow(first.id, DateTime.utc(2024, 4, 27, 10));
+    await pollerFor().pollNow(second.id, DateTime.utc(2024, 4, 27, 10));
+
+    expect(await mediaRepo.getAllBySubscription(first.id), hasLength(1));
+    expect(await mediaRepo.getAllBySubscription(second.id), hasLength(1));
   });
 }
 

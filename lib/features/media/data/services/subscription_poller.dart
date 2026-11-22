@@ -22,6 +22,7 @@ import 'package:submersion/features/media/data/parsers/manifest_parse_result.dar
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/dive_link_matcher.dart';
+import 'package:submersion/features/media/data/services/manifest_entry_adoption.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/network_import_targets.dart';
@@ -240,8 +241,17 @@ class SubscriptionPoller {
     // confident dive match: nobody is here to pick a dive, and a row with
     // no dive has no place in the library. Anything skipped is still absent
     // from the DB, so the next poll sees it as new and tries again.
-    if (newEntries.isNotEmpty) {
-      final resolved = await pipeline.resolveManifestEntries(newEntries);
+    //
+    // Rows a deleted subscription left at the same URLs are taken over first:
+    // they already carry a dive, and importing them again would show every
+    // photo twice.
+    final plan = await planManifestAdoption(mediaRepo, newEntries);
+    final adopted = await applyManifestAdoption(mediaRepo, plan, sub.id);
+    if (adopted > 0) {
+      _log.info('Polled ${sub.id}: took over $adopted detached entries');
+    }
+    if (plan.fresh.isNotEmpty) {
+      final resolved = await pipeline.resolveManifestEntries(plan.fresh);
       final decided = await requestsForConfidentMatches(
         resolved,
         diveLinkMatcher,
