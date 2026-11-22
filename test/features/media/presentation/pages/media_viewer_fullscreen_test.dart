@@ -19,6 +19,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/fake_window_fullscreen_platform.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
   _UnavailableResolver([this.sourceType = MediaSourceType.platformGallery]);
@@ -48,6 +49,8 @@ MediaItem item(String id) => MediaItem(
 );
 
 void main() {
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
   late FakeWindowFullscreenPlatform platform;
 

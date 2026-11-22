@@ -25,6 +25,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_media_prov
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
   @override
@@ -58,6 +59,8 @@ MediaItem item(String id, {String? diveId}) => MediaItem(
 /// two failure states are the point -- they are what a diver sees when the
 /// dive or trip query is slow or broken, and neither had any coverage.
 void main() {
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
 
   setUp(() async {

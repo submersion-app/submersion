@@ -16,6 +16,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
   @override
@@ -75,6 +76,8 @@ class _ShellState extends State<_Shell> {
 }
 
 void main() {
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
 
   setUp(() async {

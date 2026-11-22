@@ -17,6 +17,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
   _UnavailableResolver(this.sourceType);
@@ -47,6 +48,8 @@ MediaItem item(String id, {String? diveId}) => MediaItem(
 );
 
 void main() {
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
 
   setUp(() async {

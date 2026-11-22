@@ -12,6 +12,7 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/species_photos_section.dart';
 
 import '../support/media_widget_harness.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 MediaItem _photo(String id, {int width = 600, int height = 600}) =>
     testMediaItem(id: id, diveId: 'd1').copyWith(width: width, height: height);
@@ -86,6 +87,8 @@ String _formatDate(WidgetTester tester, DateTime date) =>
     ).read(unitFormatterProvider).formatDate(date);
 
 void main() {
+  turnOffMarineLifeIdForEachTest();
+
   final entries = [_entry('p1'), _entry('p2')];
 
   testWidgets('renders a titled section of tagged photos', (tester) async {

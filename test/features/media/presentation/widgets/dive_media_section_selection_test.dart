@@ -14,6 +14,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_app.dart';
 import '../support/dive_media_sitting.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 MediaItem _item(String id) => MediaItem(
   id: id,
@@ -31,6 +32,8 @@ MediaItem _item(String id) => MediaItem(
 final _mediaProvider = StateProvider<List<MediaItem>>((ref) => const []);
 
 void main() {
+  turnOffMarineLifeIdForEachTest();
+
   Widget host(List<MediaItem> media, {required EditSession<Dive> editing}) {
     return testApp(
       locale: const Locale('en'),
