@@ -18,7 +18,9 @@ import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.
 /// items only when they differ from [start]'s, each list merged onto
 /// storage with [mergeEditorRows], so what the diver left alone keeps what
 /// storage holds, a sync meanwhile included. An item naming a section that
-/// is not written is written with no section, as the editor shows it.
+/// is not written is written with no section, as the editor shows it. A
+/// section the diver changed that was deleted elsewhere meanwhile is
+/// created again, and the items the form shows in it are written with it.
 /// Item sort order is its position.
 ///
 /// Throws [RecordSittingRefusal] when the stored template is gone, and
@@ -107,19 +109,31 @@ Future<void> writeChecklistTemplate({
   final itemsChanged = !listEquals(draft.items, start.items);
   if (!sectionsChanged && !itemsChanged) return;
 
-  var writtenSections = await repository.getSectionsForTemplate(templateId);
+  final storedSections = await repository.getSectionsForTemplate(templateId);
+  var writtenSections = storedSections;
+  // Sections the diver changed that were deleted elsewhere meanwhile: the
+  // change wins and they are created again, so the items the form shows in
+  // them go back in with them.
+  var recreated = const <String>{};
   if (sectionsChanged) {
     writtenSections = mergeEditorRows(
       formRows: formSections,
       formDrafts: draft.sections,
       startDrafts: start.sections,
-      storedRows: writtenSections,
+      storedRows: storedSections,
       rowId: (section) => section.id,
       draftId: (section) => section.id,
     );
     await repository.saveSections(templateId, writtenSections);
+    final storedIds = {for (final section in storedSections) section.id};
+    final startIds = {for (final section in start.sections) section.id};
+    recreated = {
+      for (final section in writtenSections)
+        if (startIds.contains(section.id) && !storedIds.contains(section.id))
+          section.id,
+    };
   }
-  if (!itemsChanged) return;
+  if (!itemsChanged && recreated.isEmpty) return;
 
   final merged = mergeEditorRows(
     formRows: formItems,
@@ -129,9 +143,16 @@ Future<void> writeChecklistTemplate({
     rowId: (item) => item.id,
     draftId: (item) => item.id,
   );
+  final formById = {for (final item in formItems) item.id: item};
   await repository.saveItems(
     templateId,
-    _withinSections(merged, writtenSections),
+    _withinSections([
+      for (final item in merged)
+        switch (formById[item.id]) {
+          final shown? when recreated.contains(shown.sectionId) => shown,
+          _ => item,
+        },
+    ], writtenSections),
   );
 }
 
