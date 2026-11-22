@@ -169,11 +169,11 @@ class PlanStatusChips extends ConsumerWidget {
 /// the chart ghost -- so this makes clear the numbers are a "what if", not
 /// the live plan.
 ///
-/// Gated on [selectedContingencyProvider], not on the raw selection ids: a
-/// selection can go stale (the tank was removed, or stopped being losable)
-/// while its id lingers, and the stats fall back to the live plan in that
-/// case. Reading the same provider the stats read keeps the chip from
-/// claiming a preview that is not in effect.
+/// Gated on [selectedContingencyProvider], not on the raw selection: a lost
+/// tank can go stale (removed, or no longer losable) while its id lingers,
+/// and only the cylinders actually dropped are named. Reading the same
+/// provider the stats read keeps the chip from claiming a preview that is
+/// not in effect.
 class ContingencyPreviewChip extends ConsumerWidget {
   const ContingencyPreviewChip({super.key});
 
@@ -184,33 +184,27 @@ class ContingencyPreviewChip extends ConsumerWidget {
 
     final units = ref.watch(unitFormatterProvider);
 
-    final lostTank = preview.lostTank;
-    final String label;
-    if (lostTank != null) {
-      label = context.l10n.plannerCanvas_contingency_lostGas(
-        lostTank.gasMix.name,
-      );
-    } else {
-      // The plan's own deviation, else the diver's Settings default (#3552).
-      final resolved = ref.watch(resolvedPlanEngineConfigProvider);
-      final depth =
-          '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
-      final time = '+${resolved.deviationTimeMinutes}′';
-      label = switch (ref.watch(selectedDeviationProvider)) {
-        'deeper' => depth,
-        'longer' => time,
-        _ => '$depth $time',
-      };
-    }
+    final selection = ref.watch(contingencySelectionProvider);
+    // The plan's own deviation, else the diver's Settings default (#3552).
+    final resolved = ref.watch(resolvedPlanEngineConfigProvider);
+    final depth =
+        '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
+    final time = '+${resolved.deviationTimeMinutes}′';
+    final deviation = [
+      if (selection.deeper) depth,
+      if (selection.longer) time,
+    ].join(' ');
+    final label = [
+      if (deviation.isNotEmpty) deviation,
+      for (final tank in preview.lostTanks)
+        context.l10n.plannerCanvas_contingency_lostGas(tank.gasMix.name),
+    ].join(' · ');
 
     return PlanChip(
       label: context.l10n.plannerCanvas_contingency_previewing(label),
       value: '✕',
       tint: Theme.of(context).colorScheme.tertiary,
-      onTap: () {
-        ref.read(selectedDeviationProvider.notifier).select(null);
-        ref.read(selectedLostGasTankIdProvider.notifier).state = null;
-      },
+      onTap: () => ref.read(contingencySelectionProvider.notifier).clear(),
     );
   }
 }
