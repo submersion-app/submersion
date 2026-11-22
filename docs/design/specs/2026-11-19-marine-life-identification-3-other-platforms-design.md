@@ -810,7 +810,10 @@ differs.
 
 ## Still open
 
-- Nothing in this design.
+- On Linux the app holds about 3 GB after it frees the models, until it
+  quits (D3 run, 2026-11-22). Whether to look into it is the maintainer's
+  call; see
+  [the Windows and Linux findings](../findings/2026-11-22-marine-life-windows-linux-ci.md#open-linux-keeps-the-memory-after-unloading).
 
 ## Risks
 
