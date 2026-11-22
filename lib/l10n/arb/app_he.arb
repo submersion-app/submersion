@@ -1897,6 +1897,7 @@
   "notesEditor_action_bulletList": "רשימת תבליטים",
   "notesEditor_action_numberedList": "רשימה ממוספרת",
   "notesEditor_action_annotate": "סימון",
+  "notesEditor_annotate_brokenLink": "תקנו את הקישור הפגום של הסימון לפני שתסמנו כאן.",
   "notesEditor_action_preview": "תצוגה מקדימה",
   "courses_action_add": "הוסף קורס",
   "courses_action_addFromTemplate": "הוסף מתבנית",

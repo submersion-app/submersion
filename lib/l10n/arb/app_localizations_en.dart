@@ -5621,6 +5621,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesEditor_action_annotate => 'Annotate';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'Mend the broken annotation link before pinning here.';
+
+  @override
   String get notesEditor_action_preview => 'Preview';
 
   @override

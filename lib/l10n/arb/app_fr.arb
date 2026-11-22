@@ -1897,6 +1897,7 @@
   "notesEditor_action_bulletList": "Liste à puces",
   "notesEditor_action_numberedList": "Liste numérotée",
   "notesEditor_action_annotate": "Annoter",
+  "notesEditor_annotate_brokenLink": "Réparez le lien d'annotation cassé avant d'annoter ici.",
   "notesEditor_action_preview": "Aperçu",
   "courses_action_add": "Ajouter un cours",
   "courses_action_addFromTemplate": "Ajouter depuis un modèle",

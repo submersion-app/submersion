@@ -286,6 +286,13 @@ void main() {
       expect(result.text, contains(link));
     });
 
+    test('is not a broken link', () {
+      expect(
+        touchesBrokenAnnotationLink(caretAt('Start [felt'.length)),
+        isFalse,
+      );
+    });
+
     test('at the edge of a link stays where it is', () {
       final result = wrapSelectionAsAnnotation(
         caretAt('Start '.length),
@@ -293,6 +300,64 @@ void main() {
         words: 'cold',
       );
       expect(result.text, 'Start \n[cold](annotation:b2)$link end');
+    });
+  });
+
+  // A pin is refused where its link would land in, or right after, the
+  // markup of an annotation link the diver broke (#4815).
+  group('touchesBrokenAnnotationLink', () {
+    const broken = '[Vomit buggy](annotation:a1';
+
+    TextEditingValue at(String text, int start, [int? end]) => TextEditingValue(
+      text: text,
+      selection: TextSelection(baseOffset: start, extentOffset: end ?? start),
+    );
+
+    test('a caret right after the broken address, as in the report', () {
+      expect(touchesBrokenAnnotationLink(at(broken, broken.length)), isTrue);
+    });
+
+    test('a caret in its words or its address', () {
+      expect(touchesBrokenAnnotationLink(at(broken, 3)), isTrue);
+      expect(
+        touchesBrokenAnnotationLink(at(broken, broken.length - 2)),
+        isTrue,
+      );
+    });
+
+    test('a caret before its bracket, or in another paragraph, is not', () {
+      const notes = 'Calm\n\n$broken';
+      expect(touchesBrokenAnnotationLink(at(notes, 0)), isFalse);
+      expect(touchesBrokenAnnotationLink(at(notes, 'Calm'.length)), isFalse);
+      expect(
+        touchesBrokenAnnotationLink(at(notes, 'Calm\n\n'.length)),
+        isFalse,
+      );
+    });
+
+    test('a selection that reaches into it', () {
+      const notes = 'Calm sea $broken';
+      expect(touchesBrokenAnnotationLink(at(notes, 0, 4)), isFalse);
+      expect(touchesBrokenAnnotationLink(at(notes, 5, 12)), isTrue);
+    });
+
+    test('a selection that only reaches the space before it is not', () {
+      const notes = 'Calm $broken';
+      expect(touchesBrokenAnnotationLink(at(notes, 0, 5)), isFalse);
+    });
+
+    test('notes with no selection read as a caret at the end', () {
+      expect(
+        touchesBrokenAnnotationLink(const TextEditingValue(text: broken)),
+        isTrue,
+      );
+    });
+
+    test('intact links and plain notes never are', () {
+      expect(touchesBrokenAnnotationLink(at('Calm', 4)), isFalse);
+      const linked = '[Vomit](annotation:a1)';
+      expect(touchesBrokenAnnotationLink(at(linked, linked.length)), isFalse);
+      expect(touchesBrokenAnnotationLink(at(linked, 3)), isFalse);
     });
   });
 }

@@ -5712,6 +5712,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get notesEditor_action_annotate => 'Anotar';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'Arregla el enlace roto de la anotación antes de anotar aquí.';
+
+  @override
   String get notesEditor_action_preview => 'Vista previa';
 
   @override

@@ -5713,6 +5713,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get notesEditor_action_annotate => 'Marcar';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'Conserte o link quebrado da marcação antes de marcar aqui.';
+
+  @override
   String get notesEditor_action_preview => 'Pré-visualização';
 
   @override

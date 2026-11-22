@@ -3560,6 +3560,10 @@
   "@notesEditor_action_annotate": {
     "description": "Tooltip for the notes editor button that pins the selected words to a time in the dive (an annotation)"
   },
+  "notesEditor_annotate_brokenLink": "Mend the broken annotation link before pinning here.",
+  "@notesEditor_annotate_brokenLink": {
+    "description": "Snack bar when the diver taps the notes editor's pin (Annotate) with the caret inside or right after an annotation link whose markup is broken; nothing is pinned until the link is mended"
+  },
   "notesEditor_action_preview": "Preview",
   "@notesEditor_action_preview": {
     "description": "Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed"

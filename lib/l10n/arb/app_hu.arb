@@ -1897,6 +1897,7 @@
   "notesEditor_action_bulletList": "Felsorolás",
   "notesEditor_action_numberedList": "Számozott lista",
   "notesEditor_action_annotate": "Megjelölés",
+  "notesEditor_annotate_brokenLink": "Javítsd ki a jelölés sérült hivatkozását, mielőtt itt jelölsz.",
   "notesEditor_action_preview": "Előnézet",
   "courses_action_add": "Tanfolyam hozzáadása",
   "courses_action_addFromTemplate": "Hozzáadás sablonból",

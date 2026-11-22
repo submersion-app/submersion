@@ -1897,6 +1897,7 @@
   "notesEditor_action_bulletList": "Elenco puntato",
   "notesEditor_action_numberedList": "Elenco numerato",
   "notesEditor_action_annotate": "Annota",
+  "notesEditor_annotate_brokenLink": "Ripara il link dell'annotazione rotto prima di annotare qui.",
   "notesEditor_action_preview": "Anteprima",
   "courses_action_add": "Aggiungi Corso",
   "courses_action_addFromTemplate": "Aggiungi da modello",

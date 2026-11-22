@@ -252,6 +252,76 @@ void main() {
     });
   });
 
+  // Where a pin from the Notes toolbar may not land (#4815): the markup of
+  // a link the diver broke, from its opening bracket to its address.
+  group('brokenAnnotationLinkSpans', () {
+    String marked(String notes) {
+      final spans = brokenAnnotationLinkSpans(notes);
+      final out = StringBuffer();
+      var at = 0;
+      for (final span in spans) {
+        out
+          ..write(notes.substring(at, span.start))
+          ..write('<')
+          ..write(notes.substring(span.start, span.end))
+          ..write('>');
+        at = span.end;
+      }
+      out.write(notes.substring(at));
+      return out.toString();
+    }
+
+    test('is empty for intact links and plain words', () {
+      expect(brokenAnnotationLinkSpans(''), isEmpty);
+      expect(brokenAnnotationLinkSpans('Calm. annotation: none.'), isEmpty);
+      expect(brokenAnnotationLinkSpans('[Vomit](annotation:a1) ok'), isEmpty);
+    });
+
+    test('a link that lost its closing parenthesis, from its bracket', () {
+      expect(
+        marked('Calm\n\n[Vomit buggy](annotation:a1'),
+        'Calm\n\n<[Vomit buggy](annotation:a1>',
+      );
+    });
+
+    test('takes in a parenthesis still after the address', () {
+      expect(
+        marked('Calm [Vomit]annotation:a1) end'),
+        'Calm <[Vomit]annotation:a1)> end',
+      );
+      expect(marked('[Vomit](annotation:)'), '<[Vomit](annotation:)>');
+    });
+
+    test('with its opening bracket gone, from what is left of the markup', () {
+      expect(
+        marked('Calm Vomit](annotation:a1) end'),
+        'Calm Vomit<](annotation:a1)> end',
+      );
+      expect(
+        marked('[Vomit] (annotation:a1) end'),
+        '[Vomit] <(annotation:a1)> end',
+      );
+    });
+
+    test('a bare address is the address alone', () {
+      expect(marked('Vomit annotation:a1 end'), 'Vomit <annotation:a1> end');
+    });
+
+    test('looks for the bracket in its own paragraph only', () {
+      expect(
+        marked('[Calm\n\nVomit](annotation:a1'),
+        '[Calm\n\nVomit<](annotation:a1>',
+      );
+    });
+
+    test('the shape the report left: the broken link, not the pin', () {
+      expect(
+        marked('[Vomit buggy](annotation:a1\n[Fff](annotation:b2))'),
+        '<[Vomit buggy](annotation:a1>\n[Fff](annotation:b2))',
+      );
+    });
+  });
+
   // The rule the dive page and agent writes share (#4815).
   group('AnnotationLinkBaseline.damagedBy', () {
     const stored = '[Turtle](annotation:t1)\n\n[Ray](annotation:r1)';

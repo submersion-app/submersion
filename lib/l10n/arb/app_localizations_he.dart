@@ -5584,6 +5584,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get notesEditor_action_annotate => 'סימון';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'תקנו את הקישור הפגום של הסימון לפני שתסמנו כאן.';
+
+  @override
   String get notesEditor_action_preview => 'תצוגה מקדימה';
 
   @override

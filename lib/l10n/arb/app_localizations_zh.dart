@@ -5392,6 +5392,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notesEditor_action_annotate => '标注';
 
   @override
+  String get notesEditor_annotate_brokenLink => '请先修复损坏的标注链接，再在此处添加标注。';
+
+  @override
   String get notesEditor_action_preview => '预览';
 
   @override

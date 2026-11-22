@@ -1897,6 +1897,7 @@
   "notesEditor_action_bulletList": "Opsomming",
   "notesEditor_action_numberedList": "Genummerde lijst",
   "notesEditor_action_annotate": "Annoteren",
+  "notesEditor_annotate_brokenLink": "Herstel de kapotte link van de annotatie voordat je hier annoteert.",
   "notesEditor_action_preview": "Voorbeeld",
   "courses_action_add": "Cursus toevoegen",
   "courses_action_addFromTemplate": "Toevoegen vanuit sjabloon",

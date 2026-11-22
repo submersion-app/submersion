@@ -1923,6 +1923,7 @@
   "notesEditor_action_bulletList": "Aufzählung",
   "notesEditor_action_numberedList": "Nummerierte Liste",
   "notesEditor_action_annotate": "Anmerken",
+  "notesEditor_annotate_brokenLink": "Repariere den beschädigten Link der Anmerkung, bevor du hier anmerkst.",
   "notesEditor_action_preview": "Vorschau",
   "courses_action_add": "Kurs hinzufügen",
   "courses_action_addFromTemplate": "Aus Vorlage hinzufügen",
