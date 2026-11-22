@@ -158,4 +158,40 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('Link that could link nothing says so', (tester) async {
+    await _show(
+      tester,
+      TracksMatchOutcome(
+        positionedDiveIds: const [],
+        failed: false,
+        linkProposals: [_proposal],
+      ).afterLinking(linked: 0, failed: false),
+    );
+    expect(find.text('0 underwater tracks linked'), findsOneWidget);
+  });
+
+  testWidgets('declining clears the message an earlier press left', (
+    tester,
+  ) async {
+    await _show(
+      tester,
+      const TracksMatchOutcome(positionedDiveIds: ['d1', 'd2'], failed: false),
+    );
+    expect(find.text('2 dives positioned'), findsOneWidget);
+
+    final context = tester.element(find.text('go'));
+    showTracksMatchOutcome(
+      messenger: ScaffoldMessenger.of(context),
+      l10n: context.l10n,
+      router: GoRouter.of(context),
+      outcome: TracksMatchOutcome(
+        positionedDiveIds: const [],
+        failed: false,
+        linkProposals: [_proposal],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('2 dives positioned'), findsNothing);
+  });
 }

@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -135,6 +136,51 @@ void main() {
       final moved = (await repo.getForDive('a')).single;
       expect(moved.siteId, 'site-1');
       expect(moved.anchor?.latitude, 10.5);
+    });
+
+    // #4851: a fold joins two records of the same dive, so a route keeps
+    // the site and anchor it already has, and restoreLinks can undo it.
+    test('a route keeps the site it took from the folded dive, and undo puts '
+        'the link back as it was', () async {
+      await _insertSite(db, 's1');
+      await _insertDive(db, 'a', siteId: 's1');
+      await _insertDive(db, 'b');
+      final onA = await route(startAt: 1700000000, diveId: 'a');
+      final before = await repo.linkedRowsForDives(['a']);
+
+      await repo.moveLinks(fromDiveIds: ['a'], toDiveId: 'b');
+
+      final moved = await repo.getById(onA);
+      expect(moved!.diveId, 'b');
+      expect(moved.siteId, 's1');
+      expect(moved.anchor, const GeoPoint(10.5, 20.5));
+
+      await repo.restoreLinks(before, survivingDiveId: 'b');
+      final restored = await repo.getById(onA);
+      expect(restored!.diveId, 'a');
+      expect(restored.siteId, 's1');
+      expect(restored.anchor, const GeoPoint(10.5, 20.5));
+    });
+
+    test('an anchored route with no site takes no site from the receiving '
+        'dive', () async {
+      await _insertSite(db, 's1');
+      await _insertDive(db, 'a');
+      await _insertDive(db, 'b', siteId: 's1');
+      final onA = await route(startAt: 1700000000, diveId: 'a');
+      await repo.updateCorrection(
+        onA,
+        const NavTrackCorrection(
+          anchor: GeoPoint(1, 2),
+          endMode: NavTrackEndMode.none,
+        ),
+      );
+
+      await repo.moveLinks(fromDiveIds: ['a'], toDiveId: 'b');
+
+      final moved = await repo.getById(onA);
+      expect(moved!.siteId, isNull);
+      expect(moved.anchor, const GeoPoint(1, 2));
     });
 
     test('a non-primary route stays behind the one it came with', () async {

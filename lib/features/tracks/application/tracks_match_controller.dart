@@ -18,6 +18,7 @@ class TracksMatchOutcome {
     required this.failed,
     this.linkProposals = const [],
     this.linkedTrackCount = 0,
+    this.linkConfirmed = false,
   });
 
   /// Dives the GPS sweep gave coordinates to; the site review takes these.
@@ -34,6 +35,10 @@ class TracksMatchOutcome {
   /// How many of [linkProposals] the diver's confirmation linked.
   final int linkedTrackCount;
 
+  /// The diver chose Link: [linkedTrackCount] is then worth reporting even
+  /// at 0, when every track was linked or its dive deleted meanwhile.
+  final bool linkConfirmed;
+
   /// This outcome once the diver's confirmation has linked [linked] tracks;
   /// [failed] when a link threw.
   TracksMatchOutcome afterLinking({
@@ -44,6 +49,7 @@ class TracksMatchOutcome {
     failed: this.failed || failed,
     linkProposals: linkProposals,
     linkedTrackCount: linked,
+    linkConfirmed: true,
   );
 }
 
