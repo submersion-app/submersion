@@ -19,12 +19,22 @@ class ContingencyChips extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // When the plan loses its bottom the time chips go, and so does a time
+    // preview the diver picked: left in place it would come back on its own
+    // the moment a bottom is added again.
+    ref.listen<bool>(planCanLengthenProvider, (_, canLengthen) {
+      if (canLengthen) return;
+      final selection = ref.read(selectedDeviationProvider);
+      if (selection != null && selection != 'deeper') {
+        ref.read(selectedDeviationProvider.notifier).state = null;
+      }
+    });
     final state = ref.watch(divePlanNotifierProvider);
     if (state.segments.isEmpty) return const SizedBox.shrink();
     final canLengthen = ref.watch(planCanLengthenProvider);
     final rawSelected = ref.watch(selectedDeviationProvider);
-    // A time chip the plan no longer offers has nothing to preview, so Base
-    // reads as selected rather than no chip at all.
+    // Until the listener above has cleared it, a time selection the plan no
+    // longer offers reads as Base rather than as no chip at all.
     final selected = canLengthen || rawSelected == 'deeper'
         ? rawSelected
         : null;

@@ -123,6 +123,14 @@ void main() {
     expect(find.text('+5\u2032'), findsNothing);
     expect(find.text('+5m +5\u2032'), findsNothing);
     expect(container.read(selectedContingencyProvider), isNull);
+
+    // The selection went with the chips: restoring a bottom brings the time
+    // chips back but no preview the diver did not ask for.
+    expect(container.read(selectedDeviationProvider), isNull);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+    expect(find.text('+5\u2032'), findsOneWidget);
+    expect(container.read(selectedContingencyProvider), isNull);
   });
 
   testWidgets('overlay chips render a single row strip and drive selection', (
