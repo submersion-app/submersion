@@ -199,17 +199,21 @@ class _CylinderConfigEditPageState extends ConsumerState<CylinderConfigEditPage>
       );
     }
     if (start != null && listEquals(draft.rows, start.rows)) return;
-    // A cylinder the diver left alone is written as stored now; the rest as
-    // the form has them.
+    // The cylinders as stored now, with the diver's own changes on them: a
+    // cylinder the diver left alone follows storage (kept as stored, or gone
+    // when removed elsewhere meanwhile), one they changed or added is
+    // written as the form has it, and one added elsewhere meanwhile stays.
     final storedById = {for (final item in stored.items) item.id: item};
     final startById = {for (final row in start?.rows ?? const []) row.id: row};
+    final formIds = {for (final item in _items) item.id};
     await repository.saveItems(recordId, [
       for (var i = 0; i < _items.length; i++)
-        if (startById[draft.rows[i].id] == draft.rows[i] &&
-            storedById[_items[i].id] != null)
-          storedById[_items[i].id]!
+        if (startById[draft.rows[i].id] != draft.rows[i])
+          _items[i]
         else
-          _items[i],
+          ?storedById[_items[i].id],
+      for (final item in stored.items)
+        if (!startById.containsKey(item.id) && !formIds.contains(item.id)) item,
     ]);
   }
 

@@ -373,6 +373,43 @@ void main() {
     expect(saved.items.single.volumeL, 15);
   });
 
+  testWidgets('a cylinder deleted elsewhere and left alone stays deleted', (
+    tester,
+  ) async {
+    final id = await stored();
+    await pump(tester, configId: id);
+    // Another device removes i1 while the diver edits i2.
+    await db.customStatement(
+      "DELETE FROM cylinder_config_items WHERE id = 'i1'",
+    );
+    await tester.enterText(find.widgetWithText(TextField, 'O2').last, '32');
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+
+    final saved = await repo.getConfigById(id);
+    expect(saved!.items.map((i) => i.id), ['i2']);
+    expect(saved.items.single.o2Percent, 32);
+  });
+
+  testWidgets('a cylinder added elsewhere survives a change to the others', (
+    tester,
+  ) async {
+    final id = await stored();
+    await pump(tester, configId: id);
+    // Another device adds i3 while the diver edits i2.
+    await db.customStatement(
+      "INSERT INTO cylinder_config_items (id, config_id, sort_order, "
+      "tank_role, o2_percent, he_percent, created_at, updated_at) "
+      "VALUES ('i3', '$id', 2, 'stage', 50, 0, 1, 1)",
+    );
+    await tester.enterText(find.widgetWithText(TextField, 'O2').last, '32');
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+
+    final saved = await repo.getConfigById(id);
+    expect(saved!.items.map((i) => i.id), ['i1', 'i2', 'i3']);
+  });
+
   testWidgets('a configuration deleted while open is refused at Save', (
     tester,
   ) async {
