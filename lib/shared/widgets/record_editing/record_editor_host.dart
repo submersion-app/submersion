@@ -67,6 +67,13 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   /// whatever the check showed.
   bool validateEditor();
 
+  /// Whether the form, as it reads now, may be saved at all: a rule with
+  /// no name or no action may not. Save is enabled only while this holds
+  /// and something has changed, and Cmd or Ctrl+S does nothing otherwise.
+  /// True by default. Read on every build of the bar, so the editor
+  /// rebuilds when its answer changes.
+  bool get editorCanSave => true;
+
   /// Writes the record [recordId], inside the sitting's transaction and
   /// change log operation. Throws when nothing could be written: the whole
   /// Save then fails, and the page stays with every value.
@@ -248,7 +255,7 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   Future<void> saveEditor() async {
     if (_saving || _leaving || !editorOpen) return;
     final controller = editorController;
-    if (!controller.isDirty || controller.isBusy) return;
+    if (!controller.isDirty || controller.isBusy || !editorCanSave) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     // The bar shows the save from here: the wait for the diver below is
@@ -474,7 +481,7 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
       child: Scaffold(
         appBar: RecordEditBar(
           title: editorTitle(context),
-          canSave: controller.isDirty,
+          canSave: controller.isDirty && editorCanSave,
           isSaving: controller.isSaving || _saving,
           isBusy: controller.isOperating,
           onCancel: cancelEditor,
