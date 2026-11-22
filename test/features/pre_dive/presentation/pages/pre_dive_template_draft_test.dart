@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_editable_item.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_draft.dart';
@@ -42,6 +43,14 @@ void main() {
     expect(
       _draft(items: [_item('a', valueMin: 0.1 + 0.2)]),
       _draft(items: [_item('a', valueMin: 0.3)]),
+    );
+  });
+
+  test('a threshold drafts alike whatever the number locale', () {
+    final item = _item('a', valueMin: 0.5);
+    expect(
+      Intl.withLocale('de', () => preDiveItemDraft(item)),
+      Intl.withLocale('en', () => preDiveItemDraft(item)),
     );
   });
 

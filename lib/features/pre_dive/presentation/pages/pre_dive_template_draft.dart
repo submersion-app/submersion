@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_editable_item.dart';
 
@@ -70,9 +69,13 @@ class PreDiveTemplateDraft {
   );
 }
 
-/// A threshold as the item dialog shows it: blank for none.
-String _thresholdText(double? value) =>
-    value == null ? '' : formatDecimalForInput(value);
+/// A threshold as the item dialog shows it, blank for none: rounded to the
+/// 15 significant digits `formatDecimalForInput` shows, but with no locale
+/// separator, so a change of number locale during the sitting is no change.
+String _thresholdText(double? value) {
+  if (value == null || !value.isFinite) return '';
+  return double.parse(value.toStringAsPrecision(15)).toString();
+}
 
 /// The draft of an item as the editor shows it.
 PreDiveItemDraft preDiveItemDraft(EditablePreDiveItem item) => (
