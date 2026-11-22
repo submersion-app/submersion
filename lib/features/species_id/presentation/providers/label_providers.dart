@@ -11,6 +11,7 @@ import 'package:submersion/features/species_id/data/services/media_identificatio
 import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
+import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/labels_menu_model.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
@@ -137,9 +138,12 @@ final mediaAnalysisStatusProvider = FutureProvider.autoDispose
         item.id,
       ], withPaths: false);
       final run = runs[item.id];
-      final found = (stored[item.id] ?? const <MediaIdentification>[])
-          .where((i) => i.decision != IdentificationDecision.rejected)
-          .length;
+      // Counted as the labels show them: a run that lost a sync race leaves
+      // rows that are hidden, not found (issue #4876).
+      final found = visibleRows(
+        run,
+        stored[item.id] ?? const <MediaIdentification>[],
+      ).where((i) => i.decision != IdentificationDecision.rejected).length;
       if (installed == null) {
         // Results another device found, or any where no model can run here,
         // say what was found (issue #4876); this device's own, with its

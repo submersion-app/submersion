@@ -290,6 +290,20 @@ void main() {
       expect(s.state, MediaAnalysisState.notAnalysed);
     });
 
+    test('counts only the rows shown: a run that lost a sync race leaves '
+        'none counted (issue #4876)', () async {
+      await repository.storeRun(
+        currentRun('m1').copyWith(runId: () => 'r2'),
+        insert: [
+          identification('mine', mediaId: 'm1').copyWith(runId: () => 'r2'),
+          identification('lost', mediaId: 'm1').copyWith(runId: () => 'r1'),
+        ],
+        deleteIds: const [],
+      );
+      final s = await status(item('m1'));
+      expect(s.found, 1);
+    });
+
     test('never analysed', () async {
       final s = await status(item('m1'));
       expect(s.state, MediaAnalysisState.notAnalysed);
