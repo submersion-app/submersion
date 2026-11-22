@@ -926,6 +926,18 @@ on:
   before its Save commits, but no app path closes the editor mid-commit
   (its leave guard holds Back while busy, and a `go` asks through the exit
   check, which refuses while busy); only a forced pop in a test does.
+- **A second review (code-review, xhigh, all findings, on the PR):** five
+  findings. Fixed: a rule whose stored condition did not load can again be
+  cleared to match every dive (the draft carries `replacesBrokenCondition`,
+  which the old Save read as `_conditionTouched`); a failed near-miss Save is
+  logged again (`editorSaveFailed`); a new rule opens from `blankRuleDraft`;
+  a new near-miss's blank draft is dated before anything is awaited. Left as
+  the plan chose: a rule that will not load keeps today's error text.
+- **The agent write coverage guard** (`test/architecture/agent_write_coverage_covered.dart`)
+  lists `applyIncidentChanges` as covered, reached through the near-miss
+  writer's `updateIncident`. That writer still writes the check-in link from
+  the domain copy, so an agent edit can erase a link that does not stand:
+  a follow-up of its own.
 - **Shared files touched:** `record_editor_host.dart` (one getter, two
   reads), `record_editor_host_harness.dart` (one probe option),
   `app_router.dart` (`onExit` on the four rule and near-miss editing
