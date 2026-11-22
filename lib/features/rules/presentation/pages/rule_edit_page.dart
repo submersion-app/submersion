@@ -81,14 +81,27 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage>
     // Read once: the editor fills itself from the first value and ignores
     // later ticks. A manual listen keeps the auto-dispose rule alive while
     // it loads.
-    _loading = ref.listenManual<AsyncValue<Rule?>>(
+    final loading = ref.listenManual<AsyncValue<Rule?>>(
       ruleByIdProvider(id),
       (_, next) => _loaded(next),
       fireImmediately: true,
     );
+    // A rule already loaded answered at once, before there was a
+    // subscription to close: close it now.
+    if (_settled) {
+      loading.close();
+    } else {
+      _loading = loading;
+    }
   }
 
+  /// The stored rule has filled the form, or could not be read.
+  bool get _settled => _original != null || _loadFailed;
+
+  /// Fills the form from the rule's first value only: a later tick (a sync,
+  /// the list's switch) never overwrites what the diver is editing.
   void _loaded(AsyncValue<Rule?> next) {
+    if (_settled) return;
     switch (next) {
       case AsyncData(:final value?):
         _loading?.close();

@@ -14,6 +14,7 @@ import 'package:submersion/features/rules/data/repositories/rule_repository.dart
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/pages/rule_edit_page.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -53,7 +54,11 @@ void main() {
 
   /// The editor pushed over a stand-in rules list, on routes with the app's
   /// leave check, as the app's are.
-  Future<void> pump(WidgetTester tester, {String? ruleId}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    String? ruleId,
+    Future<void> Function()? beforeOpen,
+  }) async {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -103,6 +108,7 @@ void main() {
     );
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('me');
     await tester.pumpAndSettle();
+    if (beforeOpen != null) await tester.runAsync(beforeOpen);
     unawaited(router.push(ruleId == null ? '/rules/new' : '/rules/$ruleId'));
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
@@ -327,6 +333,33 @@ void main() {
     expect(after.name, 'Deeper');
     expect(after.enabled, isFalse);
     expect(after.actionsJson, actionsBefore);
+  });
+
+  testWidgets('a rule already loaded as the page opens is filled once', (
+    tester,
+  ) async {
+    final id = await stored();
+    // The rule is held loaded before the editor opens, so its first value
+    // reaches the editor at once.
+    late ProviderSubscription<Object?> held;
+    Future<void> holdRule() async {
+      held = container.listen(ruleByIdProvider(id), (_, _) {});
+      await container.read(ruleByIdProvider(id).future);
+    }
+
+    await pump(tester, ruleId: id, beforeOpen: holdRule);
+    addTearDown(() => held.close());
+    await rename(tester, 'Deeper');
+
+    // A write to the rules table (the list's switch, a sync) ticks the rule.
+    await repo.setEnabled(id, false);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Deeper'), findsOneWidget);
+    expect(save(tester).onPressed, isNotNull);
   });
 
   testWidgets('a rule deleted while open is refused at Save', (tester) async {
