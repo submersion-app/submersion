@@ -73,15 +73,15 @@ class ManifestSubscription extends Equatable {
   ];
 }
 
-/// How a subscription is named where it is reported (health, setup): its
-/// display name, else the feed's host. Never the whole URL, which for a
-/// shared album carries the share code.
+/// How a subscription is named where the app reports it (health, setup):
+/// its display name, else its link without the scheme. The host alone left
+/// two albums on one NAS indistinguishable. Shown on this device only; logs
+/// name subscriptions by id, never by link, which carries a share's code.
 extension ManifestSubscriptionLabel on ManifestSubscription {
   String get label {
     final name = displayName;
     if (name != null && name.isNotEmpty) return name;
-    final host = Uri.tryParse(manifestUrl)?.host;
-    return host == null || host.isEmpty ? manifestUrl : host;
+    return manifestUrl.replaceFirst(RegExp(r'^https?://'), '');
   }
 }
 

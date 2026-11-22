@@ -785,6 +785,57 @@ void main() {
     expect(all, hasLength(2));
   });
 
+  group('naming a shared album', () {
+    const share = 'https://nas.example.com:5001/mo/sharing/code1';
+
+    Future<ManifestSubscription?> pollOnce(
+      String url, {
+      String? displayName,
+      String? title = 'Dives',
+    }) async {
+      final poller = SubscriptionPoller(
+        subscriptions: subscriptions,
+        mediaRepo: mediaRepo,
+        fetchService: _StaticFetcher({
+          url: ManifestFetchSuccess(
+            parsed: ManifestParseResult(
+              format: ManifestFormat.json,
+              title: title,
+              entries: [_entry('k1', 'https://nas.example.com/p1.jpg')],
+            ),
+          ),
+        }),
+        pipeline: pipeline,
+        diveLinkMatcher: matcher,
+      );
+      final sub = await subscriptions.createSubscription(
+        manifestUrl: url,
+        format: ManifestFormat.json,
+        displayName: displayName,
+      );
+      await poller.pollNow(sub.id, DateTime.utc(2024, 4, 27, 10));
+      return subscriptions.getById(sub.id);
+    }
+
+    test('an unnamed share takes the album name', () async {
+      expect((await pollOnce(share))!.displayName, 'Dives');
+    });
+
+    test('a name the user gave is kept', () async {
+      final sub = await pollOnce(share, displayName: 'Mine');
+      expect(sub!.displayName, 'Mine');
+    });
+
+    test('a feed is not renamed', () async {
+      final sub = await pollOnce('https://feed.example.com/m.json');
+      expect(sub!.displayName, isNull);
+    });
+
+    test('no title, no name', () async {
+      expect((await pollOnce(share, title: null))!.displayName, isNull);
+    });
+  });
+
   test('a feed that suddenly lists nothing marks nothing missing', () async {
     const feed = 'https://feed.example.com/m.json';
     final outcomes = <String, ManifestFetchOutcome>{

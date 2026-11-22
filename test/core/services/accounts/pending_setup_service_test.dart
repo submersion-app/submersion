@@ -420,8 +420,8 @@ void main() {
           .toList();
       expect(items, hasLength(1));
       expect(items.single.subscriptionId, sub.id);
-      // The host, never the link: it carries the share code.
-      expect(items.single.label, 'nas.example.com');
+      // No name yet: the link, so two albums on one NAS stay apart.
+      expect(items.single.label, 'nas.example.com:5001/mo/sharing/code1');
       expect(items.single.route, '/settings/media-sources/network-sources');
     });
 

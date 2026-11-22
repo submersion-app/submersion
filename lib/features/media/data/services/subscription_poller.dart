@@ -26,6 +26,7 @@ import 'package:submersion/features/media/data/services/manifest_entry_adoption.
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/network_import_targets.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 /// Drives one polling cycle across all active-due manifest subscriptions.
@@ -184,6 +185,7 @@ class SubscriptionPoller {
           return;
         }
         await _applyDiff(sub, outcome.parsed, now);
+        await _nameAfterAlbum(sub, outcome.parsed.title);
         await subscriptions.recordPollSuccess(
           sub.id,
           pollIntervalSeconds: sub.pollIntervalSeconds,
@@ -192,6 +194,25 @@ class SubscriptionPoller {
           now: now,
         );
     }
+  }
+
+  /// Gives a shared album's subscription the album's name when it has none,
+  /// so the app can tell two albums on one NAS apart (a subscription made
+  /// before imports named it, or one whose album could not be read until
+  /// its password was entered). A name the user gave is never replaced.
+  Future<void> _nameAfterAlbum(ManifestSubscription sub, String? title) async {
+    final name = sub.displayName;
+    if (name != null && name.isNotEmpty) return;
+    if (title == null || title.trim().isEmpty) return;
+    if (SynologyShareLink.tryParseShareLink(Uri.parse(sub.manifestUrl)) ==
+        null) {
+      return;
+    }
+    await subscriptions.updateUrlAndDisplayName(
+      sub.id,
+      manifestUrl: sub.manifestUrl,
+      displayName: title.trim(),
+    );
   }
 
   Future<bool> _holdsLiveRows(String subscriptionId) async {

@@ -218,11 +218,17 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
       }
       return existing;
     }
+    // A shared album is named after the album, so two albums on one NAS
+    // can be told apart wherever the app reports on them.
+    final title = preview.result.title;
+    final isShare =
+        SynologyShareLink.tryParseShareLink(Uri.parse(preview.url)) != null;
     return subRepo.createSubscription(
       manifestUrl: preview.url,
       format: preview.formatOverride ?? preview.result.format,
       pollIntervalSeconds: preview.pollIntervalSeconds,
       isActive: preview.subscribe,
+      displayName: isShare && title != null && title.isNotEmpty ? title : null,
     );
   }
 
