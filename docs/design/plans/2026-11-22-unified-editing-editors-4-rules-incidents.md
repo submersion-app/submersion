@@ -107,6 +107,9 @@ move onto it in a later change.
 
 ## Choices for Eric
 
+Eric approved the plan on 2026-11-22 and picked option B for choice 1; the
+other choices stand as written.
+
 1. **Save while a rule is incomplete.** Today Save is disabled while the
    rule has no name, no action, or a condition whose text does not parse.
    The host enables Save on any change.
@@ -884,3 +887,47 @@ project's highest-numbered secret gist
 (`PR screenshots: submersion-app/submersion (N)`, pngquant first,
 `<pr>-<nn>-<screen>-<state>.png`, raw URLs pinned to the gist commit). Bind
 the PR and report its checks.
+
+## After the build
+
+Built natively on 2026-11-22 (commits after the plan commit, to the branch
+head). What changed from this plan, for plan 5 and any later change to build
+on:
+
+- **Option B shipped.** The host's one new member is `editorCanSave`
+  (`record_editor_host.dart`); the fake editor's switch for it is
+  `EditorProbe.canSave`, beside the probe's other options, not a
+  `FakeEditorPage` parameter. Its tests are
+  `record_editor_host_can_save_test.dart`.
+- **The rule editor loads once.** `ruleByIdProvider` is read with
+  `ref.listenManual(fireImmediately: true)`; the form is filled from the
+  first value only (`_settled`), and a subscription that answered at once
+  is closed after `listenManual` returns. A later tick (a sync, the list's
+  enabled switch) never overwrites what the diver is editing (review fix).
+- **A rule that will not load** keeps today's error text under the host's
+  plain bar, which now carries the editor's title.
+- **The near-miss link is rewritten when the item changes**, as well as
+  when the check-in or a dive does: a check-in belongs to one item, so a
+  link stored on the old item, even one that reads as none, does not follow
+  (review fix).
+- **Tests.** The "link that does not stand" repository test and the "check-in
+  added from the picker survives Cancel" page test live in the two
+  `incident_check_in_link_test.dart` files (data and page), where their
+  helpers are. Older page tests with no diver override gained
+  `validatedCurrentDiverIdProvider` answering null: Save now resolves the
+  diver first. As in plans 1 and 2, the bar's Save enables a frame after an
+  edit, so tests pump between typing and tapping it.
+- **Generated code.** This worktree's `*.g.dart` and mocks were stale; they
+  were copied from a sibling worktree cut from the same commit with the same
+  schema sources, not regenerated.
+- **Review (code-review, high, all findings):** three findings. Two fixed
+  test-first (the rule editor's re-seed, the near-miss link on a move). One
+  left as it is: the findings refresh is skipped if the editor is gone
+  before its Save commits, but no app path closes the editor mid-commit
+  (its leave guard holds Back while busy, and a `go` asks through the exit
+  check, which refuses while busy); only a forced pop in a test does.
+- **Shared files touched:** `record_editor_host.dart` (one getter, two
+  reads), `record_editor_host_harness.dart` (one probe option),
+  `app_router.dart` (`onExit` on the four rule and near-miss editing
+  routes), the 11 arb files and their generated localizations
+  (`rules_edit_notFound` added, `incidentEdit_save` removed).
