@@ -7145,6 +7145,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_consolidate_confirm => '保留为一次潜水，包含两台电脑';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate => '保留为一次潜水';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      '主潜水的一部分已从同一台潜水电脑再次导入为单独的潜水。该副本仅作为主潜水的数据源保留，因此不会重复添加任何内容。';
+
+  @override
   String get diveLog_consolidate_error_generic => '无法合并这些潜水。未做任何更改。';
 
   @override
@@ -7167,6 +7174,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_consolidate_snackbar => '潜水已作为附加电脑合并。';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar => '副本已并入主潜水。';
 
   @override
   String get diveLog_consolidate_undoError => '无法撤消合并。';

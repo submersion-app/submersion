@@ -7518,6 +7518,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Megtartás egyetlen merülésként mindkét számítógéppel';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate =>
+      'Megtartás egyetlen merülésként';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'Az elsődleges merülés egy részét újra importálták külön merülésként, ugyanarról a búvárszámítógépről. Ez a másolat csak az elsődleges merülés forrásaként marad meg, így semmi sem kerül be kétszer.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'Nem sikerült összevonni a merüléseket. Semmi sem változott.';
 
@@ -7543,6 +7551,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'A merülés összevonva egy további számítógépként.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'A másolat beolvadt az elsődleges merülésbe.';
 
   @override
   String get diveLog_consolidate_undoError =>

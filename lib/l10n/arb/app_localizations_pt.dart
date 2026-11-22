@@ -7537,6 +7537,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Manter como um único mergulho com os dois computadores';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate =>
+      'Manter como um único mergulho';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'Parte do mergulho principal foi importada de novo como um mergulho separado, do mesmo computador de mergulho. Essa cópia é mantida apenas como fonte do mergulho principal, então nada é adicionado duas vezes.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'Não foi possível mesclar os mergulhos. Nada foi alterado.';
 
@@ -7563,6 +7571,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'Mergulho mesclado como computador adicional.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'Cópia incorporada ao mergulho principal.';
 
   @override
   String get diveLog_consolidate_undoError =>

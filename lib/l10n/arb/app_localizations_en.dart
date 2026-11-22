@@ -7418,6 +7418,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep as one dive with both computers';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate => 'Keep as one dive';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'Part of the primary dive was imported again as its own dive, from the same dive computer. That copy is kept only as a source of the primary dive, so nothing it repeats is added twice.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'Couldn\'t merge the dives. Nothing was changed.';
 
@@ -7443,6 +7450,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'Dive merged as an additional computer.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'Copy folded into the primary dive.';
 
   @override
   String get diveLog_consolidate_undoError => 'Couldn\'t undo the merge.';

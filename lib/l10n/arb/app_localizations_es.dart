@@ -7536,6 +7536,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mantener como una sola inmersión con ambos ordenadores';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate =>
+      'Mantener como una sola inmersión';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'Parte de la inmersión principal se importó de nuevo como una inmersión aparte, desde el mismo ordenador de buceo. Esa copia se conserva solo como fuente de la inmersión principal, así que no se añade nada dos veces.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'No se pudieron fusionar las inmersiones. No se realizó ningún cambio.';
 
@@ -7562,6 +7570,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'Inmersión fusionada como ordenador adicional.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'Copia incorporada a la inmersión principal.';
 
   @override
   String get diveLog_consolidate_undoError => 'No se pudo deshacer la fusión.';

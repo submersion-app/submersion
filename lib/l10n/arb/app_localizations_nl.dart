@@ -7485,6 +7485,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Bewaren als één duik met beide computers';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate => 'Bewaren als één duik';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'Een deel van de primaire duik is opnieuw geïmporteerd als aparte duik, van dezelfde duikcomputer. Die kopie wordt alleen bewaard als bron van de primaire duik, zodat niets dubbel wordt toegevoegd.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'Kon de duiken niet samenvoegen. Er is niets gewijzigd.';
 
@@ -7510,6 +7517,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'Duik samengevoegd als extra computer.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'Kopie opgenomen in de primaire duik.';
 
   @override
   String get diveLog_consolidate_undoError =>
