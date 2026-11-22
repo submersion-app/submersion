@@ -395,7 +395,26 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   /// Leaves the page: back to the page under it, handing it [result], or,
   /// with none (never the case in the app, where every editor is opened
   /// over its list), to [editorLeaveLocation] when there is one.
+  ///
+  /// A page whose route is still coming in (a record that turned out to be
+  /// missing, found while the page was pushed) leaves once it has: a route
+  /// is not popped in the middle of its push.
   void _pop([Object? result]) {
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation != null && animation.status != AnimationStatus.completed) {
+      void settled(AnimationStatus status) {
+        if (status != AnimationStatus.completed) return;
+        animation.removeStatusListener(settled);
+        // The navigator marks the push done just after its animation ends,
+        // within the same frame: the page leaves once the frame is drawn.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _pop(result);
+        });
+      }
+
+      animation.addStatusListener(settled);
+      return;
+    }
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
       navigator.pop(result);

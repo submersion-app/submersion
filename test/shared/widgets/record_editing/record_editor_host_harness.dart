@@ -62,6 +62,10 @@ class EditorProbe {
 
   /// Each failure the editor was told of.
   final failures = <Object>[];
+
+  /// The record cannot be opened: the page leaves as it starts, while its
+  /// route is still being pushed, in place of opening.
+  bool leaveAtStart = false;
 }
 
 /// An editor with no read page, as small as one can be: one text field
@@ -93,6 +97,12 @@ class FakeEditorState extends ConsumerState<FakeEditorPage>
     text = TextEditingController(
       text: probe.initialText ?? (widget.storedId == null ? '' : 'stored'),
     )..addListener(editorChanged);
+    if (probe.leaveAtStart) {
+      // As a load that finds nothing answers: while the page's route is
+      // still being pushed.
+      scheduleMicrotask(leaveEditor);
+      return;
+    }
     void open() => openEditor(from: probe.seedFrom);
     final loading = probe.loadGate;
     if (loading != null) {

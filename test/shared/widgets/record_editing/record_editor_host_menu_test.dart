@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
@@ -31,10 +32,7 @@ void main() {
 
   /// The editor pushed over a stand-in list that waits for the push's
   /// result, as the Transmitter card waits for the key editor's.
-  Future<FakeEditorState> pump(
-    WidgetTester tester, {
-    String? storedId = 'rec-1',
-  }) async {
+  Future<void> pump(WidgetTester tester, {String? storedId = 'rec-1'}) async {
     final router = GoRouter(
       routes: [
         GoRoute(
@@ -54,6 +52,8 @@ void main() {
           routes: [
             GoRoute(
               path: 'edit',
+              // The app's leave check, as every editor route has.
+              onExit: confirmLeaveRecordSitting,
               builder: (_, _) =>
                   FakeEditorPage(probe: probe, storedId: storedId),
             ),
@@ -88,7 +88,6 @@ void main() {
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('a');
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    return tester.state<FakeEditorState>(find.byType(FakeEditorPage));
   }
 
   AppBarTextAction barAction(WidgetTester tester, String label) => tester
@@ -266,5 +265,17 @@ void main() {
       expect(probe.failures, hasLength(1));
       expect(find.byType(SnackBar), findsOneWidget);
     });
+  });
+
+  testWidgets('a page that leaves while it is still being pushed leaves', (
+    tester,
+  ) async {
+    probe.leaveAtStart = true;
+    await pump(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(FakeEditorPage), findsNothing);
+    expect(find.text('list'), findsOneWidget);
+    expect(results, [null]);
   });
 }
