@@ -31,6 +31,7 @@ class WindowsDeviceMemory implements DeviceMemory {
         footprintBytes: ok == 0 ? 0 : counters.ref.workingSetSize,
         footprintPeakBytes: ok == 0 ? null : counters.ref.peakWorkingSetSize,
         availableBytes: _withStatus((s) => s.ullAvailPhys),
+        availableIsDeviceWide: true,
       );
     } finally {
       calloc.free(counters);

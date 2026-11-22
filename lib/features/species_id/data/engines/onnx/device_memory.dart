@@ -75,6 +75,7 @@ class ProcDeviceMemory implements DeviceMemory {
       availableBytes:
           system?.availableBytes ??
           (meminfo == null ? null : parseMemAvailable(meminfo)),
+      availableIsDeviceWide: true,
       lowMemory: system?.lowMemory,
     );
   }

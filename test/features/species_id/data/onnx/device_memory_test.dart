@@ -63,6 +63,8 @@ void main() {
       expect(reading.footprintBytes, 604112 * 1024);
       expect(reading.footprintPeakBytes, 812340 * 1024);
       expect(reading.availableBytes, 2109876 * 1024);
+      // MemAvailable is the whole device's, not a per-app limit.
+      expect(reading.availableIsDeviceWide, isTrue);
       expect(reading.lowMemory, isNull);
       expect(reading.neuralCountedBytes, isNull);
     });
@@ -83,6 +85,7 @@ void main() {
         systemState: () async => (lowMemory: true, availableBytes: 123),
       ).reading();
       expect(reading.availableBytes, 123);
+      expect(reading.availableIsDeviceWide, isTrue);
       expect(reading.lowMemory, isTrue);
     });
   });
