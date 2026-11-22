@@ -59,6 +59,33 @@ void main() {
     expect(_draft(name: 'Packing '), isNot(_draft()));
   });
 
+  test('an item drafts as its dialog writes it: title and notes trimmed', () {
+    final spaced = EditableChecklistItem(
+      id: 'a',
+      title: 'Fins ',
+      notes: ' straps',
+      sortOrder: 0,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final trimmed = EditableChecklistItem(
+      id: 'a',
+      title: 'Fins',
+      notes: 'straps',
+      sortOrder: 0,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    expect(_draft(items: [spaced]), _draft(items: [trimmed]));
+  });
+
+  test('an item naming a section the form lacks drafts as unsectioned', () {
+    expect(
+      _draft(items: [_item('a', sectionId: 'gone')]),
+      _draft(items: [_item('a')]),
+    );
+  });
+
   test('equal drafts share a hash code', () {
     expect(
       _draft(items: [_item('a', sectionId: 's')]).hashCode,

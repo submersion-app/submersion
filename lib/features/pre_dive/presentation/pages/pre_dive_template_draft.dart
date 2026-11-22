@@ -77,21 +77,47 @@ String _thresholdText(double? value) {
   return double.parse(value.toStringAsPrecision(15)).toString();
 }
 
-/// The draft of an item as the editor shows it.
-PreDiveItemDraft preDiveItemDraft(EditablePreDiveItem item) => (
-  id: item.id,
-  sectionId: item.sectionId,
-  title: item.title,
-  notes: item.notes,
-  itemType: item.itemType,
-  valueLabel: item.valueLabel,
-  valueUnit: item.valueUnit,
-  valueMin: _thresholdText(item.valueMin),
-  valueMax: _thresholdText(item.valueMax),
-  isRequired: item.isRequired,
-  equipmentId: item.equipmentId,
-  sourceItemId: item.sourceItemId,
-);
+/// The draft of an item as its dialog would write it, confirmed unchanged
+/// (`PreDiveItemDialog._submit`): title and notes trimmed; no section when
+/// it names none of [sectionIds]; label, unit and thresholds only on a
+/// value or cell linearity item, blank label and unit as none; the
+/// remembered device only on an equipment item; and a source only on a cell
+/// linearity item, when it names another of [valueItemIds]. A stored item in
+/// another form (synced, or older data) so reads the same once confirmed.
+PreDiveItemDraft preDiveItemDraft(
+  EditablePreDiveItem item, {
+  required Set<String> sectionIds,
+  required Set<String> valueItemIds,
+}) {
+  final type = item.itemType;
+  final isValue =
+      type == PreDiveItemType.value || type == PreDiveItemType.cellLinearity;
+  String? text(String? value) {
+    final trimmed = value?.trim();
+    return isValue && trimmed != null && trimmed.isNotEmpty ? trimmed : null;
+  }
+
+  final source = item.sourceItemId;
+  return (
+    id: item.id,
+    sectionId: sectionIds.contains(item.sectionId) ? item.sectionId : null,
+    title: item.title.trim(),
+    notes: item.notes.trim(),
+    itemType: type,
+    valueLabel: text(item.valueLabel),
+    valueUnit: text(item.valueUnit),
+    valueMin: isValue ? _thresholdText(item.valueMin) : '',
+    valueMax: isValue ? _thresholdText(item.valueMax) : '',
+    isRequired: item.isRequired,
+    equipmentId: type == PreDiveItemType.equipment ? item.equipmentId : null,
+    sourceItemId:
+        type == PreDiveItemType.cellLinearity &&
+            source != item.id &&
+            valueItemIds.contains(source)
+        ? source
+        : null,
+  );
+}
 
 /// The pre-dive template editor's form as it reads now.
 PreDiveTemplateDraft preDiveTemplateDraft({
@@ -101,13 +127,27 @@ PreDiveTemplateDraft preDiveTemplateDraft({
   required bool strictOrder,
   required List<EditablePreDiveSection> sections,
   required List<EditablePreDiveItem> itemsInDisplayOrder,
-}) => PreDiveTemplateDraft(
-  name: name,
-  description: description,
-  category: category,
-  strictOrder: strictOrder,
-  sections: [
-    for (final section in sections) (id: section.id, title: section.title),
-  ],
-  items: [for (final item in itemsInDisplayOrder) preDiveItemDraft(item)],
-);
+}) {
+  final sectionIds = {for (final section in sections) section.id};
+  final valueItemIds = {
+    for (final item in itemsInDisplayOrder)
+      if (item.itemType == PreDiveItemType.value) item.id,
+  };
+  return PreDiveTemplateDraft(
+    name: name,
+    description: description,
+    category: category,
+    strictOrder: strictOrder,
+    sections: [
+      for (final section in sections) (id: section.id, title: section.title),
+    ],
+    items: [
+      for (final item in itemsInDisplayOrder)
+        preDiveItemDraft(
+          item,
+          sectionIds: sectionIds,
+          valueItemIds: valueItemIds,
+        ),
+    ],
+  );
+}

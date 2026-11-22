@@ -52,12 +52,18 @@ class ChecklistTemplateDraft {
   );
 }
 
-/// The draft of an item as the editor shows it.
-ChecklistItemDraft checklistItemDraft(EditableChecklistItem item) => (
+/// The draft of an item as its dialog would write it, confirmed unchanged:
+/// title and notes trimmed, and no section when it names none of
+/// [sectionIds] (the editor shows it unsectioned). A stored item in another
+/// form (synced, or older data) so reads the same once confirmed.
+ChecklistItemDraft checklistItemDraft(
+  EditableChecklistItem item, {
+  required Set<String> sectionIds,
+}) => (
   id: item.id,
-  title: item.title,
-  sectionId: item.sectionId,
-  notes: item.notes,
+  title: item.title.trim(),
+  sectionId: sectionIds.contains(item.sectionId) ? item.sectionId : null,
+  notes: item.notes.trim(),
   dueOffsetDays: item.dueOffsetDays,
 );
 
@@ -71,9 +77,15 @@ ChecklistTemplateDraft checklistTemplateDraft({
   required String description,
   required List<EditableChecklistSection> sections,
   required List<EditableChecklistItem> itemsInDisplayOrder,
-}) => ChecklistTemplateDraft(
-  name: name,
-  description: description,
-  sections: [for (final section in sections) checklistSectionDraft(section)],
-  items: [for (final item in itemsInDisplayOrder) checklistItemDraft(item)],
-);
+}) {
+  final sectionIds = {for (final section in sections) section.id};
+  return ChecklistTemplateDraft(
+    name: name,
+    description: description,
+    sections: [for (final section in sections) checklistSectionDraft(section)],
+    items: [
+      for (final item in itemsInDisplayOrder)
+        checklistItemDraft(item, sectionIds: sectionIds),
+    ],
+  );
+}
