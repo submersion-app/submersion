@@ -16659,6 +16659,7 @@
   "media_info_checkFound": "Bron gevonden",
   "media_info_checkMissing": "Bron ontbreekt",
   "media_info_checkUnavailable": "Kon nu niet controleren",
+  "media_info_checkNeedsPassword": "Wachtwoord ontbreekt of is geweigerd",
   "media_info_backupQueued": "In wachtrij voor upload",
   "enum_profileMetric_o2CellMv": "O2-cellen",
   "enum_profileMetric_buoyancy": "Drijfvermogen",

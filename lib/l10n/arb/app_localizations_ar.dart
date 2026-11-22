@@ -57381,6 +57381,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_checkUnavailable => 'تعذر التحقق الآن';
 
   @override
+  String get media_info_checkNeedsPassword => 'كلمة المرور مفقودة أو مرفوضة';
+
+  @override
   String get media_info_backupQueued => 'في قائمة انتظار الرفع';
 
   @override

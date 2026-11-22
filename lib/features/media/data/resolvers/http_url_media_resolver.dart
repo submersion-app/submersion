@@ -146,6 +146,22 @@ class HttpUrlMediaResolver implements MediaSourceResolver {
     if (raw == null || raw.isEmpty) return VerifyResult.notFound;
     final uri = Uri.tryParse(raw);
     if (uri == null) return VerifyResult.notFound;
+    // A share this device holds no session for (no password saved, or the
+    // saved one refused) answers only with an error, which says nothing about
+    // the photo. Said as such, the caller can ask for the password.
+    final lookup = _headersFor;
+    if (lookup != null && SynologyShareLink.tryParseApiUri(uri) != null) {
+      Map<String, String>? headers;
+      try {
+        headers = await lookup(uri);
+      } catch (e) {
+        _log.warning('Header lookup failed for ${uri.host}: $e');
+        return VerifyResult.transientError;
+      }
+      if (headers == null || headers.isEmpty) {
+        return VerifyResult.unauthenticated;
+      }
+    }
     // A small range fetch is enough to confirm the entry is reachable
     // without pulling the whole asset. The Phase 3a resolver already
     // collapses 3xx redirects and surfaces 401s as

@@ -16659,6 +16659,7 @@
   "media_info_checkFound": "已找到源",
   "media_info_checkMissing": "源缺失",
   "media_info_checkUnavailable": "目前无法检查",
+  "media_info_checkNeedsPassword": "缺少密码或密码被拒绝",
   "media_info_backupQueued": "已加入上传队列",
   "enum_profileMetric_o2CellMv": "O2 电池",
   "enum_profileMetric_buoyancy": "浮力",

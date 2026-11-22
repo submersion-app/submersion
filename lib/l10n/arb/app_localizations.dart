@@ -88618,6 +88618,12 @@ abstract class AppLocalizations {
   /// **'Could not check right now'**
   String get media_info_checkUnavailable;
 
+  /// Photo info, Check now: the source answered only that this device is not signed in to it (a shared album without its password here, or a host that refused the saved credentials)
+  ///
+  /// In en, this message translates to:
+  /// **'Password missing or not accepted'**
+  String get media_info_checkNeedsPassword;
+
   /// Confirmation shown after queueing an upload
   ///
   /// In en, this message translates to:

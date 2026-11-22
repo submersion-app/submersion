@@ -53046,6 +53046,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_info_checkUnavailable => '目前无法检查';
 
   @override
+  String get media_info_checkNeedsPassword => '缺少密码或密码被拒绝';
+
+  @override
   String get media_info_backupQueued => '已加入上传队列';
 
   @override

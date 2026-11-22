@@ -16659,6 +16659,7 @@
   "media_info_checkFound": "Sorgente trovata",
   "media_info_checkMissing": "Sorgente mancante",
   "media_info_checkUnavailable": "Impossibile verificare ora",
+  "media_info_checkNeedsPassword": "Password mancante o rifiutata",
   "media_info_backupQueued": "In coda per il caricamento",
   "enum_profileMetric_o2CellMv": "Celle O2",
   "enum_profileMetric_buoyancy": "Assetto",

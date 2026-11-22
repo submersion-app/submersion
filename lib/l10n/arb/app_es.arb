@@ -16659,6 +16659,7 @@
   "media_info_checkFound": "Fuente encontrada",
   "media_info_checkMissing": "Falta la fuente",
   "media_info_checkUnavailable": "No se pudo comprobar ahora",
+  "media_info_checkNeedsPassword": "Falta la contraseña o fue rechazada",
   "media_info_backupQueued": "En cola para subir",
   "enum_profileMetric_o2CellMv": "Células O2",
   "enum_profileMetric_buoyancy": "Flotabilidad",

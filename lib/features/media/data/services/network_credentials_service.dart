@@ -193,6 +193,10 @@ class NetworkCredentialsService {
     try {
       return await sessions.headersFor(link, password);
     } on SynologyShareException catch (e) {
+      // Only a refused password means "no credentials": an unreachable or
+      // misbehaving share says nothing about the password, and reporting it
+      // as missing would have a check ask the user for one while offline.
+      if (e.kind != SynologyShareErrorKind.wrongPassword) rethrow;
       _log.warning(
         'No Synology share session for ${link.origin.host}: ${e.kind}',
       );

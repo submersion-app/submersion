@@ -55384,6 +55384,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_checkUnavailable => 'לא ניתן לבדוק כעת';
 
   @override
+  String get media_info_checkNeedsPassword => 'הסיסמה חסרה או נדחתה';
+
+  @override
   String get media_info_backupQueued => 'בתור להעלאה';
 
   @override

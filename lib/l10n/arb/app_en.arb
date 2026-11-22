@@ -33767,6 +33767,8 @@
   "@media_info_checkUnavailable": {
     "description": "Result of Check now when nothing could be determined, for example an unmounted volume"
   },
+  "media_info_checkNeedsPassword": "Password missing or not accepted",
+  "@media_info_checkNeedsPassword": {"description": "Photo info, Check now: the source answered only that this device is not signed in to it (a shared album without its password here, or a host that refused the saved credentials)"},
   "media_info_backupQueued": "Queued for upload",
   "@media_info_backupQueued": {
     "description": "Confirmation shown after queueing an upload"

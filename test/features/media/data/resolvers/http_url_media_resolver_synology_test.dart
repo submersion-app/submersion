@@ -96,6 +96,58 @@ void main() {
     expect(await resolver.verify(_item(original)), VerifyResult.transientError);
   });
 
+  group('verify without a share session', () {
+    var fetched = 0;
+    http.Client counting() => MockClient((_) async {
+      fetched++;
+      return http.Response.bytes([0xff], 206);
+    });
+    setUp(() => fetched = 0);
+
+    test('no password here is unauthenticated, asked of nobody', () async {
+      final resolver = _resolver(
+        client: counting(),
+        headersFor: (_) async => null,
+      );
+      expect(
+        await resolver.verify(_item(original)),
+        VerifyResult.unauthenticated,
+      );
+      expect(fetched, 0);
+    });
+
+    test('an unreachable share is transient, not a password', () async {
+      final resolver = _resolver(
+        client: counting(),
+        headersFor: (_) async => throw StateError('offline'),
+      );
+      expect(
+        await resolver.verify(_item(original)),
+        VerifyResult.transientError,
+      );
+    });
+
+    test('a session goes on to the real check', () async {
+      final resolver = _resolver(
+        client: counting(),
+        headersFor: (_) async => {'Cookie': 'sharing_sid=s'},
+      );
+      expect(await resolver.verify(_item(original)), VerifyResult.available);
+      expect(fetched, 1);
+    });
+
+    test('other URLs are checked as before', () async {
+      final resolver = _resolver(
+        client: counting(),
+        headersFor: (_) async => null,
+      );
+      expect(
+        await resolver.verify(_item('https://example.com/a.jpg')),
+        VerifyResult.available,
+      );
+    });
+  });
+
   test('media bytes for a Synology URL are available', () async {
     final resolver = _resolver(
       client: MockClient(

@@ -56684,6 +56684,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vérification impossible pour le moment';
 
   @override
+  String get media_info_checkNeedsPassword => 'Mot de passe manquant ou refusé';
+
+  @override
   String get media_info_backupQueued => 'Mis en file pour téléversement';
 
   @override

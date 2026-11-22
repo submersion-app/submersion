@@ -56616,6 +56616,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_info_checkUnavailable => 'No se pudo comprobar ahora';
 
   @override
+  String get media_info_checkNeedsPassword =>
+      'Falta la contraseña o fue rechazada';
+
+  @override
   String get media_info_backupQueued => 'En cola para subir';
 
   @override

@@ -16813,6 +16813,7 @@
   "media_info_checkFound": "Quelle gefunden",
   "media_info_checkMissing": "Quelle fehlt",
   "media_info_checkUnavailable": "Prüfung derzeit nicht möglich",
+  "media_info_checkNeedsPassword": "Passwort fehlt oder wurde abgelehnt",
   "media_info_backupQueued": "Zum Upload eingereiht",
   "enum_profileMetric_o2CellMv": "O2-Zellen",
   "enum_profileMetric_buoyancy": "Auftrieb",

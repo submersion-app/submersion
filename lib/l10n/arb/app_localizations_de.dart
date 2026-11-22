@@ -56440,6 +56440,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_info_checkUnavailable => 'Prüfung derzeit nicht möglich';
 
   @override
+  String get media_info_checkNeedsPassword =>
+      'Passwort fehlt oder wurde abgelehnt';
+
+  @override
   String get media_info_backupQueued => 'Zum Upload eingereiht';
 
   @override

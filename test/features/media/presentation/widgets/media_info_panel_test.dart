@@ -618,6 +618,26 @@ void main() {
       expect(find.text('Source is missing'), findsNothing);
     });
 
+    testWidgets('a check refused for want of a password says so', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _item(),
+        extra: [
+          mediaItemVerifierProvider.overrideWithValue(
+            _FakeVerifier(VerifyResult.unauthenticated),
+          ),
+        ],
+      );
+
+      await tester.tap(find.text('Check now'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Password missing or not accepted'), findsOneWidget);
+      expect(find.text('Could not check right now'), findsNothing);
+    });
+
     testWidgets('Locate appears only for a missing local file', (tester) async {
       final item = _item(
         sourceType: MediaSourceType.localFile,

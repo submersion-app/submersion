@@ -23,10 +23,14 @@ Future<bool> resolveSharePassword(
   WidgetRef ref, {
   required String subscriptionId,
   bool polled = true,
+  bool askFirst = false,
 }) async {
   final repo = ref.read(manifestSubscriptionRepositoryProvider);
   final credentials = ref.read(networkCredentialsServiceProvider);
   final poller = ref.read(subscriptionPollerProvider);
+  // [askFirst]: the caller already knows the password is wanted (a photo
+  // check found no session), though the last poll may not have said so yet.
+  var ask = askFirst;
   while (context.mounted) {
     final sub = await repo.getById(subscriptionId);
     if (sub == null) break;
@@ -34,9 +38,12 @@ Future<bool> resolveSharePassword(
       Uri.parse(sub.manifestUrl),
     );
     final error = sub.lastError;
-    if (share == null || !synologyNeedsPassword(error) || !context.mounted) {
+    if (share == null ||
+        !(ask || synologyNeedsPassword(error)) ||
+        !context.mounted) {
       break;
     }
+    ask = false;
     final password = await showSynologyPasswordDialog(
       context,
       shareLabel: sub.label,

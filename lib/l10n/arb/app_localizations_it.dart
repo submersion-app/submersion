@@ -56563,6 +56563,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_info_checkUnavailable => 'Impossibile verificare ora';
 
   @override
+  String get media_info_checkNeedsPassword => 'Password mancante o rifiutata';
+
+  @override
   String get media_info_backupQueued => 'In coda per il caricamento';
 
   @override

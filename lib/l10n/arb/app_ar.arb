@@ -16659,6 +16659,7 @@
   "media_info_checkFound": "تم العثور على المصدر",
   "media_info_checkMissing": "المصدر مفقود",
   "media_info_checkUnavailable": "تعذر التحقق الآن",
+  "media_info_checkNeedsPassword": "كلمة المرور مفقودة أو مرفوضة",
   "media_info_backupQueued": "في قائمة انتظار الرفع",
   "enum_profileMetric_o2CellMv": "خلايا الأكسجين",
   "enum_profileMetric_buoyancy": "الطفو",

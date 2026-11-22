@@ -308,6 +308,14 @@ unfinished setup:
   display name or host, never by URL.
 - **Saved hosts:** a row whose secret this device's keychain lacks (a
   restored backup) is marked "Password missing on this device".
+- **Check now on a photo:** a share URL this device holds no session for
+  verifies as `unauthenticated` without a request, instead of the
+  transient error Synology's JSON answer would give. The photo info then
+  says "Password missing or not accepted", opens the password dialog for
+  the photo's subscription, polls it and checks once more. Only a refused
+  password counts as no session: `NetworkCredentialsService.headersFor`
+  rethrows an unreachable share, so a check while offline stays transient
+  and never asks for a password.
 
 ## Security
 

@@ -6,6 +6,7 @@ import 'package:http/testing.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/network_credentials_repository.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
+import 'package:submersion/features/media/data/synology/synology_api.dart';
 import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/data/synology/synology_share_sessions.dart';
 
@@ -203,6 +204,34 @@ void main() {
     );
     expect(logins, 0);
   });
+
+  test(
+    'an unreachable share throws instead of reading as no password',
+    () async {
+      final offline = NetworkCredentialsService(
+        repository: repo,
+        storage: keychain,
+        synologySessions: SynologyShareSessions(
+          client: MockClient((_) async => throw http.ClientException('down')),
+        ),
+      );
+      await offline.save(
+        hostname: NetworkCredentialsService.synologyShareKey(share1),
+        authType: 'synologyShare',
+        password: 'secret',
+      );
+      await expectLater(
+        offline.headersFor(share1.originalUri(id: 1, cacheKey: '1_1')),
+        throwsA(
+          isA<SynologyShareException>().having(
+            (e) => e.kind,
+            'kind',
+            SynologyShareErrorKind.unreachable,
+          ),
+        ),
+      );
+    },
+  );
 
   test('a rejected password yields no headers instead of throwing', () async {
     await saveShare(share1, 'wrong');

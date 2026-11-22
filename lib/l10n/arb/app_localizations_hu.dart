@@ -56256,6 +56256,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_checkUnavailable => 'Most nem ellenőrizhető';
 
   @override
+  String get media_info_checkNeedsPassword =>
+      'A jelszó hiányzik, vagy elutasították';
+
+  @override
   String get media_info_backupQueued => 'Feltöltési sorban';
 
   @override

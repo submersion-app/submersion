@@ -56212,6 +56212,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_info_checkUnavailable => 'Kon nu niet controleren';
 
   @override
+  String get media_info_checkNeedsPassword =>
+      'Wachtwoord ontbreekt of is geweigerd';
+
+  @override
   String get media_info_backupQueued => 'In wachtrij voor upload';
 
   @override

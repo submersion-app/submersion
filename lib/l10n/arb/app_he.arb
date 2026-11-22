@@ -16659,6 +16659,7 @@
   "media_info_checkFound": "המקור נמצא",
   "media_info_checkMissing": "המקור חסר",
   "media_info_checkUnavailable": "לא ניתן לבדוק כעת",
+  "media_info_checkNeedsPassword": "הסיסמה חסרה או נדחתה",
   "media_info_backupQueued": "בתור להעלאה",
   "enum_profileMetric_o2CellMv": "תאי O2",
   "enum_profileMetric_buoyancy": "ציפה",
