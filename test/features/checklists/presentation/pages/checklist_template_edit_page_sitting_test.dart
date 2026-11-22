@@ -263,6 +263,18 @@ void main() {
     expect(save(tester).onPressed, isNotNull);
   });
 
+  testWidgets('moving an item and moving it back is no change', (tester) async {
+    await pump(tester, templateId: await stored());
+    // The section header's arrows come first, then each item's.
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down).at(1));
+    await tester.pumpAndSettle();
+    expect(save(tester).onPressed, isNotNull);
+
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_up).at(2));
+    await tester.pumpAndSettle();
+    expect(save(tester).onPressed, isNull);
+  });
+
   testWidgets('removing an item is a change; Discard writes nothing', (
     tester,
   ) async {
