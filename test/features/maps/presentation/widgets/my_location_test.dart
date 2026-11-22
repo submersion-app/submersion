@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -159,6 +160,42 @@ void main() {
 
     await tester.pump(const Duration(seconds: 1));
     expect(_dot, findsNothing);
+  });
+
+  /// Brings the app back to the foreground at [now] on the wall clock.
+  ///
+  /// The app's timers stand still while it is suspended or the device
+  /// sleeps, so only the wall clock shows how long it was away.
+  void resumeAt(WidgetTester tester, DateTime now) {
+    withClock(Clock.fixed(now), () {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    });
+  }
+
+  testWidgets('a fix that went stale while the app slept is gone on return', (
+    tester,
+  ) async {
+    await pumpMap(tester, _FakeLocation());
+    await tester.tap(find.byTooltip('Show my location'));
+    await tester.pumpAndSettle();
+    expect(_dot, findsOneWidget);
+
+    resumeAt(tester, clock.now().add(DeviceLocationNotifier.maxAge));
+    await tester.pump();
+
+    expect(_dot, findsNothing);
+  });
+
+  testWidgets('a short spell in the background keeps the dot', (tester) async {
+    await pumpMap(tester, _FakeLocation());
+    await tester.tap(find.byTooltip('Show my location'));
+    await tester.pumpAndSettle();
+
+    resumeAt(tester, clock.now().add(const Duration(minutes: 1)));
+    await tester.pump();
+
+    expect(_dot, findsOneWidget);
   });
 
   testWidgets('a fresh fix restarts the clock on the dot', (tester) async {
