@@ -202,6 +202,7 @@ class _TileGridState extends ConsumerState<_TileGrid> {
     final table = layout.table;
     final selection = widget.selection;
     final groupIds = {for (final t in tiles) t.id};
+    final largeIds = {for (final m in widget.large) m.id};
     final indexById = {for (var i = 0; i < tiles.length; i++) tiles[i].id: i};
     return DragSelectGridView<MediaItem>(
       items: tiles,
@@ -244,6 +245,7 @@ class _TileGridState extends ConsumerState<_TileGrid> {
         settings: widget.settings,
         isSelectionMode: widget.isSelectionMode,
         isSelected: isSelected,
+        large: largeIds.contains(item.id),
         semanticsLabel: context.l10n.media_diveMediaSection_thumbnailLabel,
         targetSize: mediaThumbnailDecodeTarget(
           table.rectOf(indexById[item.id]!).size,

@@ -78,6 +78,13 @@ class MediaThumbnailTile extends StatelessWidget {
   /// layout learns a photo's displayed shape (issue #4738).
   final ValueChanged<Size>? onImageSize;
 
+  /// A site attachment shown Large (issue #4786): drawn from its original,
+  /// not the grid thumbnail, so a map's fine print stays sharp, and whole,
+  /// letterboxed where its shape is past the tile clamp. A video still
+  /// draws its poster, and a document its rendered page, which only the
+  /// thumbnail path makes.
+  final bool large;
+
   const MediaThumbnailTile({
     super.key,
     required this.item,
@@ -87,6 +94,7 @@ class MediaThumbnailTile extends StatelessWidget {
     required this.semanticsLabel,
     this.targetSize = const Size(200, 200),
     this.onImageSize,
+    this.large = false,
   });
 
   @override
@@ -107,9 +115,9 @@ class MediaThumbnailTile extends StatelessWidget {
             // can produce bytes.
             MediaItemView(
               item: item,
-              thumbnail: true,
+              thumbnail: !large || item.isVideo || item.isDocument,
               targetSize: targetSize,
-              fit: BoxFit.cover,
+              fit: large ? BoxFit.contain : BoxFit.cover,
               onImageSize: onImageSize,
             ),
 

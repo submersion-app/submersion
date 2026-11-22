@@ -14,6 +14,7 @@ import 'package:submersion/features/media/presentation/providers/media_learned_a
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/justified_media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_groups.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -364,6 +365,31 @@ void main() {
     await pump(tester, [large('map', 1, 400, 300)], width: 900);
     final map = tester.getSize(tileOf('map'));
     expect(map.height, closeTo(2 * kSiteAttachmentRowHeight + 4, 0.5));
+  });
+
+  testWidgets('a Large photo draws its original, letterboxed; a tile draws '
+      'its thumbnail', (tester) async {
+    await pump(tester, [large('map', 1, 400, 300), sized('a', 2, 400, 300)]);
+    MediaItemView viewOf(String id) => tester.widget<MediaItemView>(
+      find.descendant(of: tileOf(id), matching: find.byType(MediaItemView)),
+    );
+    expect(viewOf('map').thumbnail, isFalse);
+    expect(viewOf('map').fit, BoxFit.contain);
+    expect(viewOf('a').thumbnail, isTrue);
+    expect(viewOf('a').fit, BoxFit.cover);
+  });
+
+  testWidgets('a Large document still draws its rendered page', (tester) async {
+    // Only the thumbnail path renders a PDF's page 1.
+    final doc = testMediaItem(
+      id: 'doc',
+      siteId: 's1',
+      mediaType: MediaType.document,
+      originalFilename: 'briefing.pdf',
+    ).copyWith(displaySizeOverride: AttachmentDisplaySize.large);
+    await pump(tester, [doc]);
+    final view = tester.widget<MediaItemView>(find.byType(MediaItemView));
+    expect(view.thumbnail, isTrue);
   });
 }
 
