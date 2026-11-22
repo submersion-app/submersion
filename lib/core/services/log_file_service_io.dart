@@ -109,6 +109,11 @@ class LogFileService {
   /// Every non-empty line of the file as written, oldest first; empty when
   /// there is no file. Decoded leniently, for the reason [readEntries] is.
   Future<List<String>> readLines() async {
+    if (!_isInitialized) {
+      throw StateError(
+        'LogFileService.initialize() must be called before readLines()',
+      );
+    }
     final file = File(_logFilePath);
     if (!await file.exists()) return const [];
     final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);

@@ -301,12 +301,26 @@ void main() {
           ),
         );
       });
+
+      test('readLines throws StateError if not initialized', () async {
+        expect(
+          () => service.readLines(),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('initialize()'),
+            ),
+          ),
+        );
+      });
     });
 
     test('writeLine silently swallows IOException', () async {
       await service.initialize();
 
-      // Make the log directory a file so writes will fail with an IOException
+      // Put a directory where the log file goes so writes fail with an
+      // IOException
       final logFile = File(p.join(tempDir.path, 'submersion.log'));
       await logFile.writeAsString('existing content\n');
       // Delete log file and replace path with a directory so File.writeAsString
