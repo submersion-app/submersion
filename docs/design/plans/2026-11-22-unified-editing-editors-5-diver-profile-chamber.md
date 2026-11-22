@@ -852,3 +852,39 @@ note and this plan linked, the screenshots attached through the project's
 highest-numbered secret gist (`PR screenshots: submersion-app/submersion
 (N)`, pngquant first, `<pr>-<nn>-<screen>-<state>.png`, raw URLs pinned
 to the gist commit). Bind the PR and report its checks.
+
+## After the build
+
+Built natively on 2026-11-22 (commits 5801707 to 66c158d). What changed
+from this plan, for the plans after it:
+
+- **No shared code changed.** `lib/shared/widgets/record_editing/` is as
+  plan 2 left it. Shared files touched: `lib/core/router/app_router.dart`
+  (the diver-profile routes only), the 11 arb files and the 12 generated
+  localisation files (three new keys), and
+  `emergency_chamber_repository.dart` (`createChamber` takes an `id`).
+- **A profile page fills only from a settled diver.** `currentDiverProvider`
+  keeps the diver it replaces while it reloads (Riverpod 3), so a page
+  pushed mid-switch could pin the old diver while the host had noted the
+  new one, and never close. `openProfileEditor` now skips values while the
+  provider loads (review finding, fixed test-first).
+- **The body weight delete reads what it needs before asking.** A page gone
+  while its question was up threw on `ref`; it now holds the repository and
+  the container from before the dialog (review finding).
+- **Task 3 left the personal page's fields alone**; Task 4 moved it onto
+  the mixin and `PersonalInfoFields` in one step.
+- **The profile tests share a harness**,
+  `test/features/settings/presentation/pages/diver_profile_harness.dart`
+  (seed, pump over a hub stand-in, switch as the switcher does or as the
+  banner does, read sittings). It was not named in the plan.
+- **A test that simulates a sync delete must go through Drift** (`db.delete`),
+  not `customStatement`: a raw statement tells no table watcher, so the
+  active diver never re-resolves.
+- **A test that pumps a whole app twice in one `testWidgets` misbehaves**;
+  split it into one test per case.
+- **Review (code-review, high, all findings):** two findings, both fixed
+  test-first. Whole-repo analyze clean.
+- Unused strings (`divers_edit_discardDialog*`, `divers_edit_keepEditingButton`,
+  `divers_edit_discardButton`, `divers_edit_saveButton`,
+  `divers_edit_errorSaving`, `addChamber_save`) stay, by Eric's
+  confirmation, to be removed once plans 3 to 5 have merged.
