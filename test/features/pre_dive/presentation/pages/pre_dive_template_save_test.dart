@@ -231,6 +231,35 @@ void main() {
     },
   );
 
+  test(
+    'a re-created section keeps what storage says of items left alone',
+    () async {
+      final start = await _seedStored(repository);
+      // Another device retitles a, then deletes s1, leaving a unsectioned.
+      final storedItems = await repository.getItemsForTemplate('tpl-1');
+      await repository.saveItems('tpl-1', [
+        storedItems[0].copyWith(title: 'Back gas pressure', sectionId: null),
+        storedItems[1],
+      ]);
+      await repository.deleteSection('s1');
+
+      await _write(
+        repository,
+        _Form(
+          sections: const [EditablePreDiveSection(id: 's1', title: 'Back gas')],
+          items: start.items,
+        ),
+        start: start,
+      );
+
+      final items = await repository.getItemsForTemplate('tpl-1');
+      expect(
+        [for (final i in items) (i.id, i.title, i.sectionId)],
+        [('a', 'Back gas pressure', 's1'), ('b', 'Buddy check', null)],
+      );
+    },
+  );
+
   test('a template deleted meanwhile is refused', () async {
     final start = await _seedStored(repository);
     await repository.deleteTemplate('tpl-1');

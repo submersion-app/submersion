@@ -20,9 +20,9 @@ import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.
 /// left alone keeps what storage holds, a sync meanwhile included. An item
 /// naming a section that is not written is written with no section, as the
 /// editor shows it. A section the diver changed that was deleted elsewhere
-/// meanwhile is created again, and the items the form shows in it are
-/// written with it. Item sort order is its position. A blank category is
-/// none.
+/// meanwhile is created again, and the items the form shows in it that the
+/// delete left with no section go back into it, otherwise as stored. Item
+/// sort order is its position. A blank category is none.
 ///
 /// Throws [RecordSittingRefusal] when the stored template is gone, and
 /// [StateError] for a new template with no [diverId].
@@ -116,8 +116,9 @@ Future<void> writePreDiveTemplate({
   var writtenSections = storedSections;
   // Sections the diver changed that were deleted elsewhere meanwhile: the
   // change wins and they are created again, so the items the form shows in
-  // them go back in with them.
+  // them that the delete left with no section go back in with them.
   var recreated = const <String>{};
+  final storedIds = {for (final section in storedSections) section.id};
   if (sectionsChanged) {
     writtenSections = mergeEditorRows(
       formRows: formSections,
@@ -128,7 +129,6 @@ Future<void> writePreDiveTemplate({
       draftId: (section) => section.id,
     );
     await repository.saveSections(templateId, writtenSections);
-    final storedIds = {for (final section in storedSections) section.id};
     final startIds = {for (final section in start.sections) section.id};
     recreated = {
       for (final section in writtenSections)
@@ -152,7 +152,12 @@ Future<void> writePreDiveTemplate({
     _withinSections([
       for (final item in merged)
         switch (formById[item.id]) {
-          final shown? when recreated.contains(shown.sectionId) => shown,
+          // Left with no section by the delete (none, or the deleted one):
+          // back into the re-created section, keeping what storage holds.
+          final shown?
+              when recreated.contains(shown.sectionId) &&
+                  !storedIds.contains(item.sectionId) =>
+            item.copyWith(sectionId: shown.sectionId),
           _ => item,
         },
     ], writtenSections),

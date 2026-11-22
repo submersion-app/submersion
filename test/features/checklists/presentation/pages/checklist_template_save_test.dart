@@ -288,6 +288,49 @@ void main() {
     },
   );
 
+  test(
+    'a re-created section keeps what storage says of items left alone',
+    () async {
+      final start = await _seedStored(repository);
+      // Another device: adds section s2, moves a into it, retitles b, then
+      // deletes s1, which leaves b with no section.
+      await repository.saveSections('tpl-1', [
+        for (final s in await repository.getSectionsForTemplate('tpl-1')) s,
+        ChecklistTemplateSection(
+          id: 's2',
+          templateId: 'tpl-1',
+          title: 'Papers',
+          createdAt: _t,
+          updatedAt: _t,
+        ),
+      ]);
+      final storedItems = await repository.getItemsForTemplate('tpl-1');
+      await repository.saveItems('tpl-1', [
+        storedItems[0].copyWith(sectionId: 's2'),
+        storedItems[1].copyWith(title: 'Mask and snorkel', sectionId: null),
+      ]);
+      await repository.deleteSection('s1');
+
+      await _write(
+        repository,
+        _Form(
+          description: start.description,
+          sections: const [
+            EditableChecklistSection(id: 's1', title: 'Dive gear'),
+          ],
+          items: start.items,
+        ),
+        start: start,
+      );
+
+      final items = await repository.getItemsForTemplate('tpl-1');
+      expect(
+        [for (final i in items) (i.id, i.title, i.sectionId)],
+        [('a', 'Fins', 's2'), ('b', 'Mask and snorkel', 's1')],
+      );
+    },
+  );
+
   test('a template deleted meanwhile is refused', () async {
     final start = await _seedStored(repository);
     await repository.deleteTemplate('tpl-1');
