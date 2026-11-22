@@ -80,7 +80,8 @@ class _SectionCard extends ConsumerWidget {
     final l10n = context.l10n;
     final List<Transmitter> current;
     try {
-      current = await ref.read(
+      // Read again, not the card's copy: the save may not have reached it.
+      current = await ref.refresh(
         transmittersForEquipmentProvider(equipmentId).future,
       );
     } catch (e) {

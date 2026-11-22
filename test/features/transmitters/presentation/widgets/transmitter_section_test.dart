@@ -101,6 +101,7 @@ void main() {
     Object? editorResult,
     RecordEditController<EquipmentItem>? item,
     ValueNotifier<bool>? relayout,
+    List<Transmitter> Function()? keysNow,
   }) async {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
@@ -164,7 +165,7 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           transmittersForEquipmentProvider(
             'tx-gear',
-          ).overrideWith((ref) async => keys),
+          ).overrideWith((ref) async => keysNow?.call() ?? keys),
           if (repository != null)
             transmitterRepositoryProvider.overrideWithValue(repository),
           transmitterSlotMatcherProvider.overrideWithValue(_NoSlots()),
@@ -452,6 +453,29 @@ void main() {
 
       expect(repo.applied, ['k1', 'k2']);
       expect(find.text('Updated 4 cylinders on 4 dives'), findsOneWidget);
+    });
+
+    testWidgets('the snackbar Apply works on the keys as they are now', (
+      tester,
+    ) async {
+      final repo = repoWithDives();
+      var current = [key(id: 'k1', cylinder: 'cyl')];
+      await pump(
+        tester,
+        current,
+        repository: repo,
+        editorResult: const TransmitterKeySaved(offerApply: true),
+        keysNow: () => current,
+      );
+      await saveFromEditor(tester);
+      // The save added a key; the card's list has not been read again yet.
+      current = [...current, key(id: 'k2', cylinder: 'cyl')];
+      await tapSnackApply(tester);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+      await tester.pumpAndSettle();
+
+      expect(repo.applied, ['k1', 'k2']);
     });
 
     testWidgets('cancelling the snackbar Apply writes nothing', (tester) async {
