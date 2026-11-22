@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 // reaches for it the same way.
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' show Override;
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -26,6 +25,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_media_prov
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
   @override
@@ -59,14 +59,7 @@ MediaItem item(String id, {String? diveId}) => MediaItem(
 /// two failure states are the point -- they are what a diver sees when the
 /// dive or trip query is slow or broken, and neither had any coverage.
 void main() {
-  // Not about marine life identification, which is on for Android (the
-  // test platform) but never set up here. The viewer's species layer is
-  // tested with it on in media_viewer_photo_labels_test.dart,
-  // media_viewer_video_playhead_test.dart and test/features/species_id/.
-  setUp(() {
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
-  });
+  turnOffMarineLifeIdForEachTest();
 
   late SharedPreferences prefs;
 

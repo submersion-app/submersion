@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_photos_section.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
@@ -9,18 +8,12 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../media/data/repositories/species_photo_fixtures.dart';
 import '../../../media/presentation/widgets/people_tags/people_tag_test_host.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 /// The photos and videos a buddy is tagged in, on the buddy page
 /// (issue #1745).
 void main() {
-  // Not about marine life identification, which is on for Android (the
-  // test platform) but never set up here. The viewer's species layer is
-  // tested with it on in media_viewer_photo_labels_test.dart,
-  // media_viewer_video_playhead_test.dart and test/features/species_id/.
-  setUp(() {
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
-  });
+  turnOffMarineLifeIdForEachTest();
 
   setUp(() async {
     await setUpTestDatabase();

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -17,6 +16,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
   @override
@@ -76,14 +76,7 @@ class _ShellState extends State<_Shell> {
 }
 
 void main() {
-  // Not about marine life identification, which is on for Android (the
-  // test platform) but never set up here. The viewer's species layer is
-  // tested with it on in media_viewer_photo_labels_test.dart,
-  // media_viewer_video_playhead_test.dart and test/features/species_id/.
-  setUp(() {
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
-  });
+  turnOffMarineLifeIdForEachTest();
 
   late SharedPreferences prefs;
 

@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
@@ -33,17 +32,13 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard
 import '../../../../helpers/test_database.dart';
 import '../../data/repositories/species_photo_fixtures.dart';
 import 'media_viewer_unlock_harness.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 /// The photo viewer's own lock (issue #4527, plan 10).
 void main() {
-  // Not about marine life identification, which is on for Android (the
-  // test platform) but never set up here. The viewer's species layer is
-  // tested with it on in media_viewer_photo_labels_test.dart,
-  // media_viewer_video_playhead_test.dart and test/features/species_id/.
-  setUp(() {
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
-  });
+  // The species tag tests (Task 6) do not depend on it: the viewer's
+  // species tag control does not read the flag.
+  turnOffMarineLifeIdForEachTest();
 
   late AppDatabase db;
 

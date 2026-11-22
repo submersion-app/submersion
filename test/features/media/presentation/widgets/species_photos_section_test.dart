@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -13,6 +12,7 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/species_photos_section.dart';
 
 import '../support/media_widget_harness.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 MediaItem _photo(String id, {int width = 600, int height = 600}) =>
     testMediaItem(id: id, diveId: 'd1').copyWith(width: width, height: height);
@@ -87,14 +87,7 @@ String _formatDate(WidgetTester tester, DateTime date) =>
     ).read(unitFormatterProvider).formatDate(date);
 
 void main() {
-  // Not about marine life identification, which is on for Android (the
-  // test platform) but never set up here. The viewer's species layer is
-  // tested with it on in media_viewer_photo_labels_test.dart,
-  // media_viewer_video_playhead_test.dart and test/features/species_id/.
-  setUp(() {
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
-  });
+  turnOffMarineLifeIdForEachTest();
 
   final entries = [_entry('p1'), _entry('p2')];
 

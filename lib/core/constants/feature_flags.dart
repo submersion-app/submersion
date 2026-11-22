@@ -108,8 +108,9 @@ bool visionVideoRuns(TargetPlatform platform, {bool web = kIsWeb}) =>
 
 /// Turns the ONNX engine's platforms (Android, Windows, Linux) on. On since
 /// the pack carries ONNX models (published 2026-11-22) and the Android floor
-/// was measured (8 GB, the Pixel 6a having failed); a build passing
-/// `--dart-define=MARINE_LIFE_ID_ONNX=false` turns them off. Only the exact
+/// was settled: kept at 6.5 GiB, so 8 GB phones, after the Pixel 6a run
+/// failed. A build passing `--dart-define=MARINE_LIFE_ID_ONNX=false` turns
+/// them off. Only the exact
 /// word `false` does: any other value (`0`, `False`, `off`) leaves them on.
 /// It gates the engine and every screen that offers it, not packaging: the
 /// build hook ships ONNX Runtime in every Android, Windows and Linux build,

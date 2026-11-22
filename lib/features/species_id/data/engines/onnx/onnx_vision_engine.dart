@@ -105,8 +105,9 @@ class OnnxVisionEngine
 
   final TargetPlatform _platform;
 
-  /// The `MARINE_LIFE_ID_ONNX` define: off, the engine runs nowhere, so a
-  /// build without it never offers or downloads anything for it.
+  /// The `MARINE_LIFE_ID_ONNX` define, on by default: off, the engine runs
+  /// nowhere, so a build passing `MARINE_LIFE_ID_ONNX=false` never offers or
+  /// downloads anything for it.
   final bool _onnxPlatforms;
   final HardwareEngines _hardware;
   final WorkerSpawner _spawnWorker;
