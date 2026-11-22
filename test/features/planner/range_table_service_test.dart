@@ -148,6 +148,32 @@ void main() {
       },
     );
 
+    test('a deeper row measures the hold left after its longer travel', () {
+      // At 3 m/min, 40 m is 13:20 of travel and 46 m is 15:20. A 24:20
+      // descent holds 11:00 at 40 m but only 9:00 at 46 m, so -10 min still
+      // leaves a bottom in the base row and none in the +6 m row.
+      const service = RangeTableService(
+        config: PlanEngineConfig(descentRate: 3.0),
+      );
+      final plan = _plan().copyWith(
+        segments: [
+          const PlanSegment(
+            id: 'seg-1',
+            targetDepth: 40.0,
+            durationSeconds: 1460,
+            tankId: 'tank-1',
+            gasMix: _air,
+            splitAtConfiguredRate: true,
+          ),
+        ],
+      );
+      final table = service.compute(plan);
+      final minusTen = table.timeDeltas.indexOf(-10);
+
+      expect(table.cells[table.depthDeltas.indexOf(0.0)][minusTen], isNotNull);
+      expect(table.cells[table.depthDeltas.indexOf(6.0)][minusTen], isNull);
+    });
+
     test('empty plan yields an empty table', () {
       const service = RangeTableService();
       final table = service.compute(

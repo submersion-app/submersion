@@ -71,23 +71,18 @@ class RangeTableService {
     final engine = PlanEngine(config: config);
     final maxDepth = plan.maxDepth;
     final descentRate = config.resolvedFor(plan).descentRate;
-    final minBottomMinutes = _shortestBottomMinutes(plan, descentRate);
 
     final cells = <List<RangeCell?>>[
       for (final depthDelta in depthDeltas)
-        [
-          for (final timeDelta in timeDeltas)
-            _cell(
-              engine,
-              plan,
-              depthDelta,
-              timeDelta,
-              maxDepth: maxDepth,
-              minBottomMinutes: minBottomMinutes,
-              descentRate: descentRate,
-              startState: startState,
-            ),
-        ],
+        _row(
+          engine,
+          plan,
+          depthDelta,
+          timeDeltas,
+          maxDepth: maxDepth,
+          descentRate: descentRate,
+          startState: startState,
+        ),
     ];
 
     return RangeTable(
@@ -95,6 +90,37 @@ class RangeTableService {
       timeDeltas: timeDeltas,
       cells: cells,
     );
+  }
+
+  /// One depth row. The shortest bottom is measured on the row's own
+  /// depth: a deeper rate-split descent spends longer travelling, so it has
+  /// less hold left to shrink than the base plan does.
+  List<RangeCell?> _row(
+    PlanEngine engine,
+    domain.DivePlan plan,
+    double depthDelta,
+    List<int> timeDeltas, {
+    required double maxDepth,
+    required double descentRate,
+    required TissueState? startState,
+  }) {
+    final minBottomMinutes = _shortestBottomMinutes(
+      depthDelta == 0 ? plan : deviatePlan(plan, depthDelta: depthDelta),
+      descentRate,
+    );
+    return [
+      for (final timeDelta in timeDeltas)
+        _cell(
+          engine,
+          plan,
+          depthDelta,
+          timeDelta,
+          maxDepth: maxDepth,
+          minBottomMinutes: minBottomMinutes,
+          descentRate: descentRate,
+          startState: startState,
+        ),
+    ];
   }
 
   RangeCell? _cell(
