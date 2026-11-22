@@ -43183,9 +43183,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Mi segítene legközelebb (opcionális)';
 
   @override
-  String get incidentEdit_save => 'Mentés';
-
-  @override
   String get incidentEdit_privacyNote =>
       'A kvázibaleset-jelentések szinkronizálódnak az eszközeid között és a mentésekben is szerepelnek, de exportokba vagy megosztott naplóoldalakra soha nem kerülnek.';
 
@@ -60881,6 +60878,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get rules_edit_noActions => 'Adj hozzá legalább egy műveletet.';
+
+  @override
+  String get rules_edit_notFound => 'Ez a szabály már nem létezik.';
 
   @override
   String get rules_picker_search => 'Műveletek keresése';

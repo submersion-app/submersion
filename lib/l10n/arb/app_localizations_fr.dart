@@ -43535,9 +43535,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce qui aiderait la prochaine fois (facultatif)';
 
   @override
-  String get incidentEdit_save => 'Enregistrer';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Les rapports de presque-accidents se synchronisent entre vos appareils et figurent dans vos sauvegardes, mais jamais dans les exports ni les pages de carnet partagées.';
 
@@ -61329,6 +61326,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rules_edit_noActions => 'Ajoutez au moins une action.';
+
+  @override
+  String get rules_edit_notFound => 'Cette règle n\'existe plus.';
 
   @override
   String get rules_picker_search => 'Rechercher des actions';

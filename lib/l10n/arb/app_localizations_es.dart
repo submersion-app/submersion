@@ -43455,9 +43455,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Qué ayudaría la próxima vez (opcional)';
 
   @override
-  String get incidentEdit_save => 'Guardar';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Los informes de casi incidentes se sincronizan entre tus dispositivos y se incluyen en las copias de seguridad, pero nunca en exportaciones ni páginas compartidas del diario.';
 
@@ -61256,6 +61253,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get rules_edit_noActions => 'Añade al menos una acción.';
+
+  @override
+  String get rules_edit_notFound => 'Esta regla ya no existe.';
 
   @override
   String get rules_picker_search => 'Buscar acciones';

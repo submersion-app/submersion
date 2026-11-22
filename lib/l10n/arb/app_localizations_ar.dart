@@ -43968,9 +43968,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'ما الذي سيساعد المرة القادمة (اختياري)';
 
   @override
-  String get incidentEdit_save => 'حفظ';
-
-  @override
   String get incidentEdit_privacyNote =>
       'تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.';
 
@@ -62024,6 +62021,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rules_edit_noActions => 'أضف إجراءً واحدًا على الأقل.';
+
+  @override
+  String get rules_edit_notFound => 'لم تعد هذه القاعدة موجودة.';
 
   @override
   String get rules_picker_search => 'البحث في الإجراءات';

@@ -42712,9 +42712,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'What would help next time (optional)';
 
   @override
-  String get incidentEdit_save => 'Save';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.';
 
@@ -60264,6 +60261,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rules_edit_noActions => 'Add at least one action.';
+
+  @override
+  String get rules_edit_notFound => 'This rule no longer exists.';
 
   @override
   String get rules_picker_search => 'Search actions';

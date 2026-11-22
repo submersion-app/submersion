@@ -40850,9 +40850,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get incidentEdit_lessonsLearned => '下次怎样会更好(可选)';
 
   @override
-  String get incidentEdit_save => '保存';
-
-  @override
   String get incidentEdit_privacyNote =>
       '未遂事件报告在你的设备之间同步并包含在备份中,但绝不会包含在导出或共享的日志页面中。';
 
@@ -57460,6 +57457,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get rules_edit_noActions => '请至少添加一个操作。';
+
+  @override
+  String get rules_edit_notFound => '此规则已不存在。';
 
   @override
   String get rules_picker_search => '搜索操作';

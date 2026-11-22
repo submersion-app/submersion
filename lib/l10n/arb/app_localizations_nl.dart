@@ -43144,9 +43144,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Wat de volgende keer zou helpen (optioneel)';
 
   @override
-  String get incidentEdit_save => 'Opslaan';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Bijna-ongevalrapporten synchroniseren tussen je apparaten en zitten in je back-ups, maar nooit in exports of gedeelde logboekpagina\'s.';
 
@@ -60829,6 +60826,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get rules_edit_noActions => 'Voeg minstens één actie toe.';
+
+  @override
+  String get rules_edit_notFound => 'Deze regel bestaat niet meer.';
 
   @override
   String get rules_picker_search => 'Acties zoeken';

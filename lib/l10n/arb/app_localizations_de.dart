@@ -43339,9 +43339,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Was beim nächsten Mal helfen würde (optional)';
 
   @override
-  String get incidentEdit_save => 'Speichern';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Beinahe-Unfall-Berichte synchronisieren sich zwischen deinen Geräten und sind in Backups enthalten, aber niemals in Exporten oder geteilten Logbuchseiten.';
 
@@ -61079,6 +61076,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get rules_edit_noActions => 'Füge mindestens eine Aktion hinzu.';
+
+  @override
+  String get rules_edit_notFound => 'Diese Regel existiert nicht mehr.';
 
   @override
   String get rules_picker_search => 'Aktionen suchen';
