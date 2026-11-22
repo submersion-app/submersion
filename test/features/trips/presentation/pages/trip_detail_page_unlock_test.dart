@@ -6,6 +6,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -333,6 +335,62 @@ void main() {
     expect(find.byKey(const Key('trip-edit-name')), findsOneWidget);
   });
 
+  // On a phone the open editor needs the room the day picker takes: the
+  // picker folds while a card is open on the story's Trip page, and comes
+  // back when the last one closes (issue #4927).
+  group('the story day picker', () {
+    final past = redSea.copyWith(
+      startDate: DateTime(2024, 6, 1),
+      endDate: DateTime(2024, 6, 8),
+    );
+
+    testWidgets('folds while the header card is open on the Trip page, and '
+        'comes back at Done', (tester) async {
+      await pumpTripPage(tester, trip: past);
+      await unlock(tester);
+      expect(find.byType(TripDayPicker), findsOneWidget);
+
+      await openCard(tester, l.settings_conflict_ref_trip);
+      expect(find.byType(TripDayPicker), findsNothing);
+
+      await tester.tap(find.text(l.common_action_done).first);
+      await tester.pumpAndSettle();
+      expect(find.byType(TripDayPicker), findsOneWidget);
+    });
+
+    testWidgets('folds while the Notes card is open on the Trip page', (
+      tester,
+    ) async {
+      await pumpTripPage(tester, trip: past.copyWith(notes: 'Windy'));
+      await unlock(tester);
+
+      await openCard(tester, notes);
+
+      expect(find.byType(TripDayPicker), findsNothing);
+    });
+
+    testWidgets('stays on a day page while its Day plan is open', (
+      tester,
+    ) async {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      // Under way, so the story opens on today.
+      await pumpTripPage(
+        tester,
+        trip: redSea.copyWith(
+          startDate: today.subtract(const Duration(days: 1)),
+          endDate: today.add(const Duration(days: 1)),
+        ),
+      );
+
+      await tester.tap(find.byKey(TripStoryDayPage.editNoteKey));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('trip-edit-day-note')), findsOneWidget);
+      expect(find.byType(TripDayPicker), findsOneWidget);
+    });
+  });
+
   // Every field of the open header editor scrolls into view with the
   // Overview it sits on, under the tab row.
   for (final (name, size, embedded) in [
@@ -450,6 +508,9 @@ void main() {
 
       expect(tester.takeException(), isNull);
       const keyboardTop = 874.0 - 336;
+      // A past trip's day picker folds while the editor is open, leaving
+      // it the room (issue #4927).
+      expect(find.byType(TripDayPicker), findsNothing);
       final name = tester.getRect(find.byKey(const Key('trip-edit-name')));
       expect(name.bottom, lessThanOrEqualTo(keyboardTop));
       await dragPageUntilShown(
@@ -457,8 +518,7 @@ void main() {
         find.byKey(const Key('trip-edit-liveaboard-name'), skipOffstage: false),
         bottom: keyboardTop,
         // On the card's margin, clear of the focused name's selection
-        // handle, inside the Overview's own scroll: a past trip's story
-        // has its day picker above it.
+        // handle.
         from: const Offset(8, 480),
       );
       expectFullyShown(

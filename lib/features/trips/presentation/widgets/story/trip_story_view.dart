@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/presentation/helpers/trip_day_notes_vo
 import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
@@ -217,18 +218,26 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
             : _story.days.indexWhere((day) => day.date == date);
         final day = dayIndex < 0 ? null : _story.days[dayIndex];
 
+        // An editor open on the Trip page takes the day picker's room, which
+        // a phone with its keyboard up has little of (issue #4927). It is
+        // back once the last one closes.
+        final editing =
+            day == null &&
+            slots != null &&
+            tripStoryTripPageCards.any(slots.isOpen);
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide =
                 constraints.maxWidth >= TripStoryDayPage.twoColumnMinWidth;
             return Column(
               children: [
-                _Picker(
-                  story: _story,
-                  selectedDate: day?.date,
-                  chartHeight: wide ? 76 : 60,
-                  onSelect: _select,
-                ),
+                if (!editing)
+                  _Picker(
+                    story: _story,
+                    selectedDate: day?.date,
+                    chartHeight: wide ? 76 : 60,
+                    onSelect: _select,
+                  ),
                 Expanded(
                   child: day == null
                       ? TripStoryTripPage(

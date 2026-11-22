@@ -142,6 +142,8 @@ mixin _TripDetailPageEditing
         );
       },
       showsWhileEmpty: _showsWhileEmpty,
+      isOpen: (id) =>
+          maybeEditController?.openCardIds.contains(id.name) ?? false,
       openCard: (id) => _openCard(id, shown),
       unlockAt: (id) {
         final controller = editController;
