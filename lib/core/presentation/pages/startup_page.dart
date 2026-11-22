@@ -1255,20 +1255,21 @@ class _StartupWrapperState extends State<StartupWrapper>
       }
     }());
 
-    // Every computer's Equipment item onto every dive it recorded, once per
-    // library (issue #4846). Fire-and-forget like the sweeps around it: on a
-    // large library it writes a row per dive, and it never throws. Started
-    // before the tombstone GC below, which can only take tombstones older
-    // than its month-long floor.
-    unawaited(ComputerGearDiveHeal().run());
-
     // Tombstone GC for a library that never syncs, every launch. The cloud
     // path runs GC at the tail of a successful sync, which a device with no
     // provider never reaches, so its deletion log otherwise grows forever.
     // Gated on there being no trace of a prior sync: a device that synced
     // and then went local-only still owes its peers those tombstones. Same
     // fire-and-forget shape as the media sweep above, for the same reasons.
+    //
+    // Ahead of it, awaited, the one-time pass that puts every computer's
+    // Equipment item on every dive it recorded (issue #4846). The pass reads
+    // the diveEquipment tombstones to leave off what the diver removed, so
+    // the GC must not collect them while it runs. It writes a row per dive on
+    // a large library, which keeps it off the startup path itself, and it
+    // never throws.
     unawaited(() async {
+      await ComputerGearDiveHeal().run();
       try {
         final db = DatabaseService.instance.database;
         await LocalOnlyTombstoneGc(

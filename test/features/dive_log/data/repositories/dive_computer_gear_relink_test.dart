@@ -235,6 +235,19 @@ void main() {
     });
   });
 
+  test('refreshes when a dive changes its computer', () async {
+    await insertComputer(id: 'c1');
+    final diveId = await insertDive();
+    final ticks = repository.watchComputersChanges().first;
+
+    await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
+      const DivesCompanion(computerId: Value('c1')),
+    );
+
+    await expectLater(ticks, completes);
+    expect((await repository.getComputerById('c1'))!.diveCount, 1);
+  });
+
   group('relinking a computer set up again', () {
     test('puts the computer\'s Equipment item on every relinked dive, '
         'staged for sync', () async {

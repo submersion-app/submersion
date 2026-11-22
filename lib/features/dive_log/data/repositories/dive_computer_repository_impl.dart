@@ -110,13 +110,15 @@ class DiveComputerRepository {
   /// sources, so an un-debounced tick would rebuild the pickers repeatedly
   /// mid-download instead of once on the settled state.
   ///
-  /// Data sources tick it too: "Dives imported" is counted from them (issue
-  /// #4846), and a dive delete reaches them through its cascade.
+  /// Data sources and dives tick it too: "Dives imported" is counted from
+  /// both (issue #4846), and a dive can change its computer_id without any
+  /// source changing.
   Stream<void> watchComputersChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.diveComputers),
           TableUpdateQuery.onTable(_db.diveDataSources),
+          TableUpdateQuery.onTable(_db.dives),
         ]),
       )
       .debounce(DiveRepository.changeTickDebounce);
