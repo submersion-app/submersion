@@ -693,12 +693,14 @@ from the pack with its ONNX files added (`PACK`) and a work folder
    added), P2 the rare-species check pack, and W0 and W2 their work
    folders, each scored with `--naming-from PACK` as `gate.py`'s own
    header describes.
-3. For x64, a request file for the app's scoring runner, built with
-   species-pack's `score.onnx_request`: the pack's manifest, both
-   detectors' and the classifier's ONNX files, `centreCrop`, the 100
-   held-out photos, and as `out` the JSON lines file to write. Then, in
-   an app checkout at the engine's commit, on the Mac and on a Linux x64
-   machine,
-   `SPECIES_VISION_REQUEST=request.json flutter test tool/species_vision_onnx/species_vision_onnx_test.dart`,
-   which writes `MAC.jsonl` and `X64.jsonl` respectively, and
+3. For x64, a request file for the app's scoring runner on each machine,
+   built with species-pack's `score.onnx_request`: the pack's manifest,
+   both detectors' and the classifier's ONNX files, `centreCrop` and the
+   100 held-out photos, with that machine's paths; as `out`, that
+   machine's JSON lines file (`MAC.jsonl`, `X64.jsonl`); and as
+   `ortLibrary`, the pinned ONNX Runtime library `score.py` fetches on
+   the Mac, and nothing on Linux, where the app's build hook supplies it.
+   Then, in an app checkout at the engine's commit on each machine,
+   `SPECIES_VISION_REQUEST=request.json flutter test tool/species_vision_onnx/species_vision_onnx_test.dart`
+   with that machine's request, and
    `engine_compare.py --pack PACK MAC.jsonl X64.jsonl`.
