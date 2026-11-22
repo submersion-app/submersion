@@ -236,15 +236,23 @@ void main() {
       expect(_chain.bottomLegIndex(legs), 0);
     });
 
-    test('a deeper rate-split descent beats a shallower level leg', () {
+    test('a level leg wins over a deeper rate-split descent', () {
+      // The chain has no rate, so it cannot tell whether the 40 m descent
+      // holds at all; the level leg the diver authored stays the bottom.
       final legs = _chain.resolve([
-        _split(40, 20),
-        _seg(30, 1),
-        _seg(30, 10),
+        _seg(20, 2),
+        _seg(20, 20),
+        _split(40, 3),
         _seg(0, 4),
       ]);
 
-      expect(_chain.bottomLegIndex(legs), 0);
+      expect(_chain.bottomLegIndex(legs), 1);
+    });
+
+    test('the deepest of several rate-split descents is the bottom', () {
+      final legs = _chain.resolve([_split(20, 10), _split(35, 15), _seg(0, 5)]);
+
+      expect(_chain.bottomLegIndex(legs), 1);
     });
 
     test('a level leg after a rate-split descent to its depth wins', () {

@@ -137,24 +137,32 @@ class SegmentChain {
   /// Index of the leg that is "the bottom" of the dive, or null if the diver
   /// has authored no leg that holds at depth.
   ///
-  /// The deepest leg that holds at its target: a [SegmentPhase.level] leg,
-  /// or a descent flagged [PlanSegment.splitAtConfiguredRate], whose
-  /// duration beyond the travel time is spent holding at its target
-  /// (#3264). A plan authored as that one descent has no level leg at all,
-  /// and without it the contingency and range-table time deltas had nothing
-  /// to lengthen (#4849). The last one wins on a tie, so a bottom split into
-  /// two legs at the same depth extends at its far end. Replaces the old
-  /// "first segment whose type is bottom" lookups.
-  int? bottomLegIndex(List<ResolvedLeg> legs) {
+  /// The deepest [SegmentPhase.level] leg; the last one wins on a tie, so a
+  /// bottom split into two legs at the same depth extends at its far end.
+  /// Replaces the old "first segment whose type is bottom" lookups.
+  ///
+  /// With no level leg, the deepest descent flagged
+  /// [PlanSegment.splitAtConfiguredRate] instead: its duration beyond the
+  /// travel time is a hold at its target (#3264). A plan authored as that
+  /// one descent has no level leg at all, and without this the contingency
+  /// and range-table time deltas had nothing to lengthen (#4849). It is only
+  /// a fallback because the chain has no rate to tell whether such a descent
+  /// holds at all, so it never displaces a level leg the diver authored.
+  int? bottomLegIndex(List<ResolvedLeg> legs) =>
+      _deepest(legs, (leg) => leg.phase == SegmentPhase.level) ??
+      _deepest(
+        legs,
+        (leg) =>
+            leg.phase == SegmentPhase.descent &&
+            leg.segment.splitAtConfiguredRate,
+      );
+
+  int? _deepest(List<ResolvedLeg> legs, bool Function(ResolvedLeg) accepts) {
     int? best;
     for (var i = 0; i < legs.length; i++) {
-      if (!_holdsAtTarget(legs[i])) continue;
+      if (!accepts(legs[i])) continue;
       if (best == null || legs[i].endDepth >= legs[best].endDepth) best = i;
     }
     return best;
   }
-
-  bool _holdsAtTarget(ResolvedLeg leg) =>
-      leg.phase == SegmentPhase.level ||
-      (leg.phase == SegmentPhase.descent && leg.segment.splitAtConfiguredRate);
 }

@@ -315,6 +315,28 @@ void main() {
     expect(both.plan.segments.single.targetDepth, closeTo(45.0, 0.01));
   });
 
+  test('longer adds its whole delta to a travel-only rate-split descent', () {
+    // 40 m at the default 18 m/min is 2:13 of travel. Authored at 1:00, the
+    // engine stretches the segment to 2:13 with no hold, so +5 min must
+    // start from 2:13 to buy five minutes of bottom.
+    final plan = _plan().copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'seg-1',
+          targetDepth: 40.0,
+          durationSeconds: 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          splitAtConfiguredRate: true,
+        ),
+      ],
+    );
+
+    final longer = service.deviationFor(plan, 'longer')!;
+
+    expect(longer.plan.segments.single.durationSeconds, 133 + 5 * 60);
+  });
+
   test('no segments yields no deviations', () {
     final empty = domain.DivePlan(
       id: 'p',

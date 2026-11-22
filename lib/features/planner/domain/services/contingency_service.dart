@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -177,10 +179,14 @@ class ContingencyService {
     depthDelta: config.resolvedFor(plan).deviationDepthDelta,
   );
 
-  domain.DivePlan _lengthened(domain.DivePlan plan) => deviatePlan(
-    plan,
-    timeDeltaMinutes: config.resolvedFor(plan).deviationTimeMinutes,
-  );
+  domain.DivePlan _lengthened(domain.DivePlan plan) {
+    final resolved = config.resolvedFor(plan);
+    return deviatePlan(
+      plan,
+      timeDeltaMinutes: resolved.deviationTimeMinutes,
+      descentRate: resolved.descentRate,
+    );
+  }
 }
 
 /// A [plan] variant deviated by [depthDelta] meters and/or
@@ -191,10 +197,16 @@ class ContingencyService {
 /// depth. The bottom leg grows (or shrinks) by the time delta. Shared by the
 /// contingency trio and the range tables so every "what if" variant deviates
 /// the same way.
+///
+/// When the bottom is a descent split at the configured rate, [descentRate]
+/// (the plan's resolved rate) is its travel speed: a descent authored
+/// shorter than its travel is stretched to the travel time, so the delta is
+/// added to that stretched duration rather than to the authored one (#4849).
 domain.DivePlan deviatePlan(
   domain.DivePlan plan, {
   double depthDelta = 0,
   int timeDeltaMinutes = 0,
+  double? descentRate,
 }) {
   var segments = plan.segments;
 
@@ -212,21 +224,29 @@ domain.DivePlan deviatePlan(
   }
 
   if (timeDeltaMinutes != 0) {
-    // The delta buys bottom time once, on the deepest level leg, rather than
+    // The delta buys bottom time once, on the bottom leg (see
+    // SegmentChain.bottomLegIndex), rather than
     // once per level leg as the old per-type loop did on a multi-level plan.
     final ordered = List<PlanSegment>.from(segments)
       ..sort((a, b) => a.order.compareTo(b.order));
     const chain = SegmentChain();
-    final bottomIndex = chain.bottomLegIndex(chain.resolve(ordered));
+    final legs = chain.resolve(ordered);
+    final bottomIndex = chain.bottomLegIndex(legs);
     if (bottomIndex != null) {
-      final bottomId = ordered[bottomIndex].id;
+      final bottom = legs[bottomIndex];
+      final bottomId = bottom.segment.id;
+      final travelSeconds = bottom.isDepthChange && descentRate != null
+          ? PlanSegment.travelSeconds(
+              metres: bottom.endDepth - bottom.startDepth,
+              ratePerMinute: descentRate,
+            )
+          : 0;
+      final fromSeconds = math.max(bottom.durationSeconds, travelSeconds);
       final extraSeconds = timeDeltaMinutes * 60;
       segments = [
         for (final segment in segments)
           segment.id == bottomId
-              ? segment.copyWith(
-                  durationSeconds: segment.durationSeconds + extraSeconds,
-                )
+              ? segment.copyWith(durationSeconds: fromSeconds + extraSeconds)
               : segment,
       ];
     }

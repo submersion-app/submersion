@@ -122,6 +122,32 @@ void main() {
       );
     });
 
+    test(
+      'a rate-split descent can shrink only by its hold, not its travel',
+      () {
+        // 40 m at 18 m/min is 2:13 of travel, so a 10:00 descent holds 7:47:
+        // -5 min still leaves a bottom, -10 min would eat into the travel.
+        const service = RangeTableService();
+        final plan = _plan().copyWith(
+          segments: [
+            const PlanSegment(
+              id: 'seg-1',
+              targetDepth: 40.0,
+              durationSeconds: 10 * 60,
+              tankId: 'tank-1',
+              gasMix: _air,
+              splitAtConfiguredRate: true,
+            ),
+          ],
+        );
+        final table = service.compute(plan);
+        final baseRow = table.cells[table.depthDeltas.indexOf(0.0)];
+
+        expect(baseRow[table.timeDeltas.indexOf(-10)], isNull);
+        expect(baseRow[table.timeDeltas.indexOf(-5)], isNotNull);
+      },
+    );
+
     test('empty plan yields an empty table', () {
       const service = RangeTableService();
       final table = service.compute(
