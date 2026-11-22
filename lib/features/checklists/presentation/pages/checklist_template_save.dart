@@ -135,18 +135,19 @@ Future<void> writeChecklistTemplate({
   );
 }
 
-/// [items] with any section that is not among [sections] cleared: a
-/// section removed elsewhere meanwhile would fail the items' foreign key.
+/// [items] as Save writes them: numbered by position, the order shown, and
+/// with any section that is not among [sections] cleared, since a section
+/// removed elsewhere meanwhile would fail the items' foreign key.
 List<ChecklistTemplateItem> _withinSections(
   List<ChecklistTemplateItem> items,
   List<ChecklistTemplateSection> sections,
 ) {
   final sectionIds = {for (final section in sections) section.id};
   return [
-    for (final item in items)
+    for (final (i, item) in items.indexed)
       if (item.sectionId == null || sectionIds.contains(item.sectionId))
-        item
+        item.copyWith(sortOrder: i)
       else
-        item.copyWith(sectionId: null),
+        item.copyWith(sectionId: null, sortOrder: i),
   ];
 }

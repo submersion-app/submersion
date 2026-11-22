@@ -14,6 +14,7 @@ import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templat
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/test_database.dart';
 
 /// Fake repository that stubs the reads the page performs and captures the
 /// writes so save/create/update/saveItems can be asserted without a database.
@@ -107,6 +108,11 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
 
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+
+  // Save runs in one transaction and change log operation, so it needs a
+  // database even with the fake repository.
+  setUp(setUpTestDatabase);
+  tearDown(tearDownTestDatabase);
 
   PreDiveChecklistTemplateItem itemFixture(
     String title, {
@@ -238,6 +244,13 @@ void main() {
     tester,
   ) async {
     await pumpPage(tester);
+    // An untouched form has nothing to save: a description makes it a
+    // change, so Save runs the checks.
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Description'),
+      'No name yet',
+    );
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -269,7 +282,12 @@ void main() {
       find.widgetWithText(TextFormField, 'Title'),
       'Discarded',
     );
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Cancel'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsNothing);
@@ -452,14 +470,17 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
 
-    // Both items are still present after the reorder settles.
+    // Both items are still present after the drag settles.
     expect(find.text('Item A'), findsOneWidget);
     expect(find.text('Item B'), findsOneWidget);
-    // Save persists items and the callback body executed without error.
+
+    // A's move-down arrow puts it below B; Save writes the new order.
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(repo.savedItems, isNotNull);
-    expect(repo.savedItems!.length, 2);
+    expect(repo.savedItems!.map((i) => i.id), ['b', 'a']);
+    expect(repo.savedItems!.map((i) => i.sortOrder), [0, 1]);
   });
 
   testWidgets('save in new mode creates the template and saves items', (
@@ -498,7 +519,9 @@ void main() {
     expect(repo.createdTemplate!.description, 'A description');
     expect(repo.createdTemplate!.category, 'Recreational');
     expect(repo.createdTemplate!.diverId, 'diver-1');
-    expect(repo.savedTemplateId, 'created-id');
+    // Created under the id the editor opened with, its lists with it.
+    expect(repo.createdTemplate!.id, isNotEmpty);
+    expect(repo.savedTemplateId, repo.createdTemplate!.id);
     expect(repo.savedItems, isNotNull);
     expect(repo.savedItems!.length, 1);
     expect(repo.savedItems!.first.title, 'Check weights');
@@ -513,6 +536,7 @@ void main() {
       find.widgetWithText(TextFormField, 'Name'),
       'No category',
     );
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -533,15 +557,16 @@ void main() {
       find.widgetWithText(TextFormField, 'Name'),
       'New name',
     );
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
     expect(repo.updatedTemplate, isNotNull);
     expect(repo.updatedTemplate!.id, 'tpl-1');
     expect(repo.updatedTemplate!.name, 'New name');
-    expect(repo.savedTemplateId, 'tpl-1');
-    expect(repo.savedItems!.length, 1);
-    expect(repo.savedItems!.first.title, 'Existing');
+    // A rename leaves the items as stored: nothing rewrites them.
+    expect(repo.savedItems, isNull);
+    expect(repo.savedSections, isNull);
   });
 
   group('a built-in opens as a viewer, not a locked editor', () {
@@ -1046,6 +1071,11 @@ void main() {
 
       await tester.tap(find.text('Regulator'));
       await tester.pumpAndSettle();
+      // Confirmed unchanged it is no change: rename it so Save writes it.
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Title'),
+        'Regulator first stage',
+      );
       await tester.tap(find.widgetWithText(FilledButton, 'OK'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Save'));
@@ -1064,6 +1094,20 @@ void main() {
       );
       await pumpPage(tester, templateId: 'tpl-1', repo: repo);
 
+      // An untouched template is not rewritten: change one item so the
+      // items are written, in the order shown.
+      await tester.tap(find.text('a-item'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Title'),
+        'a-item',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Notes'),
+        'changed',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
