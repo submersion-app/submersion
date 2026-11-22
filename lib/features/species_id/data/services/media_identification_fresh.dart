@@ -63,5 +63,6 @@ extension _FreshRuns on MediaIdentificationService {
         namingBars: () => NamingBars.fromNaming(naming),
       ),
     );
+    await _promoteNamed(run.mediaId, changed);
   }
 }

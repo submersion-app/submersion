@@ -231,6 +231,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ),
       );
       unawaited(fillIdentificationNamingBarsAtLaunch(ref.container));
+      unawaited(backfillNamedCropsAtLaunch(ref.container));
       _fileShareHandler.initialize();
       _passportLinks.start();
       _buddyCardLinks.start();

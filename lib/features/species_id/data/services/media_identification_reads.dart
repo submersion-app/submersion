@@ -3,6 +3,16 @@ part of 'media_identification_service.dart';
 /// Where a run came from (issue #4876), kept beside the service it reads
 /// for: the same library, so it shares the service's private state.
 extension _RunOrigin on MediaIdentificationService {
+  /// Moves the crops of [changed] that are named now into the logbook, so
+  /// they sync (issue #4876).
+  Future<int> _promoteNamed(
+    String mediaId,
+    List<MediaIdentification> changed,
+  ) => _crops.promote(mediaId, [
+    for (final i in changed)
+      if (isNamed(i)) i.id,
+  ]);
+
   /// Whether [run] was made on this device (issue #4876). With no run, or
   /// when this device's id cannot be read, it counts as this device's, as
   /// every run did before results synced.

@@ -655,7 +655,7 @@ class VideoIdentificationScan {
     }, classifierId: manifest.classifier.embeddingId);
     for (final i in inserted) {
       if (byId[i.id]?.cropJpeg case final jpeg?) {
-        await _crops.write(_item.id, i.id, jpeg);
+        await _crops.write(_item.id, i.id, jpeg, named: isNamed(i));
       }
     }
     await _crops.markAnalysed(_item.id);

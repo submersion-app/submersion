@@ -21,6 +21,7 @@ import 'package:submersion/features/settings/presentation/providers/serial_prefe
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/platform_vision_engine.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/auto_applier.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/features/species_id/domain/services/auto_apply_rules.
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
+import 'package:submersion/features/species_id/data/services/named_crop_backfill.dart';
 import 'package:submersion/features/species_id/data/services/naming_bars_fill.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
@@ -247,10 +249,20 @@ final identificationEmbeddingRepositoryProvider =
       (ref) => IdentificationEmbeddingRepository(),
     );
 
+/// The crops of named identifications, synced with the logbook (issue
+/// #4876).
+final identificationCropRepositoryProvider =
+    Provider<IdentificationCropRepository>(
+      (ref) => IdentificationCropRepository(),
+    );
+
 final identificationCropStoreProvider = Provider<IdentificationCropStore>((
   ref,
 ) {
-  final store = IdentificationCropStore(supportPath: AppDirectories.support);
+  final store = IdentificationCropStore(
+    supportPath: AppDirectories.support,
+    table: ref.watch(identificationCropRepositoryProvider),
+  );
   ref.onDispose(store.dispose);
   return store;
 });
@@ -271,6 +283,18 @@ Future<void> sweepIdentificationOrphansAtLaunch(
 ) async {
   if (!marineLifeIdEnabled) return;
   await cleanup.sweepOrphans();
+}
+
+/// Moves the crops of named identifications this device analysed before
+/// crops synced into the logbook, once at app start (issue #4876). Never
+/// throws.
+Future<void> backfillNamedCropsAtLaunch(ProviderContainer container) async {
+  if (!marineLifeIdEnabled) return;
+  await NamedCropBackfill(
+    identifications: container.read(mediaIdentificationRepositoryProvider),
+    crops: container.read(identificationCropStoreProvider),
+    deviceId: syncDeviceIdOrNull,
+  ).run();
 }
 
 /// Gives this device's runs from before runs kept their naming bars the
@@ -471,15 +495,22 @@ final suggestionAcceptorProvider = Provider<SuggestionAcceptor>(
   (ref) => SuggestionAcceptor(species: ref.watch(speciesRepositoryProvider)),
 );
 
-/// The crop file of an identification, or null when it is not on this
-/// device. Looked for again when the photo's crops change: an analysis
-/// stores its rows before it writes the crops.
-final identificationCropFileProvider = FutureProvider.autoDispose
-    .family<File?, (String mediaId, String identificationId)>((ref, key) async {
+/// The crop of an identification: a file analysed here, or a named one's
+/// from the logbook, whichever device analysed it (issue #4876); null when
+/// this device holds neither. Looked for again when the photo's crops
+/// change (an analysis stores its rows before it writes the crops), and
+/// when a sync brings crops.
+final identificationCropProvider = FutureProvider.autoDispose
+    .family<
+      IdentificationCropImage?,
+      (String mediaId, String identificationId)
+    >((ref, key) async {
       final store = ref.watch(identificationCropStoreProvider);
       ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
-      final file = await store.fileFor(key.$1, key.$2);
-      return await file.exists() ? file : null;
+      ref.invalidateSelfWhen(
+        ref.watch(identificationCropRepositoryProvider).watchChanges(),
+      );
+      return store.read(key.$1, key.$2);
     });
 
 /// How many identifications the open logbook keeps.

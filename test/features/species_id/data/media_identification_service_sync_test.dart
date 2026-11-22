@@ -7,6 +7,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
@@ -49,7 +50,10 @@ void main() {
       loadPack: () async => pack(),
       identifications: identifications,
       embeddings: IdentificationEmbeddingRepository(database: local),
-      crops: IdentificationCropStore(supportPath: () async => support.path),
+      crops: IdentificationCropStore(
+        supportPath: () async => support.path,
+        table: IdentificationCropRepository(database: library),
+      ),
       resolveImage: (item) async =>
           IdentificationImage.path('/photos/${item.id}.jpeg'),
       resolveVideo: (item) async =>
@@ -87,6 +91,18 @@ void main() {
       NamingBars.fromNaming(pack().pack.manifest.naming),
       reason: 'a device with no pack names its rows by them',
     );
+  });
+
+  test('a named fish\'s crop is kept in the logbook (issue #4876)', () async {
+    await service.request(photo('m1'));
+    final table = IdentificationCropRepository(database: library);
+    final rows = await identifications.forMedia('m1');
+    final named = [
+      for (final i in rows)
+        if (isNamed(i)) i.id,
+    ];
+    expect(named, isNotEmpty);
+    expect(await table.presentAmong(named), named.toSet());
   });
 
   test(

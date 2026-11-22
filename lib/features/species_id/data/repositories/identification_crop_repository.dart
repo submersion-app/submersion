@@ -1,0 +1,117 @@
+import 'package:collection/collection.dart';
+import 'package:drift/drift.dart';
+
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_sync_marks.dart';
+
+/// The crops of named identifications, kept in the logbook so they sync
+/// (issue #4876): a device that did not analyse a photo shows the same
+/// picture of each animal the app named. Crops of unnamed ones stay files
+/// on the device that analysed them ([IdentificationCropStore] fronts both).
+class IdentificationCropRepository {
+  /// [database] fixes the logbook; otherwise the open one is used on every
+  /// call. Only the app's own logbook publishes by default, as for
+  /// [MediaIdentificationRepository].
+  IdentificationCropRepository({
+    AppDatabase? database,
+    IdentificationSyncMarks? marks,
+  }) : _database = database,
+       _marks = marks ?? (database == null ? IdentificationSyncMarks() : null);
+
+  final AppDatabase? _database;
+  final IdentificationSyncMarks? _marks;
+
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
+
+  static const _slice = 500;
+
+  /// Ticks on any write to the crops, a sync's included.
+  Stream<void> watchChanges() {
+    final db = _db;
+    return db.tableUpdates(
+      TableUpdateQuery.onAllTables([db.mediaIdentificationCrops]),
+    );
+  }
+
+  Future<Uint8List?> bytesFor(String identificationId) async {
+    final db = _db;
+    final table = db.mediaIdentificationCrops;
+    final row =
+        await (db.selectOnly(table)
+              ..addColumns([table.jpeg])
+              ..where(table.id.equals(identificationId)))
+            .getSingleOrNull();
+    return row?.read(table.jpeg);
+  }
+
+  /// Which of [identificationIds] have a crop here.
+  Future<Set<String>> presentAmong(List<String> identificationIds) async {
+    if (identificationIds.isEmpty) return const {};
+    final db = _db;
+    final table = db.mediaIdentificationCrops;
+    final present = <String>{};
+    for (final slice in identificationIds.slices(_slice)) {
+      present.addAll(
+        await (db.selectOnly(table)
+              ..addColumns([table.id])
+              ..where(table.id.isIn(slice)))
+            .map((r) => r.read(table.id)!)
+            .get(),
+      );
+    }
+    return present;
+  }
+
+  /// Stores [jpeg] as the crop of [identificationId] on [mediaId], and
+  /// publishes it.
+  Future<void> put(
+    String identificationId,
+    String mediaId,
+    Uint8List jpeg,
+  ) async {
+    final db = _db;
+    await db
+        .into(db.mediaIdentificationCrops)
+        .insertOnConflictUpdate(
+          MediaIdentificationCropsCompanion.insert(
+            id: identificationId,
+            mediaId: mediaId,
+            jpeg: jpeg,
+          ),
+        );
+    await _marks?.cropsWritten([identificationId]);
+  }
+
+  /// Removes the crops of [identificationIds] that are here, tombstoned so
+  /// peers drop them too.
+  Future<void> deleteIds(List<String> identificationIds) async {
+    final present = (await presentAmong(identificationIds)).toList();
+    if (present.isEmpty) return;
+    final db = _db;
+    for (final slice in present.slices(_slice)) {
+      await (db.delete(
+        db.mediaIdentificationCrops,
+      )..where((c) => c.id.isIn(slice))).go();
+    }
+    await _marks?.deleted(cropIds: present);
+  }
+
+  /// Removes every crop of [mediaIds], tombstoned.
+  Future<void> deleteForMedia(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    final db = _db;
+    final table = db.mediaIdentificationCrops;
+    final ids = <String>[];
+    for (final slice in mediaIds.slices(_slice)) {
+      ids.addAll(
+        await (db.selectOnly(table)
+              ..addColumns([table.id])
+              ..where(table.mediaId.isIn(slice)))
+            .map((r) => r.read(table.id)!)
+            .get(),
+      );
+    }
+    await deleteIds(ids);
+  }
+}

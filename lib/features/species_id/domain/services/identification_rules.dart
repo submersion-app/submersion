@@ -430,3 +430,10 @@ List<MediaIdentification> visibleRows(
       if (i.runId == null || i.runId == runId || i.saidByDiver) i,
   ];
 }
+
+/// Whether [i] has a name to show anywhere (issue #4876): it looks like
+/// something in particular, is suggested, or the diver said something on
+/// it. Its crop then syncs with the logbook; an unnamed one's stays a file
+/// on the device that analysed it.
+bool isNamed(MediaIdentification i) =>
+    i.specific || i.suggestable || i.saidByDiver;

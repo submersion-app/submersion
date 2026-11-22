@@ -21,6 +21,7 @@ import 'package:submersion/features/species_id/data/engines/channel_vision_engin
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
@@ -155,13 +156,19 @@ void main() {
 
     setUp(() async {
       support = await Directory.systemTemp.createTemp('crop_providers');
-      crops = IdentificationCropStore(supportPath: () async => support.path);
+      crops = IdentificationCropStore(
+        supportPath: () async => support.path,
+        table: IdentificationCropRepository(database: db),
+      );
       withCrops = ProviderContainer(
         overrides: [
           mediaIdentificationRepositoryProvider.overrideWithValue(
             MediaIdentificationRepository(database: db),
           ),
           identificationCropStoreProvider.overrideWithValue(crops),
+          identificationCropRepositoryProvider.overrideWithValue(
+            IdentificationCropRepository(database: db),
+          ),
         ],
       );
     });
@@ -172,21 +179,37 @@ void main() {
 
     test('a crop written after it was looked for shows', () async {
       const key = ('m1', 'i1');
-      final sub = withCrops.listen(
-        identificationCropFileProvider(key),
-        (_, _) {},
-      );
+      final sub = withCrops.listen(identificationCropProvider(key), (_, _) {});
       addTearDown(sub.close);
       expect(
-        await withCrops.read(identificationCropFileProvider(key).future),
+        await withCrops.read(identificationCropProvider(key).future),
         isNull,
       );
       await crops.write('m1', 'i1', Uint8List.fromList([0xFF, 0xD8]));
       await pumpEventQueue();
       expect(
-        await withCrops.read(identificationCropFileProvider(key).future),
+        await withCrops.read(identificationCropProvider(key).future),
         isNotNull,
       );
+    });
+
+    test('a named crop synced from another device shows, and follows the '
+        'logbook (issue #4876)', () async {
+      const key = ('m1', 'i2');
+      final sub = withCrops.listen(identificationCropProvider(key), (_, _) {});
+      addTearDown(sub.close);
+      expect(
+        await withCrops.read(identificationCropProvider(key).future),
+        isNull,
+      );
+      // As a sync writes it: straight into the table.
+      await IdentificationCropRepository(
+        database: db,
+      ).put('i2', 'm1', Uint8List.fromList([0xFF, 0xD8, 9]));
+      await pumpEventQueue();
+      final crop = await withCrops.read(identificationCropProvider(key).future);
+      expect(crop, isA<CropBytes>());
+      expect((crop! as CropBytes).bytes, [0xFF, 0xD8, 9]);
     });
 
     test('the crops size follows the files, not only the rows', () async {

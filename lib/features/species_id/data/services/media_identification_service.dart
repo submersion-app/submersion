@@ -342,6 +342,7 @@ class MediaIdentificationService {
       );
       if (changed.isNotEmpty && _databaseGeneration() == generation) {
         await _identifications.updateDecisions(changed);
+        await _promoteNamed(mediaId, changed);
       }
     } on Object catch (e) {
       _log.debug('Could not reconcile identifications of $mediaId', error: e);
@@ -367,6 +368,7 @@ class MediaIdentificationService {
       ];
       if (changed.isNotEmpty && _databaseGeneration() == generation) {
         await _identifications.updateDecisions(changed);
+        await _promoteNamed(mediaId, changed);
       }
     } on Object catch (e) {
       _log.debug('Could not dismiss suggestions of $mediaId', error: e);
@@ -385,6 +387,8 @@ class MediaIdentificationService {
   ) async {
     try {
       await _identifications.claim(identificationId, speciesId);
+      // Named now: its crop syncs (issue #4876).
+      await _crops.promote(mediaId, [identificationId]);
     } on Object catch (e) {
       _log.debug('Could not record the fish named on $mediaId', error: e);
     }
@@ -711,7 +715,12 @@ class MediaIdentificationService {
       for (final i in carried.insert) i.id: byId[i.id]!.embedding,
     }, classifierId: manifest.classifier.embeddingId);
     for (final i in carried.insert) {
-      await _crops.write(item.id, i.id, byId[i.id]!.cropJpeg);
+      await _crops.write(
+        item.id,
+        i.id,
+        byId[i.id]!.cropJpeg,
+        named: isNamed(i),
+      );
     }
     await _crops.markAnalysed(item.id);
   }
