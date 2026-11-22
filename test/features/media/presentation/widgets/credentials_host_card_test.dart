@@ -30,6 +30,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/credentials_host_card.dart';
 
@@ -148,6 +149,38 @@ void main() {
     expect(find.byKey(const Key('savedHostSecretMissing')), findsOneWidget);
     expect(find.text('Password missing on this device'), findsOneWidget);
     expect(find.byIcon(Icons.key_off_outlined), findsOneWidget);
+  });
+
+  testWidgets('a shared album password row is named after its album', (
+    tester,
+  ) async {
+    const key = 'nas.example.com:5001/mo/sharing/code1';
+    final creds = _FakeCredentialsService([
+      _h('1', key, authType: 'synologyShare'),
+      _h('2', 'plain.example.com'),
+    ]);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          networkCredentialsServiceProvider.overrideWithValue(creds),
+          savedHostAlbumNamesProvider.overrideWith(
+            (ref) async => {key: 'Dives'},
+          ),
+        ],
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(body: CredentialsHostCard()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dives'), findsOneWidget);
+    // The link stays, under the name.
+    expect(find.byKey(const Key('savedHostLink')), findsOneWidget);
+    expect(find.text(key), findsOneWidget);
+    // A row without an album keeps its hostname as title, no link line.
+    expect(find.text('plain.example.com'), findsOneWidget);
   });
 
   testWidgets('renders empty-state ListTile when no hosts saved', (

@@ -507,9 +507,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               !widget.people.active &&
               hasPlayableOriginal(widget.item) &&
               !ref.watch(playVideoOriginalProvider(widget.item.id)))
+            // Below the viewer's top bar (close, lock, info, share), which
+            // draws over this page.
             Positioned(
-              top: MediaQuery.paddingOf(context).top + 12,
-              right: 12,
+              top: MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
+              right: 16,
               child: FilledButton.tonalIcon(
                 key: const Key('videoPlayOriginal'),
                 icon: const Icon(Icons.high_quality_outlined),

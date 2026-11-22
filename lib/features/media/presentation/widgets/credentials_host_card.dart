@@ -98,24 +98,30 @@ class _HostTile extends ConsumerWidget {
         ref.watch(savedHostHasSecretProvider(host.hostname)).valueOrNull ==
         false;
     final colors = Theme.of(context).colorScheme;
+    // A shared album's password row is named after its album; the link it
+    // is saved under moves to the subtitle, still there to tell two apart.
+    final album = ref
+        .watch(savedHostAlbumNamesProvider)
+        .valueOrNull?[host.hostname];
     return ListTile(
       leading: missing
           ? Icon(Icons.key_off_outlined, color: colors.error)
           : const Icon(Icons.lock_outline),
-      title: Text(host.hostname),
-      subtitle: missing
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_subtitle(context.l10n)),
-                Text(
-                  context.l10n.media_credentials_secretMissing,
-                  key: const Key('savedHostSecretMissing'),
-                  style: TextStyle(color: colors.error),
-                ),
-              ],
-            )
-          : Text(_subtitle(context.l10n)),
+      title: Text(album ?? host.hostname),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (album != null)
+            Text(host.hostname, key: const Key('savedHostLink')),
+          Text(_subtitle(context.l10n)),
+          if (missing)
+            Text(
+              context.l10n.media_credentials_secretMissing,
+              key: const Key('savedHostSecretMissing'),
+              style: TextStyle(color: colors.error),
+            ),
+        ],
+      ),
       trailing: PopupMenuButton<_HostAction>(
         tooltip: context.l10n.common_action_more,
         onSelected: (action) => _handle(context, ref, action),

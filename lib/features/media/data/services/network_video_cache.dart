@@ -41,20 +41,27 @@ class NetworkVideoCache {
   /// viewer shows its own "not found" then).
   Future<String?> fileFor(Uri url) {
     final key = sha1.convert(utf8.encode(url.toString())).toString();
-    return _downloads[key] ??= _fetch(
-      url,
-      key,
-    ).whenComplete(() => _downloads.remove(key));
+    // The callback must return nothing: whenComplete waits for a Future it
+    // returns, and Map.remove would return this very future, which then
+    // waits on itself forever.
+    return _downloads[key] ??= _fetch(url, key).whenComplete(() {
+      _downloads.remove(key);
+    });
   }
 
   Future<String?> _fetch(Uri url, String key) async {
     final dir = await _directory();
     final target = File(p.join(dir.path, '$key.mp4'));
     if (await target.exists() && await target.length() > 0) {
-      // Touched so eviction keeps what is watched.
-      await target.setLastModified(DateTime.now());
+      // Touched so eviction keeps what is watched. A file the player still
+      // holds may refuse it; the video plays all the same.
+      try {
+        await target.setLastModified(DateTime.now());
+      } catch (_) {}
+      _log.debug('Video served from cache: $key');
       return target.path;
     }
+    _log.info('Downloading video from ${url.host} into the cache: $key');
     await dir.create(recursive: true);
     final part = File('${target.path}.part');
     try {
