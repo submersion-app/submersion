@@ -333,7 +333,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 382;
+  static const int currentSchemaVersion = 383;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -518,7 +518,12 @@ class AppDatabase extends _$AppDatabase {
   /// triggers a full resync in normal use): the device that analysed
   /// usually updates first. Held below the floor, it reads them all once it
   /// updates. Its own payloads still arrive here and decode cleanly.
-  static const int minimumCompatibleSchemaVersion = 381;
+  ///
+  /// Raised 381 -> 383 for derived course requirements: older readers treat
+  /// the new kinds as manually credited dives and discard the conditions.
+  /// Holding those readers also prevents them from publishing explicit nulls
+  /// for the discarded conditions after they upgrade.
+  static const int minimumCompatibleSchemaVersion = 383;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1794,6 +1799,9 @@ class AppDatabase extends _$AppDatabase {
     // by hand, which a re-parse and a resync keep (issue #4909). Nullable,
     // no backfill; the floor does not move.
     382,
+    // v383: the equipment and dive query for derived course requirements.
+    // New kinds require the sync floor to rise to 383.
+    383,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

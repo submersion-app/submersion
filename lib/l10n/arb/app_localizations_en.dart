@@ -6028,6 +6028,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courses_requirement_kind_dive => 'Dive requirement';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'CCR hours';
+
+  @override
+  String get courses_requirement_kind_diveQuery => 'Dives matching a search';
+
+  @override
+  String get courses_requirement_field_targetHours => 'Required hours';
+
+  @override
+  String get courses_requirement_field_rebreather => 'Rebreather';
+
+  @override
+  String get courses_requirement_anyRebreather => 'Any rebreather';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'Removed rebreather';
+
+  @override
+  String get courses_requirement_field_query => 'Dive search';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours of $target hours';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count of $target matching dives';
+  }
+
+  @override
   String get courses_requirement_suggestions => 'Suggested dives';
 
   @override
@@ -27901,6 +27932,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'Dives';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCR hours';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'Matching dives';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'Aborted';

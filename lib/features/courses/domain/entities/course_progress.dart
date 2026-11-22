@@ -30,20 +30,39 @@ class CourseRequirementProgress extends Equatable {
   final CourseRequirement requirement;
   final List<RequirementDiveSummary> linkedDives;
 
+  /// What a derived requirement has counted so far in the logbook: minutes
+  /// of CCR time for [RequirementKind.ccrHours], matching dives for
+  /// [RequirementKind.diveQuery]. Zero for the other kinds.
+  final int derivedAmount;
+
   const CourseRequirementProgress({
     required this.requirement,
     required this.linkedDives,
+    this.derivedAmount = 0,
   });
 
   int get creditCount => linkedDives.length;
 
-  bool get isSatisfied => requirement.kind == RequirementKind.checklist
-      ? requirement.completedAt != null
-      : creditCount >= requirement.targetCount;
+  bool get isSatisfied =>
+      isRequirementMet(requirement, creditCount, derivedAmount);
 
   @override
-  List<Object?> get props => [requirement, linkedDives];
+  List<Object?> get props => [requirement, linkedDives, derivedAmount];
 }
+
+/// Whether [requirement] is met by [creditCount] credited dives or, for a
+/// derived kind, [derivedAmount] (see
+/// [CourseRequirementProgress.derivedAmount]).
+bool isRequirementMet(
+  CourseRequirement requirement,
+  int creditCount,
+  int derivedAmount,
+) => switch (requirement.kind) {
+  RequirementKind.checklist => requirement.completedAt != null,
+  RequirementKind.dive => creditCount >= requirement.targetCount,
+  RequirementKind.ccrHours => derivedAmount ~/ 60 >= requirement.targetCount,
+  RequirementKind.diveQuery => derivedAmount >= requirement.targetCount,
+};
 
 /// Roll-up of all requirements of one course.
 class CourseProgress extends Equatable {

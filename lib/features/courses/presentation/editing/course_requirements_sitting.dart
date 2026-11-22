@@ -44,6 +44,9 @@ CourseRequirementProgress _newRow({
   required int targetCount,
   required int sortOrder,
   required DateTime now,
+  String? equipmentId,
+  String? queryJson,
+  int derivedAmount = 0,
 }) => CourseRequirementProgress(
   requirement: CourseRequirement(
     id: const Uuid().v4(),
@@ -54,15 +57,21 @@ CourseRequirementProgress _newRow({
     sortOrder: sortOrder,
     createdAt: now,
     updatedAt: now,
+    equipmentId: equipmentId,
+    queryJson: queryJson,
   ),
   linkedDives: const [],
+  derivedAmount: derivedAmount,
 );
 
-/// [rows] with [draft] added after the last row.
+/// [rows] with [draft] added after the last row. [derivedAmount] is what a
+/// derived requirement has counted in the logbook (see
+/// [CourseRequirementProgress.derivedAmount]).
 List<CourseRequirementProgress> withRequirementAdded(
   List<CourseRequirementProgress> rows,
   RequirementDraft draft, {
   required String courseId,
+  int derivedAmount = 0,
   DateTime? now,
 }) => [
   ...rows,
@@ -73,6 +82,9 @@ List<CourseRequirementProgress> withRequirementAdded(
     targetCount: draft.targetCount,
     sortOrder: _lastSortOrder(rows) + 1,
     now: now ?? DateTime.now(),
+    equipmentId: draft.equipmentId,
+    queryJson: draft.queryJson,
+    derivedAmount: derivedAmount,
   ),
 ];
 
@@ -107,23 +119,28 @@ List<CourseRequirementProgress> _withRequirement(
 ) => [for (final r in rows) r.requirement.id == id ? change(r) : r];
 
 /// [rows] with requirement [id] renamed, retyped and retargeted as [draft]
-/// says, its credits kept. A dive requirement has no tick, as the
-/// repository's update has it.
+/// says, its credits kept. Only a checklist requirement has a tick, as the
+/// repository's update has it. [derivedAmount] is what the edited
+/// requirement counts in the logbook.
 List<CourseRequirementProgress> withRequirementEdited(
   List<CourseRequirementProgress> rows,
   String id,
-  RequirementDraft draft,
-) => _withRequirement(rows, id, (r) {
+  RequirementDraft draft, {
+  int derivedAmount = 0,
+}) => _withRequirement(rows, id, (r) {
   final edited = r.requirement.copyWith(
     name: draft.name.trim(),
     kind: draft.kind,
     targetCount: draft.targetCount,
+    equipmentId: () => draft.equipmentId,
+    queryJson: () => draft.queryJson,
   );
   return CourseRequirementProgress(
-    requirement: draft.kind == RequirementKind.dive
-        ? edited.clearCompletedAt()
-        : edited,
+    requirement: draft.kind == RequirementKind.checklist
+        ? edited
+        : edited.clearCompletedAt(),
     linkedDives: r.linkedDives,
+    derivedAmount: derivedAmount,
   );
 });
 
@@ -141,6 +158,7 @@ List<CourseRequirementProgress> withRequirementTicked(
         ? r.requirement.copyWith(completedAt: now ?? DateTime.now())
         : r.requirement.clearCompletedAt(),
     linkedDives: r.linkedDives,
+    derivedAmount: r.derivedAmount,
   ),
 );
 
@@ -171,6 +189,7 @@ List<CourseRequirementProgress> withDiveCredited(
     (r) => CourseRequirementProgress(
       requirement: r.requirement,
       linkedDives: [...r.linkedDives, dive],
+      derivedAmount: r.derivedAmount,
     ),
   );
 }
@@ -189,6 +208,7 @@ List<CourseRequirementProgress> withDiveUncredited(
       for (final d in r.linkedDives)
         if (d.diveId != diveId) d,
     ],
+    derivedAmount: r.derivedAmount,
   ),
 );
 
@@ -251,7 +271,9 @@ abstract interface class RequirementActions {
 /// The tracker's actions in a course page's sitting: each changes only the
 /// sitting's rows, written at Save.
 class HeldRequirementActions implements RequirementActions {
-  HeldRequirementActions(this._session);
+  HeldRequirementActions(this._session, {this.readDerivedAmount});
+
+  final Future<int> Function(CourseRequirement)? readDerivedAmount;
 
   final EditSession<Course> _session;
 
@@ -270,12 +292,37 @@ class HeldRequirementActions implements RequirementActions {
     courseRequirementsList.set(_session, edit(rows));
   }
 
+  /// What [draft] counts in the logbook now, for a row the sitting holds.
+  Future<int> _derivedAmountOf(RequirementDraft draft) async {
+    if (!draft.kind.isDerived) return 0;
+    final now = DateTime.now();
+    final requirement = CourseRequirement(
+      id: '',
+      courseId: _courseId,
+      name: draft.name,
+      kind: draft.kind,
+      targetCount: draft.targetCount,
+      equipmentId: draft.equipmentId,
+      queryJson: draft.queryJson,
+      createdAt: now,
+      updatedAt: now,
+    );
+    return readDerivedAmount?.call(requirement) ??
+        CourseRequirementRepository().getDerivedAmount(requirement);
+  }
+
   @override
   Future<void> add(BuildContext context) async {
     final draft = await showAddRequirementSheet(context);
     if (draft == null) return;
+    final derived = await _derivedAmountOf(draft);
     await _change(
-      (rows) => withRequirementAdded(rows, draft, courseId: _courseId),
+      (rows) => withRequirementAdded(
+        rows,
+        draft,
+        courseId: _courseId,
+        derivedAmount: derived,
+      ),
     );
   }
 
@@ -292,7 +339,15 @@ class HeldRequirementActions implements RequirementActions {
   Future<void> edit(BuildContext context, CourseRequirement requirement) async {
     final draft = await showAddRequirementSheet(context, existing: requirement);
     if (draft == null) return;
-    await _change((rows) => withRequirementEdited(rows, requirement.id, draft));
+    final derived = await _derivedAmountOf(draft);
+    await _change(
+      (rows) => withRequirementEdited(
+        rows,
+        requirement.id,
+        draft,
+        derivedAmount: derived,
+      ),
+    );
   }
 
   @override

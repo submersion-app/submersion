@@ -6109,6 +6109,38 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_requirement_kind_dive => 'Merülési követelmény';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'CCR-órák';
+
+  @override
+  String get courses_requirement_kind_diveQuery =>
+      'Keresésnek megfelelő merülések';
+
+  @override
+  String get courses_requirement_field_targetHours => 'Szükséges órák';
+
+  @override
+  String get courses_requirement_field_rebreather => 'Rebreather';
+
+  @override
+  String get courses_requirement_anyRebreather => 'Bármely rebreather';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'Eltávolított rebreather';
+
+  @override
+  String get courses_requirement_field_query => 'Merülések keresése';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours / $target óra';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count / $target egyező merülés';
+  }
+
+  @override
   String get courses_requirement_suggestions => 'Javasolt merülések';
 
   @override
@@ -28237,6 +28269,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'Merülések';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCR-órák';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'Egyező merülések';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'Megszakítva';

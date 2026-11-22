@@ -1,4 +1,6 @@
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 
 import '../../helpers/test_database.dart';
@@ -35,6 +37,42 @@ void main() {
     await tearDownTestDatabase();
   });
 
+  test('v383 upgrades existing requirements without rewriting them', () async {
+    expect(AppDatabase.migrationVersions, contains(383));
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(383),
+    );
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('PRAGMA user_version = 382');
+          rawDb.execute('''
+          CREATE TABLE course_requirements (
+            id TEXT NOT NULL PRIMARY KEY,
+            kind TEXT NOT NULL,
+            target_count INTEGER NOT NULL)
+        ''');
+          rawDb.execute(
+            "INSERT INTO course_requirements VALUES ('r1', 'dive', 4)",
+          );
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    final row = await db
+        .customSelect(
+          "SELECT kind, target_count, equipment_id, query_json "
+          "FROM course_requirements WHERE id = 'r1'",
+        )
+        .getSingle();
+    expect(row.read<String>('kind'), 'dive');
+    expect(row.read<int>('target_count'), 4);
+    expect(row.readNullable<String>('equipment_id'), isNull);
+    expect(row.readNullable<String>('query_json'), isNull);
+  });
+
   group('v121 course requirement schema', () {
     test('course_requirements has the expected columns', () async {
       final cols = await _columns('course_requirements');
@@ -52,6 +90,8 @@ void main() {
           'created_at',
           'updated_at',
           'hlc',
+          'equipment_id',
+          'query_json',
         }),
       );
     });

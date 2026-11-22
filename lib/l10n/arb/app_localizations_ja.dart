@@ -5890,6 +5890,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get courses_requirement_kind_dive => 'ダイブ要件';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'CCRの使用時間';
+
+  @override
+  String get courses_requirement_kind_diveQuery => '検索条件に一致するダイブ';
+
+  @override
+  String get courses_requirement_field_targetHours => '必要な時間（時間数）';
+
+  @override
+  String get courses_requirement_field_rebreather => 'リブリーザー';
+
+  @override
+  String get courses_requirement_anyRebreather => 'すべてのリブリーザー';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => '削除されたリブリーザー';
+
+  @override
+  String get courses_requirement_field_query => 'ダイブの検索条件';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$target時間中$hours時間';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '条件に一致するダイブ：$target本中$count本';
+  }
+
+  @override
   String get courses_requirement_suggestions => '候補のダイブ';
 
   @override
@@ -27172,6 +27203,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'ダイブ';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCRの使用時間';
+
+  @override
+  String get enum_requirementKind_diveQuery => '条件に一致するダイブ';
 
   @override
   String get enum_preDiveSessionStatus_aborted => '中止';

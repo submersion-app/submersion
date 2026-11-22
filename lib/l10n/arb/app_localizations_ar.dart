@@ -6226,6 +6226,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_requirement_kind_dive => 'متطلب غطس';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'ساعات CCR';
+
+  @override
+  String get courses_requirement_kind_diveQuery => 'غطسات تطابق بحثاً';
+
+  @override
+  String get courses_requirement_field_targetHours => 'الساعات المطلوبة';
+
+  @override
+  String get courses_requirement_field_rebreather => 'جهاز إعادة التنفس';
+
+  @override
+  String get courses_requirement_anyRebreather => 'أي جهاز إعادة تنفس';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'جهاز إعادة تنفس محذوف';
+
+  @override
+  String get courses_requirement_field_query => 'بحث الغطسات';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours من $target ساعة';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count من $target غطسات مطابقة';
+  }
+
+  @override
   String get courses_requirement_suggestions => 'غطسات مقترحة';
 
   @override
@@ -28663,6 +28694,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'غوصات';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'ساعات CCR';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'غطسات مطابقة';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'أُلغيت';

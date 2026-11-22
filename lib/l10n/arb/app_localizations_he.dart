@@ -5987,6 +5987,37 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_requirement_kind_dive => 'דרישת צלילה';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'שעות CCR';
+
+  @override
+  String get courses_requirement_kind_diveQuery => 'צלילות התואמות חיפוש';
+
+  @override
+  String get courses_requirement_field_targetHours => 'שעות נדרשות';
+
+  @override
+  String get courses_requirement_field_rebreather => 'רברדר';
+
+  @override
+  String get courses_requirement_anyRebreather => 'כל רברדר';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'רברדר שהוסר';
+
+  @override
+  String get courses_requirement_field_query => 'חיפוש צלילות';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours מתוך $target שעות';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count מתוך $target צלילות תואמות';
+  }
+
+  @override
   String get courses_requirement_suggestions => 'צלילות מוצעות';
 
   @override
@@ -27671,6 +27702,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'צלילות';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'שעות CCR';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'צלילות תואמות';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'בוטל';

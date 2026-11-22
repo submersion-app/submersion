@@ -25,12 +25,7 @@ Future<Set<String>> _ids(RecordRepositories r, String sql, String id) async => {
 Future<List<CourseRequirement>> _requirementsOf(
   RecordRepositories r,
   String courseId,
-) async => [
-  for (final p in (await r.courseRequirements.getCourseProgress(
-    courseId,
-  )).requirements)
-    p.requirement,
-];
+) => r.courseRequirements.getRequirements(courseId);
 
 CourseTemplate? _template(Object? id) =>
     CourseTemplateCatalog.templates.where((t) => t.id == id).firstOrNull;
@@ -348,13 +343,18 @@ class CourseRequirementWrites extends WritableEntry {
   String get note =>
       'A dive requirement counts the dives in dive_ids up to target_count; a '
       'checklist requirement is ticked through completed_at, which a '
-      'non-null value sets to the moment of the save and null clears.';
+      'non-null value sets to the moment of the save and null clears. A '
+      'ccrHours or diveQuery requirement is counted from the logbook and is '
+      'set up in the app, not here.';
 
   @override
   late final Map<String, FieldCodec> fields = {
     'course_id': const FieldCodec.reference('courses'),
     'name': const FieldCodec.text(maxLength: 200, trim: true),
-    'kind': FieldCodec.enumName(RequirementKind.values),
+    'kind': FieldCodec.enumName(const [
+      RequirementKind.dive,
+      RequirementKind.checklist,
+    ]),
     'target_count': const FieldCodec.integer(min: 1, max: 999),
     'completed_at': const FieldCodec.instant(nullable: true),
     'notes': const FieldCodec.text(nullable: true, trim: true),
@@ -380,16 +380,28 @@ class CourseRequirementWrites extends WritableEntry {
     if (check.kind == ChangeKind.delete) return null;
     final req = {...?check.document, ...check.values};
     final dive = req['kind'] == RequirementKind.dive.name;
-    if (!dive && ((req['target_count'] as int?) ?? 1) > 1) {
+    final checklist = req['kind'] == RequirementKind.checklist.name;
+    final wasDerived = RequirementKind.fromName(
+      check.document?['kind'] as String?,
+    ).isDerived;
+    if (wasDerived &&
+        (check.values.containsKey('kind') ||
+            check.values.containsKey('target_count'))) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'The kind and target of a logbook-derived requirement are edited in the app.',
+      );
+    }
+    if (checklist && ((req['target_count'] as int?) ?? 1) > 1) {
       return const PlanBlock(
         BlockReason.invalidValue,
         'target_count: a checklist requirement counts once.',
       );
     }
-    if (dive && check.values['completed_at'] != null) {
+    if (!checklist && check.values['completed_at'] != null) {
       return const PlanBlock(
         BlockReason.invalidValue,
-        'completed_at: a dive requirement completes through its dives.',
+        'completed_at: only a checklist requirement is ticked.',
       );
     }
     final added = check.relations['dive_ids']?.add ?? const {};
@@ -431,7 +443,8 @@ class CourseRequirementWrites extends WritableEntry {
     RecordUpdate update,
     Map<String, Object?> document,
   ) async =>
-      update.values['kind'] == RequirementKind.dive.name &&
+      update.values.containsKey('kind') &&
+          update.values['kind'] != RequirementKind.checklist.name &&
           document['completed_at'] != null
       ? const SideEffects(fields: {'completed_at': null})
       : const SideEffects();
@@ -495,6 +508,8 @@ class CourseRequirementWrites extends WritableEntry {
           notes: v.containsKey('notes') ? v['notes'] as String? : current.notes,
           createdAt: current.createdAt,
           updatedAt: current.updatedAt,
+          equipmentId: current.equipmentId,
+          queryJson: current.queryJson,
         ),
       );
     }

@@ -3711,6 +3711,15 @@
   "courses_requirement_field_targetCount": "Required dives",
   "courses_requirement_kind_checklist": "Check-off item",
   "courses_requirement_kind_dive": "Dive requirement",
+  "courses_requirement_kind_ccrHours": "CCR hours",
+  "courses_requirement_kind_diveQuery": "Dives matching a search",
+  "courses_requirement_field_targetHours": "Required hours",
+  "courses_requirement_field_rebreather": "Rebreather",
+  "courses_requirement_anyRebreather": "Any rebreather",
+  "courses_requirement_rebreatherRemoved": "Removed rebreather",
+  "courses_requirement_field_query": "Dive search",
+  "courses_requirement_hoursProgress": "{hours} of {target} hours",
+  "courses_requirement_matchProgress": "{count} of {target} matching dives",
   "courses_requirement_suggestions": "Suggested dives",
   "courses_requirement_allDives": "All dives",
   "courses_requirement_noDives": "No dives to link",
@@ -3810,6 +3819,26 @@
     "placeholders": {
       "error": {
         "type": "Object"
+      }
+    }
+  },
+  "@courses_requirement_hoursProgress": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "@courses_requirement_matchProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
       }
     }
   },
@@ -16773,6 +16802,8 @@
   "enum_manifestFormat_json": "JSON",
   "enum_requirementKind_checklist": "Checklist",
   "enum_requirementKind_dive": "Dives",
+  "enum_requirementKind_ccrHours": "CCR hours",
+  "enum_requirementKind_diveQuery": "Matching dives",
   "enum_preDiveSessionStatus_aborted": "Aborted",
   "enum_preDiveSessionStatus_completed": "Completed",
   "enum_preDiveSessionStatus_inProgress": "In progress",

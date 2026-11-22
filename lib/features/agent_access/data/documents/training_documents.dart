@@ -140,6 +140,8 @@ Map<String, Object?> courseRequirementDocument(CourseRequirement r) => {
   'completed_at': instant(r.completedAt),
   'sort_order': r.sortOrder,
   'notes': r.notes,
+  'equipment_id': r.equipmentId,
+  'query_json': r.queryJson,
 };
 
 Map<String, Object?> speciesDocument(Species s) => {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
@@ -68,7 +68,15 @@ class CourseRequirementsSection extends ConsumerWidget {
     final suggestions = held == null
         ? storedSuggestions
         : suggestionsInSitting(storedSuggestions, held);
-    final actions = editing == null ? null : HeldRequirementActions(editing);
+    final container = ref.container;
+    final actions = editing == null
+        ? null
+        : HeldRequirementActions(
+            editing,
+            readDerivedAmount: (requirement) => container.awaitFuture(
+              courseRequirementAmountProvider(requirement).future,
+            ),
+          );
 
     final addButtons = actions == null
         ? null

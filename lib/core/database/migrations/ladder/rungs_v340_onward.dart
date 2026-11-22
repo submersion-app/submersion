@@ -327,5 +327,9 @@ extension RungsFromV340 on AppDatabase {
     // not move.
     if (from < 382) await _assertDiveHandSetFieldsColumn();
     if (from < 382) await reportProgress();
+
+    // v383: the nullable conditions for derived course requirements.
+    if (from < 383) await _assertCourseRequirementConditionColumns();
+    if (from < 383) await reportProgress();
   }
 }

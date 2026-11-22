@@ -8,5 +8,7 @@ extension BeforeOpenCourseLinks on AppDatabase {
   Future<void> _assertCourseLinks() async {
     await _assertDiveCourseSchema();
     await seedDiveCourseLinks(this);
+    // v383 backstop: every requirement read selects the whole row.
+    await _assertCourseRequirementConditionColumns();
   }
 }

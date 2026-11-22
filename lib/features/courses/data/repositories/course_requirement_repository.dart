@@ -1,15 +1,25 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/course_templates.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/core/query/compiler/query_validator.dart';
+import 'package:submersion/core/query/domain/query_json.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/query/app_query_registry.dart';
+import 'package:submersion/features/query/data/query_id_set_runner.dart';
 
 /// Maps a Drift row to the domain entity.
 CourseRequirement mapCourseRequirementRow(CourseRequirementRow row) {
@@ -26,8 +36,36 @@ CourseRequirement mapCourseRequirementRow(CourseRequirementRow row) {
     notes: row.notes,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+    equipmentId: row.equipmentId,
+    queryJson: row.queryJson,
   );
 }
+
+/// The dive query stored in [queryJson], or null when there is none or this
+/// build cannot read or accept it. A requirement whose query is unusable
+/// counts nothing rather than every dive.
+QueryNode? courseRequirementQuery(String? queryJson) {
+  if (queryJson == null || queryJson.isEmpty) return null;
+  try {
+    final decoded = jsonDecode(queryJson);
+    if (decoded is! Map<String, dynamic>) return null;
+    final node = queryNodeFromJson(decoded);
+    if (!isValidCourseRequirementQuery(node)) {
+      return null;
+    }
+    return node;
+  } on Object {
+    return null;
+  }
+}
+
+bool isValidCourseRequirementQuery(QueryNode node) =>
+    validateQuery(node, diveQueryEntity, appQueryRegistry).isEmpty;
+
+/// Prepares local query caches and optionally follows the tables they and the
+/// compiled queries read. An overlay carries another diver's service status.
+typedef PrepareCourseQueries =
+    Future<QueryCte?> Function(String diverId, Set<String> tables);
 
 class CourseRequirementRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -52,26 +90,46 @@ class CourseRequirementRepository {
     ]),
   );
 
-  /// All requirements of [courseId] with their credited dives, in
-  /// sortOrder. One requirement query plus one joined link query -- no N+1.
-  /// Deliberately does NOT apply DiveStatsScope. The diver linked this dive
-  /// to the course on purpose; excluding it from statistics is a statement
-  /// about their logbook averages, not a retraction of course credit. Do not
-  /// "fix" this.
+  /// Reads the definitions without running their queries or loading credits.
+  Future<List<CourseRequirement>> getRequirements(String courseId) async {
+    final rows =
+        await (_db.select(_db.courseRequirements)
+              ..where((t) => t.courseId.equals(courseId))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.sortOrder),
+                (t) => OrderingTerm.asc(t.createdAt),
+              ]))
+            .get();
+    return rows.map(mapCourseRequirementRow).toList();
+  }
+
+  /// All requirements in sort order, with credited dives and derived progress.
+  /// A dive excluded from statistics still counts toward course credit.
   // stats-scope-exempt: course credit is deliberate, not descriptive
-  Future<CourseProgress> getCourseProgress(String courseId) async {
+  Future<CourseProgress> getCourseProgress(
+    String courseId, {
+    PrepareCourseQueries? prepareQueries,
+  }) async {
     try {
-      final reqRows =
-          await (_db.select(_db.courseRequirements)
-                ..where((t) => t.courseId.equals(courseId))
-                ..orderBy([
-                  (t) => OrderingTerm.asc(t.sortOrder),
-                  (t) => OrderingTerm.asc(t.createdAt),
-                ]))
-              .get();
+      final requirements = await getRequirements(courseId);
+      final diverId = requirements.any((r) => r.kind.isDerived)
+          ? await _courseDiverId(courseId)
+          : null;
+      final queries = <String, CompiledQuery>{};
+      final tables = <String>{};
+      if (diverId != null) {
+        for (final requirement in requirements) {
+          final query = _compileRequirement(requirement, diverId);
+          if (query != null) queries[requirement.id] = query;
+          tables.addAll(_derivedTables(requirement, query));
+        }
+      }
+      final cte = diverId != null && tables.isNotEmpty
+          ? await prepareQueries?.call(diverId, tables)
+          : null;
 
       final linksByRequirement = <String, List<RequirementDiveSummary>>{};
-      if (reqRows.isNotEmpty) {
+      if (requirements.isNotEmpty) {
         final linkQuery =
             _db.select(_db.courseRequirementDives).join([
                 innerJoin(
@@ -85,7 +143,7 @@ class CourseRequirementRepository {
               ])
               ..where(
                 _db.courseRequirementDives.requirementId.isIn(
-                  reqRows.map((r) => r.id).toList(),
+                  requirements.map((r) => r.id).toList(),
                 ),
               )
               ..orderBy([OrderingTerm.asc(_db.dives.diveDateTime)]);
@@ -116,10 +174,18 @@ class CourseRequirementRepository {
       return CourseProgress(
         courseId: courseId,
         requirements: [
-          for (final row in reqRows)
+          for (final requirement in requirements)
             CourseRequirementProgress(
-              requirement: mapCourseRequirementRow(row),
-              linkedDives: linksByRequirement[row.id] ?? const [],
+              requirement: requirement,
+              linkedDives: linksByRequirement[requirement.id] ?? const [],
+              derivedAmount: diverId == null
+                  ? 0
+                  : await _derivedAmount(
+                      requirement,
+                      diverId,
+                      queries[requirement.id],
+                      cte,
+                    ),
             ),
         ],
       );
@@ -133,12 +199,105 @@ class CourseRequirementRepository {
     }
   }
 
+  Future<String?> _courseDiverId(String courseId) async {
+    final course = await (_db.select(
+      _db.courses,
+    )..where((t) => t.id.equals(courseId))).getSingleOrNull();
+    return course?.diverId;
+  }
+
+  /// Counts a requirement held in the editor against its course's logbook.
+  Future<int> getDerivedAmount(
+    CourseRequirement requirement, {
+    PrepareCourseQueries? prepareQueries,
+  }) async {
+    if (!requirement.kind.isDerived) return 0;
+    final diverId = await _courseDiverId(requirement.courseId);
+    if (diverId == null) return 0;
+    final query = _compileRequirement(requirement, diverId);
+    final tables = _derivedTables(requirement, query);
+    final cte = tables.isEmpty
+        ? null
+        : await prepareQueries?.call(diverId, tables);
+    return _derivedAmount(requirement, diverId, query, cte);
+  }
+
+  CompiledQuery? _compileRequirement(
+    CourseRequirement requirement,
+    String diverId,
+  ) {
+    if (requirement.kind != RequirementKind.diveQuery) return null;
+    final node = courseRequirementQuery(requirement.queryJson);
+    if (node == null) return null;
+    return compileQuery(
+      node,
+      diveQueryEntity,
+      appQueryRegistry,
+      diverId: diverId,
+    );
+  }
+
+  Set<String> _derivedTables(
+    CourseRequirement requirement,
+    CompiledQuery? query,
+  ) => switch (requirement.kind) {
+    RequirementKind.ccrHours => {
+      'dives',
+      ...measuredRuntimeTables,
+      if (requirement.equipmentId != null) 'dive_equipment',
+    },
+    _ => query?.tablesTouched ?? const {},
+  };
+
+  Future<int> _derivedAmount(
+    CourseRequirement requirement,
+    String diverId,
+    CompiledQuery? query,
+    QueryCte? cte,
+  ) async => switch (requirement.kind) {
+    RequirementKind.ccrHours => _ccrMinutes(diverId, requirement),
+    RequirementKind.diveQuery when query != null => QueryIdSetRunner(_db).count(
+      query,
+      cte: cte,
+      scope: (sql: _loggedDiveScope(query.rootAlias), params: [diverId]),
+    ),
+    _ => 0,
+  };
+
+  // stats-scope-exempt: course progress is operational, not descriptive
+  static String _loggedDiveScope(String alias) =>
+      '$alias.is_planned = 0 AND $alias.is_draft = 0 AND $alias.diver_id = ?';
+
+  Future<int> _ccrMinutes(String diverId, CourseRequirement requirement) async {
+    final equipmentId = requirement.equipmentId;
+    final row = await _db
+        .customSelect(
+          'SELECT COALESCE(SUM(COALESCE(${measuredRuntimeSecondsSql('d')}, '
+          'd.bottom_time, 0)), 0) AS seconds FROM dives d '
+          "WHERE d.dive_mode = 'ccr' AND ${_loggedDiveScope('d')} "
+          '${equipmentId == null ? '' : 'AND EXISTS (SELECT 1 FROM '
+                    'dive_equipment de WHERE de.dive_id = d.id '
+                    'AND de.equipment_id = ?)'}',
+          variables: [
+            Variable.withString(diverId),
+            if (equipmentId != null) Variable.withString(equipmentId),
+          ],
+          readsFrom: QueryIdSetRunner(
+            _db,
+          ).tablesNamed(_derivedTables(requirement, null)),
+        )
+        .getSingle();
+    return row.read<int>('seconds') ~/ 60;
+  }
+
   Future<CourseRequirement> createRequirement({
     required String courseId,
     required String name,
     required RequirementKind kind,
     int targetCount = 1,
     String? notes,
+    String? equipmentId,
+    String? queryJson,
   }) async {
     try {
       final id = _uuid.v4();
@@ -156,6 +315,8 @@ class CourseRequirementRepository {
               targetCount: Value(targetCount),
               sortOrder: Value(maxSortOrder + 1),
               notes: Value(notes),
+              equipmentId: Value(equipmentId),
+              queryJson: Value(queryJson),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -194,15 +355,17 @@ class CourseRequirementRepository {
           kind: Value(requirement.kind.name),
           targetCount: Value(requirement.targetCount),
           // completedAt is only meaningful for checklist requirements. When
-          // the kind is (or becomes) dive, force it NULL so a later switch
+          // the kind is (or becomes) another, force it NULL so a later switch
           // back to checklist does not resurface a stale completion; for
           // checklist leave the column untouched (setChecklistComplete owns
           // it) rather than overwriting with a possibly-unhydrated value.
-          completedAt: requirement.kind == RequirementKind.dive
-              ? const Value(null)
-              : const Value.absent(),
+          completedAt: requirement.kind == RequirementKind.checklist
+              ? const Value.absent()
+              : const Value(null),
           sortOrder: Value(requirement.sortOrder),
           notes: Value(requirement.notes),
+          equipmentId: Value(requirement.equipmentId),
+          queryJson: Value(requirement.queryJson),
           updatedAt: Value(now),
         ),
       );
@@ -719,6 +882,8 @@ class CourseRequirementRepository {
             completedAt: Value(requirement.completedAt?.millisecondsSinceEpoch),
             sortOrder: Value(requirement.sortOrder),
             notes: Value(requirement.notes),
+            equipmentId: Value(requirement.equipmentId),
+            queryJson: Value(requirement.queryJson),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -732,8 +897,9 @@ class CourseRequirementRepository {
 
   /// Writes the values of [requirement] the sitting changed from [was], the
   /// one it loaded, so a value changed meanwhile on another device (a tick,
-  /// say) is kept where the diver did not touch it. A dive requirement has no
-  /// tick. Whether a row was written: none for one deleted meanwhile.
+  /// say) is kept where the diver did not touch it. Only a checklist
+  /// requirement has a tick. Whether a row was written: none for one deleted
+  /// meanwhile.
   Future<bool> _writeRequirement(
     CourseRequirement was,
     CourseRequirement requirement,
@@ -741,9 +907,10 @@ class CourseRequirementRepository {
   ) async {
     Value<T> changed<T>(T before, T after) =>
         before == after ? const Value.absent() : Value(after);
-    final completedAt = requirement.kind == RequirementKind.dive
-        ? null
-        : requirement.completedAt?.millisecondsSinceEpoch;
+    final kindChanged = was.kind != requirement.kind;
+    final completedAt = requirement.kind == RequirementKind.checklist
+        ? requirement.completedAt?.millisecondsSinceEpoch
+        : null;
     final written =
         await (_db.update(
           _db.courseRequirements,
@@ -751,13 +918,23 @@ class CourseRequirementRepository {
           CourseRequirementsCompanion(
             name: changed(was.name.trim(), requirement.name.trim()),
             kind: changed(was.kind.name, requirement.kind.name),
-            targetCount: changed(was.targetCount, requirement.targetCount),
-            completedAt: changed(
-              was.completedAt?.millisecondsSinceEpoch,
-              completedAt,
-            ),
+            // The kind determines the units and which condition is relevant.
+            // Write those values together when changing kinds.
+            targetCount: kindChanged
+                ? Value(requirement.targetCount)
+                : changed(was.targetCount, requirement.targetCount),
+            completedAt:
+                kindChanged && requirement.kind != RequirementKind.checklist
+                ? const Value(null)
+                : changed(was.completedAt?.millisecondsSinceEpoch, completedAt),
             sortOrder: changed(was.sortOrder, requirement.sortOrder),
             notes: changed(was.notes, requirement.notes),
+            equipmentId: kindChanged
+                ? Value(requirement.equipmentId)
+                : changed(was.equipmentId, requirement.equipmentId),
+            queryJson: kindChanged
+                ? Value(requirement.queryJson)
+                : changed(was.queryJson, requirement.queryJson),
             updatedAt: Value(now),
           ),
         );
