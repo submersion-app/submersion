@@ -678,3 +678,18 @@ numpy and Pillow. Each set's `precision` and `levels` go from
 `results.json`'s `measured` entries into `NAMING_MEASURED`, and
 `relevel_manifest.py --in <published manifest.json> --out <new manifest.json>`
 adds them to the published manifest, changing nothing else.
+
+"The ONNX engine against Core ML" comes from `engine_gate.json` and the
+gate and comparison outputs, regenerated in the species-pack repository
+from the pack with its ONNX files added (`PACK`) and a work folder
+(`WORK`):
+
+1. `score.py --pack PACK --engine coreml --naming-from PACK --work WORK`,
+   then the same with `--engine onnx` and `SUBMERSION_APP` set to an app
+   checkout at the engine's commit; the ONNX results go to `WORK/onnx`.
+2. `engine_gate.py --work WORK --pack PACK`, and `gate.py` with
+   `--trained WORK --trained-onnx WORK/onnx` beside its usual baseline
+   and check folders.
+3. For x64, the app's scoring runner (`tool/species_vision_onnx`) over
+   the same 100 held-out photos on the Mac and on a Linux x64 machine,
+   then `engine_compare.py --pack PACK MAC.jsonl X64.jsonl`.
