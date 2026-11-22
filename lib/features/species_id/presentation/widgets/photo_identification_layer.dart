@@ -64,7 +64,7 @@ class PhotoIdentificationLayer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = imageSize;
-    if (!marineLifeIdEnabled || size == null || size.isEmpty) {
+    if (!marineLifeLabelsShown || size == null || size.isEmpty) {
       return const SizedBox.shrink();
     }
     final mode = ref.watch(labelModeNotifierProvider);

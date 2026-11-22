@@ -191,6 +191,24 @@ void main() {
     expect(find.text('3 found'), findsOneWidget);
   });
 
+  group('where the models cannot run (issue #4876)', () {
+    setUp(() {
+      marineLifeIdEnabled = false;
+      marineLifeLabelsShown = true;
+    });
+
+    testWidgets('the modes show, and nothing offers to analyse', (
+      tester,
+    ) async {
+      await open(tester, state: MediaAnalysisState.foundNoModel, found: 2);
+      expect(entry('names'), findsOneWidget);
+      expect(entry('all_life'), findsOneWidget);
+      expect(entry('off'), findsOneWidget);
+      expect(entry('analyse'), findsNothing);
+      expect(find.text('2 found'), findsOneWidget);
+    });
+  });
+
   group('when the toolbar hides under the open menu', () {
     testWidgets('a mode picked is still the one in force', (tester) async {
       await open(tester);

@@ -281,7 +281,8 @@ final identificationCleanupProvider = Provider<IdentificationCleanup>(
 Future<void> sweepIdentificationOrphansAtLaunch(
   IdentificationCleanup cleanup,
 ) async {
-  if (!marineLifeIdEnabled) return;
+  // Results synced from another device are swept here too (issue #4876).
+  if (!marineLifeLabelsShown) return;
   await cleanup.sweepOrphans();
 }
 
@@ -410,7 +411,7 @@ Future<IdentificationImage?> identificationImageOf(
 /// suggestions show whether or not a model is installed.
 final mediaSuggestionsProvider = FutureProvider.autoDispose
     .family<List<SpeciesSuggestion>, String>((ref, mediaId) async {
-      if (!marineLifeIdEnabled) return const [];
+      if (!marineLifeLabelsShown) return const [];
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       ref.invalidateSelfWhen(repository.watchTagChanges());
@@ -442,7 +443,7 @@ final mediaIdentificationProgressProvider = StreamProvider.autoDispose
 /// #4675). Empty when the feature is off.
 final videoTracksProvider = FutureProvider.autoDispose
     .family<List<MediaIdentification>, String>((ref, mediaId) async {
-      if (!marineLifeIdEnabled) return const [];
+      if (!marineLifeLabelsShown) return const [];
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final level = ref.watch(levelInForceProvider);

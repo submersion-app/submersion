@@ -24,12 +24,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ({void Function(BuildContext anchor)? onPressed, bool on, ToolbarRing? ring})
 marineLifeLabelsAction(WidgetRef ref, MediaItem item, GeoPoint? location) {
   // A Lightroom-linked video is only its poster here, never scanned.
+  // Shown wherever results can be (issue #4876), analysed here or not.
   final applies =
-      marineLifeIdEnabled &&
+      marineLifeLabelsShown &&
       (item.mediaType == MediaType.photo ||
           (item.mediaType == MediaType.video &&
               item.sourceType != MediaSourceType.serviceConnector &&
-              visionVideoRuns(defaultTargetPlatform)));
+              videoLabelsShown(defaultTargetPlatform)));
   final on = ref.watch(labelModeNotifierProvider) != LabelMode.off;
   if (!applies) return (onPressed: null, on: on, ring: null);
   // Kept read while the toolbar shows, so the menu opens on what is known.
@@ -107,6 +108,10 @@ Future<void> showMarineLifeLabelsMenu(
   // still count.
   final modes = ref.read(labelModeNotifierProvider.notifier);
   final service = ref.read(mediaIdentificationServiceProvider);
+  final canAnalyse =
+      marineLifeIdEnabled &&
+      (item.mediaType == MediaType.photo ||
+          visionVideoRuns(defaultTargetPlatform));
   CheckedPopupMenuItem<_Pick> modeItem(
     String key,
     _Pick pick,
@@ -135,23 +140,27 @@ Future<void> showMarineLifeLabelsMenu(
         l10n.media_labels_allLife,
       ),
       modeItem('off', _Pick.off, LabelMode.off, l10n.media_labels_off),
-      const PopupMenuDivider(),
-      PopupMenuItem<_Pick>(
-        key: const ValueKey('labels_menu_analyse'),
-        value: _Pick.analyse,
-        enabled: model.actionEnabled,
-        child: Row(
-          children: [
-            const Icon(Icons.refresh),
-            const SizedBox(width: 12),
-            Text(
-              model.action == AnalyseAction.analyseAgain
-                  ? l10n.media_labels_analyseAgain
-                  : l10n.media_labels_analyse,
-            ),
-          ],
+      // Only where the models run (issue #4876): elsewhere the labels are
+      // another device's results, and nothing here can look again.
+      if (canAnalyse) ...[
+        const PopupMenuDivider(),
+        PopupMenuItem<_Pick>(
+          key: const ValueKey('labels_menu_analyse'),
+          value: _Pick.analyse,
+          enabled: model.actionEnabled,
+          child: Row(
+            children: [
+              const Icon(Icons.refresh),
+              const SizedBox(width: 12),
+              Text(
+                model.action == AnalyseAction.analyseAgain
+                    ? l10n.media_labels_analyseAgain
+                    : l10n.media_labels_analyse,
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     ],
   );
   if (picked == null) return;

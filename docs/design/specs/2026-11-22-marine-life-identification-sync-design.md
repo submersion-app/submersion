@@ -158,8 +158,8 @@ same step that backfills their `hlc` (`_hlcBackfillTargets`), not in the
 rung, because the sync device id may not exist yet when the rung runs. A
 null never leaves the device. A database restored onto another device
 carries the stamp of the device that made the runs, so the restored device
-trusts them (named crops come with the restore; unnamed rows keep the
-outlined fallback) **(proposed)**.
+trusts them (named crops come with the restore; unnamed rows show only as
+dots, which need no crop) **(proposed)**.
 
 Rows on screen and in review are the run's own rows plus every decided or
 claimed row. An undecided, unclaimed row whose `run_id` differs from its
@@ -291,11 +291,12 @@ is every row a review list or a name pill can show.
   existing results sync with their crops without analysing again. It runs in
   the background after launch, in batches, and is safe to repeat.
 
-The review row and suggestion row (`species_review_row.dart`,
-`suggested_species_section.dart`) already fall back to the media thumbnail
-when there is no crop. For an unnamed row on a device that did not analyse
-it, the fallback draws the identification's box outlined on the thumbnail
-**(proposed)**, from the row's normalised box.
+Every place a crop is drawn (the suggestion row, its enlarged view, and the
+review row) shows a named identification, whose crop now syncs. An unnamed
+one only ever shows as a dot, and no screen draws its crop, so the outlined
+thumbnail fallback proposed earlier would never be seen and is not built
+**(builder's finding)**. A named row whose crop has not arrived yet shows
+the existing placeholder until it does.
 
 ### 5. Showing results is split from analysing
 
@@ -314,7 +315,9 @@ Today `marineLifeIdEnabled` means both "this build ships the feature" and
 
 On a device where labels show but analysis does not run, the labels menu
 lists only the modes, and a photo with no results shows nothing (no
-"analyse" prompt). An Apple device below the memory floor keeps today's
+"analyse" prompt). With results from another device and no model here,
+its status line gives what was found and offers nothing more (a new
+`foundNoModel` state). An Apple device below the memory floor keeps today's
 behaviour: the feature is on, analysis reports `deviceNotEligible`.
 
 Video labels need the video player: Linux has none, so on Linux only photo

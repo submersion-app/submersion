@@ -55,7 +55,7 @@ final labelModeNotifierProvider =
 /// the naming level in force reads them. Empty when the feature is off.
 final photoDetectionsProvider = FutureProvider.autoDispose
     .family<List<MediaIdentification>, String>((ref, mediaId) async {
-      if (!marineLifeIdEnabled) return const [];
+      if (!marineLifeLabelsShown) return const [];
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final level = ref.watch(levelInForceProvider);
@@ -80,7 +80,7 @@ typedef ScanStretches = ({ScannedRanges scanned, int durationMs});
 /// finished video has a plain bar.
 final videoScanStretchesProvider = FutureProvider.autoDispose
     .family<ScanStretches?, String>((ref, mediaId) async {
-      if (!marineLifeIdEnabled) return null;
+      if (!marineLifeLabelsShown) return null;
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final run = await repository.runFor(mediaId);
@@ -128,7 +128,10 @@ final mediaAnalysisStatusProvider = FutureProvider.autoDispose
             .watchChanges()
             .where((mediaId) => mediaId == item.id),
       );
-      final installed = await ref.watch(installedSpeciesPackProvider.future);
+      // Where no model can run, there is none to read (issue #4876).
+      final installed = marineLifeIdEnabled
+          ? await ref.watch(installedSpeciesPackProvider.future)
+          : null;
       // Rows are only counted, so a video's track paths are not decoded.
       final (runs, stored) = await repository.forMediaIdsWithRuns([
         item.id,
@@ -138,7 +141,19 @@ final mediaAnalysisStatusProvider = FutureProvider.autoDispose
           .where((i) => i.decision != IdentificationDecision.rejected)
           .length;
       if (installed == null) {
-        return (state: MediaAnalysisState.noModel, found: found);
+        // Results another device found, or any where no model can run here,
+        // say what was found (issue #4876); this device's own, with its
+        // model since removed, say there is no model.
+        final me = run == null ? null : await syncDeviceIdOrNull();
+        final elsewhere =
+            run != null &&
+            (!marineLifeIdEnabled || (me != null && !run.madeOn(me)));
+        return (
+          state: elsewhere
+              ? MediaAnalysisState.foundNoModel
+              : MediaAnalysisState.noModel,
+          found: found,
+        );
       }
       if (run == null) {
         return (state: MediaAnalysisState.notAnalysed, found: found);

@@ -107,7 +107,7 @@ List<Widget> speciesChipWidgets(
 }) {
   final l10n = context.l10n;
   final chips = speciesChipsShown(ref, mediaId, sitting);
-  final suggestions = marineLifeIdEnabled
+  final suggestions = marineLifeLabelsShown
       ? suggestionsShown(ref, mediaId, sitting)
       : const <SpeciesSuggestion>[];
   final outline = Theme.of(context).colorScheme.outline;

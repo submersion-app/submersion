@@ -77,4 +77,12 @@ void main() {
     expect(m.line, LabelsStatusLine.noModel);
     expect(m.actionEnabled, isFalse);
   });
+
+  test('results from another device with no model here say what was found '
+      'and offer nothing (issue #4876)', () {
+    final m = model(MediaAnalysisState.foundNoModel, found: 4);
+    expect(m.line, LabelsStatusLine.found);
+    expect(m.found, 4);
+    expect(m.actionEnabled, isFalse);
+  });
 }

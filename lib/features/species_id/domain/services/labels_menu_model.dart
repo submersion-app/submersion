@@ -8,6 +8,10 @@ enum MediaAnalysisState {
   /// No species model is installed.
   noModel,
 
+  /// Looked at on another device, and no species model here to look again
+  /// (issue #4876): what it found shows, nothing more is offered.
+  foundNoModel,
+
   /// Never looked at.
   notAnalysed,
 
@@ -76,13 +80,16 @@ LabelsMenuModel labelsMenuModel({
     // Looked at, even if only in part: what was found so far, nothing
     // included.
     MediaAnalysisState.partial ||
-    MediaAnalysisState.analysed => LabelsStatusLine.found,
+    MediaAnalysisState.analysed ||
+    MediaAnalysisState.foundNoModel => LabelsStatusLine.found,
   };
   return (
     line: line,
     found: found,
     progress: null,
     action: action,
-    actionEnabled: state != MediaAnalysisState.noModel,
+    actionEnabled:
+        state != MediaAnalysisState.noModel &&
+        state != MediaAnalysisState.foundNoModel,
   );
 }

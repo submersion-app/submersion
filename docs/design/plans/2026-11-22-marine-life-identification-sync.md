@@ -202,13 +202,13 @@
 - Modify: `lib/core/constants/feature_flags.dart` (add `bool get marineLifeLabelsShown => _marineLifeIdOverride ?? _marineLifeIdDefine;` and a test override path consistent with `resetMarineLifeIdEnabled`)
 - Modify, switching to `marineLifeLabelsShown`: `photo_identification_layer.dart`, `video_identification_layer.dart` and its `media_viewer_video_item.dart` mount, `video_analysed_stretches.dart`, `label_providers.dart`, `species_review_providers.dart`, `media_species_chips_row.dart`, `labels_menu.dart` (modes always; Analyse and Analyse again only when `marineLifeIdEnabled`; the action applies to video where a player exists, `visionVideoRuns` no longer gates showing), the suggestion section
 - Keep on `marineLifeIdEnabled`: `identification_trigger.dart`, `video_playhead_reporter.dart`, `dive_find_species_panel.dart`, `species_download_prompt_providers.dart`, `auto_applier.dart`, `photos_videos_page.dart`, `media_store_providers.dart`, `storage_inventory.dart`, the pack page
-- Modify: `outlined` fallback in `IdentificationCrop`: when no crop, draw the media thumbnail with the identification's box outlined (new optional parameters `MediaItem? item`, `IdentificationBox? box`)
+- Dropped while building: the outlined thumbnail fallback. Every crop drawn belongs to a named identification, whose crop syncs; see the spec, section 4.
 - Test: extend the labels menu, photo layer, review provider and crop widget tests
 
 **Interfaces:**
 - Produces: `marineLifeLabelsShown`.
 
-- [ ] **Step 1: Failing tests**: with labels shown and analysis off (override engine off), the photo layer draws stored pills, the labels menu lists the three modes and no Analyse item, the review provider returns suggestions, the trigger requests nothing; a crop-less row draws the thumbnail with an outline at the box.
+- [ ] **Step 1: Failing tests**: with labels shown and analysis off (override engine off), the photo layer draws stored pills, the labels menu lists the three modes and no Analyse item, the review provider returns suggestions, the trigger requests nothing.
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement** and audit every remaining `marineLifeIdEnabled` read against the two lists.
 - [ ] **Step 4: Run.** Expected: PASS.

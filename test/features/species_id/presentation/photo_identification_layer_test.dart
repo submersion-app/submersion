@@ -183,6 +183,23 @@ void main() {
     expect(pill('s'), findsOneWidget);
   });
 
+  testWidgets('labels show where the models cannot run (issue #4876)', (
+    tester,
+  ) async {
+    marineLifeIdEnabled = false;
+    marineLifeLabelsShown = true;
+    await pump(tester);
+    expect(pill('s'), findsOneWidget);
+    expect(pill('t'), findsOneWidget);
+  });
+
+  testWidgets('nothing shows in a build without the feature', (tester) async {
+    marineLifeIdEnabled = false;
+    marineLifeLabelsShown = false;
+    await pump(tester);
+    expect(find.byType(TrackPill), findsNothing);
+  });
+
   testWidgets('off draws nothing', (tester) async {
     await pump(tester, mode: LabelMode.off);
     expect(find.byType(TrackPill), findsNothing);

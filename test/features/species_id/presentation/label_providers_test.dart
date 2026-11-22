@@ -266,6 +266,21 @@ void main() {
       expect(s.found, 1);
     });
 
+    test('no model where none can run, with results from another device, '
+        'says what was found (issue #4876)', () async {
+      installed = null;
+      marineLifeIdEnabled = false;
+      marineLifeLabelsShown = true;
+      await repository.storeRun(
+        currentRun('m1').copyWith(analysedBy: () => 'laptop'),
+        insert: [identification('a', mediaId: 'm1')],
+        deleteIds: const [],
+      );
+      final s = await status(item('m1'));
+      expect(s.state, MediaAnalysisState.foundNoModel);
+      expect(s.found, 1);
+    });
+
     test('never analysed', () async {
       final s = await status(item('m1'));
       expect(s.state, MediaAnalysisState.notAnalysed);

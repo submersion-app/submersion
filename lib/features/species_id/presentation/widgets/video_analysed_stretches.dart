@@ -21,7 +21,7 @@ class VideoAnalysedStretches extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!marineLifeIdEnabled) return const SizedBox.shrink();
+    if (!marineLifeLabelsShown) return const SizedBox.shrink();
     final stretches = ref.watch(videoScanStretchesProvider(mediaId)).value;
     // Null too for a scan with no length, so there is always one here.
     if (stretches == null) return const SizedBox.shrink();
