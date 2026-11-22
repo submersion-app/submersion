@@ -27,6 +27,7 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_mode_panel.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Test-only [ManifestTabNotifier] that seeds an arbitrary state so the
 /// panel can be rendered in any branch without driving it through the
@@ -69,7 +70,12 @@ void main() {
             (ref) => _SeededManifestTabNotifier(seed, fetchService: stub),
           ),
       ],
-      child: const MaterialApp(home: Scaffold(body: ManifestModePanel())),
+      child: const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: ManifestModePanel()),
+      ),
     );
   }
 
@@ -249,7 +255,12 @@ void main() {
             ),
             manifestTabProvider.overrideWith((ref) => notifier),
           ],
-          child: const MaterialApp(home: Scaffold(body: ManifestModePanel())),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: ManifestModePanel()),
+          ),
         ),
       );
       await tester.tap(find.byType(Checkbox));
@@ -273,7 +284,12 @@ void main() {
             ),
             manifestTabProvider.overrideWith((ref) => notifier),
           ],
-          child: const MaterialApp(home: Scaffold(body: ManifestModePanel())),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: ManifestModePanel()),
+          ),
         ),
       );
       await tester.enterText(
@@ -378,6 +394,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Column(
                 children: [

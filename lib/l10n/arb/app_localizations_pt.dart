@@ -20842,6 +20842,85 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este dispositivo não consegue reproduzir o movimento desta foto';
 
   @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Não foi possível atualizar $count assinaturas de fotos, entre elas \"$name\": $error',
+      one: 'Não foi possível atualizar a assinatura de fotos \"$name\": $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Abrir';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutos',
+      one: '$count minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count horas',
+      one: '$count hora',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dias',
+      one: '$count dia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Senha do compartilhamento';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Este compartilhamento do Synology Photos precisa da sua senha.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'O compartilhamento não aceitou a senha. Digite-a novamente.';
+
+  @override
+  String get media_sharePassword_field => 'Senha';
+
+  @override
+  String get media_sharePassword_save => 'Salvar e buscar';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Ela é guardada no chaveiro deste dispositivo e nunca é sincronizada.';
+
+  @override
+  String get media_sharePassword_formSave => 'Salvar senha e buscar';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Verificar a cada';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Reproduzir ou pausar vídeo';
 

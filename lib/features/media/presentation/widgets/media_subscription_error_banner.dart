@@ -4,7 +4,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Where the subscriptions are managed, and where the banner leads.
 const String kNetworkSourcesLocation =
@@ -14,9 +16,6 @@ const String kNetworkSourcesLocation =
 /// last poll failed, so a feed that stopped updating (a changed format, a
 /// lost password, an unreachable server) is noticed where its photos are
 /// looked at, not only in its settings card.
-///
-/// Strings follow the media panels' hard-coded English until the feature
-/// is localised.
 class MediaSubscriptionErrorBanner extends ConsumerWidget {
   const MediaSubscriptionErrorBanner({super.key});
 
@@ -29,11 +28,12 @@ class MediaSubscriptionErrorBanner extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     final first = failing.first;
     final name = first.displayName ?? first.manifestUrl;
-    // TODO(media): l10n, pluralization
-    final text = failing.length == 1
-        ? 'Photo subscription "$name" could not be updated: ${first.lastError}'
-        : '${failing.length} photo subscriptions could not be updated, '
-              'among them "$name": ${first.lastError}';
+    final l10n = context.l10n;
+    final text = l10n.media_subscriptionBanner_message(
+      failing.length,
+      name,
+      localizedPollError(l10n, first.lastError ?? ''),
+    );
     return Padding(
       key: const Key('mediaSubscriptionErrorBanner'),
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
@@ -57,8 +57,7 @@ class MediaSubscriptionErrorBanner extends ConsumerWidget {
               TextButton(
                 onPressed: () =>
                     context.pushSettingsPage(kNetworkSourcesLocation),
-                // TODO(media): l10n
-                child: const Text('Open'),
+                child: Text(l10n.media_subscriptionBanner_open),
               ),
             ],
           ),

@@ -20826,6 +20826,85 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Bewegung dieses Fotos lässt sich auf diesem Gerät nicht abspielen';
 
   @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Foto-Abos konnten nicht aktualisiert werden, darunter „$name“: $error',
+      one: 'Das Foto-Abo „$name“ konnte nicht aktualisiert werden: $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Öffnen';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Minuten',
+      one: '1 Minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Stunden',
+      one: '1 Stunde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tage',
+      one: '1 Tag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Freigabe-Passwort';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Diese Synology-Photos-Freigabe braucht ihr Passwort.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'Die Freigabe hat das Passwort nicht akzeptiert. Gib es erneut ein.';
+
+  @override
+  String get media_sharePassword_field => 'Passwort';
+
+  @override
+  String get media_sharePassword_save => 'Speichern und abrufen';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Es wird im Schlüsselbund dieses Geräts gespeichert und nie synchronisiert.';
+
+  @override
+  String get media_sharePassword_formSave => 'Passwort speichern und abrufen';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Prüfen alle';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Video abspielen oder pausieren';
 

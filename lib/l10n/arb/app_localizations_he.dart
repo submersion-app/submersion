@@ -20399,6 +20399,84 @@ class AppLocalizationsHe extends AppLocalizations {
       'המכשיר הזה לא יכול להפעיל את התנועה של התמונה הזו';
 
   @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לעדכן $count מינויי תמונות, ביניהם \"$name\": $error',
+      one: 'לא ניתן היה לעדכן את מינוי התמונות \"$name\": $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'פתח';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count דקות',
+      one: 'דקה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שעות',
+      one: 'שעה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ימים',
+      one: 'יום אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'סיסמת השיתוף';
+
+  @override
+  String get media_sharePassword_needed =>
+      'שיתוף Synology Photos זה דורש את הסיסמה שלו.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'השיתוף לא קיבל את הסיסמה. הזן אותה שוב.';
+
+  @override
+  String get media_sharePassword_field => 'סיסמה';
+
+  @override
+  String get media_sharePassword_save => 'שמור ואחזר';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'היא נשמרת במחזיק המפתחות של מכשיר זה ולעולם אינה מסונכרנת.';
+
+  @override
+  String get media_sharePassword_formSave => 'שמור סיסמה ואחזר';
+
+  @override
+  String get media_pollInterval_checkEvery => 'בדוק כל';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'הפעל או השהה סרטון';
 
   @override

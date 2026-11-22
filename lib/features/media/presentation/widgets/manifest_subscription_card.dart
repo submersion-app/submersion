@@ -356,13 +356,14 @@ class _SubscriptionTile extends ConsumerWidget {
             DropdownButtonFormField<int>(
               key: const Key('manifestSubscriptionInterval'),
               initialValue: interval,
-              // TODO(media): l10n
-              decoration: const InputDecoration(labelText: 'Check every'),
+              decoration: InputDecoration(
+                labelText: context.l10n.media_pollInterval_checkEvery,
+              ),
               items: [
                 for (final option in intervals)
                   DropdownMenuItem(
                     value: option.seconds,
-                    child: Text(option.label),
+                    child: Text(option.label(context.l10n)),
                   ),
               ],
               onChanged: (v) {

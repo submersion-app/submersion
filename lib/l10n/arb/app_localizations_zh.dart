@@ -19816,6 +19816,81 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_viewer_motionUnplayable => '此设备无法播放这张照片的动态';
 
   @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 个照片订阅无法更新，其中包括“$name”：$error',
+      one: '无法更新照片订阅“$name”：$error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => '打开';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 分钟',
+      one: '1 分钟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 小时',
+      one: '1 小时',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天',
+      one: '1 天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => '共享密码';
+
+  @override
+  String get media_sharePassword_needed => '此 Synology Photos 共享需要密码。';
+
+  @override
+  String get media_sharePassword_rejected => '共享未接受该密码。请重新输入。';
+
+  @override
+  String get media_sharePassword_field => '密码';
+
+  @override
+  String get media_sharePassword_save => '保存并获取';
+
+  @override
+  String get media_sharePassword_keychainNote => '密码保存在此设备的钥匙串中，从不同步。';
+
+  @override
+  String get media_sharePassword_formSave => '保存密码并获取';
+
+  @override
+  String get media_pollInterval_checkEvery => '检查间隔';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => '播放或暂停视频';
 
   @override

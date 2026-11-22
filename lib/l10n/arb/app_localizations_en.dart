@@ -20544,6 +20544,85 @@ class AppLocalizationsEn extends AppLocalizations {
       'This device cannot play the motion of this photo';
 
   @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photo subscriptions could not be updated, among them \"$name\": $error',
+      one: 'Photo subscription \"$name\" could not be updated: $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Open';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Share password';
+
+  @override
+  String get media_sharePassword_needed =>
+      'This Synology Photos share needs its password.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'The share did not accept the password. Enter it again.';
+
+  @override
+  String get media_sharePassword_field => 'Password';
+
+  @override
+  String get media_sharePassword_save => 'Save and fetch';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'It is kept in this device\'s keychain and never synced.';
+
+  @override
+  String get media_sharePassword_formSave => 'Save password and fetch';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Check every';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'Play or pause video';
 
   @override

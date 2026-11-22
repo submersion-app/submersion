@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_subscription_error_banner.dart';
 
@@ -51,6 +52,7 @@ Future<void> _pump(
   WidgetTester tester,
   List<ManifestSubscription> subs, {
   bool fail = false,
+  Locale locale = const Locale('en'),
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -60,7 +62,7 @@ Future<void> _pump(
         ),
       ],
       child: localizedMaterialApp(
-        locale: const Locale('en'),
+        locale: locale,
         home: const Scaffold(body: MediaSubscriptionErrorBanner()),
       ),
     ),
@@ -90,6 +92,22 @@ void main() {
   testWidgets('counts several failing subscriptions', (tester) async {
     await _pump(tester, [_sub('1', lastError: 'a'), _sub('2', lastError: 'b')]);
     expect(find.textContaining('2 photo subscriptions'), findsOneWidget);
+  });
+
+  testWidgets('reads in the diver\'s language, the app\'s own errors too', (
+    tester,
+  ) async {
+    await _pump(tester, [
+      _sub('1', lastError: kSynologyPasswordMissingMessage),
+    ], locale: const Locale('de'));
+    expect(
+      find.text(
+        'Das Foto-Abo „Album 1“ konnte nicht aktualisiert werden: '
+        'Diese Synology-Photos-Freigabe braucht ihr Passwort.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Öffnen'), findsOneWidget);
   });
 
   testWidgets('an unreadable database shows no banner', (tester) async {

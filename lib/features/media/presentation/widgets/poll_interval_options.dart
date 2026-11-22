@@ -1,19 +1,33 @@
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
 /// One choice for how often a manifest subscription is polled.
 class PollIntervalOption {
-  const PollIntervalOption({required this.seconds, required this.label});
+  const PollIntervalOption({required this.seconds});
 
   final int seconds;
-  final String label;
+
+  /// The interval as the diver reads it: whole days from two days up, else
+  /// whole hours, else minutes.
+  String label(AppLocalizations l10n) {
+    const day = 86400;
+    const hour = 3600;
+    if (seconds >= 2 * day && seconds % day == 0) {
+      return l10n.media_pollInterval_days(seconds ~/ day);
+    }
+    if (seconds % hour == 0) {
+      return l10n.media_pollInterval_hours(seconds ~/ hour);
+    }
+    return l10n.media_pollInterval_minutes((seconds / 60).round());
+  }
 }
 
 /// The poll intervals offered when subscribing and when editing a
 /// subscription. The 24-hour default sits in the middle of the list.
-// TODO(media): l10n
 const List<PollIntervalOption> kPollIntervalOptions = [
-  PollIntervalOption(seconds: 3600, label: '1 hour'),
-  PollIntervalOption(seconds: 21600, label: '6 hours'),
-  PollIntervalOption(seconds: 86400, label: '24 hours'),
-  PollIntervalOption(seconds: 604800, label: '7 days'),
+  PollIntervalOption(seconds: 3600),
+  PollIntervalOption(seconds: 21600),
+  PollIntervalOption(seconds: 86400),
+  PollIntervalOption(seconds: 604800),
 ];
 
 /// [kPollIntervalOptions] plus [currentSeconds] when it is none of them (a
@@ -23,12 +37,6 @@ List<PollIntervalOption> pollIntervalOptionsIncluding(int currentSeconds) {
   if (kPollIntervalOptions.any((o) => o.seconds == currentSeconds)) {
     return kPollIntervalOptions;
   }
-  final hours = currentSeconds / 3600;
-  final label = hours >= 1
-      ? '${hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1)} hours'
-      : '${(currentSeconds / 60).round()} minutes';
-  return [
-    ...kPollIntervalOptions,
-    PollIntervalOption(seconds: currentSeconds, label: label),
-  ]..sort((a, b) => a.seconds.compareTo(b.seconds));
+  return [...kPollIntervalOptions, PollIntervalOption(seconds: currentSeconds)]
+    ..sort((a, b) => a.seconds.compareTo(b.seconds));
 }

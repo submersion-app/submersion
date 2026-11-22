@@ -32833,6 +32833,84 @@ abstract class AppLocalizations {
   /// **'This device cannot play the motion of this photo'**
   String get media_viewer_motionUnplayable;
 
+  /// Media library banner: one or more photo subscriptions failed their last poll; name is the first one's name, error its last error
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Photo subscription \"{name}\" could not be updated: {error}} other{{count} photo subscriptions could not be updated, among them \"{name}\": {error}}}'**
+  String media_subscriptionBanner_message(int count, String name, String error);
+
+  /// Media library banner action: opens the network sources settings
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get media_subscriptionBanner_open;
+
+  /// Poll interval choice for a photo subscription, in minutes
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String media_pollInterval_minutes(int count);
+
+  /// Poll interval choice for a photo subscription, in hours
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String media_pollInterval_hours(int count);
+
+  /// Poll interval choice for a photo subscription, in days
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String media_pollInterval_days(int count);
+
+  /// Title of the dialog asking for a Synology Photos shared album's password
+  ///
+  /// In en, this message translates to:
+  /// **'Share password'**
+  String get media_sharePassword_title;
+
+  /// A Synology Photos shared album asks for its password
+  ///
+  /// In en, this message translates to:
+  /// **'This Synology Photos share needs its password.'**
+  String get media_sharePassword_needed;
+
+  /// A Synology Photos shared album refused the password entered
+  ///
+  /// In en, this message translates to:
+  /// **'The share did not accept the password. Enter it again.'**
+  String get media_sharePassword_rejected;
+
+  /// Label of the password field for a shared album
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get media_sharePassword_field;
+
+  /// Dialog button: saves the shared album's password and fetches the album again
+  ///
+  /// In en, this message translates to:
+  /// **'Save and fetch'**
+  String get media_sharePassword_save;
+
+  /// Where a shared album's password is kept
+  ///
+  /// In en, this message translates to:
+  /// **'It is kept in this device\'s keychain and never synced.'**
+  String get media_sharePassword_keychainNote;
+
+  /// Manifest import button: saves the shared album's password and fetches the album
+  ///
+  /// In en, this message translates to:
+  /// **'Save password and fetch'**
+  String get media_sharePassword_formSave;
+
+  /// Label of the poll interval choice in a photo subscription's edit dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Check every'**
+  String get media_pollInterval_checkEvery;
+
   /// No description provided for @media_photoViewer_playPauseVideoLabel.
   ///
   /// In en, this message translates to:

@@ -1,3 +1,5 @@
+import 'dart:ui' show Locale;
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
@@ -6,6 +8,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   late AppDatabase db;
@@ -110,6 +113,9 @@ void main() {
   });
 
   group('pollIntervalOptionsIncluding', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    final de = lookupAppLocalizations(const Locale('de'));
+
     test('a standard interval offers the standard list', () {
       expect(pollIntervalOptionsIncluding(86400), same(kPollIntervalOptions));
     });
@@ -117,14 +123,29 @@ void main() {
     test('an unusual interval is added in order', () {
       final options = pollIntervalOptionsIncluding(7200);
       expect(options.map((o) => o.seconds), [3600, 7200, 21600, 86400, 604800]);
-      expect(options[1].label, '2 hours');
-      expect(pollIntervalOptionsIncluding(1800).first.label, '30 minutes');
+      expect(options[1].label(en), '2 hours');
+      expect(pollIntervalOptionsIncluding(1800).first.label(en), '30 minutes');
       expect(
         pollIntervalOptionsIncluding(
           5400,
-        ).firstWhere((o) => o.seconds == 5400).label,
-        '1.5 hours',
+        ).firstWhere((o) => o.seconds == 5400).label(en),
+        '90 minutes',
       );
+    });
+
+    test('labels read in the diver\'s language', () {
+      expect(kPollIntervalOptions.map((o) => o.label(en)), [
+        '1 hour',
+        '6 hours',
+        '24 hours',
+        '7 days',
+      ]);
+      expect(kPollIntervalOptions.map((o) => o.label(de)), [
+        '1 Stunde',
+        '6 Stunden',
+        '24 Stunden',
+        '7 Tage',
+      ]);
     });
   });
 }

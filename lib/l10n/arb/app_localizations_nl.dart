@@ -20717,6 +20717,85 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit apparaat kan de beweging van deze foto niet afspelen';
 
   @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto-abonnementen konden niet worden bijgewerkt, waaronder \"$name\": $error',
+      one: 'Foto-abonnement \"$name\" kon niet worden bijgewerkt: $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Openen';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minuten',
+      one: '1 minuut',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uur',
+      one: '1 uur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dagen',
+      one: '1 dag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Wachtwoord van de share';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Deze Synology Photos-share heeft zijn wachtwoord nodig.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'De share heeft het wachtwoord niet geaccepteerd. Voer het opnieuw in.';
+
+  @override
+  String get media_sharePassword_field => 'Wachtwoord';
+
+  @override
+  String get media_sharePassword_save => 'Opslaan en ophalen';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Het wordt bewaard in de sleutelhanger van dit apparaat en nooit gesynchroniseerd.';
+
+  @override
+  String get media_sharePassword_formSave => 'Wachtwoord opslaan en ophalen';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Controleren elke';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Video afspelen of pauzeren';
 

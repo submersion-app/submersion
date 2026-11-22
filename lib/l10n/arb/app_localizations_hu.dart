@@ -20774,6 +20774,85 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez az eszköz nem tudja lejátszani a fotó mozgását';
 
   @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fotóelőfizetést nem sikerült frissíteni, köztük ezt: „$name”: $error',
+      one: 'A(z) „$name” fotóelőfizetést nem sikerült frissíteni: $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Megnyitás';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perc',
+      one: '1 perc',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count óra',
+      one: '1 óra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nap',
+      one: '1 nap',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Megosztás jelszava';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Ehhez a Synology Photos-megosztáshoz meg kell adni a jelszavát.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'A megosztás nem fogadta el a jelszót. Add meg újra.';
+
+  @override
+  String get media_sharePassword_field => 'Jelszó';
+
+  @override
+  String get media_sharePassword_save => 'Mentés és lekérés';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Az eszköz kulcstartójában tárolódik, és soha nem szinkronizálódik.';
+
+  @override
+  String get media_sharePassword_formSave => 'Jelszó mentése és lekérés';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Ellenőrzés gyakorisága';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Videó lejátszása vagy szüneteltetése';
 

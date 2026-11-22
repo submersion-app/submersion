@@ -21203,6 +21203,96 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن لهذا الجهاز تشغيل حركة هذه الصورة';
 
   @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر تحديث $count اشتراك صور، من بينها \"$name\": $error',
+      many: 'تعذّر تحديث $count اشتراكًا للصور، من بينها \"$name\": $error',
+      few: 'تعذّر تحديث $count اشتراكات صور، من بينها \"$name\": $error',
+      two: 'تعذّر تحديث اشتراكَي صور، من بينهما \"$name\": $error',
+      one: 'تعذّر تحديث اشتراك الصور \"$name\": $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'فتح';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      many: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتان',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ساعة',
+      many: '$count ساعة',
+      few: '$count ساعات',
+      two: 'ساعتان',
+      one: 'ساعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'كلمة مرور المشاركة';
+
+  @override
+  String get media_sharePassword_needed =>
+      'تحتاج مشاركة Synology Photos هذه إلى كلمة المرور الخاصة بها.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'لم تقبل المشاركة كلمة المرور. أدخلها مرة أخرى.';
+
+  @override
+  String get media_sharePassword_field => 'كلمة المرور';
+
+  @override
+  String get media_sharePassword_save => 'حفظ وجلب';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'تُحفظ في سلسلة مفاتيح هذا الجهاز ولا تتم مزامنتها أبدًا.';
+
+  @override
+  String get media_sharePassword_formSave => 'حفظ كلمة المرور والجلب';
+
+  @override
+  String get media_pollInterval_checkEvery => 'التحقق كل';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'تشغيل أو إيقاف الفيديو';
 
   @override

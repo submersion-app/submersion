@@ -44,6 +44,8 @@ import 'package:submersion/features/media/presentation/providers/url_tab_provide
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_preview_pane.dart';
 import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
+import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Standard poll-interval choices surfaced in the dropdown, shared with the
 /// subscription's edit dialog.
@@ -519,7 +521,7 @@ class _SubscribeRow extends StatelessWidget {
                       .map(
                         (option) => DropdownMenuItem<int>(
                           value: option.seconds,
-                          child: Text(option.label),
+                          child: Text(option.label(context.l10n)),
                         ),
                       )
                       .toList(),
@@ -599,20 +601,20 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // TODO(media): l10n
           Text(
-            'This Synology Photos share needs its password.',
+            l10n.media_sharePassword_needed,
             style: theme.textTheme.bodyMedium,
           ),
           if (widget.reason != null &&
               widget.reason != kSynologyPasswordMissingMessage) ...[
             const SizedBox(height: 4),
             Text(
-              widget.reason!,
+              localizedPollError(l10n, widget.reason!),
               key: const Key('synologySharePasswordError'),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.error,
@@ -620,9 +622,8 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
             ),
           ],
           const SizedBox(height: 4),
-          // TODO(media): l10n
           Text(
-            'It is kept in this device\'s keychain and never synced.',
+            l10n.media_sharePassword_keychainNote,
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: 12),
@@ -633,10 +634,9 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
             autofocus: true,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _save(),
-            decoration: const InputDecoration(
-              // TODO(media): l10n
-              labelText: 'Share password',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.media_sharePassword_title,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
@@ -648,8 +648,7 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.lock_open),
-            // TODO(media): l10n
-            label: const Text('Save password and fetch'),
+            label: Text(l10n.media_sharePassword_formSave),
             onPressed: _saving ? null : _save,
           ),
         ],

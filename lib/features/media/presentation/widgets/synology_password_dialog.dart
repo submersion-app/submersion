@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// [error], a subscription's recorded poll error, in the diver's language
+/// where it is one the app itself wrote for a shared album's password; any
+/// other error comes from the source and is shown as it was recorded.
+String localizedPollError(AppLocalizations l10n, String error) =>
+    switch (error) {
+      kSynologyPasswordMissingMessage => l10n.media_sharePassword_needed,
+      kSynologyPasswordRejectedMessage => l10n.media_sharePassword_rejected,
+      _ => error,
+    };
+
 /// Asks for a Synology Photos share's password. Returns the password, or
 /// null when the user cancels. [rejected] says the last one was refused.
-///
-/// Strings follow the media panels' hard-coded English until the feature
-/// is localised.
 Future<String?> showSynologyPasswordDialog(
   BuildContext context, {
   required String shareLabel,
@@ -47,9 +58,9 @@ class _SynologyPasswordDialogState extends State<_SynologyPasswordDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return AlertDialog(
-      // TODO(media): l10n
-      title: const Text('Share password'),
+      title: Text(l10n.media_sharePassword_title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,11 +71,10 @@ class _SynologyPasswordDialogState extends State<_SynologyPasswordDialog> {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
-          // TODO(media): l10n
           Text(
             widget.rejected
-                ? 'The share did not accept the password. Enter it again.'
-                : 'This Synology Photos share needs its password.',
+                ? l10n.media_sharePassword_rejected
+                : l10n.media_sharePassword_needed,
             key: const Key('synologyPasswordDialogReason'),
             style: widget.rejected
                 ? TextStyle(color: theme.colorScheme.error)
@@ -77,10 +87,9 @@ class _SynologyPasswordDialogState extends State<_SynologyPasswordDialog> {
             obscureText: true,
             autofocus: true,
             onSubmitted: (_) => _submit(),
-            // TODO(media): l10n
-            decoration: const InputDecoration(
-              labelText: 'Password',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.media_sharePassword_field,
+              border: const OutlineInputBorder(),
             ),
           ),
         ],
@@ -93,8 +102,7 @@ class _SynologyPasswordDialogState extends State<_SynologyPasswordDialog> {
         FilledButton(
           key: const Key('synologyPasswordDialogSave'),
           onPressed: _submit,
-          // TODO(media): l10n
-          child: const Text('Save and fetch'),
+          child: Text(l10n.media_sharePassword_save),
         ),
       ],
     );
