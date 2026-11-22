@@ -15,26 +15,29 @@ class BodyWeightEditPage extends ConsumerWidget {
   const BodyWeightEditPage({super.key});
 
   Future<void> _addEntry(BuildContext context, WidgetRef ref) async {
+    // Read before asking: the page may be gone by the time the diver saves.
+    final repository = ref.read(diverWeightEntryRepositoryProvider);
+    final container = ProviderScope.containerOf(context, listen: false);
     final draft = await showBodyWeightEntryDialog(context);
     if (draft == null) return;
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final diverId = await container.read(
+      validatedCurrentDiverIdProvider.future,
+    );
     if (diverId == null) return;
 
-    await ref
-        .read(diverWeightEntryRepositoryProvider)
-        .createEntry(
-          DiverWeightEntry(
-            id: '',
-            diverId: diverId,
-            measuredAt: draft.measuredAt,
-            weightKg: draft.weightKg,
-            heightCm: draft.heightCm,
-            bodyFatPercent: draft.bodyFatPercent,
-            createdAt: draft.measuredAt,
-            updatedAt: draft.measuredAt,
-          ),
-        );
-    ref.invalidate(diverWeightEntriesProvider);
+    await repository.createEntry(
+      DiverWeightEntry(
+        id: '',
+        diverId: diverId,
+        measuredAt: draft.measuredAt,
+        weightKg: draft.weightKg,
+        heightCm: draft.heightCm,
+        bodyFatPercent: draft.bodyFatPercent,
+        createdAt: draft.measuredAt,
+        updatedAt: draft.measuredAt,
+      ),
+    );
+    container.invalidate(diverWeightEntriesProvider);
   }
 
   /// Deletes [entry] once the diver has said so (issue #4527, phase 4,

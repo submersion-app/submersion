@@ -234,6 +234,33 @@ void main() {
     },
   );
 
+  testWidgets('a measurement saved after the page went is still stored', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await tester.tap(find.text('Add measurement'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Weight (kg)'), '80');
+    await tester.pump();
+
+    // The page under the dialog goes (a route change on desktop).
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    navigator.removeRoute(
+      ModalRoute.of(tester.element(find.byType(BodyWeightEditPage)))!,
+    );
+    await tester.pump();
+    expect(find.byType(BodyWeightEditPage), findsNothing);
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final entries = await DiverWeightEntryRepository().getEntriesForDiver(
+      diverId,
+    );
+    expect(entries.single.weightKg, 80.0);
+  });
+
   testWidgets('Delete still deletes when the page went while it asked', (
     tester,
   ) async {
