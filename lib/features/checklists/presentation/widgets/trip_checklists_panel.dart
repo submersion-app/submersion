@@ -270,8 +270,9 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
               ),
       ),
     );
-    if (!mounted || !identical(widget.editing, editing) || items == null)
+    if (!mounted || !identical(widget.editing, editing) || items == null) {
       return;
+    }
     try {
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       if (!mounted || !identical(widget.editing, editing)) return;

@@ -561,8 +561,9 @@ class HeldTripChecklistWrites implements TripChecklistWrites {
 
   void addGear(String checklistId, Iterable<EquipmentItem> gear) {
     var held = _held;
-    if (!held.checklists.any((checklist) => checklist.id == checklistId))
+    if (!held.checklists.any((checklist) => checklist.id == checklistId)) {
       return;
+    }
     final planned = {
       for (final row in held.itemsOf(checklistId)) ?row.equipmentId,
     };

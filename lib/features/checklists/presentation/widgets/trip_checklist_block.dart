@@ -518,7 +518,7 @@ class TripChecklistBlock extends ConsumerWidget {
                   item.id,
                   isDone: value,
                 ),
-                final id?
+                final id
                     when packedStates.containsKey(id) && togglePacked != null =>
                   (value) => togglePacked(id, value),
                 _ => null,
