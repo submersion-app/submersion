@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dashboard/presentation/home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/home_presets.dart';
 
@@ -121,6 +122,68 @@ void main() {
         legacyHiddenCards: const {},
       );
       expect(layout.visible, homePresetPanels(HomeLayoutPreset.balanced));
+    }
+  });
+
+  group('recent outings (issue #4898)', () {
+    const waiting = [
+      HomePanelType.waitingForDownload,
+      HomePanelType.preDive,
+      HomePanelType.activeCourses,
+    ];
+
+    test('Balanced leads with recent outings in place of the calendar', () {
+      final panels = homePresetPanels(HomeLayoutPreset.balanced);
+      expect(panels.sublist(0, 5), [
+        HomePanelType.keyNumbers,
+        ...waiting,
+        HomePanelType.recentOutings,
+      ]);
+      expect(panels, isNot(contains(HomePanelType.activityCalendar)));
+      expect(panels[5], HomePanelType.gearService);
+    });
+
+    test('Logbook leads with recent outings, then latest vs average', () {
+      final panels = homePresetPanels(HomeLayoutPreset.logbook);
+      expect(panels.sublist(0, 6), [
+        HomePanelType.keyNumbers,
+        ...waiting,
+        HomePanelType.recentOutings,
+        HomePanelType.latestVsAverage,
+      ]);
+    });
+
+    test('Trends keeps the calendar and Ready is unchanged', () {
+      expect(
+        homePresetPanels(HomeLayoutPreset.trends),
+        allOf(
+          contains(HomePanelType.activityCalendar),
+          isNot(contains(HomePanelType.recentOutings)),
+        ),
+      );
+      expect(
+        homePresetPanels(HomeLayoutPreset.ready),
+        isNot(contains(HomePanelType.recentOutings)),
+      );
+    });
+
+    for (final preset in [
+      HomeLayoutPreset.balanced,
+      HomeLayoutPreset.logbook,
+    ]) {
+      test('on desktop the outings row is full in ${preset.name}', () {
+        // With nothing waiting on the diver, as on most days.
+        final visible = [
+          for (final p in homePresetPanels(preset))
+            if (!homePanelSpec(p).conditional) p,
+        ];
+        final row = packHomeRows(
+          visible,
+          HomeWidthTier.desktop,
+        ).firstWhere((r) => r.panels.contains(HomePanelType.recentOutings));
+        expect(row.panels, hasLength(2));
+        expect(row.units.fold(0, (a, b) => a + b), homeRowUnits);
+      });
     }
   });
 }
