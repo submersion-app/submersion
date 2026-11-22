@@ -18,6 +18,7 @@ import 'package:submersion/features/setup_wizard/presentation/widgets/steps/exis
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/finish_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/open_folder_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/restore_step.dart';
+import 'package:submersion/features/setup_wizard/presentation/widgets/steps/species_model_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/profile_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/units_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/welcome_fork_step.dart';
@@ -29,6 +30,7 @@ import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
 import 'package:submersion/features/setup_wizard/domain/unit_preset_detector.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 
 /// Multi-step setup wizard for new databases (first run) and Settings
 /// re-entry. See docs/design/specs/2026-07-10-setup-wizard-design.md.
@@ -54,12 +56,19 @@ class SetupWizardPage extends ConsumerStatefulWidget {
 const _barZone = {SetupStepId.profile, SetupStepId.units};
 
 /// Steps that show the progress indicator, with Finish.
-const _indicatorZone = {..._barZone, ...kSetUpWizardSteps};
+const _indicatorZone = {
+  ..._barZone,
+  ...kSetUpWizardSteps,
+  SetupStepId.speciesModel,
+};
 
-/// The indicator dot a step lights: the four Set up this device steps share
-/// one, "Data", so the row fits a phone.
+/// The indicator dot a step lights: the four Set up this device steps and
+/// the species model step after them share one, "Data", so the row fits a
+/// phone.
 SetupStepId _indicatorDot(SetupStepId id) =>
-    kSetUpWizardSteps.contains(id) ? SetupStepId.setUpAccount : id;
+    kSetUpWizardSteps.contains(id) || id == SetupStepId.speciesModel
+    ? SetupStepId.setUpAccount
+    : id;
 
 /// The shared step each wizard step id runs.
 const _setUpSteps = {
@@ -71,6 +80,29 @@ const _setUpSteps = {
 
 class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _offerSpeciesModel();
+  }
+
+  /// Asks once whether to offer the species model (issue #4881) and puts the
+  /// answer on the draft, where it stays: the step must not leave the list
+  /// once a download it started turns the live offer off. An answer that
+  /// arrives on Finish is dropped, so the step is never inserted behind the
+  /// diver; one that fails leaves the step out.
+  Future<void> _offerSpeciesModel() async {
+    final bool offered;
+    try {
+      offered = await ref.read(speciesModelOfferProvider.future);
+    } on Object {
+      return;
+    }
+    if (!offered || !mounted) return;
+    if (_currentStepId() == SetupStepId.finish) return;
+    ref.read(setupWizardProvider(widget.mode).notifier).offerSpeciesModel();
+  }
 
   void _animateTo(int index) {
     if (mounted) setState(() => _currentIndex = index);
@@ -165,7 +197,8 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
       case SetupStepId.setUpAccount ||
           SetupStepId.setUpSync ||
           SetupStepId.setUpBackups ||
-          SetupStepId.setUpPhotos:
+          SetupStepId.setUpPhotos ||
+          SetupStepId.speciesModel:
         return l10n.settings_section_data_title;
       case SetupStepId.finish:
         return l10n.setup_step_finish;
@@ -240,13 +273,13 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
           builder: (_) =>
               (widget.setUpStepBody ?? _setUpStep)(step, _navigationFor(id)),
         );
-      // Wired to its step in the next change; nothing offers it yet.
+      // Keeps its own buttons, as the Set up this device steps do.
       case SetupStepId.speciesModel:
         return WizardStepDef(
           label: _stepLabel(id),
           hideBottomBar: true,
           canAdvance: setupWizardProvider(mode).select((_) => true),
-          builder: (_) => const SizedBox.shrink(),
+          builder: (_) => SpeciesModelStep(onNext: _advance, onBack: _back),
         );
       case SetupStepId.finish:
         return WizardStepDef(

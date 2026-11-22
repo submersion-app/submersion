@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
@@ -11,6 +14,10 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard_page.dart';
+import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
+import 'package:submersion/features/setup_wizard/presentation/widgets/steps/species_model_step.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_flow_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
@@ -123,6 +130,29 @@ Widget _stubStep(SetUpStep step, SetUpStepNavigation navigation) => Consumer(
     );
   },
 );
+
+/// A pack controller for the species model step (issue #4881): no network,
+/// and a download that starts and never finishes.
+class _StepPackController extends SpeciesPackController {
+  var downloads = 0;
+
+  @override
+  SpeciesPackState build() =>
+      const PackNotInstalled(bytes: 633 * 1024 * 1024, resumable: false);
+
+  @override
+  Future<void> refresh() async {}
+
+  @override
+  Future<void> download() {
+    downloads++;
+    state = const PackDownloading(received: 0, total: 633 * 1024 * 1024);
+    return Completer<void>().future;
+  }
+
+  @override
+  Future<bool> downloadFetchesHardwareEngine() async => false;
+}
 
 /// OceanBackground animates forever, so pumpAndSettle would time out.
 /// Fixed pumps cover the post-frame advance, the 300 ms page transition,
@@ -395,11 +425,15 @@ void main() {
     expect(find.text('stub account firstRun'), findsOneWidget);
   });
 
-  Future<void> pumpStubbed(WidgetTester tester, SetupWizardMode mode) async {
+  Future<void> pumpStubbed(
+    WidgetTester tester,
+    SetupWizardMode mode, {
+    List<Override> extra = const [],
+  }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
-        overrides: overrides,
+        overrides: [...overrides, ...extra],
         child: SetupWizardPage(mode: mode, setUpStepBody: _stubStep),
       ),
     );
@@ -578,5 +612,136 @@ void main() {
     await pumpWizard(tester); // -> the real backups step
     expect(find.text('Back up automatically'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  group('the species model step (#4881)', () {
+    late _StepPackController controller;
+
+    List<Override> offer(Future<bool> offered) {
+      controller = _StepPackController();
+      return [
+        speciesModelOfferProvider.overrideWith((ref) => offered),
+        speciesPackControllerProvider.overrideWith(() => controller),
+      ];
+    }
+
+    SetupWizardDraft draft(WidgetTester tester) {
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SetupWizardPage)),
+      );
+      return container.read(setupWizardProvider(SetupWizardMode.firstRun));
+    }
+
+    Future<void> toPhotos(WidgetTester tester) async {
+      await throughProfileAndUnits(tester);
+      for (var i = 0; i < 3; i++) {
+        await tapStub(tester, 'stub next');
+      }
+      expect(find.text('stub photos firstRun'), findsOneWidget);
+    }
+
+    testWidgets('an offered species step runs after Photos and before '
+        'Finish', (tester) async {
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: offer(Future.value(true)),
+      );
+      await toPhotos(tester);
+      await tapStub(tester, 'stub next');
+      expect(find.byType(SpeciesModelStep), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'Skip'));
+      await pumpWizard(tester);
+      expect(find.text("You're all set"), findsOneWidget);
+    });
+
+    testWidgets('not offered, Photos goes straight to Finish', (tester) async {
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: offer(Future.value(false)),
+      );
+      await toPhotos(tester);
+      await tapStub(tester, 'stub next');
+      expect(find.byType(SpeciesModelStep), findsNothing);
+      expect(find.text("You're all set"), findsOneWidget);
+    });
+
+    testWidgets('Back on the species step returns to Photos', (tester) async {
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: offer(Future.value(true)),
+      );
+      await toPhotos(tester);
+      await tapStub(tester, 'stub next');
+      await tester.tap(find.widgetWithText(TextButton, 'Back'));
+      await pumpWizard(tester);
+      expect(find.text('stub photos firstRun'), findsOneWidget);
+    });
+
+    testWidgets('the species step shares the Data dot', (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: offer(Future.value(true)),
+      );
+      await toPhotos(tester);
+      await tapStub(tester, 'stub next');
+      final indicator = tester.widget<WizardStepIndicator>(
+        find.byType(WizardStepIndicator),
+      );
+      expect(indicator.labels, ['Profile', 'Units', 'Data', 'Done']);
+      expect(indicator.currentStep, 2);
+      expect(tester.takeException(), isNull);
+    });
+
+    // Starting the download turns the live offer off; the step stays in the
+    // list, so Download lands on Finish and the list does not shift.
+    testWidgets('Download starts it, lands on Finish and keeps the step', (
+      tester,
+    ) async {
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: offer(Future.value(true)),
+      );
+      await toPhotos(tester);
+      await tapStub(tester, 'stub next');
+      await tester.tap(
+        find.widgetWithText(
+          FilledButton,
+          'Download (${formatBytes(633 * 1024 * 1024)})',
+        ),
+      );
+      await pumpWizard(tester);
+      expect(controller.downloads, 1);
+      expect(find.text("You're all set"), findsOneWidget);
+      expect(draft(tester).speciesModelOffered, isTrue);
+      expect(computeSteps(draft(tester)), contains(SetupStepId.speciesModel));
+    });
+
+    // An offer that resolves only once the diver is on Finish would insert
+    // the step behind them and shift Finish's place in the list.
+    testWidgets('an offer resolving on Finish does not add the step', (
+      tester,
+    ) async {
+      final late = Completer<bool>();
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: offer(late.future),
+      );
+      await toPhotos(tester);
+      await tapStub(tester, 'stub next');
+      expect(find.text("You're all set"), findsOneWidget);
+      late.complete(true);
+      await pumpWizard(tester);
+      expect(find.text("You're all set"), findsOneWidget);
+      expect(draft(tester).speciesModelOffered, isFalse);
+    });
   });
 }
