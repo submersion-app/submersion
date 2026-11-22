@@ -164,8 +164,17 @@ class _RawDataActions extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.diveComputer_detail_reparseAllTitle),
-        content: Text(
-          l10n.diveComputer_detail_reparseAllMessage(counts.withRawData),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.diveComputer_detail_reparseAllMessage(counts.withRawData),
+            ),
+            // A batch asks nothing per dive (issue #4909).
+            const SizedBox(height: 12),
+            Text(l10n.reparseBatch_confirmHandSetKept),
+          ],
         ),
         actions: [
           TextButton(

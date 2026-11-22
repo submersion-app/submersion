@@ -13857,6 +13857,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divers_edit_nameLabel => 'Nombre *';
 
   @override
+  String get divers_edit_notFound => 'Este buceador ya no existe.';
+
+  @override
   String get divers_edit_notesLabel => 'Notas';
 
   @override
@@ -20065,20 +20068,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'Más opciones';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count páginas',
-      one: '$count página',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return 'No se pudo guardar: $error';
   }
@@ -26013,6 +26002,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Cambios de gas editados a mano';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'Valores fijados a mano';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -40065,6 +40057,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Inmersiones que conservaron valores fijados a mano: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Inmersiones fallidas';
 
   @override
@@ -40091,6 +40088,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Inmersiones seleccionadas sin datos sin procesar (se omiten): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Los valores que fijaste a mano se conservan.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40259,6 +40260,40 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Resincronizar desde el archivo original';
+
+  @override
+  String get handSetReview_reparseTitle => '¿Reanalizar esta inmersión?';
+
+  @override
+  String get handSetReview_resyncTitle => '¿Resincronizar esta inmersión?';
+
+  @override
+  String get handSetReview_message =>
+      'Fijaste estos valores a mano y la nueva lectura es distinta. Conserva los tuyos o reemplaza cada uno.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Tuyo: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Ordenador: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Archivo: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Conservar';
+
+  @override
+  String get handSetReview_replace => 'Reemplazar';
+
+  @override
+  String get handSetReview_resyncAction => 'Resincronizar';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -40985,6 +41020,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Eliminar entrada';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => '¿Eliminar esta medición?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return 'Se eliminará $weight del $date. No se puede deshacer.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Altura (cm)';

@@ -13893,6 +13893,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divers_edit_nameLabel => 'Nom *';
 
   @override
+  String get divers_edit_notFound => 'Ce plongeur n\'existe plus.';
+
+  @override
   String get divers_edit_notesLabel => 'Notes';
 
   @override
@@ -20116,20 +20119,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'Plus d\'options';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count pages',
-      one: '$count page',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return 'Échec de l\'enregistrement : $error';
   }
@@ -26069,6 +26058,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Changements de gaz modifiés à la main';
+
+  @override
+  String get settings_conflict_field_handSetFields =>
+      'Valeurs saisies à la main';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -40140,6 +40133,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Plongées ayant conservé des valeurs saisies à la main : $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Plongées en échec';
 
   @override
@@ -40166,6 +40164,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Plongées sélectionnées sans données brutes (ignorées) : $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Les valeurs saisies à la main sont conservées.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40333,6 +40335,40 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Resynchroniser depuis le fichier original';
+
+  @override
+  String get handSetReview_reparseTitle => 'Réanalyser cette plongée ?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Resynchroniser cette plongée ?';
+
+  @override
+  String get handSetReview_message =>
+      'Vous avez saisi ces valeurs à la main, et la nouvelle lecture diffère. Gardez les vôtres ou remplacez chacune.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Le vôtre : $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Ordinateur : $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Fichier : $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Garder';
+
+  @override
+  String get handSetReview_replace => 'Remplacer';
+
+  @override
+  String get handSetReview_resyncAction => 'Resynchroniser';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -41061,6 +41097,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Supprimer l\'entrée';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Supprimer cette mesure ?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight du $date sera supprimé. Cette action est irréversible.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Taille (cm)';

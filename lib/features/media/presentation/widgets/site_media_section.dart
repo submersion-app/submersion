@@ -205,8 +205,9 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     }
   }
 
-  /// Edit details for the one checked item: the path for a tile, and for a
-  /// non-PDF document, which has no viewer to edit from.
+  /// Edit details for the one checked item, Large or tile (issue #4786),
+  /// and the only path for a non-PDF document, which has no viewer to edit
+  /// from.
   Future<BulkActionOutcome> _editSelected(
     BuildContext context,
     List<MediaItem> media,
@@ -448,19 +449,6 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                   settings: settings,
                   onOpen: (item) =>
                       _openItem(context, item, SiteViewerScope.attachments),
-                  // An attachment's details are its own record's; one
-                  // held until Save has none to give yet. A page that
-                  // edits in place edits them where the attachment opens.
-                  onEditDetails: _editsInPlace
-                      ? null
-                      : (item) {
-                          if (_heldIds.contains(item.id)) return;
-                          showAttachmentDetailsSheet(
-                            context,
-                            item: item,
-                            siteId: widget.siteId,
-                          );
-                        },
                 );
               },
               loading: () => const SizedBox(

@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
@@ -109,6 +110,23 @@ class PlannedDiveFillService {
         profile: const [],
       );
       await _dives.updateDive(measured);
+      // The plan's hand-set values the download just replaced are the
+      // computer's now, so their marks go (issue #4909); a value the
+      // download did not report stays the diver's, mark and all.
+      await clearHandSetMarks(db, targetDiveId, {
+        HandSetField.entryTime,
+        HandSetField.exitTime,
+        HandSetField.bottomTime,
+        HandSetField.runtime,
+        HandSetField.maxDepth,
+        HandSetField.diveMode,
+        if (dive.avgDepth != null) HandSetField.avgDepth,
+        if (dive.minTemperature != null) HandSetField.waterTemp,
+        if (dive.gfLow != null) HandSetField.gradientFactorLow,
+        if (dive.gfHigh != null) HandSetField.gradientFactorHigh,
+        if (dive.decoAlgorithm != null) HandSetField.decoAlgorithm,
+        if (dive.decoConservatism != null) HandSetField.decoConservatism,
+      });
 
       // 3. Attach the download to this dive by id: profile, pressures,
       //    switches, events, the data source with its fingerprint, and the

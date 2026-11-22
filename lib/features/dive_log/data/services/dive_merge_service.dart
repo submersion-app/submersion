@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_source_links
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
 import 'package:submersion/features/dive_log/data/services/dive_fold_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/services/merged_media_time_offset.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
@@ -373,6 +374,10 @@ class DiveMergeService {
         );
         return mergedSourceIds[owner.id];
       }
+
+      // 1b2. The diver's hand-set values the combined dive took keep their
+      //      marks; a value the merge recomputed does not (issue #4909).
+      await carryHandSetMarks(_db, mergedId, snapshot.diveRows);
 
       // 1c. Each merged tank's source (v251, issue #2716): the source of the
       //     earliest original tank folded into it, re-pointed like the

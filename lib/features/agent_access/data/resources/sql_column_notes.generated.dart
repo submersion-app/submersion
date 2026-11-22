@@ -447,6 +447,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'gas_switches_edited': 'set once the diver saves a change to the dive\'s gas switches',
     'gradient_factor_high': '0-100',
     'gradient_factor_low': 'Decompression gradient factors',
+    'hand_set_fields': 'computer-written values the diver set by hand, kept on re-parse and resync',
     'humidity': '0-100',
     'import_id': 'Source-specific ID (e.g., HealthKit UUID)',
     'import_source': 'Import source tracking - tracks import source for Apple Watch, Garmin, etc.',

@@ -417,17 +417,50 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     return true;
   }
 
+  /// Asks which of [changes], values the diver set by hand that a re-parse
+  /// or resync would replace, to keep (issue #4909). The changes to make,
+  /// none when nothing would change or the page is gone, or null when the
+  /// diver cancels. Each
+  /// carries the value the diver saw, so the write replaces nothing that
+  /// changed since.
+  Future<List<HandSetChange>?> _reviewHandSet(
+    List<HandSetChange> changes,
+    HandSetReviewSource source,
+  ) async {
+    // A diver who left while the preview ran is not asked: the operation
+    // carries on as it would after they left, keeping every value they set.
+    if (changes.isEmpty || !mounted) return const [];
+    final replace = await showHandSetReviewDialog(
+      context,
+      changes: changes,
+      source: source,
+      units: ref.read(unitFormatterProvider),
+    );
+    if (replace == null) return null;
+    return [
+      for (final change in changes)
+        if (replace.contains(change.field)) change,
+    ];
+  }
+
   Future<bool> _reparseDive(Dive dive) async {
     final service = ref.read(reparseServiceProvider);
     final l10n = context.l10n;
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
+    final parseFn = pigeon.DiveComputerHostApi().parseRawDiveData;
 
     final ({List<String> errors, int profilesPreserved}) result;
     try {
+      final replace = await _reviewHandSet(
+        await service.previewReparse(dive.id, parseFn: parseFn),
+        HandSetReviewSource.computer,
+      );
+      if (replace == null) return false;
       result = await service.reparseDive(
         dive.id,
-        parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
+        parseFn: parseFn,
+        replaceHandSet: replace,
       );
     } catch (e) {
       // The service reports each source's failure in its result. Reading the
@@ -480,7 +513,12 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
 
     DiveResyncOutcome outcome;
     try {
-      outcome = await orchestrator.resync(dive.id);
+      final replace = await _reviewHandSet(
+        await orchestrator.previewHandSetChanges(dive.id),
+        HandSetReviewSource.file,
+      );
+      if (replace == null) return false;
+      outcome = await orchestrator.resync(dive.id, replaceHandSet: replace);
     } catch (_) {
       // The orchestrator's enumerated skip paths never throw; only an
       // unexpected failure while reading/parsing the stored file (e.g. it

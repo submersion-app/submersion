@@ -5,6 +5,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
@@ -227,6 +228,112 @@ void main() {
       db.dives,
     )..where((t) => t.id.equals(diveId))).getSingle();
     expect(dive.maxDepth, 18.2); // matched index 1, not index 0
+  });
+
+  // Values the diver set by hand (issue #4909): the diver corrected the
+  // file's 18.2 m to 19 m.
+  group('values set by hand', () {
+    final dateTime = DateTime(2026, 9, 1, 9);
+
+    Future<DiveResyncOrchestrator> markedDive() async {
+      final diveId = await seedDiveWithSource(
+        dateTime: dateTime,
+        maxDepth: 19.0,
+        bottomTimeSeconds: 40 * 60,
+        importedFileId: 'file-uddf',
+      );
+      await db.customStatement(
+        "UPDATE dives SET hand_set_fields = '[\"maxDepth\"]' WHERE id = ?",
+        [diveId],
+      );
+      return DiveResyncOrchestrator(
+        db: db,
+        importedFiles: _FakeImportedFiles({'file-uddf': Uint8List(0)}),
+        parserFor: (_) => _FakeParser(
+          ImportPayload(
+            entities: {
+              ImportEntityType.dives: [
+                {
+                  'dateTime': dateTime,
+                  'maxDepth': 18.2,
+                  'duration': const Duration(minutes: 41),
+                },
+              ],
+            },
+          ),
+        ),
+      );
+    }
+
+    Future<Dive> stored() =>
+        (db.select(db.dives)..where((t) => t.id.equals('dive-1'))).getSingle();
+
+    test('a resync keeps them', () async {
+      final orchestrator = await markedDive();
+
+      expect((await orchestrator.resync('dive-1')).succeeded, isTrue);
+
+      final dive = await stored();
+      expect(dive.maxDepth, 19.0);
+      expect(dive.runtime, 41 * 60);
+    });
+
+    test('the preview of a dive with nothing marked reads no file', () async {
+      await seedDiveWithSource(
+        dateTime: dateTime,
+        maxDepth: 19.0,
+        bottomTimeSeconds: 40 * 60,
+        importedFileId: 'file-uddf',
+      );
+      final orchestrator = DiveResyncOrchestrator(
+        db: db,
+        importedFiles: _FakeImportedFiles({'file-uddf': Uint8List(0)}),
+        parserFor: (_) => throw StateError('must not parse'),
+      );
+
+      expect(await orchestrator.previewHandSetChanges('dive-1'), isEmpty);
+    });
+
+    test(
+      'the preview of a dive no source claims as primary is empty',
+      () async {
+        final orchestrator = await markedDive();
+        await db.customStatement('UPDATE dive_data_sources SET is_primary = 0');
+
+        expect(await orchestrator.previewHandSetChanges('dive-1'), isEmpty);
+      },
+    );
+
+    test('the preview lists them and writes nothing', () async {
+      final orchestrator = await markedDive();
+
+      final changes = await orchestrator.previewHandSetChanges('dive-1');
+
+      expect(
+        [for (final c in changes) (c.field, c.storedValue, c.parsedValue)],
+        [(HandSetField.maxDepth, 19.0, 18.2)],
+      );
+      expect((await stored()).runtime, isNull);
+    });
+
+    test('a resync takes the file\'s value where the diver chose it', () async {
+      final orchestrator = await markedDive();
+
+      await orchestrator.resync(
+        'dive-1',
+        replaceHandSet: const [
+          HandSetChange(
+            field: HandSetField.maxDepth,
+            storedValue: 19.0,
+            parsedValue: 18.2,
+          ),
+        ],
+      );
+
+      final dive = await stored();
+      expect(dive.maxDepth, 18.2);
+      expect(dive.handSetFields, isNull);
+    });
   });
 
   test('carries the preserved-profile signal out of the writer', () async {

@@ -321,6 +321,33 @@ void main() {
       expect(mergedRow.runtime, 80 * 60); // createDive persists seconds.
     });
 
+    // Values the diver set by hand (issue #4909): a mark follows its value.
+    test('the combined dive keeps the marks of the values it took', () async {
+      await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9), depth: 10);
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        depth: 20,
+        runtimeMin: 20,
+      );
+      // The diver corrected b's depth and a's runtime by hand.
+      await db.customStatement(
+        "UPDATE dives SET hand_set_fields = '[\"maxDepth\"]' WHERE id = 'b'",
+      );
+      await db.customStatement(
+        "UPDATE dives SET hand_set_fields = '[\"runtime\"]' WHERE id = 'a'",
+      );
+
+      final outcome = await service.apply(['a', 'b']);
+
+      final merged = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(outcome.mergedDive.id))).getSingle();
+      // The deepest is b's corrected 20 m; the runtime spans both dives.
+      expect(merged.maxDepth, 20);
+      expect(merged.handSetFields, '["maxDepth"]');
+    });
+
     test('rejects overlapping selections', () async {
       await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9), runtimeMin: 90);
       await seedDive('b', entry: DateTime.utc(2026, 7, 1, 10));

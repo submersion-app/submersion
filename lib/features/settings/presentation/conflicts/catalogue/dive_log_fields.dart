@@ -286,6 +286,10 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_gasSwitchesEdited,
     FieldKind.boolean,
   ),
+  'handSetFields': ConflictField(
+    (l) => l.settings_conflict_field_handSetFields,
+    FieldKind.opaque,
+  ),
   'mediaTimeOffsetSeconds': ConflictField(
     (l) => l.settings_conflict_field_mediaTimeOffsetSeconds,
     FieldKind.durationSeconds,

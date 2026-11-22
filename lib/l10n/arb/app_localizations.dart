@@ -21874,6 +21874,12 @@ abstract class AppLocalizations {
   /// **'Name *'**
   String get divers_edit_nameLabel;
 
+  /// No description provided for @divers_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This diver no longer exists.'**
+  String get divers_edit_notFound;
+
   /// No description provided for @divers_edit_notesLabel.
   ///
   /// In en, this message translates to:
@@ -31838,18 +31844,6 @@ abstract class AppLocalizations {
   /// **'{category} ({count})'**
   String media_siteAttachment_groupHeading(String category, int count);
 
-  /// No description provided for @media_siteAttachment_moreOptions.
-  ///
-  /// In en, this message translates to:
-  /// **'More options'**
-  String get media_siteAttachment_moreOptions;
-
-  /// Page count badge on a large PDF card
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{{count} page} other{{count} pages}}'**
-  String media_siteAttachment_pageCount(int count);
-
   /// Edit details save failure
   ///
   /// In en, this message translates to:
@@ -40973,6 +40967,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas switches edited by hand'**
   String get settings_conflict_field_gasSwitchesEdited;
+
+  /// Sync conflict field: the dive values the diver set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Values set by hand'**
+  String get settings_conflict_field_handSetFields;
 
   /// No description provided for @settings_conflict_field_mediaTimeOffsetSeconds.
   ///
@@ -62649,6 +62649,12 @@ abstract class AppLocalizations {
   /// **'Combined dives that kept their profile: {count}'**
   String reparseBatch_resultProfilesPreserved(int count);
 
+  /// Bulk re-parse: dives that kept values the diver set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives that kept values you set by hand: {count}'**
+  String reparseBatch_resultHandSetKept(int count);
+
   /// Bulk re-parse (issue #224)
   ///
   /// In en, this message translates to:
@@ -62690,6 +62696,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Selected dives without raw data (skipped): {count}'**
   String reparseBatch_confirmSkipped(int count);
+
+  /// Bulk re-parse confirmation: values set by hand are kept (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Values you set by hand are kept.'**
+  String get reparseBatch_confirmHandSetKept;
 
   /// Bulk re-parse (issue #224)
   ///
@@ -62921,6 +62933,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resync from original file'**
   String get diveLog_detail_menu_resyncImportedFile;
+
+  /// Re-parse of one dive: title of the dialog listing values set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse this dive?'**
+  String get handSetReview_reparseTitle;
+
+  /// Resync of one dive: title of the dialog listing values set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Resync this dive?'**
+  String get handSetReview_resyncTitle;
+
+  /// Dialog listing values the diver set by hand that a re-parse or resync would change (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'You set these values by hand, and the new reading differs. Keep yours or replace each one.'**
+  String get handSetReview_message;
+
+  /// The diver's own value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Yours: {value}'**
+  String handSetReview_yours(String value);
+
+  /// The dive computer's value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Computer: {value}'**
+  String handSetReview_fromComputer(String value);
+
+  /// The imported file's value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'File: {value}'**
+  String handSetReview_fromFile(String value);
+
+  /// Keep the diver's value (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get handSetReview_keep;
+
+  /// Replace the diver's value with the new reading (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get handSetReview_replace;
+
+  /// Button that runs a resync after the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Resync'**
+  String get handSetReview_resyncAction;
 
   /// Snackbar shown after a successful resync
   ///
@@ -63811,6 +63877,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete entry'**
   String get bodyWeight_deleteTooltip;
+
+  /// No description provided for @bodyWeight_deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this measurement?'**
+  String get bodyWeight_deleteConfirmTitle;
+
+  /// Body of the question asked before a body-weight entry is deleted. {weight} is the weight in the diver's units, such as 176.4 lbs; {date} is the date it was measured.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} on {date} will be deleted. This cannot be undone.'**
+  String bodyWeight_deleteConfirmBody(String weight, String date);
 
   /// No description provided for @bodyWeight_heightLabel.
   ///

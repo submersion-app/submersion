@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/diver_profile_drafts.dart';
+import 'package:submersion/features/settings/presentation/pages/diver_profile_editor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 
+/// The active diver's own notes, on the shared Cancel and Save bar (issue
+/// #4527, phase 4).
 class NotesEditPage extends ConsumerStatefulWidget {
   const NotesEditPage({super.key});
 
@@ -15,158 +17,64 @@ class NotesEditPage extends ConsumerStatefulWidget {
   ConsumerState<NotesEditPage> createState() => _NotesEditPageState();
 }
 
-class _NotesEditPageState extends ConsumerState<NotesEditPage> {
+class _NotesEditPageState extends ConsumerState<NotesEditPage>
+    with
+        RecordEditorHost<NotesEditPage, DiverNotesDraft>,
+        DiverProfileEditor<NotesEditPage, DiverNotesDraft> {
   final _notesCtrl = TextEditingController();
-
-  bool _populated = false;
-  bool _hasChanges = false;
-  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _notesCtrl.addListener(_onFieldChanged);
-  }
-
-  void _onFieldChanged() {
-    if (!_hasChanges) {
-      setState(() => _hasChanges = true);
-    }
+    _notesCtrl.addListener(editorChanged);
+    openProfileEditor();
   }
 
   @override
   void dispose() {
+    disposeEditor();
     _notesCtrl.dispose();
     super.dispose();
   }
 
-  void _populateFromDiver(Diver diver) {
-    if (_populated) return;
-    _populated = true;
-    _notesCtrl.text = diver.notes;
-    _hasChanges = false;
-  }
+  @override
+  String editorTitle(BuildContext context) =>
+      context.l10n.settings_profileHub_notes;
 
-  Future<void> _save(Diver existingDiver) async {
-    setState(() => _isSaving = true);
+  @override
+  DiverNotesDraft readEditorDraft() => (notes: _notesCtrl.text);
 
-    try {
-      final updated = existingDiver.copyWith(
-        notes: _notesCtrl.text.trim(),
-        updatedAt: DateTime.now(),
-      );
-      await ref.read(diverListNotifierProvider.notifier).updateDiver(updated);
+  /// Notes take anything.
+  @override
+  bool validateEditor() => true;
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.settings_profileHub_saved)),
-        );
-        context.pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.divers_edit_errorSaving('$e'))),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
-    }
-  }
+  @override
+  void fillFromDiver(Diver diver) => _notesCtrl.text = diver.notes;
 
-  Future<bool?> _showDiscardDialog() {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.divers_edit_discardDialogTitle),
-        content: Text(context.l10n.divers_edit_discardDialogContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(context.l10n.divers_edit_keepEditingButton),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(context.l10n.divers_edit_discardButton),
-          ),
-        ],
-      ),
-    );
-  }
+  @override
+  Diver applyEditorDraft(
+    Diver stored,
+    DiverNotesDraft start,
+    DiverNotesDraft draft,
+  ) => applyDiverNotesDraft(stored, start, draft);
 
   @override
   Widget build(BuildContext context) {
-    final diverAsync = ref.watch(currentDiverProvider);
-
-    return diverAsync.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(title: Text(context.l10n.settings_profileHub_notes)),
-        body: Center(child: Text('$error')),
-      ),
-      data: (diver) {
-        if (diver == null) {
-          return Scaffold(
-            appBar: AppBar(title: Text(context.l10n.settings_profileHub_notes)),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
-        _populateFromDiver(diver);
-        return _buildScaffold(diver);
-      },
-    );
-  }
-
-  Widget _buildScaffold(Diver diver) {
-    return PopScope(
-      canPop: !_hasChanges,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (!didPop && _hasChanges) {
-          final shouldPop = await _showDiscardDialog();
-          if (shouldPop == true && mounted) {
-            Navigator.of(context).pop();
-          }
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(context.l10n.settings_profileHub_notes),
-          actions: [
-            if (_isSaving)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              )
-            else
-              AppBarTextAction(
-                label: context.l10n.divers_edit_saveButton,
-                onPressed: () => _save(diver),
+    return profileScaffold(
+      context,
+      form: (context) => SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: MarkdownNotesField(
+              controller: _notesCtrl,
+              decoration: InputDecoration(
+                labelText: context.l10n.divers_edit_notesLabel,
+                alignLabelWithHint: true,
+                border: const OutlineInputBorder(),
               ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: MarkdownNotesField(
-                controller: _notesCtrl,
-                decoration: InputDecoration(
-                  labelText: context.l10n.divers_edit_notesLabel,
-                  alignLabelWithHint: true,
-                  border: const OutlineInputBorder(),
-                ),
-                maxLines: 10,
-              ),
+              maxLines: 10,
             ),
           ),
         ),

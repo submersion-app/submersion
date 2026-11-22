@@ -167,6 +167,7 @@ import 'package:submersion/features/settings/presentation/pages/storage_settings
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/new_diver_page.dart';
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/emergency_contacts_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
@@ -1981,17 +1982,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newDiverProfile',
-                    builder: (context, state) =>
-                        const PersonalInfoEditPage(isNewDiver: true),
+                    onExit: confirmLeaveRecordSitting,
+                    builder: (context, state) => const NewDiverPage(),
                   ),
                   GoRoute(
                     path: 'personal',
                     name: 'editPersonalInfo',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const PersonalInfoEditPage(),
                   ),
                   GoRoute(
                     path: 'emergency',
                     name: 'editEmergencyContacts',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) =>
                         const EmergencyContactsEditPage(),
                   ),
@@ -2003,6 +2006,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'add-chamber',
                         name: 'addChamber',
+                        onExit: confirmLeaveRecordSitting,
                         builder: (context, state) => const AddChamberPage(),
                       ),
                       GoRoute(
@@ -2016,6 +2020,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'medical',
                     name: 'editMedicalInfo',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const MedicalInfoEditPage(),
                   ),
                   GoRoute(
@@ -2028,11 +2033,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'notes',
                     name: 'editNotes',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const NotesEditPage(),
                   ),
                   GoRoute(
                     path: 'prior',
                     name: 'editPriorExperience',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) =>
                         const PriorExperienceEditPage(),
                   ),

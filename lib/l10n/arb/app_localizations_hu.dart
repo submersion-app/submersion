@@ -13826,6 +13826,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_nameLabel => 'Név *';
 
   @override
+  String get divers_edit_notFound => 'Ez a búvár már nem létezik.';
+
+  @override
   String get divers_edit_notesLabel => 'Megjegyzések';
 
   @override
@@ -20003,20 +20006,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'További lehetőségek';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count oldal',
-      one: '$count oldal',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return 'Nem sikerült menteni: $error';
   }
@@ -25913,6 +25902,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gázváltások kézzel szerkesztve';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'Kézzel megadott értékek';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -39826,6 +39818,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Merülések, amelyek megtartották a kézzel megadott értékeket: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Sikertelen merülések';
 
   @override
@@ -39852,6 +39849,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Kijelölt merülések nyers adat nélkül (kihagyva): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'A kézzel megadott értékek megmaradnak.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40015,6 +40016,40 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Újraszinkronizálás az eredeti fájlból';
+
+  @override
+  String get handSetReview_reparseTitle => 'Újraelemzed ezt a merülést?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Újraszinkronizálod ezt a merülést?';
+
+  @override
+  String get handSetReview_message =>
+      'Ezeket az értékeket kézzel adtad meg, és az új leolvasás eltér. Tartsd meg a sajátodat, vagy cseréld le egyenként.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Sajátod: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Komputer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Fájl: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Megtart';
+
+  @override
+  String get handSetReview_replace => 'Csere';
+
+  @override
+  String get handSetReview_resyncAction => 'Újraszinkronizálás';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -40723,6 +40758,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Bejegyzés törlése';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Törlöd ezt a mérést?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return 'A(z) $date napi $weight mérés törlődik. Ez nem vonható vissza.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Magasság (cm)';

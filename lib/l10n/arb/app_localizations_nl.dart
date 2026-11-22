@@ -13770,6 +13770,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_edit_nameLabel => 'Naam *';
 
   @override
+  String get divers_edit_notFound => 'Deze duiker bestaat niet meer.';
+
+  @override
   String get divers_edit_notesLabel => 'Notities';
 
   @override
@@ -19948,20 +19951,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'Meer opties';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count pagina\'s',
-      one: '$count pagina',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return 'Opslaan mislukt: $error';
   }
@@ -25855,6 +25844,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gaswissels handmatig bewerkt';
+
+  @override
+  String get settings_conflict_field_handSetFields =>
+      'Handmatig ingestelde waarden';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -39771,6 +39764,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Duiken die handmatig ingestelde waarden behielden: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Mislukte duiken';
 
   @override
@@ -39797,6 +39795,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Geselecteerde duiken zonder ruwe data (overgeslagen): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Handmatig ingestelde waarden blijven behouden.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -39961,6 +39963,40 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Opnieuw synchroniseren vanuit origineel bestand';
+
+  @override
+  String get handSetReview_reparseTitle => 'Deze duik opnieuw verwerken?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Deze duik opnieuw synchroniseren?';
+
+  @override
+  String get handSetReview_message =>
+      'Je hebt deze waarden handmatig ingesteld en de nieuwe uitlezing wijkt af. Behoud de jouwe of vervang ze per stuk.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Jouw waarde: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Computer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Bestand: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Behouden';
+
+  @override
+  String get handSetReview_replace => 'Vervangen';
+
+  @override
+  String get handSetReview_resyncAction => 'Opnieuw synchroniseren';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -40688,6 +40724,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Item verwijderen';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Deze meting verwijderen?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight van $date wordt verwijderd. Dit kan niet ongedaan worden gemaakt.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Lengte (cm)';

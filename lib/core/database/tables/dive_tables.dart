@@ -133,6 +133,10 @@ class Dives extends Table {
   // list alone, the way they already keep an edited profile.
   BoolColumn get gasSwitchesEdited =>
       boolean().withDefault(const Constant(false))();
+  // v382: computer-written values the diver set by hand, kept on re-parse
+  // and resync (issue #4909). A JSON list of HandSetField keys, written by
+  // the dive page's Save and by bulk edit; null when none is marked.
+  TextColumn get handSetFields => text().nullable()();
   // v367: seconds added to each photo's capture time before it is placed on
   // the dive (issue #4539). Negative for a camera running ahead of the dive
   // computer, positive for one behind; 0 places media unshifted.

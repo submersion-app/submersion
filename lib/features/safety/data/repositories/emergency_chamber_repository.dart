@@ -30,7 +30,10 @@ class EmergencyChamberRepository {
   Stream<void> watchChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.emergencyChambers));
 
+  /// Creates a chamber entry under [id] when given (a page's sitting picks
+  /// its record's id as it opens), else under a fresh one.
   Future<EmergencyChamber> createChamber({
+    String? id,
     required String name,
     required String country,
     required String phone,
@@ -40,13 +43,13 @@ class EmergencyChamberRepository {
     String? notes,
     String? diverId,
   }) async {
-    final id = _uuid.v4();
+    final chamberId = id ?? _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db
         .into(_db.emergencyChambers)
         .insert(
           db.EmergencyChambersCompanion.insert(
-            id: id,
+            id: chamberId,
             diverId: Value(diverId),
             name: name,
             country: country,
@@ -61,12 +64,12 @@ class EmergencyChamberRepository {
         );
     await _syncRepository.markRecordPending(
       entityType: 'emergencyChambers',
-      recordId: id,
+      recordId: chamberId,
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
     return EmergencyChamber(
-      id: id,
+      id: chamberId,
       name: name,
       country: country,
       city: city,
