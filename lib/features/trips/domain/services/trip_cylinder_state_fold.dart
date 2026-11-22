@@ -56,6 +56,9 @@ class _Item {
 ///   pressure unknown but the slot used. It never changes the slot's mix.
 /// - Of a dive's tanks on the slot (computers' copies of one cylinder), one
 ///   with no end pressure is passed over when another has one.
+/// - A dive on which any copy is an Avelo Hydrotank leaves the pressure
+///   unknown (issue #4666): water still in the tank squeezes the gas and
+///   raises its end pressure, and every copy measured that same cylinder.
 ///
 /// Status comes from the last item: a fill is full; an adjustment at or
 /// above [kTripCylinderFullFraction] of the working pressure is full;
@@ -68,6 +71,10 @@ TripCylinderState foldCylinderState({
 }) {
   final diveMinutes = {
     for (final u in uses) _minuteOf(u.entryTime.millisecondsSinceEpoch),
+  };
+  final unmeasuredDives = {
+    for (final u in uses)
+      if (!u.endPressureIsGasLeft) u.diveId,
   };
   final items =
       <_Item>[
@@ -120,7 +127,8 @@ TripCylinderState foldCylinderState({
           if (adjustedMix != null) mix = adjustedMix;
       }
     } else {
-      pressure = item.use!.endPressure;
+      final use = item.use!;
+      pressure = unmeasuredDives.contains(use.diveId) ? null : use.endPressure;
     }
     last = item;
   }
