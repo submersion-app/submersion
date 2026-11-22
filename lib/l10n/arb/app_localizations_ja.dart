@@ -13349,6 +13349,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get divers_edit_nameLabel => '名前 *';
 
   @override
+  String get divers_edit_notFound => 'このダイバーはもう存在しません。';
+
+  @override
   String get divers_edit_notesLabel => 'メモ';
 
   @override
@@ -19350,20 +19353,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'その他のオプション';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$countページ',
-      one: '$countページ',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return '保存できませんでした：$error';
   }
@@ -24972,6 +24961,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_conflict_field_gasSwitchesEdited => '手動で編集したガス切り替え';
+
+  @override
+  String get settings_conflict_field_handSetFields => '手動で設定した値';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds => 'メディアの時刻のずれ';
@@ -38340,6 +38332,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return '手動で設定した値を残したダイブ：$count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => '失敗したダイブ';
 
   @override
@@ -38365,6 +38362,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return '生データのない選択済みダイブ（スキップ）：$count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept => '手動で設定した値はそのまま残ります。';
 
   @override
   String get reparseBatch_noneWithRawData => '選択したダイブには、再解析できる生データが保存されていません。';
@@ -38520,6 +38520,40 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_resyncImportedFile => '元のファイルから再同期';
+
+  @override
+  String get handSetReview_reparseTitle => 'このダイブを再解析しますか？';
+
+  @override
+  String get handSetReview_resyncTitle => 'このダイブを再同期しますか？';
+
+  @override
+  String get handSetReview_message =>
+      'これらの値は手動で設定したもので、新しく読み取った値と異なります。自分の値を残すか、項目ごとに置き換えてください。';
+
+  @override
+  String handSetReview_yours(String value) {
+    return '自分の値：$value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'ダイブコンピューター：$value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'ファイル：$value';
+  }
+
+  @override
+  String get handSetReview_keep => '残す';
+
+  @override
+  String get handSetReview_replace => '置き換える';
+
+  @override
+  String get handSetReview_resyncAction => '再同期';
 
   @override
   String get diveLog_detail_resyncSuccess => '元のファイルからダイブを更新しました';
@@ -39214,6 +39248,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => '記録を削除';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'この測定記録を削除しますか？';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$dateの$weightを削除します。この操作は元に戻せません。';
+  }
 
   @override
   String get bodyWeight_heightLabel => '身長（cm）';
@@ -41568,9 +41610,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get incidentEdit_lessonsLearned => '次回に役立つこと（任意）';
-
-  @override
-  String get incidentEdit_save => '保存';
 
   @override
   String get incidentEdit_privacyNote =>
@@ -58706,6 +58745,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rules_edit_noActions => 'アクションを1つ以上追加してください。';
 
   @override
+  String get rules_edit_notFound => 'このルールはもう存在しません。';
+
+  @override
   String get rules_picker_search => 'アクションを検索';
 
   @override
@@ -63083,6 +63125,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => '現在';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return '昨年$value';
   }
@@ -63113,6 +63158,59 @@ class AppLocalizationsJa extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => '最近のダイビング';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings回のダイビング',
+      one: '1回のダイビング',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives本のダイブ',
+      one: '1本のダイブ',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count本のダイブ',
+      one: '1本のダイブ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '最大$depth';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count種',
+      one: '1種',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty => 'ダイブを記録すると、ここにダイビングが表示されます';
+
+  @override
+  String get dashboard_outings_unnamed => 'ダイブ';
 
   @override
   String get dashboard_panel_divesPerMonth => '月別ダイブ数';
@@ -63318,6 +63416,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'アクティビティカレンダー';
+
+  @override
+  String get settings_homePanels_recentOutings => '最近のダイビング';
 
   @override
   String get settings_homeKeyNumbers_description =>
