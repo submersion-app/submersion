@@ -68,8 +68,9 @@ Future<Diver?> storedDiver(String id) => DiverRepository().getDiverById(id);
 
 /// A profile page pushed over a stand-in hub, on a route with the app's
 /// leave check, with [activeDiverId] active. With [push] false the page is
-/// only routed, for the test to push. Returns the router; the container is
-/// [profileContainer].
+/// only routed, for the test to push. With [alone] the page is opened on
+/// its own, with no page under it to go back to (a deep link). Returns the
+/// router; the container is [profileContainer].
 Future<GoRouter> pumpProfilePage(
   WidgetTester tester, {
   required String path,
@@ -78,24 +79,25 @@ Future<GoRouter> pumpProfilePage(
   List<Document> documents = const [],
   List<Override> overrides = const [],
   bool push = true,
+  bool alone = false,
 }) async {
   tester.view.physicalSize = const Size(900, 2400);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  final pageRoute = GoRoute(
+    path: alone ? '$diverProfileHub/$path' : path,
+    onExit: confirmLeaveRecordSitting,
+    builder: (_, _) => page,
+  );
   final router = GoRouter(
-    initialLocation: diverProfileHub,
+    initialLocation: alone ? '$diverProfileHub/$path' : diverProfileHub,
     routes: [
       GoRoute(
         path: diverProfileHub,
         builder: (_, _) => const Scaffold(body: Text('Hub')),
-        routes: [
-          GoRoute(
-            path: path,
-            onExit: confirmLeaveRecordSitting,
-            builder: (_, _) => page,
-          ),
-        ],
+        routes: [if (!alone) pageRoute],
       ),
+      if (alone) pageRoute,
       GoRoute(
         path: '/documents/new',
         builder: (_, state) => Scaffold(body: Text('NEW ${state.uri.query}')),
@@ -119,7 +121,7 @@ Future<GoRouter> pumpProfilePage(
     tester,
   ).read(currentDiverIdProvider.notifier).setCurrentDiver(activeDiverId);
   await tester.pumpAndSettle();
-  if (push) {
+  if (push && !alone) {
     unawaited(router.push('$diverProfileHub/$path'));
     await tester.pumpAndSettle();
   }

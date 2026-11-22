@@ -306,4 +306,21 @@ void main() {
     await back(tester);
     expect(find.text('Hub'), findsOneWidget);
   });
+
+  testWidgets('opened with nothing under it, Cancel goes to the hub', (
+    tester,
+  ) async {
+    await seedDiver(profileDiver());
+    await pumpProfilePage(
+      tester,
+      path: 'medical',
+      page: const MedicalInfoEditPage(),
+      alone: true,
+    );
+    expect(find.byType(MedicalInfoEditPage), findsOneWidget);
+
+    await tapBar(tester, 'Cancel');
+
+    expect(find.text('Hub'), findsOneWidget);
+  });
 }

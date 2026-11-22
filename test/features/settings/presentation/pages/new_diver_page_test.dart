@@ -206,4 +206,20 @@ void main() {
       expect(await diverCount(), 2);
     },
   );
+
+  testWidgets('opened with nothing under it, Cancel goes to the hub', (
+    tester,
+  ) async {
+    await pumpProfilePage(
+      tester,
+      path: 'new',
+      page: const NewDiverPage(),
+      alone: true,
+    );
+    expect(find.byType(NewDiverPage), findsOneWidget);
+
+    await tapBar(tester, 'Cancel');
+
+    expect(find.text('Hub'), findsOneWidget);
+  });
 }

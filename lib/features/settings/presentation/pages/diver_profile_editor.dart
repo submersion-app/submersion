@@ -40,7 +40,6 @@ mixin DiverProfileEditor<W extends ConsumerStatefulWidget, D>
 
   /// The diver the page edits: the first one it was filled from. Null
   /// until the active diver has loaded.
-  String? get profileDiverId => _profileDiverId;
   String? _profileDiverId;
 
   /// The active diver could not be loaded before the page opened.

@@ -278,4 +278,46 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'opened with nothing under it, Cancel goes to the emergency card',
+    (tester) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      const card = '/settings/diver-profile/emergency-card';
+      final router = GoRouter(
+        initialLocation: '$card/add-chamber',
+        routes: [
+          GoRoute(
+            path: card,
+            builder: (_, _) => const Scaffold(body: Text('CARD')),
+          ),
+          GoRoute(
+            path: '$card/add-chamber',
+            onExit: confirmLeaveRecordSitting,
+            builder: (_, _) => const AddChamberPage(),
+          ),
+        ],
+      );
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: base,
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(AddChamberPage), findsOneWidget);
+
+      await tapBar(tester, 'Cancel');
+
+      expect(find.text('CARD'), findsOneWidget);
+    },
+  );
 }

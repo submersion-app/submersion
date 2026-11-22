@@ -214,4 +214,30 @@ void main() {
     expect(written.single.table, 'divers');
     expect(written.single.id, 'diver-1');
   });
+
+  testWidgets('a diving-since year picked is a change and is saved', (
+    tester,
+  ) async {
+    await pump(tester);
+    // The picker opens on ten years ago.
+    final year = DateTime.now().year - 10;
+
+    await tester.tap(find.text('Diving since'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('$year'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.text('OK'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('$year'), findsOneWidget);
+    expect(barAction(tester, 'Save').onPressed, isNotNull);
+    await tapBar(tester, 'Save');
+
+    expect((await saved()).divingSince, DateTime(year));
+  });
 }
