@@ -84,6 +84,7 @@ import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
+import 'package:submersion/features/equipment/data/services/computer_gear_dive_heal.dart';
 
 /// Callback signature for the service initializer used by [StartupWrapper].
 ///
@@ -1260,7 +1261,15 @@ class _StartupWrapperState extends State<StartupWrapper>
     // Gated on there being no trace of a prior sync: a device that synced
     // and then went local-only still owes its peers those tombstones. Same
     // fire-and-forget shape as the media sweep above, for the same reasons.
+    //
+    // Ahead of it, awaited, the one-time pass that puts every computer's
+    // Equipment item on every dive it recorded (issue #4846). The pass reads
+    // the diveEquipment tombstones to leave off what the diver removed, so
+    // the GC must not collect them while it runs. It writes a row per dive on
+    // a large library, which keeps it off the startup path itself, and it
+    // never throws.
     unawaited(() async {
+      await ComputerGearDiveHeal().run();
       try {
         final db = DatabaseService.instance.database;
         await LocalOnlyTombstoneGc(
