@@ -69,6 +69,7 @@ TripCardSlots slots(Trip trip, EditSession<Trip> session) => TripCardSlots(
   showsWhileEmpty: (_) => false,
   openCard: (_) {},
   unlockAt: (_) => session,
+  isOpen: (_) => false,
 );
 
 /// The day [id] as [sitting] holds it.

@@ -18,7 +18,6 @@ import 'package:submersion/features/trips/presentation/widgets/part_of_trip_fiel
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
-import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
@@ -29,8 +28,8 @@ import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
 
-/// The trip page's header block (issue #4527, phase 3): its rows above the
-/// tab row and its editor.
+/// The trip page's header block (issue #4527, phase 3): its line on the
+/// Overview and its editor.
 
 /// Who the trip is shared with, held in its sitting and written at Save.
 final tripSharing = RecordSharingSitting<Trip, ItemSharing>(
@@ -54,10 +53,15 @@ Future<void> loadTripSharing(EditSession<Trip> session, ProviderRead read) =>
       newRecordSharing: session.isNew ? newTripSharing(session.stored) : null,
     );
 
-/// The trip's values no other part of its page shows, one row each when
-/// set: its type when not a liveaboard (a liveaboard has its Vessel card),
-/// where it is, its resort, the boat's name as older versions kept it, and,
-/// for the owner, who it is shared with. Nothing while none is set.
+/// The trip's values no other part of its page shows, on one compact line
+/// that wraps: its type when not a liveaboard (a liveaboard has its Vessel
+/// card), where it is, its resort, the boat's name as older versions kept
+/// it, and, for the owner, who it is shared with. Each is an icon and its
+/// value, read out with its label. Nothing while none is set.
+///
+/// It sits with the rest of the trip summary, on the Overview: under the
+/// dates on the story's Trip page and under the hero on the prepare page
+/// (issue #4927).
 class TripHeaderRows extends ConsumerWidget {
   const TripHeaderRows({super.key, required this.trip});
 
@@ -70,27 +74,27 @@ class TripHeaderRows extends ConsumerWidget {
     final scope = RecordEditScope.maybeOf<Trip>(context);
     final unlocked = scope?.isUnlocked ?? false;
     final sharing = _sharedWith(context, ref, scope?.session);
-    final rows = <Widget>[
+    final items = <Widget>[
       if (trip.tripType != TripType.liveaboard)
-        DetailRow.text(
+        _HeaderItem(
           icon: tripTypeIcon(trip.tripType),
           label: l10n.enum_tripField_tripType,
           value: tripTypeName(l10n, trip.tripType),
         ),
       if (_present(trip.location) case final location?)
-        DetailRow.text(
+        _HeaderItem(
           icon: Icons.place,
           label: l10n.trips_edit_label_location,
           value: location,
         ),
       if (_present(trip.resortName) case final resort?)
-        DetailRow.text(
+        _HeaderItem(
           icon: Icons.hotel,
           label: l10n.trips_edit_label_resortName,
           value: resort,
         ),
       if (_present(trip.liveaboardName) case final boat?)
-        DetailRow.text(
+        _HeaderItem(
           icon: Icons.sailing,
           label: l10n.trips_edit_label_liveaboardName,
           value: boat,
@@ -99,21 +103,15 @@ class TripHeaderRows extends ConsumerWidget {
     ];
     // Locked, a trip with none of these draws nothing; unlocked the block
     // is always there, so its pencil is.
-    if (rows.isEmpty && !unlocked) return const SizedBox.shrink();
+    if (items.isEmpty && !unlocked) return const SizedBox.shrink();
     final title = TripCardId.header.localizedDisplayName(l10n);
     return Padding(
       key: const Key('trip-header-rows'),
-      padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 0, 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: rows,
-            ),
-          ),
+          Expanded(child: Wrap(spacing: 16, runSpacing: 4, children: items)),
           RecordCardPencil(cardTitle: title),
         ],
       ),
@@ -149,10 +147,53 @@ class TripHeaderRows extends ConsumerWidget {
             )
             .value;
     if (sharing == null || !sharing.isShared) return null;
-    return SharingTile(
-      summary: sharingSummary(sharing, {
+    return _HeaderItem(
+      icon: Icons.people_outline,
+      label: context.l10n.sharedItems_sharedWith_label,
+      value: sharingSummary(sharing, {
         for (final d in divers) d.id: d.name,
       }, context.l10n),
+    );
+  }
+}
+
+/// One value of the header block's line: its icon and its value, read out
+/// with its [label], which the line leaves out to stay compact.
+class _HeaderItem extends StatelessWidget {
+  const _HeaderItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      container: true,
+      label: '$label: $value',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 4),
+          // Two lines at most: the line stays compact, and the whole value
+          // is in the label and the editor.
+          Flexible(
+            child: Text(
+              value,
+              style: theme.textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -175,9 +216,8 @@ String tripTypeName(AppLocalizations l10n, TripType type) => switch (type) {
 
 /// The header block's editor: the trip's type, name, larger trip, dates,
 /// return flight, location, resort, the boat's name as older versions kept
-/// it, and who it is shared with, with the form's rules. At most two fifths
-/// of the screen the keyboard leaves, scrolling inside, so the tabs stay in
-/// sight below it.
+/// it, and who it is shared with, with the form's rules. At its full
+/// height, in the Overview's own scroll.
 class TripHeaderCardEditor extends ConsumerStatefulWidget {
   const TripHeaderCardEditor({super.key, required this.session});
 

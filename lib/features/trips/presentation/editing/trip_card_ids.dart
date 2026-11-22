@@ -25,6 +25,16 @@ enum TripCardId {
   photos,
 }
 
+/// The cards the story's Trip page draws: while one is open there, the day
+/// picker folds to leave the editor the room (issue #4927).
+const tripStoryTripPageCards = {
+  TripCardId.header,
+  TripCardId.vessel,
+  TripCardId.plan,
+  TripCardId.notes,
+  TripCardId.documents,
+};
+
 /// What each card of the trip page and its cylinder board is called.
 extension TripCardIdNames on TripCardId {
   /// The card's title, also its name in History. A header block is named
@@ -43,10 +53,10 @@ extension TripCardIdNames on TripCardId {
     TripCardId.photos => l.trips_photos_sectionTitle,
   };
 
-  /// The tab the card is on; null for the header block, which is on
-  /// every tab.
+  /// The tab the card is on. The header block is on the Overview, with the
+  /// rest of the trip summary (issue #4927).
   TripDetailTab? get tab => switch (this) {
-    TripCardId.header => null,
+    TripCardId.header => TripDetailTab.overview,
     TripCardId.plan => TripDetailTab.overview,
     TripCardId.vessel => TripDetailTab.overview,
     TripCardId.notes => TripDetailTab.overview,

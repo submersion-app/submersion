@@ -155,16 +155,16 @@ mixin _TripDetailPageCreating
     return story;
   }
 
-  /// The new trip's page: its header block over the Overview in the
-  /// prepare shape, built on [shown], the working trip, reading nothing by
-  /// its id; [seed] is the trip as the page opened on it.
+  /// The new trip's page: the Overview in the prepare shape, its header
+  /// block under the hero, built on [shown], the working trip, reading
+  /// nothing by its id; [seed] is the trip as the page opened on it.
   Widget _buildNewTrip(BuildContext context, Trip shown, Trip seed) {
     final slots = _slots(shown, seed);
     final story = _newTripStory(shown);
     final body = TripCardSlotsScope(
       slots: slots,
-      child: TripPageBody(
-        above: [
+      child: Column(
+        children: [
           // Its larger trip, as the sitting holds it: the stored page's
           // link reads the trip's own row, which a new trip does not have.
           if (shown.parentTripId case final parentId?)
@@ -172,10 +172,8 @@ mixin _TripDetailPageCreating
               parentId: parentId,
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
             ),
+          Expanded(child: TripPrepareOverview(story: story, tabRows: false)),
         ],
-        header: slots.frame(TripCardId.header, TripHeaderRows(trip: shown)),
-        below: TripPrepareOverview(story: story, tabRows: false),
-        headerOpen: _headerEditorOpen,
       ),
     );
     if (widget.embedded) {

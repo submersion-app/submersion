@@ -9,7 +9,6 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
-import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import 'trip_detail_page_unlock_harness.dart';
@@ -46,7 +45,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.lock_outline));
     await tester.pumpAndSettle();
     final session = RecordEditScope.maybeOf<Trip>(
-      tester.element(find.byType(RecordCardFrame<Trip>).first),
+      tester.element(find.byType(TabBar)),
     )!.session!;
     addMediaToSitting(session, [
       HeldMediaRow((

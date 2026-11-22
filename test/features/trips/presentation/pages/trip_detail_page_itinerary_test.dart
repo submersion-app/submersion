@@ -7,7 +7,6 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_day_card.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
-import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import 'trip_detail_page_unlock_harness.dart';
@@ -66,9 +65,7 @@ void main() {
   }
 
   RecordEditController<Trip> controllerOf(WidgetTester tester) =>
-      RecordEditScope.maybeOf<Trip>(
-        tester.element(find.byType(RecordCardFrame<Trip>).first),
-      )!;
+      RecordEditScope.maybeOf<Trip>(tester.element(find.byType(TabBar)))!;
 
   testWidgets('locked with the switch on, no generate and no sheet', (
     tester,
