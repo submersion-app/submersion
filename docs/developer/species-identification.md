@@ -12,8 +12,9 @@ photos and videos on the device and suggests what they are (issues #4668,
 and Android, Windows and Linux in
 [the third piece](../design/specs/2026-11-19-marine-life-identification-3-other-platforms-design.md).
 
-The feature is on for divers on iPhone, iPad and Mac. This page is for
-working on it.
+The feature is on for divers on iPhone, iPad and Mac, with Core ML, and on
+Android, Windows and Linux, with ONNX Runtime. This page is for working on
+it.
 
 ## Where it is on
 
