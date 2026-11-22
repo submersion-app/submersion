@@ -623,7 +623,7 @@ class TripCylinderRepository {
           SELECT t.id AS tank_id, t.dive_id,
                  COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  t.start_pressure, t.end_pressure, t.o2_percent, t.he_percent,
-                 t.trip_cylinder_id, s.name AS site_name
+                 t.trip_cylinder_id, t.tank_role, s.name AS site_name
           FROM dive_tanks t
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN dive_sites s ON s.id = d.site_id
@@ -659,6 +659,11 @@ class TripCylinderRepository {
           he: r.read<double>('he_percent'),
         ),
         siteName: r.readNullable<String>('site_name'),
+        // A Hydrotank only: a suit inflation bottle's end pressure is still
+        // the gas left in it, though no gas calculation counts it.
+        endPressureIsGasLeft: !TankRole.fromName(
+          r.readNullable<String>('tank_role'),
+        ).isUnmeasuredBreathingGas,
       );
       (out[r.read<String>('trip_cylinder_id')] ??= []).add(use);
     }
