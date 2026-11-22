@@ -10,6 +10,7 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_light_chip.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_lights_scroller.dart';
 import 'package:submersion/features/settings/presentation/widgets/submersion_about_dialog.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -426,6 +427,77 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(position.pixels, greaterThan(0));
+  });
+
+  // Issue #4920: the lights ran flush into the switcher, a pill clipped
+  // against its border.
+  for (final (locale, rtl) in [
+    (const Locale('en'), false),
+    (const Locale('he'), true),
+  ]) {
+    testWidgets('a divider with a gap each side parts the lights from the '
+        'switcher (${locale.languageCode})', (tester) async {
+      await _pump(tester, width: 820, divers: 2, locale: locale);
+      // The rule itself, not the space either side of it.
+      final divider = tester.getRect(
+        find.descendant(
+          of: find.byKey(HomeHeaderBar.dividerKey),
+          matching: find.byType(VerticalDivider),
+        ),
+      );
+      final switcher = tester.getRect(find.byKey(HomeHeaderBar.switcherKey));
+      final lights = tester.getRect(
+        find.descendant(
+          of: find.byType(HomeHeaderBar),
+          matching: find.byType(HomeLightsScroller),
+        ),
+      );
+      if (rtl) {
+        expect(switcher.right, lessThanOrEqualTo(divider.left - 6));
+        expect(divider.right, lessThanOrEqualTo(lights.left - 6));
+      } else {
+        expect(lights.right, lessThanOrEqualTo(divider.left - 6));
+        expect(divider.right, lessThanOrEqualTo(switcher.left - 6));
+      }
+    });
+  }
+
+  testWidgets('phone: no divider, the lights sit in the strip', (tester) async {
+    await _pump(tester, width: 400, divers: 2);
+    expect(find.byKey(HomeHeaderBar.dividerKey), findsNothing);
+  });
+
+  testWidgets('overflowing lights fade at the end, not clip', (tester) async {
+    await _pump(tester, width: 820, divers: 2, textScale: 2);
+    final scroller = find.descendant(
+      of: find.byType(HomeHeaderBar),
+      matching: find.byType(HomeLightsScroller),
+    );
+    final state = tester.state<HomeLightsScrollerState>(scroller);
+    expect(state.fadesStart, isFalse);
+    expect(state.fadesEnd, isTrue);
+  });
+
+  testWidgets('phone: overflowing lights in the strip fade too', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 360,
+      textScale: 2,
+      gauges: () async => DashboardGauges(
+        hasGear: true,
+        insurance: DiverInsurance(provider: 'DAN', expiryDate: DateTime(2000)),
+        noFlyStatus: null,
+        daysSinceLastDive: 400,
+        lastBackupTime: DateTime.now().subtract(const Duration(days: 90)),
+      ),
+    );
+    final scroller = find.descendant(
+      of: find.byType(HomeStatusStrip),
+      matching: find.byType(HomeLightsScroller),
+    );
+    expect(tester.state<HomeLightsScrollerState>(scroller).fadesEnd, isTrue);
   });
 
   testWidgets('German at text scale 2 fits the bar at 800 wide', (
