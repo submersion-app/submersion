@@ -1,9 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/domain/home_outings.dart';
@@ -50,7 +49,7 @@ class _Toggle implements MediaSourceResolver {
   bool canResolveOnThisDevice(MediaItem item) => true;
   @override
   Future<MediaSourceData> resolve(MediaItem item) async => found
-      ? BytesData(bytes: Uint8List.fromList(_png))
+      ? BytesData(bytes: _png)
       : const UnavailableData(kind: UnavailableKind.notFound);
   @override
   Future<MediaSourceData> resolveThumbnail(
@@ -61,75 +60,8 @@ class _Toggle implements MediaSourceResolver {
   Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
 }
 
-const _png = [
-  0x89,
-  0x50,
-  0x4E,
-  0x47,
-  0x0D,
-  0x0A,
-  0x1A,
-  0x0A,
-  0x00,
-  0x00,
-  0x00,
-  0x0D,
-  0x49,
-  0x48,
-  0x44,
-  0x52,
-  0x00,
-  0x00,
-  0x00,
-  0x01,
-  0x00,
-  0x00,
-  0x00,
-  0x01,
-  0x08,
-  0x06,
-  0x00,
-  0x00,
-  0x00,
-  0x1F,
-  0x15,
-  0xC4,
-  0x89,
-  0x00,
-  0x00,
-  0x00,
-  0x0D,
-  0x49,
-  0x44,
-  0x41,
-  0x54,
-  0x78,
-  0x9C,
-  0x63,
-  0x00,
-  0x01,
-  0x00,
-  0x00,
-  0x05,
-  0x00,
-  0x01,
-  0x0D,
-  0x0A,
-  0x2D,
-  0xB4,
-  0x00,
-  0x00,
-  0x00,
-  0x00,
-  0x49,
-  0x45,
-  0x4E,
-  0x44,
-  0xAE,
-  0x42,
-  0x60,
-  0x82,
-];
+/// A small valid PNG.
+final _png = img.encodePng(img.Image(width: 4, height: 4));
 
 Outing _outing(
   String id, {
@@ -546,5 +478,51 @@ void main() {
     final panel = tester.getRect(find.byType(RecentOutingsPanel));
     // The width four cards share: nothing peeks, nothing is cut.
     expect(rects.first.width, closeTo((panel.width - 20 - 3 * 8) / 4, 1));
+  });
+
+  testWidgets('a cover that loads is shown over the skyline', (tester) async {
+    final resolver = _Toggle()..found = true;
+    final item = MediaItem(
+      id: 'ok',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.platformGallery,
+      takenAt: DateTime(2026, 5, 3),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    await _pump(
+      tester,
+      outings: () async => [
+        HomeOuting(
+          outing: _outing('o', tripId: 't'),
+          cover: item,
+        ),
+      ],
+      extra: [
+        mediaSourceResolverRegistryProvider.overrideWithValue(
+          MediaSourceResolverRegistry({
+            MediaSourceType.platformGallery: resolver,
+          }),
+        ),
+      ],
+    );
+    Opacity cover() => tester.widget<Opacity>(
+      find
+          .ancestor(
+            of: find.byType(MediaItemView),
+            matching: find.byType(Opacity),
+          )
+          .first,
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byType(OutingSkyline), findsOneWidget);
+    // Decoding runs outside the fake clock.
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(cover().opacity, 1);
   });
 }
