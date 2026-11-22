@@ -98,6 +98,41 @@ LabelsMenuModel labelsMenuModel({
   );
 }
 
+/// What the labels button shows of the item on screen at a glance (issue
+/// #4926), so the diver can tell which items still need analysing without
+/// opening the menu.
+enum LabelsButtonStatus {
+  /// Never looked at, or nothing here can look at it.
+  notAnalysed,
+
+  /// Queued or being analysed now.
+  analysing,
+
+  /// Looked at, but not as the installed model would leave it.
+  partial,
+
+  /// Looked at; analysing it would find nothing to do.
+  analysed,
+}
+
+/// The labels button's status for an item in [state] (null while it has
+/// not been read), [busy] while queued or being analysed.
+LabelsButtonStatus labelsButtonStatus({
+  required MediaAnalysisState? state,
+  required bool busy,
+}) {
+  if (busy) return LabelsButtonStatus.analysing;
+  return switch (state) {
+    null ||
+    MediaAnalysisState.noModel ||
+    MediaAnalysisState.notAnalysed => LabelsButtonStatus.notAnalysed,
+    MediaAnalysisState.partial => LabelsButtonStatus.partial,
+    // Another device's results count: what it found is on the item.
+    MediaAnalysisState.analysed ||
+    MediaAnalysisState.foundNoModel => LabelsButtonStatus.analysed,
+  };
+}
+
 /// What the viewer says once an Analyse the diver asked for has finished,
 /// when its finds would draw no name (issue #4872): without it the tap
 /// looks as if it did nothing.

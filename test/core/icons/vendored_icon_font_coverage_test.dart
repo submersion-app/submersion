@@ -120,6 +120,26 @@ void main() {
     }
   });
 
+  test('the media viewer\'s labels glyphs resolve (issue #4926)', () {
+    // The labels button is a fish while labels are drawn and a struck fish
+    // while they are off.
+    const glyphs = <String, IconData>{
+      'fish': MdiIcons.fish,
+      'fishOff': MdiIcons.fishOff,
+    };
+    final cmap = cmaps[MdiIcons.fontFamily]!;
+    for (final entry in glyphs.entries) {
+      expect(
+        cmap.maps(entry.value.codePoint),
+        isTrue,
+        reason:
+            '${entry.key} points at U+'
+            '${entry.value.codePoint.toRadixString(16).toUpperCase()}, which '
+            'the committed font does not map.',
+      );
+    }
+  });
+
   group('the format 12 lookup derives a glyph id, not just containment', () {
     // Neither vendored font maps a code point onto glyph 0, so the real
     // files cannot exercise the .notdef branch. A hand-built font can: this

@@ -85,4 +85,29 @@ void main() {
     expect(m.found, 4);
     expect(m.actionEnabled, isFalse);
   });
+
+  group('the labels button says how far analysis has got (issue #4926)', () {
+    for (final (state, status) in [
+      (null, LabelsButtonStatus.notAnalysed),
+      (MediaAnalysisState.noModel, LabelsButtonStatus.notAnalysed),
+      (MediaAnalysisState.notAnalysed, LabelsButtonStatus.notAnalysed),
+      (MediaAnalysisState.partial, LabelsButtonStatus.partial),
+      (MediaAnalysisState.analysed, LabelsButtonStatus.analysed),
+      // Another device's results are an analysis, even with no model here.
+      (MediaAnalysisState.foundNoModel, LabelsButtonStatus.analysed),
+    ]) {
+      test('${state?.name ?? 'not read yet'} reads ${status.name}', () {
+        expect(labelsButtonStatus(state: state, busy: false), status);
+      });
+    }
+
+    test('being analysed outranks what is stored', () {
+      for (final state in [null, ...MediaAnalysisState.values]) {
+        expect(
+          labelsButtonStatus(state: state, busy: true),
+          LabelsButtonStatus.analysing,
+        );
+      }
+    });
+  });
 }
