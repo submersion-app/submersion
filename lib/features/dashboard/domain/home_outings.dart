@@ -22,6 +22,24 @@ class OutingDive {
     this.maxDepth,
     this.speciesIds = const {},
   });
+
+  OutingDive copyWith({
+    String? id,
+    DateTime? dateTime,
+    String? tripId,
+    String? tripName,
+    String? siteName,
+    double? maxDepth,
+    Set<String>? speciesIds,
+  }) => OutingDive(
+    id: id ?? this.id,
+    dateTime: dateTime ?? this.dateTime,
+    tripId: tripId ?? this.tripId,
+    tripName: tripName ?? this.tripName,
+    siteName: siteName ?? this.siteName,
+    maxDepth: maxDepth ?? this.maxDepth,
+    speciesIds: speciesIds ?? this.speciesIds,
+  );
 }
 
 /// A group of dives: one trip's dives, or trip-less dives close together.
@@ -190,6 +208,22 @@ class CoverCandidate {
     required this.hasSpeciesTag,
     this.takenAt,
   });
+
+  CoverCandidate copyWith({
+    String? mediaId,
+    String? diveId,
+    bool? isVideo,
+    bool? isFavorite,
+    bool? hasSpeciesTag,
+    DateTime? takenAt,
+  }) => CoverCandidate(
+    mediaId: mediaId ?? this.mediaId,
+    diveId: diveId ?? this.diveId,
+    isVideo: isVideo ?? this.isVideo,
+    isFavorite: isFavorite ?? this.isFavorite,
+    hasSpeciesTag: hasSpeciesTag ?? this.hasSpeciesTag,
+    takenAt: takenAt ?? this.takenAt,
+  );
 }
 
 /// The cover among [candidates]: a favourite, else one with a species tag,

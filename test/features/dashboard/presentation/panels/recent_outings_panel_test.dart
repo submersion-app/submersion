@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -16,6 +18,7 @@ import 'package:submersion/features/media/domain/services/media_source_resolver.
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'panel_harness.dart';
@@ -37,6 +40,96 @@ class _StillFetching implements MediaSourceResolver {
   @override
   Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
 }
+
+/// Missing until [found] is set, then a tiny PNG.
+class _Toggle implements MediaSourceResolver {
+  bool found = false;
+  @override
+  MediaSourceType get sourceType => MediaSourceType.platformGallery;
+  @override
+  bool canResolveOnThisDevice(MediaItem item) => true;
+  @override
+  Future<MediaSourceData> resolve(MediaItem item) async => found
+      ? BytesData(bytes: Uint8List.fromList(_png))
+      : const UnavailableData(kind: UnavailableKind.notFound);
+  @override
+  Future<MediaSourceData> resolveThumbnail(
+    MediaItem item, {
+    required Size target,
+  }) => resolve(item);
+  @override
+  Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
+}
+
+const _png = [
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
+];
 
 Outing _outing(
   String id, {
@@ -382,5 +475,48 @@ void main() {
     final card = tester.getRect(find.byType(OutingCard).first);
     final panel = tester.getRect(find.byType(RecentOutingsPanel));
     expect(card.right, closeTo(panel.right - 10, 1));
+  });
+
+  testWidgets('a cover that failed retries when the outings rebuild', (
+    tester,
+  ) async {
+    final resolver = _Toggle();
+    final item = MediaItem(
+      id: 'c',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.platformGallery,
+      takenAt: DateTime(2026, 5, 3),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    await _pump(
+      tester,
+      outings: () async => [
+        HomeOuting(
+          outing: _outing('o', tripId: 't'),
+          cover: item,
+        ),
+      ],
+      extra: [
+        mediaSourceResolverRegistryProvider.overrideWithValue(
+          MediaSourceResolverRegistry({
+            MediaSourceType.platformGallery: resolver,
+          }),
+        ),
+      ],
+    );
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.byType(MediaItemView), findsNothing);
+
+    resolver.found = true;
+    ProviderScope.containerOf(
+      tester.element(find.byType(RecentOutingsPanel)),
+    ).invalidate(homeRecentOutingsProvider);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.byType(MediaItemView), findsOneWidget);
   });
 }

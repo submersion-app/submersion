@@ -231,4 +231,13 @@ void main() {
       expect(chooseOutingCover(const []), isNull);
     });
   });
+
+  test('the inputs copy with changes', () {
+    final dive = _dive('a', 5, 3, site: 'Pier');
+    expect(dive.copyWith(siteName: 'Reef').siteName, 'Reef');
+    expect(dive.copyWith(siteName: 'Reef').id, 'a');
+    final media = _media('m');
+    expect(media.copyWith(isFavorite: true).isFavorite, isTrue);
+    expect(media.copyWith(isFavorite: true).mediaId, 'm');
+  });
 }

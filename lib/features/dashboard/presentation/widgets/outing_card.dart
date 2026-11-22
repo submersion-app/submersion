@@ -40,6 +40,10 @@ class _OutingCardState extends ConsumerState<OutingCard> {
     if (oldWidget.outing.cover?.id != widget.outing.cover?.id) {
       _coverFailed = false;
       _coverReady = false;
+    } else if (!identical(oldWidget.outing, widget.outing)) {
+      // Fresh data after a media or dive change: try a failed cover again
+      // (a file back on its drive, a photo a sync delivered).
+      _coverFailed = false;
     }
   }
 

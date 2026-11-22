@@ -102,6 +102,7 @@ class KeyNumbersPanel extends ConsumerWidget {
           if (enabled.contains(t) && n.has(t)) t,
       ];
       final headline = headlineFirst(tier, shown.length);
+      final now = clock.now();
       tiles = [
         for (var i = 0; i < shown.length; i++)
           headline && i == 0
@@ -111,12 +112,7 @@ class KeyNumbersPanel extends ConsumerWidget {
                   lineStart: shown[i] == HomeKeyNumber.dives
                       ? ref
                             .watch(unitFormatterProvider)
-                            .formatMonthYear(
-                              DateTime(
-                                clock.now().year,
-                                clock.now().month - 11,
-                              ),
-                            )
+                            .formatMonthYear(DateTime(now.year, now.month - 11))
                       : null,
                 )
               : _tileFor(context, ref, shown[i], n),
