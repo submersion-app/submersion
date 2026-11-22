@@ -946,6 +946,16 @@ on:
   answers its row count and stamps a rule for sync only when it wrote one,
   so `setEnabled` and the agent's `update` no longer stamp a rule that is
   gone.
+- **The near-miss link is split (Copilot, on the PR).** `IncidentChanges`
+  carries `diveId` and `observationId` separately in place of the `link`
+  pair Task 5 planned. The check-in is written, as the one that can still
+  be linked, when the check-in, a dive or the item changed, and a check-in
+  written takes its item with it. The dive is written only when the dive
+  the report saves with differs from the one it started with, so a change
+  of check-in alone leaves a dive synced in meanwhile as stored. Left as it
+  was, on purpose: a stored report cannot tell whether its dive came from
+  its check-in, so clearing the check-in keeps the dive, as before this
+  plan.
 - **Shared files touched:** `record_editor_host.dart` (one getter, two
   reads), `record_editor_host_harness.dart` (one probe option),
   `app_router.dart` (`onExit` on the four rule and near-miss editing
