@@ -6,6 +6,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -256,30 +258,90 @@ void main() {
     expect(harness.save.calls.single.after.name, 'Egypt');
   });
 
-  testWidgets('the header editor opens above the tab row on every tab', (
+  // The header block is on the Overview, with the rest of the trip summary,
+  // not above the tab row on every tab (issue #4927).
+  testWidgets('the header pencil is on the Overview, under the tab row, and '
+      'on no other tab', (tester) async {
+    await pumpTripPage(tester);
+    await unlock(tester);
+    final pencil = find.byTooltip(
+      l.recordEdit_editCardTooltip(l.settings_conflict_ref_trip),
+    );
+
+    expect(pencil, findsOneWidget);
+    expect(
+      tester.getRect(pencil).top,
+      greaterThanOrEqualTo(tester.getRect(find.byType(TabBar)).bottom),
+    );
+
+    await showTab(tester, l.trips_detail_tab_gear);
+    expect(pencil, findsNothing);
+  });
+
+  testWidgets('the header editor opens on the Overview, under the tab row', (
     tester,
   ) async {
     await pumpTripPage(tester);
     await unlock(tester);
-    await showTab(tester, l.trips_detail_tab_gear);
 
     await openCard(tester, l.settings_conflict_ref_trip);
 
     final editor = tester.getRect(find.byKey(const Key('trip-edit-name')));
     final tabs = tester.getRect(find.byType(TabBar));
-    expect(editor.bottom, lessThan(tabs.top));
+    expect(editor.top, greaterThanOrEqualTo(tabs.bottom));
   });
 
-  // The open header editor and the tabs scroll as one page, the tabs below
-  // the editor: with the editor in its own window inside a half-page one, a
-  // drag stopped with the last fields under the tab row.
+  testWidgets('a Save refused for a blank name on another tab brings the '
+      'header editor into view on the Overview', (tester) async {
+    await pumpTripPage(tester);
+    await unlock(tester);
+    sessionOf(tester).set(tripNameField, ' ');
+    await tester.pumpAndSettle();
+    await showTab(tester, l.trips_detail_tab_gear);
+
+    await save(tester);
+
+    expect(find.byKey(const Key('trip-edit-name')), findsOneWidget);
+    expect(find.text(l.trips_edit_validation_nameRequired), findsOneWidget);
+    expect(
+      tester.widget<TabBar>(find.byType(TabBar)).controller!.index,
+      TripDetailTab.overview.index,
+    );
+  });
+
+  testWidgets("a Save refused for a blank name while the story shows a day "
+      "brings the story's Trip page into view with the header editor", (
+    tester,
+  ) async {
+    final today = DateTime.now();
+    await pumpTripPage(
+      tester,
+      trip: redSea.copyWith(
+        startDate: DateTime(today.year, today.month, today.day - 2),
+        endDate: DateTime(today.year, today.month, today.day + 2),
+      ),
+    );
+    // A trip under way opens its story on today.
+    expect(find.byType(TripStoryTripPage), findsNothing);
+    await unlock(tester);
+    sessionOf(tester).set(tripNameField, ' ');
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(find.byType(TripStoryTripPage), findsOneWidget);
+    expect(find.byKey(const Key('trip-edit-name')), findsOneWidget);
+  });
+
+  // Every field of the open header editor scrolls into view with the
+  // Overview it sits on, under the tab row.
   for (final (name, size, embedded) in [
     ('a phone', const Size(402, 874), false),
     ('a desktop window', const Size(1280, 800), false),
     ('the master-detail pane', const Size(900, 800), true),
   ]) {
     testWidgets('on $name every field of the open header editor drags into '
-        'view, with the tab row below the card', (tester) async {
+        'view, with the card below the tab row', (tester) async {
       await pumpTripPage(tester, size: size, embedded: embedded);
       await unlock(tester);
       await openCard(tester, l.settings_conflict_ref_trip);
@@ -295,109 +357,27 @@ void main() {
         'trip-edit-liveaboard-name',
       ]) {
         final field = find.byKey(Key(key), skipOffstage: false);
+        // On the card's margin, clear of its fields and the focused
+        // name's selection handle.
         await dragPageUntilShown(
           tester,
           field,
           bottom: size.height,
-          from: Offset(size.width / 2, size.height / 2),
+          from: Offset(8, size.height / 2),
         );
         expectFullyShown(tester, field, bottom: size.height);
+        expect(
+          tester.getRect(field).top,
+          greaterThanOrEqualTo(tester.getRect(find.byType(TabBar)).bottom),
+        );
       }
-      final card = tester.getRect(
-        find.ancestor(
-          of: find.byKey(const Key('trip-edit-name'), skipOffstage: false),
-          matching: find.byType(RecordCardFrame<Trip>, skipOffstage: false),
-        ),
-      );
-      expect(
-        card.bottom,
-        lessThanOrEqualTo(
-          tester.getRect(find.byType(TabBar, skipOffstage: false)).top,
-        ),
-      );
     });
   }
 
-  // One linked scroll while the editor is open: a drag on the tab moves
-  // the page first and the tab after, and back down again (issue #4844).
-  for (final (name, size, embedded) in [
-    ('a phone', const Size(402, 874), false),
-    ('the master-detail pane', const Size(900, 800), true),
-  ]) {
-    testWidgets('on $name a drag on the open tab scrolls the page before '
-        'the tab, both ways', (tester) async {
-      await pumpTripPage(tester, size: size, embedded: embedded);
-      await unlock(tester);
-      await openCard(tester, l.settings_conflict_ref_trip);
-      final name = find.byKey(const Key('trip-edit-name'), skipOffstage: false);
-      Rect tabRow() => tester.getRect(find.byType(TabBar, skipOffstage: false));
-      // The Overview's own list: the first Scrollable under the TabBarView
-      // is the TabBarView's horizontal page view.
-      ScrollPosition overview() => tester
-          .state<ScrollableState>(
-            find
-                .descendant(
-                  of: find.byKey(
-                    const Key('trip-prepare-overview'),
-                    skipOffstage: false,
-                  ),
-                  matching: find.byType(Scrollable, skipOffstage: false),
-                )
-                .first,
-          )
-          .position;
-
-      // The tab row into sight, dragging on the editor's margin, clear of
-      // its text fields.
-      for (var i = 0; i < 20 && tabRow().bottom + 100 > size.height; i++) {
-        await tester.dragFrom(
-          Offset(4, size.height / 3),
-          const Offset(0, -100),
-        );
-        await tester.pumpAndSettle();
-      }
-
-      // Up from the tab: the page moves, the Overview stays at its top.
-      final before = tabRow().top;
-      await tester.dragFrom(
-        Offset(size.width / 2, tabRow().bottom + 40),
-        const Offset(0, -60),
-      );
-      await tester.pumpAndSettle();
-      expect(tabRow().top, lessThan(before));
-      expect(overview().pixels, 0);
-
-      // On up until the tab row stops, the editor out of sight above it.
-      for (var i = 0; i < 20; i++) {
-        final top = tabRow().top;
-        await tester.dragFrom(
-          Offset(size.width / 2, tabRow().bottom + 40),
-          const Offset(0, -150),
-        );
-        await tester.pumpAndSettle();
-        if (tabRow().top == top) break;
-      }
-      expect(tester.getRect(name).bottom, lessThanOrEqualTo(tabRow().top));
-
-      // Down from the tab brings the editor back.
-      for (var i = 0; i < 20; i++) {
-        final rect = tester.getRect(name);
-        if (rect.top > 0 && rect.bottom <= tabRow().top) break;
-        await tester.dragFrom(
-          Offset(size.width / 2, tabRow().bottom + 40),
-          const Offset(0, 150),
-        );
-        await tester.pumpAndSettle();
-      }
-      expectFullyShown(tester, name, bottom: size.height);
-    });
-  }
-
-  // Opening the header editor lays the page out afresh, which would rebuild
-  // the Plan card and drop its unreadable text with the mark that stops
-  // Save (issue #4844).
-  testWidgets('the header editor does not open while the Plan card holds '
-      'text that is not a number, and the text stays', (tester) async {
+  // The header editor opens inside the Overview, so nothing is built again
+  // and a card holding unreadable text keeps it.
+  testWidgets('the header editor opens beside a Plan card holding text that '
+      'is not a number, and the text stays', (tester) async {
     await pumpTripPage(tester);
     await unlock(tester);
     await openCard(tester, l.trips_overview_plan);
@@ -407,9 +387,15 @@ void main() {
 
     await openCard(tester, l.settings_conflict_ref_trip);
 
-    expect(find.byKey(const Key('trip-edit-name')), findsNothing);
+    expect(find.byKey(const Key('trip-edit-name')), findsOneWidget);
     expect(
-      find.descendant(of: divesPerDay, matching: find.text('1.5')),
+      find.descendant(
+        of: find.byKey(
+          const Key('trip-edit-dives-per-day'),
+          skipOffstage: false,
+        ),
+        matching: find.text('1.5', skipOffstage: false),
+      ),
       findsOneWidget,
     );
     expect(
@@ -470,7 +456,10 @@ void main() {
         tester,
         find.byKey(const Key('trip-edit-liveaboard-name'), skipOffstage: false),
         bottom: keyboardTop,
-        from: const Offset(201, 300),
+        // On the card's margin, clear of the focused name's selection
+        // handle, inside the Overview's own scroll: a past trip's story
+        // has its day picker above it.
+        from: const Offset(8, 480),
       );
       expectFullyShown(
         tester,

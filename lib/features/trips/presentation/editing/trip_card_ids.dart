@@ -43,10 +43,10 @@ extension TripCardIdNames on TripCardId {
     TripCardId.photos => l.trips_photos_sectionTitle,
   };
 
-  /// The tab the card is on; null for the header block, which is on
-  /// every tab.
+  /// The tab the card is on. The header block is on the Overview, with the
+  /// rest of the trip summary (issue #4927).
   TripDetailTab? get tab => switch (this) {
-    TripCardId.header => null,
+    TripCardId.header => TripDetailTab.overview,
     TripCardId.plan => TripDetailTab.overview,
     TripCardId.vessel => TripDetailTab.overview,
     TripCardId.notes => TripDetailTab.overview,

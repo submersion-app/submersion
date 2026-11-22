@@ -41,12 +41,10 @@ final _depth = EditField<_Rec, int>(
 RecordEditController<_Rec> _controller({
   Future<void> Function(EditSession<_Rec> session)? onSave,
   List<String> Function(EditSession<_Rec> session)? invalidCards,
-  Set<String> relayoutCardIds = const {},
 }) {
   final controller = RecordEditController<_Rec>(
     onSave: onSave ?? (_) async {},
     invalidCards: invalidCards,
-    relayoutCardIds: relayoutCardIds,
   );
   addTearDown(controller.dispose);
   return controller;
@@ -211,43 +209,8 @@ void main() {
       expect(told, 1);
     });
 
-    // A card whose opening or closing lays the page out afresh would
-    // rebuild the other open cards and drop their unreadable text, with
-    // its mark (issue #4844).
-    test('a card that lays the page out afresh does not open while another '
-        'card is unreadable, and that card is shown instead', () {
-      final controller = _controller(relayoutCardIds: {'header'})
-        ..unlock(const _Rec())
-        ..openCard('details')
-        ..setFieldInvalid('details', 'depth', invalid: true);
-      var told = 0;
-      controller.addListener(() => told++);
-
-      controller.openCard('header');
-
-      expect(controller.openCardIds, {'details'});
-      expect(controller.invalidCardIds, {'details'});
-      expect(controller.revealRequest!.cardId, 'details');
-      expect(controller.revealRequest!.fieldId, 'depth');
-      expect(told, 1);
-    });
-
-    test('a card that lays the page out afresh does not close while another '
-        'card is unreadable, and that card is shown instead', () {
-      final controller = _controller(relayoutCardIds: {'header'})
-        ..unlock(const _Rec())
-        ..openCard('header')
-        ..openCard('details')
-        ..setFieldInvalid('details', 'depth', invalid: true);
-
-      controller.closeCard('header');
-
-      expect(controller.openCardIds, {'header', 'details'});
-      expect(controller.revealRequest!.cardId, 'details');
-    });
-
     test('other cards open and close while another card is unreadable', () {
-      final controller = _controller(relayoutCardIds: {'header'})
+      final controller = _controller()
         ..unlock(const _Rec())
         ..openCard('details')
         ..setFieldInvalid('details', 'depth', invalid: true)
@@ -256,22 +219,6 @@ void main() {
       expect(controller.openCardIds, {'details', 'notes'});
 
       controller.closeCard('notes');
-
-      expect(controller.openCardIds, {'details'});
-    });
-
-    test('a card that lays the page out afresh opens and closes once the '
-        'other card reads again', () {
-      final controller = _controller(relayoutCardIds: {'header'})
-        ..unlock(const _Rec())
-        ..openCard('details')
-        ..setFieldInvalid('details', 'depth', invalid: true)
-        ..setFieldInvalid('details', 'depth', invalid: false)
-        ..openCard('header');
-
-      expect(controller.openCardIds, {'details', 'header'});
-
-      controller.closeCard('header');
 
       expect(controller.openCardIds, {'details'});
     });
