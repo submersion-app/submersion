@@ -20,12 +20,17 @@ class _RecordingPackController extends SpeciesPackController {
     this._fixed, {
     this.fetchesEngine = false,
     this.refreshDone,
+    this.engineAnswer,
   });
   final SpeciesPackState _fixed;
   final bool fetchesEngine;
 
   /// When given, refresh() waits on it, as a manifest fetch would.
   final Future<void>? refreshDone;
+
+  /// When given, the hardware engine question waits on it, as the Windows
+  /// ML catalogue would.
+  final Future<bool>? engineAnswer;
   var refreshes = 0;
   var downloads = 0;
 
@@ -45,7 +50,8 @@ class _RecordingPackController extends SpeciesPackController {
   }
 
   @override
-  Future<bool> downloadFetchesHardwareEngine() async => fetchesEngine;
+  Future<bool> downloadFetchesHardwareEngine() async =>
+      await engineAnswer ?? fetchesEngine;
 }
 
 /// The species model step of the setup wizard (issue #4881).
@@ -67,11 +73,13 @@ void main() {
     SpeciesPackState state, {
     bool fetchesEngine = false,
     Future<void>? refreshDone,
+    Future<bool>? engineAnswer,
   }) async {
     controller = _RecordingPackController(
       state,
       fetchesEngine: fetchesEngine,
       refreshDone: refreshDone,
+      engineAnswer: engineAnswer,
     );
     nexts = 0;
     final overrides = <Override>[
@@ -275,6 +283,26 @@ void main() {
     done.complete();
     await tester.pump();
     await tester.pump();
+    expect(tester.widget<FilledButton>(download).onPressed, isNotNull);
+  });
+
+  // The Windows ML line is the confirmation that an engine comes too: no
+  // Download before the engine question has answered.
+  testWidgets('Download waits for the hardware engine question too', (
+    tester,
+  ) async {
+    final engine = Completer<bool>();
+    await pumpStep(
+      tester,
+      const PackNotInstalled(bytes: bytes, resumable: false),
+      engineAnswer: engine.future,
+    );
+    expect(download, findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    engine.complete(true);
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(l10n.setup_speciesModel_hardware), findsOneWidget);
     expect(tester.widget<FilledButton>(download).onPressed, isNotNull);
   });
 

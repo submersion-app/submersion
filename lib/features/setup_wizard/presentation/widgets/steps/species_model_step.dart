@@ -41,6 +41,11 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
   /// overwrite a download started meanwhile.
   var _checked = false;
 
+  /// The hardware engine question has answered. Its line is the
+  /// confirmation that the download fetches an engine too, so Download
+  /// waits for it as well; a failed question counts as no engine.
+  var _engineAsked = false;
+
   @override
   void initState() {
     super.initState();
@@ -54,8 +59,17 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
   }
 
   Future<void> _askAboutEngine(SpeciesPackController controller) async {
-    final fetches = await controller.downloadFetchesHardwareEngine();
-    if (mounted && fetches) setState(() => _fetchesEngine = true);
+    var fetches = false;
+    try {
+      fetches = await controller.downloadFetchesHardwareEngine();
+    } on Object {
+      fetches = false;
+    }
+    if (!mounted) return;
+    setState(() {
+      _fetchesEngine = fetches;
+      _engineAsked = true;
+    });
   }
 
   Future<void> _check(SpeciesPackController controller) async {
@@ -89,8 +103,8 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
       child: Text(l10n.settings_setUpDevice_skip),
     );
     // The size is not known yet, or a state left from an earlier Settings
-    // visit may be stale until the step's own check answers: show the check,
-    // not a dead Download.
+    // visit may be stale until the step's own check answers, or the hardware
+    // engine question is still open: show the check, not a dead Download.
     final (List<Widget>, String, VoidCallback?, Widget?) checking = (
       [
         const Align(
@@ -112,7 +126,7 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
       Widget? secondary,
     ) = switch (state) {
       PackChecking() => checking,
-      PackNotInstalled() when !_checked => checking,
+      PackNotInstalled() when !_checked || !_engineAsked => checking,
       PackNotInstalled(:final bytes, :final resumable) => (
         [
           line(l10n.setup_speciesModel_size(formatBytes(bytes))),
