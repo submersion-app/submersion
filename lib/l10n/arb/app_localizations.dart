@@ -32821,6 +32821,18 @@ abstract class AppLocalizations {
   /// **'Play original'**
   String get media_viewer_playOriginal;
 
+  /// Photo viewer button: plays the short video a motion photo carries
+  ///
+  /// In en, this message translates to:
+  /// **'Play motion'**
+  String get media_viewer_playMotion;
+
+  /// Photo viewer: the motion photo's video cannot be decoded here (for example HEVC on a Windows PC without the HEVC extension)
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot play the motion of this photo'**
+  String get media_viewer_motionUnplayable;
+
   /// No description provided for @media_photoViewer_playPauseVideoLabel.
   ///
   /// In en, this message translates to:

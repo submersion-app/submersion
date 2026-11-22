@@ -19810,6 +19810,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_viewer_playOriginal => '播放原始视频';
 
   @override
+  String get media_viewer_playMotion => '播放动态';
+
+  @override
+  String get media_viewer_motionUnplayable => '此设备无法播放这张照片的动态';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => '播放或暂停视频';
 
   @override

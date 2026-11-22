@@ -5907,6 +5907,8 @@
   "media_photoViewer_noPhotosAvailable": "Nincsenek elérhető fotók",
   "media_photoViewer_pageIndicator": "{current} / {total}",
   "media_viewer_playOriginal": "Eredeti lejátszása",
+  "media_viewer_playMotion": "Mozgás lejátszása",
+  "media_viewer_motionUnplayable": "Ez az eszköz nem tudja lejátszani a fotó mozgását",
   "media_photoViewer_playPauseVideoLabel": "Videó lejátszása vagy szüneteltetése",
   "media_photoViewer_previousTooltip": "Előző médiaelem",
   "media_photoViewer_seekVideoLabel": "Videó pozíció keresése",

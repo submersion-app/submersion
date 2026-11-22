@@ -20767,6 +20767,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_viewer_playOriginal => 'Eredeti lejátszása';
 
   @override
+  String get media_viewer_playMotion => 'Mozgás lejátszása';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Ez az eszköz nem tudja lejátszani a fotó mozgását';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Videó lejátszása vagy szüneteltetése';
 

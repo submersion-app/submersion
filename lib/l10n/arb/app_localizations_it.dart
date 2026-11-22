@@ -20839,6 +20839,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_viewer_playOriginal => 'Riproduci originale';
 
   @override
+  String get media_viewer_playMotion => 'Riproduci movimento';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Questo dispositivo non può riprodurre il movimento di questa foto';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Riproduci o metti in pausa il video';
 

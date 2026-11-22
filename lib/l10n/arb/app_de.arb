@@ -6159,6 +6159,8 @@
   "media_photoViewer_noPhotosAvailable": "Keine Fotos verfügbar",
   "media_photoViewer_pageIndicator": "{current} / {total}",
   "media_viewer_playOriginal": "Original abspielen",
+  "media_viewer_playMotion": "Bewegung abspielen",
+  "media_viewer_motionUnplayable": "Die Bewegung dieses Fotos lässt sich auf diesem Gerät nicht abspielen",
   "media_photoViewer_playPauseVideoLabel": "Video abspielen oder pausieren",
   "media_photoViewer_previousTooltip": "Vorheriges Medium",
   "media_photoViewer_seekVideoLabel": "Videoposition suchen",

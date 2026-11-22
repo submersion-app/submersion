@@ -98,4 +98,59 @@ void main() {
     expect(File(first).existsSync(), isFalse);
     expect(File(third!).existsSync(), isTrue);
   });
+
+  group('motion photos', () {
+    final photo = Uri.parse('https://nas.example.com:5001/p.jpg?id=2');
+    final clip = [0, 0, 0, 16, ...'ftypmp42'.codeUnits, 0, 0, 0, 0, 5, 5];
+    final file = [
+      0xFF, 0xD8, 0xFF, 0xE1, //
+      ...'Item:Semantic="MotionPhoto" Item:Length="${clip.length}"'.codeUnits,
+      0xFF, 0xD9,
+      ...clip,
+    ];
+    http.Response jpeg(List<int> bytes) => http.Response.bytes(
+      bytes,
+      200,
+      headers: {'content-type': 'image/jpeg'},
+    );
+
+    test('the probe reads only the start of the file', () async {
+      final c = cache((_) async => jpeg(file));
+      expect(await c.isMotionPhoto(photo), isTrue);
+      expect(requests.single.headers['Range'], startsWith('bytes=0-'));
+      // Remembered for the session.
+      expect(await c.isMotionPhoto(photo), isTrue);
+      expect(requests, hasLength(1));
+    });
+
+    test('a plain photo is none, an error is unknown', () async {
+      expect(
+        await cache((_) async => jpeg([0xFF, 0xD8, 1, 2])).isMotionPhoto(photo),
+        isFalse,
+      );
+      expect(
+        await cache(
+          (_) async => http.Response(
+            '{}',
+            200,
+            headers: {'content-type': 'application/json'},
+          ),
+        ).isMotionPhoto(photo),
+        isNull,
+      );
+    });
+
+    test('the clip is cut out and kept', () async {
+      final c = cache((_) async => jpeg(file));
+      final path = await c.motionClipFor(photo);
+      expect(await File(path!).readAsBytes(), clip);
+      expect(await c.motionClipFor(photo), path);
+      expect(requests, hasLength(1));
+    });
+
+    test('a photo without a clip gives no file', () async {
+      final c = cache((_) async => jpeg([0xFF, 0xD8, 0xFF, 0xD9]));
+      expect(await c.motionClipFor(photo), isNull);
+    });
+  });
 }

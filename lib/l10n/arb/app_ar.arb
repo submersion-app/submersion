@@ -6033,6 +6033,8 @@
   "media_photoViewer_noPhotosAvailable": "لا توجد صور متاحة",
   "media_photoViewer_pageIndicator": "{current} / {total}",
   "media_viewer_playOriginal": "تشغيل الأصل",
+  "media_viewer_playMotion": "تشغيل الحركة",
+  "media_viewer_motionUnplayable": "لا يمكن لهذا الجهاز تشغيل حركة هذه الصورة",
   "media_photoViewer_playPauseVideoLabel": "تشغيل أو إيقاف الفيديو",
   "media_photoViewer_previousTooltip": "الوسائط السابقة",
   "media_photoViewer_seekVideoLabel": "تحريك موضع الفيديو",

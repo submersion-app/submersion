@@ -20392,6 +20392,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_viewer_playOriginal => 'הפעלת המקור';
 
   @override
+  String get media_viewer_playMotion => 'הפעלת התנועה';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'המכשיר הזה לא יכול להפעיל את התנועה של התמונה הזו';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'הפעל או השהה סרטון';
 
   @override

@@ -20885,6 +20885,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_viewer_playOriginal => 'Lire l\'original';
 
   @override
+  String get media_viewer_playMotion => 'Lire le mouvement';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Cet appareil ne peut pas lire le mouvement de cette photo';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Lire ou mettre en pause la vidéo';
 

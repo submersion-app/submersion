@@ -21196,6 +21196,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_viewer_playOriginal => 'تشغيل الأصل';
 
   @override
+  String get media_viewer_playMotion => 'تشغيل الحركة';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'لا يمكن لهذا الجهاز تشغيل حركة هذه الصورة';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'تشغيل أو إيقاف الفيديو';
 
   @override

@@ -5907,6 +5907,8 @@
   "media_photoViewer_noPhotosAvailable": "Nessuna foto disponibile",
   "media_photoViewer_pageIndicator": "{current} / {total}",
   "media_viewer_playOriginal": "Riproduci originale",
+  "media_viewer_playMotion": "Riproduci movimento",
+  "media_viewer_motionUnplayable": "Questo dispositivo non può riprodurre il movimento di questa foto",
   "media_photoViewer_playPauseVideoLabel": "Riproduci o metti in pausa il video",
   "media_photoViewer_previousTooltip": "Elemento precedente",
   "media_photoViewer_seekVideoLabel": "Cerca posizione nel video",

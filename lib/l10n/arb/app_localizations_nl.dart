@@ -20710,6 +20710,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_viewer_playOriginal => 'Origineel afspelen';
 
   @override
+  String get media_viewer_playMotion => 'Beweging afspelen';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Dit apparaat kan de beweging van deze foto niet afspelen';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Video afspelen of pauzeren';
 

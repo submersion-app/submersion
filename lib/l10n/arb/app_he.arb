@@ -5907,6 +5907,8 @@
   "media_photoViewer_noPhotosAvailable": "אין תמונות זמינות",
   "media_photoViewer_pageIndicator": "{current} / {total}",
   "media_viewer_playOriginal": "הפעלת המקור",
+  "media_viewer_playMotion": "הפעלת התנועה",
+  "media_viewer_motionUnplayable": "המכשיר הזה לא יכול להפעיל את התנועה של התמונה הזו",
   "media_photoViewer_playPauseVideoLabel": "הפעל או השהה סרטון",
   "media_photoViewer_previousTooltip": "המדיה הקודמת",
   "media_photoViewer_seekVideoLabel": "דלג למיקום בסרטון",

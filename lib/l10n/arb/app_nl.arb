@@ -6033,6 +6033,8 @@
   "media_photoViewer_noPhotosAvailable": "Geen foto's beschikbaar",
   "media_photoViewer_pageIndicator": "{current} / {total}",
   "media_viewer_playOriginal": "Origineel afspelen",
+  "media_viewer_playMotion": "Beweging afspelen",
+  "media_viewer_motionUnplayable": "Dit apparaat kan de beweging van deze foto niet afspelen",
   "media_photoViewer_playPauseVideoLabel": "Video afspelen of pauzeren",
   "media_photoViewer_previousTooltip": "Vorige media",
   "media_photoViewer_seekVideoLabel": "Videopositie zoeken",

@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/services/motion_photo.dart';
 
 /// Downloads network videos into a directory so the player can open them as
 /// files.
@@ -47,6 +49,107 @@ class NetworkVideoCache {
     return _downloads[key] ??= _fetch(url, key).whenComplete(() {
       _downloads.remove(key);
     });
+  }
+
+  /// Whether the photo at [url] is a motion photo, from its first
+  /// [kMotionPhotoProbeBytes] (a Range request; a server that ignores Range
+  /// is read only that far). Null when it could not be read. Remembered per
+  /// URL for the session: a viewer pages back and forth.
+  Future<bool?> isMotionPhoto(Uri url) {
+    final key = url.toString();
+    final known = _motionProbes[key];
+    if (known != null) return known;
+    final probe = _probeMotion(url);
+    _motionProbes[key] = probe;
+    // A failed read is asked again next time.
+    unawaited(
+      probe.then((v) {
+        if (v == null) _motionProbes.remove(key);
+      }),
+    );
+    return probe;
+  }
+
+  final Map<String, Future<bool?>> _motionProbes = {};
+
+  Future<bool?> _probeMotion(Uri url) async {
+    try {
+      final headers = await _headersFor(url) ?? const <String, String>{};
+      final response = await _client.send(
+        http.Request('GET', url)
+          ..headers.addAll(headers)
+          ..headers['Range'] = 'bytes=0-${kMotionPhotoProbeBytes - 1}',
+      );
+      final type = response.headers['content-type'] ?? '';
+      if (response.statusCode < 200 ||
+          response.statusCode >= 300 ||
+          type.contains('json') ||
+          type.contains('html')) {
+        await response.stream.drain<void>();
+        return null;
+      }
+      final head = BytesBuilder(copy: false);
+      await for (final chunk in response.stream) {
+        head.add(chunk);
+        if (head.length >= kMotionPhotoProbeBytes) break;
+      }
+      return looksLikeMotionPhoto(head.takeBytes());
+    } catch (e) {
+      _log.warning('Motion photo probe failed for ${url.host}: $e');
+      return null;
+    }
+  }
+
+  /// A local MP4 file with the video appended to the motion photo at
+  /// [url]: the photo is downloaded once, the clip cut out and kept beside
+  /// the downloaded videos. Null when there is none or it could not be read.
+  Future<String?> motionClipFor(Uri url) {
+    final key = 'motion-${sha1.convert(utf8.encode(url.toString()))}';
+    return _downloads[key] ??= _cutMotionClip(url, key).whenComplete(() {
+      _downloads.remove(key);
+    });
+  }
+
+  Future<String?> _cutMotionClip(Uri url, String key) async {
+    final dir = await _directory();
+    final target = File(p.join(dir.path, '$key.mp4'));
+    if (await target.exists() && await target.length() > 0) {
+      return target.path;
+    }
+    try {
+      final headers = await _headersFor(url) ?? const <String, String>{};
+      final response = await _client.send(
+        http.Request('GET', url)..headers.addAll(headers),
+      );
+      final type = response.headers['content-type'] ?? '';
+      if (response.statusCode < 200 ||
+          response.statusCode >= 300 ||
+          type.contains('json') ||
+          type.contains('html')) {
+        await response.stream.drain<void>();
+        _log.warning(
+          'Motion photo download refused for ${url.host}: '
+          'HTTP ${response.statusCode}, $type',
+        );
+        return null;
+      }
+      final bytes = await response.stream.toBytes();
+      final clip = extractMotionVideo(bytes);
+      if (clip == null) {
+        _log.info('No motion video in the photo from ${url.host}');
+        return null;
+      }
+      await dir.create(recursive: true);
+      await target.writeAsBytes(clip, flush: true);
+      await _evict(dir, keep: target.path);
+      return target.path;
+    } catch (e, st) {
+      _log.warning(
+        'Motion photo download failed for ${url.host}: $e',
+        stackTrace: st,
+      );
+      return null;
+    }
   }
 
   Future<String?> _fetch(Uri url, String key) async {

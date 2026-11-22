@@ -6033,6 +6033,8 @@
   "media_photoViewer_noPhotosAvailable": "Nenhuma foto disponível",
   "media_photoViewer_pageIndicator": "{current} / {total}",
   "media_viewer_playOriginal": "Reproduzir original",
+  "media_viewer_playMotion": "Reproduzir movimento",
+  "media_viewer_motionUnplayable": "Este dispositivo não consegue reproduzir o movimento desta foto",
   "media_photoViewer_playPauseVideoLabel": "Reproduzir ou pausar vídeo",
   "media_photoViewer_previousTooltip": "Mídia anterior",
   "media_photoViewer_seekVideoLabel": "Buscar posição do vídeo",
