@@ -104,7 +104,28 @@ void main() {
   testWidgets('no switcher with one diver', (tester) async {
     await _pump(tester, width: 1280);
     expect(find.byKey(HomeHeaderBar.switcherKey), findsNothing);
-    expect(find.text('Submersion'), findsOneWidget);
+  });
+
+  // The logo stands alone: the lights take the room a wordmark would.
+  testWidgets('no wordmark, and the lights start just after the logo', (
+    tester,
+  ) async {
+    await _pump(tester, width: 1280);
+    expect(find.text('Submersion'), findsNothing);
+    final logo = tester.getRect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is AssetImage &&
+            (w.image as AssetImage).assetName == 'assets/icon/icon.png',
+      ),
+    );
+    final firstLight = find
+        .byType(HomeLightChip)
+        .evaluate()
+        .map((e) => tester.getRect(find.byWidget(e.widget)).left)
+        .reduce((a, b) => a < b ? a : b);
+    expect(firstLight - logo.right, lessThanOrEqualTo(16));
   });
 
   for (final width in [400.0, 1280.0]) {

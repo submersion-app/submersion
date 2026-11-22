@@ -69,9 +69,10 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
       context.push('/dives/new', extra: const DivePrefill(isPlanned: true)),
 );
 
-/// Home's slim header: the logo, the status lights (tablet and up), the
-/// main actions, a More menu and, with more than one diver profile, the
-/// diver switcher. Every control has at least a 44 by 44 hit area.
+/// Home's slim header: the logo (no wordmark), the status lights filling
+/// the space after it (tablet and up), the main actions, a More menu and,
+/// with more than one diver profile, the diver switcher. Every control has
+/// at least a 44 by 44 hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
 
@@ -135,17 +136,9 @@ class HomeHeaderBar extends ConsumerWidget {
                     excludeFromSemantics: true,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(
-                    'Submersion',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
+                // No wordmark: the logo stands alone and the lights take the
+                // rest of the bar up to the actions. On a phone they sit in
+                // the strip below instead.
                 const SizedBox(width: 12),
                 Expanded(child: phone ? const SizedBox() : lightsRow()),
                 if (compact)
