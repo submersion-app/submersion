@@ -12,6 +12,7 @@ import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart';
+import 'package:submersion/features/checklists/presentation/pages/checklist_item_dialog.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -260,6 +261,21 @@ void main() {
     await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pumpAndSettle();
     expect((await repo.getSectionsForTemplate(id)).single.title, 'Dive gear');
+  });
+
+  testWidgets('the item dialog offers a section title as it is typed', (
+    tester,
+  ) async {
+    await pump(tester, templateId: await stored());
+    await tester.enterText(find.widgetWithText(TextField, 'Gear'), 'Dive gear');
+    await tester.pump();
+
+    await tester.tap(find.widgetWithText(TextButton, 'Add item'));
+    await tester.pumpAndSettle();
+    final dialog = tester.widget<ChecklistItemDialog>(
+      find.byType(ChecklistItemDialog),
+    );
+    expect(dialog.sections.map((s) => s.title), ['Dive gear']);
   });
 
   testWidgets('Back with a section title being typed asks first', (

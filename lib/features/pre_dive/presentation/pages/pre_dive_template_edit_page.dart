@@ -196,7 +196,9 @@ class _PreDiveTemplateEditPageState
         item: item,
         defaultSortOrder: _items.length,
         siblings: _items,
-        sections: _sections,
+        // A title being typed commits only once the dialog takes the
+        // focus: offer the titles as shown.
+        sections: _shownSections,
       ),
     );
     if (result == null || !mounted) return;

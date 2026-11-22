@@ -14,6 +14,7 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
     as domain;
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart'
     as domain;
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_item_dialog.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -359,6 +360,21 @@ void main() {
     await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pumpAndSettle();
     expect((await repo.getSectionsForTemplate(id)).single.title, 'Back gas');
+  });
+
+  testWidgets('the item dialog offers a section title as it is typed', (
+    tester,
+  ) async {
+    await pump(tester, templateId: await stored());
+    await tester.enterText(find.widgetWithText(TextField, 'Gas'), 'Back gas');
+    await tester.pump();
+
+    await tester.tap(find.widgetWithText(TextButton, 'Add item'));
+    await tester.pumpAndSettle();
+    final dialog = tester.widget<PreDiveItemDialog>(
+      find.byType(PreDiveItemDialog),
+    );
+    expect(dialog.sections.map((s) => s.title), ['Back gas']);
   });
 
   testWidgets('Back with a section title being typed asks first', (
