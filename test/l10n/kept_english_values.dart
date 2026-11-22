@@ -13,6 +13,7 @@ const _abbreviation =
     'Gas, tank, mode or measurement abbreviation divers use untranslated';
 const _exampleAddress = 'Example address shown in a hint';
 const _technology = 'Technology or file format name';
+const _citation = 'Title of a cited source, kept as it is published';
 const _s3Field =
     'S3 credential field named as the provider\'s console names it';
 const _dutchItem = 'Dutch uses "item" as a loanword throughout app_nl.arb';
@@ -292,4 +293,6 @@ const Map<String, String> keptEnglishValues = {
   'enum_certificationLevel_cmas3StarDiverAssistantInstructor@ja': _course,
   'enum_certificationLevel_cmas4StarDiverAssistantInstructor@ja': _course,
   'settings_dataSources_appleHealth_title@ja': _brand,
+  'settings_decompression_cnsMethodSourceShearwater@ja': _citation,
+  'settings_decompression_cnsMethodSourceTheoreticalDiver@ja': _citation,
 };

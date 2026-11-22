@@ -489,7 +489,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '選択したプロフィールは、この器材を自分のダイブに追加したり、メンテナンスを記録したりできます。削除や共有先の変更ができるのは所有者のみです。';
 
   @override
-  String get equipment_transfer_action => '譲渡...';
+  String get equipment_transfer_action => '譲渡…';
 
   @override
   String get equipment_transfer_dialogTitle => '譲渡先';
@@ -541,7 +541,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get equipment_bulkShare_action => '共有...';
+  String get equipment_bulkShare_action => '共有…';
 
   @override
   String equipment_bulkShare_done(int count) {
@@ -903,7 +903,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String outMinutes,
     String outSpeed,
   ) {
-    return '往路 $outSpeed $outMinutes′、復路 $backSpeed $backMinutes′';
+    return '往路$outSpeed $outMinutes′、復路$backSpeed $backMinutes′';
   }
 
   @override
@@ -976,12 +976,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerMission_results_surface(String minutes) {
-    return '浮上 $minutes′';
+    return '浮上$minutes′';
   }
 
   @override
   String plannerMission_results_surfaceViaShore(String minutes) {
-    return '岸経由で浮上 $minutes′';
+    return '岸経由で浮上$minutes′';
   }
 
   @override
@@ -989,7 +989,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerMission_results_swim(String minutes) {
-    return '泳ぎ $minutes′';
+    return '泳ぎ$minutes′';
   }
 
   @override
@@ -997,7 +997,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerMission_results_tow(String minutes, String name) {
-    return '$nameが曳航 $minutes′';
+    return '$nameが曳航$minutes′';
   }
 
   @override
@@ -1011,7 +1011,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerMission_results_waypointLine(String distance, String minutes) {
-    return '$distance、到着 $minutes′';
+    return '$distance、到着$minutes′';
   }
 
   @override
@@ -1037,7 +1037,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerMission_route_ownCurrent(String direction, String speed) {
-    return '流れ $speed、$direction方向';
+    return '流れ$speed、$direction方向';
   }
 
   @override
@@ -1101,7 +1101,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerMission_team_memberSummary(String sac, String speed) {
-    return 'RMV $sac、泳速 $speed';
+    return 'RMV $sac、泳速$speed';
   }
 
   @override
@@ -1123,7 +1123,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get plannerMission_team_title => 'DPVチーム';
 
   @override
-  String get settings_shareAllEquipment_title => 'すべての器材を共有...';
+  String get settings_shareAllEquipment_title => 'すべての器材を共有…';
 
   @override
   String settings_shareAllEquipment_body(int count) {
@@ -1174,7 +1174,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String equipment_rowLabel_purchased(Object date) {
-    return '購入日 $date';
+    return '購入日$date';
   }
 
   @override
@@ -1598,7 +1598,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
-    return '計算した混合ガス $mix、MOD $mod';
+    return '計算した混合ガス$mix、MOD $mod';
   }
 
   @override
@@ -1682,7 +1682,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String o2Toxicity_cnsProgressSemantics(Object percent) {
-    return 'CNSの進行 $percentパーセント';
+    return 'CNSの進行$percentパーセント';
   }
 
   @override
@@ -1768,7 +1768,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_story_dayTile_deepest(String depth) {
-    return '最大 $depth';
+    return '最大$depth';
   }
 
   @override
@@ -1776,7 +1776,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_story_dayMaxDepth(String depth) {
-    return '最大 $depth';
+    return '最大$depth';
   }
 
   @override
@@ -1842,17 +1842,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_day_conditionCurrent(String value) {
-    return '流れ $value';
+    return '流れ$value';
   }
 
   @override
   String trips_day_conditionVisibility(String value) {
-    return '透明度 $value';
+    return '透明度$value';
   }
 
   @override
   String trips_day_conditionWater(String value) {
-    return '水温 $value';
+    return '水温$value';
   }
 
   @override
@@ -1916,12 +1916,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_story_history_avgTemp(String value) {
-    return '平均 $value';
+    return '平均$value';
   }
 
   @override
   String trips_story_history_avgDepth(String value) {
-    return '平均水深 $value';
+    return '平均水深$value';
   }
 
   @override
@@ -2570,7 +2570,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get backup_backingUp => 'バックアップ中...';
+  String get backup_backingUp => 'バックアップ中…';
 
   @override
   String get backup_note_dialog_title => '今すぐバックアップ';
@@ -2671,11 +2671,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get backup_import_invalidFile =>
-      'このファイルは有効な Submersion のバックアップではないようです';
+  String get backup_import_invalidFile => 'このファイルは有効なSubmersionのバックアップではないようです';
 
   @override
-  String get backup_import_validating => 'バックアップファイルを検証中...';
+  String get backup_import_validating => 'バックアップファイルを検証中…';
 
   @override
   String get backup_location_change => '変更';
@@ -2947,7 +2946,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get buddyCard_preview_newer =>
-      'このカードは新しいバージョンの Submersion で作成されました。一部の詳細が欠けている可能性があります。';
+      'このカードは新しいバージョンのSubmersionで作成されました。一部の詳細が欠けている可能性があります。';
 
   @override
   String get buddyCard_preview_noChanges => 'このカードに新しい情報はありません。';
@@ -3011,7 +3010,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddyCard_saved_view => '表示';
 
   @override
-  String get buddyCard_error_notACard => 'これは Submersion のバディカードではありません。';
+  String get buddyCard_error_notACard => 'これはSubmersionのバディカードではありません。';
 
   @override
   String get buddyCard_error_unreadable => 'このバディカードを読み取れませんでした。';
@@ -3027,7 +3026,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_status =>
-      'ダイバーを探しています。バディもこの画面を開き、Submersion 1.8.4 以降を使用している必要があります。';
+      'ダイバーを探しています。バディもこの画面を開き、Submersion 1.8.4以降を使用している必要があります。';
 
   @override
   String get buddySwap_nearby_failed => '近くのダイバーを探せませんでした。他の交換方法は引き続き使えます。';
@@ -3059,7 +3058,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddySwap_action_writeSticker => 'NFCステッカーに書き込む';
 
   @override
-  String get buddySwap_action_tapAndroid => 'Android スマートフォンにタッチ';
+  String get buddySwap_action_tapAndroid => 'Androidスマートフォンにタッチ';
 
   @override
   String get buddySwap_action_receiveByTap => 'タッチで受け取る';
@@ -3089,7 +3088,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddySwap_hint_receiveByTap => 'スマートフォンをバディのスマートフォンに近づけてください';
 
   @override
-  String get buddySwap_hint_tapAndroid => 'Android スマートフォンが共有しているカードを読み取ります';
+  String get buddySwap_hint_tapAndroid => 'Androidスマートフォンが共有しているカードを読み取ります';
 
   @override
   String buddySwap_chip_since(String year) {
@@ -3098,7 +3097,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String buddySwap_chip_lastDive(String date) {
-    return '最後のダイブ $date';
+    return '最後のダイブ$date';
   }
 
   @override
@@ -3123,7 +3122,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddySwap_qr_title => 'あなたのバディカード';
 
   @override
-  String get buddySwap_qr_hint => 'バディに Submersion またはカメラでスキャンしてもらってください。';
+  String get buddySwap_qr_hint => 'バディにSubmersionまたはカメラでスキャンしてもらってください。';
 
   @override
   String buddySwap_request_title(String name) {
@@ -3163,7 +3162,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String buddySwap_failed_newerApp(String name) {
-    return '$nameは新しいバージョンの Submersion が必要です';
+    return '$nameは新しいバージョンのSubmersionが必要です';
   }
 
   @override
@@ -3236,12 +3235,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String buddyCard_detail_last(String date) {
-    return '最後のダイブ $date';
+    return '最後のダイブ$date';
   }
 
   @override
   String buddyCard_detail_received(String date) {
-    return '受信日 $date';
+    return '受信日$date';
   }
 
   @override
@@ -3367,7 +3366,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddies_field_notes => 'メモ';
 
   @override
-  String get buddies_field_notesHint => 'このバディについてのメモを追加...';
+  String get buddies_field_notesHint => 'このバディについてのメモを追加…';
 
   @override
   String get buddies_field_phone => '電話番号';
@@ -3626,13 +3625,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddies_message_noDivesToShare => 'このバディと共有するダイブはありません';
 
   @override
-  String get buddies_message_preparingExport => 'エクスポートを準備中...';
+  String get buddies_message_preparingExport => 'エクスポートを準備中…';
 
   @override
   String get buddies_picker_add => '追加';
 
   @override
-  String get buddies_picker_addCustomRole => 'カスタムの役割を追加...';
+  String get buddies_picker_addCustomRole => 'カスタムの役割を追加…';
 
   @override
   String get buddies_picker_addNew => '新しいバディを追加';
@@ -3656,7 +3655,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddies_picker_noneSelected => 'バディが選択されていません';
 
   @override
-  String get buddies_picker_searchHint => 'バディを検索...';
+  String get buddies_picker_searchHint => 'バディを検索…';
 
   @override
   String get buddies_picker_selectBuddies => 'バディを選択';
@@ -3902,7 +3901,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'すべての認定が有効か、通知オフになっています。';
 
   @override
-  String get currencyRule_padi_reactivate_name => 'PADI リフレッシュ（ReActivate）';
+  String get currencyRule_padi_reactivate_name => 'PADIリフレッシュ（ReActivate）';
 
   @override
   String get currencyRule_ssi_skills_update_name => 'SSI Scuba Skills Update';
@@ -3911,10 +3910,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get currencyRule_generic_refresher_name => 'リフレッシュ講習';
 
   @override
-  String get currencyRule_tdi_refresher_name => 'TDI リフレッシュ講習';
+  String get currencyRule_tdi_refresher_name => 'TDIリフレッシュ講習';
 
   @override
-  String get currencyRule_iart_refresher_name => 'IART リフレッシュ講習';
+  String get currencyRule_iart_refresher_name => 'IARTリフレッシュ講習';
 
   @override
   String get currencyRule_first_aid_24mo_name => '応急手当とCPRの更新';
@@ -3923,10 +3922,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get currencyRule_pro_membership_annual_name => 'プロフェッショナル会員の更新';
 
   @override
-  String get currencyRule_gue_revalidation_name => 'GUE 再認定';
+  String get currencyRule_gue_revalidation_name => 'GUE再認定';
 
   @override
-  String get currencyRule_ffessm_licence_annual_name => 'FFESSM ライセンスと診断書';
+  String get currencyRule_ffessm_licence_annual_name => 'FFESSMライセンスと診断書';
 
   @override
   String get currencyRule_cave_currency_name => 'ケーブダイビングの継続';
@@ -3942,11 +3941,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get currencyRule_padi_reactivate_advisory =>
-      'PADI では、6〜12か月ダイビングから離れた後に ReActivate リフレッシュ講習を推奨しています。';
+      'PADIでは、6〜12か月ダイビングから離れた後にReActivateリフレッシュ講習を推奨しています。';
 
   @override
   String get currencyRule_ssi_skills_update_advisory =>
-      'SSI では、6〜12か月ダイビングをしなかった後に Scuba Skills Update を推奨しています。';
+      'SSIでは、6〜12か月ダイビングをしなかった後にScuba Skills Updateを推奨しています。';
 
   @override
   String get currencyRule_generic_refresher_advisory =>
@@ -3954,11 +3953,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get currencyRule_tdi_refresher_advisory =>
-      'TDI では、6〜12か月テクニカルダイビングをしなかった後にリフレッシュ講習を推奨しています。';
+      'TDIでは、6〜12か月テクニカルダイビングをしなかった後にリフレッシュ講習を推奨しています。';
 
   @override
   String get currencyRule_iart_refresher_advisory =>
-      'IART では、6〜12か月テクニカルダイビングをしなかった後にリフレッシュ講習を推奨しています。';
+      'IARTでは、6〜12か月テクニカルダイビングをしなかった後にリフレッシュ講習を推奨しています。';
 
   @override
   String get currencyRule_first_aid_advisory =>
@@ -3970,11 +3969,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get currencyRule_gue_revalidation_advisory =>
-      'GUE の資格は通常3年ごとに再認定を受けます。';
+      'GUEの資格は通常3年ごとに再認定を受けます。';
 
   @override
   String get currencyRule_ffessm_licence_advisory =>
-      'FFESSM ライセンスとその診断書は毎年更新します。';
+      'FFESSMライセンスとその診断書は毎年更新します。';
 
   @override
   String get currencyRule_cave_currency_advisory =>
@@ -4105,7 +4104,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String certifications_currency_dueOn(String date) {
-    return '期限 $date';
+    return '期限$date';
   }
 
   @override
@@ -4115,27 +4114,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String certifications_currency_anchor_lastDive(String date) {
-    return '最後のダイブ $date';
+    return '最後のダイブ$date';
   }
 
   @override
   String certifications_currency_anchor_lastQualifyingDive(String date) {
-    return '最後の対象ダイブ $date';
+    return '最後の対象ダイブ$date';
   }
 
   @override
   String certifications_currency_anchor_cardExpiry(String date) {
-    return 'カードの有効期限 $date';
+    return 'カードの有効期限$date';
   }
 
   @override
   String certifications_currency_anchor_cardIssue(String date) {
-    return '発行日 $date';
+    return '発行日$date';
   }
 
   @override
   String certifications_currency_anchor_ledgerEvent(String event, String date) {
-    return '$eventを記録 $date';
+    return '$eventを記録$date';
   }
 
   @override
@@ -4377,10 +4376,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get certificationAgencies_unknownCertification => '不明な認定';
 
   @override
-  String get certificationAgencies_addCustomAgency => 'カスタムの指導団体を追加...';
+  String get certificationAgencies_addCustomAgency => 'カスタムの指導団体を追加…';
 
   @override
-  String get certificationAgencies_addCustomCertification => 'カスタムの認定を追加...';
+  String get certificationAgencies_addCustomCertification => 'カスタムの認定を追加…';
 
   @override
   String get certificationAgencies_dialog_newAgencyTitle => '新しい指導団体';
@@ -4578,7 +4577,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String certifications_list_section_professional(String agency) {
-    return '$agency プロフェッショナル';
+    return '$agencyプロフェッショナル';
   }
 
   @override
@@ -4753,16 +4752,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checklists_newChecklist_title => '新しいチェックリスト';
 
   @override
-  String get checklists_menu_newChecklist => '新しいチェックリスト...';
+  String get checklists_menu_newChecklist => '新しいチェックリスト…';
 
   @override
   String get checklists_renameChecklist_title => 'チェックリスト名を変更';
 
   @override
-  String get checklists_menu_rename => '名前を変更...';
+  String get checklists_menu_rename => '名前を変更…';
 
   @override
-  String get checklists_menu_delete => '削除...';
+  String get checklists_menu_delete => '削除…';
 
   @override
   String get checklists_delete_title => 'チェックリストを削除';
@@ -4823,13 +4822,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checklists_item_delete => '項目を削除';
 
   @override
-  String get checklists_menu_applyTemplate => 'テンプレートを適用...';
+  String get checklists_menu_applyTemplate => 'テンプレートを適用…';
 
   @override
-  String get checklists_menu_saveAsTemplate => 'テンプレートとして保存...';
+  String get checklists_menu_saveAsTemplate => 'テンプレートとして保存…';
 
   @override
-  String get checklists_menu_clearAll => 'チェックリストをクリア...';
+  String get checklists_menu_clearAll => 'チェックリストをクリア…';
 
   @override
   String get checklists_clear_title => 'チェックリストをクリア';
@@ -5126,11 +5125,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get preDive_runner_cellInAirMissing => '未記録';
 
   @override
-  String get preDive_runner_enterO2Value => 'O2 中の値を入力';
+  String get preDive_runner_enterO2Value => 'O2中の値を入力';
 
   @override
   String preDive_runner_linearityReadout(String expected, String percent) {
-    return '予想値 $expected mV、直線性 $percent%';
+    return '予想値$expected mV、直線性$percent%';
   }
 
   @override
@@ -5139,7 +5138,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String expected,
     String percent,
   ) {
-    return '空気 $air mV、予想値 $expected mV、直線性 $percent%';
+    return '空気$air mV、予想値$expected mV、直線性$percent%';
   }
 
   @override
@@ -5249,7 +5248,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get preDive_sessions_emptyFiltered => 'このフィルターに一致するチェックリストの実行記録はありません';
 
   @override
-  String get preDive_sessions_export => 'Excel にエクスポート';
+  String get preDive_sessions_export => 'Excelにエクスポート';
 
   @override
   String get preDive_sessions_exportEmpty => 'エクスポートするチェックリストの実行記録はありません';
@@ -5399,17 +5398,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String preDive_sessions_startedAt(String when) {
-    return '開始 $when';
+    return '開始$when';
   }
 
   @override
   String preDive_sessions_completedAt(String when) {
-    return '完了 $when';
+    return '完了$when';
   }
 
   @override
   String preDive_sessions_abortedAt(String when) {
-    return '中止 $when';
+    return '中止$when';
   }
 
   @override
@@ -5737,7 +5736,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String courses_card_started(Object date) {
-    return '開始 $date';
+    return '開始$date';
   }
 
   @override
@@ -6045,11 +6044,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get dashboard_gauges_insuranceOk => '保険 OK';
+  String get dashboard_gauges_insuranceOk => '保険OK';
 
   @override
   String dashboard_gauges_insuranceExpires(String date) {
-    return '保険の期限 $date';
+    return '保険の期限$date';
   }
 
   @override
@@ -6059,11 +6058,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashboard_gauges_noInsurance => '保険の登録なし';
 
   @override
-  String get dashboard_gauges_noFlyClear => '搭乗禁止 0:00';
+  String get dashboard_gauges_noFlyClear => '搭乗禁止0:00';
 
   @override
   String dashboard_gauges_flightWindow(String hours, String minutes) {
-    return 'ダイブ可能時間 $hours:$minutes';
+    return 'ダイブ可能時間$hours:$minutes';
   }
 
   @override
@@ -6071,7 +6070,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
-    return '搭乗禁止 $hours:$minutes';
+    return '搭乗禁止$hours:$minutes';
   }
 
   @override
@@ -6248,7 +6247,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dashboard_onThisDay_entry(String year, String site) {
-    return '$year年 $site';
+    return '$year年$site';
   }
 
   @override
@@ -6337,22 +6336,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get decoCalculator_hideCustomMixSemantics => 'カスタム混合ガスの選択を隠す';
 
   @override
-  String get decoCalculator_modExceeded => 'MOD 超過';
+  String get decoCalculator_modExceeded => 'MOD超過';
 
   @override
-  String get decoCalculator_modSafe => 'MOD 範囲内';
+  String get decoCalculator_modSafe => 'MOD範囲内';
 
   @override
-  String get decoCalculator_ppO2Caution => 'ppO2 注意';
+  String get decoCalculator_ppO2Caution => 'ppO2注意';
 
   @override
-  String get decoCalculator_ppO2Danger => 'ppO2 危険';
+  String get decoCalculator_ppO2Danger => 'ppO2危険';
 
   @override
-  String get decoCalculator_ppO2Hypoxic => 'ppO2 低酸素';
+  String get decoCalculator_ppO2Hypoxic => 'ppO2低酸素';
 
   @override
-  String get decoCalculator_ppO2Safe => 'ppO2 安全';
+  String get decoCalculator_ppO2Safe => 'ppO2安全';
 
   @override
   String get decoCalculator_resetToDefaults => 'デフォルトに戻す';
@@ -6561,7 +6560,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveCenters_hint_name => 'ダイブセンター名を入力';
 
   @override
-  String get diveCenters_hint_notes => 'その他の情報...';
+  String get diveCenters_hint_notes => 'その他の情報…';
 
   @override
   String get diveCenters_hint_phone => '+1 234 567 890';
@@ -6752,7 +6751,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveCenters_summary_totalCenters => 'センターの総数';
 
   @override
-  String get diveCenters_summary_withGps => 'GPS あり';
+  String get diveCenters_summary_withGps => 'GPSあり';
 
   @override
   String get diveCenters_title => 'ダイブセンター';
@@ -7170,7 +7169,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLog_deco_gf_semantics(Object low, Object high) {
-    return 'グラディエントファクター：低 $low、高 $high';
+    return 'グラディエントファクター：低$low、高$high';
   }
 
   @override
@@ -7869,7 +7868,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_gettingLocation => '位置情報を取得中...';
+  String get diveLog_edit_gettingLocation => '位置情報を取得中…';
 
   @override
   String get diveLog_edit_group_buddies => 'バディ';
@@ -8408,7 +8407,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveLog_equipmentSetPicker_loading => '読み込み中...';
+  String get diveLog_equipmentSetPicker_loading => '読み込み中…';
 
   @override
   String get diveLog_equipmentSetPicker_noSets => '器材セットはまだありません';
@@ -8429,7 +8428,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_exportImage_generateFailed => '画像を生成できませんでした';
 
   @override
-  String get diveLog_exportImage_generatingPdf => 'PDFを生成中...';
+  String get diveLog_exportImage_generatingPdf => 'PDFを生成中…';
 
   @override
   String get diveLog_exportImage_pdfSaved => 'PDFを保存しました';
@@ -8474,7 +8473,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_export_csvDescription => 'スプレッドシート形式';
 
   @override
-  String get diveLog_export_exporting => 'エクスポート中...';
+  String get diveLog_export_exporting => 'エクスポート中…';
 
   @override
   String diveLog_export_failed(Object error) {
@@ -8756,7 +8755,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String he,
     String net,
   ) {
-    return 'N₂ $n2、He $he、正味 $net';
+    return 'N₂ $n2、He $he、正味$net';
   }
 
   @override
@@ -8919,7 +8918,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_listPage_bottomSheet_scanPaperLog => '紙のログをスキャン';
 
   @override
-  String get ocrImport_scanPage_processing => 'ページを読み取り中...';
+  String get ocrImport_scanPage_processing => 'ページを読み取り中…';
 
   @override
   String get ocrImport_scanPage_pickPhoto => '写真を選択';
@@ -8933,7 +8932,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get ocrImport_scanPage_engineMissing =>
-      '文字認識を利用できません。紙のログをスキャンするには Tesseract をインストールしてください（例：sudo apt install tesseract-ocr）。';
+      '文字認識を利用できません。紙のログをスキャンするにはTesseractをインストールしてください（例：sudo apt install tesseract-ocr）。';
 
   @override
   String get ocrImport_newDive_photoHoldFailed => 'スキャンしたページをこのダイブに添付できませんでした';
@@ -9312,23 +9311,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get setup_existing_folder_subtitle =>
-      'ライブラリが保存されている既存のフォルダーを Submersion で開きます';
+      'ライブラリが保存されている既存のフォルダーをSubmersionで開きます';
 
   @override
   String get setup_existing_folder_title => '既存のフォルダーを開く';
 
   @override
   String get setup_existing_restore_subtitle =>
-      'Submersion からエクスポートしたバックアップファイルを選択します';
+      'Submersionからエクスポートしたバックアップファイルを選択します';
 
   @override
   String get setup_existing_restore_title => 'バックアップファイルから復元';
 
   @override
-  String get setup_existing_subtitle => '既存の Submersion ライブラリの読み込み方法を選択してください';
+  String get setup_existing_subtitle => '既存のSubmersionライブラリの読み込み方法を選択してください';
 
   @override
-  String get setup_existing_sync_subtitle => 'iCloud、Dropbox、S3 からライブラリを取得します';
+  String get setup_existing_sync_subtitle => 'iCloud、Dropbox、S3からライブラリを取得します';
 
   @override
   String get setup_existing_sync_title => 'クラウド同期に接続';
@@ -9337,7 +9336,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get setup_existing_title => 'データを引き継ぐ';
 
   @override
-  String get setup_finish_applying => 'セットアップ中...';
+  String get setup_finish_applying => 'セットアップ中…';
 
   @override
   String setup_finish_error(Object error) {
@@ -9363,20 +9362,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get setup_finish_start => 'はじめる';
 
   @override
-  String get setup_finish_subtitle => 'Submersion では他にも次のことができます';
+  String get setup_finish_subtitle => 'Submersionでは他にも次のことができます';
 
   @override
   String get setup_finish_title => '準備が整いました';
 
   @override
   String get setup_folder_notFound_message =>
-      '選択したフォルダーには Submersion のデータベースがありません。';
+      '選択したフォルダーにはSubmersionのデータベースがありません。';
 
   @override
   String get setup_folder_pick => 'フォルダーを選択';
 
   @override
-  String get setup_folder_switching => 'ライブラリを開いています...';
+  String get setup_folder_switching => 'ライブラリを開いています…';
 
   @override
   String get setup_folder_title => '既存のフォルダーを開く';
@@ -9394,7 +9393,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get setup_profile_title => 'プロフィールを作成';
 
   @override
-  String get setup_restore_inProgress => '復元中...';
+  String get setup_restore_inProgress => '復元中…';
 
   @override
   String get setup_restore_pick => 'バックアップファイルを選択';
@@ -9428,11 +9427,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get setup_speciesModel_wifi => 'Wi-Fi 推奨';
+  String get setup_speciesModel_wifi => 'Wi-Fi推奨';
 
   @override
   String get setup_speciesModel_hardware =>
-      'Windows では、グラフィックカードまたは NPU 用のエンジンが Microsoft からダウンロードされる場合もあります。';
+      'Windowsでは、グラフィックカードまたはNPU用のエンジンがMicrosoftからダウンロードされる場合もあります。';
 
   @override
   String get setup_speciesModel_downloading =>
@@ -9450,7 +9449,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get setup_syncPull_incomplete_message =>
-      'このアカウントには、アップロードが完了していない Submersion ライブラリがあります。他のデバイスで同期が完了するのを待ってから、もう一度お試しください。';
+      'このアカウントには、アップロードが完了していないSubmersionライブラリがあります。他のデバイスで同期が完了するのを待ってから、もう一度お試しください。';
 
   @override
   String get setup_syncPull_incomplete_retry => '再確認';
@@ -9467,7 +9466,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_message =>
-      'このアカウントに既存の Submersion ライブラリは見つかりませんでした。代わりに新しく始めますか？接続はそのまま維持されます。';
+      'このアカウントに既存のSubmersionライブラリは見つかりませんでした。代わりに新しく始めますか？接続はそのまま維持されます。';
 
   @override
   String get setup_syncPull_noLibrary_title => 'ライブラリが見つかりません';
@@ -9522,7 +9521,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'バックアップの復元、クラウド同期への接続、既存フォルダーを開く';
 
   @override
-  String get setup_welcome_existingData_title => '既存の Submersion データがある';
+  String get setup_welcome_existingData_title => '既存のSubmersionデータがある';
 
   @override
   String get setup_welcome_skipSetup => 'セットアップをスキップ';
@@ -9537,7 +9536,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get setup_welcome_subtitle => '安全に潜り、すべてを記録しよう。';
 
   @override
-  String get setup_welcome_title => 'Submersion へようこそ';
+  String get setup_welcome_title => 'Submersionへようこそ';
 
   @override
   String get siteMatchReview_title => 'サイトを照合';
@@ -9702,7 +9701,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String siteMatchReview_summary(int selected, int review, int none) {
-    return '選択済み $selected · 要確認 $review · 一致なし $none';
+    return '選択済み$selected · 要確認$review · 一致なし$none';
   }
 
   @override
@@ -9718,12 +9717,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String siteMatchReview_awayMeters(int meters) {
-    return '$meters m 先';
+    return '$meters m先';
   }
 
   @override
   String siteMatchReview_depthTo(int meters) {
-    return '最大 $meters m';
+    return '最大$meters m';
   }
 
   @override
@@ -9895,7 +9894,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get globalSearch_hint => 'すべてを検索、または depth > 30m のように入力';
+  String get globalSearch_hint => 'すべてを検索、またはdepth > 30mのように入力';
 
   @override
   String get globalSearch_clear => '検索をクリア';
@@ -9917,7 +9916,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get globalSearch_section_gpsTracks => 'GPS トラック';
+  String get globalSearch_section_gpsTracks => 'GPSトラック';
 
   @override
   String get globalSearch_section_underwaterRoutes => '水中ルート';
@@ -10100,7 +10099,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLog_o2tox_semantics_cnsBadge(Object value) {
-    return 'CNS酸素中毒 $value';
+    return 'CNS酸素中毒$value';
   }
 
   @override
@@ -10289,7 +10288,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_search_customFieldKey => 'カスタムフィールドのキー';
 
   @override
-  String get diveLog_search_customFieldValue => '値に含む...';
+  String get diveLog_search_customFieldValue => '値に含む…';
 
   @override
   String get diveLog_search_errorLoadingCenters => 'ダイブセンターの読み込み中にエラーが発生しました';
@@ -10409,7 +10408,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_speciesPicker_noSpecies => '利用できる種がありません';
 
   @override
-  String get diveLog_speciesPicker_searchHint => '種を検索...';
+  String get diveLog_speciesPicker_searchHint => '種を検索…';
 
   @override
   String get diveLog_speciesPicker_title => '生物を追加';
@@ -10550,42 +10549,42 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLog_cylinders_figureStart(String pressure) {
-    return '開始 $pressure';
+    return '開始$pressure';
   }
 
   @override
   String diveLog_cylinders_figureEnd(String pressure) {
-    return '終了 $pressure';
+    return '終了$pressure';
   }
 
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
-    return '使用 $pressure';
+    return '使用$pressure';
   }
 
   @override
   String diveLog_cylinders_figureNow(String pressure) {
-    return '現在 $pressure';
+    return '現在$pressure';
   }
 
   @override
   String diveLog_cylinders_figureNowEstimated(String pressure) {
-    return '現在 $pressure（推定）';
+    return '現在$pressure（推定）';
   }
 
   @override
   String diveLog_cylinders_gasSemantics(String mix) {
-    return 'ガス $mix';
+    return 'ガス$mix';
   }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
-    return '使用ガス量 $amount';
+    return '使用ガス量$amount';
   }
 
   @override
   String diveLog_cylinders_loopUse(String rate) {
-    return 'ループ使用量 $rate';
+    return 'ループ使用量$rate';
   }
 
   @override
@@ -10606,12 +10605,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLog_cylinders_aveloGasRemaining(int start, int end) {
-    return '残りガス $start%〜$end%';
+    return '残りガス$start%〜$end%';
   }
 
   @override
   String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
-    return 'Avelo浮力 $min〜$max、平均 $mean';
+    return 'Avelo浮力$min〜$max、平均$mean';
   }
 
   @override
@@ -10621,7 +10620,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLog_cylinders_aveloMaxPressure(String pressure) {
-    return '最大圧力 $pressure';
+    return '最大圧力$pressure';
   }
 
   @override
@@ -10657,7 +10656,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_tank_computerMix_restore => '戻す';
 
   @override
-  String get diveLog_tank_selectPreset => 'プリセットを選択...';
+  String get diveLog_tank_selectPreset => 'プリセットを選択…';
 
   @override
   String get diveLog_tank_saveAsPreset => 'プリセットとして保存';
@@ -10846,17 +10845,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLog_buoyancy_readout_buoyant(String value) {
-    return '$value プラス浮力';
+    return '$valueプラス浮力';
   }
 
   @override
   String diveLog_buoyancy_readout_heavy(String value) {
-    return '$value マイナス浮力';
+    return '$valueマイナス浮力';
   }
 
   @override
   String diveLog_buoyancy_readout_neutral(String value) {
-    return '$value 中性浮力';
+    return '$value中性浮力';
   }
 
   @override
@@ -11161,7 +11160,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get divePlanner_label_airBreaksBreak => 'ブレイク（分）';
 
   @override
-  String get divePlanner_label_airBreaksOnO2 => 'O2 呼吸（分）';
+  String get divePlanner_label_airBreaksOnO2 => 'O2呼吸（分）';
 
   @override
   String get divePlanner_label_airBreaksCustom => 'カスタム';
@@ -11233,19 +11232,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get divePlanner_gasOptions_title => 'ガスオプション';
 
   @override
-  String get divePlanner_gasOptions_sacBottom => 'ボトム RMV';
+  String get divePlanner_gasOptions_sacBottom => 'ボトムRMV';
 
   @override
-  String get divePlanner_gasOptions_sacDeco => '減圧時 RMV';
+  String get divePlanner_gasOptions_sacDeco => '減圧時RMV';
 
   @override
-  String get divePlanner_gasOptions_sacFactor => 'RMV 係数';
+  String get divePlanner_gasOptions_sacFactor => 'RMV係数';
 
   @override
-  String get divePlanner_gasOptions_sacStressed => 'ストレス時 RMV';
+  String get divePlanner_gasOptions_sacStressed => 'ストレス時RMV';
 
   @override
-  String get divePlanner_gasOptions_sacStressedFactor => 'ストレス時 RMV 係数';
+  String get divePlanner_gasOptions_sacStressedFactor => 'ストレス時RMV係数';
 
   @override
   String get divePlanner_gasOptions_problemSolvingMinutes => '問題対処時間';
@@ -11254,34 +11253,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String get divePlanner_gasOptions_gasSwitchStopSeconds => 'ガス切り替え停止';
 
   @override
-  String get divePlanner_gasOptions_ppO2Bottom => 'ボトム ppO₂';
+  String get divePlanner_gasOptions_ppO2Bottom => 'ボトムppO₂';
 
   @override
-  String get divePlanner_gasOptions_ppO2Deco => '減圧時 ppO₂';
+  String get divePlanner_gasOptions_ppO2Deco => '減圧時ppO₂';
 
   @override
-  String get divePlanner_gasOptions_ppO2DecoBand1 => '減圧時 ppO₂ O2 28%以下';
+  String get divePlanner_gasOptions_ppO2DecoBand1 => '減圧時ppO₂ O2 28%以下';
 
   @override
-  String get divePlanner_gasOptions_ppO2DecoBand2 => '減圧時 ppO₂ O2 28-45%';
+  String get divePlanner_gasOptions_ppO2DecoBand2 => '減圧時ppO₂ O2 28-45%';
 
   @override
-  String get divePlanner_gasOptions_ppO2DecoBand3 => '減圧時 ppO₂ O2 45-99%';
+  String get divePlanner_gasOptions_ppO2DecoBand3 => '減圧時ppO₂ O2 45-99%';
 
   @override
   String get divePlanner_gasOptions_maxO2DepthMeters => 'O2 100%の最大水深';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaAmv => '高炭酸ガス血症時 RMV';
+  String get divePlanner_gasOptions_hypercapniaAmv => '高炭酸ガス血症時RMV';
 
   @override
   String get divePlanner_gasOptions_hypercapniaMinutes => '継続時間';
 
   @override
-  String get divePlanner_gasOptions_bestMixEnd => '最適ミックスの END';
+  String get divePlanner_gasOptions_bestMixEnd => '最適ミックスのEND';
 
   @override
-  String get divePlanner_gasOptions_o2Narcotic => 'このプランでは O₂ を麻酔性ガスとして扱う';
+  String get divePlanner_gasOptions_o2Narcotic => 'このプランではO₂ を麻酔性ガスとして扱う';
 
   @override
   String get divePlanner_label_on => 'オン';
@@ -11381,16 +11380,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get divePlanner_warning_gasOut => 'タンクが空になります';
 
   @override
-  String get divePlanner_warning_otuWarning => 'OTU の蓄積が多くなっています';
+  String get divePlanner_warning_otuWarning => 'OTUの蓄積が多くなっています';
 
   @override
   String divePlanner_warning_ppO2Critical(Object value) {
-    return 'ppO₂ $value bar が危険限界を超えています';
+    return 'ppO₂ $value barが危険限界を超えています';
   }
 
   @override
   String divePlanner_warning_ppO2High(Object value) {
-    return 'ppO₂ $value bar が作業限界を超えています';
+    return 'ppO₂ $value barが作業限界を超えています';
   }
 
   @override
@@ -11496,7 +11495,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_detail_error_title => 'エラー';
 
   @override
-  String get diveSites_detail_loading_title => '読み込み中...';
+  String get diveSites_detail_loading_title => '読み込み中…';
 
   @override
   String get diveSites_detail_location_country => '国';
@@ -11511,7 +11510,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_detail_location_bodyOfWater => '水域';
 
   @override
-  String get diveSites_detail_location_gpsCoordinates => 'GPS 座標';
+  String get diveSites_detail_location_gpsCoordinates => 'GPS座標';
 
   @override
   String get diveSites_detail_location_notSet => '未設定';
@@ -11770,7 +11769,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveSites_edit_gps_gettingLocation => '取得中...';
+  String get diveSites_edit_gps_gettingLocation => '取得中…';
 
   @override
   String get diveSites_edit_gps_latitude_label => '緯度';
@@ -11967,7 +11966,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diveSites_filter_option_hasCoordinates_subtitle =>
-      'GPS 位置情報のあるサイトのみ表示';
+      'GPS位置情報のあるサイトのみ表示';
 
   @override
   String get diveSites_filter_option_hasCoordinates_title => '座標あり';
@@ -12296,7 +12295,7 @@ class AppLocalizationsJa extends AppLocalizations {
       other: '$minutes分',
       one: '1分',
     );
-    return '${_temp0}Submersion が各サイトを OpenStreetMap で検索し、空欄の項目だけを埋めます。所要時間は約$_temp1です。';
+    return '${_temp0}Submersionが各サイトをOpenStreetMapで検索し、空欄の項目だけを埋めます。所要時間は約$_temp1です。';
   }
 
   @override
@@ -12318,7 +12317,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveSites_backfill_summary(int updated, int unchanged, int failed) {
-    return '更新 $updated、変更なし $unchanged、失敗 $failed';
+    return '更新$updated、変更なし$unchanged、失敗$failed';
   }
 
   @override
@@ -12363,7 +12362,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveSites_list_search_placeholder => 'サイトを検索...';
+  String get diveSites_list_search_placeholder => 'サイトを検索…';
 
   @override
   String get diveSites_list_selection_mergeTooltip => '選択項目を統合';
@@ -12654,7 +12653,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '場所を選択しました';
 
   @override
-  String get diveSites_locationPicker_instruction_lookingUp => '場所を検索中...';
+  String get diveSites_locationPicker_instruction_lookingUp => '場所を検索中…';
 
   @override
   String get diveSites_locationPicker_instruction_tapToSelect =>
@@ -12850,7 +12849,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_summary_stat_totalSites => 'サイト総数';
 
   @override
-  String get diveSites_summary_stat_withGps => 'GPS あり';
+  String get diveSites_summary_stat_withGps => 'GPSあり';
 
   @override
   String get diveSites_summary_stat_countries => '国数';
@@ -13088,7 +13087,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get divelogsImport_fetch_empty =>
-      'divelogs.de のログブックにインポートできるものはありません。';
+      'divelogs.deのログブックにインポートできるものはありません。';
 
   @override
   String get divelogsImport_fetch_failedTitle => 'ログブックを取得できませんでした';
@@ -13157,7 +13156,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get divelogsImport_fetch_sessionExpired =>
-      'divelogs.de のセッションの有効期限が切れました。前に戻って再度サインインしてください。';
+      'divelogs.deのセッションの有効期限が切れました。前に戻って再度サインインしてください。';
 
   @override
   String divelogsImport_fetch_skippedDives(int count) {
@@ -13172,14 +13171,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get divelogsImport_signIn_badCredentials =>
-      'divelogs.de でユーザー名またはパスワードが拒否されました。';
+      'divelogs.deでユーザー名またはパスワードが拒否されました。';
 
   @override
   String get divelogsImport_signIn_button => 'サインイン';
 
   @override
   String get divelogsImport_signIn_description =>
-      'ログブックをインポートするには、divelogs.de のアカウントでサインインしてください。パスワードは保存されず、取得したセッションのみがキャッシュされます。';
+      'ログブックをインポートするには、divelogs.deのアカウントでサインインしてください。パスワードは保存されず、取得したセッションのみがキャッシュされます。';
 
   @override
   String get divelogsImport_signIn_passwordLabel => 'パスワード';
@@ -13199,15 +13198,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get divelogsImport_signIn_signOut => 'サインアウト';
 
   @override
-  String get divelogsImport_signIn_title => 'divelogs.de にサインイン';
+  String get divelogsImport_signIn_title => 'divelogs.deにサインイン';
 
   @override
   String get divelogsImport_signIn_unexpected =>
-      'divelogs.de から予期しない応答がありました。後でもう一度お試しください。';
+      'divelogs.deから予期しない応答がありました。後でもう一度お試しください。';
 
   @override
   String get divelogsImport_signIn_unreachable =>
-      'divelogs.de に接続できませんでした。接続を確認して、もう一度お試しください。';
+      'divelogs.deに接続できませんでした。接続を確認して、もう一度お試しください。';
 
   @override
   String get divelogsImport_signIn_usernameLabel => 'ユーザー名';
@@ -14461,10 +14460,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get passport_service_neverRecorded => '記録なし';
 
   @override
-  String get passport_service_trackO2Clean => 'O2 洗浄を管理';
+  String get passport_service_trackO2Clean => 'O2洗浄を管理';
 
   @override
-  String get passport_service_trackFailed => 'O2 洗浄の管理を開始できませんでした。もう一度お試しください。';
+  String get passport_service_trackFailed => 'O2洗浄の管理を開始できませんでした。もう一度お試しください。';
 
   @override
   String passport_service_lastDone(String date) {
@@ -14473,12 +14472,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String passport_o2Warning_untracked(String o2) {
-    return '前回の充填は O2 $o2 ですが、このタンクは O2 洗浄済みとして管理されていません。';
+    return '前回の充填はO2 $o2ですが、このタンクはO2洗浄済みとして管理されていません。';
   }
 
   @override
   String passport_o2Warning_overdue(String o2) {
-    return '前回の充填は O2 $o2 ですが、このタンクの O2 洗浄は期限切れです。';
+    return '前回の充填はO2 $o2ですが、このタンクのO2洗浄は期限切れです。';
   }
 
   @override
@@ -14497,7 +14496,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String passport_fill_end(String depth) {
-    return '作業 MOD での END $depth';
+    return '作業MODでのEND $depth';
   }
 
   @override
@@ -14548,7 +14547,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String passport_fill_temperature(String temperature) {
-    return 'ガス温度 $temperature';
+    return 'ガス温度$temperature';
   }
 
   @override
@@ -14594,7 +14593,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get passport_tag_printLabels => 'ラベルを印刷';
 
   @override
-  String get passport_tag_qrSemantics => 'パスポートの QR コード';
+  String get passport_tag_qrSemantics => 'パスポートのQRコード';
 
   @override
   String get passport_tag_printFailed => 'ラベルを作成できませんでした。もう一度お試しください。';
@@ -14643,7 +14642,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get passport_scan_newerFormat =>
-      'このタグは新しいバージョンの Submersion で書き込まれています。一部の詳細が表示されない場合があります。';
+      'このタグは新しいバージョンのSubmersionで書き込まれています。一部の詳細が表示されない場合があります。';
 
   @override
   String passport_scan_filledFrom(String name) {
@@ -14702,7 +14701,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String passport_usage_diveNumber(int number) {
-    return 'ダイブ $number';
+    return 'ダイブ$number';
   }
 
   @override
@@ -14722,7 +14721,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get passport_foreign_noDetails => 'このタグには識別情報以外の詳細はありません。';
 
   @override
-  String get passport_foreign_o2Clean => 'タグ書き込み時点で O2 洗浄済み';
+  String get passport_foreign_o2Clean => 'タグ書き込み時点でO2洗浄済み';
 
   @override
   String get passport_foreign_useOnDive => 'ダイブで使用';
@@ -14737,13 +14736,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get passport_foreign_defaultName => 'タンク';
 
   @override
-  String get passport_nfc_tap => 'NFC タグをタッチしてください';
+  String get passport_nfc_tap => 'NFCタグをタッチしてください';
 
   @override
   String get passport_nfc_holdNear => 'タグをスマートフォンの背面に当ててください。';
 
   @override
-  String get passport_nfc_write => 'NFC タグに書き込む';
+  String get passport_nfc_write => 'NFCタグに書き込む';
 
   @override
   String get passport_nfc_rewrite => 'タグを書き換える';
@@ -14752,10 +14751,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get passport_nfc_reprint => 'ラベルを再印刷';
 
   @override
-  String get passport_nfc_unsupported => 'このデバイスは NFC タグの読み書きに対応していません。';
+  String get passport_nfc_unsupported => 'このデバイスはNFCタグの読み書きに対応していません。';
 
   @override
-  String get passport_nfc_disabled => 'NFC がオフになっています。システム設定でオンにしてください。';
+  String get passport_nfc_disabled => 'NFCがオフになっています。システム設定でオンにしてください。';
 
   @override
   String get passport_nfc_written => 'タグへの書き込みと確認が完了しました';
@@ -14780,7 +14779,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get passport_nfc_notNdef =>
-      'このタグにはリンクを保存できません。NTAG215 または NTAG216 のタグを使用してください。';
+      'このタグにはリンクを保存できません。NTAG215またはNTAG216のタグを使用してください。';
 
   @override
   String get passport_nfc_readOnly => 'このタグはロックされているため書き込めません。';
@@ -14810,7 +14809,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get passport_nfc_fieldSerial => 'シリアル番号';
 
   @override
-  String get passport_nfc_fieldO2Clean => 'O2 洗浄';
+  String get passport_nfc_fieldO2Clean => 'O2洗浄';
 
   @override
   String get passport_nfc_fieldFillAnalyzer => '充填時のアナライザー';
@@ -14829,7 +14828,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String passport_foreign_serial(String serial) {
-    return 'シリアル $serial';
+    return 'シリアル$serial';
   }
 
   @override
@@ -14891,8 +14890,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get passport_logFill_notes => 'メモ';
 
   @override
-  String get passport_logFill_invalidMix =>
-      'O2 と He はそれぞれ0～100で、合計100以下にしてください';
+  String get passport_logFill_invalidMix => 'O2とHeはそれぞれ0～100で、合計100以下にしてください';
 
   @override
   String get passport_logFill_saveFailed => '充填を保存できませんでした。もう一度お試しください。';
@@ -14901,7 +14899,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tagScan_title => 'タグをスキャン';
 
   @override
-  String get tagScan_linkInvalid => 'Submersion のタグではありません';
+  String get tagScan_linkInvalid => 'Submersionのタグではありません';
 
   @override
   String get gearPassport_title => '器材パスポート';
@@ -15211,7 +15209,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pdf_cylinderNumber(String number) {
-    return 'タンク $number';
+    return 'タンク$number';
   }
 
   @override
@@ -15357,7 +15355,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pdf_verifiedBy => '確認者';
 
   @override
-  String get pdf_nauiDiveLogBanner => 'NAUI ダイブログ';
+  String get pdf_nauiDiveLogBanner => 'NAUIダイブログ';
 
   @override
   String get pdf_statDives => 'ダイブ';
@@ -15401,7 +15399,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pdf_tripDiveTitle(String number) {
-    return 'ダイブ $number';
+    return 'ダイブ$number';
   }
 
   @override
@@ -15634,7 +15632,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_detail_installedInLabel => '取り付け先';
 
   @override
-  String get equipment_detail_loadingTitle => '読み込み中...';
+  String get equipment_detail_loadingTitle => '読み込み中…';
 
   @override
   String get equipment_detail_modelLabel => 'モデル';
@@ -15711,7 +15709,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String equipment_serviceClocks_dueOn(String date) {
-    return '期限 $date';
+    return '期限$date';
   }
 
   @override
@@ -15796,16 +15794,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tankMod_limitDeco => '減圧上限';
 
   @override
-  String get tankMod_limitDiluent => 'ディリュエント MOD';
+  String get tankMod_limitDiluent => 'ディリュエントMOD';
 
   @override
   String tankMod_overridden(String depth) {
-    return '手動設定 · デフォルト $depth';
+    return '手動設定 · デフォルト$depth';
   }
 
   @override
   String tankMod_ppO2At(String ppO2, String depth) {
-    return '$depthで ppO2 $ppO2';
+    return '$depthでppO2 $ppO2';
   }
 
   @override
@@ -15815,7 +15813,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String limit,
     String limitPpO2,
   ) {
-    return '$depthで ppO2 $ppO2、$limit $limitPpO2を超えています';
+    return '$depthでppO2 $ppO2、$limit $limitPpO2を超えています';
   }
 
   @override
@@ -15875,7 +15873,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String cylinderConfigs_overwriteTank(int number, String role) {
-    return 'タンク $number · $role';
+    return 'タンク$number · $role';
   }
 
   @override
@@ -16228,7 +16226,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_edit_nameValidation => '名前を入力してください';
 
   @override
-  String get equipment_edit_notesHint => 'この器材に関するメモ...';
+  String get equipment_edit_notesHint => 'この器材に関するメモ…';
 
   @override
   String get equipment_edit_notesLabel => 'メモ';
@@ -17050,7 +17048,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String equipment_service_nextDueLabel(String date) {
-    return '次回期限 $date';
+    return '次回期限$date';
   }
 
   @override
@@ -17120,7 +17118,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'すべての器材のメンテナンス履歴をスプレッドシートで出力';
 
   @override
-  String get settings_export_progress_maintenance => 'メンテナンス記録をエクスポート中...';
+  String get settings_export_progress_maintenance => 'メンテナンス記録をエクスポート中…';
 
   @override
   String get settings_export_success_maintenance => 'メンテナンス記録をエクスポートしました';
@@ -17132,17 +17130,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transfer_export_inventoryTitle => '器材一覧';
 
   @override
-  String get transfer_export_inventorySubtitle => 'シリアル番号と購入価格を含む PDF';
+  String get transfer_export_inventorySubtitle => 'シリアル番号と購入価格を含むPDF';
 
   @override
   String get transfer_export_serviceReportTitle => 'メンテナンスレポート';
 
   @override
   String get transfer_export_serviceReportSubtitle =>
-      'メンテナンス時期の器材とメンテナンス履歴の PDF';
+      'メンテナンス時期の器材とメンテナンス履歴のPDF';
 
   @override
-  String get settings_export_progress_inventory => '器材一覧を作成中...';
+  String get settings_export_progress_inventory => '器材一覧を作成中…';
 
   @override
   String get settings_export_success_inventory => '器材一覧をエクスポートしました';
@@ -17151,7 +17149,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_export_saved_inventory => '器材一覧を保存しました';
 
   @override
-  String get settings_export_progress_serviceReport => 'メンテナンスレポートを作成中...';
+  String get settings_export_progress_serviceReport => 'メンテナンスレポートを作成中…';
 
   @override
   String get settings_export_success_serviceReport => 'メンテナンスレポートをエクスポートしました';
@@ -17372,7 +17370,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_setDetail_errorTitle => 'エラー';
 
   @override
-  String get equipment_setDetail_loadingTitle => '読み込み中...';
+  String get equipment_setDetail_loadingTitle => '読み込み中…';
 
   @override
   String get equipment_setDetail_notFoundMessage => 'この器材セットはすでに存在しません。';
@@ -17393,7 +17391,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_setEdit_appBar_cloneTitle => '器材セットを複製';
 
   @override
-  String get equipment_setEdit_descriptionHint => '説明（任意）...';
+  String get equipment_setEdit_descriptionHint => '説明（任意）…';
 
   @override
   String get equipment_setEdit_descriptionLabel => '説明';
@@ -17537,37 +17535,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gas_air_displayName => '空気';
 
   @override
-  String get gas_diluentAir_description => '浅場の CCR 用の標準空気ディリュエント';
+  String get gas_diluentAir_description => '浅場のCCR用の標準空気ディリュエント';
 
   @override
   String get gas_diluentAir_displayName => '空気ディリュエント';
 
   @override
-  String get gas_diluentTx1070_description => '大深度 CCR 用の低酸素ディリュエント';
+  String get gas_diluentTx1070_description => '大深度CCR用の低酸素ディリュエント';
 
   @override
   String get gas_diluentTx1070_displayName => 'Tx 10/70';
 
   @override
-  String get gas_diluentTx1260_description => '深場の CCR 用の低酸素ディリュエント';
+  String get gas_diluentTx1260_description => '深場のCCR用の低酸素ディリュエント';
 
   @override
   String get gas_diluentTx1260_displayName => 'Tx 12/60';
 
   @override
-  String get gas_ean32_description => 'エンリッチドエア・ナイトロックス 32%';
+  String get gas_ean32_description => 'エンリッチドエア・ナイトロックス32%';
 
   @override
   String get gas_ean32_displayName => 'EAN32';
 
   @override
-  String get gas_ean36_description => 'エンリッチドエア・ナイトロックス 36%';
+  String get gas_ean36_description => 'エンリッチドエア・ナイトロックス36%';
 
   @override
   String get gas_ean36_displayName => 'EAN36';
 
   @override
-  String get gas_ean40_description => 'エンリッチドエア・ナイトロックス 40%';
+  String get gas_ean40_description => 'エンリッチドエア・ナイトロックス40%';
 
   @override
   String get gas_ean40_displayName => 'EAN40';
@@ -17579,49 +17577,49 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gas_ean50_displayName => 'EAN50';
 
   @override
-  String get gas_helitrox2525_description => 'ヘリトロックス 25/25（レクリエーショナルテック）';
+  String get gas_helitrox2525_description => 'ヘリトロックス25/25（レクリエーショナルテック）';
 
   @override
   String get gas_helitrox2525_displayName => 'Helitrox 25/25';
 
   @override
-  String get gas_oxygen_description => '純酸素（6m の減圧専用）';
+  String get gas_oxygen_description => '純酸素（6mの減圧専用）';
 
   @override
   String get gas_oxygen_displayName => '酸素';
 
   @override
-  String get gas_scrEan40_description => 'SCR 供給ガス（O2 40%）';
+  String get gas_scrEan40_description => 'SCR供給ガス（O2 40%）';
 
   @override
   String get gas_scrEan40_displayName => 'SCR EAN40';
 
   @override
-  String get gas_scrEan50_description => 'SCR 供給ガス（O2 50%）';
+  String get gas_scrEan50_description => 'SCR供給ガス（O2 50%）';
 
   @override
   String get gas_scrEan50_displayName => 'SCR EAN50';
 
   @override
-  String get gas_scrEan60_description => 'SCR 供給ガス（O2 60%）';
+  String get gas_scrEan60_description => 'SCR供給ガス（O2 60%）';
 
   @override
   String get gas_scrEan60_displayName => 'SCR EAN60';
 
   @override
-  String get gas_tmx1555_description => '低酸素トライミックス 15/55（大深度）';
+  String get gas_tmx1555_description => '低酸素トライミックス15/55（大深度）';
 
   @override
   String get gas_tmx1555_displayName => 'Tx 15/55';
 
   @override
-  String get gas_tmx1845_description => 'トライミックス 18/45（ディープダイビング）';
+  String get gas_tmx1845_description => 'トライミックス18/45（ディープダイビング）';
 
   @override
   String get gas_tmx1845_displayName => 'Tx 18/45';
 
   @override
-  String get gas_tmx2135_description => 'ノルモキシック・トライミックス 21/35';
+  String get gas_tmx2135_description => 'ノルモキシック・トライミックス21/35';
 
   @override
   String get gas_tmx2135_displayName => 'Tx 21/35';
@@ -17766,7 +17764,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String gasCalculators_mod_mnd(String limit) {
-    return 'MND（ENDの上限 $limit）';
+    return 'MND（ENDの上限$limit）';
   }
 
   @override
@@ -18733,7 +18731,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get marineLife_speciesManage_resetToDefaults => 'デフォルトに戻す';
 
   @override
-  String get marineLife_speciesManage_searchHint => '種を検索...';
+  String get marineLife_speciesManage_searchHint => '種を検索…';
 
   @override
   String get marineLife_lookup_button => 'オンラインで検索';
@@ -18751,7 +18749,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get marineLife_lookup_createWithout => '検索せずに作成';
 
   @override
-  String get marineLife_lookup_attribution => '種のデータと写真は iNaturalist より';
+  String get marineLife_lookup_attribution => '種のデータと写真はiNaturalistより';
 
   @override
   String get marineLife_lookup_idle => '名前を入力して「検索」をタップしてください。';
@@ -18769,10 +18767,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get marineLife_lookup_errorServer =>
-      'iNaturalist からエラーが返されました。後でもう一度お試しください。';
+      'iNaturalistからエラーが返されました。後でもう一度お試しください。';
 
   @override
-  String get marineLife_lookup_errorMalformed => 'iNaturalist から予期しない応答がありました。';
+  String get marineLife_lookup_errorMalformed => 'iNaturalistから予期しない応答がありました。';
 
   @override
   String get marineLife_lookup_retry => '再試行';
@@ -18870,7 +18868,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String marineLife_tagPicker_diveLabel(Object number) {
-    return 'ダイブ $number';
+    return 'ダイブ$number';
   }
 
   @override
@@ -19033,8 +19031,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get speciesMap_layers_public => '公開記録（GBIF）';
 
   @override
-  String get speciesMap_layers_publicHint =>
-      '選択した種、またはタップしたサイトの位置を GBIF に送信します。';
+  String get speciesMap_layers_publicHint => '選択した種、またはタップしたサイトの位置をGBIFに送信します。';
 
   @override
   String get speciesMap_layers_expectedHeading => '見られる生物の取得元';
@@ -19076,7 +19073,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String speciesMap_card_sightingRow(String date, String number, int count) {
-    return '$date、ダイブ $number、×$count';
+    return '$date、ダイブ$number、×$count';
   }
 
   @override
@@ -19097,7 +19094,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get speciesMap_noPublicRecords =>
-      'この種の公開記録は表示できません。GBIF が認識できる学名が必要です。';
+      'この種の公開記録は表示できません。GBIFが認識できる学名が必要です。';
 
   @override
   String get speciesMap_publicUnavailable => '公開記録を読み込めませんでした。';
@@ -19214,7 +19211,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get marineLife_speciesPicker_noSpeciesFound => '種が見つかりません';
 
   @override
-  String get marineLife_speciesPicker_searchHint => '種を検索...';
+  String get marineLife_speciesPicker_searchHint => '種を検索…';
 
   @override
   String marineLife_speciesPicker_selectedCount(Object count) {
@@ -19289,8 +19286,8 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'このうち$count件には Submersion で保存したキャプションまたはお気に入りがあり、その情報は失われます。',
-      one: 'このうち1件には Submersion で保存したキャプションまたはお気に入りがあり、その情報は失われます。',
+      other: 'このうち$count件にはSubmersionで保存したキャプションまたはお気に入りがあり、その情報は失われます。',
+      one: 'このうち1件にはSubmersionで保存したキャプションまたはお気に入りがあり、その情報は失われます。',
     );
     return '$_temp0';
   }
@@ -19503,7 +19500,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_gpsBanner_createSiteButton => 'サイトを作成';
 
   @override
-  String get media_gpsBanner_dismissTooltip => 'GPS の提案を閉じる';
+  String get media_gpsBanner_dismissTooltip => 'GPSの提案を閉じる';
 
   @override
   String mediaImport_offerSiteReview(int count) {
@@ -19542,7 +19539,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String media_import_importedAndFailed(Object imported, Object failed) {
-    return 'インポート $imported、失敗 $failed';
+    return 'インポート$imported、失敗$failed';
   }
 
   @override
@@ -19575,11 +19572,11 @@ class AppLocalizationsJa extends AppLocalizations {
       other: '写真',
       one: '写真',
     );
-    return '$count枚の$_temp0をインポート中...';
+    return '$count枚の$_temp0をインポート中…';
   }
 
   @override
-  String get media_lightroom_openInLightroom => 'Lightroom で開く';
+  String get media_lightroom_openInLightroom => 'Lightroomで開く';
 
   @override
   String get media_lightroom_suggestion_accept => 'このダイブに追加';
@@ -19588,7 +19585,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_lightroom_suggestion_dismiss => '閉じる';
 
   @override
-  String get media_lightroom_suggestions_title => 'Lightroom からの提案';
+  String get media_lightroom_suggestions_title => 'Lightroomからの提案';
 
   @override
   String get media_miniProfile_headerLabel => 'ダイブプロファイル';
@@ -19647,7 +19644,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_photoPicker_permissionRequestMessage =>
-      'ダイブの写真を追加するには、Submersion に写真ライブラリへのアクセスを許可する必要があります。';
+      'ダイブの写真を追加するには、Submersionに写真ライブラリへのアクセスを許可する必要があります。';
 
   @override
   String get media_photoPicker_permissionTitle => 'ダイブの写真';
@@ -20353,7 +20350,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_sources_watchedHeader => '監視フォルダー';
 
   @override
-  String get media_sources_addWatched => 'フォルダーを追加...';
+  String get media_sources_addWatched => 'フォルダーを追加…';
 
   @override
   String get media_sources_scanFailed => 'スキャンに失敗しました';
@@ -20457,13 +20454,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get media_missing_repair => '修復...';
+  String get media_missing_repair => '修復…';
 
   @override
   String get media_repair_title => '見つからないファイルを修復';
 
   @override
-  String get media_repair_addFolder => 'フォルダーを追加...';
+  String get media_repair_addFolder => 'フォルダーを追加…';
 
   @override
   String get media_repair_usePhotoLibrary => '写真ライブラリを検索';
@@ -20818,7 +20815,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_available(String liters) {
-    return '利用可能 $liters';
+    return '利用可能$liters';
   }
 
   @override
@@ -20829,7 +20826,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_required(String liters) {
-    return '必要量 $liters';
+    return '必要量$liters';
   }
 
   @override
@@ -20837,7 +20834,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_tts(String minutes) {
-    return 'ベイルアウト TTS $minutes′';
+    return 'ベイルアウトTTS $minutes′';
   }
 
   @override
@@ -20933,7 +20930,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerCanvas_chart_meanDepth(String depth) {
-    return '平均 $depth';
+    return '平均$depth';
   }
 
   @override
@@ -21024,7 +21021,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerSeries_loggedDive(String label) {
-    return '記録済みのダイブ $label';
+    return '記録済みのダイブ$label';
   }
 
   @override
@@ -21086,7 +21083,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerSeries_surfaceIntervalValue(String time) {
-    return '水面休息時間 $time';
+    return '水面休息時間$time';
   }
 
   @override
@@ -21278,7 +21275,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {
-    return 'ミニマムガス $pressure';
+    return 'ミニマムガス$pressure';
   }
 
   @override
@@ -21670,23 +21667,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_about_reportIssue_snackbar =>
-      'github.com/submersion-app/submersion/issues にアクセスしてください';
+      'github.com/submersion-app/submersion/issuesにアクセスしてください';
 
   @override
   String get settings_about_userGuide => 'ユーザーガイド';
 
   @override
   String get settings_about_userGuide_snackbar =>
-      'submersion.app/guide にアクセスしてください';
+      'submersion.app/guideにアクセスしてください';
 
   @override
   String settings_about_version(String version) {
-    return 'バージョン $version';
+    return 'バージョン$version';
   }
 
   @override
   String settings_about_builtOn(String date) {
-    return 'ビルド日 $date';
+    return 'ビルド日$date';
   }
 
   @override
@@ -21811,7 +21808,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_detail_displayOptions_showAll => 'すべてのセクションを表示';
 
   @override
-  String get diveLog_detail_displayOptions_reorder => 'セクションを並べ替え...';
+  String get diveLog_detail_displayOptions_reorder => 'セクションを並べ替え…';
 
   @override
   String get diveDetailLayout_detailed => '詳細';
@@ -22365,7 +22362,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String buoyancy_whatIfDelta(String delta) {
-    return '実際との差 $delta';
+    return '実際との差$delta';
   }
 
   @override
@@ -23029,7 +23026,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String sharedLibrary_members_fingerprint(String fingerprint) {
-    return 'キー $fingerprint';
+    return 'キー$fingerprint';
   }
 
   @override
@@ -23122,7 +23119,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String name,
     String fingerprint,
   ) {
-    return '$libraryのオーナー権限が$name（キー $fingerprint）によってリセットされました。承諾するまで、このデバイスはライブラリを読み取るだけになります。';
+    return '$libraryのオーナー権限が$name（キー$fingerprint）によってリセットされました。承諾するまで、このデバイスはライブラリを読み取るだけになります。';
   }
 
   @override
@@ -23233,7 +23230,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String sharedLibrary_library_myKey(String fingerprint) {
-    return 'あなたのキー $fingerprint';
+    return 'あなたのキー$fingerprint';
   }
 
   @override
@@ -23851,7 +23848,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String settings_cloudSync_peerNeedsAdopt_unnamedDevice(Object shortId) {
-    return 'デバイス $shortId';
+    return 'デバイス$shortId';
   }
 
   @override
@@ -23998,7 +23995,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get settings_cloudSync_status_syncing => '同期中...';
+  String get settings_cloudSync_status_syncing => '同期中…';
 
   @override
   String get settings_cloudSync_storageSettings => 'ストレージ設定';
@@ -24139,7 +24136,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String settings_conflict_counterLabel(Object current, Object total) {
-    return '競合 $total件中$current件目';
+    return '競合$total件中$current件目';
   }
 
   @override
@@ -26664,7 +26661,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get documents_page_cannotDisplay => 'このページを表示できません';
 
   @override
-  String get documents_page_openWith => '別のアプリで開く...';
+  String get documents_page_openWith => '別のアプリで開く…';
 
   @override
   String documents_page_counter(int current, int total) {
@@ -26731,7 +26728,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String documents_export_progress(int done, int total) {
-    return 'ファイル $done / $total';
+    return 'ファイル$done / $total';
   }
 
   @override
@@ -26851,7 +26848,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dashboard_gauges_documentExpires(String title, String date) {
-    return '$titleの期限 $date';
+    return '$titleの期限$date';
   }
 
   @override
@@ -27710,11 +27707,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get settings_speciesId_installing => 'モデルをインストールしています...';
+  String get settings_speciesId_installing => 'モデルをインストールしています…';
 
   @override
   String settings_speciesId_downloading(int percent) {
-    return 'ダウンロード中 $percent%';
+    return 'ダウンロード中$percent%';
   }
 
   @override
@@ -28065,7 +28062,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
-    return '作業時 $working bar・最大 $max bar';
+    return '作業時$working bar・最大$max bar';
   }
 
   @override
@@ -28079,7 +28076,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'ダイブプランナー用の、より細かい減圧ppO2上限（任意）';
 
   @override
-  String get settings_decompression_ppO2BandsDialog_title => '減圧ppO2：O2帯域別';
+  String get settings_decompression_ppO2BandsDialog_title => '減圧ppO2: O2帯域別';
 
   @override
   String get settings_decompression_ppO2BandsDialog_bandsToggle =>
@@ -28132,7 +28129,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String high,
     String dil,
   ) {
-    return 'セットポイント 低 $low・高 $high・Dil MOD $dil bar';
+    return 'セットポイント 低$low・高$high・Dil MOD $dil bar';
   }
 
   @override
@@ -28253,15 +28250,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_decompression_cnsMethodSourceNoaa =>
-      'NOAA：Diving Program（NOAA Diving Manualの発行元）';
+      'NOAA: Diving Program（NOAA Diving Manualの発行元）';
 
   @override
   String get settings_decompression_cnsMethodSourceShearwater =>
-      'Shearwater：The CNS Oxygen Clock';
+      'Shearwater: The CNS Oxygen Clock';
 
   @override
   String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
-      'The Theoretical Diver：Calculating oxygen CNS toxicity';
+      'The Theoretical Diver: Calculating oxygen CNS toxicity';
 
   @override
   String get settings_decompression_cnsMethodSourceSubsurface =>
@@ -28350,52 +28347,52 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_import_cancelButton => 'インポートをキャンセル';
 
   @override
-  String get settings_import_cancelling => 'キャンセルしています...';
+  String get settings_import_cancelling => 'キャンセルしています…';
 
   @override
-  String get settings_import_phase_buddies => 'バディをインポートしています...';
+  String get settings_import_phase_buddies => 'バディをインポートしています…';
 
   @override
-  String get settings_import_phase_certifications => '認定をインポートしています...';
+  String get settings_import_phase_certifications => '認定をインポートしています…';
 
   @override
-  String get settings_import_phase_diveCenters => 'ダイブセンターをインポートしています...';
+  String get settings_import_phase_diveCenters => 'ダイブセンターをインポートしています…';
 
   @override
-  String get settings_import_phase_diveTypes => 'ダイブタイプをインポートしています...';
+  String get settings_import_phase_diveTypes => 'ダイブタイプをインポートしています…';
 
   @override
-  String get settings_import_phase_dives => 'ダイブをインポートしています...';
+  String get settings_import_phase_dives => 'ダイブをインポートしています…';
 
   @override
-  String get settings_import_phase_photos => '写真をダウンロードしています...';
+  String get settings_import_phase_photos => '写真をダウンロードしています…';
 
   @override
-  String get settings_import_phase_finishing => 'インポートを完了しています...';
+  String get settings_import_phase_finishing => 'インポートを完了しています…';
 
   @override
-  String get settings_import_phase_equipment => '器材をインポートしています...';
+  String get settings_import_phase_equipment => '器材をインポートしています…';
 
   @override
-  String get settings_import_phase_equipmentSets => '器材セットをインポートしています...';
+  String get settings_import_phase_equipmentSets => '器材セットをインポートしています…';
 
   @override
-  String get settings_import_phase_preparing => '準備しています...';
+  String get settings_import_phase_preparing => '準備しています…';
 
   @override
-  String get settings_import_phase_sites => 'ダイブサイトをインポートしています...';
+  String get settings_import_phase_sites => 'ダイブサイトをインポートしています…';
 
   @override
-  String get settings_import_phase_tags => 'タグをインポートしています...';
+  String get settings_import_phase_tags => 'タグをインポートしています…';
 
   @override
-  String get settings_import_phase_trips => 'トリップをインポートしています...';
+  String get settings_import_phase_trips => 'トリップをインポートしています…';
 
   @override
-  String get settings_import_phase_courses => 'コースをインポートしています...';
+  String get settings_import_phase_courses => 'コースをインポートしています…';
 
   @override
-  String get settings_import_phase_applyingTags => 'タグを適用しています...';
+  String get settings_import_phase_applyingTags => 'タグを適用しています…';
 
   @override
   String get settings_language_appBar_title => '言語';
@@ -28488,7 +28485,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_lightroom_scanNow => 'Lightroomをスキャン';
 
   @override
-  String get settings_lightroom_scan_running => 'Lightroomをスキャンしています...';
+  String get settings_lightroom_scan_running => 'Lightroomをスキャンしています…';
 
   @override
   String settings_lightroom_scan_summary(
@@ -28580,7 +28577,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'ダイブの編集画面からウェイト構成を保存するか、+ をタップしてここで作成してください。';
+      'ダイブの編集画面からウェイト構成を保存するか、+をタップしてここで作成してください。';
 
   @override
   String get weightPresets_action_new => '新しいプリセット';
@@ -29065,7 +29062,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_gitConfig_host_gitea =>
-      'GiteaまたはForgejo：write:repositoryスコープを持つアクセストークンを作成してください。';
+      'GiteaまたはForgejo: write:repositoryスコープを持つアクセストークンを作成してください。';
 
   @override
   String get settings_gitConfig_host_github =>
@@ -29073,7 +29070,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_gitConfig_host_gitlab =>
-      'GitLab：write_repositoryスコープを持つ個人またはプロジェクトのアクセストークンを作成してください。GitLabのトークンは1年以内に失効します。';
+      'GitLab: write_repositoryスコープを持つ個人またはプロジェクトのアクセストークンを作成してください。GitLabのトークンは1年以内に失効します。';
 
   @override
   String get settings_gitConfig_host_other =>
@@ -29571,22 +29568,22 @@ class AppLocalizationsJa extends AppLocalizations {
       'カスタムフォルダーを使うと、アプリによるクラウド同期は無効になります。代わりにフォルダーの同期サービスが同期を行います。';
 
   @override
-  String get settings_storage_loading => '読み込んでいます...';
+  String get settings_storage_loading => '読み込んでいます…';
 
   @override
-  String get settings_storage_migrating_movingDatabase => 'データベースを移動しています...';
+  String get settings_storage_migrating_movingDatabase => 'データベースを移動しています…';
 
   @override
   String get settings_storage_migrating_movingToAppDefault =>
-      'アプリのデフォルトに移動しています...';
+      'アプリのデフォルトに移動しています…';
 
   @override
   String get settings_storage_migrating_replacingExisting =>
-      '既存のデータベースを置き換えています...';
+      '既存のデータベースを置き換えています…';
 
   @override
   String get settings_storage_migrating_switchingToExisting =>
-      '既存のデータベースに切り替えています...';
+      '既存のデータベースに切り替えています…';
 
   @override
   String get settings_storage_notSet => '未設定';
@@ -29653,7 +29650,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_summary_gradientFactors => 'グラディエントファクター';
 
   @override
-  String get settings_summary_loading => '読み込んでいます...';
+  String get settings_summary_loading => '読み込んでいます…';
 
   @override
   String get settings_summary_notSet => '未設定';
@@ -29945,11 +29942,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_updates_checkForUpdates => 'アップデートを確認';
 
   @override
-  String get settings_updates_checking => '確認しています...';
+  String get settings_updates_checking => '確認しています…';
 
   @override
   String settings_updates_downloading(String progress) {
-    return 'ダウンロード中... $progress%';
+    return 'ダウンロード中… $progress%';
   }
 
   @override
@@ -30582,7 +30579,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get insights_filterBar_chooseGroup => 'ダイブのグループを選択';
 
   @override
-  String get insights_filterBar_saveCurrent => '現在のフィルターを保存...';
+  String get insights_filterBar_saveCurrent => '現在のフィルターを保存…';
 
   @override
   String get insights_filterBar_manageSaved => '保存したクエリを管理';
@@ -31007,7 +31004,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get insights_focus_count_custom => 'カスタム...';
+  String get insights_focus_count_custom => 'カスタム…';
 
   @override
   String get insights_focus_count_dialogTitle => '何本のダイブを表示しますか？';
@@ -31262,7 +31259,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object topName,
     Object topCount,
   ) {
-    return '$countか国。最多: $topName（$topCount本）';
+    return '$countか国。最多：$topName（$topCount本）';
   }
 
   @override
@@ -31283,7 +31280,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object topName,
     Object topCount,
   ) {
-    return '$count地域。最多: $topName（$topCount本）';
+    return '$count地域。最多：$topName（$topCount本）';
   }
 
   @override
@@ -31304,7 +31301,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object topName,
     Object topCount,
   ) {
-    return '$count件のトリップ。最多: $topName（$topCount本）';
+    return '$count件のトリップ。最多：$topName（$topCount本）';
   }
 
   @override
@@ -31331,7 +31328,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object topName,
     Object topCount,
   ) {
-    return '$countサイト。最多: $topName（$topCount種）';
+    return '$countサイト。最多：$topName（$topCount種）';
   }
 
   @override
@@ -31352,7 +31349,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object topName,
     Object topCount,
   ) {
-    return '$count種。最多: $topName（観察記録$topCount件）';
+    return '$count種。最多：$topName（観察記録$topCount件）';
   }
 
   @override
@@ -31408,7 +31405,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String insights_profile_verticalDistance_next(String landmark) {
-    return '次: $landmark';
+    return '次：$landmark';
   }
 
   @override
@@ -31449,7 +31446,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String landmark,
     String date,
   ) {
-    return '$landmark: $dateに通過';
+    return '$landmark：$dateに通過';
   }
 
   @override
@@ -31457,7 +31454,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String landmark,
     String distance,
   ) {
-    return '$landmark: あと$distance';
+    return '$landmark：あと$distance';
   }
 
   @override
@@ -31491,7 +31488,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String down,
     String downDistance,
   ) {
-    return '累計の浮上と潜降はそれぞれ$totalです。上の次の目標: $up、あと$upDistance。下の次の目標: $down、あと$downDistance。';
+    return '累計の浮上と潜降はそれぞれ$totalです。上の次の目標：$up、あと$upDistance。下の次の目標：$down、あと$downDistance。';
   }
 
   @override
@@ -31616,7 +31613,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String insights_profile_deco_analyzing(int analyzed, int total) {
-    return 'ダイブを分析中: $total本中$analyzed本';
+    return 'ダイブを分析中：$total本中$analyzed本';
   }
 
   @override
@@ -31644,7 +31641,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String insights_profile_deco_semanticLabel(Object percentage) {
-    return '減圧ダイブの割合: ダイブの$percentage%で減圧停止が必要でした';
+    return '減圧ダイブの割合：ダイブの$percentage%で減圧停止が必要でした';
   }
 
   @override
@@ -31812,7 +31809,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object title,
     Object siteName,
   ) {
-    return '$title: $siteName';
+    return '$title：$siteName';
   }
 
   @override
@@ -31915,7 +31912,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String previous,
     String percent,
   ) {
-    return 'RMVが改善しました: 過去12か月は$recentで、前年（$previous）より$percent%低くなっています';
+    return 'RMVが改善しました：過去12か月は$recentで、前年（$previous）より$percent%低くなっています';
   }
 
   @override
@@ -31924,7 +31921,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String previous,
     String percent,
   ) {
-    return 'RMVが上昇しました: 過去12か月は$recentで、前年（$previous）より$percent%高くなっています';
+    return 'RMVが上昇しました：過去12か月は$recentで、前年（$previous）より$percent%高くなっています';
   }
 
   @override
@@ -32027,7 +32024,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String date,
     String previous,
   ) {
-    return '最深ダイブを更新: $dateに$value（これまでの記録は$previous）';
+    return '最深ダイブを更新：$dateに$value（これまでの記録は$previous）';
   }
 
   @override
@@ -32036,7 +32033,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String date,
     String previous,
   ) {
-    return '最長ダイブを更新: $dateに$value（これまでの記録は$previous）';
+    return '最長ダイブを更新：$dateに$value（これまでの記録は$previous）';
   }
 
   @override
@@ -32050,7 +32047,7 @@ class AppLocalizationsJa extends AppLocalizations {
       count,
       locale: localeName,
       other: '過去90日間に$count種の新しい種を観察しました。最近では$name',
-      one: '過去90日間に新しい種を観察しました: $name',
+      one: '過去90日間に新しい種を観察しました：$name',
     );
     return '$_temp0';
   }
@@ -32116,7 +32113,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object value,
     Object siteName,
   ) {
-    return '$title: $siteNameで$value';
+    return '$title：$siteNameで$value';
   }
 
   @override
@@ -32328,12 +32325,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String insights_timePatterns_calendarDays_busiestMonth(String months) {
-    return '最も多い月: $months';
+    return '最も多い月：$months';
   }
 
   @override
   String insights_timePatterns_calendarDays_busiestDay(String days) {
-    return '最も多い日付: $days';
+    return '最も多い日付：$days';
   }
 
   @override
@@ -32426,7 +32423,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {
-    return '$label: $value';
+    return '$label：$value';
   }
 
   @override
@@ -32440,7 +32437,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get surfaceInterval_field_depth => '水深';
 
   @override
-  String get surfaceInterval_field_gasMix => '混合ガス: ';
+  String get surfaceInterval_field_gasMix => '混合ガス：';
 
   @override
   String get surfaceInterval_field_he => 'He';
@@ -32453,12 +32450,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String surfaceInterval_firstDive_depthSemantics(Object depth, Object unit) {
-    return '1本目の水深: $depth $unit';
+    return '1本目の水深：$depth $unit';
   }
 
   @override
   String surfaceInterval_firstDive_timeSemantics(Object time) {
-    return '1本目の時間: $time分';
+    return '1本目の時間：$time分';
   }
 
   @override
@@ -32484,7 +32481,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String surfaceInterval_gasMix_trimix(Object o2, Object he) {
-    return 'トライミックス $o2/$he';
+    return 'トライミックス$o2/$he';
   }
 
   @override
@@ -32499,7 +32496,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String surfaceInterval_heSemantics(Object percent) {
-    return 'ヘリウム: $percent%';
+    return 'ヘリウム：$percent%';
   }
 
   @override
@@ -32562,17 +32559,17 @@ class AppLocalizationsJa extends AppLocalizations {
     Object ndl,
     Object status,
   ) {
-    return '最短水面休息時間: $interval。現在の水面休息時間: $current。2本目のNDL: $ndl。$status';
+    return '最短水面休息時間：$interval。現在の水面休息時間：$current。2本目のNDL: $ndl。$status';
   }
 
   @override
   String surfaceInterval_secondDive_depthSemantics(Object depth, Object unit) {
-    return '2本目の水深: $depth $unit';
+    return '2本目の水深：$depth $unit';
   }
 
   @override
   String surfaceInterval_secondDive_heSemantics(Object percent) {
-    return '2本目のヘリウム: $percent%';
+    return '2本目のヘリウム：$percent%';
   }
 
   @override
@@ -32582,7 +32579,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String surfaceInterval_secondDive_timeSemantics(Object time) {
-    return '2本目の時間: $time分';
+    return '2本目の時間：$time分';
   }
 
   @override
@@ -32606,7 +32603,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String surfaceInterval_tissueRecovery_leadingCompartment(Object number) {
-    return '主導組織コンパートメント: C$number';
+    return '主導組織コンパートメント：C$number';
   }
 
   @override
@@ -32649,7 +32646,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tags_picker_errorLoading(String error) {
-    return 'タグの読み込み中にエラーが発生しました: $error';
+    return 'タグの読み込み中にエラーが発生しました：$error';
   }
 
   @override
@@ -32679,7 +32676,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get tags_hint_addMoreTags => 'タグをさらに追加...';
+  String get tags_hint_addMoreTags => 'タグをさらに追加…';
 
   @override
   String get importWizard_tagsLabel => 'タグ';
@@ -32697,7 +32694,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String importWizard_source_firmware(String version) {
-    return 'ファームウェア $version';
+    return 'ファームウェア$version';
   }
 
   @override
@@ -32710,17 +32707,17 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'このログブックで参照されている写真: $count枚',
-      one: 'このログブックで参照されている写真: 1枚',
+      other: 'このログブックで参照されている写真：$count枚',
+      one: 'このログブックで参照されている写真：1枚',
     );
     return '$_temp0';
   }
 
   @override
-  String get importWizard_photos_chooseFolder => '写真フォルダーを選択...';
+  String get importWizard_photos_chooseFolder => '写真フォルダーを選択…';
 
   @override
-  String get importWizard_photos_scanning => 'フォルダーをスキャン中...';
+  String get importWizard_photos_scanning => 'フォルダーをスキャン中…';
 
   @override
   String importWizard_photos_matchSummary(
@@ -32728,7 +32725,7 @@ class AppLocalizationsJa extends AppLocalizations {
     int byName,
     int missing,
   ) {
-    return '一致 $matched、ファイル名のみで一致 $byName、見つからない $missing';
+    return '一致$matched、ファイル名のみで一致$byName、見つからない$missing';
   }
 
   @override
@@ -32743,14 +32740,14 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'アーカイブに同梱されている写真: $count枚',
-      one: 'アーカイブに同梱されている写真: 1枚',
+      other: 'アーカイブに同梱されている写真：$count枚',
+      one: 'アーカイブに同梱されている写真：1枚',
     );
     return '$_temp0';
   }
 
   @override
-  String get importWizard_photos_chooseDestination => '写真の保存先を選択...';
+  String get importWizard_photos_chooseDestination => '写真の保存先を選択…';
 
   @override
   String get importWizard_photos_destinationNote =>
@@ -32765,8 +32762,8 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'ダウンロードする写真: $count枚',
-      one: 'ダウンロードする写真: $count枚',
+      other: 'ダウンロードする写真：$count枚',
+      one: 'ダウンロードする写真：$count枚',
     );
     return '$_temp0';
   }
@@ -32783,7 +32780,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get tags_hint_addTags => 'タグを追加...';
+  String get tags_hint_addTags => 'タグを追加…';
 
   @override
   String get tags_manage_title => 'タグ';
@@ -32810,7 +32807,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'リブリーザーのダウンロードや再解析で、トランスミッターがなく一度も呼吸していないガスを除外します';
 
   @override
-  String get tags_manage_searchHint => 'タグを検索...';
+  String get tags_manage_searchHint => 'タグを検索…';
 
   @override
   String tags_manage_diveCount(int count) {
@@ -33098,82 +33095,82 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tags_manage_mergeAction => '統合';
 
   @override
-  String get tank_al100_description => 'アルミ 100 cu ft';
+  String get tank_al100_description => 'アルミ100 cu ft';
 
   @override
   String get tank_al100_displayName => 'AL100';
 
   @override
-  String get tank_al30Stage_description => 'アルミ 30 cu ft ステージタンク';
+  String get tank_al30Stage_description => 'アルミ30 cu ftステージタンク';
 
   @override
-  String get tank_al30Stage_displayName => 'AL30 ステージ';
+  String get tank_al30Stage_displayName => 'AL30ステージ';
 
   @override
-  String get tank_al40Stage_description => 'アルミ 40 cu ft ステージタンク';
+  String get tank_al40Stage_description => 'アルミ40 cu ftステージタンク';
 
   @override
-  String get tank_al40Stage_displayName => 'AL40 ステージ';
+  String get tank_al40Stage_displayName => 'AL40ステージ';
 
   @override
-  String get tank_al40_description => 'アルミ 40 cu ft（ポニー）';
+  String get tank_al40_description => 'アルミ40 cu ft（ポニー）';
 
   @override
   String get tank_al40_displayName => 'AL40';
 
   @override
-  String get tank_al63_description => 'アルミ 63 cu ft';
+  String get tank_al63_description => 'アルミ63 cu ft';
 
   @override
   String get tank_al63_displayName => 'AL63';
 
   @override
-  String get tank_al80_description => 'アルミ 80 cu ft（最も一般的）';
+  String get tank_al80_description => 'アルミ80 cu ft（最も一般的）';
 
   @override
   String get tank_al80_displayName => 'AL80';
 
   @override
-  String get tank_hp100_description => '高圧スチール 100 cu ft';
+  String get tank_hp100_description => '高圧スチール100 cu ft';
 
   @override
   String get tank_hp100_displayName => 'HP100';
 
   @override
-  String get tank_hp120_description => '高圧スチール 120 cu ft';
+  String get tank_hp120_description => '高圧スチール120 cu ft';
 
   @override
   String get tank_hp120_displayName => 'HP120';
 
   @override
-  String get tank_hp80_description => '高圧スチール 80 cu ft';
+  String get tank_hp80_description => '高圧スチール80 cu ft';
 
   @override
   String get tank_hp80_displayName => 'HP80';
 
   @override
-  String get tank_lp85_description => '低圧スチール 85 cu ft';
+  String get tank_lp85_description => '低圧スチール85 cu ft';
 
   @override
   String get tank_lp85_displayName => 'LP85';
 
   @override
-  String get tank_steel10_description => 'スチール 10リットル（ヨーロッパ）';
+  String get tank_steel10_description => 'スチール10リットル（ヨーロッパ）';
 
   @override
-  String get tank_steel10_displayName => 'スチール 10L';
+  String get tank_steel10_displayName => 'スチール10L';
 
   @override
-  String get tank_steel12_description => 'スチール 12リットル（ヨーロッパ）';
+  String get tank_steel12_description => 'スチール12リットル（ヨーロッパ）';
 
   @override
-  String get tank_steel12_displayName => 'スチール 12L';
+  String get tank_steel12_displayName => 'スチール12L';
 
   @override
-  String get tank_steel15_description => 'スチール 15リットル（ヨーロッパ）';
+  String get tank_steel15_description => 'スチール15リットル（ヨーロッパ）';
 
   @override
-  String get tank_steel15_displayName => 'スチール 15L';
+  String get tank_steel15_displayName => 'スチール15L';
 
   @override
   String get tides_action_refresh => '潮汐データを更新';
@@ -33191,7 +33188,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tides_chart_nowLabel(Object nowHeightStr, Object nowTimeStr) {
-    return ' 現在 $nowTimeStr $nowHeightStr';
+    return ' 現在$nowTimeStr $nowHeightStr';
   }
 
   @override
@@ -33207,7 +33204,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tides_label_currentHeight(Object height, Object depthSymbol) {
-    return '現在: $height$depthSymbol';
+    return '現在：$height$depthSymbol';
   }
 
   @override
@@ -33281,7 +33278,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object depthSymbol,
     Object nextExtreme,
   ) {
-    return '潮汐: $tideState、$height$depthSymbol$nextExtreme';
+    return '潮汐：$tideState、$height$depthSymbol$nextExtreme';
   }
 
   @override
@@ -33301,12 +33298,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tides_semantic_tideState(Object state) {
-    return '潮の状態: $state';
+    return '潮の状態：$state';
   }
 
   @override
   String tides_source_noaaStation(String name, String distance) {
-    return 'NOAA観測所: $name（$distance）';
+    return 'NOAA観測所：$name（$distance）';
   }
 
   @override
@@ -33372,18 +33369,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get transfer_computers_appleWatchSubtitle =>
-      'Apple HealthKit 経由でダイブをインポート';
+      'Apple HealthKit経由でダイブをインポート';
 
   @override
-  String get transfer_computers_appleWatchTitle => 'Apple Watch からインポート';
+  String get transfer_computers_appleWatchTitle => 'Apple Watchからインポート';
 
   @override
   String transfer_computers_autoConnect_downloadingSnackbar(String name) {
-    return '$nameからダウンロード中...';
+    return '$nameからダウンロード中…';
   }
 
   @override
-  String get transfer_computers_autoConnect_searching => '既知のコンピューターを検索中...';
+  String get transfer_computers_autoConnect_searching => '既知のコンピューターを検索中…';
 
   @override
   String get transfer_computers_autoConnect_switchSubtitle =>
@@ -33464,31 +33461,31 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get transfer_csvExport_descriptionObservations =>
-      'すべての OK チェックと報告された問題（ダイブ、タグ、メモを含む）';
+      'すべてのOKチェックと報告された問題（ダイブ、タグ、メモを含む）';
 
   @override
   String get transfer_csvExport_descriptionSites => 'ダイブサイトの場所と詳細をエクスポート';
 
   @override
-  String get transfer_csvExport_dialogTitle => 'CSV をエクスポート';
+  String get transfer_csvExport_dialogTitle => 'CSVをエクスポート';
 
   @override
-  String get transfer_csvExport_exportButton => 'CSV をエクスポート';
+  String get transfer_csvExport_exportButton => 'CSVをエクスポート';
 
   @override
-  String get transfer_csvExport_optionDivesTitle => 'ダイブ CSV';
+  String get transfer_csvExport_optionDivesTitle => 'ダイブCSV';
 
   @override
-  String get transfer_csvExport_optionEquipmentTitle => '器材 CSV';
+  String get transfer_csvExport_optionEquipmentTitle => '器材CSV';
 
   @override
-  String get transfer_csvExport_optionFillsTitle => 'タンク充填 CSV';
+  String get transfer_csvExport_optionFillsTitle => 'タンク充填CSV';
 
   @override
-  String get transfer_csvExport_optionObservationsTitle => '器材チェックイン CSV';
+  String get transfer_csvExport_optionObservationsTitle => '器材チェックインCSV';
 
   @override
-  String get transfer_csvExport_optionSitesTitle => 'サイト CSV';
+  String get transfer_csvExport_optionSitesTitle => 'サイトCSV';
 
   @override
   String transfer_csvExport_semanticLabel(Object typeName) {
@@ -33518,7 +33515,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get transfer_csvExport_unitsMetricDescription =>
-      'メートル法の値と ISO 形式の日付（以前のエクスポートと同じ形式）';
+      'メートル法の値とISO形式の日付（以前のエクスポートと同じ形式）';
 
   @override
   String get transfer_csvExport_unitsMine => '自分の単位';
@@ -33532,7 +33529,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'ダイブデータをさまざまな形式でエクスポートできます。PDF では印刷可能なログブックを作成します。UDDF はほとんどのダイブログソフトウェアと互換性のある汎用形式です。CSV と Excel ファイルは表計算アプリで開けます。「設定 > データ > バックアップ」からデータベース全体をバックアップすることもできます。';
+      'ダイブデータをさまざまな形式でエクスポートできます。PDFでは印刷可能なログブックを作成します。UDDFはほとんどのダイブログソフトウェアと互換性のある汎用形式です。CSVとExcelファイルは表計算アプリで開けます。「設定 > データ > バックアップ」からデータベース全体をバックアップすることもできます。';
 
   @override
   String get transfer_export_backupLink => 'バックアップへ移動';
@@ -33547,11 +33544,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transfer_export_csvSubtitle => 'スプレッドシート形式';
 
   @override
-  String get transfer_export_csvTitle => 'CSV エクスポート';
+  String get transfer_export_csvTitle => 'CSVエクスポート';
 
   @override
-  String get transfer_export_documentsSubtitle =>
-      'すべてのドキュメントをパスワード保護された ZIP で出力';
+  String get transfer_export_documentsSubtitle => 'すべてのドキュメントをパスワード保護されたZIPで出力';
 
   @override
   String get transfer_export_documentsTitle => 'ドキュメント';
@@ -33560,7 +33556,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transfer_export_excelSubtitle => 'すべてのデータを1つのファイルに（ダイブ、サイト、器材、統計）';
 
   @override
-  String get transfer_export_excelTitle => 'Excel ワークブック';
+  String get transfer_export_excelTitle => 'Excelワークブック';
 
   @override
   String transfer_export_failed(Object error) {
@@ -33613,10 +33609,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transfer_export_pdfSubtitle => '印刷可能なダイブログブック';
 
   @override
-  String get transfer_export_pdfTitle => 'PDF ログブック';
+  String get transfer_export_pdfTitle => 'PDFログブック';
 
   @override
-  String get transfer_export_progressExporting => 'エクスポート中...';
+  String get transfer_export_progressExporting => 'エクスポート中…';
 
   @override
   String get transfer_export_sectionHeader => 'データをエクスポート';
@@ -33625,11 +33621,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transfer_export_uddfSubtitle => 'Universal Dive Data Format';
 
   @override
-  String get transfer_export_uddfTitle => 'UDDF エクスポート';
+  String get transfer_export_uddfTitle => 'UDDFエクスポート';
 
   @override
   String get transfer_import_aboutContent =>
-      'ファイルインポートでは、ファイル形式と作成元のアプリを自動で判別します。対応形式は CSV、UDDF、Subsurface XML、Garmin FIT、Shearwater Cloud データベースなどです。';
+      'ファイルインポートでは、ファイル形式と作成元のアプリを自動で判別します。対応形式はCSV、UDDF、Subsurface XML、Garmin FIT、Shearwater Cloudデータベースなどです。';
 
   @override
   String get transfer_import_aboutTitle => 'インポートについて';
@@ -33651,17 +33647,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transfer_pdfExport_cancelButton => 'キャンセル';
 
   @override
-  String get transfer_pdfExport_dialogTitle => 'PDF ログブックをエクスポート';
+  String get transfer_pdfExport_dialogTitle => 'PDFログブックをエクスポート';
 
   @override
-  String get transfer_pdfExport_exportButton => 'PDF をエクスポート';
+  String get transfer_pdfExport_exportButton => 'PDFをエクスポート';
 
   @override
   String get transfer_pdfExport_includeCertCards => 'Cカードを含める';
 
   @override
   String get transfer_pdfExport_includeCertCardsSubtitle =>
-      'スキャンした Cカードの画像を PDF に追加';
+      'スキャンしたCカードの画像をPDFに追加';
 
   @override
   String get transfer_pdfExport_includeVerificationAreas => '確認欄を含める';
@@ -33686,18 +33682,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transfer_pdfExport_templateHeader => 'テンプレート';
 
   @override
-  String get transfer_pdfExport_templateNauiStyle => 'NAUI スタイル';
+  String get transfer_pdfExport_templateNauiStyle => 'NAUIスタイル';
 
   @override
   String get transfer_pdfExport_templateNauiStyleDesc =>
-      'NAUI のログブック形式に合わせたレイアウト';
+      'NAUIのログブック形式に合わせたレイアウト';
 
   @override
-  String get transfer_pdfExport_templatePadiStyle => 'PADI スタイル';
+  String get transfer_pdfExport_templatePadiStyle => 'PADIスタイル';
 
   @override
   String get transfer_pdfExport_templatePadiStyleDesc =>
-      'PADI のログブック形式に合わせたレイアウト';
+      'PADIのログブック形式に合わせたレイアウト';
 
   @override
   String transfer_pdfExport_templateSemanticLabel(Object templateName) {
@@ -33717,13 +33713,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transfer_section_computersTitle => 'ダイブコンピューター';
 
   @override
-  String get transfer_section_exportSubtitle => 'CSV、UDDF、PDF ログブック';
+  String get transfer_section_exportSubtitle => 'CSV、UDDF、PDFログブック';
 
   @override
   String get transfer_section_exportTitle => 'ファイルエクスポート';
 
   @override
-  String get transfer_section_importSubtitle => 'CSV、UDDF ファイル';
+  String get transfer_section_importSubtitle => 'CSV、UDDFファイル';
 
   @override
   String get transfer_section_importTitle => 'ファイルインポート';
@@ -34646,7 +34642,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_cylinders_record_analyzed(String mix) {
-    return '分析結果 $mix';
+    return '分析結果$mix';
   }
 
   @override
@@ -34661,12 +34657,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_cylinders_summary(int full, int partial, int empty) {
-    return '満タン $full · 残量あり $partial · 空 $empty';
+    return '満タン$full · 残量あり$partial · 空$empty';
   }
 
   @override
   String trips_cylinders_summaryUnfilled(int count) {
-    return '未充填 $count';
+    return '未充填$count';
   }
 
   @override
@@ -34728,12 +34724,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_cylinders_last_fill(String when) {
-    return '充填 $when';
+    return '充填$when';
   }
 
   @override
   String trips_cylinders_last_adjustment(String when) {
-    return '調整 $when';
+    return '調整$when';
   }
 
   @override
@@ -34743,7 +34739,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_cylinders_last_dive(String when) {
-    return '潜水 $when';
+    return '潜水$when';
   }
 
   @override
@@ -34818,16 +34814,16 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_fill_o2 => 'O2 注文値（%）';
+  String get trips_cylinders_fill_o2 => 'O2注文値（%）';
 
   @override
-  String get trips_cylinders_fill_he => 'He 注文値（%）';
+  String get trips_cylinders_fill_he => 'He注文値（%）';
 
   @override
-  String get trips_cylinders_fill_analyzedO2 => 'O2 分析値（%）';
+  String get trips_cylinders_fill_analyzedO2 => 'O2分析値（%）';
 
   @override
-  String get trips_cylinders_fill_analyzedHe => 'He 分析値（%）';
+  String get trips_cylinders_fill_analyzedHe => 'He分析値（%）';
 
   @override
   String get trips_cylinders_fill_bottle => 'ボトル番号';
@@ -35589,8 +35585,8 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '行 $rows',
-      one: '行 $rows',
+      other: '行$rows',
+      one: '行$rows',
     );
     return '$_temp0';
   }
@@ -35603,8 +35599,8 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '行 $rows、他$count行',
-      one: '行 $rows、他1行',
+      other: '行$rows、他$count行',
+      one: '行$rows、他1行',
     );
     return '$_temp0';
   }
@@ -35791,24 +35787,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get universalImport_label_consolidate => '統合';
 
   @override
-  String get universalImport_label_detecting => '検出中...';
+  String get universalImport_label_detecting => '検出中…';
 
   @override
   String universalImport_label_readingWatchFiles(int copied, int total) {
-    return 'ウォッチのファイルを読み取り中（$copied/$total）...';
+    return 'ウォッチのファイルを読み取り中（$copied/$total）…';
   }
 
   @override
-  String get universalImport_label_lookingForWatch => 'ウォッチを検索中...';
+  String get universalImport_label_lookingForWatch => 'ウォッチを検索中…';
 
   @override
   String universalImport_label_scanningWatchActivity(String device) {
-    return '$deviceのアクティビティをスキャン中...';
+    return '$deviceのアクティビティをスキャン中…';
   }
 
   @override
   String universalImport_label_checkingForDives(int checked, int total) {
-    return 'ダイブを確認中（$checked/$total）...';
+    return 'ダイブを確認中（$checked/$total）…';
   }
 
   @override
@@ -35828,7 +35824,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get universalImport_label_importing => 'インポート中';
 
   @override
-  String get universalImport_label_importingEllipsis => 'インポート中...';
+  String get universalImport_label_importingEllipsis => 'インポート中…';
 
   @override
   String universalImport_label_importingProgress(Object current, Object total) {
@@ -36085,7 +36081,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tides_semantic_tideCycle(Object state, Object height) {
-    return '潮汐サイクル、状態: $state、潮位: $height';
+    return '潮汐サイクル、状態：$state、潮位：$height';
   }
 
   @override
@@ -36189,7 +36185,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveComputer_connections_lastUsed(String when) {
-    return '最終使用 $when';
+    return '最終使用$when';
   }
 
   @override
@@ -36202,7 +36198,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveComputer_connections_fileFormat(String format) {
-    return '$format ファイル';
+    return '$formatファイル';
   }
 
   @override
@@ -36286,7 +36282,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diveComputer_discovery_usbInstructions =>
-      'ダイブコンピューターを USB ケーブルで接続し、下から選択してください。';
+      'ダイブコンピューターをUSBケーブルで接続し、下から選択してください。';
 
   @override
   String diveComputer_discovery_usbNoResults(String query) {
@@ -36295,7 +36291,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diveComputer_discovery_garminWatchEntry =>
-      'Garmin ウォッチ（Descent、Fenix、Epix...）';
+      'Garminウォッチ（Descent、Fenix、Epix…）';
 
   @override
   String diveComputer_discovery_usbModelCount(int count) {
@@ -36309,7 +36305,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_discovery_usbSearchHint => 'メーカーまたはモデルで検索...';
+  String get diveComputer_discovery_usbSearchHint => 'メーカーまたはモデルで検索…';
 
   @override
   String get diveComputer_downloadExit_content =>
@@ -36378,7 +36374,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_downloadStep_preparing => '準備中...';
+  String get diveComputer_downloadStep_preparing => '準備中…';
 
   @override
   String diveComputer_downloadStep_progressPercent(Object percent) {
@@ -36417,32 +36413,32 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diveComputer_download_noSerialPortsFound =>
-      'USB シリアルポートが見つかりません。ダイブコンピューターが接続され、電源が入っていますか？';
+      'USBシリアルポートが見つかりません。ダイブコンピューターが接続され、電源が入っていますか？';
 
   @override
   String diveComputer_download_noUsbDeviceFound(Object model) {
-    return 'USB で$modelが見つかりません。このコンピューターに接続され、電源が入っていますか？';
+    return 'USBで$modelが見つかりません。このコンピューターに接続され、電源が入っていますか？';
   }
 
   @override
   String get diveComputer_download_stalePairing =>
-      'このダイブコンピューターの Bluetooth ペアリング情報が古くなっています。端末の Bluetooth 設定でダイブコンピューターの登録を解除し、ダイブコンピューターの Bluetooth メニューから再度ペアリングしてください。';
+      'このダイブコンピューターのBluetoothペアリング情報が古くなっています。端末のBluetooth設定でダイブコンピューターの登録を解除し、ダイブコンピューターのBluetoothメニューから再度ペアリングしてください。';
 
   @override
   String get diveComputer_download_discoveryStalled =>
-      'ダイブコンピューターに接続しましたが、ダウンロードの開始前に応答しなくなりました。通常、Bluetooth ペアリング情報が古いことが原因です。端末の Bluetooth 設定でダイブコンピューターの登録を解除してから、もう一度お試しください。';
+      'ダイブコンピューターに接続しましたが、ダウンロードの開始前に応答しなくなりました。通常、Bluetoothペアリング情報が古いことが原因です。端末のBluetooth設定でダイブコンピューターの登録を解除してから、もう一度お試しください。';
 
   @override
   String get diveComputer_download_bleDeviceNotFound =>
-      'Bluetooth LE でこのダイブコンピューターが見つかりませんでした。Bluetooth モードをオンにして、もう一度スキャンしてください。端末の Bluetooth 設定に表示されている場合は、先にそこから削除してください。従来の Bluetooth デバイスとしてのみ登録されている可能性があります。';
+      'Bluetooth LEでこのダイブコンピューターが見つかりませんでした。Bluetoothモードをオンにして、もう一度スキャンしてください。端末のBluetooth設定に表示されている場合は、先にそこから削除してください。従来のBluetoothデバイスとしてのみ登録されている可能性があります。';
 
   @override
   String get diveComputer_download_blePairingRequired =>
-      'ペアリングするまで、端末はこのダイブコンピューターと通信できません。ダイブコンピューターの Bluetooth モードをオンにし、端末の Bluetooth 設定でペアリングしてから、もう一度お試しください。';
+      'ペアリングするまで、端末はこのダイブコンピューターと通信できません。ダイブコンピューターのBluetoothモードをオンにし、端末のBluetooth設定でペアリングしてから、もう一度お試しください。';
 
   @override
   String get diveComputer_download_bleUnreachable =>
-      'ダイブコンピューターが Bluetooth で応答しませんでした。Bluetooth モードがオンのままで、端末の近くにあることを確認してから、もう一度お試しください。';
+      'ダイブコンピューターがBluetoothで応答しませんでした。Bluetoothモードがオンのままで、端末の近くにあることを確認してから、もう一度お試しください。';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -36456,12 +36452,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveComputer_download_importingCountDives(int count) {
-    return '$count本のダイブをインポート中...';
+    return '$count本のダイブをインポート中…';
   }
 
   @override
   String diveComputer_download_searchingForDevice(Object name) {
-    return '$nameを検索中...';
+    return '$nameを検索中…';
   }
 
   @override
@@ -36509,7 +36505,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater、Suunto、Mares、Scubapro、Oceanic、Aqualung、Cressi など50以上のモデル。';
+      'Shearwater、Suunto、Mares、Scubapro、Oceanic、Aqualung、Cressiなど50以上のモデル。';
 
   @override
   String get diveComputer_list_helpBrandsTitle => '対応ブランド';
@@ -36525,7 +36521,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
-    return 'Garmin ウォッチはここではダウンロードできません。$importPathまたは$cloudPathからダイブをインポートしてください。';
+    return 'Garminウォッチはここではダウンロードできません。$importPathまたは$cloudPathからダイブをインポートしてください。';
   }
 
   @override
@@ -36533,7 +36529,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String importPath,
     String cloudPath,
   ) {
-    return 'Garmin ウォッチは Bluetooth ではダウンロードできません。ケーブルで接続して USB の一覧から Garmin を選ぶか、$importPathまたは$cloudPathからダイブをインポートしてください。';
+    return 'GarminウォッチはBluetoothではダウンロードできません。ケーブルで接続してUSBの一覧からGarminを選ぶか、$importPathまたは$cloudPathからダイブをインポートしてください。';
   }
 
   @override
@@ -36543,7 +36539,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveComputer_list_helpTip2 => '• ダウンロード中はデバイスを近づけておいてください';
 
   @override
-  String get diveComputer_list_helpTip3 => '• Bluetooth がオンになっていることを確認してください';
+  String get diveComputer_list_helpTip3 => '• Bluetoothがオンになっていることを確認してください';
 
   @override
   String get diveComputer_list_helpTipsTitle => 'ヒント';
@@ -36568,26 +36564,26 @@ class AppLocalizationsJa extends AppLocalizations {
       'ダイブコンピューターに表示されているコードを入力してください。';
 
   @override
-  String get diveComputer_pinCode_label => 'PIN コード';
+  String get diveComputer_pinCode_label => 'PINコード';
 
   @override
   String get diveComputer_pinCode_submit => '送信';
 
   @override
-  String get diveComputer_pinCode_title => 'PIN コードが必要です';
+  String get diveComputer_pinCode_title => 'PINコードが必要です';
 
   @override
   String diveComputer_scan_bluetoothSemanticLabel(String name) {
-    return 'Bluetooth デバイス：$name';
+    return 'Bluetoothデバイス：$name';
   }
 
   @override
   String get diveComputer_scan_bluetoothUnavailable =>
-      'Bluetooth がオフか利用できません。オンにして「再試行」をタップするか、「USB ケーブル」タブで接続してください。';
+      'Bluetoothがオフか利用できません。オンにして「再試行」をタップするか、「USBケーブル」タブで接続してください。';
 
   @override
   String get diveComputer_scan_emptyStateInstructions =>
-      'ダイブコンピューターが次の状態か確認してください：\n• 電源が入っている\n• Bluetooth ペアリングモードになっている\n• 端末の近くにある';
+      'ダイブコンピューターが次の状態か確認してください：\n• 電源が入っている\n• Bluetoothペアリングモードになっている\n• 端末の近くにある';
 
   @override
   String get diveComputer_scan_knownBadge => '登録済み';
@@ -36596,7 +36592,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveComputer_scan_lookingForDevicesTitle => 'デバイスを探しています';
 
   @override
-  String get diveComputer_scan_noUsbDevicesAvailable => '利用できる USB デバイスはありません';
+  String get diveComputer_scan_noUsbDevicesAvailable => '利用できるUSBデバイスはありません';
 
   @override
   String get diveComputer_scan_retry => '再試行';
@@ -36605,7 +36601,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveComputer_scan_scanAgain => '再スキャン';
 
   @override
-  String get diveComputer_scan_scanningStatus => 'ダイブコンピューターをスキャン中...';
+  String get diveComputer_scan_scanningStatus => 'ダイブコンピューターをスキャン中…';
 
   @override
   String get diveComputer_scan_stopScanning => 'スキャンを停止';
@@ -36617,14 +36613,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveComputer_scan_tabBluetooth => 'Bluetooth';
 
   @override
-  String get diveComputer_scan_tabUsb => 'USB ケーブル';
+  String get diveComputer_scan_tabUsb => 'USBケーブル';
 
   @override
-  String get diveComputer_scan_usbCableLabel => 'USB ケーブル';
+  String get diveComputer_scan_usbCableLabel => 'USBケーブル';
 
   @override
   String diveComputer_scan_usbSemanticLabel(String model) {
-    return 'USB デバイス：$model';
+    return 'USBデバイス：$model';
   }
 
   @override
@@ -36748,12 +36744,12 @@ class AppLocalizationsJa extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '浮上 $from → $to（$rate）';
+    return '浮上$from → $to（$rate）';
   }
 
   @override
   String divePlanner_segmentEditor_derivedAscentNoRate(Object from, Object to) {
-    return '浮上 $from → $to';
+    return '浮上$from → $to';
   }
 
   @override
@@ -36762,7 +36758,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object to,
     Object rate,
   ) {
-    return '潜降 $from → $to（$rate）';
+    return '潜降$from → $to（$rate）';
   }
 
   @override
@@ -36770,7 +36766,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object from,
     Object to,
   ) {
-    return '潜降 $from → $to';
+    return '潜降$from → $to';
   }
 
   @override
@@ -36799,17 +36795,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String divePlanner_segmentList_ascent(Object startDepth, Object endDepth) {
-    return '浮上 $startDepth → $endDepth';
+    return '浮上$startDepth → $endDepth';
   }
 
   @override
   String divePlanner_segmentList_bottom(Object depth, Object minutes) {
-    return 'ボトム $depthで$minutes分';
+    return 'ボトム$depthで$minutes分';
   }
 
   @override
   String divePlanner_segmentList_deco(Object depth, Object minutes) {
-    return '減圧 $depthで$minutes分';
+    return '減圧$depthで$minutes分';
   }
 
   @override
@@ -36817,7 +36813,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String divePlanner_segmentList_descent(Object startDepth, Object endDepth) {
-    return '潜降 $startDepth → $endDepth';
+    return '潜降$startDepth → $endDepth';
   }
 
   @override
@@ -36947,7 +36943,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String gpsLogger_lastFix(String age, String accuracy) {
-    return '最終測位: $age前（$accuracy）';
+    return '最終測位：$age前（$accuracy）';
   }
 
   @override
@@ -36979,7 +36975,7 @@ class AppLocalizationsJa extends AppLocalizations {
       other: '$countポイント',
       one: '$countポイント',
     );
-    return '記録中: $_temp0';
+    return '記録中：$_temp0';
   }
 
   @override
@@ -37065,7 +37061,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gpsTrack_editCard_nameHint => 'トラック名';
 
   @override
-  String get gpsTrack_action_split => '分割...';
+  String get gpsTrack_action_split => '分割…';
 
   @override
   String get gpsTrack_action_resetTrim => 'トリムをリセット';
@@ -37081,7 +37077,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gpsTrack_edit_cancel => 'キャンセル';
 
   @override
-  String get gpsTrack_import_action => 'トラックをインポート...';
+  String get gpsTrack_import_action => 'トラックをインポート…';
 
   @override
   String get gpsTrack_import_reviewTitle => 'インポートの確認';
@@ -37118,7 +37114,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String gpsTrack_import_failed(String reason) {
-    return 'そのファイルを読み込めませんでした: $reason';
+    return 'そのファイルを読み込めませんでした：$reason';
   }
 
   @override
@@ -37151,13 +37147,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gpsTrack_action_shareGpx => 'GPXとして共有';
 
   @override
-  String get gpsTrack_action_saveGpx => 'GPXとして保存...';
+  String get gpsTrack_action_saveGpx => 'GPXとして保存…';
 
   @override
   String get gpsTrack_action_shareKml => 'KMLとして共有';
 
   @override
-  String get gpsTrack_action_saveKml => 'KMLとして保存...';
+  String get gpsTrack_action_saveKml => 'KMLとして保存…';
 
   @override
   String get gpsTrack_export_failed => 'エクスポートに失敗しました。';
@@ -37274,7 +37270,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String maps_offline_cacheHitRateAccessibility(Object rate) {
-    return 'キャッシュヒット率: $rateパーセント';
+    return 'キャッシュヒット率：$rateパーセント';
   }
 
   @override
@@ -37340,7 +37336,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String maps_offline_downloading(Object regionName) {
-    return 'ダウンロード中: $regionName';
+    return 'ダウンロード中：$regionName';
   }
 
   @override
@@ -37355,12 +37351,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String maps_offline_error(Object error) {
-    return 'エラー: $error';
+    return 'エラー：$error';
   }
 
   @override
   String maps_offline_errorLoadingStats(Object error) {
-    return '統計の読み込み中にエラーが発生しました: $error';
+    return '統計の読み込み中にエラーが発生しました：$error';
   }
 
   @override
@@ -37370,7 +37366,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String maps_offline_hitRate(Object rate) {
-    return 'ヒット率: $rate%';
+    return 'ヒット率：$rate%';
   }
 
   @override
@@ -37396,7 +37392,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object minZoom,
     Object maxZoom,
   ) {
-    return '$size | $countタイル | ズーム $minZoom-$maxZoom';
+    return '$size | $countタイル | ズーム$minZoom-$maxZoom';
   }
 
   @override
@@ -37524,19 +37520,19 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_edit_descriptionHint => '例: ダイブショップのレンタルタンク';
+  String get tankPresets_edit_descriptionHint => '例：ダイブショップのレンタルタンク';
 
   @override
   String get tankPresets_edit_descriptionOptional => '説明（任意）';
 
   @override
   String tankPresets_edit_errorLoading(Object error) {
-    return 'プリセットの読み込み中にエラーが発生しました: $error';
+    return 'プリセットの読み込み中にエラーが発生しました：$error';
   }
 
   @override
   String tankPresets_edit_errorSaving(Object error) {
-    return 'プリセットの保存中にエラーが発生しました: $error';
+    return 'プリセットの保存中にエラーが発生しました：$error';
   }
 
   @override
@@ -37544,7 +37540,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tankPresets_edit_gasCapacity(Object capacity) {
-    return '• ガス容量: $capacity cuft';
+    return '• ガス容量：$capacity cuft';
   }
 
   @override
@@ -37557,7 +37553,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tankPresets_edit_nameHelper => 'このタンクプリセットのわかりやすい名前';
 
   @override
-  String get tankPresets_edit_nameHint => '例: マイAL80';
+  String get tankPresets_edit_nameHint => '例：マイAL80';
 
   @override
   String get tankPresets_edit_nameRequired => '名前を入力してください';
@@ -37596,7 +37592,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tankPresets_edit_waterVolume(Object volume) {
-    return '• 内容積: $volume L';
+    return '• 内容積：$volume L';
   }
 
   @override
@@ -37604,17 +37600,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tankPresets_edit_workingPressureBar(Object pressure) {
-    return '• 使用圧力: $pressure bar';
+    return '• 使用圧力：$pressure bar';
   }
 
   @override
   String tankPresets_error(Object error) {
-    return 'エラー: $error';
+    return 'エラー：$error';
   }
 
   @override
   String tankPresets_errorDeleting(Object error) {
-    return 'プリセットの削除中にエラーが発生しました: $error';
+    return 'プリセットの削除中にエラーが発生しました：$error';
   }
 
   @override
@@ -37730,7 +37726,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_permissionChecking =>
-      'HealthKitへのアクセスを確認しています...';
+      'HealthKitへのアクセスを確認しています…';
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
@@ -37789,8 +37785,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'ヘルスケアデータはこのデバイスにローカルに保存され、第三者と共有されることはありません。SubmersionはApple HealthKitからデータを読み取るだけで、HealthKitにデータを書き込むことはありません。';
 
   @override
-  String get settings_dataSources_appleHealth_poweredBy =>
-      'Apple HealthKit を利用';
+  String get settings_dataSources_appleHealth_poweredBy => 'Apple HealthKitを利用';
 
   @override
   String get diveLog_edit_label_windSpeed => '風速';
@@ -37952,7 +37947,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get columnConfig_presetName => 'プリセット名';
 
   @override
-  String get columnConfig_presetNameHint => '例: テクニカルダイビング';
+  String get columnConfig_presetNameHint => '例：テクニカルダイビング';
 
   @override
   String get columnConfig_presetSave => '保存';
@@ -38174,7 +38169,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String maps3d_reload_confirm_estimatedSize(String size) {
-    return '推定ダウンロード量: 約$size';
+    return '推定ダウンロード量：約$size';
   }
 
   @override
@@ -38232,7 +38227,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String maps3d_reload_warming(int index, int total, String name) {
-    return '準備中: 湖 $total件中$index件目（$name）';
+    return '準備中：湖$total件中$index件目（$name）';
   }
 
   @override
@@ -38293,7 +38288,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get reparseBatch_cancelling => 'キャンセル中...';
+  String get reparseBatch_cancelling => 'キャンセル中…';
 
   @override
   String get reparseBatch_resultTitle => '再解析が完了しました';
@@ -38306,7 +38301,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String reparseBatch_resultNotReached(int count) {
-    return '未処理: $count';
+    return '未処理：$count';
   }
 
   @override
@@ -38316,22 +38311,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String reparseBatch_resultFailed(int count) {
-    return '失敗: $count';
+    return '失敗：$count';
   }
 
   @override
   String reparseBatch_resultNotProcessed(int count) {
-    return '未処理（キャンセル）: $count';
+    return '未処理（キャンセル）：$count';
   }
 
   @override
   String reparseBatch_resultSkipped(int count) {
-    return 'スキップ（生データなし）: $count';
+    return 'スキップ（生データなし）：$count';
   }
 
   @override
   String reparseBatch_resultProfilesPreserved(int count) {
-    return 'プロファイルを保持した結合ダイブ: $count';
+    return 'プロファイルを保持した結合ダイブ：$count';
   }
 
   @override
@@ -38358,7 +38353,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String reparseBatch_confirmSkipped(int count) {
-    return '生データのない選択済みダイブ（スキップ）: $count';
+    return '生データのない選択済みダイブ（スキップ）：$count';
   }
 
   @override
@@ -38622,10 +38617,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_shareByDefault_title => '新しいサイトとトリップをデフォルトで共有';
 
   @override
-  String get settings_shareAllSites_title => 'すべてのサイトを共有...';
+  String get settings_shareAllSites_title => 'すべてのサイトを共有…';
 
   @override
-  String get settings_shareAllTrips_title => 'すべてのトリップを共有...';
+  String get settings_shareAllTrips_title => 'すべてのトリップを共有…';
 
   @override
   String settings_shareAllSites_confirm(int count) {
@@ -38755,7 +38750,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get sharedItems_bulkShare_action => '共有先を選択...';
+  String get sharedItems_bulkShare_action => '共有先を選択…';
 
   @override
   String sharedItems_bulkShare_done(int count) {
@@ -39035,7 +39030,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get divers_edit_priorExperienceHelp =>
-      'Submersion で記録を始める前のダイブ本数と潜水時間です。';
+      'Submersionで記録を始める前のダイブ本数と潜水時間です。';
 
   @override
   String get divers_edit_priorDivesLabel => 'これまでのダイブ本数';
@@ -39148,10 +39143,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'レポートにはファイルパスとデバイス名が含まれます。どこにも送信されません。';
 
   @override
-  String get settings_mediaStorage_report_running => 'メディアレポートを作成しています...';
+  String get settings_mediaStorage_report_running => 'メディアレポートを作成しています…';
 
   @override
-  String get settings_mediaStorage_verify_running => 'メディアライブラリを検証しています...';
+  String get settings_mediaStorage_verify_running => 'メディアライブラリを検証しています…';
 
   @override
   String settings_mediaStorage_verify_summary(
@@ -39258,12 +39253,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String planner_gearWeights_planned(String weight) {
-    return '予定: $weight';
+    return '予定：$weight';
   }
 
   @override
   String planner_gearWeights_predicted(String weight) {
-    return '予測: $weight';
+    return '予測：$weight';
   }
 
   @override
@@ -39295,13 +39290,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tools_weight_breakdownTitle => '計算の内訳';
 
   @override
-  String get tools_weight_confidence_high => '信頼度: 高';
+  String get tools_weight_confidence_high => '信頼度：高';
 
   @override
-  String get tools_weight_confidence_low => '信頼度: 低（推定）';
+  String get tools_weight_confidence_low => '信頼度：低（推定）';
 
   @override
-  String get tools_weight_confidence_medium => '信頼度: 中';
+  String get tools_weight_confidence_medium => '信頼度：中';
 
   @override
   String tools_weight_deltaVsPrevious(String delta) {
@@ -39529,7 +39524,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dive3d_seascape_seafloorSource(String source, String resolution) {
-    return '海底: $source（約$resolution m）';
+    return '海底：$source（約$resolution m）';
   }
 
   @override
@@ -39540,7 +39535,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return '詳細度: $stage（$span）';
+    return '詳細度：$stage（$span）';
   }
 
   @override
@@ -39681,13 +39676,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dive3d_spatial_noPath => 'ダイブの経路を再構成するのに十分なデータがありません';
 
   @override
-  String get dive3d_tissue_legendHeight => '高さと色: M値の限界に対する割合（%）';
+  String get dive3d_tissue_legendHeight => '高さと色：M値の限界に対する割合（%）';
 
   @override
   String get dive3d_tissue_legendLimit => '赤い面 = 減圧の限界';
 
   @override
-  String get dive3d_tissue_legendAxes => '左→右: 時間 · 手前→奥: 速い組織→遅い組織';
+  String get dive3d_tissue_legendAxes => '左→右：時間 · 手前→奥：速い組織→遅い組織';
 
   @override
   String get dive3d_tissue_onGassing => '取り込み';
@@ -39707,7 +39702,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dive3d_tissue_tooltipSaturation(int percent) {
-    return '飽和度 $percent%';
+    return '飽和度$percent%';
   }
 
   @override
@@ -41101,7 +41096,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String flightWindow_departs(String time) {
-    return 'フライト出発 $time';
+    return 'フライト出発$time';
   }
 
   @override
@@ -41240,12 +41235,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'ピーク $rate（$range）';
+    return 'ピーク$rate（$range）';
   }
 
   @override
   String diveLog_detail_sacSegments_average(String rate) {
-    return '平均 $rate';
+    return '平均$rate';
   }
 
   @override
@@ -41348,7 +41343,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String emergencyCard_insurancePolicy(String number) {
-    return '証券番号 $number';
+    return '証券番号$number';
   }
 
   @override
@@ -41357,7 +41352,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String emergencyCard_chamberVerified(String date) {
-    return '情報確認日 $date';
+    return '情報確認日$date';
   }
 
   @override
@@ -41783,7 +41778,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String equipmentCondition_children_slot(int slot) {
-    return 'スロット $slot';
+    return 'スロット$slot';
   }
 
   @override
@@ -41886,7 +41881,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String equipmentCondition_evidence_dive(int number) {
-    return 'ダイブ $number';
+    return 'ダイブ$number';
   }
 
   @override
@@ -41911,7 +41906,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String equipmentCondition_trend_cell(int slot) {
-    return 'セル $slot';
+    return 'セル$slot';
   }
 
   @override
@@ -42493,17 +42488,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_security_encryption_progress_backup =>
-      '安全のためのバックアップを作成中...';
+      '安全のためのバックアップを作成中…';
 
   @override
-  String get settings_security_encryption_progress_encrypt => 'データベースを暗号化中...';
+  String get settings_security_encryption_progress_encrypt => 'データベースを暗号化中…';
 
   @override
-  String get settings_security_encryption_progress_decrypt => 'データベースを復号中...';
+  String get settings_security_encryption_progress_decrypt => 'データベースを復号中…';
 
   @override
-  String get settings_security_encryption_progress_reopen =>
-      'データベースを再度開いています...';
+  String get settings_security_encryption_progress_reopen => 'データベースを再度開いています…';
 
   @override
   String get settings_security_changePassword => 'パスワードを変更';
@@ -43515,7 +43509,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String water_conditions_anomaly(String value) {
-    return '平年差 $value';
+    return '平年差$value';
   }
 
   @override
@@ -43525,7 +43519,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String reef_health_seaSurface(String value) {
-    return '海面水温 $value';
+    return '海面水温$value';
   }
 
   @override
@@ -50065,7 +50059,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_credentials_loadError => '保存されたホストを読み込めませんでした';
 
   @override
-  String get media_credentials_loading => '保存されたホストを読み込み中...';
+  String get media_credentials_loading => '保存されたホストを読み込み中…';
 
   @override
   String media_credentials_saveError(String error) {
@@ -50134,7 +50128,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_manifest_loadError => '購読を読み込めませんでした';
 
   @override
-  String get media_manifest_loading => '購読を読み込み中...';
+  String get media_manifest_loading => '購読を読み込み中…';
 
   @override
   String get media_manifest_neverPolled => '未確認';
@@ -50159,7 +50153,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String media_manifest_polling(String name) {
-    return '$nameを確認中...';
+    return '$nameを確認中…';
   }
 
   @override
@@ -50244,7 +50238,7 @@ class AppLocalizationsJa extends AppLocalizations {
     int available,
     int unavailable,
   ) {
-    return '利用可能 $available件、利用不可 $unavailable件';
+    return '利用可能$available件、利用不可$unavailable件';
   }
 
   @override
@@ -50390,7 +50384,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String label,
     String value,
   ) {
-    return '水面休息時間の$label: $value';
+    return '水面休息時間の$label：$value';
   }
 
   @override
@@ -50552,17 +50546,17 @@ class AppLocalizationsJa extends AppLocalizations {
     String max,
     String unit,
   ) {
-    return '透明度 $min〜$max $unit';
+    return '透明度$min〜$max $unit';
   }
 
   @override
   String diveLog_filterChip_visibilityMin(String value, String unit) {
-    return '透明度 $value $unit超';
+    return '透明度$value $unit超';
   }
 
   @override
   String diveLog_filterChip_visibilityMax(String value, String unit) {
-    return '透明度 $value $unit未満';
+    return '透明度$value $unit未満';
   }
 
   @override
@@ -50571,17 +50565,17 @@ class AppLocalizationsJa extends AppLocalizations {
     String max,
     String unit,
   ) {
-    return '水温 $min〜$max$unit';
+    return '水温$min〜$max$unit';
   }
 
   @override
   String diveLog_filterChip_waterTempMin(String value, String unit) {
-    return '水温 $value$unit超';
+    return '水温$value$unit超';
   }
 
   @override
   String diveLog_filterChip_waterTempMax(String value, String unit) {
-    return '水温 $value$unit未満';
+    return '水温$value$unit未満';
   }
 
   @override
@@ -50631,7 +50625,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String explore_chip_rating(String op, String value) {
-    return '評価 $op $value';
+    return '評価$op $value';
   }
 
   @override
@@ -50997,7 +50991,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String critical,
     String warning,
   ) {
-    return '警告 $warning、危険 $critical';
+    return '警告$warning、危険$critical';
   }
 
   @override
@@ -51328,7 +51322,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String settings_syncDevices_unnamedDevice(String shortId) {
-    return 'デバイス $shortId';
+    return 'デバイス$shortId';
   }
 
   @override
@@ -51369,7 +51363,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_troubleshootSync_repair_progressTitle => '同期を修復中';
 
   @override
-  String get settings_syncMaintenance_phase_working => '処理中...';
+  String get settings_syncMaintenance_phase_working => '処理中…';
 
   @override
   String settings_syncMaintenance_progress_filesOfTotal(int done, int total) {
@@ -51616,7 +51610,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get maps_regionDownload_nameLabel => '地域名';
 
   @override
-  String get maps_regionDownload_nameHint => '例: コスメル（メキシコ）';
+  String get maps_regionDownload_nameHint => '例：コスメル（メキシコ）';
 
   @override
   String get maps_regionDownload_zoomLevels => 'ズームレベル';
@@ -51626,22 +51620,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String maps_regionDownload_minZoom(int zoom) {
-    return '最小: $zoom';
+    return '最小：$zoom';
   }
 
   @override
   String maps_regionDownload_minZoomSemantics(int zoom) {
-    return '最小ズーム: $zoom';
+    return '最小ズーム：$zoom';
   }
 
   @override
   String maps_regionDownload_maxZoom(int zoom) {
-    return '最大: $zoom';
+    return '最大：$zoom';
   }
 
   @override
   String maps_regionDownload_maxZoomSemantics(int zoom) {
-    return '最大ズーム: $zoom';
+    return '最大ズーム：$zoom';
   }
 
   @override
@@ -51649,7 +51643,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String maps_regionDownload_estimateSemantics(int count, Object size) {
-    return '推定ダウンロード量: $countタイル、$size';
+    return '推定ダウンロード量：$countタイル、$size';
   }
 
   @override
@@ -51657,7 +51651,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'ダウンロードサイズを見積もれません';
 
   @override
-  String get maps_regionDownload_estimating => '見積もり中...';
+  String get maps_regionDownload_estimating => '見積もり中…';
 
   @override
   String maps_regionDownload_tileCount(int count) {
@@ -51669,7 +51663,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get maps_regionDownload_largeWarningSemantics =>
-      '警告: ダウンロード量が大きくなります。ズームレベルを下げるか、より狭い地域を選択することを検討してください。';
+      '警告：ダウンロード量が大きくなります。ズームレベルを下げるか、より狭い地域を選択することを検討してください。';
 
   @override
   String get maps_regionDownload_largeWarning =>
@@ -51822,7 +51816,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveSites_import_detail_maxDepth(Object depth) {
-    return '最大 $depth';
+    return '最大$depth';
   }
 
   @override
@@ -51834,7 +51828,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get settings_debugLog_search_hint => 'ログを検索...';
+  String get settings_debugLog_search_hint => 'ログを検索…';
 
   @override
   String get settings_debugLog_appBar_title => 'デバッグログ';
@@ -51901,7 +51895,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'クラウドプロバイダーが設定されていません';
 
   @override
-  String get settings_cloudSync_message_adopting => '復元したライブラリを採用中...';
+  String get settings_cloudSync_message_adopting => '復元したライブラリを採用中…';
 
   @override
   String get settings_cloudSync_message_adoptFailed => '復元したライブラリを採用できませんでした';
@@ -51911,7 +51905,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '初回の同期には確認が必要です。「今すぐ同期」をタップして内容を確認してください。';
 
   @override
-  String get settings_cloudSync_message_startingSync => '同期を開始中...';
+  String get settings_cloudSync_message_startingSync => '同期を開始中…';
 
   @override
   String get settings_cloudSync_message_replacePaused =>
@@ -51952,7 +51946,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_debugLog_minSeverityLabel => '最低重要度：';
 
   @override
-  String get settings_debugLog_shareSubject => 'Submersion デバッグログ';
+  String get settings_debugLog_shareSubject => 'Submersionデバッグログ';
 
   @override
   String get settings_debugLog_saveDialogTitle => 'デバッグログを保存';
@@ -52163,7 +52157,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '新規 $count件',
+      other: '新規$count件',
     );
     return '$_temp0';
   }
@@ -52173,7 +52167,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '統合 $count件',
+      other: '統合$count件',
     );
     return '$_temp0';
   }
@@ -52183,7 +52177,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '置き換え $count件',
+      other: '置き換え$count件',
     );
     return '$_temp0';
   }
@@ -52193,8 +52187,8 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '計画ダイブに反映 $count件',
-      one: '計画ダイブに反映 $count件',
+      other: '計画ダイブに反映$count件',
+      one: '計画ダイブに反映$count件',
     );
     return '$_temp0';
   }
@@ -52204,7 +52198,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'スキップ $count件',
+      other: 'スキップ$count件',
     );
     return '$_temp0';
   }
@@ -52254,7 +52248,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveImport_healthkit_accessGrantedBody => '次のステップに進めます。';
 
   @override
-  String get diveImport_healthkit_requesting => 'リクエスト中...';
+  String get diveImport_healthkit_requesting => 'リクエスト中…';
 
   @override
   String get diveImport_healthkit_selectDateRange => '期間を選択';
@@ -52264,14 +52258,14 @@ class AppLocalizationsJa extends AppLocalizations {
       'Appleヘルスケアでダイブを検索する期間を選んでください。';
 
   @override
-  String get diveImport_healthkit_fetchingDives => 'Appleヘルスケアからダイブを取得中...';
+  String get diveImport_healthkit_fetchingDives => 'Appleヘルスケアからダイブを取得中…';
 
   @override
   String get diveImport_healthkit_fetchFailed => '取得に失敗しました';
 
   @override
   String diveImport_healthkit_fetchFailedBody(String error) {
-    return 'ダイブの取得に失敗しました: $error';
+    return 'ダイブの取得に失敗しました：$error';
   }
 
   @override
@@ -52286,7 +52280,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveImport_healthkit_proceedingToReview => '確認画面に進んでいます...';
+  String get diveImport_healthkit_proceedingToReview => '確認画面に進んでいます…';
 
   @override
   String get importWizard_dc_importFromFile => 'ファイルからインポート';
@@ -52438,7 +52432,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String lock_startFresh_body(Object token) {
-    return '現在のデータベースは .locked という接尾辞を付けた名前でディスク上に残り、何も削除されません。後でパスワードを使うか、サポートに連絡して復旧できます。新しいデータベースと古いデータベースが混ざらないよう、クラウド同期はオフになります。\n\nアプリは新しい空のデータベースで起動します。セットアップウィザードでバックアップから復元できます。\n\n確認のため $token と入力してください。';
+    return '現在のデータベースは .lockedという接尾辞を付けた名前でディスク上に残り、何も削除されません。後でパスワードを使うか、サポートに連絡して復旧できます。新しいデータベースと古いデータベースが混ざらないよう、クラウド同期はオフになります。\n\nアプリは新しい空のデータベースで起動します。セットアップウィザードでバックアップから復元できます。\n\n確認のため$tokenと入力してください。';
   }
 
   @override
@@ -52449,14 +52443,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String startup_migrating_progress(Object currentStep, Object totalSteps) {
-    return 'データベースをアップグレード中... ステップ $currentStep/$totalSteps';
+    return 'データベースをアップグレード中… ステップ$currentStep/$totalSteps';
   }
 
   @override
-  String get startup_compacting => 'ストレージを最適化中...';
+  String get startup_compacting => 'ストレージを最適化中…';
 
   @override
-  String get startup_error_title => 'Submersion を起動できませんでした';
+  String get startup_error_title => 'Submersionを起動できませんでした';
 
   @override
   String get startup_error_body =>
@@ -52467,11 +52461,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get startup_engineUnavailable_body =>
-      'このビルドには Submersion のデータベースエンジンが含まれていないため、ダイブログは開かれませんでした。ディスク上のデータは何も変更されておらず、データが失われる心配はありません。';
+      'このビルドにはSubmersionのデータベースエンジンが含まれていないため、ダイブログは開かれませんでした。ディスク上のデータは何も変更されておらず、データが失われる心配はありません。';
 
   @override
   String get startup_engineUnavailable_guidance =>
-      '再インストールやバックアップの復元では解決しません。正常に動作する Submersion のビルドをインストールし、この問題を報告してください。これはデータではなく、アプリパッケージの不具合です。';
+      '再インストールやバックアップの復元では解決しません。正常に動作するSubmersionのビルドをインストールし、この問題を報告してください。これはデータではなく、アプリパッケージの不具合です。';
 
   @override
   String get startup_migrationFailed_title => 'データベースのアップグレードに失敗しました';
@@ -52485,21 +52479,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get startup_dataUnreadable_body =>
-      'データベースファイルはありますが、Submersion が読み込めません。通常、ファイルが破損していることを意味します。バックアップから復元するのが最も早い解決方法です。';
+      'データベースファイルはありますが、Submersionが読み込めません。通常、ファイルが破損していることを意味します。バックアップから復元するのが最も早い解決方法です。';
 
   @override
   String get startup_databaseBusy_title => 'ダイブログが使用中でした';
 
   @override
   String get startup_databaseBusy_body =>
-      '別のプロセスがデータベースファイルを使用していたため、Submersion は書き込まずに停止しました。何も変更されておらず、破損もありません。Submersion を完全に終了してから、もう一度開いてください。';
+      '別のプロセスがデータベースファイルを使用していたため、Submersionは書き込まずに停止しました。何も変更されておらず、破損もありません。Submersionを完全に終了してから、もう一度開いてください。';
 
   @override
   String get startup_locationUnreachable_title => 'ダイブログのフォルダーにアクセスできません';
 
   @override
   String get startup_locationUnreachable_body =>
-      'ダイブログは選択したフォルダーに保存されていますが、現在 Submersion はそのフォルダーを開けません。フォルダー内のものは何も変更されていません。フォルダーが接続されていないドライブ上にある場合や、同期中のクラウドフォルダーにある場合は、再接続してから Submersion をもう一度開いてください。';
+      'ダイブログは選択したフォルダーに保存されていますが、現在Submersionはそのフォルダーを開けません。フォルダー内のものは何も変更されていません。フォルダーが接続されていないドライブ上にある場合や、同期中のクラウドフォルダーにある場合は、再接続してからSubmersionをもう一度開いてください。';
 
   @override
   String get startup_locationUnreachable_folderLabel => 'ダイブログのフォルダー：';
@@ -52520,14 +52514,14 @@ class AppLocalizationsJa extends AppLocalizations {
     Object fromVersion,
     Object toVersion,
   ) {
-    return 'スキーマ v$fromVersion から v$toVersion へのアップグレード前に作成した安全のためのコピーです。';
+    return 'スキーマv$fromVersionからv$toVersionへのアップグレード前に作成した安全のためのコピーです。';
   }
 
   @override
   String get startup_failure_restoreAction => 'このバックアップを復元';
 
   @override
-  String get startup_failure_restoring => 'ダイブログを復元中...';
+  String get startup_failure_restoring => 'ダイブログを復元中…';
 
   @override
   String get startup_failure_restoreFailed =>
@@ -52547,14 +52541,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get startup_failure_useAnotherFolder_subtitle =>
-      'iCloud Drive や Dropbox のフォルダーなど、別の場所に保存しているダイブログに切り替えます。';
+      'iCloud DriveやDropboxのフォルダーなど、別の場所に保存しているダイブログに切り替えます。';
 
   @override
   String get startup_failure_restoreFromFile => 'バックアップファイルから復元';
 
   @override
   String get startup_failure_restoreFromFile_subtitle =>
-      'このデバイス上または同期フォルダー内の Submersion バックアップを選択します。';
+      'このデバイス上または同期フォルダー内のSubmersionバックアップを選択します。';
 
   @override
   String get startup_failure_startFresh => '空のダイブログで始める';
@@ -52568,21 +52562,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get startup_failure_chooseFolderAgain_subtitle =>
-      '同じフォルダーをもう一度選択して Submersion にアクセスを許可するか、現在ダイブログがあるフォルダーを選択してください。';
+      '同じフォルダーをもう一度選択してSubmersionにアクセスを許可するか、現在ダイブログがあるフォルダーを選択してください。';
 
   @override
   String get startup_failure_useDefaultLocation => 'アプリの既定の場所に戻す';
 
   @override
   String get startup_failure_useDefaultLocation_subtitle =>
-      'このフォルダーの使用をやめ、Submersion 独自のフォルダーでダイブログを開きます。フォルダー内のものは何も変更されません。';
+      'このフォルダーの使用をやめ、Submersion独自のフォルダーでダイブログを開きます。フォルダー内のものは何も変更されません。';
 
   @override
   String get startup_recovery_adopt_title => 'このダイブログを使用しますか？';
 
   @override
   String get startup_recovery_adopt_body =>
-      '今後 Submersion はこのダイブログを開きます。開けなかったファイルはそのままの場所に残ります。';
+      '今後Submersionはこのダイブログを開きます。開けなかったファイルはそのままの場所に残ります。';
 
   @override
   String startup_recovery_adopt_contents(Object dives, Object sites) {
@@ -52597,7 +52591,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get startup_recovery_startFresh_body =>
-      'Submersion は破損したファイルを専用のフォルダーに移動し、新しい空のダイブログを開きます。何も削除されないため、後で古いファイルを再度試したり、サポートに送ったりできます。';
+      'Submersionは破損したファイルを専用のフォルダーに移動し、新しい空のダイブログを開きます。何も削除されないため、後で古いファイルを再度試したり、サポートに送ったりできます。';
 
   @override
   String get startup_recovery_startFresh_confirm => '新しく始める';
@@ -52612,17 +52606,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String startup_recovery_noDiveLog_body(Object filename, Object folder) {
-    return '$folder に $filename がありません。ダイブログファイル自体が入っているフォルダーを選択してください。';
+    return '$folderに$filenameがありません。ダイブログファイル自体が入っているフォルダーを選択してください。';
   }
 
   @override
   String startup_recovery_unusable_body(Object path) {
-    return '$path のダイブログは破損しているか、Submersion のダイブログではありません。';
+    return '$pathのダイブログは破損しているか、Submersionのダイブログではありません。';
   }
 
   @override
   String startup_recovery_unusableBackup_body(Object path) {
-    return 'このファイルは Submersion で復元できるバックアップではありません：$path';
+    return 'このファイルはSubmersionで復元できるバックアップではありません：$path';
   }
 
   @override
@@ -52634,7 +52628,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String startup_recovery_useDefault_body(Object folder) {
-    return '今後 Submersion は独自のフォルダーでダイブログを開きます。ダイブログがない場合はそこに空のダイブログを作成します。$folder 内のものは移動も削除もされません。そのフォルダーを再び使うには、設定の「データベースの保存場所」で選択してください。';
+    return '今後Submersionは独自のフォルダーでダイブログを開きます。ダイブログがない場合はそこに空のダイブログを作成します。$folder内のものは移動も削除もされません。そのフォルダーを再び使うには、設定の「データベースの保存場所」で選択してください。';
   }
 
   @override
@@ -52645,13 +52639,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get startup_failure_downgrade_body =>
-      'アップグレードが失敗し続ける場合は、以前使っていたバージョンの Submersion をインストールし、そのバージョンから安全のためのコピーを復元してください。ここで復元しても同じアップグレードが再実行されるだけです。Submersion は自動でダウングレードしません。古いビルドへ自動的に戻すと、既知の問題があるバージョンを使い続けることになりかねないためです。';
+      'アップグレードが失敗し続ける場合は、以前使っていたバージョンのSubmersionをインストールし、そのバージョンから安全のためのコピーを復元してください。ここで復元しても同じアップグレードが再実行されるだけです。Submersionは自動でダウングレードしません。古いビルドへ自動的に戻すと、既知の問題があるバージョンを使い続けることになりかねないためです。';
 
   @override
   String get startup_failure_downgrade_action => '以前のリリースを表示';
 
   @override
-  String get startup_recovering_title => 'データベースを復旧中...';
+  String get startup_recovering_title => 'データベースを復旧中…';
 
   @override
   String get startup_recovering_body =>
@@ -52673,7 +52667,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String startup_recovery_sqliteCode(Object code) {
-    return 'SQLite コード $code';
+    return 'SQLiteコード$code';
   }
 
   @override
@@ -52686,7 +52680,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get common_action_tryAgain => 'もう一度試す';
 
   @override
-  String get lock_screen_title => 'Submersion はロックされています';
+  String get lock_screen_title => 'Submersionはロックされています';
 
   @override
   String get lock_screen_forgotPassword => 'パスワードをお忘れですか？';
@@ -52727,21 +52721,21 @@ class AppLocalizationsJa extends AppLocalizations {
     Object databaseVersion,
     Object appVersion,
   ) {
-    return 'ダイブログは新しいバージョンの Submersion によりスキーマ v$databaseVersion で保存されています。このバージョンで開けるのはスキーマ v$appVersion までのファイルです。';
+    return 'ダイブログは新しいバージョンのSubmersionによりスキーマv$databaseVersionで保存されています。このバージョンで開けるのはスキーマv$appVersionまでのファイルです。';
   }
 
   @override
   String get startup_versionMismatch_causes_lead => '通常、次のような場合に発生します：';
 
   @override
-  String get startup_versionMismatch_cause_beta => 'ベータ版のビルドがファイルをアップグレードした。';
+  String get startup_versionMismatch_cause_beta => 'ベータ版のビルドがファイルをアップグレードした場合';
 
   @override
-  String get startup_versionMismatch_cause_restored => '新しいビルドのバックアップを復元した。';
+  String get startup_versionMismatch_cause_restored => '新しいビルドのバックアップを復元した場合';
 
   @override
   String get startup_versionMismatch_cause_shared =>
-      '別の更新チャンネルのデバイスとファイルを共有している。';
+      '別の更新チャンネルのデバイスとファイルを共有している場合';
 
   @override
   String get startup_versionMismatch_instructions =>
@@ -52749,7 +52743,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get startup_versionMismatch_storeInstructions =>
-      'このアプリはアプリストアから入手したもので、データを保存したバージョンより古くなっています。データは変更されていません。ストアに新しいバージョンが公開されたら Submersion を更新し、もう一度開いてください。';
+      'このアプリはアプリストアから入手したもので、データを保存したバージョンより古くなっています。データは変更されていません。ストアに新しいバージョンが公開されたらSubmersionを更新し、もう一度開いてください。';
 
   @override
   String get startup_versionMismatch_download => '新しい安定版リリースを確認';
@@ -53069,89 +53063,89 @@ class AppLocalizationsJa extends AppLocalizations {
       '最大水深と時間から推定したもので、記録されたプロファイルではありません';
 
   @override
-  String get settings_export_progress_divesCsv => 'ダイブをCSVにエクスポート中...';
+  String get settings_export_progress_divesCsv => 'ダイブをCSVにエクスポート中…';
 
   @override
-  String get settings_export_progress_sitesCsv => 'サイトをCSVにエクスポート中...';
+  String get settings_export_progress_sitesCsv => 'サイトをCSVにエクスポート中…';
 
   @override
-  String get settings_export_progress_equipmentCsv => '器材をCSVにエクスポート中...';
+  String get settings_export_progress_equipmentCsv => '器材をCSVにエクスポート中…';
 
   @override
   String get settings_export_progress_observationsCsv =>
-      '器材チェックインをCSVにエクスポート中...';
+      '器材チェックインをCSVにエクスポート中…';
 
   @override
-  String get settings_export_progress_fillsCsv => 'タンクの充填をCSVにエクスポート中...';
+  String get settings_export_progress_fillsCsv => 'タンクの充填をCSVにエクスポート中…';
 
   @override
-  String get settings_export_progress_pdf => 'PDFログブックを作成中...';
+  String get settings_export_progress_pdf => 'PDFログブックを作成中…';
 
   @override
-  String get settings_export_progress_loadingSignatures => '署名を読み込み中...';
+  String get settings_export_progress_loadingSignatures => '署名を読み込み中…';
 
   @override
-  String get settings_export_progress_loadingProfiles => 'ダイブプロファイルを読み込み中...';
+  String get settings_export_progress_loadingProfiles => 'ダイブプロファイルを読み込み中…';
 
   @override
-  String get settings_export_progress_loadingCertifications => '認定を読み込み中...';
+  String get settings_export_progress_loadingCertifications => '認定を読み込み中…';
 
   @override
-  String get settings_export_progress_loadingFonts => 'フォントを読み込み中...';
+  String get settings_export_progress_loadingFonts => 'フォントを読み込み中…';
 
   @override
   String settings_export_progress_templatePdf(String template) {
-    return '$templateのPDFを作成中...';
+    return '$templateのPDFを作成中…';
   }
 
   @override
-  String get settings_export_progress_uddf => 'UDDFファイルを作成中...';
+  String get settings_export_progress_uddf => 'UDDFファイルを作成中…';
 
   @override
-  String get settings_export_progress_collectingData => 'すべてのデータを収集中...';
+  String get settings_export_progress_collectingData => 'すべてのデータを収集中…';
 
   @override
-  String get settings_export_progress_excel => 'Excelファイルを作成中...';
+  String get settings_export_progress_excel => 'Excelファイルを作成中…';
 
   @override
-  String get settings_export_progress_buildingExcel => 'Excelブックを作成中...';
+  String get settings_export_progress_buildingExcel => 'Excelブックを作成中…';
 
   @override
-  String get settings_export_progress_kml => 'KMLファイルを作成中...';
+  String get settings_export_progress_kml => 'KMLファイルを作成中…';
 
   @override
-  String get settings_export_progress_buildingKml => 'KMLファイルを構築中...';
+  String get settings_export_progress_buildingKml => 'KMLファイルを構築中…';
 
   @override
-  String get settings_export_progress_preparingExcel => 'Excelファイルを準備中...';
+  String get settings_export_progress_preparingExcel => 'Excelファイルを準備中…';
 
   @override
-  String get settings_export_progress_preparingKml => 'KMLファイルを準備中...';
+  String get settings_export_progress_preparingKml => 'KMLファイルを準備中…';
 
   @override
-  String get settings_export_progress_chooseLocation => '保存先を選択...';
+  String get settings_export_progress_chooseLocation => '保存先を選択…';
 
   @override
-  String get settings_export_progress_preparingDivesCsv => 'ダイブのCSVを準備中...';
+  String get settings_export_progress_preparingDivesCsv => 'ダイブのCSVを準備中…';
 
   @override
-  String get settings_export_progress_preparingSitesCsv => 'サイトのCSVを準備中...';
+  String get settings_export_progress_preparingSitesCsv => 'サイトのCSVを準備中…';
 
   @override
-  String get settings_export_progress_preparingEquipmentCsv => '器材のCSVを準備中...';
+  String get settings_export_progress_preparingEquipmentCsv => '器材のCSVを準備中…';
 
   @override
   String get settings_export_progress_preparingObservationsCsv =>
-      '器材チェックインのCSVを準備中...';
+      '器材チェックインのCSVを準備中…';
 
   @override
-  String get settings_export_progress_preparingFillsCsv => 'タンクの充填のCSVを準備中...';
+  String get settings_export_progress_preparingFillsCsv => 'タンクの充填のCSVを準備中…';
 
   @override
-  String get settings_export_progress_preparingUddf => 'UDDFファイルを準備中...';
+  String get settings_export_progress_preparingUddf => 'UDDFファイルを準備中…';
 
   @override
-  String get settings_export_progress_preparingPdf => 'PDFを準備中...';
+  String get settings_export_progress_preparingPdf => 'PDFを準備中…';
 
   @override
   String get settings_export_empty_dives => 'エクスポートするダイブがありません';
@@ -53289,7 +53283,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get backup_operation_restoring => 'バックアップを復元中...';
+  String get backup_operation_restoring => 'バックアップを復元中…';
 
   @override
   String backup_operation_restoreFailed(String error) {
@@ -53301,7 +53295,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'バックアップファイルが見つからなかったため、何も復元されませんでした。現在のデータは変更されていません。';
 
   @override
-  String get backup_operation_deleting => 'バックアップを削除中...';
+  String get backup_operation_deleting => 'バックアップを削除中…';
 
   @override
   String get backup_operation_deleted => 'バックアップを削除しました';
@@ -53312,7 +53306,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get backup_operation_exporting => 'バックアップをエクスポート中...';
+  String get backup_operation_exporting => 'バックアップをエクスポート中…';
 
   @override
   String backup_operation_exported(String size) {
@@ -53325,14 +53319,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get backup_operation_preparingShare => '共有用にバックアップを準備中...';
+  String get backup_operation_preparingShare => '共有用にバックアップを準備中…';
 
   @override
   String get backup_operation_shareReady => 'バックアップを共有する準備ができました';
 
   @override
   String backup_operation_upgrading(int step, int total) {
-    return 'データベースをアップグレード中（$total段階中$step）...';
+    return 'データベースをアップグレード中（$total段階中$step）…';
   }
 
   @override
@@ -53366,7 +53360,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String timestamp,
     String appVersion,
   ) {
-    return 'このバックアップは$timestampにアプリ $appVersion で作成されましたが、データベース移行のメタデータが不完全です。\n\nこのバックアップを安全に復元できるか確認できないため、復元は無効になっています。';
+    return 'このバックアップは$timestampにアプリ$appVersionで作成されましたが、データベース移行のメタデータが不完全です。\n\nこのバックアップを安全に復元できるか確認できないため、復元は無効になっています。';
   }
 
   @override
@@ -53375,7 +53369,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String appVersion,
     int fromVersion,
   ) {
-    return 'このバックアップはお使いのアプリより新しいバージョンのものです。復元するには、新しいバージョンのアプリをインストールしてください。\n\n$timestampにアプリ $appVersion で作成されたバックアップ（データベース v$fromVersion）。';
+    return 'このバックアップはお使いのアプリより新しいバージョンのものです。復元するには、新しいバージョンのアプリをインストールしてください。\n\n$timestampにアプリ$appVersionで作成されたバックアップ（データベースv$fromVersion）。';
   }
 
   @override
@@ -53385,7 +53379,7 @@ class AppLocalizationsJa extends AppLocalizations {
     int fromVersion,
     int toVersion,
   ) {
-    return 'このバックアップは$timestampにアプリ $appVersion で、データベースを v$fromVersion から v$toVersion にアップグレードする直前に作成されました。\n\nお使いのアプリのデータベーススキーマはこのバックアップと一致しているため、安全に復元できます。';
+    return 'このバックアップは$timestampにアプリ$appVersionで、データベースをv$fromVersionからv$toVersionにアップグレードする直前に作成されました。\n\nお使いのアプリのデータベーススキーマはこのバックアップと一致しているため、安全に復元できます。';
   }
 
   @override
@@ -53396,17 +53390,17 @@ class AppLocalizationsJa extends AppLocalizations {
     int toVersion,
     int currentVersion,
   ) {
-    return 'このバックアップは$timestampにアプリ $appVersion で、データベースを v$fromVersion から v$toVersion にアップグレードする直前に作成されました。\n\nお使いのアプリはより新しいバージョンです（データベース v$currentVersion）。\n\n今復元すると、復元したデータに対して v$fromVersion から v$toVersion へのデータベースアップグレードが再実行されます。これは当初実行される予定だったものと同じアップグレードです。そのアップグレードが問題の原因だった場合、同じ問題が再び発生します。\n\n安全に復元するには、アプリ $appVersion 以前をインストールし、その古いアプリからこのバックアップを復元してください。';
+    return 'このバックアップは$timestampにアプリ$appVersionで、データベースをv$fromVersionからv$toVersionにアップグレードする直前に作成されました。\n\nお使いのアプリはより新しいバージョンです（データベースv$currentVersion）。\n\n今復元すると、復元したデータに対してv$fromVersionからv$toVersionへのデータベースアップグレードが再実行されます。これは当初実行される予定だったものと同じアップグレードです。そのアップグレードが問題の原因だった場合、同じ問題が再び発生します。\n\n安全に復元するには、アプリ$appVersion以前をインストールし、その古いアプリからこのバックアップを復元してください。';
   }
 
   @override
-  String get settings_cloudSync_progress_preparing => '同期を準備中...';
+  String get settings_cloudSync_progress_preparing => '同期を準備中…';
 
   @override
-  String get settings_cloudSync_progress_pulling => '変更を取得中...';
+  String get settings_cloudSync_progress_pulling => '変更を取得中…';
 
   @override
-  String get settings_cloudSync_progress_publishing => '変更を公開中...';
+  String get settings_cloudSync_progress_publishing => '変更を公開中…';
 
   @override
   String settings_cloudSync_progress_uploadingLibrary(int uploaded, int total) {
@@ -53574,7 +53568,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_species_sightedOnDive => 'このダイブで観察';
 
   @override
-  String get media_species_otherSpecies => 'その他の種...';
+  String get media_species_otherSpecies => 'その他の種…';
 
   @override
   String get media_species_noDiveHint =>
@@ -53606,7 +53600,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_species_dismiss => '候補を却下';
 
   @override
-  String get media_species_identifying => '魚を探しています...';
+  String get media_species_identifying => '魚を探しています…';
 
   @override
   String get media_species_sheetTitleVideo => 'この動画の種';
@@ -53661,7 +53655,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_labels_statusNotAnalysed => '未解析';
 
   @override
-  String get media_labels_statusAnalysing => '解析中...';
+  String get media_labels_statusAnalysing => '解析中…';
 
   @override
   String media_labels_statusAnalysingPercent(String percent) {
@@ -53797,7 +53791,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String speciesReview_diveNumber(int number) {
-    return 'ダイブ $number';
+    return 'ダイブ$number';
   }
 
   @override
@@ -54244,7 +54238,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_info_actionCheckNow => '今すぐ確認';
 
   @override
-  String get media_info_actionLocate => 'ファイルを指定...';
+  String get media_info_actionLocate => 'ファイルを指定…';
 
   @override
   String get media_info_actionRetryUpload => 'アップロードを再試行';
@@ -54547,7 +54541,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLab_chip_shiftAscent(String delta) {
-    return '浮上 $delta';
+    return '浮上$delta';
   }
 
   @override
@@ -54560,7 +54554,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLab_chip_shareGas(String factor) {
-    return 'ガス共有 x$factor';
+    return 'ガス共有x$factor';
   }
 
   @override
@@ -54667,7 +54661,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveLab_flag_sacEstimated => 'SAC は推定値';
+  String get diveLab_flag_sacEstimated => 'SACは推定値';
 
   @override
   String diveLab_flag_pressureEstimated(String tank) {
@@ -54697,7 +54691,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLab_metric_runtime => 'ランタイム';
 
   @override
-  String get diveLab_metric_ttsAtBranch => '分岐点での TTS';
+  String get diveLab_metric_ttsAtBranch => '分岐点でのTTS';
 
   @override
   String get diveLab_metric_decoTimeAfterBranch => '分岐後の減圧時間';
@@ -54706,19 +54700,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLab_metric_deepestStopAfterBranch => '最深停止';
 
   @override
-  String get diveLab_metric_surfaceGf => '浮上時 GF';
+  String get diveLab_metric_surfaceGf => '浮上時GF';
 
   @override
-  String get diveLab_metric_peakGf99AfterBranch => '分岐後の最大 GF99';
+  String get diveLab_metric_peakGf99AfterBranch => '分岐後の最大GF99';
 
   @override
-  String get diveLab_metric_cnsEnd => '浮上時 CNS';
+  String get diveLab_metric_cnsEnd => '浮上時CNS';
 
   @override
-  String get diveLab_metric_otuEnd => '浮上時 OTU';
+  String get diveLab_metric_otuEnd => '浮上時OTU';
 
   @override
-  String get diveLab_metric_maxPpO2AfterBranch => '分岐後の最大 ppO2';
+  String get diveLab_metric_maxPpO2AfterBranch => '分岐後の最大ppO2';
 
   @override
   String diveLab_metric_tankEndPressure(String tank) {
@@ -54759,7 +54753,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLab_tile_deco => '減圧';
 
   @override
-  String get diveLab_tile_surfGf => '浮上時 GF';
+  String get diveLab_tile_surfGf => '浮上時GF';
 
   @override
   String get diveLab_tile_cns => 'CNS';
@@ -54831,7 +54825,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLab_compare_row_bottomTime => 'ボトムタイム';
 
   @override
-  String get diveLab_compare_row_ndl => 'ボトム離脱時の NDL';
+  String get diveLab_compare_row_ndl => 'ボトム離脱時のNDL';
 
   @override
   String get diveLab_compare_row_deco => '減圧';
@@ -54953,7 +54947,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'すべてのベイルアウトタンク';
 
   @override
-  String get diveLab_share_pdf => 'PDF スレートを共有';
+  String get diveLab_share_pdf => 'PDFスレートを共有';
 
   @override
   String get diveLab_share_file => 'シナリオファイルを共有';
@@ -54989,7 +54983,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLab_saved_done => '完了';
 
   @override
-  String get diveLab_saved_sharePdf => '選択項目を PDF で共有';
+  String get diveLab_saved_sharePdf => '選択項目をPDFで共有';
 
   @override
   String get diveLab_pdf_title => '仮定シナリオのスレート';
@@ -55009,7 +55003,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diveLab_pdf_generated => 'Submersion で作成';
+  String get diveLab_pdf_generated => 'Submersionで作成';
 
   @override
   String get diveLab_sublab_notes => '仮定シナリオファイルで共有';
@@ -55058,7 +55052,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String insights_trend_gap_noDives(String start, String end) {
-    return 'ダイブなし: $start～$end';
+    return 'ダイブなし：$start～$end';
   }
 
   @override
@@ -55252,7 +55246,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String consumption,
     String bottomTime,
   ) {
-    return '$band: $dives。平均$lane: $consumption。平均ボトムタイム: $bottomTime。';
+    return '$band：$dives。平均$lane：$consumption。平均ボトムタイム：$bottomTime。';
   }
 
   @override
@@ -55296,7 +55290,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get insights_trend_range_custom => 'カスタム';
 
   @override
-  String get insights_trend_range_customPick => '期間を指定...';
+  String get insights_trend_range_customPick => '期間を指定…';
 
   @override
   String get diveLog_edit_excludeFromStats => '統計から除外';
@@ -55355,11 +55349,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_edit_summary_gasExcluded => 'ガス除外';
 
   @override
-  String get suuntoCloud_signIn_title => 'Suunto にサインイン';
+  String get suuntoCloud_signIn_title => 'Suuntoにサインイン';
 
   @override
   String get suuntoCloud_signIn_description =>
-      'app.suunto.com のアカウントでサインインすると、ダイブを直接インポートできます。パスワードは保存されず、取得したセッションのみがキャッシュされます。';
+      'app.suunto.comのアカウントでサインインすると、ダイブを直接インポートできます。パスワードは保存されず、取得したセッションのみがキャッシュされます。';
 
   @override
   String get suuntoCloud_signIn_emailLabel => 'メールアドレス';
@@ -55381,7 +55375,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String suuntoCloud_signIn_signedInAs(String email) {
-    return '$email でサインイン中';
+    return '$emailでサインイン中';
   }
 
   @override
@@ -55389,7 +55383,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
-    return 'ダイブを取得中 $current/$total…';
+    return 'ダイブを取得中$current/$total…';
   }
 
   @override
@@ -55428,11 +55422,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get garminConnect_signIn_title => 'Garmin Connect にサインイン';
+  String get garminConnect_signIn_title => 'Garmin Connectにサインイン';
 
   @override
   String get garminConnect_signIn_description =>
-      'Garmin Connect のアカウントでサインインすると、ダイブを直接インポートできます。パスワードは保存されず、取得したセッションのみがキャッシュされます。';
+      'Garmin Connectのアカウントでサインインすると、ダイブを直接インポートできます。パスワードは保存されず、取得したセッションのみがキャッシュされます。';
 
   @override
   String get garminConnect_signIn_emailLabel => 'メールアドレス';
@@ -55454,7 +55448,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String garminConnect_signIn_signedInAs(String email) {
-    return '$email でサインイン中';
+    return '$emailでサインイン中';
   }
 
   @override
@@ -55482,7 +55476,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String garminConnect_fetch_fetchingDiveOf(int current, int total) {
-    return 'ダイブを取得中 $current/$total…';
+    return 'ダイブを取得中$current/$total…';
   }
 
   @override
@@ -55537,21 +55531,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get transfer_importCloud_suuntoSubtitle =>
-      'Suunto アプリ／app.suunto.com のアカウントからダイブをインポート';
+      'Suuntoアプリ／app.suunto.comのアカウントからダイブをインポート';
 
   @override
   String get transfer_importCloud_garminTitle => 'Garmin';
 
   @override
   String get transfer_importCloud_garminSubtitle =>
-      'Garmin Connect アカウントからダイブをインポート';
+      'Garmin Connectアカウントからダイブをインポート';
 
   @override
   String get transfer_importCloud_divelogsTitle => 'divelogs.de';
 
   @override
   String get transfer_importCloud_divelogsSubtitle =>
-      'divelogs.de からログブック、サイト、器材、認定、写真をインポート';
+      'divelogs.deからログブック、サイト、器材、認定、写真をインポート';
 
   @override
   String get transfer_section_cloudTitle => 'クラウド';
@@ -55822,7 +55816,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveComputer_merge_serialLabel(String serial) {
-    return 'シリアル $serial';
+    return 'シリアル$serial';
   }
 
   @override
@@ -55903,12 +55897,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String startup_interruptedRestore_bodyWithDate(String date) {
-    return 'Submersion は $date にバックアップの復元中に停止しました。復元前のダイブログはこのデバイスに残っており、このバージョンで開くことができます。';
+    return 'Submersionは$dateにバックアップの復元中に停止しました。復元前のダイブログはこのデバイスに残っており、このバージョンで開くことができます。';
   }
 
   @override
   String get startup_interruptedRestore_body =>
-      'Submersion はバックアップの復元中に停止しました。復元前のダイブログはこのデバイスに残っており、このバージョンで開くことができます。';
+      'Submersionはバックアップの復元中に停止しました。復元前のダイブログはこのデバイスに残っており、このバージョンで開くことができます。';
 
   @override
   String get startup_interruptedRestore_recoverAction => '以前のダイブログを復旧';
@@ -55929,14 +55923,14 @@ class AppLocalizationsJa extends AppLocalizations {
       '復旧が完了しませんでした。何も削除されておらず、両方のファイルがこのデバイスに残っています。';
 
   @override
-  String get startup_diveLogUnavailable_downloading => 'iCloud からダイブログをダウンロード中';
+  String get startup_diveLogUnavailable_downloading => 'iCloudからダイブログをダウンロード中';
 
   @override
-  String get startup_diveLogUnavailable_iCloud_title => 'ダイブログはまだ iCloud にあります';
+  String get startup_diveLogUnavailable_iCloud_title => 'ダイブログはまだiCloudにあります';
 
   @override
   String startup_diveLogUnavailable_iCloud_body(String folder) {
-    return '$folder のダイブログは iCloud に保存されていますが、まだこのデバイスになく、ダウンロードできませんでした。iCloud 上で安全に保管されており、何も変更されていません。インターネット接続を確認するか、ファイルアプリまたは Finder でダウンロードしてから、再度お試しください。';
+    return '$folderのダイブログはiCloudに保存されていますが、まだこのデバイスになく、ダウンロードできませんでした。iCloud上で安全に保管されており、何も変更されていません。インターネット接続を確認するか、ファイルアプリまたはFinderでダウンロードしてから、再度お試しください。';
   }
 
   @override
@@ -55947,7 +55941,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String folder,
     String filename,
   ) {
-    return 'Submersion はダイブログを $folder に保存していますが、現在そこに $filename がありません。フォルダーが接続されていないドライブ上にある場合や、同期が追いついていない同期フォルダーにある場合は、接続または同期してから再度お試しください。何も作成・変更されていません。';
+    return 'Submersionはダイブログを$folderに保存していますが、現在そこに$filenameがありません。フォルダーが接続されていないドライブ上にある場合や、同期が追いついていない同期フォルダーにある場合は、接続または同期してから再度お試しください。何も作成・変更されていません。';
   }
 
   @override
@@ -55963,7 +55957,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String startup_diveLogUnavailable_startNew_confirmBody(String folder) {
-    return '$folder に空のダイブログが作成されます。同期の完了などで後から古いダイブログが戻ってきた場合、新しいダイブログと競合します。';
+    return '$folderに空のダイブログが作成されます。同期の完了などで後から古いダイブログが戻ってきた場合、新しいダイブログと競合します。';
   }
 
   @override
@@ -56131,12 +56125,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String transmitters_channel(String computer, int channel) {
-    return '$computer、チャンネル $channel';
+    return '$computer、チャンネル$channel';
   }
 
   @override
   String transmitters_serial(String serial) {
-    return 'トランスミッター $serial';
+    return 'トランスミッター$serial';
   }
 
   @override
@@ -56196,7 +56190,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveComputer_detail_transmittersSummary(int known, int unassigned) {
-    return '既知 $known、未割り当て $unassigned';
+    return '既知$known、未割り当て$unassigned';
   }
 
   @override
@@ -56417,12 +56411,12 @@ class AppLocalizationsJa extends AppLocalizations {
     String size,
     int version,
   ) {
-    return '$date • $size • データベース v$version';
+    return '$date • $size • データベースv$version';
   }
 
   @override
   String get backup_quarantined_status_needsNewerApp =>
-      '新しいバージョンの Submersion が必要です';
+      '新しいバージョンのSubmersionが必要です';
 
   @override
   String get backup_quarantined_status_unreadable =>
@@ -56539,7 +56533,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navTrack_common_unlink => 'リンクを解除';
 
   @override
-  String get navTrack_common_open3dTooltip => '3D で開く';
+  String get navTrack_common_open3dTooltip => '3Dで開く';
 
   @override
   String navTrack_common_diveNumber(String number) {
@@ -56548,7 +56542,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String navTrack_common_diveById(String id) {
-    return 'ダイブ $id';
+    return 'ダイブ$id';
   }
 
   @override
@@ -56573,7 +56567,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navTrack_align_fromSite => 'サイトから';
 
   @override
-  String get navTrack_align_fromGps => 'GPS から';
+  String get navTrack_align_fromGps => 'GPSから';
 
   @override
   String get navTrack_align_startLabel => '開始：';
@@ -56591,7 +56585,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navTrack_align_endMode_point => '地図上に終了点を配置';
 
   @override
-  String get navTrack_align_endMode_gpsFix => '浮上時の GPS 位置';
+  String get navTrack_align_endMode_gpsFix => '浮上時のGPS位置';
 
   @override
   String navTrack_align_trustSummary(String distance, int minutes) {
@@ -56625,7 +56619,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String navTrack_terrain_maxPart(String depth) {
-    return '（最大 $depth）';
+    return '（最大$depth）';
   }
 
   @override
@@ -56680,8 +56674,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navTrack_detail_correctionStatus_point => '地図上で終了点を設定しました。';
 
   @override
-  String get navTrack_detail_correctionStatus_gpsFix =>
-      '記録の GPS 測位から終了点を設定しました。';
+  String get navTrack_detail_correctionStatus_gpsFix => '記録のGPS測位から終了点を設定しました。';
 
   @override
   String navTrack_detail_distance(String value) {
@@ -56736,7 +56729,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
-    return '水中のサンプル$underwater件、ダイブ後の GPS 測位なし。';
+    return '水中のサンプル$underwater件、ダイブ後のGPS測位なし。';
   }
 
   @override
@@ -56745,7 +56738,7 @@ class AppLocalizationsJa extends AppLocalizations {
     int surface,
     String vector,
   ) {
-    return '水中のサンプル$underwater件、水面のサンプル$surface件、推測した終了点から GPS 測位まで $vector。';
+    return '水中のサンプル$underwater件、水面のサンプル$surface件、推測した終了点からGPS測位まで$vector。';
   }
 
   @override
@@ -56759,7 +56752,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get navTrack_review_sourceLabel => 'Seacraft ENC ログ';
+  String get navTrack_review_sourceLabel => 'Seacraft ENCログ';
 
   @override
   String get navTrack_review_nameHint => '名前（任意）';
@@ -56828,7 +56821,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get navTrack_review_chooseAnotherDive => '別のダイブを選択...';
+  String get navTrack_review_chooseAnotherDive => '別のダイブを選択…';
 
   @override
   String navTrack_list_importFailed(String error) {
@@ -56893,31 +56886,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navTrack_seascape_trackNoScene => 'このトラックには使用できる海中景観がありません。';
 
   @override
-  String get navTrack_handoff_recognized => 'Seacraft ENC のナビゲーションログを認識しました';
+  String get navTrack_handoff_recognized => 'Seacraft ENCのナビゲーションログを認識しました';
 
   @override
   String get navTrack_handoff_trackDescription =>
-      'これはダイブログではなく水中トラックです。Submersion ではダイブのインポートとは別の場所で管理されます。';
+      'これはダイブログではなく水中トラックです。Submersionではダイブのインポートとは別の場所で管理されます。';
 
   @override
   String get navTrack_handoff_reviewTrackButton => '水中トラックを確認';
 
   @override
-  String get suuntoJson_handoff_recognized => 'Suunto のダイブエクスポートを認識しました';
+  String get suuntoJson_handoff_recognized => 'Suuntoのダイブエクスポートを認識しました';
 
   @override
   String get suuntoJson_handoff_description =>
-      'このファイルは Suunto アプリからエクスポートされたものです。Suunto インポーターは、ダイブの記録ルートを含め、Suunto Cloud からのインポートと同じ方法で読み込みます。';
+      'このファイルはSuuntoアプリからエクスポートされたものです。Suuntoインポーターは、ダイブの記録ルートを含め、Suunto Cloudからのインポートと同じ方法で読み込みます。';
 
   @override
-  String get suuntoJson_handoff_importButton => 'Suunto のダイブをインポート';
+  String get suuntoJson_handoff_importButton => 'Suuntoのダイブをインポート';
 
   @override
-  String get suuntoFile_step_title => 'Suunto アプリのエクスポート';
+  String get suuntoFile_step_title => 'Suuntoアプリのエクスポート';
 
   @override
   String get suuntoFile_step_description =>
-      'Suunto アプリから JSON 形式でエクスポートしたダイブを1本以上選択してください。ルートを記録したダイブはルートも取り込まれます。';
+      'SuuntoアプリからJSON形式でエクスポートしたダイブを1本以上選択してください。ルートを記録したダイブはルートも取り込まれます。';
 
   @override
   String get suuntoFile_step_chooseFiles => 'ファイルを選択';
@@ -56940,10 +56933,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get suuntoFile_step_noRoute => '記録ルートなし';
 
   @override
-  String get suuntoFile_rejection_notJson => 'JSON ファイルではありません';
+  String get suuntoFile_rejection_notJson => 'JSONファイルではありません';
 
   @override
-  String get suuntoFile_rejection_notSuuntoExport => 'Suunto アプリのエクスポートではありません';
+  String get suuntoFile_rejection_notSuuntoExport => 'Suuntoアプリのエクスポートではありません';
 
   @override
   String get suuntoFile_rejection_notADive => 'ダイブではありません（別のアクティビティの種類）';
@@ -56981,7 +56974,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navTrack_section_menuOpenTrack => 'トラックを開く';
 
   @override
-  String get navTrack_section_menuOpen3d => '3D 海中景観を開く';
+  String get navTrack_section_menuOpen3d => '3D海中景観を開く';
 
   @override
   String get navTrack_section_menuMakePrimary => 'メインに設定';
@@ -57006,11 +56999,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get navTrack_importError_unsupportedFormat =>
-      'このファイルは Seacraft ENC のナビゲーションログではありません。';
+      'このファイルはSeacraft ENCのナビゲーションログではありません。';
 
   @override
   String get navTrack_importError_unreadable =>
-      'このファイルを Seacraft ENC のナビゲーションログとして読み込めませんでした。';
+      'このファイルをSeacraft ENCのナビゲーションログとして読み込めませんでした。';
 
   @override
   String get navTrack_importError_trackTooShort =>
@@ -57018,7 +57011,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get navTrack_importError_badData =>
-      'このファイルには Submersion が解釈できないデータが含まれています。';
+      'このファイルにはSubmersionが解釈できないデータが含まれています。';
 
   @override
   String get navTrack_importError_trackTooLarge =>
@@ -57213,7 +57206,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveCenters_rental_actualCapacity(Object volume) {
-    return '実際の容量 $volume';
+    return '実際の容量$volume';
   }
 
   @override
@@ -57452,7 +57445,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get query_dives_center => 'ダイブセンター';
 
   @override
-  String get query_dives_cnsEnd => '終了時 CNS';
+  String get query_dives_cnsEnd => '終了時CNS';
 
   @override
   String get query_dives_computer => 'ダイブコンピューター';
@@ -57524,13 +57517,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get query_dives_multiGas => 'マルチガス';
 
   @override
-  String get query_dives_id => 'ダイブ ID';
+  String get query_dives_id => 'ダイブID';
 
   @override
   String get query_dives_legacyBuddy => 'バディ（旧形式のテキスト）';
 
   @override
-  String get query_dives_role => '自分の役割';
+  String get query_dives_role => '自分の役割（有無）';
 
   @override
   String get query_dives_myRole => '自分の役割';
@@ -57560,7 +57553,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get query_dives_sac => 'SAC';
 
   @override
-  String get query_dives_sacTrend => 'SAC の傾向';
+  String get query_dives_sacTrend => 'SACの傾向';
 
   @override
   String get query_dives_sacTrend_rising => '上昇';
@@ -57572,7 +57565,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get query_dives_sacTrend_falling => '低下';
 
   @override
-  String get query_dives_sacChange => 'SAC の変化';
+  String get query_dives_sacChange => 'SACの変化';
 
   @override
   String get query_dives_finalStop => '最終停止';
@@ -57632,10 +57625,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get query_dives_weekday => '曜日';
 
   @override
-  String get query_dives_weight => 'ウェイト';
+  String get query_dives_weight => '合計ウェイト';
 
   @override
-  String get query_dives_weights => 'ウェイト';
+  String get query_dives_weights => 'ウェイトの内訳';
 
   @override
   String get query_dives_year => '年';
@@ -57695,7 +57688,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get query_findings_rule => 'ルール';
 
   @override
-  String get query_entity_gpsTracks => 'GPS トラック';
+  String get query_entity_gpsTracks => 'GPSトラック';
 
   @override
   String get query_entity_media => 'メディア';
@@ -58041,7 +58034,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'プランナーで開けるのはオープンサーキットのダイブのみです';
 
   @override
-  String get diveLab_menu_rebuildInPlanner => 'プランナーで再構築...';
+  String get diveLab_menu_rebuildInPlanner => 'プランナーで再構築…';
 
   @override
   String get diveLab_menu_title => 'その他';
@@ -58416,7 +58409,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get rules_problem_newerVersion =>
-      '新しいバージョンの Submersion で作成されたルールです。実行または編集するにはアプリを更新してください。';
+      '新しいバージョンのSubmersionで作成されたルールです。実行または編集するにはアプリを更新してください。';
 
   @override
   String get rules_problem_noActions => 'このルールにはアクションがありません。';
@@ -59101,7 +59094,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get query_error_expectedText => 'テキストが必要です';
 
   @override
-  String get query_error_expectedBool => 'true または false が必要です';
+  String get query_error_expectedBool => 'trueまたはfalseが必要です';
 
   @override
   String get query_error_emptyText => 'テキストが空です';
@@ -59132,7 +59125,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String symbol,
     String day,
   ) {
-    return '「$text」は範囲が限定されていません。代わりに $field $symbol $day と記述してください';
+    return '「$text」は範囲が限定されていません。代わりに$field $symbol $dayと記述してください';
   }
 
   @override
@@ -59164,22 +59157,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String query_error_scopeNeedsRelationQuoted(String path) {
-    return '「[...]」にはリレーションが必要ですが、「$path」は項目です';
+    return '「[…]」にはリレーションが必要ですが、「$path」は項目です';
   }
 
   @override
   String query_error_scopeNeedsRelation(String path) {
-    return '[...] にはリレーションが必要ですが、「$path」は項目です';
+    return '[…] にはリレーションが必要ですが、「$path」は項目です';
   }
 
   @override
   String query_error_relationNeedsRefOp(String path) {
-    return '「$path」はリレーションです。=、in、:none、:any、[...] のいずれかを使用してください';
+    return '「$path」はリレーションです。=、in、:none、:any、[…] のいずれかを使用してください';
   }
 
   @override
   String query_error_relationOpNotAllowed(String op) {
-    return '「$op」はリレーションには使用できません。=、!=、in、:none、:any、[...] のいずれかを使用してください';
+    return '「$op」はリレーションには使用できません。=、!=、in、:none、:any、[…] のいずれかを使用してください';
   }
 
   @override
@@ -59189,12 +59182,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String query_error_opNotForField(String op, String field) {
-    return '$op は$fieldには使用できません';
+    return '$opは$fieldには使用できません';
   }
 
   @override
   String query_error_noneAmbiguous(String field) {
-    return '「$field:none」はあいまいです。値 none を指す場合は「$field = none」、未記録を指す場合は「NOT $field:any」と記述してください';
+    return '「$field:none」はあいまいです。値noneを指す場合は「$field = none」、未記録を指す場合は「NOT $field:any」と記述してください';
   }
 
   @override
@@ -59243,10 +59236,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get query_error_betweenNeedsTwo => 'between には値が2つ必要です';
+  String get query_error_betweenNeedsTwo => 'betweenには値が2つ必要です';
 
   @override
-  String get query_error_inNeedsList => 'in にはリストが必要です';
+  String get query_error_inNeedsList => 'inにはリストが必要です';
 
   @override
   String query_error_expectsNumber(String field) {
@@ -59265,7 +59258,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String query_error_expectsBool(String field) {
-    return '$fieldには true または false が必要です';
+    return '$fieldにはtrueまたはfalseが必要です';
   }
 
   @override
@@ -59749,12 +59742,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tags_manage_rowScopes(String scopes) {
-    return '用途: $scopes';
+    return '用途：$scopes';
   }
 
   @override
   String tags_manage_rowUsage(String counts) {
-    return '使用先: $counts';
+    return '使用先：$counts';
   }
 
   @override
@@ -59851,7 +59844,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String tags_bulk_failed(String error) {
-    return 'タグを更新できませんでした: $error';
+    return 'タグを更新できませんでした：$error';
   }
 
   @override
@@ -60114,7 +60107,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_replace_working =>
-      'このデバイスのダイブを退避して、ライブラリをダウンロード中...';
+      'このデバイスのダイブを退避して、ライブラリをダウンロード中…';
 
   @override
   String get settings_setUpDevice_replace_doneTitle => 'ライブラリをダウンロードしました';
@@ -60375,23 +60368,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get web_unavailable_reason_hardware =>
-      'この機能には、Bluetooth、USB、NFC、カメラなど、Webページからアクセスできないハードウェアが必要です。スマートフォンまたはコンピューターの Submersion アプリをご利用ください。';
+      'この機能には、Bluetooth、USB、NFC、カメラなど、Webページからアクセスできないハードウェアが必要です。スマートフォンまたはコンピューターのSubmersionアプリをご利用ください。';
 
   @override
   String get web_unavailable_reason_background =>
-      'この機能はバックグラウンドまたはローカルサービスとして動作しますが、Webページではそれができません。スマートフォンまたはコンピューターの Submersion アプリをご利用ください。';
+      'この機能はバックグラウンドまたはローカルサービスとして動作しますが、Webページではそれができません。スマートフォンまたはコンピューターのSubmersionアプリをご利用ください。';
 
   @override
   String get web_unavailable_reason_files =>
-      'この機能はデバイス上のファイルを扱いますが、Webページからはアクセスできません。スマートフォンまたはコンピューターの Submersion アプリをご利用ください。';
+      'この機能はデバイス上のファイルを扱いますが、Webページからはアクセスできません。スマートフォンまたはコンピューターのSubmersionアプリをご利用ください。';
 
   @override
   String get web_unavailable_reason_icloud =>
-      'iCloud は Apple デバイスの Submersion アプリでのみ利用できます。';
+      'iCloudはAppleデバイスのSubmersionアプリでのみ利用できます。';
 
   @override
   String get web_unavailable_reason_git =>
-      'Git ホストは Webページからのリクエストを受け付けません。Git の同期ストアには、スマートフォンまたはコンピューターの Submersion アプリをご利用ください。';
+      'GitホストはWebページからのリクエストを受け付けません。Gitの同期ストアには、スマートフォンまたはコンピューターのSubmersionアプリをご利用ください。';
 
   @override
   String get web_continueWithoutSync => '同期ストアなしで続行';
@@ -60409,21 +60402,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get web_unavailable_offer_icloud =>
-      'iCloud にアクセスできるのは Apple デバイスの Submersion アプリだけです。';
+      'iCloudにアクセスできるのはAppleデバイスのSubmersionアプリだけです。';
 
   @override
-  String get web_unavailable_offer_git => 'Git ホストは Webページからのリクエストを受け付けません。';
+  String get web_unavailable_offer_git => 'GitホストはWebページからのリクエストを受け付けません。';
 
   @override
-  String get web_googleClientId_title => 'Google クライアント ID';
+  String get web_googleClientId_title => 'GoogleクライアントID';
 
   @override
   String get web_googleClientId_body =>
-      'Webページは、あなた自身の Google Cloud プロジェクトのクライアント ID で Google にサインインします。種類は「ウェブ アプリケーション」とし、このサイトのアドレスを承認済みの JavaScript 生成元に指定してください。ここに貼り付けると、他のサインイン情報と一緒に保存されます。';
+      'Webページは、あなた自身のGoogle CloudプロジェクトのクライアントIDでGoogleにサインインします。種類は「ウェブ アプリケーション」とし、このサイトのアドレスを承認済みのJavaScript生成元に指定してください。ここに貼り付けると、他のサインイン情報と一緒に保存されます。';
 
   @override
   String get web_googleClientId_ownProjectNote =>
-      '自分のクライアント ID では、このサイトが作成した Google Drive ライブラリしか見えません。Google はプロジェクトごとに Drive フォルダーを分けているため、スマートフォンやコンピューターが Google Drive に同期しているライブラリはここでは開けません。';
+      '自分のクライアントIDでは、このサイトが作成したGoogle Driveライブラリしか見えません。GoogleはプロジェクトごとにDriveフォルダーを分けているため、スマートフォンやコンピューターがGoogle Driveに同期しているライブラリはここでは開けません。';
 
   @override
   String get web_googleClientId_hint =>
@@ -60431,7 +60424,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get web_googleClientId_invalid =>
-      'Google クライアント ID ではないようです。末尾は .apps.googleusercontent.com になります。';
+      'GoogleクライアントIDではないようです。末尾は .apps.googleusercontent.comになります。';
 
   @override
   String get web_googleClientId_help => '作成方法';
@@ -60441,28 +60434,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get web_cors_explain_blockedByCors =>
-      'ブラウザがストアに問い合わせましたが、読み取りを許可された応答がありませんでした。ストアの CORS ルールでこのサイトのアドレスを許可する必要があります。下のルールをストアに追加してから、もう一度確認してください。';
+      'ブラウザがストアに問い合わせましたが、読み取りを許可された応答がありませんでした。ストアのCORSルールでこのサイトのアドレスを許可する必要があります。下のルールをストアに追加してから、もう一度確認してください。';
 
   @override
   String get web_cors_title_methodBlockedByCors => 'ストアは一部のリクエストのみを許可しています';
 
   @override
   String get web_cors_explain_methodBlockedByCors =>
-      'ストアはこのサイトからの通常のリクエストには応答しますが、WebDAV の PROPFIND など、アプリが必要とするメソッドを拒否しています。CORS ルールに下のメソッドをすべて含める必要があります。';
+      'ストアはこのサイトからの通常のリクエストには応答しますが、WebDAVのPROPFINDなど、アプリが必要とするメソッドを拒否しています。CORSルールに下のメソッドをすべて含める必要があります。';
 
   @override
   String get web_cors_title_writeBlockedByCors => 'ストアは読み取りのみ許可し、書き込みを許可していません';
 
   @override
   String get web_cors_explain_writeBlockedByCors =>
-      'このサイトからの読み取りは成功しましたが、書き込みが拒否されました。CORS ルールで PUT と DELETE も許可する必要があります。下のルールにはこれらが含まれています。';
+      'このサイトからの読み取りは成功しましたが、書き込みが拒否されました。CORSルールでPUTとDELETEも許可する必要があります。下のルールにはこれらが含まれています。';
 
   @override
   String get web_cors_title_forbidden => 'ストアが認証情報を拒否しました';
 
   @override
   String get web_cors_explain_forbidden =>
-      'ストアが 403 を返しました。アクセスキーまたはシークレットが間違っているか、同期に書き込みが必要なのに読み取り専用のキーを使っています。認証情報とキーの権限を確認してください。';
+      'ストアが403を返しました。アクセスキーまたはシークレットが間違っているか、同期に書き込みが必要なのに読み取り専用のキーを使っています。認証情報とキーの権限を確認してください。';
 
   @override
   String get web_cors_title_notFound => 'このアドレスには何も見つかりません';
@@ -60477,7 +60470,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get web_cors_explain_tlsOrUnreachable =>
-      'HTTPS によるプライベートアドレスへの接続が、応答の前に失敗しました。どの証明書を信頼するかはアプリではなくブラウザが決めます。新しいタブでサーバーのアドレスを開いて証明書を承認またはインストールするか、ここからサーバーに接続できることを確認してください。';
+      'HTTPSによるプライベートアドレスへの接続が、応答の前に失敗しました。どの証明書を信頼するかはアプリではなくブラウザが決めます。新しいタブでサーバーのアドレスを開いて証明書を承認またはインストールするか、ここからサーバーに接続できることを確認してください。';
 
   @override
   String get web_cors_title_ok => '接続は正常です';
@@ -60490,7 +60483,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get web_cors_explain_unknown =>
-      'ブラウザが理由不明のエラーを報告しました。多くの場合、ストアの CORS ルールがこのサイトのアドレスを許可していません。通常は下のルールで解決します。';
+      'ブラウザが理由不明のエラーを報告しました。多くの場合、ストアのCORSルールがこのサイトのアドレスを許可していません。通常は下のルールで解決します。';
 
   @override
   String get web_cors_copyRule => 'ルールをコピー';
@@ -60517,18 +60510,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get web_forgetDevice_title => 'このデバイスを登録解除';
 
   @override
-  String get web_forgetDevice_subtitle => 'ダイブ、サインイン情報、デバイス ID をこのブラウザから削除します';
+  String get web_forgetDevice_subtitle => 'ダイブ、サインイン情報、デバイスIDをこのブラウザから削除します';
 
   @override
   String get web_forgetDevice_confirm => '登録解除';
 
   @override
   String get web_forgetDevice_confirmBody =>
-      'Submersion がこのブラウザに保存しているすべてのデータ（ダイブログ、サインイン情報とパスフレーズ、同期におけるこのデバイスの ID）を削除します。ダイブは同期ストアと他のデバイスに残ります。ページは初期状態で再読み込みされます。';
+      'Submersionがこのブラウザに保存しているすべてのデータ（ダイブログ、サインイン情報とパスフレーズ、同期におけるこのデバイスのID）を削除します。ダイブは同期ストアと他のデバイスに残ります。ページは初期状態で再読み込みされます。';
 
   @override
   String get web_forgetDevice_failed =>
-      'このブラウザはデータベースを保持したままです。他の Submersion のタブを閉じてもう一度お試しください。';
+      'このブラウザはデータベースを保持したままです。他のSubmersionのタブを閉じてもう一度お試しください。';
 
   @override
   String get web_forgetDevice_incomplete =>
@@ -61061,7 +61054,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navTrack_detail_menuUpdateFromFile => 'ファイルから更新';
 
   @override
-  String get navTrack_detail_menuExportCsv => 'CSV としてエクスポート';
+  String get navTrack_detail_menuExportCsv => 'CSVとしてエクスポート';
 
   @override
   String get navTrack_detail_exportUnavailable =>
@@ -61101,7 +61094,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String depth,
     String distance,
   ) {
-    return 'マーカー $number：$time、$depth、$distance';
+    return 'マーカー$number：$time、$depth、$distance';
   }
 
   @override
@@ -61406,7 +61399,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_ceiling_body =>
-      'その時点で減圧モデルが許容する最も浅い水深です。0 は水面まで直接浮上してもモデルの範囲内であることを意味します。';
+      'その時点で減圧モデルが許容する最も浅い水深です。0は水面まで直接浮上してもモデルの範囲内であることを意味します。';
 
   @override
   String get info_term_decoStops_label => '減圧停止';
@@ -61434,42 +61427,42 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      '最も負荷の高い組織が、現在どれだけ M値に近いかをパーセントで示します。100% のとき、ビュールマンの限界値ちょうどにあります。';
+      '最も負荷の高い組織が、現在どれだけM値に近いかをパーセントで示します。100% のとき、ビュールマンの限界値ちょうどにあります。';
 
   @override
   String get info_term_surfaceGf_label => 'SurfGF（水面グラディエントファクター）';
 
   @override
   String get info_term_surfaceGf_body =>
-      'ダイバーが即座に浮上したと仮定した場合の組織の GF99 です。100% を超えると、水面でビュールマンの限界値を超えることになります。';
+      'ダイバーが即座に浮上したと仮定した場合の組織のGF99です。100% を超えると、水面でビュールマンの限界値を超えることになります。';
 
   @override
   String get info_term_gradientFactors_label => 'GF（グラディエントファクター）';
 
   @override
   String get info_term_gradientFactors_body =>
-      'ビュールマンの限界値を抑える2つのパーセント値です。GF Low は最初の停止の位置を、GF High は浮上時の限界を決めます。数値が低いほど、長く保守的なスケジュールになります。';
+      'ビュールマンの限界値を抑える2つのパーセント値です。GF Lowは最初の停止の位置を、GF Highは浮上時の限界を決めます。数値が低いほど、長く保守的なスケジュールになります。';
 
   @override
   String get info_term_cns_label => 'CNS%（中枢神経系酸素毒性）';
 
   @override
   String get info_term_cns_body =>
-      '脳と神経に対する1回のダイブあたりの酸素限界のうち、どれだけを使ったかを示す割合で、NOAA の ppO2 表に基づきます。水面では約90分ごとに半分程度に下がります。';
+      '脳と神経に対する1回のダイブあたりの酸素限界のうち、どれだけを使ったかを示す割合で、NOAAのppO2表に基づきます。水面では約90分ごとに半分程度に下がります。';
 
   @override
   String get info_term_otu_label => 'OTU（酸素耐性単位）';
 
   @override
   String get info_term_otu_body =>
-      '数日間のダイビングで蓄積する、全身への緩やかな酸素量です。1 OTU は 1 bar の純酸素を1分間吸った量です。';
+      '数日間のダイビングで蓄積する、全身への緩やかな酸素量です。1 OTUは1 barの純酸素を1分間吸った量です。';
 
   @override
   String get info_term_ppO2_label => 'ppO2（酸素分圧）';
 
   @override
   String get info_term_ppO2_body =>
-      'この水深で呼吸ガス中の酸素だけが示す圧力（bar）です。一般的な上限は活動中 1.4 bar、減圧中 1.6 bar です。';
+      'この水深で呼吸ガス中の酸素だけが示す圧力（bar）です。一般的な上限は活動中1.4 bar、減圧中1.6 barです。';
 
   @override
   String get info_term_ppN2_label => 'ppN2（窒素分圧）';
@@ -61486,25 +61479,24 @@ class AppLocalizationsJa extends AppLocalizations {
       'この水深で呼吸ガス中のヘリウムが示す圧力（bar）です。ヘリウムは窒素より速く取り込まれて排出され、麻酔作用はありません。';
 
   @override
-  String get info_term_o2Cells_label => 'O2 セル';
+  String get info_term_o2Cells_label => 'O2セル';
 
   @override
   String get info_term_o2Cells_body =>
-      'リブリーザーのループ内で、それぞれ ppO2 を測定するセンサーです。値が一致しない場合は、セルの故障や浸水が疑われます。';
+      'リブリーザーのループ内で、それぞれppO2を測定するセンサーです。値が一致しない場合は、セルの故障や浸水が疑われます。';
 
   @override
   String get info_term_mod_label => 'MOD（最大運用水深）';
 
   @override
-  String get info_term_mod_body =>
-      'ガスが ppO2 の上限に達する水深です。これより深いと、酸素への曝露が上限を超えます。';
+  String get info_term_mod_body => 'ガスがppO2の上限に達する水深です。これより深いと、酸素への曝露が上限を超えます。';
 
   @override
   String get info_term_mnd_label => 'MND（最大麻酔深度）';
 
   @override
   String get info_term_mnd_body =>
-      'ガスがダイバーの END 上限内に収まる最も深い水深です。混合ガスにヘリウムが含まれると深くなります。';
+      'ガスがダイバーのEND上限内に収まる最も深い水深です。混合ガスにヘリウムが含まれると深くなります。';
 
   @override
   String get info_term_end_label => 'END（等価麻酔深度）';
@@ -61525,14 +61517,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_eadd_body =>
-      '空気がこの水深でのこのガスと同じ密度になる水深です。g/L で表す密度と違い、温度に左右されません。';
+      '空気がこの水深でのこのガスと同じ密度になる水深です。g/Lで表す密度と違い、温度に左右されません。';
 
   @override
   String get info_term_gasDensity_label => 'ガス密度';
 
   @override
   String info_term_gasDensity_body(String warn, String critical) {
-    return '水中での呼吸ガスの重さ（1リットルあたりのグラム数）で、呼吸のしづらさを左右します。公表された研究では、$warn g/L を推奨上限、$critical g/L を限界値としています。';
+    return '水中での呼吸ガスの重さ（1リットルあたりのグラム数）で、呼吸のしづらさを左右します。公表された研究では、$warn g/Lを推奨上限、$critical g/Lを限界値としています。';
   }
 
   @override
@@ -61547,14 +61539,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_rmv_body =>
-      '1分間に呼吸するガスの量を水面の圧力に換算したものです。SAC と違い、タンクのサイズに左右されません。';
+      '1分間に呼吸するガスの量を水面の圧力に換算したものです。SACと違い、タンクのサイズに左右されません。';
 
   @override
   String get info_term_ascentRate_label => '浮上速度';
 
   @override
   String info_term_ascentRate_body(String rate) {
-    return '1分あたりに水深が浅くなる速さです。一般的な講習では $rate を上限としています。';
+    return '1分あたりに水深が浅くなる速さです。一般的な講習では$rateを上限としています。';
   }
 
   @override
@@ -61589,7 +61581,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String info_term_safetyStop_body(String depth) {
-    return '浮上前に $depth 付近で行う任意の停止で、通常は3分間です。無減圧ダイブではモデル上必須ではありません。';
+    return '浮上前に$depth付近で行う任意の停止で、通常は3分間です。無減圧ダイブではモデル上必須ではありません。';
   }
 
   @override
@@ -61618,7 +61610,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_tissueLoad_body =>
-      'コンパートメントが保持している不活性ガスの量を、限界に対するパーセントで示します。100% のとき M値にあります。';
+      'コンパートメントが保持している不活性ガスの量を、限界に対するパーセントで示します。100% のときM値にあります。';
 
   @override
   String get info_term_mValue_label => 'M値';
@@ -61660,14 +61652,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_nitrox_body =>
-      '酸素を富化した空気で、EAN32 のように酸素の割合で呼びます。窒素が少ないため無減圧時間が長くなり、酸素が多いため MOD は浅くなります。';
+      '酸素を富化した空気で、EAN32のように酸素の割合で呼びます。窒素が少ないため無減圧時間が長くなり、酸素が多いためMODは浅くなります。';
 
   @override
   String get info_term_trimix_label => 'トライミックス';
 
   @override
   String get info_term_trimix_body =>
-      '酸素、ヘリウム、窒素の混合ガスで、18/45 のように酸素/ヘリウムの順に表記します。ヘリウムは水中での窒素酔いとガス密度を軽減します。';
+      '酸素、ヘリウム、窒素の混合ガスで、18/45のように酸素/ヘリウムの順に表記します。ヘリウムは水中での窒素酔いとガス密度を軽減します。';
 
   @override
   String get info_term_diluent_label => 'ディリュエント';
@@ -61681,7 +61673,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_setpoint_body =>
-      '閉鎖式リブリーザーがループ内で維持しようとする ppO2 です。ダイブ中に低いセットポイントと高いセットポイントを切り替えることがよくあります。';
+      '閉鎖式リブリーザーがループ内で維持しようとするppO2です。ダイブ中に低いセットポイントと高いセットポイントを切り替えることがよくあります。';
 
   @override
   String get info_term_bailout_label => 'ベイルアウト';
@@ -61773,11 +61765,11 @@ class AppLocalizationsJa extends AppLocalizations {
       'この線は、グラフに表示中のダイブコンピューターについて、浮力カードと同じモデルによるダイブ全体の正味の浮力を示します。浮いているときは緑、沈んでいるときはマゼンタで表示され、破線は中性浮力を示します。';
 
   @override
-  String get info_term_aveloProfile_label => 'Avelo の値';
+  String get info_term_aveloProfile_label => 'Aveloの値';
 
   @override
   String get info_term_aveloProfile_body =>
-      'Shearwater の Avelo モードは、ダイブコンピューターが記録したままの値として、Avelo の浮力（マイナスは沈む方向）、Hydrotank の残りガスの割合、ダイブコンピューター独自の RMV を記録します。これらはアプリが計算した値ではなく、この浮力は浮力カードのモデルによる浮力とは異なります。';
+      'ShearwaterのAveloモードは、ダイブコンピューターが記録したままの値として、Aveloの浮力（マイナスは沈む方向）、Hydrotankの残りガスの割合、ダイブコンピューター独自のRMVを記録します。これらはアプリが計算した値ではなく、この浮力は浮力カードのモデルによる浮力とは異なります。';
 
   @override
   String get info_term_hypercapnia_label => '高炭酸ガス血症';
@@ -61818,7 +61810,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_airBreaks_body =>
-      '長い酸素停止の間に、酸素の少ないガスを短時間呼吸することです。CNS の負荷を軽減します。';
+      '長い酸素停止の間に、酸素の少ないガスを短時間呼吸することです。CNSの負荷を軽減します。';
 
   @override
   String get info_term_rollingAverage_label => '移動平均';
@@ -61852,7 +61844,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_degreeHeatingWeeks_body =>
-      'NOAA Coral Reef Watch による、過去12週間に蓄積した熱ストレスです。NOAA は 4 以上で顕著な白化、8 以上で深刻な白化を予測しています。';
+      'NOAA Coral Reef Watchによる、過去12週間に蓄積した熱ストレスです。NOAAは4以上で顕著な白化、8以上で深刻な白化を予測しています。';
 
   @override
   String get info_term_sstAnomaly_label => '海面水温偏差';
@@ -61865,7 +61857,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_bleachingAlert_body =>
-      'NOAA Coral Reef Watch によるその海域の熱ストレスのレベルで、注意報から警報レベルまであります。';
+      'NOAA Coral Reef Watchによるその海域の熱ストレスのレベルで、注意報から警報レベルまであります。';
 
   @override
   String get info_term_sourceDcCalc_label => 'ダイブコンピューターまたは計算値';
@@ -61885,8 +61877,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get info_term_cellOutput_label => 'セル出力';
 
   @override
-  String get info_term_cellOutput_body =>
-      '各酸素セルのミリボルト値で、リブリーザーはこれを ppO2 に換算します。';
+  String get info_term_cellOutput_body => '各酸素セルのミリボルト値で、リブリーザーはこれをppO2に換算します。';
 
   @override
   String get info_term_highO2Hours_label => '高酸素使用時間';
@@ -61895,45 +61886,45 @@ class AppLocalizationsJa extends AppLocalizations {
   String get info_term_highO2Hours_body => '酸素濃度を高めたガスを呼吸した時間で、酸素対応部品の消耗を早めます。';
 
   @override
-  String get info_term_decoStatus_label => 'DECO と NO DECO';
+  String get info_term_decoStatus_label => 'DECOとNO DECO';
 
   @override
   String get info_term_decoStatus_body =>
-      'NO DECO は、その時点で直接浮上してもモデルの範囲内であることを示します。DECO は、浮上前に少なくとも1回の停止が必要であることを示します。';
+      'NO DECOは、その時点で直接浮上してもモデルの範囲内であることを示します。DECOは、浮上前に少なくとも1回の停止が必要であることを示します。';
 
   @override
   String get info_term_cnsStartAdded_label => '開始時とこのダイブ';
 
   @override
   String get info_term_cnsStartAdded_body =>
-      '開始時は、それまでのダイブから持ち越した CNS% で、経過時間の分だけすでに減少しています。このダイブは、このダイブ自体で加算された分です。';
+      '開始時は、それまでのダイブから持ち越したCNS% で、経過時間の分だけすでに減少しています。このダイブは、このダイブ自体で加算された分です。';
 
   @override
-  String get info_term_otuWindows_label => '1日と1週間の OTU';
+  String get info_term_otuWindows_label => '1日と1週間のOTU';
 
   @override
   String get info_term_otuWindows_body =>
-      '1日の OTU は午前0時以降のすべてのダイブを、1週間の OTU は直近7日間の移動合計を数えます。それぞれその期間のアプリの上限と比べて表示します。';
+      '1日のOTUは午前0時以降のすべてのダイブを、1週間のOTUは直近7日間の移動合計を数えます。それぞれその期間のアプリの上限と比べて表示します。';
 
   @override
-  String get info_term_maxPpO2_label => '最大 ppO2';
+  String get info_term_maxPpO2_label => '最大ppO2';
 
   @override
   String get info_term_maxPpO2_body => 'ダイブ中に呼吸した酸素分圧の最大値です。';
 
   @override
-  String get info_term_timeAboveLimit_label => 'ppO2 上限超過時間';
+  String get info_term_timeAboveLimit_label => 'ppO2上限超過時間';
 
   @override
   String get info_term_timeAboveLimit_body =>
-      'このダイブ中に、ppO2 が設定で指定した上限を超えていた時間です。';
+      'このダイブ中に、ppO2が設定で指定した上限を超えていた時間です。';
 
   @override
   String get info_term_idealSwitchDepth_label => '理想の切り替え水深';
 
   @override
   String get info_term_idealSwitchDepth_body =>
-      '浮上中に次のガスが ppO2 上限内に収まる最も深い地点で、そのガスの MOD にあたります。カードでは、記録された切り替え水深と比較します。';
+      '浮上中に次のガスがppO2上限内に収まる最も深い地点で、そのガスのMODにあたります。カードでは、記録された切り替え水深と比較します。';
 
   @override
   String get info_term_extraDeco_label => '追加の減圧';
@@ -61950,7 +61941,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '各帯は1つのコンパートメントの負荷の推移で、他の帯の上に積み重ねているため、全体の高さが全コンパートメントの負荷を示します。';
 
   @override
-  String get info_term_nitrogenHelium_label => 'N2 と He';
+  String get info_term_nitrogenHelium_label => 'N2とHe';
 
   @override
   String get info_term_nitrogenHelium_body =>
@@ -62008,7 +61999,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_netBuoyancy_body =>
-      'すべての要素を合計したもので、浮く力をプラス、重さをマイナスとして数えます。0 が中性浮力です。';
+      'すべての要素を合計したもので、浮く力をプラス、重さをマイナスとして数えます。0が中性浮力です。';
 
   @override
   String get info_term_buoyancySwing_label => '浮力の変動';
@@ -62022,14 +62013,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_peakLift_body =>
-      '中性浮力を保つために、ダイブ中のある時点で BCD またはドライスーツが加える必要のあった最大の浮力です。';
+      '中性浮力を保つために、ダイブ中のある時点でBCDまたはドライスーツが加える必要のあった最大の浮力です。';
 
   @override
   String get info_term_minDitchable_label => '最小投棄可能ウェイト';
 
   @override
   String info_term_minDitchable_body(String weight) {
-    return 'ダイブ中で最も重い地点で、約 $weight の浮力を得るために捨てる必要があるウェイトです。';
+    return 'ダイブ中で最も重い地点で、約$weightの浮力を得るために捨てる必要があるウェイトです。';
   }
 
   @override
@@ -62044,7 +62035,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_noFlyTime_body =>
-      '最後のダイブから、DAN と UHMS のガイドラインによる搭乗までの間隔が経過するまでの時間です。間隔は、ダイブが1本だけか、反復ダイブか、減圧が必要だったか、および設定のプリセットによって異なります。';
+      '最後のダイブから、DANとUHMSのガイドラインによる搭乗までの間隔が経過するまでの時間です。間隔は、ダイブが1本だけか、反復ダイブか、減圧が必要だったか、および設定のプリセットによって異なります。';
 
   @override
   String get info_term_perYearRate_label => '1年あたりの変化';
@@ -62189,7 +62180,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '潜降時に低いセットポイントから高いセットポイントへ、浮上時に元へ戻すプラン上の水深です。';
 
   @override
-  String get info_term_pscrRatio_label => 'pSCR 比率';
+  String get info_term_pscrRatio_label => 'pSCR比率';
 
   @override
   String get info_term_pscrRatio_body =>
@@ -62207,7 +62198,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String info_term_vo2_body(String rest, String swim, String hard) {
-    return 'ダイバーの体が消費する酸素量を水面換算のガス量で表したもので、安静時は約 $rest、遊泳時は $swim、激しい運動時は $hard です。運動量が多いほど、半閉鎖式ループ内の酸素は少なくなります。';
+    return 'ダイバーの体が消費する酸素量を水面換算のガス量で表したもので、安静時は約$rest、遊泳時は$swim、激しい運動時は$hardです。運動量が多いほど、半閉鎖式ループ内の酸素は少なくなります。';
   }
 
   @override
@@ -62261,7 +62252,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_cellGain_body =>
-      '各酸素セルのミリボルト値を、そのセルが測定する ppO2 で割ったものです。セルが正常な間は安定し、劣化すると下がります。';
+      '各酸素セルのミリボルト値を、そのセルが測定するppO2で割ったものです。セルが正常な間は安定し、劣化すると下がります。';
 
   @override
   String get info_term_transmitterDropouts_label => 'トランスミッターの途切れ';
@@ -62275,7 +62266,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_o2Narcotic_body =>
-      'オンにすると、END と MND の計算で酸素を窒素と同様に麻酔性ガスとして数えます。END は深く、MND は浅くなります。';
+      'オンにすると、ENDとMNDの計算で酸素を窒素と同様に麻酔性ガスとして数えます。ENDは深く、MNDは浅くなります。';
 
   @override
   String get info_term_ascentGasSet_label => '浮上用のガス';
@@ -62290,7 +62281,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_diveLog_profile_background =>
-      '減圧と酸素のオーバーレイは、設定のグラディエントファクターを使ったビュールマン ZHL-16C モデルと、NOAA の酸素表に基づきます。';
+      '減圧と酸素のオーバーレイは、設定のグラディエントファクターを使ったビュールマンZHL-16Cモデルと、NOAAの酸素表に基づきます。';
 
   @override
   String get info_diveLog_profile_howToUse =>
@@ -62305,19 +62296,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_diveLog_decoStatus_background =>
-      'アプリは GF チップのグラディエントファクターでビュールマン ZHL-16C モデルを計算します。別のモデルや設定を使うダイブコンピューターでは、異なる数値になることがあります。';
+      'アプリはGFチップのグラディエントファクターでビュールマンZHL-16Cモデルを計算します。別のモデルや設定を使うダイブコンピューターでは、異なる数値になることがあります。';
 
   @override
   String get info_diveLog_o2Toxicity_summary =>
-      'このダイブで加わった酸素への曝露量を、短期の CNS と緩やかに蓄積する OTU で示します。';
+      'このダイブで加わった酸素への曝露量を、短期のCNSと緩やかに蓄積するOTUで示します。';
 
   @override
   String get info_diveLog_o2Toxicity_background =>
-      'CNS% は NOAA の ppO2 曝露限界に従い、ダイブ後は90分の半減期で下がります。1日の OTU は午前0時にリセットされ、1週間の OTU は直近7日間を対象とします。';
+      'CNS% はNOAAのppO2曝露限界に従い、ダイブ後は90分の半減期で下がります。1日のOTUは午前0時にリセットされ、1週間のOTUは直近7日間を対象とします。';
 
   @override
   String get info_diveLog_gasSwitches_summary =>
-      '各ガス切り替えを、そのガスが ppO2 上限内に収まる最も深い地点と比較します。';
+      '各ガス切り替えを、そのガスがppO2上限内に収まる最も深い地点と比較します。';
 
   @override
   String get info_diveLog_tissueLoading_summary =>
@@ -62325,7 +62316,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_diveLog_tissueLoading_background =>
-      'モデルはビュールマン ZHL-16C で、各コンパートメントの窒素とヘリウムを別々に追跡します。負荷は水面レベルを上回る分だけを数えるため、完全に排出されたバーでも 0 にはなりません。';
+      'モデルはビュールマンZHL-16Cで、各コンパートメントの窒素とヘリウムを別々に追跡します。負荷は水面レベルを上回る分だけを数えるため、完全に排出されたバーでも0にはなりません。';
 
   @override
   String get info_diveLog_safetyReview_summary =>
@@ -62348,8 +62339,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'ガス使用量をダイブの段階ごと、または時間区切りごとに分けて、各区間の負担を比較できるようにします。';
 
   @override
-  String get info_diveLog_sacSegments_howToUse =>
-      'グラフ上部のセレクターで SAC と RMV を切り替えます。';
+  String get info_diveLog_sacSegments_howToUse => 'グラフ上部のセレクターでSACとRMVを切り替えます。';
 
   @override
   String get info_diveLog_details_summary =>
@@ -62369,7 +62359,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_diveLog_waterConditions_summary =>
-      'NOAA Coral Reef Watch の衛星データによる、ダイブ日前後のサイト付近の海水温とサンゴの熱ストレスです。';
+      'NOAA Coral Reef Watchの衛星データによる、ダイブ日前後のサイト付近の海水温とサンゴの熱ストレスです。';
 
   @override
   String get info_diveLab_compare_summary =>
@@ -62565,14 +62555,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_planner_carry_summary =>
-      'このダイブが次のダイブに残すもので、水面休息時間、持ち越す CNS、OTU を示します。';
+      'このダイブが次のダイブに残すもので、水面休息時間、持ち越すCNS、OTUを示します。';
 
   @override
   String get info_plannerSetup_deco_summary => 'スケジュールの保守性と最終停止の位置です。';
 
   @override
   String get info_plannerSetup_deco_howToUse =>
-      'GF Low を下げると最初の停止が深くなり、GF High を下げると浅い停止が長くなります。各値を変更すると結果が更新されます。';
+      'GF Lowを下げると最初の停止が深くなり、GF Highを下げると浅い停止が長くなります。各値を変更すると結果が更新されます。';
 
   @override
   String get info_plannerSetup_rates_summary => 'ダイブの各区間でプランが潜降・浮上する速さです。';
@@ -62615,7 +62605,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_plannerSetup_scr_howToUse =>
-      'この供給ガスでのノズルの注入量と想定する VO₂ を入力します。空欄の場合は設定の値を使います。表示されるループ内の酸素をユニットの資料と照らし合わせて確認してください。';
+      'この供給ガスでのノズルの注入量と想定するVO₂ を入力します。空欄の場合は設定の値を使います。表示されるループ内の酸素をユニットの資料と照らし合わせて確認してください。';
 
   @override
   String get info_plannerSetup_contingencies_summary =>
@@ -62661,19 +62651,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_calculators_mod_summary =>
-      '選んだ混合ガスが ppO2 上限内に収まる最も深い水深と、そこでの EAD と END です。';
+      '選んだ混合ガスがppO2上限内に収まる最も深い水深と、そこでのEADとENDです。';
 
   @override
   String get info_calculators_mod_howToUse =>
-      'モードを選び、酸素と使用時の ppO2 を設定します。目標水深を追加すると、予定水深がその混合ガスに適しているかを確認できます。END の上限と、酸素を麻酔性ガスとして数えるかどうかは、ダイバープロファイルから取得します。';
+      'モードを選び、酸素と使用時のppO2を設定します。目標水深を追加すると、予定水深がその混合ガスに適しているかを確認できます。ENDの上限と、酸素を麻酔性ガスとして数えるかどうかは、ダイバープロファイルから取得します。';
 
   @override
   String get info_calculators_bestMix_summary =>
-      '目標水深で ppO2 を上限内に、END を窒素酔いの上限内に保つ、最も酸素の多い混合ガスです。';
+      '目標水深でppO2を上限内に、ENDを窒素酔いの上限内に保つ、最も酸素の多い混合ガスです。';
 
   @override
   String get info_calculators_bestMix_howToUse =>
-      '目標水深とモードを設定します。CCR では、混合ガスをディリュエントとして使うかベイルアウトガスとして使うかを選びます。';
+      '目標水深とモードを設定します。CCRでは、混合ガスをディリュエントとして使うかベイルアウトガスとして使うかを選びます。';
 
   @override
   String get info_calculators_consumption_summary =>
@@ -62696,11 +62686,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_calculators_mnd_summary =>
-      'ガスが END の上限内に収まる最も深い水深と、指定した水深でのガスの END です。';
+      'ガスがENDの上限内に収まる最も深い水深と、指定した水深でのガスのENDです。';
 
   @override
   String get info_calculators_mnd_howToUse =>
-      'ガス、END の上限、酸素を麻酔性ガスとして数えるかどうかを入力します。';
+      'ガス、ENDの上限、酸素を麻酔性ガスとして数えるかどうかを入力します。';
 
   @override
   String get info_calculators_icd_summary =>
@@ -62718,11 +62708,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_calculators_density_background =>
-      'CCR では、密度はループ内のガスのものです。酸素はセットポイントの値で、残りはディリュエントの比率で分配します。ガスは冷たいほど密度が高く、計算は理想気体を前提としています。';
+      'CCRでは、密度はループ内のガスのものです。酸素はセットポイントの値で、残りはディリュエントの比率で分配します。ガスは冷たいほど密度が高く、計算は理想気体を前提としています。';
 
   @override
   String get info_calculators_density_howToUse =>
-      '混合ガス、水深、水温を入力し、OC と CCR を切り替えます。';
+      '混合ガス、水深、水温を入力し、OCとCCRを切り替えます。';
 
   @override
   String get info_calculators_blender_summary =>
@@ -62730,7 +62720,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_calculators_blender_background =>
-      '各ガスを表示された圧力まで加え、次のガスの前にタンクを落ち着かせます。充填ガスとその順番は設定できるため、最後のガスを空気の代わりに EAN32 にすることもできます。';
+      '各ガスを表示された圧力まで加え、次のガスの前にタンクを落ち着かせます。充填ガスとその順番は設定できるため、最後のガスを空気の代わりにEAN32にすることもできます。';
 
   @override
   String get info_calculators_blender_howToUse =>
@@ -62738,7 +62728,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_decoCalculator_summary =>
-      '一定水深のダイブをビュールマン ZHL-16C モデルで計算し、ガスの制限、停止、組織負荷を示します。';
+      '一定水深のダイブをビュールマンZHL-16Cモデルで計算し、ガスの制限、停止、組織負荷を示します。';
 
   @override
   String get info_decoCalculator_howToUse =>
@@ -62750,11 +62740,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_surfaceIntervalTool_background =>
-      'モデルの16のコンパートメントは水面休息中にガスを排出し、速いものは数分、遅いものは数時間かけて排出します。支配コンパートメントは最も負荷の高いもので、通常は NDL を決定します。';
+      'モデルの16のコンパートメントは水面休息中にガスを排出し、速いものは数分、遅いものは数時間かけて排出します。支配コンパートメントは最も負荷の高いもので、通常はNDLを決定します。';
 
   @override
   String get info_surfaceIntervalTool_howToUse =>
-      '1本目のダイブ、2本目のダイブ、水面休息時間を設定します。結果には、最小の水面休息時間と2本目のダイブの NDL が表示されます。';
+      '1本目のダイブ、2本目のダイブ、水面休息時間を設定します。結果には、最小の水面休息時間と2本目のダイブのNDLが表示されます。';
 
   @override
   String get info_equipment_trend_summary =>
@@ -62780,19 +62770,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_settings_gradientFactors_background =>
-      'グラディエントファクターは、Erik Baker が提唱した方法で、ビュールマン ZHL-16C の M値を抑えます。アプリが計算するすべての減圧の数値にこれが使われます。';
+      'グラディエントファクターは、Erik Bakerが提唱した方法で、ビュールマンZHL-16CのM値を抑えます。アプリが計算するすべての減圧の数値にこれが使われます。';
 
   @override
   String get info_settings_oxygenToxicity_summary =>
-      'アプリ全体の酸素関連の数値に使う ppO2 の上限と CNS の計算方法です。';
+      'アプリ全体の酸素関連の数値に使うppO2の上限とCNSの計算方法です。';
 
   @override
   String get info_settings_dataSources_summary =>
-      'NDL、減圧停止、TTS、GTR、CNS を、ダイブコンピューターの値とアプリ独自の計算のどちらから取得するかを設定します。';
+      'NDL、減圧停止、TTS、GTR、CNSを、ダイブコンピューターの値とアプリ独自の計算のどちらから取得するかを設定します。';
 
   @override
-  String get info_settings_narcosis_summary =>
-      'END の上限と、アプリ全体での END と MND の計算方法です。';
+  String get info_settings_narcosis_summary => 'ENDの上限と、アプリ全体でのENDとMNDの計算方法です。';
 
   @override
   String get info_settings_icd_summary =>
@@ -62800,7 +62789,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_settings_ascent_summary =>
-      'アプリが TTS、シーリング、停止を計算する際に、シミュレーションの浮上で切り替え可能なガスです。';
+      'アプリがTTS、シーリング、停止を計算する際に、シミュレーションの浮上で切り替え可能なガスです。';
 
   @override
   String get info_settings_safetyRules_summary =>
@@ -62831,7 +62820,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'MOD は常に切り捨てで、切り上げることはありません。Rec ではダイブログと同様に $depth あたり 1 bar を使います。OC Tec と CCR Tec は水の種類から水中の圧力を計算するため、同じ混合ガスでも MOD がわずかに浅く表示されることがあります。';
+    return 'MODは常に切り捨てで、切り上げることはありません。Recではダイブログと同様に$depthあたり1 barを使います。OC TecとCCR Tecは水の種類から水中の圧力を計算するため、同じ混合ガスでもMODがわずかに浅く表示されることがあります。';
   }
 
   @override
@@ -62871,7 +62860,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String equipment_setEdit_weights_total(String weight) {
-    return '合計 $weight';
+    return '合計$weight';
   }
 
   @override
@@ -62905,7 +62894,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String equipment_sets_leadTotal(String weight) {
-    return '鉛 $weight';
+    return '鉛$weight';
   }
 
   @override
@@ -62972,7 +62961,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String bodyWeight_bodyFatEstimate(int percent) {
-    return '推定: 約$percent%';
+    return '推定：約$percent%';
   }
 
   @override
@@ -63037,10 +63026,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashboard_key_lastDive => '最後のダイブ';
 
   @override
-  String get dashboard_key_avgSac => '平均 SAC';
+  String get dashboard_key_avgSac => '平均SAC';
 
   @override
-  String get dashboard_key_avgRmv => '平均 RMV';
+  String get dashboard_key_avgRmv => '平均RMV';
 
   @override
   String get dashboard_key_deepestThisYear => '今年の最大水深';
@@ -63085,12 +63074,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dashboard_key_lastYear(String value) {
-    return '昨年 $value';
+    return '昨年$value';
   }
 
   @override
   String dashboard_key_tripChecklist(String name, int done, int total) {
-    return 'チェックリスト $done/$total · $name';
+    return 'チェックリスト$done/$total · $name';
   }
 
   @override
@@ -63119,10 +63108,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashboard_panel_divesPerMonth => '月別ダイブ数';
 
   @override
-  String get dashboard_panel_sacTrend => 'SAC の推移';
+  String get dashboard_panel_sacTrend => 'SACの推移';
 
   @override
-  String get dashboard_panel_rmvTrend => 'RMV の推移';
+  String get dashboard_panel_rmvTrend => 'RMVの推移';
 
   @override
   String dashboard_panel_lastDives(int count) {
@@ -63218,7 +63207,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dashboard_panel_vsAverage(String value, String average) {
-    return '$value · 平均 $average';
+    return '$value · 平均$average';
   }
 
   @override
