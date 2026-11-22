@@ -122,7 +122,7 @@ void main() {
       'dive_profile_series_history',
     ]) {
       final spec = table == 'dive_profile_series_history'
-          ? changeLogRawTableSpecs.single
+          ? changeLogRawTableSpecs.firstWhere((s) => s.table == table)
           : _specFor(db, table);
       final statements = buildChangeLogTriggers(
         spec,

@@ -219,9 +219,12 @@ void main() {
     for (final MapEntry(key: table, value: reading)
         in changeLogReadingColumns.entries) {
       expect(changeLogOptInLogsInserts(table), isTrue, reason: table);
-      for (final column in reading) {
+      // A row with no source is named by its computer, and only a row
+      // written since a delete supersedes it.
+      for (final column in [...reading, 'computer_id', 'created_at']) {
         expect(columns[table], contains(column), reason: '$table.$column');
       }
+      expect(reading.first, 'dive_id', reason: table);
     }
   });
 

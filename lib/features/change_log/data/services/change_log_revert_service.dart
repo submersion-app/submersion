@@ -165,9 +165,12 @@ class ChangeLogRevertService {
     return [
       ...restores,
       ...edits,
-      ...await planner.planRemovals(
-        events,
-        releasing: ChangeLogRecordPlanner.releasedLinks(edits),
+      ...await planner.keepUnreplaced(
+        await planner.planRemovals(
+          events,
+          releasing: ChangeLogRecordPlanner.releasedLinks(edits),
+        ),
+        restores,
       ),
     ];
   }

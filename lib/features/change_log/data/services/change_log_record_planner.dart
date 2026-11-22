@@ -15,6 +15,9 @@ String _keyOf(ChangeLogEvent event) =>
 String _rootKeyOf(ChangeLogEvent event) =>
     changeLogRecordKey(event.root.table, event.root.id);
 
+/// A WHERE clause and its values.
+typedef _ReadingSql = ({String sql, List<Variable<Object>> variables});
+
 /// Works out which deleted records can return and which created records can
 /// go, before anything is written.
 class ChangeLogRecordPlanner {
@@ -90,31 +93,100 @@ class ChangeLogRecordPlanner {
   }
 
   /// Whether a newer reading of the same source has replaced the row
-  /// [event] deleted ([changeLogReadingColumns]): a live row with its
-  /// reading columns that this revert does not remove. Reverting an older
-  /// re-parse after a newer one would otherwise bring the old strand back
-  /// beside the new (issue #4848).
+  /// [event] deleted ([changeLogReadingColumns]): a live row of its reading,
+  /// written since the delete, that this revert does not remove. Reverting
+  /// an older re-parse after a newer one would otherwise bring the old strand
+  /// back beside the new (issue #4848). A row older than the delete is one
+  /// the operation kept, such as the unmarked edit a re-parse leaves beside
+  /// the recording it replaces (issue #4529), and says nothing.
   Future<bool> _superseded(ChangeLogEvent event, Set<String> removing) async {
-    final columns = changeLogReadingColumns[event.table];
-    if (columns == null) return false;
-    final copy = {for (final f in event.fields) f.column: f.oldValue};
-    final profile = event.table == 'dive_profile_series';
-    if (profile && _isTrue(copy['is_edit'])) return false;
+    final reading = _readingOf(event.table, _copyOf(event));
     final spec = _repository.specOf(event.table);
-    if (spec == null) return false;
+    if (reading == null || spec == null) return false;
     final rows = await _db
         .customSelect(
           'SELECT ${changeLogRecordIdSql('"${event.table}"', spec.keyColumns)} '
-          'AS record_id FROM "${event.table}" WHERE '
-          '${columns.map((c) => '"$c" IS ?').join(' AND ')}'
-          '${profile ? ' AND COALESCE(is_edit, 0) = 0' : ''}',
-          variables: [for (final c in columns) Variable<Object>(copy[c])],
+          'AS record_id FROM "${event.table}" '
+          'WHERE ${reading.sql} AND created_at >= ?',
+          variables: [
+            ...reading.variables,
+            Variable<int>(event.changedAt.millisecondsSinceEpoch),
+          ],
         )
         .get();
     return rows.any(
       (row) => !removing.contains(
         changeLogRecordKey(event.table, row.read<String>('record_id')),
       ),
+    );
+  }
+
+  /// [removals] less the new readings whose old ones cannot return: a series
+  /// or pressure curve the entry wrote stays while a row of the reading it
+  /// replaced is blocked, as when that row's computer has since been
+  /// deleted, or the source would be left with none (issue #4848). A reading
+  /// that is already back loses nothing.
+  Future<List<ChangeLogRevertItem>> keepUnreplaced(
+    List<ChangeLogRevertItem> removals,
+    List<ChangeLogRevertItem> restores,
+  ) async {
+    final stranded = [
+      for (final item in restores)
+        if (item.block case final block?
+            when block != ChangeLogBlock.alreadyRestored)
+          if (_readingOf(item.event.table, _copyOf(item.event))
+              case final reading?)
+            (table: item.event.table, reading: reading),
+    ];
+    if (stranded.isEmpty) return removals;
+    return [
+      for (final item in removals)
+        if (!item.isBlocked && await _ofReading(item.event, stranded))
+          item.copyWith(block: ChangeLogBlock.parentGone)
+        else
+          item,
+    ];
+  }
+
+  /// Whether the live row [event] created belongs to one of [readings].
+  Future<bool> _ofReading(
+    ChangeLogEvent event,
+    List<({String table, _ReadingSql reading})> readings,
+  ) async {
+    final spec = _repository.specOf(event.table);
+    if (spec == null) return false;
+    final match = changeLogKeyMatch(spec, event.recordId);
+    for (final (:table, :reading) in readings) {
+      if (table != event.table) continue;
+      final row = await _db
+          .customSelect(
+            'SELECT 1 FROM "$table" WHERE ${match.where} AND ${reading.sql}',
+            variables: [...match.variables, ...reading.variables],
+          )
+          .getSingleOrNull();
+      if (row != null) return true;
+    }
+    return false;
+  }
+
+  static Map<String, Object?> _copyOf(ChangeLogEvent event) => {
+    for (final f in event.fields) f.column: f.oldValue,
+  };
+
+  /// The rows of [table] in the reading [row] belongs to, as SQL, or null
+  /// for a table with no readings or a manual edit, which is none.
+  static _ReadingSql? _readingOf(String table, Map<String, Object?> row) {
+    final columns = changeLogReadingColumns[table];
+    if (columns == null) return null;
+    final profile = table == 'dive_profile_series';
+    if (profile && _isTrue(row['is_edit'])) return null;
+    final named = [...columns, if (row['source_id'] == null) 'computer_id'];
+    return (
+      sql: [
+        for (final c in named) '"$c" IS ?',
+        if (profile) 'COALESCE(is_edit, 0) = 0',
+      ].join(' AND '),
+      variables: [for (final c in named) Variable<Object>(row[c])],
     );
   }
 

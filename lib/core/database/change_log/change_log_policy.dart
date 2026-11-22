@@ -581,14 +581,21 @@ bool changeLogOptInLogsInserts(String table) =>
     !changeLogDeviceLocalTables.contains(table);
 
 /// The columns that name one reading of a machine table whose rows an
-/// opted-in operation replaces: a computer's strand on a dive, or its
-/// pressure curve on a tank. A replaced row does not return while a newer
-/// reading of the same columns stays, which a later re-parse of the same
-/// source wrote, or the dive would show two strands of one computer (issue
-/// #4848). A manual edit is never a reading.
+/// opted-in operation replaces: a source's strand on a dive, or its
+/// pressure curve on a tank. A row with no source is named by its
+/// `computer_id` as well; a computer delete clears that column on a row that
+/// keeps its source, so it is not part of the name otherwise. A manual edit
+/// is never a reading.
+///
+/// A replaced row does not return while a newer reading stays, which a later
+/// re-parse of the same source wrote, or the dive would show two strands of
+/// one computer. A new row stays while the row it replaced cannot return, or
+/// the source would have none (issue #4848). Each table also has
+/// `computer_id` and `created_at`, and the dive comes first so the lookup
+/// uses the table's dive index.
 const Map<String, List<String>> changeLogReadingColumns = {
-  'dive_profile_series': ['dive_id', 'source_id', 'computer_id'],
-  'tank_pressure_series': ['tank_id', 'source_id', 'computer_id'],
+  'dive_profile_series': ['dive_id', 'source_id'],
+  'tank_pressure_series': ['dive_id', 'tank_id', 'source_id'],
 };
 
 /// Machine columns an entry lists, for any operation: what a diver changes

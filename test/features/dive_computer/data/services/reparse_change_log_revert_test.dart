@@ -62,7 +62,7 @@ void main() {
 
   Future<void> addSource(
     String id, {
-    required String computerId,
+    required String? computerId,
     required bool isPrimary,
   }) => db
       .into(db.diveDataSources)
@@ -83,16 +83,18 @@ void main() {
       );
 
   /// A downloaded series of [sourceId], deeper than any re-parse writes.
+  /// [isEdit] null is a series written before edits were marked.
   Future<String> addSeries(
     String sourceId, {
-    required String computerId,
+    required String? computerId,
     required bool isPrimary,
+    bool? isEdit = false,
   }) => profileSeries.insertSeries(
     diveId: 'dive',
     computerId: computerId,
     sourceId: sourceId,
     isPrimary: isPrimary,
-    isEdit: false,
+    isEdit: isEdit,
     samples: const [
       ProfileSample(timestamp: 0, depth: 0),
       ProfileSample(timestamp: 300, depth: 40),
@@ -260,6 +262,50 @@ void main() {
 
     expect(await profile(), newer);
   });
+
+  // A computer delete leaves the recording and an unmarked edit alike, and
+  // a re-parse keeps the edit (issue #4529): it is no newer reading of the
+  // source, so the recording still comes back.
+  test('reverting a re-parse restores the recording beside the unmarked '
+      'edit it kept', () async {
+    await addSource('s1', computerId: null, isPrimary: true);
+    await addSeries('s1', computerId: null, isPrimary: true);
+    await addSeries('s1', computerId: null, isPrimary: true, isEdit: null);
+    await forget();
+    final before = await profile();
+
+    await ReparseBatchService(
+      reparse,
+    ).run(['dive'], parseFn: (_, _, _, _) async => parsed());
+    expect(await profile(), isNot(before));
+
+    await revert(await reparseOperation());
+
+    expect(await profile(), before);
+  });
+
+  test(
+    'a re-parsed series stays when the one it replaced cannot return',
+    () async {
+      await addComputer('c1');
+      await addSource('s1', computerId: 'c1', isPrimary: true);
+      await addSeries('s1', computerId: 'c1', isPrimary: true);
+      await forget();
+
+      await ReparseBatchService(
+        reparse,
+      ).run(['dive'], parseFn: (_, _, _, _) async => parsed());
+      final operationId = await reparseOperation();
+      // The old series needs its computer back to return.
+      await db.customStatement("DELETE FROM dive_computers WHERE id = 'c1'");
+      final reparsed = await rows('dive_profile_series');
+      expect(reparsed, hasLength(1));
+
+      await revert(operationId);
+
+      expect(await rows('dive_profile_series'), reparsed);
+    },
+  );
 
   test(
     'reverting a re-parse restores the pressure series it replaced',
