@@ -399,14 +399,32 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
     final pressureDisplay = _readable(_workingPressureController)!;
     final description = _descriptionController.text.trim();
 
+    // A stored preset keeps the values whose text the diver left alone: the
+    // text is rounded for display (whole psi, cuft from a rated capacity),
+    // and converting it back would change a preset that was only renamed.
+    final existing = _existingPreset;
+    final start = existing == null ? null : editorStartDraft;
+    final inCuft = settings.volumeUnit == VolumeUnit.cubicFeet;
+    final pressureChanged =
+        start == null || _workingPressureController.text != start.pressure;
+    // In cubic feet the volume shown is a capacity at the working pressure,
+    // so a new pressure gives a new volume as well.
+    final volumeChanged =
+        start == null ||
+        _volumeController.text != start.volume ||
+        (inCuft && pressureChanged);
+
     // Convert to storage units (metric)
-    final workingPressureBar = units.pressureToBar(pressureDisplay);
-    final volumeLiters = settings.volumeUnit == VolumeUnit.cubicFeet
+    final workingPressureBar = pressureChanged || existing == null
+        ? units.pressureToBar(pressureDisplay)
+        : existing.workingPressureBar;
+    final volumeLiters = !volumeChanged && existing != null
+        ? existing.volumeLiters
+        : inCuft
         // liters = (cuft * 28.3168) / pressure_bar
         ? (volumeDisplay * 28.3168) / workingPressureBar
         : volumeDisplay;
 
-    final existing = _existingPreset;
     if (widget.isEditing && existing != null) {
       await repository.updatePreset(
         existing.copyWith(

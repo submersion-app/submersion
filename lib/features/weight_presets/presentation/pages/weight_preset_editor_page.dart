@@ -102,10 +102,24 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final preset = await ref
-        .read(weightPresetRepositoryProvider)
-        .getPresetById(widget.presetId!);
+    final WeightPreset? read;
+    try {
+      read = await ref
+          .read(weightPresetRepositoryProvider)
+          .getPresetById(widget.presetId!);
+    } catch (e) {
+      // A read that fails leaves nothing to edit: say so and go back to the
+      // list, rather than spin with no way to save.
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${context.l10n.common_label_error}: $e')),
+      );
+      if (context.canPop()) context.pop();
+      return;
+    }
     if (!mounted) return;
+    final preset = read;
 
     // A stale deep link or a preset deleted on another device: there is
     // nothing to edit, so bounce back to the list rather than sit in a

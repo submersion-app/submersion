@@ -452,6 +452,38 @@ void main() {
       },
     );
 
+    testWidgets('renaming a preset in cuft keeps its stored volume and '
+        'pressure', (tester) async {
+      await pumpEditor(tester, presetId: 'p1');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'AL80'),
+        'AL80 bailout',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(saveAction());
+      await tester.pumpAndSettle();
+      final saved = repo.updated.single;
+      expect(saved.displayName, 'AL80 bailout');
+      expect(saved.volumeLiters, 11.1);
+      expect(saved.workingPressureBar, 206.843);
+    });
+
+    testWidgets('changing the pressure in cuft stores it and the volume the '
+        'shown capacity gives', (tester) async {
+      await pumpEditor(tester, presetId: 'p1');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, '3000'),
+        '3442',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(saveAction());
+      await tester.pumpAndSettle();
+      final saved = repo.updated.single;
+      const bar = 3442 / 14.5038;
+      expect(saved.workingPressureBar, closeTo(bar, 0.01));
+      expect(saved.volumeLiters, closeTo(77.4 * 28.3168 / bar, 0.01));
+    });
+
     testWidgets('a preset that no longer exists says so and leaves', (
       tester,
     ) async {

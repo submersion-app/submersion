@@ -36,8 +36,15 @@ class _RecordingRepo extends WeightPresetRepository {
       <({String id, String name, List<WeightEntryDraft> entries})>[];
   WeightPreset? loadReturns;
 
+  /// Thrown by the load when set.
+  Object? loadError;
+
   @override
-  Future<WeightPreset?> getPresetById(String id) async => loadReturns;
+  Future<WeightPreset?> getPresetById(String id) async {
+    final error = loadError;
+    if (error != null) throw error;
+    return loadReturns;
+  }
 
   @override
   Future<WeightPreset> createPreset({
@@ -277,6 +284,18 @@ void main() {
 
     expect(find.text('This weighting rig no longer exists.'), findsOneWidget);
     expect(find.text('list'), findsOneWidget); // popped back to the list route
+    expect(find.byType(WeightPresetEditorPage), findsNothing);
+  });
+
+  testWidgets('edit: a preset that fails to load says so and leaves', (
+    tester,
+  ) async {
+    repo.loadError = StateError('database closed');
+
+    await pump(tester, presetId: 'p1');
+
+    expect(find.textContaining('database closed'), findsOneWidget);
+    expect(find.text('list'), findsOneWidget);
     expect(find.byType(WeightPresetEditorPage), findsNothing);
   });
 
