@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,14 +11,26 @@ import 'package:submersion/features/weight_presets/data/repositories/weight_pres
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 class _RecordingRepo extends WeightPresetRepository {
   final created =
-      <({String name, List<WeightEntryDraft> entries, String diverId})>[];
+      <
+        ({
+          String? id,
+          String name,
+          List<WeightEntryDraft> entries,
+          String diverId,
+        })
+      >[];
   final updated =
       <({String id, String name, List<WeightEntryDraft> entries})>[];
   WeightPreset? loadReturns;
@@ -26,12 +40,18 @@ class _RecordingRepo extends WeightPresetRepository {
 
   @override
   Future<WeightPreset> createPreset({
+    String? id,
     required String diverId,
     required String displayName,
     required List<WeightEntryDraft> entries,
     String notes = '',
   }) async {
-    created.add((name: displayName, entries: entries, diverId: diverId));
+    created.add((
+      id: id,
+      name: displayName,
+      entries: entries,
+      diverId: diverId,
+    ));
     return _preset('new', displayName);
   }
 
@@ -43,6 +63,28 @@ class _RecordingRepo extends WeightPresetRepository {
     required List<WeightEntryDraft> entries,
   }) async {
     updated.add((id: id, name: displayName, entries: entries));
+  }
+}
+
+/// Writes the preset for real, then fails: the Save's one transaction must
+/// take the written rows back with it.
+class _FailsAfterWritingRepo extends WeightPresetRepository {
+  @override
+  Future<WeightPreset> createPreset({
+    String? id,
+    required String diverId,
+    required String displayName,
+    required List<WeightEntryDraft> entries,
+    String notes = '',
+  }) async {
+    await super.createPreset(
+      id: id,
+      diverId: diverId,
+      displayName: displayName,
+      entries: entries,
+      notes: notes,
+    );
+    throw StateError('write refused');
   }
 }
 
@@ -90,7 +132,12 @@ void main() {
   });
   tearDown(() async => tearDownTestDatabase());
 
-  Future<void> pump(WidgetTester tester, {String? presetId}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    String? presetId,
+    WeightPresetRepository? repository,
+    String diverId = 'diver-1',
+  }) async {
     final base = await getBaseOverrides();
     final router = GoRouter(
       initialLocation: '/',
@@ -111,10 +158,8 @@ void main() {
       ProviderScope(
         overrides: [
           ...base.cast<Override>(),
-          weightPresetRepositoryProvider.overrideWithValue(repo),
-          validatedCurrentDiverIdProvider.overrideWith(
-            (ref) async => 'diver-1',
-          ),
+          weightPresetRepositoryProvider.overrideWithValue(repository ?? repo),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -136,6 +181,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'Wetsuit');
     await tester.enterText(_amountField().last, '4');
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -149,6 +195,7 @@ void main() {
   testWidgets('new: refuses to save without a name', (tester) async {
     await pump(tester);
     await tester.enterText(_amountField().last, '4');
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -159,6 +206,7 @@ void main() {
   testWidgets('new: refuses to save with no positive weight', (tester) async {
     await pump(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Empty');
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -172,6 +220,7 @@ void main() {
     await pump(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Wetsuit');
     await tester.enterText(_amountField().last, '4..5');
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -207,6 +256,7 @@ void main() {
     expect(find.widgetWithText(TextFormField, 'Drysuit'), findsOneWidget);
 
     await tester.enterText(find.byType(TextFormField).first, 'Drysuit + argon');
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -235,6 +285,7 @@ void main() {
       await tester.enterText(find.byType(TextFormField).first, 'Sidemount');
       await tester.enterText(_amountField().last, '2');
       await tester.enterText(_nameField().last, 'Top pocket');
+      await tester.pump();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
@@ -260,6 +311,13 @@ void main() {
       await pump(tester, presetId: 'p1');
 
       expect(find.widgetWithText(TextFormField, 'Top pocket'), findsOneWidget);
+      // Save is offered once something changed: rename the preset.
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Sidemount'),
+        'Sidemount, cave',
+      );
+      await tester.pumpAndSettle();
+      await tester.pump();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
@@ -300,6 +358,7 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.delete_outline).at(1));
       await tester.pumpAndSettle();
+      await tester.pump();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
@@ -331,6 +390,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ankle Weights').last);
     await tester.pumpAndSettle();
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -338,5 +398,96 @@ void main() {
       repo.created.single.entries.single.weightType,
       WeightType.ankleWeights,
     );
+  });
+
+  group('on the shared Cancel and Save bar', () {
+    VoidCallback? saveOnPressed(WidgetTester tester) => tester
+        .widget<AppBarTextAction>(find.widgetWithText(AppBarTextAction, 'Save'))
+        .onPressed;
+
+    Future<void> back(WidgetTester tester) async {
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      unawaited(navigator.maybePop());
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a new preset with its one blank row is unchanged', (
+      tester,
+    ) async {
+      await pump(tester);
+      expect(saveOnPressed(tester), isNull);
+      await back(tester);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('list'), findsOneWidget);
+    });
+
+    testWidgets('adding a row is a change; removing it again is not', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tester.tap(find.text('Add weight'));
+      await tester.pumpAndSettle();
+      expect(saveOnPressed(tester), isNotNull);
+      await tester.tap(find.byIcon(Icons.delete_outline).last);
+      await tester.pumpAndSettle();
+      expect(saveOnPressed(tester), isNull);
+    });
+
+    testWidgets('Back after editing an amount asks; Discard leaves the list', (
+      tester,
+    ) async {
+      repo.loadReturns = _preset('p1', 'Drysuit');
+      await pump(tester, presetId: 'p1');
+      await tester.enterText(_amountField().first, '5');
+      await tester.pumpAndSettle();
+      await back(tester);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WeightPresetEditorPage), findsNothing);
+      expect(find.text('list'), findsOneWidget);
+      expect(repo.updated, isEmpty);
+    });
+
+    testWidgets('a new preset is created under the page id', (tester) async {
+      await pump(tester);
+      final host =
+          tester.state(find.byType(WeightPresetEditorPage)) as RecordEditorHost;
+      await tester.enterText(find.byType(TextFormField).first, 'Wetsuit');
+      await tester.enterText(_amountField().last, '4');
+      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(repo.created.single.id, host.newEditorRecordId);
+      expect(find.text('list'), findsOneWidget);
+    });
+
+    testWidgets('a create that throws keeps the rows and writes no preset', (
+      tester,
+    ) async {
+      final now = DateTime(2026, 1, 1);
+      final diverId = (await DiverRepository().createDiver(
+        Diver(id: '', name: 'A', createdAt: now, updatedAt: now),
+      )).id;
+      await pump(
+        tester,
+        repository: _FailsAfterWritingRepo(),
+        diverId: diverId,
+      );
+      await tester.enterText(find.byType(TextFormField).first, 'Wetsuit');
+      await tester.enterText(_amountField().last, '4');
+      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WeightPresetEditorPage), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Wetsuit'), findsOneWidget);
+      expect(saveOnPressed(tester), isNotNull);
+      final rows = await DatabaseService.instance.database
+          .customSelect('SELECT id FROM weight_presets')
+          .get();
+      expect(rows, isEmpty);
+    });
   });
 }

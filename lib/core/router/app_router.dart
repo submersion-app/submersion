@@ -2197,11 +2197,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newWeightPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const WeightPresetEditorPage(),
               ),
               GoRoute(
                 path: ':presetId/edit',
                 name: 'editWeightPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => WeightPresetEditorPage(
                   presetId: state.pathParameters['presetId'],
                 ),
