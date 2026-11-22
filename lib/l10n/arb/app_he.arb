@@ -4704,6 +4704,7 @@
   "equipment_serviceClocks_countingSince": "נספר מאז {date}",
   "equipment_serviceClocks_divesUsedAndLeft": "{used} מתוך {total} צלילות, נותרו {remaining}",
   "cylinderConfigs_title": "תצורות בלונים",
+  "cylinderConfigs_edit_notFound": "התצורה הזו כבר לא קיימת.",
   "cylinderConfigs_empty": "אין עדיין תצורות",
   "cylinderConfigs_emptyBody": "שמור פעם אחת מערך מדלל וביילאאוט, ואז החל אותו על כל צלילה.",
   "cylinderConfigs_new": "תצורה חדשה",

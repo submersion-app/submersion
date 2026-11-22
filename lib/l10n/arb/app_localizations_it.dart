@@ -16259,6 +16259,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get cylinderConfigs_title => 'Configurazioni bombole';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Questa configurazione non esiste più.';
+
+  @override
   String get cylinderConfigs_empty => 'Nessuna configurazione';
 
   @override

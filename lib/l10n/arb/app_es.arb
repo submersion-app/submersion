@@ -4830,6 +4830,7 @@
   "equipment_serviceClocks_countingSince": "Contando desde {date}",
   "equipment_serviceClocks_divesUsedAndLeft": "{used} de {total} inmersiones, quedan {remaining}",
   "cylinderConfigs_title": "Configuraciones de botellas",
+  "cylinderConfigs_edit_notFound": "Esta configuración ya no existe.",
   "cylinderConfigs_empty": "Aún no hay configuraciones",
   "cylinderConfigs_emptyBody": "Guarda un montaje de diluyente y bailout una vez y aplícalo a cualquier inmersión.",
   "cylinderConfigs_new": "Nueva configuración",

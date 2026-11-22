@@ -16160,6 +16160,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get cylinderConfigs_title => 'Flesconfiguraties';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Deze configuratie bestaat niet meer.';
+
+  @override
   String get cylinderConfigs_empty => 'Nog geen configuraties';
 
   @override

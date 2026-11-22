@@ -4877,6 +4877,7 @@
     }
   },
   "cylinderConfigs_title": "Flaschenkonfigurationen",
+  "cylinderConfigs_edit_notFound": "Diese Konfiguration existiert nicht mehr.",
   "cylinderConfigs_empty": "Noch keine Konfigurationen",
   "cylinderConfigs_emptyBody": "Diluent- und Bailout-Aufbau einmal speichern und auf jeden Tauchgang anwenden.",
   "cylinderConfigs_new": "Neue Konfiguration",

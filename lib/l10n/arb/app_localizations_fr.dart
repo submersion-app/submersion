@@ -16298,6 +16298,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cylinderConfigs_title => 'Configurations de bouteilles';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Cette configuration n\'existe plus.';
+
+  @override
   String get cylinderConfigs_empty => 'Aucune configuration';
 
   @override

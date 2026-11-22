@@ -9768,6 +9768,7 @@
     }
   },
   "cylinderConfigs_title": "Cylinder configurations",
+  "cylinderConfigs_edit_notFound": "This configuration no longer exists.",
   "cylinderConfigs_empty": "No configurations yet",
   "cylinderConfigs_emptyBody": "Save a diluent and bailout setup once, then apply it to any dive.",
   "cylinderConfigs_new": "New configuration",

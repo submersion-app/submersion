@@ -4830,6 +4830,7 @@
   "equipment_serviceClocks_countingSince": "يُحتسب منذ {date}",
   "equipment_serviceClocks_divesUsedAndLeft": "{used} من {total} غوصة، متبقٍ {remaining}",
   "cylinderConfigs_title": "إعدادات الأسطوانات",
+  "cylinderConfigs_edit_notFound": "لم يعد هذا الإعداد موجودًا.",
   "cylinderConfigs_empty": "لا توجد إعدادات بعد",
   "cylinderConfigs_emptyBody": "احفظ إعداد المخفف والبديل مرة واحدة ثم طبّقه على أي غوصة.",
   "cylinderConfigs_new": "إعداد جديد",

@@ -15504,6 +15504,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_title => '气瓶配置';
 
   @override
+  String get cylinderConfigs_edit_notFound => '此配置已不存在。';
+
+  @override
   String get cylinderConfigs_empty => '尚无配置';
 
   @override

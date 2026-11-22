@@ -16480,6 +16480,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_title => 'إعدادات الأسطوانات';
 
   @override
+  String get cylinderConfigs_edit_notFound => 'لم يعد هذا الإعداد موجودًا.';
+
+  @override
   String get cylinderConfigs_empty => 'لا توجد إعدادات بعد';
 
   @override

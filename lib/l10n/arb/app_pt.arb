@@ -4830,6 +4830,7 @@
   "equipment_serviceClocks_countingSince": "Contando desde {date}",
   "equipment_serviceClocks_divesUsedAndLeft": "{used} de {total} mergulhos, restam {remaining}",
   "cylinderConfigs_title": "Configurações de garrafas",
+  "cylinderConfigs_edit_notFound": "Esta configuração já não existe.",
   "cylinderConfigs_empty": "Ainda sem configurações",
   "cylinderConfigs_emptyBody": "Guarde uma montagem de diluente e bailout uma vez e aplique-a a qualquer mergulho.",
   "cylinderConfigs_new": "Nova configuração",

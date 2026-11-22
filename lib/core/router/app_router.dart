@@ -846,6 +846,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newCylinderConfig',
+                    // An editor with no read page (issue #4527, phase 4).
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => CylinderConfigEditPage(
                       equipmentId: state.uri.queryParameters['equipmentId'],
                     ),
@@ -853,6 +855,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':configId',
                     name: 'cylinderConfigEdit',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => CylinderConfigEditPage(
                       configId: state.pathParameters['configId'],
                     ),

@@ -20,6 +20,34 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
+/// A cylinder's size as its field shows it: litres, or, for a diver in
+/// cubic feet, its rated gas capacity at [workingPressureBar], as the dive
+/// log and planner tank fields read. Blank for no size.
+String cylinderVolumeText(
+  UnitFormatter units,
+  double? liters,
+  double? workingPressureBar,
+) {
+  if (liters == null) return '';
+  return units.settings.volumeUnit == VolumeUnit.cubicFeet
+      ? formatRoundedForInput(ratedCapacityCuft(liters, workingPressureBar), 0)
+      // A small bottle keeps two decimals, as the tank editor does: a
+      // 0.85 L argon bottle must not read as 0.9 (issue #4243).
+      : formatRoundedForInput(
+          liters,
+          UnitFormatter.tankVolumeLiterDecimals(liters),
+        );
+}
+
+/// A cylinder's working pressure as its field shows it, in the diver's
+/// unit, whole. Blank for none.
+String cylinderPressureText(UnitFormatter units, double? bar) =>
+    bar == null ? '' : formatRoundedForInput(units.convertPressure(bar), 0);
+
+/// A gas fraction as the diver's locale writes it: 21 stays "21", 32.5
+/// becomes "32,5" for a comma-decimal diver (#1091).
+String cylinderShareText(double percent) => formatDecimalForInput(percent);
+
 /// One editable cylinder inside a configuration, laid out like the dive
 /// log's tank card (issue #3576): the label and gas name, then preset and
 /// role, size, then the mix.
@@ -124,27 +152,12 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
   /// working pressure, as the dive log and planner tank fields do.
   bool get _isCuft => _units.settings.volumeUnit == VolumeUnit.cubicFeet;
 
-  /// A gas fraction as the diver's locale writes it: 21 stays "21", 32.5
-  /// becomes "32,5" for a comma-decimal diver (#1091).
-  static String _trim(double value) => formatDecimalForInput(value);
+  static String _trim(double value) => cylinderShareText(value);
 
-  String _volumeText(double? liters, double? workingPressureBar) {
-    if (liters == null) return '';
-    return _isCuft
-        ? formatRoundedForInput(
-            ratedCapacityCuft(liters, workingPressureBar),
-            0,
-          )
-        // A small bottle keeps two decimals, as the tank editor does: a
-        // 0.85 L argon bottle must not read as 0.9 (issue #4243).
-        : formatRoundedForInput(
-            liters,
-            UnitFormatter.tankVolumeLiterDecimals(liters),
-          );
-  }
+  String _volumeText(double? liters, double? workingPressureBar) =>
+      cylinderVolumeText(_units, liters, workingPressureBar);
 
-  String _pressureText(double? bar) =>
-      bar == null ? '' : formatRoundedForInput(_units.convertPressure(bar), 0);
+  String _pressureText(double? bar) => cylinderPressureText(_units, bar);
 
   GasMix get _gas => GasMix(o2: _item.o2Percent, he: _item.hePercent);
 

@@ -4830,6 +4830,7 @@
   "equipment_serviceClocks_countingSince": "Telt sinds {date}",
   "equipment_serviceClocks_divesUsedAndLeft": "{used} van {total} duiken, {remaining} resterend",
   "cylinderConfigs_title": "Flesconfiguraties",
+  "cylinderConfigs_edit_notFound": "Deze configuratie bestaat niet meer.",
   "cylinderConfigs_empty": "Nog geen configuraties",
   "cylinderConfigs_emptyBody": "Sla een diluent- en bailout-opstelling één keer op en pas hem toe op elke duik.",
   "cylinderConfigs_new": "Nieuwe configuratie",

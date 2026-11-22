@@ -15929,6 +15929,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_title => 'תצורות בלונים';
 
   @override
+  String get cylinderConfigs_edit_notFound => 'התצורה הזו כבר לא קיימת.';
+
+  @override
   String get cylinderConfigs_empty => 'אין עדיין תצורות';
 
   @override

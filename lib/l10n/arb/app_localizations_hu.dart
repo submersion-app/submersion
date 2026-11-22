@@ -16213,6 +16213,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get cylinderConfigs_title => 'Palackkonfigurációk';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Ez a konfiguráció már nem létezik.';
+
+  @override
   String get cylinderConfigs_empty => 'Még nincs konfiguráció';
 
   @override

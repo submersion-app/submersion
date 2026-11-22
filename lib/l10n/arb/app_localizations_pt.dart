@@ -16259,6 +16259,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cylinderConfigs_title => 'Configurações de garrafas';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Esta configuração já não existe.';
+
+  @override
   String get cylinderConfigs_empty => 'Ainda sem configurações';
 
   @override

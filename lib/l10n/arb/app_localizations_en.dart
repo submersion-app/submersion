@@ -16026,6 +16026,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cylinderConfigs_title => 'Cylinder configurations';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'This configuration no longer exists.';
+
+  @override
   String get cylinderConfigs_empty => 'No configurations yet';
 
   @override
