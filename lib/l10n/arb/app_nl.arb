@@ -17132,6 +17132,7 @@
   "transmitters_channel": "{computer}, kanaal {channel}",
   "transmitters_serial": "Zender {serial}",
   "transmitters_edit_title": "Zender bewerken",
+  "transmitters_edit_notFound": "Deze zendersleutel bestaat niet meer.",
   "transmitters_new_title": "Nieuwe zender",
   "transmitters_field_serial": "Serienummer van de zender",
   "transmitters_field_computer": "Duikcomputer (als er geen serienummer wordt gemeld)",

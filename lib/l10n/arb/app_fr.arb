@@ -17132,6 +17132,7 @@
   "transmitters_channel": "{computer}, canal {channel}",
   "transmitters_serial": "Émetteur {serial}",
   "transmitters_edit_title": "Modifier l'émetteur",
+  "transmitters_edit_notFound": "Cette clé d'émetteur n'existe plus.",
   "transmitters_new_title": "Nouvel émetteur",
   "transmitters_field_serial": "Numéro de série de l'émetteur",
   "transmitters_field_computer": "Ordinateur de plongée (si aucun numéro de série n'est transmis)",

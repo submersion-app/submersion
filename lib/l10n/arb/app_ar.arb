@@ -17132,6 +17132,7 @@
   "transmitters_channel": "{computer}، القناة {channel}",
   "transmitters_serial": "جهاز الإرسال {serial}",
   "transmitters_edit_title": "تعديل جهاز الإرسال",
+  "transmitters_edit_notFound": "لم يعد مفتاح جهاز الإرسال هذا موجودًا.",
   "transmitters_new_title": "جهاز إرسال جديد",
   "transmitters_field_serial": "الرقم التسلسلي لجهاز الإرسال",
   "transmitters_field_computer": "كمبيوتر الغوص (عند عدم الإبلاغ عن رقم تسلسلي)",

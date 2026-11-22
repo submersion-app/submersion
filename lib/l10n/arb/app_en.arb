@@ -34881,6 +34881,7 @@
     }
   },
   "transmitters_edit_title": "Edit transmitter",
+  "transmitters_edit_notFound": "This transmitter key no longer exists.",
   "transmitters_new_title": "New transmitter",
   "transmitters_field_serial": "Transmitter serial",
   "transmitters_field_computer": "Dive computer (when no serial is reported)",

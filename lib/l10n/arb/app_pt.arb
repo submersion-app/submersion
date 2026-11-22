@@ -17132,6 +17132,7 @@
   "transmitters_channel": "{computer}, canal {channel}",
   "transmitters_serial": "Transmissor {serial}",
   "transmitters_edit_title": "Editar transmissor",
+  "transmitters_edit_notFound": "Esta chave do transmissor já não existe.",
   "transmitters_new_title": "Novo transmissor",
   "transmitters_field_serial": "Número de série do transmissor",
   "transmitters_field_computer": "Computador de mergulho (quando nenhum número de série é informado)",

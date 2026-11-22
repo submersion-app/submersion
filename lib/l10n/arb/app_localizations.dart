@@ -91436,6 +91436,12 @@ abstract class AppLocalizations {
   /// **'Edit transmitter'**
   String get transmitters_edit_title;
 
+  /// No description provided for @transmitters_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This transmitter key no longer exists.'**
+  String get transmitters_edit_notFound;
+
   /// No description provided for @transmitters_new_title.
   ///
   /// In en, this message translates to:

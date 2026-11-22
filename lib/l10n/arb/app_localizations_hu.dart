@@ -58032,6 +58032,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transmitters_edit_title => 'Jeladó szerkesztése';
 
   @override
+  String get transmitters_edit_notFound => 'Ez a jeladókulcs már nem létezik.';
+
+  @override
   String get transmitters_new_title => 'Új jeladó';
 
   @override

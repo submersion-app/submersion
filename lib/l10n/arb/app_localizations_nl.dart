@@ -57979,6 +57979,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transmitters_edit_title => 'Zender bewerken';
 
   @override
+  String get transmitters_edit_notFound =>
+      'Deze zendersleutel bestaat niet meer.';
+
+  @override
   String get transmitters_new_title => 'Nieuwe zender';
 
   @override

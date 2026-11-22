@@ -57116,6 +57116,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_edit_title => 'עריכת משדר';
 
   @override
+  String get transmitters_edit_notFound => 'מפתח המשדר הזה כבר לא קיים.';
+
+  @override
   String get transmitters_new_title => 'משדר חדש';
 
   @override

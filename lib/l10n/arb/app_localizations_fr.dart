@@ -58468,6 +58468,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transmitters_edit_title => 'Modifier l\'émetteur';
 
   @override
+  String get transmitters_edit_notFound =>
+      'Cette clé d\'émetteur n\'existe plus.';
+
+  @override
   String get transmitters_new_title => 'Nouvel émetteur';
 
   @override

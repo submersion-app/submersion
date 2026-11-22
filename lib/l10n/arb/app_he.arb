@@ -17132,6 +17132,7 @@
   "transmitters_channel": "{computer}, ערוץ {channel}",
   "transmitters_serial": "משדר {serial}",
   "transmitters_edit_title": "עריכת משדר",
+  "transmitters_edit_notFound": "מפתח המשדר הזה כבר לא קיים.",
   "transmitters_new_title": "משדר חדש",
   "transmitters_field_serial": "מספר סידורי של המשדר",
   "transmitters_field_computer": "מחשב צלילה (כשלא מדווח מספר סידורי)",

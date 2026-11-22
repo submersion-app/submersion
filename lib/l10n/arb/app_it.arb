@@ -17132,6 +17132,7 @@
   "transmitters_channel": "{computer}, canale {channel}",
   "transmitters_serial": "Trasmettitore {serial}",
   "transmitters_edit_title": "Modifica trasmettitore",
+  "transmitters_edit_notFound": "Questa chiave del trasmettitore non esiste più.",
   "transmitters_new_title": "Nuovo trasmettitore",
   "transmitters_field_serial": "Numero di serie del trasmettitore",
   "transmitters_field_computer": "Computer subacqueo (se il numero di serie non viene riportato)",

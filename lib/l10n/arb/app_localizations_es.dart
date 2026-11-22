@@ -58395,6 +58395,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transmitters_edit_title => 'Editar transmisor';
 
   @override
+  String get transmitters_edit_notFound =>
+      'Esta clave de transmisor ya no existe.';
+
+  @override
   String get transmitters_new_title => 'Nuevo transmisor';
 
   @override

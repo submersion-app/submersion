@@ -909,6 +909,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'transmitter',
                     name: 'transmitterSetup',
+                    // An editor with no read page (issue #4527, phase 4).
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => TransmitterEditPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                     ),
@@ -916,6 +918,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: ':transmitterId',
                         name: 'transmitterKeyEdit',
+                        onExit: confirmLeaveRecordSitting,
                         builder: (context, state) => TransmitterEditPage(
                           equipmentId: state.pathParameters['equipmentId']!,
                           transmitterId: state.pathParameters['transmitterId'],

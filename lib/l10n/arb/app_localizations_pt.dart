@@ -58328,6 +58328,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transmitters_edit_title => 'Editar transmissor';
 
   @override
+  String get transmitters_edit_notFound =>
+      'Esta chave do transmissor já não existe.';
+
+  @override
   String get transmitters_new_title => 'Novo transmissor';
 
   @override

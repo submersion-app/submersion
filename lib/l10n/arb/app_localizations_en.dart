@@ -57434,6 +57434,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transmitters_edit_title => 'Edit transmitter';
 
   @override
+  String get transmitters_edit_notFound =>
+      'This transmitter key no longer exists.';
+
+  @override
   String get transmitters_new_title => 'New transmitter';
 
   @override

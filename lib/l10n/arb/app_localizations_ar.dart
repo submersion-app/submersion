@@ -59168,6 +59168,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_edit_title => 'تعديل جهاز الإرسال';
 
   @override
+  String get transmitters_edit_notFound =>
+      'لم يعد مفتاح جهاز الإرسال هذا موجودًا.';
+
+  @override
   String get transmitters_new_title => 'جهاز إرسال جديد';
 
   @override

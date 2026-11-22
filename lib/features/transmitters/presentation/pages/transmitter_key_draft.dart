@@ -22,6 +22,22 @@ typedef TransmitterKeyDraft = ({
   bool configured,
 });
 
+/// The key editor's form with nothing in it: what a new key opens on,
+/// before the item's serial and its keys' setup fill it, so those count as
+/// a seed (a change).
+const TransmitterKeyDraft blankTransmitterKeyDraft = (
+  serial: '',
+  computerId: null,
+  channel: '',
+  role: TankRole.backGas,
+  cylinderId: null,
+  presetName: null,
+  volume: '',
+  pressure: '',
+  material: null,
+  configured: true,
+);
+
 /// Litres per cubic foot.
 const _litersPerCuft = 28.3168;
 

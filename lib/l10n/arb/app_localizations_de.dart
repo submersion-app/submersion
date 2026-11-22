@@ -58223,6 +58223,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transmitters_edit_title => 'Sender bearbeiten';
 
   @override
+  String get transmitters_edit_notFound =>
+      'Dieser Senderschlüssel existiert nicht mehr.';
+
+  @override
   String get transmitters_new_title => 'Neuer Sender';
 
   @override

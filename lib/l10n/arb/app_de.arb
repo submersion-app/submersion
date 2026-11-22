@@ -17286,6 +17286,7 @@
   "transmitters_channel": "{computer}, Kanal {channel}",
   "transmitters_serial": "Sender {serial}",
   "transmitters_edit_title": "Sender bearbeiten",
+  "transmitters_edit_notFound": "Dieser Senderschlüssel existiert nicht mehr.",
   "transmitters_new_title": "Neuer Sender",
   "transmitters_field_serial": "Seriennummer des Senders",
   "transmitters_field_computer": "Tauchcomputer (wenn keine Seriennummer gemeldet wird)",
