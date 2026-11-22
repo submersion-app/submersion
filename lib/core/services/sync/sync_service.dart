@@ -1471,6 +1471,10 @@ class SyncService {
             for (final dive in remotePayload.data.dives) ?dive['id'] as String?,
             for (final source in remotePayload.data.diveDataSources)
               ?source['diveId'] as String?,
+            // A series row can arrive alone, and the duplicate-series repair
+            // reads only the dives named here (issue #4847).
+            for (final series in remotePayload.data.diveProfileSeries)
+              ?series['diveId'] as String?,
           },
         );
         return result;

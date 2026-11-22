@@ -149,6 +149,20 @@ void main() {
       expect(await repairLoneDownloadSources(db), 1);
     });
 
+    test('a runtime far shorter than the recording is left alone', () async {
+      await insertDive(db, 'short', runtime: 600);
+      await insertSource(
+        db,
+        'download',
+        'short',
+        mergeSourceSlot: 0,
+        duration: 3000,
+      );
+
+      expect(await repairLoneDownloadSources(db), 0);
+      expect((await rowOf(db, 'download')).isPrimary, isFalse);
+    });
+
     test('the recording span falls back to its entry and exit times', () async {
       await insertDive(db, 'lone', runtime: 3000);
       await insertSource(

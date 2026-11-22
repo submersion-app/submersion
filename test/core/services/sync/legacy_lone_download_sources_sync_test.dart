@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' show Value;
@@ -13,6 +12,8 @@ import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
@@ -48,6 +49,9 @@ void main() {
     data: data,
     deletions: const {},
   );
+
+  /// Later than anything the test writes locally, so the peer's row wins.
+  final peerUpdatedAt = DateTime.now().millisecondsSinceEpoch + 60000;
 
   String peerHlc() => Hlc(
     DateTime.now().millisecondsSinceEpoch + 60000,
@@ -95,6 +99,7 @@ void main() {
             ...local,
             'isPrimary': false,
             'mergeSourceSlot': 0,
+            'updatedAt': peerUpdatedAt,
             'hlc': peerHlc(),
           },
         ],
@@ -122,6 +127,14 @@ void main() {
             createdAt: DateTime.utc(2021, 8, 2),
           ),
         );
+    // Real samples: a peer's series is applied only when its blob decodes
+    // to the header it carries.
+    final encoded = const ProfileSeriesCodec().encode(const [
+      ProfileSample(timestamp: 0, depth: 0),
+      ProfileSample(timestamp: 1500, depth: 30),
+      ProfileSample(timestamp: 3000, depth: 0),
+    ]);
+    final summary = encoded.summary;
     for (final (id, computer, primary) in [
       ('own', 'comp-a', true),
       ('stray', 'comp-b', false),
@@ -135,14 +148,17 @@ void main() {
               computerId: Value(computer),
               sourceId: const Value('dup-src'),
               isPrimary: Value(primary),
-              sampleCount: 2,
-              startTimestamp: 0,
-              endTimestamp: 3000,
-              maxDepth: 30,
-              firstDepth: 0,
-              lastDepth: 0,
-              codecVersion: 1,
-              samples: Uint8List(0),
+              sampleCount: summary.sampleCount,
+              startTimestamp: summary.startTimestamp,
+              endTimestamp: summary.endTimestamp,
+              maxDepth: summary.maxDepth,
+              firstDepth: summary.firstDepth,
+              lastDepth: summary.lastDepth,
+              hasDecoType: Value(summary.hasDecoType),
+              hasDecoStop: Value(summary.hasDecoStop),
+              hasPositiveCeiling: Value(summary.hasPositiveCeiling),
+              codecVersion: encoded.codecVersion,
+              samples: encoded.bytes,
               createdAt: 0,
               updatedAt: 0,
             ),
@@ -152,7 +168,12 @@ void main() {
     return payloadOf(
       SyncData(
         diveProfileSeries: [
-          {...local, 'isPrimary': true, 'hlc': peerHlc()},
+          {
+            ...local,
+            'isPrimary': true,
+            'updatedAt': peerUpdatedAt,
+            'hlc': peerHlc(),
+          },
         ],
       ),
     );
@@ -182,7 +203,11 @@ void main() {
   }
 
   test('a lone download applied from an older peer is primary again', () async {
-    await buildService().debugApplyPayload(await loneDownloadPayload());
+    final result = await buildService().debugApplyPayload(
+      await loneDownloadPayload(),
+    );
+
+    expect(result.recordsApplied, greaterThan(0));
 
     await expectLoneRepaired();
   });
@@ -194,7 +219,11 @@ void main() {
   });
 
   test('a duplicate series applied from an older peer is demoted', () async {
-    await buildService().debugApplyPayload(await duplicateSeriesPayload());
+    final result = await buildService().debugApplyPayload(
+      await duplicateSeriesPayload(),
+    );
+
+    expect(result.recordsApplied, greaterThan(0));
 
     await expectStrayDemoted();
   });

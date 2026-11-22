@@ -3,8 +3,8 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/table_columns.dart';
 
-/// How far a dive's runtime may run past its one source's own recording and
-/// still be that recording alone: a dive log rounds, a download does not.
+/// How far a dive's runtime may differ from its one source's own recording
+/// and still be that recording alone: a dive log rounds, a download does not.
 const loneDownloadRuntimeSlackSeconds = 60;
 
 /// Whether a dive whose only source row is [source] is that recording alone,
@@ -19,7 +19,9 @@ const loneDownloadRuntimeSlackSeconds = 60;
 ///
 /// The recording's span is the row's `duration` (its runtime), else its exit
 /// minus its entry. Either side unknown answers false, which keeps the dive
-/// treated as combined: a re-parse stays refused, the safe direction.
+/// treated as combined: a re-parse stays refused, the safe direction. So does
+/// a runtime far shorter than the recording: no Combine writes that, but the
+/// row then evidently does not describe this dive as it stands.
 bool loneDownloadSpansDive({
   required int? diveRuntime,
   required DiveDataSourcesData source,
@@ -30,7 +32,7 @@ bool loneDownloadSpansDive({
       source.duration ??
       (entry != null && exit != null ? exit.difference(entry).inSeconds : null);
   if (diveRuntime == null || span == null || span <= 0) return false;
-  return diveRuntime <= span + loneDownloadRuntimeSlackSeconds;
+  return (diveRuntime - span).abs() <= loneDownloadRuntimeSlackSeconds;
 }
 
 /// The dive's `runtime`, or null when it has none or the column is missing
