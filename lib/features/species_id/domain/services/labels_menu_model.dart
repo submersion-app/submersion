@@ -115,10 +115,12 @@ enum LabelsButtonStatus {
   /// Queued or being analysed now.
   analysing,
 
-  /// Looked at, but not as the installed model would leave it.
+  /// Looked at, but not as the installed model would leave it, or a video
+  /// another device scanned only part way.
   partial,
 
-  /// Looked at; analysing it would find nothing to do.
+  /// Looked at; analysing it would find nothing to do. Results another
+  /// device found count too, where no model here can look again.
   analysed,
 }
 
