@@ -5,19 +5,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion_vision/onnx_runtime.dart';
 
-/// Runs a one-node model through the real ONNX Runtime. On Linux the build
-/// hook's library is loaded, so the test never skips there (CI runs it);
-/// elsewhere it needs `SUBMERSION_ORT_LIBRARY` naming the library, and
-/// skips without it.
+/// Runs a one-node model through the real ONNX Runtime. On Linux and
+/// Windows the build hook's library is loaded, so the test never skips there
+/// (CI runs both); elsewhere it needs `SUBMERSION_ORT_LIBRARY` naming the
+/// library, and skips without it.
 void main() {
   final libraryPath = Platform.environment['SUBMERSION_ORT_LIBRARY'];
-  final skip = !Platform.isLinux && libraryPath == null
+  final hookShips = Platform.isLinux || Platform.isWindows;
+  final skip = !hookShips && libraryPath == null
       ? 'no ONNX Runtime library on this machine'
       : null;
   final model = p.join('test', 'fixtures', 'add_one.onnx');
 
   OrtRuntime open() =>
-      OrtRuntime.open(libraryPath: Platform.isLinux ? null : libraryPath);
+      OrtRuntime.open(libraryPath: hookShips ? null : libraryPath);
 
   test('runs a model through ONNX Runtime', () {
     final runtime = open();
