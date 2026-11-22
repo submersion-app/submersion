@@ -116,6 +116,26 @@ void main() {
     expect(listed['m2'], ['i3']);
   });
 
+  test('a crop another cleanup removes mid-way does not stop the rest '
+      '(issue #4890)', () async {
+    final racing = _RacingStore(supportPath: () async => support.path);
+    addTearDown(racing.dispose);
+    await racing.write('m1', 'i2', jpeg);
+
+    await expectLater(racing.deleteFiles('m1', ['gone', 'i2']), completes);
+
+    expect(await racing.allPresent('m1', ['i2']), isFalse);
+  });
+
+  test('a folder that cannot be read lists no crops', () async {
+    expect(
+      await IdentificationCropStore.cropIdsIn(
+        Directory(p.join(support.path, 'never-made')),
+      ),
+      isEmpty,
+    );
+  });
+
   test('deleting crop files removes only those, announced once', () async {
     await store.write('m1', 'i1', jpeg);
     await store.write('m1', 'i2', jpeg);
@@ -136,4 +156,28 @@ void main() {
     expect(() => store.fileFor('..', 'i1'), throwsArgumentError);
     expect(() => store.fileFor('m1', p.join('a', 'b')), throwsArgumentError);
   });
+}
+
+/// A store whose crop `gone` is removed by another cleanup between the
+/// check that it exists and its delete.
+class _RacingStore extends IdentificationCropStore {
+  _RacingStore({required super.supportPath});
+
+  @override
+  Future<File> fileFor(String mediaId, String identificationId) async =>
+      identificationId == 'gone'
+      ? _VanishedFile()
+      : super.fileFor(mediaId, identificationId);
+}
+
+class _VanishedFile extends Fake implements File {
+  @override
+  String get path => 'gone.jpg';
+
+  @override
+  Future<bool> exists() async => true;
+
+  @override
+  Future<FileSystemEntity> delete({bool recursive = false}) =>
+      Future.error(PathNotFoundException(path, const OSError('gone', 2)));
 }

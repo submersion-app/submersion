@@ -296,6 +296,28 @@ void main() {
       );
     });
 
+    test('the launch sweep counts a photo known only by its run as this '
+        'logbook\'s', () async {
+      // Results synced in before the photo itself: a run, no media row.
+      // Made on another device, so the orphan purge leaves it be.
+      await identifications.storeRun(
+        run(mediaId: 'm-later', count: 2).copyWith(analysedBy: () => 'laptop'),
+        insert: [
+          identification('i1', mediaId: 'm-later'),
+          identification('i2', mediaId: 'm-later'),
+        ],
+        deleteIds: const [],
+      );
+      await crops.write('m-later', 'i1', jpeg);
+      await crops.write('m-later', 'i2', jpeg);
+      await deletedByPeer('i1');
+
+      await cleanup.sweepOrphans();
+
+      expect(await crops.allPresent('m-later', ['i1']), isFalse);
+      expect(await crops.allPresent('m-later', ['i2']), isTrue);
+    });
+
     test('the launch sweep keeps another logbook\'s crop even when this one '
         'holds a tombstone for its id', () async {
       // Sync logs a peer's tombstone whether or not the row was here.

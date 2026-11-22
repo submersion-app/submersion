@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/logger_service.dart';
@@ -14,10 +14,11 @@ import 'package:submersion/features/species_id/data/repositories/identification_
 /// Durable application support storage, not a cache the operating system
 /// may empty. A deliberate, narrow exception to "media is links only":
 /// small crops of detected animals, never the originals. Crops are deleted
-/// only with their identification, by the app's own code, or once the open
-/// logbook holds a tombstone for it (issue #4890); there is no sweep of
-/// files without a row, because this folder is shared by every logbook
-/// opened on the device.
+/// only with their identification, by the app's own code: when this device
+/// deletes it, when sync applies a peer's delete of it, or by the launch
+/// sweep for a photo of the open logbook whose identification it holds a
+/// tombstone for (issue #4890). There is no sweep of files without a row,
+/// because this folder is shared by every logbook opened on the device.
 ///
 /// Since issue #4876 the crops of named identifications live in the
 /// logbook instead ([IdentificationCropRepository]), so they sync; this
@@ -227,9 +228,13 @@ class IdentificationCropStore {
     var removed = false;
     for (final id in identificationIds) {
       final file = await fileFor(mediaId, id);
-      if (await file.exists()) {
+      if (!await file.exists()) continue;
+      try {
         await file.delete();
         removed = true;
+      } on PathNotFoundException {
+        // Removed in between by another cleanup (the sync hook and the
+        // launch sweep can run together): the rest still go.
       }
     }
     return removed;
@@ -243,13 +248,16 @@ class IdentificationCropStore {
     final base = (await root()).path;
     final found = <String, List<String>>{};
     for (final mediaId in mediaIds) {
-      final ids = await _cropIdsIn(Directory(p.join(base, mediaId)));
+      final ids = await cropIdsIn(Directory(p.join(base, mediaId)));
       if (ids.isNotEmpty) found[mediaId] = ids;
     }
     return found;
   }
 
-  Future<List<String>> _cropIdsIn(Directory dir) async {
+  /// The identifications with a crop file in [dir]; none when it cannot
+  /// be read.
+  @visibleForTesting
+  static Future<List<String>> cropIdsIn(Directory dir) async {
     try {
       return [
         await for (final entity in dir.list(followLinks: false))
