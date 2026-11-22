@@ -176,14 +176,15 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   bool _showOverlay = true;
 
   /// The bottom panel's height as last laid out, which the fish labels on
-  /// a video keep above (issue #4762).
+  /// a video keep above (issue #4762), and an unlocked photo's (#4825).
   double _bottomPanelHeight = 0;
 
-  /// The bottom panel was laid out at [height]. Only a video's fish labels
-  /// read it, so a photo's panel just records it, without a rebuild.
+  /// The bottom panel was laid out at [height]. A video's fish labels read
+  /// it, and an unlocked photo's; a locked photo's panel just records it,
+  /// without a rebuild, and the unlock reads it.
   void _onBottomPanelHeight(double height, {required bool video}) {
     if (!mounted || height == _bottomPanelHeight) return;
-    if (!video) {
+    if (!video && photoLocked) {
       _bottomPanelHeight = height;
       return;
     }

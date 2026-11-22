@@ -14,8 +14,11 @@ import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/photo_identification_layer.dart';
+import 'package:submersion/shared/widgets/size_reporter.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../data/repositories/species_photo_fixtures.dart';
 import '../../../species_id/data/identification_fixtures.dart';
 import '../../../species_id/presentation/species_id_fakes.dart';
 import 'media_viewer_unlock_harness.dart';
@@ -112,6 +115,32 @@ void main() {
     final scaffold = tester.getRect(find.byType(Scaffold).first);
     await tapAt(tester, Offset(scaffold.center.dx, scaffold.top + 200));
     expect(find.byType(SpeciesPickerSheet), findsNothing);
+  });
+
+  testWidgets('unlocked, the labels keep above the panel as it grows', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => insertTestSighting(id: 'sg1', diveId: 'd1', speciesId: 'sp_turtle'),
+    );
+    await pump(tester);
+    await tapUnlock(tester);
+    double inset() => tester
+        .widget<PhotoIdentificationLayer>(find.byType(PhotoIdentificationLayer))
+        .bottomInset;
+    double panel() => tester.getSize(find.byType(SizeReporter)).height;
+    final before = panel();
+
+    // A species tagged in the sitting adds its chip to the panel.
+    await tester.tap(find.byKey(const ValueKey('viewer_species')));
+    await settleViewer(tester);
+    await tester.tap(find.widgetWithText(FilterChip, 'Turtle'));
+    await settleViewer(tester);
+    await tester.tapAt(const Offset(640, 20));
+    await settleViewer(tester);
+
+    expect(panel(), greaterThan(before));
+    expect(inset(), panel());
   });
 
   testWidgets('labels hide in people tag mode', (tester) async {

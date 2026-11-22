@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -223,15 +224,24 @@ void main() {
   });
 
   group('the toolbar action', () {
-    /// Whether the toolbar offers the labels menu on [item].
-    Future<bool> offered(WidgetTester tester, MediaItem item) async {
+    /// What the toolbar's labels action is on [item].
+    Future<({bool offered, bool on, ToolbarRing? ring})> action(
+      WidgetTester tester,
+      MediaItem item, {
+      bool busy = false,
+      double? progress,
+      LabelMode mode = LabelMode.names,
+    }) async {
       final overrides = await getBaseOverrides();
-      bool? result;
+      ({bool offered, bool on, ToolbarRing? ring})? result;
       await tester.pumpWidget(
         testApp(
           overrides: [
             ...overrides,
             mediaIdentificationServiceProvider.overrideWithValue(service),
+            labelModeNotifierProvider.overrideWith(
+              (ref) => LabelModeNotifier.unstored(mode),
+            ),
             mediaAnalysisStatusProvider(
               AnalysisTarget(item, null),
             ).overrideWith(
@@ -239,15 +249,19 @@ void main() {
             ),
             mediaIdentificationBusyProvider(
               item.id,
-            ).overrideWith((ref) => Stream.value(false)),
+            ).overrideWith((ref) => Stream.value(busy)),
             mediaIdentificationProgressProvider(
               item.id,
-            ).overrideWith((ref) => Stream.value(null)),
+            ).overrideWith((ref) => Stream.value(progress)),
           ],
           child: Consumer(
             builder: (context, ref, _) {
-              result =
-                  marineLifeLabelsAction(ref, item, null).onPressed != null;
+              final labels = marineLifeLabelsAction(ref, item, null);
+              result = (
+                offered: labels.onPressed != null,
+                on: labels.on,
+                ring: labels.ring,
+              );
               return const SizedBox.shrink();
             },
           ),
@@ -255,6 +269,51 @@ void main() {
       );
       await tester.pumpAndSettle();
       return result!;
+    }
+
+    /// Whether the toolbar offers the labels menu on [item].
+    Future<bool> offered(WidgetTester tester, MediaItem item) async =>
+        (await action(tester, item)).offered;
+
+    final video = testMediaItem(id: 'v1', mediaType: MediaType.video);
+
+    testWidgets('draws no ring on an item not being analysed', (tester) async {
+      expect((await action(tester, video)).ring, isNull);
+    });
+
+    testWidgets('fills a video\'s ring as far as its scan has got', (
+      tester,
+    ) async {
+      final ring = (await action(
+        tester,
+        video,
+        busy: true,
+        progress: 0.4,
+      )).ring;
+      expect(ring?.value, 0.4);
+    });
+
+    testWidgets('spins the ring on a photo being analysed', (tester) async {
+      final ring = (await action(
+        tester,
+        testMediaItem(id: 'p1'),
+        busy: true,
+      )).ring;
+      expect(ring, isNotNull);
+      expect(ring!.value, isNull);
+    });
+
+    for (final (mode, tinted) in [
+      (LabelMode.names, true),
+      (LabelMode.allLife, true),
+      (LabelMode.off, false),
+    ]) {
+      testWidgets('tints the icon in ${mode.name}: $tinted', (tester) async {
+        expect(
+          (await action(tester, testMediaItem(id: 'p1'), mode: mode)).on,
+          tinted,
+        );
+      });
     }
 
     testWidgets('is offered on a photo', (tester) async {
