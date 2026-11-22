@@ -5236,6 +5236,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'الوصف';
 
   @override
+  String get checklists_template_edit_notFound => 'لم يعد هذا القالب موجودًا.';
+
+  @override
   String get checklists_template_itemsHeader => 'العناصر';
 
   @override
@@ -5330,6 +5333,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => 'أدخل اسمًا';
+
+  @override
+  String get preDive_edit_notFound => 'لم تعد قائمة التحقق هذه موجودة.';
 
   @override
   String get preDive_item_title => 'العنوان';

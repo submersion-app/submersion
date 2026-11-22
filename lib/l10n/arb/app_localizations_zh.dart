@@ -4836,6 +4836,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_template_descriptionLabel => '描述';
 
   @override
+  String get checklists_template_edit_notFound => '此模板已不存在。';
+
+  @override
   String get checklists_template_itemsHeader => '事项';
 
   @override
@@ -4925,6 +4928,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => '请输入名称';
+
+  @override
+  String get preDive_edit_notFound => '此检查清单已不存在。';
 
   @override
   String get preDive_item_title => '标题';

@@ -158,6 +158,11 @@ void main() {
   group('pre-dive template value bounds', () {
     final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
 
+    // Save runs in one transaction and change log operation, so it needs a
+    // database even with the fake repository.
+    setUp(setUpTestDatabase);
+    tearDown(tearDownTestDatabase);
+
     PreDiveChecklistTemplateItem valueItem({
       double? valueMin,
       double? valueMax,
@@ -208,7 +213,8 @@ void main() {
       );
       await pumpPage(tester, repo);
 
-      // Open the item, change nothing, accept, save the template.
+      // Open the item, change nothing, accept: the template is unchanged,
+      // so Save stays disabled and nothing rewrites 12.5.
       await tester.tap(find.text('Start pressure'));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(TextFormField, '12,5'), findsOneWidget);
@@ -217,8 +223,8 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(repo.savedItems!.single.valueMin, 12.5);
-      expect(repo.savedItems!.single.valueMax, 220.5);
+      expect(repo.savedItems, isNull);
+      expect(find.byType(PreDiveTemplateEditPage), findsOneWidget);
     });
 
     testWidgets('a comma decimal typed under fr reaches the item', (

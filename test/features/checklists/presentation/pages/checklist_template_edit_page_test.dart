@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/theme/full_themes/tropical_theme.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -15,12 +17,14 @@ import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Renders [ChecklistTemplateEditPage] with [sharedPreferencesProvider]
-/// overridden, needed because saving a brand-new template resolves
-/// `validatedCurrentDiverIdProvider`, which watches `currentDiverIdProvider`,
-/// which reads `sharedPreferencesProvider` (throws unless overridden).
+/// overridden and the active diver resolved to [_diverId]: Save resolves
+/// the diver first, and a new template is created under it.
 Widget _appWithPrefs(SharedPreferences prefs, Widget child) {
   return ProviderScope(
-    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(prefs),
+      validatedCurrentDiverIdProvider.overrideWith((ref) async => _diverId),
+    ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -28,6 +32,20 @@ Widget _appWithPrefs(SharedPreferences prefs, Widget child) {
     ),
   );
 }
+
+const _diverId = 'd1';
+
+/// The diver a new template is created under.
+Future<void> _seedDiver() => DatabaseService.instance.database.customStatement(
+  "INSERT INTO divers (id, name, created_at, updated_at) "
+  "VALUES ('$_diverId', 'Diver', 1, 1)",
+);
+
+/// The open item dialog's Cancel, never the editor bar's.
+Finder dialogCancel() => find.descendant(
+  of: find.byType(AlertDialog),
+  matching: find.widgetWithText(TextButton, 'Cancel'),
+);
 
 /// Finds the first TextFormField inside the open AlertDialog (the item's
 /// title field), never the page's own name/description fields.
@@ -102,7 +120,7 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Add item'));
     await tester.pumpAndSettle();
     await tester.enterText(dialogTitleField(), 'Discarded');
-    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.tap(dialogCancel());
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -234,7 +252,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.tap(dialogCancel());
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, 'Add item'));
@@ -252,6 +270,7 @@ void main() {
       'repository', (tester) async {
     await setUpTestDatabase();
     addTearDown(tearDownTestDatabase);
+    await _seedDiver();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
@@ -301,6 +320,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // An untouched form has nothing to save: a description makes it a
+    // change, so Save runs the checks.
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Description'),
+      'No name yet',
+    );
+    await tester.pump();
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
     await tester.pumpAndSettle();
 
@@ -331,7 +357,7 @@ void main() {
     // Dialog stays open on validation failure -- nothing was added.
     expect(find.byType(AlertDialog), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.tap(dialogCancel());
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
@@ -352,7 +378,7 @@ void main() {
     expect(find.text('Title is required'), findsOneWidget);
     expect(find.byType(AlertDialog), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.tap(dialogCancel());
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
@@ -385,8 +411,10 @@ void main() {
       ),
     ]);
 
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
-      testApp(child: ChecklistTemplateEditPage(templateId: created.id)),
+      _appWithPrefs(prefs, ChecklistTemplateEditPage(templateId: created.id)),
     );
     await tester.pumpAndSettle();
 
@@ -460,7 +488,7 @@ void main() {
       find.descendant(of: find.byType(AlertDialog), matching: find.text('60')),
       findsOneWidget,
     );
-    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.tap(dialogCancel());
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
