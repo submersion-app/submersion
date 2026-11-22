@@ -958,3 +958,22 @@ from this plan, for plan 3 to build on:
   test-first (the cylinder merge, the sibling routes, the load log, the
   "Saved" message); a new key with no resolved diver refusing Save stays,
   as the rule every phase 4 editor follows.
+- **Later review rounds on the PR (#4894)** changed this further:
+  - A transmitter size in cubic feet with no working pressure is shown and
+    read at the 200 bar the app assumes for a tank with none
+    (`assumedWorkingPressureBar`, as `UnitFormatter.formatTankVolume`
+    does); before, it was saved as that many litres.
+  - Removing a key (`TransmitterRepository.delete`) runs in
+    `ChangeLogScope.bulk` labelled `deleted_record`, as a record page's
+    Delete does, so it is a labelled History entry of its own, and part of
+    the item's operation when the item itself is deleted. A phase 4
+    editor's menu operation needs its write labelled the same way.
+  - The cylinder name looked up as the key editor opens is guarded: a
+    failure is logged and the key opens without it.
+  - The snackbar's Apply reads the item's keys afresh
+    (`ref.refresh(...future)`), not the card's cached list.
+  - The field note widget moved to
+    `widgets/transmitter_field_note.dart` to keep the page under 800 lines.
+  - Left as it was: the key editor shows a cylinder's ideal-gas capacity
+    (81.1 cuft for 11.1 L at 207 bar), where the card shows the rated one
+    (80); a test pins it.
