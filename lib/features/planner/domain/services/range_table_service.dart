@@ -124,7 +124,9 @@ class RangeTableService {
   }
 
   /// Bottom time the table cannot shrink below, or null if the diver has
-  /// authored no level leg to shorten.
+  /// authored no leg that holds at depth (see [SegmentChain.bottomLegIndex]).
+  /// For a rate-split descent this is its whole authored duration, travel
+  /// included.
   int? _shortestBottomMinutes(domain.DivePlan plan) {
     final ordered = List<PlanSegment>.from(plan.segments)
       ..sort((a, b) => a.order.compareTo(b.order));

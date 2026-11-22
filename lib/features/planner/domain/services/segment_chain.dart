@@ -135,17 +135,26 @@ class SegmentChain {
   }
 
   /// Index of the leg that is "the bottom" of the dive, or null if the diver
-  /// has authored no level leg at all.
+  /// has authored no leg that holds at depth.
   ///
-  /// The deepest [SegmentPhase.level] leg; the last one wins on a tie, so a
-  /// bottom split into two legs at the same depth extends at its far end.
-  /// Replaces the old "first segment whose type is bottom" lookups.
+  /// The deepest leg that holds at its target: a [SegmentPhase.level] leg,
+  /// or a descent flagged [PlanSegment.splitAtConfiguredRate], whose
+  /// duration beyond the travel time is spent holding at its target
+  /// (#3264). A plan authored as that one descent has no level leg at all,
+  /// and without it the contingency and range-table time deltas had nothing
+  /// to lengthen (#4849). The last one wins on a tie, so a bottom split into
+  /// two legs at the same depth extends at its far end. Replaces the old
+  /// "first segment whose type is bottom" lookups.
   int? bottomLegIndex(List<ResolvedLeg> legs) {
     int? best;
     for (var i = 0; i < legs.length; i++) {
-      if (legs[i].phase != SegmentPhase.level) continue;
+      if (!_holdsAtTarget(legs[i])) continue;
       if (best == null || legs[i].endDepth >= legs[best].endDepth) best = i;
     }
     return best;
   }
+
+  bool _holdsAtTarget(ResolvedLeg leg) =>
+      leg.phase == SegmentPhase.level ||
+      (leg.phase == SegmentPhase.descent && leg.segment.splitAtConfiguredRate);
 }

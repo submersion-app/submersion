@@ -90,6 +90,38 @@ void main() {
       expect(baseRow[minusFiveIndex], isNotNull);
     });
 
+    // Issue #4849: the time columns must vary a plan whose bottom is the
+    // hold half of a single descent split at the configured rate.
+    test('time columns vary a single rate-split descent plan', () {
+      const service = RangeTableService();
+      final plan = _plan().copyWith(
+        segments: [
+          const PlanSegment(
+            id: 'seg-1',
+            targetDepth: 40.0,
+            durationSeconds: 25 * 60,
+            tankId: 'tank-1',
+            gasMix: _air,
+            splitAtConfiguredRate: true,
+          ),
+        ],
+      );
+      final table = service.compute(plan);
+      final baseRow = table.cells[table.depthDeltas.indexOf(0.0)];
+      final base = table.baseCell!;
+      final plusFive = baseRow[table.timeDeltas.indexOf(5)]!;
+      final minusFive = baseRow[table.timeDeltas.indexOf(-5)]!;
+
+      expect(
+        plusFive.outcome.runtimeSeconds,
+        greaterThan(base.outcome.runtimeSeconds),
+      );
+      expect(
+        minusFive.outcome.runtimeSeconds,
+        lessThan(base.outcome.runtimeSeconds),
+      );
+    });
+
     test('empty plan yields an empty table', () {
       const service = RangeTableService();
       final table = service.compute(

@@ -289,6 +289,32 @@ void main() {
     expect(service.lostGas(plan), isEmpty);
   });
 
+  // Issue #4849: a plan authored as one descent "split at the configured
+  // rate" has no level leg; its bottom is the hold half of that descent.
+  test('longer lengthens a single rate-split descent plan', () {
+    final plan = _plan().copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'seg-1',
+          targetDepth: 40.0,
+          durationSeconds: 25 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          splitAtConfiguredRate: true,
+        ),
+      ],
+    );
+    final base = engine.compute(plan);
+
+    final longer = service.deviationFor(plan, 'longer')!;
+    final both = service.deviationFor(plan, 'both')!;
+
+    expect(longer.plan.segments.single.durationSeconds, 30 * 60);
+    expect(longer.outcome.totalDecoSeconds, greaterThan(base.totalDecoSeconds));
+    expect(both.plan.segments.single.durationSeconds, 30 * 60);
+    expect(both.plan.segments.single.targetDepth, closeTo(45.0, 0.01));
+  });
+
   test('no segments yields no deviations', () {
     final empty = domain.DivePlan(
       id: 'p',

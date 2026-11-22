@@ -16,6 +16,12 @@ PlanSegment _seg(double targetDepth, int minutes, {String tank = 't1'}) =>
       gasMix: _air,
     );
 
+PlanSegment _split(double targetDepth, int minutes) => _seg(
+  targetDepth,
+  minutes,
+  tank: 'split',
+).copyWith(splitAtConfiguredRate: true);
+
 void main() {
   group('SegmentChain.resolve', () {
     test('returns nothing for an empty plan', () {
@@ -220,6 +226,37 @@ void main() {
       ]);
 
       expect(_chain.bottomLegIndex(legs), 1);
+    });
+
+    // Issue #4849: a descent split at the configured rate holds at its
+    // target for the rest of its duration, so that hold is the bottom.
+    test('finds a rate-split descent when no level leg exists', () {
+      final legs = _chain.resolve([_split(40, 25), _seg(0, 5)]);
+
+      expect(_chain.bottomLegIndex(legs), 0);
+    });
+
+    test('a deeper rate-split descent beats a shallower level leg', () {
+      final legs = _chain.resolve([
+        _split(40, 20),
+        _seg(30, 1),
+        _seg(30, 10),
+        _seg(0, 4),
+      ]);
+
+      expect(_chain.bottomLegIndex(legs), 0);
+    });
+
+    test('a level leg after a rate-split descent to its depth wins', () {
+      final legs = _chain.resolve([_split(40, 10), _seg(40, 10), _seg(0, 5)]);
+
+      expect(_chain.bottomLegIndex(legs), 1);
+    });
+
+    test('ignores a rate-split ascent', () {
+      final legs = _chain.resolve([_seg(40, 3), _split(10, 10)]);
+
+      expect(_chain.bottomLegIndex(legs), isNull);
     });
   });
 
