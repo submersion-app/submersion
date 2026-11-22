@@ -60833,6 +60833,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get rules_edit_noActions => 'Adj hozzá legalább egy műveletet.';
 
   @override
+  String get rules_edit_notFound => 'Ez a szabály már nem létezik.';
+
+  @override
   String get rules_picker_search => 'Műveletek keresése';
 
   @override

@@ -18021,6 +18021,7 @@
   "rules_edit_matchesEverySite": "Geen voorwaarde: de regel komt overeen met elke duikstek",
   "rules_edit_addAction": "Actie toevoegen",
   "rules_edit_noActions": "Voeg minstens één actie toe.",
+  "rules_edit_notFound": "Deze regel bestaat niet meer.",
   "rules_picker_search": "Acties zoeken",
   "rules_picker_set": "{field} instellen",
   "rules_picker_add": "{collection} toevoegen",

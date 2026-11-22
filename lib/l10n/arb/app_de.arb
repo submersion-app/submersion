@@ -18162,6 +18162,7 @@
   "rules_edit_matchesEverySite": "Keine Bedingung: Die Regel trifft auf jeden Tauchplatz zu",
   "rules_edit_addAction": "Aktion hinzufügen",
   "rules_edit_noActions": "Füge mindestens eine Aktion hinzu.",
+  "rules_edit_notFound": "Diese Regel existiert nicht mehr.",
   "rules_picker_search": "Aktionen suchen",
   "rules_picker_set": "{field} setzen",
   "rules_picker_add": "{collection} hinzufügen",

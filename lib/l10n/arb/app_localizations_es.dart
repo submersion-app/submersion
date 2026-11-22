@@ -61207,6 +61207,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get rules_edit_noActions => 'Añade al menos una acción.';
 
   @override
+  String get rules_edit_notFound => 'Esta regla ya no existe.';
+
+  @override
   String get rules_picker_search => 'Buscar acciones';
 
   @override

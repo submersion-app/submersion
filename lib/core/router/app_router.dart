@@ -2105,6 +2105,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/rules/new',
             name: 'ruleNew',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) => const RuleEditPage(),
           ),
           GoRoute(
@@ -2127,6 +2128,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/rules/:id',
             name: 'ruleEdit',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 RuleEditPage(ruleId: state.pathParameters['id']),
           ),

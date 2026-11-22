@@ -96275,6 +96275,12 @@ abstract class AppLocalizations {
   /// **'Add at least one action.'**
   String get rules_edit_noActions;
 
+  /// Shown when Save finds the rule was deleted while it was being edited
+  ///
+  /// In en, this message translates to:
+  /// **'This rule no longer exists.'**
+  String get rules_edit_notFound;
+
   /// Search field hint of the action picker
   ///
   /// In en, this message translates to:

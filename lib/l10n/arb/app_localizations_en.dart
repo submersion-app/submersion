@@ -60216,6 +60216,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rules_edit_noActions => 'Add at least one action.';
 
   @override
+  String get rules_edit_notFound => 'This rule no longer exists.';
+
+  @override
   String get rules_picker_search => 'Search actions';
 
   @override

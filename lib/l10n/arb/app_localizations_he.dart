@@ -59891,6 +59891,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get rules_edit_noActions => 'הוסף לפחות פעולה אחת.';
 
   @override
+  String get rules_edit_notFound => 'הכלל הזה כבר לא קיים.';
+
+  @override
   String get rules_picker_search => 'חיפוש פעולות';
 
   @override

@@ -61981,6 +61981,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rules_edit_noActions => 'أضف إجراءً واحدًا على الأقل.';
 
   @override
+  String get rules_edit_notFound => 'لم تعد هذه القاعدة موجودة.';
+
+  @override
   String get rules_picker_search => 'البحث في الإجراءات';
 
   @override

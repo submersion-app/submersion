@@ -18021,6 +18021,7 @@
   "rules_edit_matchesEverySite": "Nessuna condizione: la regola corrisponde a ogni sito",
   "rules_edit_addAction": "Aggiungi azione",
   "rules_edit_noActions": "Aggiungi almeno un'azione.",
+  "rules_edit_notFound": "Questa regola non esiste più.",
   "rules_picker_search": "Cerca azioni",
   "rules_picker_set": "Imposta {field}",
   "rules_picker_add": "Aggiungi {collection}",

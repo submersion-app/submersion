@@ -18021,6 +18021,7 @@
   "rules_edit_matchesEverySite": "无条件：规则匹配所有潜点",
   "rules_edit_addAction": "添加操作",
   "rules_edit_noActions": "请至少添加一个操作。",
+  "rules_edit_notFound": "此规则已不存在。",
   "rules_picker_search": "搜索操作",
   "rules_picker_set": "设置{field}",
   "rules_picker_add": "添加{collection}",

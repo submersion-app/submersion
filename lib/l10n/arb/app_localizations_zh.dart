@@ -57414,6 +57414,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_edit_noActions => '请至少添加一个操作。';
 
   @override
+  String get rules_edit_notFound => '此规则已不存在。';
+
+  @override
   String get rules_picker_search => '搜索操作';
 
   @override

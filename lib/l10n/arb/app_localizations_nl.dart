@@ -60780,6 +60780,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get rules_edit_noActions => 'Voeg minstens één actie toe.';
 
   @override
+  String get rules_edit_notFound => 'Deze regel bestaat niet meer.';
+
+  @override
   String get rules_picker_search => 'Acties zoeken';
 
   @override

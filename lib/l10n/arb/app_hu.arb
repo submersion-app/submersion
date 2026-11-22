@@ -18021,6 +18021,7 @@
   "rules_edit_matchesEverySite": "Nincs feltétel: a szabály minden helyszínre illik",
   "rules_edit_addAction": "Művelet hozzáadása",
   "rules_edit_noActions": "Adj hozzá legalább egy műveletet.",
+  "rules_edit_notFound": "Ez a szabály már nem létezik.",
   "rules_picker_search": "Műveletek keresése",
   "rules_picker_set": "{field} beállítása",
   "rules_picker_add": "{collection} hozzáadása",
