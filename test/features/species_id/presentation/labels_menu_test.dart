@@ -343,6 +343,7 @@ void main() {
       (MediaAnalysisState.partial, ToolbarTone.warn),
       (MediaAnalysisState.analysed, ToolbarTone.ok),
       (MediaAnalysisState.foundNoModel, ToolbarTone.ok),
+      (MediaAnalysisState.partFoundNoModel, ToolbarTone.warn),
     ]) {
       testWidgets('colours the icon for ${state.name}: ${tone?.name}', (
         tester,

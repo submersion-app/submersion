@@ -16,6 +16,11 @@ enum MediaAnalysisState {
   /// (issue #4876): what it found shows, nothing more is offered.
   foundNoModel,
 
+  /// As [foundNoModel], but a video the other device scanned only part
+  /// way (issue #4926): what it found shows, nothing more is offered, and
+  /// it is not done.
+  partFoundNoModel,
+
   /// Never looked at.
   notAnalysed,
 
@@ -85,7 +90,8 @@ LabelsMenuModel labelsMenuModel({
     // included.
     MediaAnalysisState.partial ||
     MediaAnalysisState.analysed ||
-    MediaAnalysisState.foundNoModel => LabelsStatusLine.found,
+    MediaAnalysisState.foundNoModel ||
+    MediaAnalysisState.partFoundNoModel => LabelsStatusLine.found,
   };
   return (
     line: line,
@@ -94,7 +100,8 @@ LabelsMenuModel labelsMenuModel({
     action: action,
     actionEnabled:
         state != MediaAnalysisState.noModel &&
-        state != MediaAnalysisState.foundNoModel,
+        state != MediaAnalysisState.foundNoModel &&
+        state != MediaAnalysisState.partFoundNoModel,
   );
 }
 
@@ -126,7 +133,8 @@ LabelsButtonStatus labelsButtonStatus({
     null ||
     MediaAnalysisState.noModel ||
     MediaAnalysisState.notAnalysed => LabelsButtonStatus.notAnalysed,
-    MediaAnalysisState.partial => LabelsButtonStatus.partial,
+    MediaAnalysisState.partial ||
+    MediaAnalysisState.partFoundNoModel => LabelsButtonStatus.partial,
     // Another device's results count: what it found is on the item.
     MediaAnalysisState.analysed ||
     MediaAnalysisState.foundNoModel => LabelsButtonStatus.analysed,

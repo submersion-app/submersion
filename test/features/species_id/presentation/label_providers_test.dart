@@ -281,6 +281,38 @@ void main() {
       expect(s.found, 1);
     });
 
+    test('no model, with a video another device scanned only part way, '
+        'says it is part analysed (issue #4926)', () async {
+      installed = null;
+      marineLifeIdEnabled = false;
+      marineLifeLabelsShown = true;
+      await repository.storeRun(
+        videoRun(mediaId: 'v1').copyWith(analysedBy: () => 'laptop'),
+        insert: [identification('a', mediaId: 'v1')],
+        deleteIds: const [],
+      );
+      final s = await status(item('v1', type: MediaType.video));
+      expect(s.state, MediaAnalysisState.partFoundNoModel);
+      expect(s.found, 1);
+    });
+
+    test('no model, with a video another device scanned to the end, says '
+        'what was found (issue #4926)', () async {
+      installed = null;
+      marineLifeIdEnabled = false;
+      marineLifeLabelsShown = true;
+      await repository.storeRun(
+        videoRun(
+          mediaId: 'v1',
+          scannedMs: 25000,
+        ).copyWith(analysedBy: () => 'laptop'),
+        insert: [identification('a', mediaId: 'v1')],
+        deleteIds: const [],
+      );
+      final s = await status(item('v1', type: MediaType.video));
+      expect(s.state, MediaAnalysisState.foundNoModel);
+    });
+
     test('where no model can run, an item with no results is not analysed, '
         'not missing a model (issue #4876)', () async {
       installed = null;
