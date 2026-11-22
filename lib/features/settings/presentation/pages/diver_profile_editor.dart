@@ -63,23 +63,47 @@ mixin DiverProfileEditor<W extends ConsumerStatefulWidget, D>
   /// sitting on it. Later changes of the active diver are the host's to act
   /// on, by closing the page. Call at the end of `initState`.
   void openProfileEditor() {
-    ref.listenManual<AsyncValue<Diver?>>(currentDiverProvider, (_, next) {
-      if (_profileDiverId != null || !mounted) return;
-      // A diver being worked out again still carries the one it replaces:
-      // only a settled answer is the diver the host has noted.
-      if (next.isLoading) return;
-      final diver = next.value;
-      if (diver == null) {
-        if (next.hasError) {
-          setState(() => _loadError = next.error);
-        }
-        return;
-      }
-      _profileDiverId = diver.id;
-      fillFromDiver(diver);
-      openEditor();
-      setState(() {});
-    }, fireImmediately: true);
+    ref.listenManual<AsyncValue<Diver?>>(
+      currentDiverProvider,
+      (_, _) => _openOnSettledDiver(),
+      fireImmediately: true,
+    );
+    // The host tracks the active diver by this id: the page opens on a
+    // diver only once the id agrees, so the diver it shows is the diver
+    // the host closes it for.
+    ref.listenManual<AsyncValue<String?>>(
+      validatedCurrentDiverIdProvider,
+      (_, _) => _openOnSettledDiver(),
+    );
+  }
+
+  /// Pins the diver and opens the sitting once the active diver has
+  /// settled: loaded (a diver being worked out again still carries the one
+  /// it replaces, as does a reload that failed), and the same diver the
+  /// active diver id names. Until then the page shows a spinner, or why the
+  /// diver could not be loaded.
+  void _openOnSettledDiver() {
+    if (_profileDiverId != null || !mounted) return;
+    final current = ref.read(currentDiverProvider);
+    if (current.isLoading) return;
+    if (current.hasError) {
+      setState(() => _loadError = current.error);
+      return;
+    }
+    final diver = current.value;
+    if (diver == null) return;
+    final active = ref.read(validatedCurrentDiverIdProvider);
+    if (active.isLoading) return;
+    // Mid-switch the two can name different divers: wait for the other.
+    // An id that could not be worked out does not hold the page; Save then
+    // says it failed.
+    if (active.hasValue && !active.hasError && active.value != diver.id) {
+      return;
+    }
+    _profileDiverId = diver.id;
+    fillFromDiver(diver);
+    openEditor();
+    setState(() {});
   }
 
   /// Writes the page's changes onto the diver as stored now, inside the

@@ -264,4 +264,46 @@ void main() {
       expect(find.text('None'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'a page opened before the active diver id is first known waits for it',
+    (tester) async {
+      Completer<void>? gate;
+      final router = await pumpProfilePage(
+        tester,
+        path: 'medical',
+        page: const MedicalInfoEditPage(),
+        activeDiverId: 'a',
+        push: false,
+        overrides: [
+          // First worked out when the page opens, and held there.
+          validatedCurrentDiverIdProvider.overrideWith((ref) async {
+            final id = ref.watch(currentDiverIdProvider);
+            await gate?.future;
+            return id;
+          }),
+        ],
+      );
+      final container = profileContainer(tester);
+      final listening = container.listen(currentDiverProvider, (_, _) {});
+      addTearDown(listening.close);
+      await tester.pumpAndSettle();
+
+      gate = Completer<void>();
+      unawaited(router.push('$diverProfileHub/medical'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      // Bob becomes active before the id is first known; it settles on him.
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver('b');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Penicillin'), findsNothing);
+      expect(find.text('None'), findsOneWidget);
+    },
+  );
 }
