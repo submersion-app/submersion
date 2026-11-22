@@ -96,6 +96,27 @@ void main() {
     expect(incidentSavedDiveId(stored(diveId: null), null), isNull);
   });
 
+  test('moving the report to another item writes its link afresh', () {
+    // A check-in belongs to one item: a link stored on the old item (even
+    // one that does not stand, which reads as none) must not follow.
+    final start = stored(observationId: null, checkInDiveId: null);
+    final moved = (
+      category: start.category,
+      severity: start.severity,
+      occurredAt: start.occurredAt,
+      equipmentId: 'bcd',
+      observationId: null,
+      diveId: start.diveId,
+      checkInDiveId: null,
+      narrative: start.narrative,
+      factors: start.factors,
+      lessons: start.lessons,
+    );
+    final changes = incidentChanges(draft: moved, start: start, linkable: null);
+    expect(changes.equipmentId, (value: 'bcd'));
+    expect(changes.link, (diveId: null, observationId: null));
+  });
+
   test('an unchanged draft changes nothing', () {
     expect(
       incidentChanges(draft: stored(), start: stored(), linkable: 'o1').isEmpty,

@@ -55,15 +55,17 @@ String? incidentOptionalText(String text) {
 
 /// What Save writes on a stored report: each field whose draft value
 /// differs from [start]'s, texts trimmed and blank optional ones cleared.
-/// The links only when the check-in or a dive changed, then as [linkable]
-/// (the chosen check-in, when it can still be linked) and
-/// [incidentSavedDiveId].
+/// The links only when the check-in, a dive or the item changed (a
+/// check-in belongs to one item, so a link stored on the old one, even one
+/// that reads as none, must not follow), then as [linkable] (the chosen
+/// check-in, when it can still be linked) and [incidentSavedDiveId].
 IncidentChanges incidentChanges({
   required IncidentDraft draft,
   required IncidentDraft start,
   required String? linkable,
 }) {
   final linkChanged =
+      draft.equipmentId != start.equipmentId ||
       draft.observationId != start.observationId ||
       draft.diveId != start.diveId ||
       draft.checkInDiveId != start.checkInDiveId;
