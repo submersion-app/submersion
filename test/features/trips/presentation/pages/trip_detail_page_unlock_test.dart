@@ -296,6 +296,7 @@ void main() {
     ('a phone with the keyboard up', const Size(402, 874), false, 336.0),
     ('a desktop', const Size(1280, 800), false, 0.0),
     ('the list pane', const Size(900, 800), true, 0.0),
+    ('the list pane with the keyboard up', const Size(900, 800), true, 336.0),
   ]) {
     testWidgets('on $kind a drag reaches the header editor\'s last field '
         'above the tab row', (tester) async {
