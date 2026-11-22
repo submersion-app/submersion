@@ -18,12 +18,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// device cannot decode (HEVC on a Windows PC without its extension) says so
 /// and leaves the still.
 class MotionPhotoLayer extends ConsumerStatefulWidget {
-  const MotionPhotoLayer({super.key, required this.item, this.enabled = true});
+  const MotionPhotoLayer({
+    super.key,
+    required this.item,
+    this.enabled = true,
+    this.showButton = true,
+  });
 
   final MediaItem item;
 
   /// False while the page's gestures belong to something else (tag mode).
   final bool enabled;
+
+  /// Whether the button shows: with the viewer's other controls. A clip
+  /// already playing plays on.
+  final bool showButton;
 
   @override
   ConsumerState<MotionPhotoLayer> createState() => _MotionPhotoLayerState();
@@ -125,7 +134,7 @@ class _MotionPhotoLayerState extends ConsumerState<MotionPhotoLayer> {
               ),
             ),
           )
-        else
+        else if (widget.showButton || _busy)
           Positioned(
             top: MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
             right: 16,

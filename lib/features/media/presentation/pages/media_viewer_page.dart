@@ -581,6 +581,22 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         ),
                       ),
 
+                    // A motion photo's clip, on demand. Above the tap target
+                    // that toggles the controls, which would otherwise take
+                    // the button's taps; the button shows with the controls.
+                    // Keyed per photo, so paging away stops a clip.
+                    if (!currentItem.isVideo)
+                      Positioned.fill(
+                        child: MotionPhotoLayer(
+                          key: ValueKey('motion-${currentItem.id}'),
+                          item: currentItem,
+                          enabled: !pickingWhite && !taggingPeople,
+                          showButton: isFullscreen
+                              ? fullscreenControlsVisible
+                              : _showOverlay || photoUnlocked,
+                        ),
+                      ),
+
                     // "Pick white" on a paused video: the player owns ordinary
                     // taps, so the pick gets its own catcher above it.
                     if (pickingWhite && currentItem.isVideo)

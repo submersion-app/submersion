@@ -358,9 +358,6 @@ class _PhotoItemState extends ConsumerState<_PhotoItem> {
             editable: widget.identificationsEditable,
             bottomInset: widget.controlsInset,
           ),
-        // A motion photo's clip, on demand. Not in tag mode, which owns the
-        // page's taps.
-        MotionPhotoLayer(item: item, enabled: !people.active),
       ],
     );
   }
