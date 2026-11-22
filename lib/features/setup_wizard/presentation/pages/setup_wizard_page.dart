@@ -240,6 +240,14 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
           builder: (_) =>
               (widget.setUpStepBody ?? _setUpStep)(step, _navigationFor(id)),
         );
+      // Wired to its step in the next change; nothing offers it yet.
+      case SetupStepId.speciesModel:
+        return WizardStepDef(
+          label: _stepLabel(id),
+          hideBottomBar: true,
+          canAdvance: setupWizardProvider(mode).select((_) => true),
+          builder: (_) => const SizedBox.shrink(),
+        );
       case SetupStepId.finish:
         return WizardStepDef(
           label: _stepLabel(id),

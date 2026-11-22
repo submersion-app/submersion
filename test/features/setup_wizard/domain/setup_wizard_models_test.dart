@@ -178,6 +178,120 @@ void main() {
     });
   });
 
+  group('computeSteps with the species model offered (#4881)', () {
+    const offered = SetupWizardDraft(
+      mode: SetupWizardMode.firstRun,
+      speciesModelOffered: true,
+    );
+
+    test('the fresh path runs it after Photos and before Finish', () {
+      expect(computeSteps(offered.copyWith(path: SetupPath.fresh)), [
+        SetupStepId.welcomeFork,
+        SetupStepId.profile,
+        SetupStepId.units,
+        ...kSetUpWizardSteps,
+        SetupStepId.speciesModel,
+        SetupStepId.finish,
+      ]);
+    });
+
+    test('cloud sync runs it after Photos, before the profile and Finish', () {
+      final draft = offered.copyWith(
+        path: SetupPath.existingData,
+        source: ExistingDataSource.cloudSync,
+      );
+      expect(computeSteps(draft), [
+        SetupStepId.welcomeFork,
+        SetupStepId.existingChoice,
+        ...kSetUpWizardSteps,
+        SetupStepId.speciesModel,
+        SetupStepId.finish,
+      ]);
+      expect(computeSteps(draft.copyWith(needsProfile: true)), [
+        SetupStepId.welcomeFork,
+        SetupStepId.existingChoice,
+        ...kSetUpWizardSteps,
+        SetupStepId.speciesModel,
+        SetupStepId.profile,
+        SetupStepId.finish,
+      ]);
+    });
+
+    test('the setup assistant runs it after the four steps', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.settings,
+        speciesModelOffered: true,
+      );
+      expect(computeSteps(draft), [
+        SetupStepId.units,
+        ...kSetUpWizardSteps,
+        SetupStepId.speciesModel,
+        SetupStepId.finish,
+      ]);
+    });
+
+    test('not offered, every list is as it was', () {
+      for (final draft in [
+        const SetupWizardDraft(
+          mode: SetupWizardMode.firstRun,
+          path: SetupPath.fresh,
+        ),
+        const SetupWizardDraft(mode: SetupWizardMode.settings),
+        const SetupWizardDraft(
+          mode: SetupWizardMode.firstRun,
+          path: SetupPath.existingData,
+          source: ExistingDataSource.cloudSync,
+        ),
+      ]) {
+        expect(
+          computeSteps(draft),
+          isNot(contains(SetupStepId.speciesModel)),
+          reason: '${draft.mode} ${draft.path}',
+        );
+      }
+    });
+
+    test('skip, restore, open folder and a browser never get it', () {
+      final drafts = [
+        offered.copyWith(path: SetupPath.fresh, skipRequested: true),
+        offered.copyWith(
+          path: SetupPath.existingData,
+          source: ExistingDataSource.restoreBackup,
+        ),
+        offered.copyWith(
+          path: SetupPath.existingData,
+          source: ExistingDataSource.openFolder,
+        ),
+        for (final mode in SetupWizardMode.values)
+          SetupWizardDraft(
+            mode: mode,
+            browser: true,
+            path: SetupPath.fresh,
+            speciesModelOffered: true,
+          ),
+      ];
+      for (final draft in drafts) {
+        expect(
+          computeSteps(draft),
+          isNot(contains(SetupStepId.speciesModel)),
+          reason:
+              '${draft.mode} ${draft.path} ${draft.source} '
+              'browser=${draft.browser}',
+        );
+      }
+    });
+
+    test('copyWith keeps the offer', () {
+      expect(offered.copyWith(name: 'Ana').speciesModelOffered, isTrue);
+      expect(
+        const SetupWizardDraft(
+          mode: SetupWizardMode.firstRun,
+        ).speciesModelOffered,
+        isFalse,
+      );
+    });
+  });
+
   group('computeSteps in a browser (#4121)', () {
     // A browser has no automatic backups (no files, no background work) and
     // no photo library to sync, so those two shared steps are gone in every

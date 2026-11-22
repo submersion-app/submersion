@@ -73,3 +73,16 @@ final homeSpeciesBannerProvider = Provider<bool>((ref) {
   if (!ref.watch(speciesDownloadPromptProvider)) return false;
   return ref.watch(libraryHasPhotosOrVideosProvider).value ?? false;
 });
+
+/// Whether the setup wizard offers the species model (issue #4881), by the
+/// facts the #4773 offers use: the feature is on, the model can run on this
+/// device, none is installed, and the diver has not dismissed the offer (a
+/// removal dismisses it too). Read once, as a snapshot: it never follows
+/// the pack controller, so a download started from the step keeps the step.
+final speciesModelOfferProvider = FutureProvider.autoDispose<bool>((ref) async {
+  if (!marineLifeIdEnabled) return false;
+  if (ref.read(speciesDownloadPromptDismissedNotifierProvider)) return false;
+  final availability = await ref.read(visionAvailabilityProvider.future);
+  if (availability != VisionAvailability.available) return false;
+  return await ref.read(installedSpeciesPackProvider.future) == null;
+});
