@@ -19,11 +19,10 @@ working on it.
 
 The flag is `marineLifeIdEnabled` in `lib/core/constants/feature_flags.dart`.
 It is on by default wherever an engine runs (asked of `visionEngineRuns`):
-Core ML on iPhone, iPad and Mac. The ONNX engine's platforms, Android,
-Windows and Linux, are on only in a build made with
-`--dart-define=MARINE_LIFE_ID_ONNX=true` until their pack is published and
-the Android floor measured. The web never has it. A build turns it off
-everywhere with:
+Core ML on iPhone, iPad and Mac, and the ONNX engine on Android, Windows and
+Linux. A build made with `--dart-define=MARINE_LIFE_ID_ONNX=false` leaves the
+ONNX platforms out. The web never has it. A build turns it off everywhere
+with:
 
 ```bash
 flutter run -d macos --dart-define=MARINE_LIFE_ID=false
@@ -123,7 +122,7 @@ Devices need 8 GB at launch (`androidMinimumMemoryBytes` and
 for measuring a smaller phone lifts the floor:
 
 ```bash
-flutter build apk --dart-define=MARINE_LIFE_ID_ONNX=true --dart-define=MARINE_LIFE_ID_IGNORE_FLOOR=true
+flutter build apk --dart-define=MARINE_LIFE_ID_IGNORE_FLOOR=true
 ```
 
 The package's tests run the real ONNX Runtime. On Linux they load the hook's

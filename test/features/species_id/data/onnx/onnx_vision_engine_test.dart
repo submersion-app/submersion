@@ -376,7 +376,7 @@ void main() {
       ),
     );
 
-    test('a build without MARINE_LIFE_ID_ONNX reports the engine as not '
+    test('a build with MARINE_LIFE_ID_ONNX=false reports the engine as not '
         'running here, so nothing offers it', () async {
       for (final platform in [
         TargetPlatform.android,
