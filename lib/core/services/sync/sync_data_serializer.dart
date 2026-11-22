@@ -946,7 +946,7 @@ class SyncDataSerializer {
   /// BEFORE the upsert overwrites the stored rows.
   ///
   /// A trim or split made on this device evicts its own cached LODs
-  /// (trimTrackProvider, splitTrackProvider); one arriving from a peer only
+  /// (evictGpsTrackProvider, splitTrackProvider); one arriving from a peer only
   /// overwrites the row, and the cache has no TTL, so without this the map
   /// kept drawing the pre-trim polyline for good (issue #2447). Only a stored
   /// row that draws exactly like the incoming one proves the cache still

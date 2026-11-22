@@ -78,6 +78,18 @@ void main() {
     updatedAt: now,
   );
 
+  /// Writes [record] and refreshes its item's records, as an item page's
+  /// Save does.
+  Future<ServiceRecord> logService(ServiceRecord record) async {
+    final logged = await container
+        .read(serviceRecordRepositoryProvider)
+        .createRecord(record);
+    await container
+        .read(serviceRecordNotifierProvider(record.equipmentId).notifier)
+        .refresh();
+    return logged;
+  }
+
   /// When a test logs a service after setting the baseline: a minute before
   /// the file started, so the service is newer however fast the two writes
   /// land. Both are stored to the millisecond, and a service created in the
@@ -144,9 +156,7 @@ void main() {
       fiftyDaysAgo.month,
       fiftyDaysAgo.day,
     );
-    await container
-        .read(serviceRecordNotifierProvider(reg.id).notifier)
-        .addRecord(regService(reg.id, serviced));
+    await logService(regService(reg.id, serviced));
 
     final clock = await regClock(reg.id, fresh: false);
     // Superseded, not erased: deleting that service must be able to hand
@@ -163,10 +173,7 @@ void main() {
     final reg = await regulatorWithDives();
     await setBaseline(reg.id, yearAgo, setAt: setBeforeAnyService);
     final fiftyDaysAgo = now.subtract(const Duration(days: 50));
-    final notifier = container.read(
-      serviceRecordNotifierProvider(reg.id).notifier,
-    );
-    final logged = await notifier.addRecord(
+    final logged = await logService(
       regService(
         reg.id,
         DateTime(fiftyDaysAgo.year, fiftyDaysAgo.month, fiftyDaysAgo.day),
@@ -174,7 +181,12 @@ void main() {
     );
     expect((await regClock(reg.id, fresh: false)).anchor, isNot(yearAgo));
 
-    await notifier.deleteRecord(logged.id);
+    await container
+        .read(serviceRecordRepositoryProvider)
+        .deleteRecord(logged.id);
+    await container
+        .read(serviceRecordNotifierProvider(reg.id).notifier)
+        .refresh();
 
     final clock = await regClock(reg.id, fresh: false);
     expect(clock.anchor, yearAgo);
@@ -185,9 +197,7 @@ void main() {
     final reg = await regulatorWithDives();
     await setBaseline(reg.id, yearAgo);
 
-    await container
-        .read(serviceRecordNotifierProvider(reg.id).notifier)
-        .addRecord(regService(reg.id, DateTime(now.year - 3)));
+    await logService(regService(reg.id, DateTime(now.year - 3)));
 
     final clock = await regClock(reg.id, fresh: false);
     expect(clock.schedule.anchorDate, yearAgo);

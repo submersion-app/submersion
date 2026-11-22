@@ -38,7 +38,8 @@ void main() {
         overrides: overrides,
         child: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => showLocationMoveEditDialog(context, ref, move),
+            onPressed: () =>
+                showLocationMoveEditDialog(context, ref, move, onHold: (_) {}),
             child: const Text('open'),
           ),
         ),

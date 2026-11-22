@@ -44,16 +44,10 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// Cancel are [saveNewRecord] and [cancelNewRecord].
   bool get isCreating => false;
 
-  /// Whether the page can offer editing at all, for as long as it lives
-  /// (a page behind a build switch, or one shown where it never edits).
-  /// When false, the page builds no controller, holds no exit blocker and
-  /// takes no keys; [editController] is never asked for.
-  bool get hostsEditing => true;
-
   /// Whether the page offers editing now: it can change while the page
   /// lives (a library role that loads, or is taken away). While it does
   /// not, the page never unlocks and the editing keys pass it by.
-  bool get offersEditing => hostsEditing;
+  bool get offersEditing => true;
 
   /// Writes [session], the record's own save. Throws when nothing could be
   /// written. Sets [justSavedRecord] once its write has committed.
@@ -107,16 +101,14 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// record's page owns them and saves or cancels what is changed here. The
   /// page shows Done ([finishJoinedSitting]) in place of Cancel and Save,
   /// and its Save and Cancel keys finish it too; it offers no lock and asks
-  /// nothing on leaving. A page that does not host editing
-  /// ([hostsEditing]) takes no sitting, joined or its own.
+  /// nothing on leaving.
   RecordEditController<T>? get joinedSitting => null;
 
-  /// [joinedSitting], on a page that hosts editing, while it belongs to the
-  /// record the page shows: the one the page was showing when handed it,
-  /// and the one its sitting, if any, is on. A page handed another record
-  /// does not edit, or follow, the one it was opened for.
+  /// [joinedSitting], while it belongs to the record the page shows: the
+  /// one the page was showing when handed it, and the one its sitting, if
+  /// any, is on. A page handed another record does not edit, or follow, the
+  /// one it was opened for.
   RecordEditController<T>? get _joined {
-    if (!hostsEditing) return null;
     final joined = joinedSitting;
     if (joined == null) return null;
     final joinedFor = _joinedFor;
@@ -234,7 +226,6 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   void initState() {
     super.initState();
     _hostedRecordId = hostRecordId;
-    if (!hostsEditing) return;
     _noteJoinedFor();
     final joined = _joined;
     if (joined != null) _followJoined(joined);
@@ -292,9 +283,9 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     super.didUpdateWidget(oldWidget);
     // A page handed another sitting to join follows that one, and the keys
     // act on it.
-    if (hostsEditing) _noteJoinedFor();
+    _noteJoinedFor();
     final joined = _joined;
-    if (hostsEditing && !identical(joined, _listenedJoined)) {
+    if (!identical(joined, _listenedJoined)) {
       _listenedJoined?.removeListener(onEditChanged);
       _listenedJoined = null;
       _openWhenJoined = const {};

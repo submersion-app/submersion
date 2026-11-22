@@ -410,7 +410,7 @@ void main() {
 
       // The star only shows the favourite (issue #4527, plan 12): a tap
       // on it is the row's.
-      expect(notifier.toggledFavoriteIds, isEmpty);
+      expect(notifier.calls, isEmpty);
       expect(rowTaps, 1);
     });
 

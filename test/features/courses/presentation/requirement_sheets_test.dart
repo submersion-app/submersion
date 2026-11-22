@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/features/courses/presentation/editing/course_requirements_sitting.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -33,6 +37,28 @@ Widget _wrap(Widget child) {
   );
 }
 
+/// Seeds the course and opens its Requirements card in a sitting whose rows
+/// are read, as the course page's open card is (issue #4527, phase 3).
+Future<EditSession<Course>> _pumpOpenCard(WidgetTester tester) async {
+  late EditSession<Course> session;
+  await tester.runAsync(() async {
+    await _seed();
+    session = EditSession(
+      (await CourseRepository().getCourseById('course-1'))!,
+    );
+    await courseRequirementsList.load(session);
+  });
+  addTearDown(session.dispose);
+  await tester.pumpWidget(
+    _wrap(CourseRequirementsSection(courseId: 'course-1', editing: session)),
+  );
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 100)),
+  );
+  await tester.pumpAndSettle();
+  return session;
+}
+
 void main() {
   setUp(() async {
     await setUpTestDatabase();
@@ -42,18 +68,12 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  testWidgets('add requirement flow creates a checklist row', (tester) async {
-    await tester.runAsync(_seed);
+  testWidgets('add requirement flow creates a checklist row at Save', (
+    tester,
+  ) async {
+    final session = await _pumpOpenCard(tester);
 
-    await tester.pumpWidget(
-      _wrap(const CourseRequirementsSection(courseId: 'course-1')),
-    );
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
-    await tester.pumpAndSettle();
-
-    // Empty state shows the add button.
+    // The empty open card shows the add button.
     final addButton = find.text('Add requirement');
     expect(addButton, findsOneWidget);
     await tester.ensureVisible(addButton);
@@ -71,8 +91,10 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 100)),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Knowledge development'), findsOneWidget);
 
     await tester.runAsync(() async {
+      await session.runHeldWrites();
       final progress = await CourseRequirementRepository().getCourseProgress(
         'course-1',
       );
@@ -83,16 +105,10 @@ void main() {
     });
   });
 
-  testWidgets('template picker applies the selected template', (tester) async {
-    await tester.runAsync(_seed);
-
-    await tester.pumpWidget(
-      _wrap(const CourseRequirementsSection(courseId: 'course-1')),
-    );
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
-    await tester.pumpAndSettle();
+  testWidgets('template picker applies the selected template at Save', (
+    tester,
+  ) async {
+    final session = await _pumpOpenCard(tester);
 
     final templateButton = find.text('Add from template');
     await tester.ensureVisible(templateButton);
@@ -104,8 +120,10 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 100)),
     );
     await tester.pumpAndSettle();
+    expect(courseRequirementsList.current(session), hasLength(4));
 
     await tester.runAsync(() async {
+      await session.runHeldWrites();
       final progress = await CourseRequirementRepository().getCourseProgress(
         'course-1',
       );

@@ -4,10 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_list_pending.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -71,17 +69,14 @@ class ComponentsCard extends ConsumerWidget {
       initial: part.role,
       suggestions: suggestions.where((r) => r != part.role).toList(),
     );
-    if (role == null || role == part.role) return;
-    if (editing case final session?) {
-      _setInSitting(
-        session,
-        (parts) => [
-          for (final p in parts) p.id == part.id ? p.copyWith(role: role) : p,
-        ],
-      );
-      return;
-    }
-    await repository.updateRole(part.id, role);
+    final session = editing;
+    if (role == null || role == part.role || session == null) return;
+    _setInSitting(
+      session,
+      (parts) => [
+        for (final p in parts) p.id == part.id ? p.copyWith(role: role) : p,
+      ],
+    );
   }
 
   /// Removes the part from the template and from the planned dives that
@@ -92,15 +87,16 @@ class ComponentsCard extends ConsumerWidget {
     WidgetRef ref,
     EquipmentComponent part,
   ) async {
-    // Every step here can fail against the database, the dive count the
-    // question is built from included, and none of it may escape the icon
-    // callback as an unhandled exception with nothing shown to the diver.
+    final session = editing;
+    if (session == null) return;
+    // The dive count the question is built from is a database read, and its
+    // failure may not escape the icon callback with nothing shown to the
+    // diver.
     final messenger = ScaffoldMessenger.of(context);
     // A part added in the sitting was never on a dive: it just goes.
-    if (editing case final session?
-        when !(gearItemComponentsList.loaded(session) ?? const []).any(
-          (c) => c.id == part.id,
-        )) {
+    if (!(gearItemComponentsList.loaded(session) ?? const []).any(
+      (c) => c.id == part.id,
+    )) {
       _setInSitting(
         session,
         (parts) => [
@@ -118,25 +114,13 @@ class ComponentsCard extends ConsumerWidget {
         change: AssemblyHistoryChange.removed,
       );
       if (choice == null) return;
-      if (editing case final session?) {
-        rememberPartAnswer(session, part.componentEquipmentId, choice);
-        _setInSitting(
-          session,
-          (parts) => [
-            for (final p in parts)
-              if (p.id != part.id) p,
-          ],
-        );
-        return;
-      }
-      await ref
-          .read(equipmentComponentRepositoryProvider)
-          .removeComponent(part.id);
-      // Planned dives follow on every answer (issue #4283).
-      await ref.read(diveRepositoryProvider).rewriteAssemblyOnDives(
-        equipmentId,
-        [GearPartRemoved(part.componentEquipmentId)],
-        alsoLogged: choice == AssemblyHistoryChoice.alsoPast,
+      rememberPartAnswer(session, part.componentEquipmentId, choice);
+      _setInSitting(
+        session,
+        (parts) => [
+          for (final p in parts)
+            if (p.id != part.id) p,
+        ],
       );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
@@ -147,7 +131,8 @@ class ComponentsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
     final session = editing ?? scope?.session;
-    final readOnly = scope != null && editing == null;
+    // Only the open card's editor acts.
+    final readOnly = editing == null;
     if (session == null) return _build(context, ref, null, readOnly);
     return ListenableBuilder(
       listenable: gearItemComponentsList.changes(session),
@@ -173,7 +158,7 @@ class ComponentsCard extends ConsumerWidget {
         ? null
         : gearItemComponentsList.loaded(session);
     // The open card acts once its sitting has read the parts.
-    final canAct = !readOnly && (editing == null || held != null);
+    final canAct = !readOnly && held != null;
     final partOfAsync = ref.watch(equipmentPartOfProvider(equipmentId));
     final partOf = partOfAsync.hasError
         ? const <PartOfEntry>[]
@@ -183,8 +168,6 @@ class ComponentsCard extends ConsumerWidget {
     // list, or the two disagree about the same part (#2260).
     final worstClocks =
         ref.watch(equipmentRollupClockProvider).value ?? const {};
-    final repository = ref.read(equipmentComponentRepositoryProvider);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -204,12 +187,12 @@ class ComponentsCard extends ConsumerWidget {
                 ),
                 const Spacer(),
                 RecordCardPencil(cardTitle: l10n.equipment_components_title),
-                if (canAct)
+                if (canAct && editing != null)
                   TextButton.icon(
                     onPressed: () => showComponentPicker(
                       context,
                       parentId: equipmentId,
-                      editing: editing,
+                      editing: editing!,
                     ),
                     icon: const Icon(Icons.add),
                     label: Text(l10n.equipment_components_add),
@@ -279,16 +262,13 @@ class ComponentsCard extends ConsumerWidget {
                     context,
                     parentId: equipmentId,
                     replacing: part,
-                    editing: editing,
+                    editing: editing!,
                   ),
                   onRemove: (part) => _remove(context, ref, part),
-                  onReorder: (ids) => switch (editing) {
-                    final session? => _setInSitting(session, (parts) {
-                      final byId = {for (final p in parts) p.id: p};
-                      return [for (final id in ids) ?byId[id]];
-                    }),
-                    null => repository.reorder(equipmentId, ids),
-                  },
+                  onReorder: (ids) => _setInSitting(editing!, (parts) {
+                    final byId = {for (final p in parts) p.id: p};
+                    return [for (final id in ids) ?byId[id]];
+                  }),
                 );
               },
             ),

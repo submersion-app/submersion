@@ -104,7 +104,6 @@ void main() {
     required List<EquipmentItem> items,
     required Map<String, EquipmentLocation> current,
     List<EquipmentLocation>? places,
-    bool readOnly = false,
     EditSession<Buddy>? editing,
   }) async {
     final moves = _FakeMoves();
@@ -117,11 +116,7 @@ void main() {
           path: '/',
           builder: (context, state) => Scaffold(
             body: SingleChildScrollView(
-              child: BuddyGearSection(
-                buddy: anna,
-                readOnly: readOnly,
-                editing: editing,
-              ),
+              child: BuddyGearSection(buddy: anna, editing: editing),
             ),
           ),
         ),
@@ -265,7 +260,14 @@ void main() {
 
   testWidgets('Returned names its item for a screen reader', (tester) async {
     final handle = tester.ensureSemantics();
-    await pump(tester, items: [item('a', 'Drysuit')], current: {'a': hers});
+    final session = EditSession(anna);
+    addTearDown(session.dispose);
+    await pump(
+      tester,
+      items: [item('a', 'Drysuit')],
+      current: {'a': hers},
+      editing: session,
+    );
 
     expect(find.bySemanticsLabel('Returned: Drysuit'), findsOneWidget);
     handle.dispose();
@@ -294,26 +296,15 @@ void main() {
     expect(find.text('ITEM a'), findsOneWidget);
   });
 
-  testWidgets('Returned takes back that one item', (tester) async {
+  testWidgets('in a sitting, All returned holds everything and moves '
+      'nothing', (tester) async {
+    final session = EditSession(anna);
+    addTearDown(session.dispose);
     final moves = await pump(
       tester,
       items: [item('a', 'Drysuit'), item('b', 'Fins')],
       current: {'a': hers, 'b': hers},
-    );
-
-    await tester.tap(find.byKey(const ValueKey('buddy_gear_returned_a')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('return_equipment_confirm')));
-    await tester.pumpAndSettle();
-
-    expect(moves.returned.single, ['a']);
-  });
-
-  testWidgets('All returned takes back everything', (tester) async {
-    final moves = await pump(
-      tester,
-      items: [item('a', 'Drysuit'), item('b', 'Fins')],
-      current: {'a': hers, 'b': hers},
+      editing: session,
     );
 
     await tester.tap(allReturned);
@@ -322,18 +313,38 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('return_equipment_confirm')));
     await tester.pumpAndSettle();
 
-    expect(moves.returned.single, ['a', 'b']);
+    expect(moves.returned, isEmpty);
+    expect(heldBuddyGearMoves(session).single.returned!.plan.items.keys, [
+      'a',
+      'b',
+    ]);
   });
 
   testWidgets('All returned waits for two rows', (tester) async {
-    await pump(tester, items: [item('a', 'Drysuit')], current: {'a': hers});
+    final session = EditSession(anna);
+    addTearDown(session.dispose);
+    await pump(
+      tester,
+      items: [item('a', 'Drysuit')],
+      current: {'a': hers},
+      editing: session,
+    );
 
     expect(find.text('Returned'), findsOneWidget);
     expect(allReturned, findsNothing);
   });
 
-  testWidgets('the header\'s Lend gear opens the gear picker', (tester) async {
-    await pump(tester, items: [item('a', 'Drysuit')], current: {'a': hers});
+  testWidgets('the open card\'s Lend gear opens the gear picker', (
+    tester,
+  ) async {
+    final session = EditSession(anna);
+    addTearDown(session.dispose);
+    await pump(
+      tester,
+      items: [item('a', 'Drysuit')],
+      current: {'a': hers},
+      editing: session,
+    );
 
     await tester.tap(find.text('Lend gear'));
     await tester.pumpAndSettle();
@@ -341,79 +352,12 @@ void main() {
     expect(find.byType(EquipmentPickerSheet), findsOneWidget);
   });
 
-  testWidgets('the Active prompt still shows once the row has left the list', (
-    tester,
-  ) async {
-    final current = StateProvider<Map<String, EquipmentLocation>>(
-      (ref) => {'a': hers},
-    );
-    final moves = _FakeMoves();
-    final router = GoRouter(
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => Scaffold(
-            body: SingleChildScrollView(child: BuddyGearSection(buddy: anna)),
-          ),
-        ),
-      ],
-    );
-    final loaned = item('a', 'Drysuit', status: EquipmentStatus.loaned);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          allEquipmentProvider.overrideWith((ref) async => [loaned]),
-          currentEquipmentLocationsProvider.overrideWith(
-            (ref) async => ref.watch(current),
-          ),
-          allEquipmentLocationsByIdProvider.overrideWith(
-            (ref) async => {'hers': hers},
-          ),
-          equipmentLocationMoveRepositoryProvider.overrideWithValue(moves),
-          equipmentListNotifierProvider.overrideWith(
-            (ref) => _StatusNotifier(),
-          ),
-          equipmentLocationMovesProvider(
-            'a',
-          ).overrideWith((ref) async => const <EquipmentLocationMove>[]),
-        ],
-        child: MaterialApp.router(
-          locale: const Locale('en'),
-          routerConfig: router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(BuddyGearSection)),
-    );
-    moves.onRecord = () => container.read(current.notifier).state = const {};
-    moves.writeTakes = const Duration(milliseconds: 500);
-
-    await tester.tap(find.byKey(const ValueKey('buddy_gear_returned_a')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('return_equipment_confirm')));
-    await tester.pumpAndSettle();
-    expect(find.text('Drysuit'), findsNothing);
-
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Update status?'), findsOneWidget);
-  });
-
   group('on a page that edits in place (issue #4527, phase 3)', () {
-    testWidgets('locked with the switch on, no action is offered', (
-      tester,
-    ) async {
+    testWidgets('locked, no action is offered', (tester) async {
       await pump(
         tester,
         items: [item('a', 'Drysuit'), item('b', 'Fins')],
         current: {'a': hers, 'b': hers},
-        readOnly: true,
       );
 
       expect(title, findsOneWidget);

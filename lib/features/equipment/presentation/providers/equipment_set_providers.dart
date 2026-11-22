@@ -253,13 +253,6 @@ class EquipmentSetListNotifier
     await refresh();
     _ref.invalidate(equipmentSetProvider(setId));
   }
-
-  Future<void> setShowFigure(String id, bool showFigure) async {
-    await _repository.setShowFigure(id, showFigure);
-    await refresh();
-    _ref.invalidate(equipmentSetsProvider);
-    _ref.invalidate(equipmentSetProvider(id));
-  }
 }
 
 final equipmentSetListNotifierProvider =

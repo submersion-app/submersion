@@ -1370,11 +1370,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_components_totalsSection => 'Összesen';
 
   @override
-  String equipment_documents_removeError(String error) {
-    return 'A dokumentum nem távolítható el: $error';
-  }
-
-  @override
   String get settings_oauth_connect_copyFailed =>
       'Nem sikerült másolni a linket.';
 
@@ -1867,10 +1862,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_story_openGallery => 'Utazási fotók megnyitása';
-
-  @override
-  String get trips_story_generateItineraryError =>
-      'Nem sikerült létrehozni az útitervet. Próbáld újra.';
 
   @override
   String get trips_dayType_diveDay => 'Merülőnap';
@@ -4315,17 +4306,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get certifications_currency_history => 'Előzmények';
-
-  @override
-  String get certifications_currency_deleteEvent_title => 'Törli a bejegyzést?';
-
-  @override
-  String certifications_currency_deleteEvent_content(
-    String event,
-    String date,
-  ) {
-    return 'Ez törli a(z) $date napon rögzített $event bejegyzést.';
-  }
 
   @override
   String get certifications_currency_eventDialog_title =>
@@ -17291,17 +17271,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_location_return_confirm => 'Visszakapottnak jelölés';
 
   @override
-  String equipment_location_returned(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count elem visszakerült',
-      one: '$count elem visszakerült',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String equipment_location_withBuddy(String name) {
     return '$name birtokában';
   }
@@ -17701,17 +17670,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_serviceDialog_categoryLabel => 'Kategória';
 
   @override
-  String get equipment_serviceDialog_snackbar_added =>
-      'Szervizrekord hozzáadva';
-
-  @override
   String equipment_serviceDialog_snackbar_error(Object error) {
     return 'Hiba: $error';
   }
-
-  @override
-  String get equipment_serviceDialog_snackbar_updated =>
-      'Szervizrekord frissítve';
 
   @override
   String get equipment_serviceDialog_updateButton => 'Frissítés';
@@ -17748,20 +17709,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_service_addButton => 'Hozzáadás';
-
-  @override
-  String get equipment_service_deleteDialog_cancel => 'Mégse';
-
-  @override
-  String get equipment_service_deleteDialog_confirm => 'Törlés';
-
-  @override
-  String equipment_service_deleteDialog_content(Object serviceType) {
-    return 'Biztosan törli ezt a(z) $serviceType rekordot?';
-  }
-
-  @override
-  String get equipment_service_deleteDialog_title => 'Szervizrekord törlése?';
 
   @override
   String get equipment_service_deleteMenuItem => 'Törlés';
@@ -18077,9 +18024,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Pénznem ehhez a felszereléshez';
 
   @override
-  String get equipment_service_snackbar_deleted => 'Szervizrekord törölve';
-
-  @override
   String equipment_service_totalCostLabel(String currency) {
     return 'Összes szerviz költség ($currency)';
   }
@@ -18214,10 +18158,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_snackbar_reactivated => 'Felszerelés újraaktiválva';
-
-  @override
-  String get equipment_snackbar_purchased =>
-      'Áthelyezve az aktív felszerelésed közé';
 
   @override
   String get equipment_snackbar_retired => 'Felszerelés kivonva';
@@ -19651,28 +19591,6 @@ class AppLocalizationsHu extends AppLocalizations {
       locale: localeName,
       other: 'még $count fotó',
       one: 'még $count fotó',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importAdded(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count fotó hozzáadva',
-      one: '1 fotó hozzáadva',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importSkipped(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count kihagyva',
-      one: '1 kihagyva',
     );
     return '$_temp0';
   }
@@ -35302,26 +35220,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Előbb adjon hozzá merüléseket a fotók csatolásához';
 
   @override
-  String get trips_detail_scan_errorLinking =>
-      'Nem sikerült csatolni a fotókat. Próbáld újra.';
-
-  @override
   String get trips_detail_scan_errorScanning =>
       'Nem sikerült fotókat keresni. Próbáld újra.';
-
-  @override
-  String trips_detail_scan_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count fotó csatolva',
-      one: '$count fotó csatolva',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_detail_scan_linkingPhotos => 'Fotók csatolása...';
 
   @override
   String get trips_detail_sectionTitle_notes => 'Jegyzetek';
@@ -36566,10 +36466,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get trips_itinerary_error_loading =>
       'Nem sikerült betölteni az útitervet.';
-
-  @override
-  String get trips_itinerary_daySaveError =>
-      'Nem sikerült menteni a napot. Próbáld újra.';
 
   @override
   String get trips_itinerary_empty =>
@@ -52349,16 +52245,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_documents_linkedSubtitle =>
       'Túl nagy, vagy olyan formátumú, amelyet a Dokumentumok nem tud tárolni';
-
-  @override
-  String get equipment_documents_removeTitle => 'Eltávolítja a dokumentumot?';
-
-  @override
-  String get equipment_documents_removeContent =>
-      'Többé nem lesz ehhez a felszereléshez csatolva. Az eredeti fájl érintetlen marad.';
-
-  @override
-  String get equipment_documents_removed => 'A dokumentum eltávolítva';
 
   @override
   String equipment_documents_loadError(String error) {

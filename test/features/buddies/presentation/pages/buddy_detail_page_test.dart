@@ -513,7 +513,7 @@ void main() {
 
       // The star only shows the favourite: it is set on the buddy's header
       // block, in a sitting (issue #4527, plan 12, Review Focus 5).
-      expect(notifier.toggledFavoriteIds, isEmpty);
+      expect(notifier.calls, isEmpty);
     });
 
     testWidgets('shows a star in the app bar of the standalone page; a tap '
@@ -549,7 +549,7 @@ void main() {
 
       // The star only shows the favourite: it is set on the buddy's header
       // block, in a sitting (issue #4527, plan 12, Review Focus 5).
-      expect(notifier.toggledFavoriteIds, isEmpty);
+      expect(notifier.calls, isEmpty);
     });
 
     testWidgets('shows a filled star for an already-favorite buddy', (

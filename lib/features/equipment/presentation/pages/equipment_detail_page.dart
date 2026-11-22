@@ -76,7 +76,6 @@ import 'package:submersion/features/equipment/presentation/widgets/installed_in_
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_entry_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
@@ -381,11 +380,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
           ],
           _framed(
             GearItemCardId.location,
-            EquipmentLocationCard(
-              equipment: equipment,
-              shown: _session,
-              readOnly: true,
-            ),
+            EquipmentLocationCard(equipment: equipment, shown: _session),
           ),
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.tank) ...[
@@ -408,16 +403,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
               GearItemCardId.serviceClocks,
               ServiceClocksCard(
                 equipmentId: equipmentId,
-                equipmentType: equipment.type,
-                readOnly: true,
                 customReminder: (
                   enabled: equipment.customReminderEnabled,
                   days: equipment.customReminderDays,
-                ),
-                onLogService: (status) => _showAddServiceDialogForKind(
-                  context,
-                  ref,
-                  serviceKindId: status.kind.id,
                 ),
               ),
             ),
@@ -449,20 +437,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
           // that carry the condition photos.
           _framed(
             GearItemCardId.photos,
-            EquipmentPhotosSection(
-              equipment: equipment,
-              shown: _session,
-              readOnly: true,
-            ),
+            EquipmentPhotosSection(equipment: equipment, shown: _session),
           ),
           const SizedBox(height: 24),
           _framed(
             GearItemCardId.observations,
-            ObservationsCard(
-              equipment: equipment,
-              shown: _session,
-              readOnly: true,
-            ),
+            ObservationsCard(equipment: equipment, shown: _session),
           ),
           const SizedBox(height: 24),
           _framed(
@@ -484,7 +464,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
               onOpenDocument: (item) =>
                   DocumentOpenHelper.open(context, ref, item),
               shown: _session,
-              readOnly: true,
             ),
             topGap: 24,
           ),
@@ -497,11 +476,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
           ],
           _framed(
             GearItemCardId.serviceHistory,
-            ServiceHistorySection(
-              equipmentId: equipmentId,
-              shown: _session,
-              readOnly: true,
-            ),
+            ServiceHistorySection(equipmentId: equipmentId, shown: _session),
           ),
           // Notes of only spaces are empty, as the card counts them.
           if (equipment.notes.trim().isNotEmpty ||

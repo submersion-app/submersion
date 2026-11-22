@@ -181,11 +181,7 @@ extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
         const SizedBox(height: 24),
         _framed(
           GearItemCardId.location,
-          EquipmentLocationCard(
-            equipment: equipment,
-            shown: _session,
-            readOnly: true,
-          ),
+          EquipmentLocationCard(equipment: equipment, shown: _session),
         ),
         if (!equipment.isWanted) ...[
           const SizedBox(height: 24),
@@ -193,13 +189,10 @@ extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
             GearItemCardId.serviceClocks,
             ServiceClocksCard(
               equipmentId: equipmentId,
-              equipmentType: equipment.type,
-              readOnly: true,
               customReminder: (
                 enabled: equipment.customReminderEnabled,
                 days: equipment.customReminderDays,
               ),
-              onLogService: null,
             ),
           ),
         ],

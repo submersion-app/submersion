@@ -61,11 +61,7 @@ final exempt = <String, String>{
       'updates',
   'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createFromWeights':
       'a shortcut for a create with entries, which weight_presets covers',
-  for (final method in const [
-    'retireEquipment',
-    'setStatusForMany',
-    'markEquipmentPurchased',
-  ])
+  for (final method in const ['retireEquipment', 'setStatusForMany'])
     '$gear/equipment_repository_impl.dart:$method':
         'a shortcut for a status change, which equipment covers through '
         'updateEquipment',

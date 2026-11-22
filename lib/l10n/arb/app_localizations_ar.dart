@@ -1414,11 +1414,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_components_totalsSection => 'المجموع';
 
   @override
-  String equipment_documents_removeError(String error) {
-    return 'تعذرت إزالة المستند: $error';
-  }
-
-  @override
   String get settings_oauth_connect_copyFailed => 'تعذر نسخ الرابط.';
 
   @override
@@ -1915,10 +1910,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_story_openGallery => 'فتح صور الرحلة';
-
-  @override
-  String get trips_story_generateItineraryError =>
-      'تعذّر إنشاء برنامج الرحلة. حاول مرة أخرى.';
 
   @override
   String get trips_dayType_diveDay => 'يوم غوص';
@@ -4444,17 +4435,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get certifications_currency_history => 'سجل الصلاحية';
-
-  @override
-  String get certifications_currency_deleteEvent_title => 'حذف الإدخال؟';
-
-  @override
-  String certifications_currency_deleteEvent_content(
-    String event,
-    String date,
-  ) {
-    return 'سيؤدي هذا إلى إزالة $event المسجل في $date.';
-  }
 
   @override
   String get certifications_currency_eventDialog_title =>
@@ -17600,21 +17580,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_location_return_confirm => 'تحديد كمُعاد';
 
   @override
-  String equipment_location_returned(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'أُعيد $count عنصر',
-      many: 'أُعيد $count عنصرًا',
-      few: 'أُعيدت $count عناصر',
-      two: 'أُعيد عنصران',
-      one: 'أُعيد عنصر واحد',
-      zero: 'لم يُعد أي عنصر',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String equipment_location_withBuddy(String name) {
     return 'مع $name';
   }
@@ -18037,15 +18002,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceDialog_categoryLabel => 'الفئة';
 
   @override
-  String get equipment_serviceDialog_snackbar_added => 'تمت إضافة سجل الصيانة';
-
-  @override
   String equipment_serviceDialog_snackbar_error(Object error) {
     return 'خطأ: $error';
   }
-
-  @override
-  String get equipment_serviceDialog_snackbar_updated => 'تم تحديث سجل الصيانة';
 
   @override
   String get equipment_serviceDialog_updateButton => 'تحديث';
@@ -18082,20 +18041,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_service_addButton => 'إضافة';
-
-  @override
-  String get equipment_service_deleteDialog_cancel => 'إلغاء';
-
-  @override
-  String get equipment_service_deleteDialog_confirm => 'حذف';
-
-  @override
-  String equipment_service_deleteDialog_content(Object serviceType) {
-    return 'هل أنت متأكد من حذف سجل $serviceType هذا؟';
-  }
-
-  @override
-  String get equipment_service_deleteDialog_title => 'حذف سجل الصيانة؟';
 
   @override
   String get equipment_service_deleteMenuItem => 'حذف';
@@ -18420,9 +18365,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_scheduleDialog_defaultCurrencyLabel => 'عملة هذه المعدة';
 
   @override
-  String get equipment_service_snackbar_deleted => 'تم حذف سجل الصيانة';
-
-  @override
   String equipment_service_totalCostLabel(String currency) {
     return 'إجمالي تكلفة الصيانة ($currency)';
   }
@@ -18551,9 +18493,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_snackbar_reactivated => 'تم إعادة تفعيل المعدات';
-
-  @override
-  String get equipment_snackbar_purchased => 'تم النقل إلى معداتك النشطة';
 
   @override
   String get equipment_snackbar_retired => 'تم إيقاف المعدات';
@@ -19975,34 +19914,6 @@ class AppLocalizationsAr extends AppLocalizations {
       few: '$count صور أخرى',
       two: 'صورتان أخريان',
       one: 'صورة أخرى واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importAdded(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'تمت إضافة $count صورة',
-      many: 'تمت إضافة $count صورة',
-      few: 'تمت إضافة $count صور',
-      two: 'تمت إضافة صورتين',
-      one: 'تمت إضافة صورة واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importSkipped(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'تم تخطي $count',
-      many: 'تم تخطي $count',
-      few: 'تم تخطي $count',
-      two: 'تم تخطي صورتين',
-      one: 'تم تخطي صورة واحدة',
     );
     return '$_temp0';
   }
@@ -35874,29 +35785,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_detail_scan_addDivesFirst => 'أضف غوصات أولًا لربط الصور';
 
   @override
-  String get trips_detail_scan_errorLinking =>
-      'تعذّر ربط الصور. حاول مرة أخرى.';
-
-  @override
   String get trips_detail_scan_errorScanning =>
       'تعذّر البحث عن الصور. حاول مرة أخرى.';
-
-  @override
-  String trips_detail_scan_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'تم ربط $count صورة',
-      many: 'تم ربط $count صورة',
-      few: 'تم ربط $count صور',
-      two: 'تم ربط صورتين',
-      one: 'تم ربط صورة واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_detail_scan_linkingPhotos => 'جارٍ ربط الصور...';
 
   @override
   String get trips_detail_sectionTitle_notes => 'ملاحظات';
@@ -37238,9 +37128,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_itinerary_error_loading => 'تعذّر تحميل برنامج الرحلة.';
-
-  @override
-  String get trips_itinerary_daySaveError => 'تعذّر حفظ اليوم. حاول مرة أخرى.';
 
   @override
   String get trips_itinerary_empty =>
@@ -53357,16 +53244,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_documents_linkedSubtitle =>
       'كبيرة جدًا، أو بتنسيق لا يمكن للمستندات حفظه';
-
-  @override
-  String get equipment_documents_removeTitle => 'إزالة المستند؟';
-
-  @override
-  String get equipment_documents_removeContent =>
-      'سيتوقف إرفاقه بهذا العنصر. لن يتم المساس بملفك الأصلي.';
-
-  @override
-  String get equipment_documents_removed => 'تمت إزالة المستند';
 
   @override
   String equipment_documents_loadError(String error) {

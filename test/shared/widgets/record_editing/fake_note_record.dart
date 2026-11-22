@@ -218,13 +218,11 @@ class FakeSatellitePage extends ConsumerStatefulWidget {
     super.key,
     this.noteId = 'n1',
     this.joined,
-    this.hostsEditing = true,
     this.embedded = false,
   });
 
   final String noteId;
   final RecordEditController<FakeNote>? joined;
-  final bool hostsEditing;
 
   /// Laid out as a list pane, with the pane's header.
   final bool embedded;
@@ -242,9 +240,6 @@ class FakeSatellitePageState extends ConsumerState<FakeSatellitePage>
 
   @override
   RecordEditController<FakeNote>? get joinedSitting => widget.joined;
-
-  @override
-  bool get hostsEditing => widget.hostsEditing;
 
   @override
   Iterable<EditCard<FakeNote>> get hostEditCards => [fakeExtraCard];
@@ -274,12 +269,6 @@ class FakeSatellitePageState extends ConsumerState<FakeSatellitePage>
         ),
       ],
     );
-    if (!hostsEditing) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Satellite')),
-        body: content,
-      );
-    }
     if (widget.embedded) {
       final header = isSittingOpen
           ? editingPaneRow(shown, menu: const SizedBox.shrink())

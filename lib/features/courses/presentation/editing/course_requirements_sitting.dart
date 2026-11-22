@@ -2,13 +2,11 @@ import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/course_templates.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
-import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/add_requirement_sheet.dart';
 import 'package:submersion/features/courses/presentation/widgets/credit_dive_picker_sheet.dart';
 import 'package:submersion/features/courses/presentation/widgets/template_picker_sheet.dart';
@@ -232,9 +230,8 @@ pickerScopeInSitting({
   );
 }
 
-/// What the requirement tracker does when the diver acts on it: written at
-/// once ([StoredRequirementActions]) or held in the page's sitting
-/// ([HeldRequirementActions]).
+/// What the requirement tracker does when the diver acts on it, held in
+/// the page's sitting ([HeldRequirementActions]).
 abstract interface class RequirementActions {
   Future<void> add(BuildContext context);
   Future<void> applyTemplate(BuildContext context);
@@ -249,84 +246,6 @@ abstract interface class RequirementActions {
     RequirementDiveSummary? suggestion,
   );
   Future<void> uncredit(CourseRequirement requirement, String diveId);
-}
-
-/// The tracker's actions as they were before phase 3: each written at once.
-class StoredRequirementActions implements RequirementActions {
-  StoredRequirementActions(this._ref, this._courseId);
-
-  final WidgetRef _ref;
-  final String _courseId;
-
-  CourseRequirementRepository get _repository =>
-      _ref.read(courseRequirementRepositoryProvider);
-
-  @override
-  Future<void> add(BuildContext context) async {
-    final repository = _repository;
-    final draft = await showAddRequirementSheet(context);
-    if (draft == null) return;
-    await repository.createRequirement(
-      courseId: _courseId,
-      name: draft.name,
-      kind: draft.kind,
-      targetCount: draft.targetCount,
-    );
-  }
-
-  @override
-  Future<void> applyTemplate(BuildContext context) async {
-    final repository = _repository;
-    final template = await showTemplatePickerSheet(context);
-    if (template == null) return;
-    await repository.applyTemplate(_courseId, template);
-  }
-
-  @override
-  Future<void> edit(BuildContext context, CourseRequirement requirement) async {
-    final repository = _repository;
-    final draft = await showAddRequirementSheet(context, existing: requirement);
-    if (draft == null) return;
-    await repository.updateRequirement(
-      requirement.copyWith(
-        name: draft.name,
-        kind: draft.kind,
-        targetCount: draft.targetCount,
-      ),
-    );
-  }
-
-  @override
-  Future<void> remove(CourseRequirement requirement) =>
-      _repository.deleteRequirement(requirement.id);
-
-  @override
-  Future<void> tick(CourseRequirement requirement, bool done) =>
-      _repository.setChecklistComplete(requirement.id, done);
-
-  @override
-  Future<void> credit(
-    BuildContext context,
-    CourseRequirement requirement,
-    RequirementDiveSummary? suggestion,
-  ) async {
-    final repository = _repository;
-    final dive =
-        suggestion ??
-        await showCreditDivePickerSheet(
-          context,
-          courseId: requirement.courseId,
-        );
-    if (dive == null) return;
-    await repository.linkDive(
-      requirementId: requirement.id,
-      diveId: dive.diveId,
-    );
-  }
-
-  @override
-  Future<void> uncredit(CourseRequirement requirement, String diveId) =>
-      _repository.unlinkDive(requirementId: requirement.id, diveId: diveId);
 }
 
 /// The tracker's actions in a course page's sitting: each changes only the

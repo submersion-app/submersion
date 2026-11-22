@@ -285,27 +285,6 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('a satellite that offers no editing takes no sitting', (
-    tester,
-  ) async {
-    final probe = await pumpFakeNotes(tester, const SizedBox.shrink());
-    final sitting = sittingOn(tester, probe);
-    await tester.pumpWidget(
-      fakeNotesApp(
-        probe,
-        FakeSatellitePage(joined: sitting, hostsEditing: false),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final state = tester.state<FakeSatellitePageState>(
-      find.byType(FakeSatellitePage),
-    );
-
-    expect(state.maybeEditController, isNull);
-    expect(state.isSittingOpen, isFalse);
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
-
   testWidgets('a joined satellite in a pane shows Done and asks nothing', (
     tester,
   ) async {

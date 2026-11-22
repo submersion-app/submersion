@@ -1131,38 +1131,6 @@ class BuddyRepository {
     }
   }
 
-  /// Toggle favorite status for a buddy
-  Future<void> toggleFavorite(String buddyId) async {
-    try {
-      _log.info('Toggling favorite for buddy: $buddyId');
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final buddy = await (_db.select(
-        _db.buddies,
-      )..where((t) => t.id.equals(buddyId))).getSingleOrNull();
-      if (buddy == null) return;
-      await (_db.update(_db.buddies)..where((t) => t.id.equals(buddyId))).write(
-        BuddiesCompanion(
-          isFavorite: Value(!buddy.isFavorite),
-          updatedAt: Value(now),
-        ),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'buddies',
-        recordId: buddyId,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-      _log.info('Toggled favorite for buddy: $buddyId');
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to toggle favorite for buddy: $buddyId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   /// Set favorite status for a buddy
   Future<void> setFavorite(String buddyId, bool isFavorite) async {
     try {

@@ -46,8 +46,6 @@ final reachedThrough = <String, String>{
       'updateTag',
   'lib/features/buddies/data/repositories/buddy_repository.dart:setFavorite':
       'updateFields',
-  'lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite':
-      'updateFields',
   'lib/features/buddies/data/repositories/buddy_repository.dart:updateBuddy':
       'updateFields',
   'lib/features/dive_log/data/repositories/dive_custom_field_repository.dart:replaceFieldsForDive':
@@ -748,8 +746,6 @@ final covered = <String, String>{
         'pre_dive_templates',
   // The same record changed by another path the app also takes.
   'lib/features/buddies/data/repositories/buddy_repository.dart:setFavorite':
-      'buddies',
-  'lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite':
       'buddies',
   'lib/features/buddies/data/repositories/buddy_repository.dart:updateBuddy':
       'buddies',

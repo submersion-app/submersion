@@ -464,14 +464,6 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
     await refresh();
   }
 
-  /// Toggle favorite status for a buddy (issue #638)
-  Future<void> toggleFavorite(String buddyId) async {
-    await _repository.toggleFavorite(buddyId);
-    _ref.invalidate(buddyByIdProvider(buddyId));
-    _ref.invalidate(allBuddiesWithDiveCountProvider);
-    await refresh();
-  }
-
   Future<BuddyMergeSnapshot?> mergeBuddies(
     Buddy mergedBuddy,
     List<String> buddyIds,

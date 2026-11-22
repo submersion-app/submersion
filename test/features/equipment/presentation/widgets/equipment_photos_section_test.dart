@@ -85,6 +85,20 @@ void main() {
     ),
   );
 
+  /// The open Photos card's sitting (issue #4527, phase 3).
+  EditSession<EquipmentItem> sitting({String? cover}) {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final session = EditSession(item(cover: cover));
+    addTearDown(session.dispose);
+    holdSittingMedia(
+      session,
+      SittingMediaWriters.forEquipment(container.read),
+      cardId: 'photos',
+    );
+    return session;
+  }
+
   testWidgets('shows identification photos', (tester) async {
     await tester.pumpWidget(await host(photos: [photo('m1'), photo('m2')]));
     await tester.pumpAndSettle();
@@ -124,29 +138,17 @@ void main() {
     expect(find.byKey(const ValueKey('cover_badge_m1')), findsNothing);
   });
 
-  testWidgets('set cover from selection calls setCover', (tester) async {
-    final gearPhotos = _RecordingGearPhotos();
-    await tester.pumpWidget(
-      await host(photos: [photo('m1'), photo('m2')], gearPhotos: gearPhotos),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(MediaThumbnailTile).at(1));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('selection_action_setCover')));
-    await tester.pumpAndSettle();
-
-    expect(gearPhotos.covers, [('reg-1', 'm2')]);
-  });
-
   testWidgets('a video is never offered as the cover', (tester) async {
     final video = testMediaItem(
       id: 'v1',
       originalFilename: 'v1.mov',
     ).copyWith(equipmentId: 'reg-1', mediaType: MediaType.video);
-    await tester.pumpWidget(await host(photos: [photo('m1'), video]));
+    await tester.pumpWidget(
+      await host(
+        photos: [photo('m1'), video],
+        section: EquipmentPhotosSection(equipment: item(), editing: sitting()),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('enter_selection')));
@@ -160,43 +162,13 @@ void main() {
     );
   });
 
-  testWidgets('the cover photo offers to remove the cover', (tester) async {
-    final gearPhotos = _RecordingGearPhotos();
-    await tester.pumpWidget(
-      await host(photos: [photo('m1')], cover: 'm1', gearPhotos: gearPhotos),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(MediaThumbnailTile).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('selection_action_setCover')));
-    await tester.pumpAndSettle();
-
-    expect(gearPhotos.covers, [('reg-1', null)]);
-  });
-
   // Where the item page edits in place (issue #4527, phase 3).
   group('on a page that edits in place', () {
-    EditSession<EquipmentItem> sitting({String? cover}) {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-      final session = EditSession(item(cover: cover));
-      addTearDown(session.dispose);
-      holdSittingMedia(
-        session,
-        SittingMediaWriters.forEquipment(container.read),
-        cardId: 'photos',
-      );
-      return session;
-    }
-
     testWidgets('locked, it offers no add and no selection', (tester) async {
       await tester.pumpWidget(
         await host(
           photos: [photo('m1')],
-          section: EquipmentPhotosSection(equipment: item(), readOnly: true),
+          section: EquipmentPhotosSection(equipment: item()),
         ),
       );
       await tester.pumpAndSettle();
@@ -292,31 +264,15 @@ void main() {
     });
   });
 
-  testWidgets('remove confirms then unlinks', (tester) async {
-    final calls = <List<String>>[];
+  testWidgets('the open card offers no add or selection without mediaAttach', (
+    tester,
+  ) async {
     await tester.pumpWidget(
-      await host(photos: [photo('m1'), photo('m2')], unlinkCalls: calls),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(MediaThumbnailTile).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('selection_action_remove')));
-    await tester.pumpAndSettle();
-    expect(find.text('Remove 1 photo?'), findsOneWidget);
-    await tester.tap(find.widgetWithText(TextButton, 'Remove'));
-    await tester.pumpAndSettle();
-
-    expect(calls, [
-      ['m1'],
-    ]);
-  });
-
-  testWidgets('no add or selection without mediaAttach', (tester) async {
-    await tester.pumpWidget(
-      await host(photos: [photo('m1')], capabilities: DeviceCapabilities.web),
+      await host(
+        photos: [photo('m1')],
+        capabilities: DeviceCapabilities.web,
+        section: EquipmentPhotosSection(equipment: item(), editing: sitting()),
+      ),
     );
     await tester.pumpAndSettle();
 

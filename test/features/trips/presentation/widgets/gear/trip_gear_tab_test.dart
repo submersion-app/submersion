@@ -1,368 +1,18 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/core/database/database.dart' show DiversCompanion;
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
-import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
-import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
-import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
-import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
-import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
-import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
-import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
-import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
-import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
-import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
-import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
-import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 
-import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
-import '../../../../../helpers/folded_groups.dart';
-
-final _now = DateTime.now();
-final _t0 = DateTime(2025, 1, 1);
-
-Trip trip({bool past = false, bool started = false}) => Trip(
-  id: 't1',
-  name: 'Bonaire',
-  startDate: DateTime(
-    _now.year,
-    _now.month,
-    _now.day + (past ? -20 : (started ? -1 : 10)),
-  ),
-  endDate: DateTime(
-    _now.year,
-    _now.month,
-    _now.day + (past ? -15 : (started ? 4 : 15)),
-  ),
-  createdAt: _t0,
-  updatedAt: _t0,
-);
-
-const bcd = EquipmentItem(
-  id: 'bcd',
-  name: 'Hollis wing',
-  type: EquipmentType.bcd,
-);
-const fins = EquipmentItem(id: 'fins', name: 'Fins', type: EquipmentType.fins);
-const reg = EquipmentItem(
-  id: 'reg',
-  name: 'Regulator',
-  type: EquipmentType.regulator,
-);
-const tank = EquipmentItem(
-  id: 'tk',
-  name: 'Faber 12',
-  type: EquipmentType.tank,
-);
-const ccr = EquipmentItem(
-  id: 'ccr',
-  name: 'JJ CCR',
-  type: EquipmentType.rebreather,
-);
-
-EquipmentSet kit(List<EquipmentItem> items) => EquipmentSet(
-  id: 's1',
-  name: 'Reef kit',
-  description: '',
-  equipmentIds: [for (final i in items) i.id],
-  items: items,
-  createdAt: _now,
-  updatedAt: _now,
-);
-
-DueClock dueClock(String itemId, {bool overdue = false}) => (
-  item: EquipmentItem(id: itemId, name: itemId, type: EquipmentType.regulator),
-  status: ServiceClockStatus(
-    schedule: ServiceSchedule(
-      id: 's-$itemId',
-      equipmentId: itemId,
-      serviceKindId: 'annual',
-      createdAt: _t0,
-      updatedAt: _t0,
-    ),
-    kind: ServiceKind(
-      id: 'annual',
-      name: 'Annual service',
-      defaultIntervalDays: 365,
-      isBuiltIn: true,
-      createdAt: _t0,
-      updatedAt: _t0,
-    ),
-    anchor: _t0,
-    dueDate: overdue
-        ? _now.subtract(const Duration(days: 30))
-        : _now.add(const Duration(days: 5)),
-    severity: overdue
-        ? ServiceClockSeverity.overdue
-        : ServiceClockSeverity.dueSoon,
-    now: _now,
-  ),
-);
-
-ScrubberMargin margin({double marginAfter = 120, bool caution = false}) =>
-    ScrubberMargin(
-      item: ccr,
-      ratedMinutes: 300,
-      consumedMinutes: 90,
-      consumedSince: DateTime(2025, 2, 1),
-      remainingBefore: 210,
-      expectedDives: 10,
-      expectedDivesN: 0,
-      divesFromOverride: true,
-      minutesFromOverride: false,
-      minutesPerDive: 35,
-      minutesPerDiveN: 2,
-      expectedUse: 350,
-      marginAfter: marginAfter,
-      caution: caution,
-    );
-
-TripCylinderState slot(String id, {String? equipmentId, bool full = false}) {
-  final at = DateTime.utc(2026, 1, 1);
-  return foldCylinderState(
-    cylinder: TripCylinder(
-      id: id,
-      tripId: 't1',
-      equipmentId: equipmentId,
-      label: id,
-      workingPressure: 207,
-      createdAt: at,
-      updatedAt: at,
-    ),
-    events: full
-        ? [
-            TripCylinderEvent(
-              id: 'e-$id',
-              tripCylinderId: id,
-              kind: TripCylinderEventKind.fill,
-              occurredAt: at,
-              bottleLabel: '#140',
-              pressure: 207,
-              o2Percent: 32,
-              createdAt: at,
-              updatedAt: at,
-            ),
-          ]
-        : const [],
-    uses: const [],
-  );
-}
-
-class _FakeEquipment extends EquipmentRepository {
-  @override
-  Future<List<String>> usableSetMemberIds(
-    List<String> ids,
-    String diverId,
-  ) async => ids;
-}
-
-class _FakePacks extends TripEquipmentRepository {
-  bool failing = false;
-  final packed = <(String, List<String>)>[];
-  final unpacked = <(String, String)>[];
-
-  /// Pairs the database already holds though the tab has not shown them
-  /// yet: packing one again adds nothing, as the real repository does.
-  final alreadyPacked = <String>{};
-
-  @override
-  Future<int> pack(String tripId, Iterable<String> equipmentIds) async {
-    if (failing) throw StateError('database is locked');
-    final fresh = [
-      for (final id in equipmentIds)
-        if (!alreadyPacked.contains(id)) id,
-    ];
-    if (fresh.isNotEmpty) packed.add((tripId, fresh));
-    return fresh.length;
-  }
-
-  @override
-  Future<void> unpack(String tripId, String equipmentId) async {
-    if (failing) throw StateError('database is locked');
-    unpacked.add((tripId, equipmentId));
-  }
-}
-
-class _FakeSlots extends TripCylinderRepository {
-  bool failing = false;
-
-  /// When set, a create waits for it, so a test can act mid-write.
-  Completer<void>? gate;
-  final created = <List<TripCylinder>>[];
-
-  @override
-  Future<List<TripCylinder>> createCylinders(
-    List<TripCylinder> cylinders,
-  ) async {
-    if (failing) throw StateError('database is locked');
-    await gate?.future;
-    created.add(cylinders);
-    return cylinders;
-  }
-
-  final appendedTo = <String>[];
-
-  /// Records the trip; the board's end is the repository's to read.
-  @override
-  Future<List<TripCylinder>> appendCylinders(
-    String tripId,
-    List<TripCylinder> cylinders,
-  ) async {
-    appendedTo.add(tripId);
-    return createCylinders(cylinders);
-  }
-}
-
-typedef _Harness = ({_FakePacks packs, _FakeSlots slots, List<String> pushed});
-
-Future<_Harness> _pumpTab(
-  WidgetTester tester, {
-  Trip? onTrip,
-  List<EquipmentItem> gear = const [],
-  List<TripCylinderState> states = const [],
-  List<DueClock> alerts = const [],
-  List<ScrubberMargin> margins = const [],
-  List<EquipmentItem> active = const [],
-  List<EquipmentSet> sets = const [],
-  AppSettings settings = const AppSettings(),
-  Object? gearError,
-  List<String>? forecastReads,
-  String? scanned,
-  ComponentsIndex components = ComponentsIndex.empty,
-}) async {
-  final packs = _FakePacks();
-  final slots = _FakeSlots();
-  final pushed = <String>[];
-  final overrides = await getBaseOverrides(
-    settingsNotifier: MockSettingsNotifier(settings),
-  );
-  final router = GoRouter(
-    routes: [
-      GoRoute(
-        path: '/',
-        builder: (_, _) => Scaffold(body: TripGearTab(trip: onTrip ?? trip())),
-      ),
-      GoRoute(
-        path: '/trips/:id/cylinders',
-        builder: (_, s) {
-          pushed.add(s.uri.path);
-          return const Scaffold();
-        },
-      ),
-      GoRoute(
-        path: '/equipment/:id',
-        builder: (_, s) {
-          pushed.add(s.uri.path);
-          return const Scaffold();
-        },
-      ),
-    ],
-  );
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        ...overrides,
-        tripGearProvider('t1').overrideWith((ref) async {
-          if (gearError != null) throw gearError;
-          return gear;
-        }),
-        tripCylinderStatesProvider('t1').overrideWith((ref) async => states),
-        tripCylindersProvider(
-          't1',
-        ).overrideWith((ref) async => [for (final s in states) s.cylinder]),
-        tripServiceAlertsProvider('t1').overrideWith((ref) async => alerts),
-        tripScrubberMarginsProvider('t1').overrideWith((ref) async => margins),
-        tripFillForecastProvider('t1').overrideWith((ref) async {
-          forecastReads?.add('t1');
-          return null;
-        }),
-        tripEquipmentRepositoryProvider.overrideWithValue(packs),
-        tripCylinderRepositoryProvider.overrideWithValue(slots),
-        activeEquipmentProvider.overrideWith((ref) async => active),
-        equipmentItemProvider.overrideWith(
-          (ref, id) async =>
-              [...gear, ...active].where((i) => i.id == id).firstOrNull,
-        ),
-        equipmentSetsProvider.overrideWith((ref) async => sets),
-        equipmentSetWithItemsProvider.overrideWith(
-          (ref, id) async => sets.where((s) => s.id == id).firstOrNull,
-        ),
-        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
-        equipmentRepositoryProvider.overrideWithValue(_FakeEquipment()),
-        equipmentComponentsIndexProvider.overrideWith(
-          (ref) async => components,
-        ),
-        if (scanned != null)
-          passportScanLauncherProvider.overrideWithValue(
-            (context) async => scanned,
-          ),
-      ].cast(),
-      child: MaterialApp.router(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: router,
-      ),
-    ),
-  );
-  await tester.pumpAndSettle();
-  return (packs: packs, slots: slots, pushed: pushed);
-}
-
-Future<void> _openAdd(WidgetTester tester) async {
-  await tester.tap(find.byKey(const Key('trip-gear-add')));
-  await tester.pumpAndSettle();
-}
-
-/// Opens Add, then From my equipment: the multi-select picker (#4205).
-Future<void> _openPicker(WidgetTester tester) async {
-  await _openAdd(tester);
-  await tester.tap(find.text('From my equipment'));
-  await tester.pumpAndSettle();
-  // The picker opens with its groups folded (#3364).
-  await openFoldedGroups(tester);
-}
-
-/// Ticks each named row in turn, then presses Add N.
-Future<void> _tickAndAdd(WidgetTester tester, List<String> names) async {
-  for (final name in names) {
-    // Taller group headings (#3364) can push a row below the sheet's fold.
-    await tester.ensureVisible(find.text(name).last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(name).last);
-    await tester.pumpAndSettle();
-  }
-  await tester.tap(find.text('Add ${names.length}'));
-  await tester.pumpAndSettle();
-}
+import 'trip_gear_tab_harness.dart';
 
 void main() {
   setUp(() async {
@@ -371,7 +21,7 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   testWidgets('an upcoming trip with nothing explains Add', (tester) async {
-    await _pumpTab(tester);
+    await pumpTab(tester, editing: true);
     expect(
       find.text(
         "Nothing packed yet. Add the gear you'll bring and the cylinders "
@@ -385,13 +35,13 @@ void main() {
   testWidgets('a past trip with nothing says so and offers no Add', (
     tester,
   ) async {
-    await _pumpTab(tester, onTrip: trip(past: true));
+    await pumpTab(tester, onTrip: trip(past: true));
     expect(find.text('Nothing was packed for this trip.'), findsOneWidget);
     expect(find.byKey(const Key('trip-gear-add')), findsNothing);
   });
 
   testWidgets('packed gear and cylinders sit in two sections', (tester) async {
-    await _pumpTab(
+    await pumpTab(
       tester,
       gear: const [bcd, fins],
       states: [slot('Truck 1'), slot('Truck 2')],
@@ -403,7 +53,7 @@ void main() {
   });
 
   testWidgets('an owned cylinder is listed once', (tester) async {
-    await _pumpTab(
+    await pumpTab(
       tester,
       gear: const [tank, bcd],
       states: [slot('Faber 12', equipmentId: 'tk')],
@@ -415,7 +65,12 @@ void main() {
   testWidgets('a packed tank with no slot is listed under Cylinders (#2873)', (
     tester,
   ) async {
-    await _pumpTab(tester, gear: const [bcd, tank], states: [slot('Truck 1')]);
+    await pumpTab(
+      tester,
+      gear: const [bcd, tank],
+      states: [slot('Truck 1')],
+      editing: true,
+    );
     expect(find.text('Packed'), findsOneWidget);
     final cylinders = tester.getTopLeft(find.text('Cylinders')).dy;
     expect(tester.getTopLeft(find.text('Faber 12')).dy, greaterThan(cylinders));
@@ -426,7 +81,12 @@ void main() {
   testWidgets('an ended trip lists a slotless tank with no board prompt', (
     tester,
   ) async {
-    await _pumpTab(tester, onTrip: trip(past: true), gear: const [tank]);
+    await pumpTab(
+      tester,
+      onTrip: trip(past: true),
+      gear: const [tank],
+      editing: true,
+    );
     expect(find.text('Cylinders'), findsOneWidget);
     expect(find.text('Faber 12'), findsOneWidget);
     expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsNothing);
@@ -444,7 +104,12 @@ void main() {
   });
 
   testWidgets('a trip under way still offers Put on board', (tester) async {
-    await _pumpTab(tester, onTrip: trip(started: true), gear: const [tank]);
+    await pumpTab(
+      tester,
+      onTrip: trip(started: true),
+      gear: const [tank],
+      editing: true,
+    );
     expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsOneWidget);
     expect(find.textContaining('Not on the board'), findsOneWidget);
   });
@@ -452,40 +117,36 @@ void main() {
   testWidgets('a slotless tank alone is a cylinder, not packed gear', (
     tester,
   ) async {
-    await _pumpTab(tester, gear: const [tank]);
+    await pumpTab(tester, gear: const [tank]);
     expect(find.text('Packed'), findsNothing);
     expect(find.text('Cylinders'), findsOneWidget);
     expect(find.text('Faber 12'), findsOneWidget);
   });
 
-  testWidgets('Put on board appends the tank to the board and unpacks it', (
-    tester,
-  ) async {
-    final h = await _pumpTab(
+  testWidgets('Put on board appends the tank to the board and unpacks it, '
+      'writing both at Save', (tester) async {
+    final h = await pumpTab(
       tester,
       gear: const [tank],
       states: [slot('Truck 1')],
+      editing: true,
     );
     await tester.tap(find.byKey(const Key('trip-gear-putOnBoard-tk')));
     await tester.pumpAndSettle();
-    final created = h.slots.created.single.single;
-    expect(created.equipmentId, 'tk');
-    expect(created.tripId, 't1');
-    expect(created.label, 'Faber 12');
-    expect(h.slots.appendedTo, ['t1']);
-    expect(h.packs.unpacked, [('t1', 'tk')]);
-  });
-
-  testWidgets('a failed Put on board says so and keeps the link', (
-    tester,
-  ) async {
-    final h = await _pumpTab(tester, gear: const [tank]);
-    h.slots.failing = true;
-    await tester.tap(find.byKey(const Key('trip-gear-putOnBoard-tk')));
-    await tester.pumpAndSettle();
-    expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
-    expect(find.textContaining('database is locked'), findsNothing);
+    // Held after the board's last slot, and no longer packed.
+    expect([for (final s in h.heldSlots) s.label], ['Truck 1', 'Faber 12']);
+    final added = h.heldSlots.last;
+    expect(added.equipmentId, 'tk');
+    expect(added.tripId, 't1');
+    expect(h.heldPacked, isEmpty);
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsNothing);
+    // Nothing is written before Save.
+    expect(h.slots.created, isEmpty);
     expect(h.packs.unpacked, isEmpty);
+
+    await h.save();
+    expect(h.slots.created.single.single.equipmentId, 'tk');
+    expect(h.packs.unpacked, [('t1', 'tk')]);
   });
 
   testWidgets('a slotless tank shows its size as a slot does', (tester) async {
@@ -508,7 +169,7 @@ void main() {
         ),
       ],
     );
-    await _pumpTab(
+    await pumpTab(
       tester,
       gear: const [al80],
       settings: const AppSettings(
@@ -527,43 +188,28 @@ void main() {
   });
 
   testWidgets('a slotless tank shows its service clock', (tester) async {
-    await _pumpTab(tester, gear: const [tank], alerts: [dueClock('tk')]);
+    await pumpTab(tester, gear: const [tank], alerts: [dueClock('tk')]);
     expect(find.byKey(const Key('trip-gear-alert-tk')), findsOneWidget);
     await tester.tap(find.byKey(const Key('trip-gear-alert-tk')));
     await tester.pumpAndSettle();
     expect(find.byType(TripServiceAlertList), findsOneWidget);
   });
 
-  testWidgets('a second tap while the slot is written adds no second slot', (
-    tester,
-  ) async {
-    final h = await _pumpTab(tester, gear: const [tank]);
-    final gate = h.slots.gate = Completer<void>();
-    final put = find.byKey(const Key('trip-gear-putOnBoard-tk'));
-    await tester.tap(put);
-    await tester.pump();
-    await tester.tap(put);
-    await tester.pump();
-    gate.complete();
-    await tester.pumpAndSettle();
-    expect(h.slots.created, hasLength(1));
-    expect(h.packs.unpacked, [('t1', 'tk')]);
-  });
-
   testWidgets('a slotless tank can still be unpacked', (tester) async {
-    final h = await _pumpTab(tester, gear: const [tank]);
+    final h = await pumpTab(tester, gear: const [tank], editing: true);
     await tester.tap(find.byKey(const Key('trip-gear-menu-tk')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Unpack'));
     await tester.pumpAndSettle();
-    expect(h.packs.unpacked, [('t1', 'tk')]);
-    expect(h.slots.created, isEmpty);
+    expect(h.heldPacked, isEmpty);
+    expect(h.heldSlots, isEmpty);
+    expect(find.text('Faber 12'), findsNothing);
   });
 
   testWidgets('before departure an owned slot names its item', (tester) async {
     // The slot carries the tank's mark, so the item's name is what tells
     // the diver which of their cylinders it is.
-    await _pumpTab(
+    await pumpTab(
       tester,
       states: [slot('A1', equipmentId: 'tk')],
       active: const [tank],
@@ -574,12 +220,12 @@ void main() {
   });
 
   testWidgets('a service clock reads on its item', (tester) async {
-    await _pumpTab(tester, gear: const [reg], alerts: [dueClock('reg')]);
+    await pumpTab(tester, gear: const [reg], alerts: [dueClock('reg')]);
     expect(find.textContaining('Annual service'), findsOneWidget);
   });
 
   testWidgets('an overdue clock reads overdue on its item', (tester) async {
-    await _pumpTab(
+    await pumpTab(
       tester,
       gear: const [reg],
       alerts: [dueClock('reg', overdue: true)],
@@ -588,14 +234,14 @@ void main() {
   });
 
   testWidgets('a scrubber margin reads on its rebreather', (tester) async {
-    await _pumpTab(tester, gear: const [ccr], margins: [margin()]);
+    await pumpTab(tester, gear: const [ccr], margins: [margin()]);
     expect(find.text('120 min scrubber margin'), findsOneWidget);
   });
 
   testWidgets('before departure a slot shows its specs and origin', (
     tester,
   ) async {
-    await _pumpTab(tester, states: [slot('Truck 1', full: true)]);
+    await pumpTab(tester, states: [slot('Truck 1', full: true)]);
     expect(find.text('Truck 1'), findsOneWidget);
     expect(find.textContaining('207 bar'), findsOneWidget);
     expect(find.textContaining('Rental'), findsOneWidget);
@@ -604,7 +250,7 @@ void main() {
 
   testWidgets('from the first day a slot shows its state and the board '
       'opens from the header', (tester) async {
-    await _pumpTab(
+    await pumpTab(
       tester,
       onTrip: trip(started: true),
       states: [slot('Truck 1', full: true)],
@@ -616,7 +262,7 @@ void main() {
   testWidgets('under way an unfilled slot says so instead of dashes (#2957)', (
     tester,
   ) async {
-    await _pumpTab(
+    await pumpTab(
       tester,
       onTrip: trip(started: true),
       states: [slot('Truck 1')],
@@ -626,239 +272,70 @@ void main() {
   });
 
   testWidgets('tapping a slot opens the board', (tester) async {
-    final h = await _pumpTab(tester, states: [slot('Truck 1')]);
+    final h = await pumpTab(tester, states: [slot('Truck 1')]);
     await tester.tap(find.text('Truck 1'));
     await tester.pumpAndSettle();
     expect(h.pushed, ['/trips/t1/cylinders']);
   });
 
   testWidgets('tapping a packed item opens it', (tester) async {
-    final h = await _pumpTab(tester, gear: const [bcd]);
+    final h = await pumpTab(tester, gear: const [bcd]);
     await tester.tap(find.text('Hollis wing'));
     await tester.pumpAndSettle();
     expect(h.pushed, ['/equipment/bcd']);
   });
 
-  testWidgets('Unpack removes the item', (tester) async {
-    final h = await _pumpTab(tester, gear: const [bcd]);
+  testWidgets('Unpack removes the item, and Save unpacks it', (tester) async {
+    final h = await pumpTab(tester, gear: const [bcd, fins], editing: true);
     await tester.tap(find.byKey(const Key('trip-gear-menu-bcd')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Unpack'));
     await tester.pumpAndSettle();
+    expect(h.heldPacked, ['fins']);
+    expect(find.text('Hollis wing'), findsNothing);
+    expect(h.packs.unpacked, isEmpty);
+
+    await h.save();
     expect(h.packs.unpacked, [('t1', 'bcd')]);
   });
 
-  testWidgets('Add offers three ways in', (tester) async {
-    await _pumpTab(tester, gear: const [bcd]);
-    await _openAdd(tester);
-    expect(find.text('From my equipment'), findsOneWidget);
-    expect(find.text('An equipment set'), findsOneWidget);
-    expect(find.text('Rental cylinders'), findsOneWidget);
-  });
-
-  testWidgets('From my equipment packs a picked item', (tester) async {
-    final h = await _pumpTab(tester, active: const [bcd]);
-    await _openPicker(tester);
-    await _tickAndAdd(tester, ['Hollis wing']);
-    expect(h.packs.packed.single.$2, ['bcd']);
-    expect(h.slots.created, isEmpty);
-  });
-
-  testWidgets('From my equipment makes a picked cylinder a slot', (
-    tester,
-  ) async {
-    final h = await _pumpTab(tester, active: const [tank]);
-    await _openPicker(tester);
-    await _tickAndAdd(tester, ['Faber 12']);
-    expect(h.packs.packed, isEmpty);
-    expect(h.slots.created.single.single.equipmentId, 'tk');
-    // Appended, so the repository places it and skips a tank already on.
-    expect(h.slots.appendedTo, ['t1']);
-  });
-
-  group('From my equipment picks several (#4205)', () {
-    testWidgets('ticked gear is packed in one pass and a tank slotted', (
+  testWidgets('locked, the tab offers no Add, unpack or put on board, and '
+      'Open board still opens the board', (tester) async {
+    final h = await pumpTab(
       tester,
-    ) async {
-      final h = await _pumpTab(tester, active: const [bcd, fins, tank]);
-      await _openPicker(tester);
-      await _tickAndAdd(tester, ['Hollis wing', 'Fins', 'Faber 12']);
-      final (tripId, ids) = h.packs.packed.single;
-      expect(tripId, 't1');
-      expect(ids, ['bcd', 'fins']);
-      expect(h.slots.created.single.single.equipmentId, 'tk');
-      expect(h.slots.appendedTo, ['t1']);
-      // Add closed the picker.
-      expect(find.byType(EquipmentPickerSheet), findsNothing);
-    });
-
-    testWidgets('Cancel after ticking writes nothing', (tester) async {
-      final h = await _pumpTab(tester, active: const [bcd, tank]);
-      await _openPicker(tester);
-      await tester.tap(find.text('Hollis wing').last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Faber 12').last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-      expect(find.byType(EquipmentPickerSheet), findsNothing);
-      expect(h.packs.packed, isEmpty);
-      expect(h.slots.created, isEmpty);
-    });
-
-    testWidgets('Add is disabled until something is ticked', (tester) async {
-      await _pumpTab(tester, active: const [bcd]);
-      await _openPicker(tester);
-      FilledButton add(String label) => tester.widget<FilledButton>(
-        find.descendant(
-          of: find.byType(EquipmentPickerSheet),
-          matching: find.widgetWithText(FilledButton, label),
-        ),
-      );
-      expect(add('Add').onPressed, isNull);
-      await tester.tap(find.text('Hollis wing').last);
-      await tester.pumpAndSettle();
-      expect(add('Add 1').onPressed, isNotNull);
-    });
-
-    testWidgets('an assembly\'s installed part waits behind the switch', (
-      tester,
-    ) async {
-      const first = EquipmentItem(
-        id: 'first',
-        name: 'DIN First Stage',
-        type: EquipmentType.firstStage,
-      );
-      final at = DateTime(2026, 1, 1);
-      final h = await _pumpTab(
-        tester,
-        active: const [reg, first],
-        components: ComponentsIndex.fromRows([
-          EquipmentComponent(
-            id: 'reg>first',
-            parentEquipmentId: 'reg',
-            componentEquipmentId: 'first',
-            createdAt: at,
-            updatedAt: at,
-          ),
-        ]),
-      );
-      await _openPicker(tester);
-      final picker = find.byType(EquipmentPickerSheet);
-      expect(
-        find.descendant(of: picker, matching: find.text('DIN First Stage')),
-        findsNothing,
-      );
-      expect(find.text('Show components of assemblies'), findsOneWidget);
-      await _tickAndAdd(tester, ['Regulator']);
-      expect(h.packs.packed.single.$2, ['reg']);
-    });
-
-    testWidgets('gear already packed or on the board is not offered', (
-      tester,
-    ) async {
-      await _pumpTab(
-        tester,
-        gear: const [bcd],
-        states: [slot('c1', equipmentId: 'tk')],
-        active: const [bcd, fins, tank],
-      );
-      await _openPicker(tester);
-      final picker = find.byType(EquipmentPickerSheet);
-      expect(
-        find.descendant(of: picker, matching: find.text('Hollis wing')),
-        findsNothing,
-      );
-      expect(
-        find.descendant(of: picker, matching: find.text('Faber 12')),
-        findsNothing,
-      );
-      // A row per offered item; Fins alone is left to pick.
-      final rows = find.descendant(
-        of: picker,
-        matching: find.byType(CheckboxListTile),
-      );
-      expect(rows, findsOneWidget);
-      expect(
-        find.descendant(of: rows, matching: find.text('Fins')),
-        findsOneWidget,
-      );
-    });
-  });
-
-  testWidgets('An equipment set packs the members and slots its cylinders', (
-    tester,
-  ) async {
-    final h = await _pumpTab(
-      tester,
-      sets: [
-        kit(const [bcd, fins, tank]),
-      ],
+      onTrip: trip(started: true),
+      gear: const [bcd, tank],
+      states: [slot('Truck 1')],
     );
-    await _openAdd(tester);
-    await tester.tap(find.text('An equipment set'));
+    expect(find.text('Hollis wing'), findsOneWidget);
+    expect(find.text('Faber 12'), findsOneWidget);
+    expect(find.byKey(const Key('trip-gear-add')), findsNothing);
+    expect(find.byKey(const Key('trip-gear-menu-bcd')), findsNothing);
+    expect(find.byKey(const Key('trip-gear-menu-tk')), findsNothing);
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsNothing);
+    await tester.tap(find.text('Open board'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Reef kit'));
-    await tester.pumpAndSettle();
-    expect(h.packs.packed.single.$2, ['bcd', 'fins']);
-    expect(h.slots.created.single.single.equipmentId, 'tk');
-    expect(h.slots.appendedTo, ['t1']);
-    // The slotted cylinder counts alongside the packed items (#2877).
-    expect(find.text('Packed 3 items from Reef kit'), findsOneWidget);
+    expect(h.pushed, ['/trips/t1/cylinders']);
   });
 
-  testWidgets('a set of only cylinders counts the slots it adds (#2877)', (
+  testWidgets('locked, an upcoming trip with nothing offers no Add', (
     tester,
   ) async {
-    await _pumpTab(
-      tester,
-      sets: [
-        kit(const [tank]),
-      ],
-    );
-    await _openAdd(tester);
-    await tester.tap(find.text('An equipment set'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Reef kit'));
-    await tester.pumpAndSettle();
-    expect(find.text('Packed 1 item from Reef kit'), findsOneWidget);
-  });
-
-  testWidgets('a set whose cylinder is already a slot adds nothing', (
-    tester,
-  ) async {
-    final h = await _pumpTab(
-      tester,
-      states: [slot('c1', equipmentId: 'tk')],
-      sets: [
-        kit(const [tank]),
-      ],
-    );
-    await _openAdd(tester);
-    await tester.tap(find.text('An equipment set'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Reef kit'));
-    await tester.pumpAndSettle();
-    expect(h.slots.created, isEmpty);
+    await pumpTab(tester);
     expect(
-      find.text('Everything in Reef kit is already packed'),
+      find.text(
+        "Nothing packed yet. Add the gear you'll bring and the cylinders "
+        "you'll dive from.",
+      ),
       findsOneWidget,
     );
-  });
-
-  testWidgets('Rental cylinders opens the rental form alone', (tester) async {
-    await _pumpTab(tester);
-    await _openAdd(tester);
-    await tester.tap(find.text('Rental cylinders'));
-    await tester.pumpAndSettle();
-    expect(find.text('How many'), findsOneWidget);
-    expect(find.byWidgetPredicate((w) => w is SegmentedButton), findsNothing);
+    expect(find.byKey(const Key('trip-gear-add')), findsNothing);
   });
 
   testWidgets('tapping a service line opens that item\'s clocks', (
     tester,
   ) async {
-    final h = await _pumpTab(
+    final h = await pumpTab(
       tester,
       gear: const [reg],
       alerts: [dueClock('reg'), dueClock('reg', overdue: true)],
@@ -878,7 +355,7 @@ void main() {
   testWidgets('the alert sheet names its item once, not on every row (#2882)', (
     tester,
   ) async {
-    await _pumpTab(
+    await pumpTab(
       tester,
       gear: const [reg],
       alerts: [dueClock('reg'), dueClock('reg', overdue: true)],
@@ -903,7 +380,7 @@ void main() {
   });
 
   testWidgets('tapping a scrubber line opens the breakdown', (tester) async {
-    await _pumpTab(tester, gear: const [ccr], margins: [margin()]);
+    await pumpTab(tester, gear: const [ccr], margins: [margin()]);
     await tester.tap(find.byKey(const Key('trip-gear-alert-ccr')));
     await tester.pumpAndSettle();
     expect(find.byType(TripScrubberMarginDetails), findsOneWidget);
@@ -913,7 +390,7 @@ void main() {
   testWidgets('an item with no trip alert has no alert line to tap', (
     tester,
   ) async {
-    await _pumpTab(tester, gear: const [fins]);
+    await pumpTab(tester, gear: const [fins]);
     expect(find.byKey(const Key('trip-gear-alert-fins')), findsNothing);
   });
 
@@ -927,13 +404,13 @@ void main() {
         label: 'Truck 1',
         volume: 11.1,
         workingPressure: 207,
-        createdAt: _t0,
-        updatedAt: _t0,
+        createdAt: t0,
+        updatedAt: t0,
       ),
       events: const [],
       uses: const [],
     );
-    await _pumpTab(
+    await pumpTab(
       tester,
       states: [al80],
       settings: const AppSettings(
@@ -952,7 +429,7 @@ void main() {
   });
 
   testWidgets('a failed load says so instead of spinning', (tester) async {
-    await _pumpTab(tester, gearError: StateError('database is locked'));
+    await pumpTab(tester, gearError: StateError('database is locked'));
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(
       find.text('Something went wrong. Please try again.'),
@@ -963,7 +440,7 @@ void main() {
 
   testWidgets('an owned cylinder\'s service clock reads on its slot and '
       'opens the detail', (tester) async {
-    await _pumpTab(
+    await pumpTab(
       tester,
       states: [slot('Faber 12', equipmentId: 'tk')],
       alerts: [dueClock('tk')],
@@ -974,30 +451,10 @@ void main() {
     expect(find.byType(TripServiceAlertList), findsOneWidget);
   });
 
-  testWidgets('a failed unpack says so without the exception', (tester) async {
-    final h = await _pumpTab(tester, gear: const [bcd]);
-    h.packs.failing = true;
-    await tester.tap(find.byKey(const Key('trip-gear-menu-bcd')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Unpack'));
-    await tester.pumpAndSettle();
-    expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
-    expect(find.textContaining('database is locked'), findsNothing);
-  });
-
-  testWidgets('a failed Add says so without the exception', (tester) async {
-    final h = await _pumpTab(tester, active: const [bcd]);
-    h.packs.failing = true;
-    await _openPicker(tester);
-    await _tickAndAdd(tester, ['Hollis wing']);
-    expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
-    expect(find.textContaining('database is locked'), findsNothing);
-  });
-
   testWidgets('an ended trip shows no service or scrubber lines (#2485)', (
     tester,
   ) async {
-    await _pumpTab(
+    await pumpTab(
       tester,
       onTrip: trip(past: true),
       gear: const [reg, ccr],
@@ -1014,7 +471,7 @@ void main() {
 
   testWidgets('only a trip under way reads the fill forecast', (tester) async {
     final upcomingReads = <String>[];
-    await _pumpTab(
+    await pumpTab(
       tester,
       states: [slot('Faber 12')],
       forecastReads: upcomingReads,
@@ -1022,7 +479,7 @@ void main() {
     expect(upcomingReads, isEmpty);
 
     final endedReads = <String>[];
-    await _pumpTab(
+    await pumpTab(
       tester,
       onTrip: trip(past: true),
       states: [slot('Faber 12')],
@@ -1031,118 +488,12 @@ void main() {
     expect(endedReads, isEmpty);
 
     final underWayReads = <String>[];
-    await _pumpTab(
+    await pumpTab(
       tester,
       onTrip: trip(started: true),
       states: [slot('Faber 12')],
       forecastReads: underWayReads,
     );
     expect(underWayReads, isNotEmpty);
-  });
-
-  group('scan a tag (issue #2652)', () {
-    const regPid = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
-    const tankPid = '22222222-3333-4444-8555-666666666666';
-    const regLink = 'https://submersion.app/g#f=1&p=$regPid&t=regulator';
-
-    Future<void> seedTagged(WidgetTester tester) => tester.runAsync(() async {
-      final db = DatabaseService.instance.database;
-      final t = DateTime.now().millisecondsSinceEpoch;
-      await db
-          .into(db.divers)
-          .insert(
-            DiversCompanion.insert(
-              id: 'd1',
-              name: 'd1',
-              createdAt: t,
-              updatedAt: t,
-            ),
-          );
-      final repo = EquipmentRepository();
-      final passports = CylinderPassportRepository();
-      // The diver's own gear: the harness's diver is d1.
-      await repo.createEquipment(reg.copyWith(diverId: 'd1'));
-      await repo.createEquipment(tank.copyWith(diverId: 'd1'));
-      await passports.assignPassportId(equipmentId: 'reg', passportId: regPid);
-      await passports.assignPassportId(equipmentId: 'tk', passportId: tankPid);
-    });
-
-    Future<AppLocalizations> scanFromChooser(WidgetTester tester) async {
-      await _openAdd(tester);
-      final l10n = AppLocalizations.of(
-        tester.element(find.byType(TripGearTab)),
-      );
-      await tester.tap(find.text(l10n.trips_gear_add_scan));
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 200)),
-      );
-      await tester.pumpAndSettle();
-      return l10n;
-    }
-
-    testWidgets('a scanned item is packed', (tester) async {
-      await seedTagged(tester);
-      final h = await _pumpTab(tester, gear: const [fins], scanned: regLink);
-      final l10n = await scanFromChooser(tester);
-      expect(h.packs.packed.single.$1, 't1');
-      expect(h.packs.packed.single.$2, ['reg']);
-      expect(
-        find.text(l10n.gearPassport_scan_added('Regulator')),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('a scanned tank becomes a slot on the board', (tester) async {
-      await seedTagged(tester);
-      final h = await _pumpTab(
-        tester,
-        gear: const [fins],
-        scanned: 'https://submersion.app/c#f=1&p=$tankPid',
-      );
-      await scanFromChooser(tester);
-      expect(h.packs.packed, isEmpty);
-      expect(h.slots.created.single.single.equipmentId, 'tk');
-    });
-
-    testWidgets('an item already packed is not packed again', (tester) async {
-      await seedTagged(tester);
-      final h = await _pumpTab(tester, gear: const [reg], scanned: regLink);
-      final l10n = await scanFromChooser(tester);
-      expect(h.packs.packed, isEmpty);
-      expect(
-        find.text(l10n.gearPassport_scan_alreadyOnTrip('Regulator')),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('an item packed since the tab last loaded says so', (
-      tester,
-    ) async {
-      await seedTagged(tester);
-      final h = await _pumpTab(tester, gear: const [fins], scanned: regLink);
-      h.packs.alreadyPacked.add('reg');
-      final l10n = await scanFromChooser(tester);
-      expect(h.packs.packed, isEmpty);
-      expect(
-        find.text(l10n.gearPassport_scan_alreadyOnTrip('Regulator')),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('a failed pack says so and never says added', (tester) async {
-      await seedTagged(tester);
-      final h = await _pumpTab(tester, gear: const [fins], scanned: regLink);
-      h.packs.failing = true;
-      final l10n = await scanFromChooser(tester);
-      expect(find.text(l10n.trips_gear_failed), findsOneWidget);
-      // Snack bars queue: let the failure go, then look for a second one.
-      await tester.pump(const Duration(seconds: 10));
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 1));
-      expect(
-        find.text(l10n.gearPassport_scan_added('Regulator')),
-        findsNothing,
-      );
-    });
   });
 }
