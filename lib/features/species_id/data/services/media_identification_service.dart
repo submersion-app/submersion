@@ -18,6 +18,7 @@ import 'package:submersion/features/species_id/data/services/identification_crop
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
@@ -32,6 +33,7 @@ import 'package:submersion/features/species_id/domain/services/vision_engine.dar
 
 part 'media_identification_fresh.dart';
 part 'media_identification_readiness.dart';
+part 'media_identification_reads.dart';
 part 'media_identification_run_lane.dart';
 part 'media_identification_video.dart';
 
@@ -72,6 +74,7 @@ class MediaIdentificationService {
     int firstVideoChunkMs = 2000,
     Future<void> Function(MediaItem item, int generation)? onItemSettled,
     Future<LevelInForce?> Function()? namingLevel,
+    NamingLevel Function()? chosenLevel,
     Future<String?> Function()? deviceId,
     String Function()? newRunId,
   }) : _engine = engine,
@@ -94,6 +97,7 @@ class MediaIdentificationService {
        _firstVideoChunkMs = firstVideoChunkMs,
        _onItemSettled = onItemSettled ?? ((_, _) async {}),
        _namingLevel = namingLevel ?? (() async => null),
+       _chosenLevel = chosenLevel,
        _deviceId = deviceId ?? syncDeviceIdOrNull,
        _newRunId = newRunId ?? const Uuid().v4;
 
@@ -139,6 +143,11 @@ class MediaIdentificationService {
   /// or null for the pack's own bars (issue #4721).
   final Future<LevelInForce?> Function() _namingLevel;
 
+  /// The level the diver chose (issue #4876), so a run that kept its
+  /// pack's naming bars reconciles at it with no pack installed. Null reads
+  /// the level from [_namingLevel] alone.
+  final NamingLevel Function()? _chosenLevel;
+
   /// This device's sync id, which a run records as its maker (issue #4876),
   /// or null when it cannot be read: the run then counts as this device's
   /// and is stamped before it first publishes.
@@ -146,15 +155,6 @@ class MediaIdentificationService {
 
   /// A run id, minted when an analysis of a media starts (issue #4876).
   final String Function() _newRunId;
-
-  /// Whether [run] was made on this device (issue #4876). With no run, or
-  /// when this device's id cannot be read, it counts as this device's, as
-  /// every run did before results synced.
-  Future<bool> _madeHere(MediaIdentificationRun? run) async {
-    if (run == null || run.analysedBy == null) return true;
-    final me = await _deviceId();
-    return me == null || run.madeOn(me);
-  }
 
   final _log = LoggerService.forClass(MediaIdentificationService);
 
@@ -332,6 +332,7 @@ class MediaIdentificationService {
         _identifications,
         mediaId,
         await _namingLevel(),
+        chosen: _chosenLevel?.call(),
       );
       if (all.isEmpty) return;
       final changed = reconcileDecisions(
@@ -697,6 +698,7 @@ class MediaIdentificationService {
         detectionCount: carried.keep.length + carried.insert.length,
         analysedBy: await _deviceId(),
         runId: _newRunId(),
+        namingBars: NamingBars.fromNaming(manifest.naming),
       ),
       insert: carried.insert,
       deleteIds: carried.deleteIds,
@@ -712,37 +714,6 @@ class MediaIdentificationService {
       await _crops.write(item.id, i.id, byId[i.id]!.cropJpeg);
     }
     await _crops.markAnalysed(item.id);
-  }
-
-  /// [identification] with what naming found, including the label flags.
-  static MediaIdentification _named(
-    MediaIdentification identification,
-    NamingResult result,
-    NamingConfig naming,
-  ) {
-    final flags = namingFlags(result, naming);
-    return identification.copyWith(
-      openScore: result.openScore,
-      candidates: result.candidates,
-      locationLimited: result.locationLimited,
-      suggestable: result.suggestable,
-      confident: flags.confident,
-      specific: flags.specific,
-    );
-  }
-
-  /// [renamed] as [suggestableOnRename] allows, given [before]: a video
-  /// track keeps a suggestion only under the same name.
-  static MediaIdentification _renamed(
-    MediaIdentification before,
-    MediaIdentification renamed,
-  ) {
-    final suggestable = suggestableOnRename(before: before, renamed: renamed);
-    if (suggestable == renamed.suggestable) return renamed;
-    return renamed.copyWith(
-      suggestable: suggestable,
-      confident: renamed.confident && suggestable,
-    );
   }
 
   /// Runs the models over [image]. Models the system unloaded behind the
@@ -809,31 +780,4 @@ class MediaIdentificationService {
       _log.debug('Could not unload the marine life models', error: e);
     }
   }
-}
-
-/// This device's sync id, or null when it cannot be read (no logbook open,
-/// or a test with none): what a run records as its maker (issue #4876).
-Future<String?> syncDeviceIdOrNull() async {
-  try {
-    return await SyncRepository().getDeviceId();
-  } on Object {
-    return null;
-  }
-}
-
-/// [mediaId]'s identifications as shown ([visibleRows]) and as [level]
-/// would suggest them, when the pack in force named them (issue #4721).
-/// The run and rows are read in one snapshot, so the pack the run names is
-/// the pack the rows were named with: a rename landing in between cannot
-/// pair them wrongly.
-Future<List<MediaIdentification>> identificationsAtLevel(
-  MediaIdentificationRepository repository,
-  String mediaId,
-  LevelInForce? level,
-) async {
-  final (run, stored) = await repository.forMediaWithRun(mediaId);
-  final rows = visibleRows(run, stored);
-  // Surer is the pack's own bars, so its rows read as stored.
-  if (level == null || level.level == NamingLevel.surer) return rows;
-  return applyNamingLevel(rows, level: level, namedWithPack: run?.packVersion);
 }

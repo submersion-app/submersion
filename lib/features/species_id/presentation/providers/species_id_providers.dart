@@ -28,6 +28,7 @@ import 'package:submersion/features/species_id/domain/services/auto_apply_rules.
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
+import 'package:submersion/features/species_id/data/services/naming_bars_fill.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
@@ -272,6 +273,19 @@ Future<void> sweepIdentificationOrphansAtLaunch(
   await cleanup.sweepOrphans();
 }
 
+/// Gives this device's runs from before runs kept their naming bars the
+/// installed pack's bars, once at app start (issue #4876). Never throws.
+Future<void> fillIdentificationNamingBarsAtLaunch(
+  ProviderContainer container,
+) async {
+  if (!marineLifeIdEnabled) return;
+  await fillNamingBarsFromInstalledPack(
+    installed: container.read(speciesPackStoreProvider).installed,
+    identifications: container.read(mediaIdentificationRepositoryProvider),
+    deviceId: syncDeviceIdOrNull,
+  );
+}
+
 // Typed: it and [autoApplierProvider] read each other when called.
 final Provider<MediaIdentificationService> mediaIdentificationServiceProvider =
     Provider<MediaIdentificationService>((ref) {
@@ -308,6 +322,7 @@ final Provider<MediaIdentificationService> mediaIdentificationServiceProvider =
         // reconcile before it has been read would otherwise decide by the
         // stored flags, not the level the diver chose.
         namingLevel: () => awaitLevelInForce(ref.container),
+        chosenLevel: () => ref.read(namingLevelNotifierProvider),
       );
       ref.onDispose(service.dispose);
       return service;
@@ -376,8 +391,14 @@ final mediaSuggestionsProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(repository.watchChanges());
       ref.invalidateSelfWhen(repository.watchTagChanges());
       final level = ref.watch(levelInForceProvider);
+      final chosen = ref.watch(namingLevelNotifierProvider);
       return groupSuggestions(
-        await identificationsAtLevel(repository, mediaId, level),
+        await identificationsAtLevel(
+          repository,
+          mediaId,
+          level,
+          chosen: chosen,
+        ),
         await repository.taggedSpecies(mediaId),
       );
     });
@@ -401,11 +422,13 @@ final videoTracksProvider = FutureProvider.autoDispose
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final level = ref.watch(levelInForceProvider);
+      final chosen = ref.watch(namingLevelNotifierProvider);
       return [
         for (final i in await identificationsAtLevel(
           repository,
           mediaId,
           level,
+          chosen: chosen,
         ))
           if (i.isTrack) i,
       ];

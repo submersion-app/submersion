@@ -62,11 +62,13 @@ class SpeciesReviewRepository {
   /// [diverId] keeps the log to that diver's dives and the media on no
   /// dive. [level] is the naming level in force, null for the pack's own
   /// bars (issue #4721), so the Suggested list matches the viewer's.
+  /// [chosen] is the level the diver chose (issue #4876).
   Future<List<ReviewGroup>> load(
     ReviewScope scope, {
     required bool withSuggestions,
     String? diverId,
     LevelInForce? level,
+    NamingLevel? chosen,
   }) async {
     final diveId = switch (scope) {
       DiveReviewScope(:final diveId) => diveId,
@@ -76,7 +78,10 @@ class SpeciesReviewRepository {
       diveId: diveId,
       diverId: diverId,
     );
-    final loose = level != null && level.level != NamingLevel.surer;
+    // The level the diver chose: a run that kept its pack's naming bars is
+    // named by them at it, with or without a pack here (issue #4876).
+    final choice = chosen ?? level?.level;
+    final loose = choice != null && choice != NamingLevel.surer;
     final diveMedia = diveId == null
         ? null
         : await _media.getMediaForDive(diveId);
@@ -130,10 +135,11 @@ class SpeciesReviewRepository {
       if (rows == null || rows.isEmpty) continue;
       if (open.contains(id)) {
         suggestionsByMedia[id] = groupSuggestions(
-          applyNamingLevel(
+          applyChosenLevel(
             rows,
-            level: loose ? level : null,
-            namedWithPack: runs[id]?.packVersion,
+            run: runs[id],
+            chosen: choice,
+            installed: level,
           ),
           tagged[id] ?? const [],
         );

@@ -17,6 +17,8 @@ import 'package:submersion/features/species_id/domain/entities/track_sample.dart
 import 'package:submersion/features/species_id/domain/services/scanned_ranges_codec.dart';
 import 'package:submersion/features/species_id/domain/services/track_path_codec.dart';
 
+part 'media_identification_rows.dart';
+
 /// The logbook a transaction of [MediaIdentificationRepository] runs on,
 /// and whether that transaction has ended.
 typedef _Pin = ({AppDatabase db, Completer<void> ended});
@@ -354,6 +356,42 @@ class MediaIdentificationRepository {
     if (count > 0) await _marks?.decisionsWritten([identificationId]);
   }
 
+  /// Writes [bars] onto the runs [packVersion] named on this device that
+  /// kept none (made before runs kept them, issue #4876), and publishes
+  /// them, so a device with no pack names their rows at the diver's level.
+  /// A run is this device's when [deviceId] made it, or when it records no
+  /// maker yet. Returns how many runs it wrote.
+  Future<int> fillNamingBars(
+    String packVersion,
+    NamingBars bars, {
+    required String? deviceId,
+  }) async {
+    final written = await _transaction((db) async {
+      final runs = db.mediaIdentificationRuns;
+      final mine = deviceId == null
+          ? runs.analysedBy.isNull()
+          : runs.analysedBy.isNull() | runs.analysedBy.equals(deviceId);
+      final ids =
+          await (db.selectOnly(runs)
+                ..addColumns([runs.mediaId])
+                ..where(
+                  runs.packVersion.equals(packVersion) &
+                      runs.namingBars.isNull() &
+                      mine,
+                ))
+              .map((r) => r.read(runs.mediaId)!)
+              .get();
+      for (final slice in ids.slices(_slice)) {
+        await (db.update(runs)..where((r) => r.mediaId.isIn(slice))).write(
+          MediaIdentificationRunsCompanion(namingBars: Value(bars.toJson())),
+        );
+      }
+      return ids;
+    });
+    await _marks?.runsWritten(written);
+    return written.length;
+  }
+
   /// Removes the runs and identifications of [mediaIds]; returns the ids of
   /// the identifications removed, for their crops and embeddings.
   Future<List<String>> deleteForMedia(List<String> mediaIds) async {
@@ -595,162 +633,5 @@ class MediaIdentificationRepository {
     return query.map((r) => r.read(table.id)!).get();
   }
 
-  static MediaIdentificationRun _runFromRow(MediaIdentificationRunRow row) =>
-      MediaIdentificationRun(
-        mediaId: row.mediaId,
-        packVersion: row.packVersion,
-        detectorId: row.detectorId,
-        classifierId: row.classifierId,
-        locationCell: row.locationCell,
-        analysedAt: _time(row.analysedAt),
-        imageWidth: row.imageWidth,
-        imageHeight: row.imageHeight,
-        detectionCount: row.detectionCount,
-        scannedMs: row.scannedMs,
-        videoDurationMs: row.videoDurationMs,
-        scannedRanges: _ranges(row.scannedRanges),
-        analysedBy: row.analysedBy,
-        runId: row.runId,
-        namingBars: NamingBars.fromJson(row.namingBars),
-      );
-
-  /// The stored stretches, or null when there are none or they cannot be
-  /// read: the run's scanned_ms mark then applies.
-  static ScannedRanges? _ranges(Uint8List? bytes) {
-    if (bytes == null) return null;
-    try {
-      return decodeScannedRanges(bytes);
-    } on FormatException catch (e) {
-      _log.warning('Unreadable scanned stretches, using the mark', error: e);
-      return null;
-    }
-  }
-
-  static MediaIdentificationRunsCompanion _runToCompanion(
-    MediaIdentificationRun run,
-  ) => MediaIdentificationRunsCompanion.insert(
-    mediaId: run.mediaId,
-    packVersion: run.packVersion,
-    detectorId: run.detectorId,
-    classifierId: run.classifierId,
-    locationCell: Value(run.locationCell),
-    analysedAt: run.analysedAt.millisecondsSinceEpoch,
-    imageWidth: run.imageWidth,
-    imageHeight: run.imageHeight,
-    detectionCount: run.detectionCount,
-    scannedMs: Value(run.scannedMs),
-    videoDurationMs: Value(run.videoDurationMs),
-    scannedRanges: Value(
-      run.scannedRanges == null
-          ? null
-          : encodeScannedRanges(run.scannedRanges!),
-    ),
-    // Absent rather than null when unknown: a write never clears where a
-    // run came from, its run id or its bars.
-    analysedBy: Value.absentIfNull(run.analysedBy),
-    runId: Value.absentIfNull(run.runId),
-    namingBars: Value.absentIfNull(run.namingBars?.toJson()),
-  );
-
-  static MediaIdentification _fromRow(
-    MediaIdentificationRow row, {
-    bool withPath = true,
-  }) => MediaIdentification(
-    id: row.id,
-    mediaId: row.mediaId,
-    box: IdentificationBox(
-      x: row.boxX,
-      y: row.boxY,
-      width: row.boxWidth,
-      height: row.boxHeight,
-    ),
-    boxPixelWidth: row.boxPixelWidth,
-    boxPixelHeight: row.boxPixelHeight,
-    detectorScore: row.detectorScore,
-    openScore: row.openScore,
-    candidates: _decodeCandidates(row.candidatesJson),
-    locationLimited: row.locationLimited,
-    suggestable: row.suggestable,
-    decision: IdentificationDecision.values.firstWhere(
-      (d) => d.name == row.decision,
-      orElse: () => IdentificationDecision.undecided,
-    ),
-    decidedSpeciesId: row.decidedSpeciesId,
-    decidedAt: row.decidedAt == null ? null : _time(row.decidedAt!),
-    createdAt: _time(row.createdAt),
-    startMs: row.startMs,
-    endMs: row.endMs,
-    bestMs: row.bestMs,
-    path: withPath ? _decodePath(row) : const [],
-    claimedSpeciesId: row.claimedSpeciesId,
-    confident: row.confident,
-    specific: row.specific,
-    runId: row.runId,
-  );
-
-  static MediaIdentificationsCompanion _toCompanion(MediaIdentification i) =>
-      MediaIdentificationsCompanion.insert(
-        id: i.id,
-        mediaId: i.mediaId,
-        boxX: i.box.x,
-        boxY: i.box.y,
-        boxWidth: i.box.width,
-        boxHeight: i.box.height,
-        boxPixelWidth: i.boxPixelWidth,
-        boxPixelHeight: i.boxPixelHeight,
-        detectorScore: i.detectorScore,
-        openScore: i.openScore,
-        candidatesJson: jsonEncode([for (final c in i.candidates) c.toJson()]),
-        locationLimited: i.locationLimited,
-        suggestable: i.suggestable,
-        decision: i.decision.name,
-        decidedSpeciesId: Value(i.decidedSpeciesId),
-        decidedAt: Value(i.decidedAt?.millisecondsSinceEpoch),
-        createdAt: i.createdAt.millisecondsSinceEpoch,
-        startMs: Value(i.startMs),
-        endMs: Value(i.endMs),
-        bestMs: Value(i.bestMs),
-        trackPath: Value(
-          i.isTrack ? encodeTrackPath(i.startMs!, i.path) : null,
-        ),
-        claimedSpeciesId: Value(i.claimedSpeciesId),
-        confident: Value(i.confident),
-        specific: Value(i.specific),
-        runId: Value.absentIfNull(i.runId),
-      );
-
-  /// A path that cannot be read keeps its row with no path, which draws no
-  /// label: the rest of what was found stays usable.
-  static List<TrackSample> _decodePath(MediaIdentificationRow row) {
-    final bytes = row.trackPath;
-    final start = row.startMs;
-    if (bytes == null || start == null) return const [];
-    try {
-      return decodeTrackPath(start, bytes);
-    } on FormatException catch (e) {
-      _log.debug('Unreadable track path on ${row.id}', error: e);
-      return const [];
-    }
-  }
-
   static final _log = LoggerService.forClass(MediaIdentificationRepository);
-
-  /// A row whose JSON cannot be read keeps its place with no candidates,
-  /// which the rules never suggest.
-  static List<NamedCandidate> _decodeCandidates(String json) {
-    try {
-      final list = jsonDecode(json);
-      if (list is! List) return const [];
-      return [
-        for (final entry in list)
-          if (entry is Map)
-            NamedCandidate.fromJson(entry.cast<String, Object?>()),
-      ];
-    } on Object {
-      return const [];
-    }
-  }
-
-  static DateTime _time(int millis) =>
-      DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
 }

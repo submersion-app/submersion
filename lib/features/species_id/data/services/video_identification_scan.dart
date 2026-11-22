@@ -8,6 +8,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
@@ -629,6 +630,7 @@ class VideoIdentificationScan {
           scannedMs: ranges.prefixEndMs,
           videoDurationMs: duration,
           scannedRanges: ranges,
+          namingBars: NamingBars.fromNaming(manifest.naming),
         );
         return (run: run, insert: inserted, deleteIds: deleted);
       },

@@ -36,6 +36,9 @@ final speciesReviewProvider = FutureProvider.autoDispose
         // The library's rule: the active diver's dives and media on none.
         diverId: ref.watch(currentDiverIdProvider),
         level: marineLifeIdEnabled ? ref.watch(levelInForceProvider) : null,
+        chosen: marineLifeIdEnabled
+            ? ref.watch(namingLevelNotifierProvider)
+            : null,
       );
     });
 

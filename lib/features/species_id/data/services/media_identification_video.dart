@@ -107,6 +107,7 @@ extension _VideoScanning on MediaIdentificationService {
           // later chunks keep this id.
           analysedBy: await _deviceId(),
           runId: _newRunId(),
+          namingBars: NamingBars.fromNaming(manifest.naming),
         );
         if (_databaseGeneration() != generation) return false;
         await _identifications.storeRun(

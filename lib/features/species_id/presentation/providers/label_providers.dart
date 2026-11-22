@@ -59,11 +59,13 @@ final photoDetectionsProvider = FutureProvider.autoDispose
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final level = ref.watch(levelInForceProvider);
+      final chosen = ref.watch(namingLevelNotifierProvider);
       return [
         for (final i in await identificationsAtLevel(
           repository,
           mediaId,
           level,
+          chosen: chosen,
         ))
           if (!i.isTrack) i,
       ];

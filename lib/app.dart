@@ -230,6 +230,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
           ref.read(identificationCleanupProvider),
         ),
       );
+      unawaited(fillIdentificationNamingBarsAtLaunch(ref.container));
       _fileShareHandler.initialize();
       _passportLinks.start();
       _buddyCardLinks.start();

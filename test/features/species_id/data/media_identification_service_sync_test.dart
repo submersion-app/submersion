@@ -12,6 +12,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
@@ -81,6 +82,11 @@ void main() {
     final rows = await identifications.forMedia('m1');
     expect(rows, isNotEmpty);
     expect(rows.map((i) => i.runId).toSet(), {'run-0'});
+    expect(
+      stored.namingBars,
+      NamingBars.fromNaming(pack().pack.manifest.naming),
+      reason: 'a device with no pack names its rows by them',
+    );
   });
 
   test(
