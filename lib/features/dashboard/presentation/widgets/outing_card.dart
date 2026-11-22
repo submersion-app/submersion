@@ -103,7 +103,12 @@ class _OutingCardState extends ConsumerState<OutingCard> {
                           if (outing.sites.isNotEmpty)
                             _MapCover(
                               fadeColor: scheme.surface,
-                              child: OutingSitesMap(sites: outing.sites),
+                              // A map places its camera once; a new key
+                              // places it again when the sites change.
+                              child: OutingSitesMap(
+                                key: ValueKey(Object.hashAll(outing.sites)),
+                                sites: outing.sites,
+                              ),
                             )
                           else
                             OutingSkyline(

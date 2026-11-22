@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:submersion/core/constants/units.dart';
@@ -580,5 +581,34 @@ void main() {
       expect(find.byType(MediaItemView), findsNothing);
       expect(find.byType(OutingSitesMap), findsOneWidget);
     });
+  });
+
+  testWidgets('a new outing at the front gets its own map, not the old one', (
+    tester,
+  ) async {
+    final pr = _outing(
+      'pr',
+      tripId: 'pr',
+    ).copyWith(sites: const [(latitude: 18.4654, longitude: -66.0859)]);
+    final pool = _outing(
+      'pool',
+      tripId: 'pool',
+    ).copyWith(sites: const [(latitude: 40.1371, longitude: -74.0749)]);
+    var list = [HomeOuting(outing: pr)];
+    await _pump(tester, width: 840, outings: () async => list);
+    double firstLatitude() => MapCamera.of(
+      tester.element(find.byType(MarkerLayer).first),
+    ).center.latitude;
+    expect(firstLatitude(), closeTo(18.4654, 0.01));
+
+    list = [HomeOuting(outing: pool), HomeOuting(outing: pr)];
+    ProviderScope.containerOf(
+      tester.element(find.byType(RecentOutingsPanel)),
+    ).invalidate(homeRecentOutingsProvider);
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('Outing pool'), findsOneWidget);
+    expect(firstLatitude(), closeTo(40.1371, 0.01));
   });
 }

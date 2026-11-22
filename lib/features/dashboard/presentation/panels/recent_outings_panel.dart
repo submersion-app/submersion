@@ -61,7 +61,10 @@ class RecentOutingsPanel extends ConsumerWidget {
           final scale = shown
               .expand((o) => o.outing.depths)
               .fold(0.0, math.max);
+          // Keyed by outing, so a card's state (its cover and map) follows
+          // the outing when a new one arrives at the front of the list.
           Widget card(HomeOuting o) => OutingCard(
+            key: ValueKey(o.outing.tripId ?? 'dives:${o.outing.diveIds.first}'),
             outing: o,
             skylineScaleMeters: scale,
             onTap: () => open(o),
