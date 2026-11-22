@@ -667,6 +667,16 @@ hand on the maintainer's Pixel 6a, a Windows PC and a Linux PC:
   made to fail; the comparison of section 2a, for information;
 - on Windows 10, that DirectML and the processor still work.
 
+**Run in CI instead (D3, 2026-11-22).** With no Windows or Linux PC to hand,
+the maintainer chose GitHub's hosted runners. On both, the download,
+install, load, photos and rotated photos passed, and the two builds gave
+the same detections; Windows scanned both clips, and Linux refused video
+as designed. The runners have no GPU, so the models ran on the processor,
+and nothing above that needs a GPU or Windows 10 has been checked. One
+open point: on Linux the app kept its 3.8 GB after the models were
+unloaded. Figures in
+[the Windows and Linux findings](../findings/2026-11-22-marine-life-windows-linux-ci.md).
+
 ## Order of work
 
 **(proposed)**
