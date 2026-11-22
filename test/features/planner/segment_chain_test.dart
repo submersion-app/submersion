@@ -16,6 +16,12 @@ PlanSegment _seg(double targetDepth, int minutes, {String tank = 't1'}) =>
       gasMix: _air,
     );
 
+PlanSegment _split(double targetDepth, int minutes) => _seg(
+  targetDepth,
+  minutes,
+  tank: 'split',
+).copyWith(splitAtConfiguredRate: true);
+
 void main() {
   group('SegmentChain.resolve', () {
     test('returns nothing for an empty plan', () {
@@ -220,6 +226,88 @@ void main() {
       ]);
 
       expect(_chain.bottomLegIndex(legs), 1);
+    });
+
+    // Issue #4849: a descent split at the configured rate holds at its
+    // target for the rest of its duration, so that hold is the bottom.
+    test('finds a rate-split descent when no level leg exists', () {
+      final legs = _chain.resolve([_split(40, 25), _seg(0, 5)]);
+
+      expect(_chain.bottomLegIndex(legs), 0);
+    });
+
+    test('a level leg wins over a deeper rate-split descent', () {
+      // The chain has no rate, so it cannot tell whether the 40 m descent
+      // holds at all; the level leg the diver authored stays the bottom.
+      final legs = _chain.resolve([
+        _seg(20, 2),
+        _seg(20, 20),
+        _split(40, 3),
+        _seg(0, 4),
+      ]);
+
+      expect(_chain.bottomLegIndex(legs), 1);
+    });
+
+    test('the deepest of several rate-split descents is the bottom', () {
+      final legs = _chain.resolve([_split(20, 10), _split(35, 15), _seg(0, 5)]);
+
+      expect(_chain.bottomLegIndex(legs), 1);
+    });
+
+    test('a level leg after a rate-split descent to its depth wins', () {
+      final legs = _chain.resolve([_split(40, 10), _seg(40, 10), _seg(0, 5)]);
+
+      expect(_chain.bottomLegIndex(legs), 1);
+    });
+
+    // With the descent rate known, a rate-split descent that holds is the
+    // same as a descent plus a level leg, and one that does not hold is not
+    // a bottom at all. 18 m/min puts 20 m of travel at 1:07 and 40 m at 2:13.
+    group('with a descent rate', () {
+      PlanSegment splitSeconds(double depth, int seconds) => _seg(
+        depth,
+        0,
+      ).copyWith(durationSeconds: seconds, splitAtConfiguredRate: true);
+
+      test('a deeper holding split descent beats a shallower level leg', () {
+        final legs = _chain.resolve([
+          _seg(20, 2),
+          _seg(20, 20),
+          _split(40, 15),
+          _seg(0, 4),
+        ]);
+
+        expect(_chain.bottomLegIndex(legs, descentRate: 18), 2);
+      });
+
+      test('a travel-only split descent is not the bottom', () {
+        final legs = _chain.resolve([
+          _split(20, 20),
+          splitSeconds(40, 67),
+          _seg(0, 4),
+        ]);
+
+        expect(_chain.bottomLegIndex(legs, descentRate: 18), 0);
+      });
+
+      test('falls back to the deepest split descent when none holds', () {
+        final legs = _chain.resolve([splitSeconds(40, 60), _seg(0, 4)]);
+
+        expect(_chain.bottomLegIndex(legs, descentRate: 18), 0);
+      });
+
+      test('a level leg at the same depth still wins the tie', () {
+        final legs = _chain.resolve([_split(40, 10), _seg(40, 10), _seg(0, 5)]);
+
+        expect(_chain.bottomLegIndex(legs, descentRate: 18), 1);
+      });
+    });
+
+    test('ignores a rate-split ascent', () {
+      final legs = _chain.resolve([_seg(40, 3), _split(10, 10)]);
+
+      expect(_chain.bottomLegIndex(legs), isNull);
     });
   });
 

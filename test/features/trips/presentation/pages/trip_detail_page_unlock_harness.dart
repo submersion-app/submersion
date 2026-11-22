@@ -232,6 +232,9 @@ class FakeTripDives implements TripRepository {
   final asked = <({DateTime start, DateTime end, String diverId})>[];
   final assigned = <List<String>>[];
 
+  /// The trip each [assigned] list went to, in the same order.
+  final assignedTo = <String>[];
+
   /// The trips stored, by id, for what reads one.
   final byId = <String, Trip>{};
 
@@ -254,8 +257,10 @@ class FakeTripDives implements TripRepository {
   }
 
   @override
-  Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async =>
-      assigned.add(diveIds);
+  Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {
+    assigned.add(diveIds);
+    assignedTo.add(tripId);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

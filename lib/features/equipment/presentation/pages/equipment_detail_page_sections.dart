@@ -69,10 +69,7 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
                       // Why the item is out of the kit (#2025). The purchase
                       // of wishlist gear is made in the header block's
                       // editor.
-                      EquipmentHeaderStatus(
-                        item: equipment,
-                        offerPurchase: false,
-                      ),
+                      EquipmentHeaderStatus(item: equipment),
                       // Tags (issue #1942), under the name and type: the
                       // sitting's while unlocked.
                       _headerTagChips(),
@@ -194,7 +191,6 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
               EquipmentSharingRow(
                 equipment: equipment,
                 shown: this.host.maybeEditController?.session,
-                readOnly: true,
               ),
               if (equipment.brand != null)
                 _buildDetailRow(
@@ -245,7 +241,7 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
               // The item's colour (issue #2326): its own row with a swatch,
               // only when the stored value is a colour code and the type has
               // a colour. On a type without one it shows as a custom field
-              // (issue #2520), the way the edit form keeps it.
+              // (issue #2520), the way the Details editor keeps it.
               if (EquipmentAttributeCatalog.hasColor(equipment.type))
                 if (normalizeEquipmentColor(
                       equipment.attrText(EquipmentAttrKeys.color),
@@ -356,21 +352,6 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
           ),
         ),
       ),
-    );
-  }
-
-  /// Opens the add-service dialog pre-tagged with a clock's kind so the
-  /// saved record resets that clock.
-  void _showAddServiceDialogForKind(
-    BuildContext context,
-    WidgetRef ref, {
-    required String serviceKindId,
-  }) {
-    showLogServiceDialog(
-      context,
-      ref,
-      equipmentId: equipmentId,
-      serviceKindId: serviceKindId,
     );
   }
 

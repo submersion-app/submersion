@@ -96,16 +96,14 @@ void main() {
     type: EquipmentType.fins,
   );
 
-  Future<({_FakeLocations locations, _FakeMoves moves})> pump(
-    WidgetTester tester, {
-    bool failRead = false,
-    List<HeldLend?>? held,
-  }) async {
+  Future<({_FakeLocations locations, _FakeMoves moves, List<HeldLend?> held})>
+  pump(WidgetTester tester, {bool failRead = false}) async {
     tester.view.physicalSize = const Size(900, 1200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     final locations = _FakeLocations(annasPlace);
     final moves = _FakeMoves();
+    final held = <HeldLend?>[];
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
@@ -129,10 +127,8 @@ void main() {
         ],
         child: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () async {
-              if (held == null) return showLendGearFlow(context, ref, anna);
-              held.add(await planLendGear(context, ref, anna));
-            },
+            onPressed: () async =>
+                held.add(await planLendGear(context, ref, anna)),
             child: const Text('open'),
           ),
         ),
@@ -140,7 +136,7 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    return (locations: locations, moves: moves);
+    return (locations: locations, moves: moves, held: held);
   }
 
   testWidgets('leaves out gear already with this buddy', (tester) async {
@@ -150,37 +146,18 @@ void main() {
     expect(find.text('Jet fins'), findsNothing);
   });
 
-  testWidgets('confirming opens the Move sheet on the buddy, and a move '
-      'there lends the ticked gear', (tester) async {
-    final fakes = await pump(tester);
-
-    await tester.tap(find.text('Blue 5mm'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(FilledButton).last);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Anna Lindqvist'), findsOneWidget);
-    expect(fakes.locations.calls, 0);
-
-    await tester.tap(find.byKey(const ValueKey('move_equipment_confirm')));
-    await tester.pumpAndSettle();
-
-    expect(fakes.locations.calls, 1);
-    expect(fakes.moves.recorded.single.$1, ['wet']);
-    expect(fakes.moves.recorded.single.$2, 'annas');
-  });
-
   testWidgets('a failed read says so instead of doing nothing', (tester) async {
-    await pump(tester, failRead: true);
+    final fakes = await pump(tester, failRead: true);
 
     expect(tester.takeException(), isNull);
     expect(
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
+    expect(fakes.held, [null]);
   });
 
-  testWidgets('cancelling the picker does nothing', (tester) async {
+  testWidgets('cancelling the picker holds nothing', (tester) async {
     final fakes = await pump(tester);
 
     await tester.tap(find.text('Cancel'));
@@ -188,17 +165,19 @@ void main() {
 
     expect(find.byKey(const ValueKey('move_equipment_confirm')), findsNothing);
     expect(fakes.locations.calls, 0);
+    expect(fakes.held, [null]);
   });
 
   group('held on a page that edits in place (issue #4527, phase 3)', () {
-    testWidgets('a lend asks its questions and writes nothing', (tester) async {
-      final held = <HeldLend?>[];
-      final fakes = await pump(tester, held: held);
+    testWidgets('a lend opens the Move sheet on the buddy, asks its '
+        'questions and writes nothing', (tester) async {
+      final fakes = await pump(tester);
 
       await tester.tap(find.text('Blue 5mm'));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(FilledButton).last);
       await tester.pumpAndSettle();
+      expect(find.text('Anna Lindqvist'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('move_equipment_confirm')));
       await tester.pumpAndSettle();
       // Lent to a person: Loaned Out is offered, and taken.
@@ -206,7 +185,7 @@ void main() {
       await tester.tap(find.text(l.equipment_location_status_yes));
       await tester.pumpAndSettle();
 
-      final lend = held.single!;
+      final lend = fakes.held.single!;
       expect([for (final i in lend.items) i.id], ['wet']);
       expect((lend.pick as BuddyPick).buddy.id, 'anna');
       expect(lend.plan.status, EquipmentStatus.loaned);
@@ -216,8 +195,7 @@ void main() {
     });
 
     testWidgets('backing out of the move sheet holds nothing', (tester) async {
-      final held = <HeldLend?>[];
-      await pump(tester, held: held);
+      final fakes = await pump(tester);
 
       await tester.tap(find.text('Blue 5mm'));
       await tester.pumpAndSettle();
@@ -226,7 +204,7 @@ void main() {
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
 
-      expect(held, [null]);
+      expect(fakes.held, [null]);
     });
   });
 }

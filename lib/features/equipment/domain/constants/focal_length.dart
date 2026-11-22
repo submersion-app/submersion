@@ -28,7 +28,7 @@ String _plain(double n) {
   return n == n.truncateToDouble() ? n.toInt().toString() : n.toString();
 }
 
-/// Whether [text] is a focal length the edit form accepts: one figure or a
+/// Whether [text] is a focal length the Details editor accepts: one figure or a
 /// range of two, each optionally suffixed with `mm`. Empty is valid because
 /// the field is optional.
 bool isValidFocalLength(String text) {

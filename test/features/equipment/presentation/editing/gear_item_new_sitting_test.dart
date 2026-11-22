@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_clone_service.dart';
@@ -22,11 +23,16 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_edi
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 
+import '../../../../helpers/mock_providers.dart' show Override;
 import '../../../../helpers/test_database.dart';
 
 /// A clone service whose extras fail at [failing].
@@ -47,6 +53,7 @@ class _FailingClone extends EquipmentCloneService {
 /// A clone service that keeps the diver each copy of extras was made for.
 class _RecordingClone extends EquipmentCloneService {
   final diverIds = <String?>[];
+  final copies = <(String, String, EquipmentType)>[];
 
   @override
   Future<Set<CloneExtrasStep>> copyExtras({
@@ -56,6 +63,7 @@ class _RecordingClone extends EquipmentCloneService {
     required String? diverId,
   }) async {
     diverIds.add(diverId);
+    copies.add((sourceId, cloneId, cloneType));
     return const {};
   }
 }
@@ -382,6 +390,7 @@ void main() {
     );
 
     expect(recording.diverIds, ['d1']);
+    expect(recording.copies, [('src', 'n1', EquipmentType.tank)]);
   });
   test('a clock added to a new item, of a kind Save attaches itself, is one '
       "clock with the diver's settings", () async {
@@ -421,5 +430,236 @@ void main() {
     ];
     expect(ofKind, hasLength(1));
     expect(ofKind.single.intervalDays, 99);
+  });
+
+  Future<void> addDiver(String id) => db
+      .into(db.divers)
+      .insert(
+        DiversCompanion(
+          id: Value(id),
+          name: Value(id),
+          createdAt: const Value(0),
+          updatedAt: const Value(0),
+        ),
+      );
+
+  test('a clone saved carries the brand and model and the source\'s tags, '
+      'and leaves the source as it was', () async {
+    await equipment.createEquipment(
+      const EquipmentItem(
+        id: 'src',
+        diverId: 'd1',
+        name: 'Steel 12',
+        type: EquipmentType.tank,
+        brand: 'Faber',
+        model: 'FX',
+        serialNumber: 'T-1',
+      ),
+    );
+    await db.customStatement(
+      'INSERT INTO tags (id, diver_id, name, created_at, updated_at, '
+      "applies_to_equipment) VALUES ('t1', 'd1', 'Travel', 0, 0, 1)",
+    );
+    final tags = EquipmentTagRepository();
+    await tags.replaceTags('src', const ['t1']);
+
+    final session = await cloneSitting(EquipmentCloneService());
+    expect(session.working.brand, 'Faber');
+    expect(session.working.model, 'FX');
+    final created = await create(session);
+
+    expect(
+      [for (final t in await tags.getTagsForEquipment(created.id)) t.id],
+      ['t1'],
+    );
+    final source = (await equipment.getEquipmentById('src'))!;
+    expect(source.name, 'Steel 12');
+    expect(source.serialNumber, 'T-1');
+    expect(
+      [for (final t in await tags.getTagsForEquipment('src')) t.id],
+      ['t1'],
+    );
+  });
+
+  test("another diver's gear is cloned only once it is shared, and then "
+      "without the owner's tags or place", () async {
+    await addDiver('owner');
+    await equipment.createEquipment(
+      const EquipmentItem(
+        id: 'src',
+        diverId: 'owner',
+        name: 'Their reg',
+        type: EquipmentType.regulator,
+      ),
+    );
+    await db.customStatement(
+      'INSERT INTO tags (id, diver_id, name, created_at, updated_at, '
+      "applies_to_equipment) VALUES ('t-own', 'owner', 'Theirs', 0, 0, 1), "
+      "('t-free', NULL, 'Anyone', 0, 0, 1)",
+    );
+    await EquipmentTagRepository().replaceTags('src', const [
+      't-own',
+      't-free',
+    ]);
+    final theirPlace = await EquipmentLocationRepository().createLocation(
+      diverId: 'owner',
+      name: 'Their garage',
+      kind: EquipmentLocationKind.storage,
+    );
+    await EquipmentLocationMoveRepository().recordMoves(
+      equipmentIds: const ['src'],
+      locationId: theirPlace.id,
+      movedAt: DateTime(2026),
+    );
+    Future<GearCloneSource?> read() =>
+        readGearClone(container.read, 'src', copyName: (n) => n);
+
+    expect(await read(), isNull);
+
+    await EquipmentShareRepository().shareMany(
+      equipmentIds: const ['src'],
+      diverIds: const ['d1'],
+      actingDiverId: 'owner',
+    );
+    container.invalidate(cloneSourceProvider('src'));
+    final clone = await read();
+
+    expect(clone, isNotNull);
+    expect([for (final t in clone!.ownTags) t.id], ['t-free']);
+    expect(clone.ownPlace, isNull);
+  });
+
+  test('a tag typed on a new item is written with it', () async {
+    final session = EditSession(await seed(), isNew: true);
+    addTearDown(session.dispose);
+    await db.customStatement(
+      'INSERT INTO tags (id, diver_id, name, created_at, updated_at, '
+      "applies_to_equipment) VALUES ('t1', 'd1', 'Travel', 0, 0, 1)",
+    );
+    session.set(gearNameField, 'Spare reg');
+    gearItemTagsList
+      ..loadNone(session)
+      ..set(session, [
+        domain.Tag(
+          id: 't1',
+          diverId: 'd1',
+          name: 'Travel',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ]);
+
+    final created = await create(session);
+
+    expect(
+      [
+        for (final t in await EquipmentTagRepository().getTagsForEquipment(
+          created.id,
+        ))
+          t.id,
+      ],
+      ['t1'],
+    );
+  });
+
+  group('a part fitted from a deep link', () {
+    test("is not saved into another diver's host", () async {
+      await addDiver('owner');
+      await equipment.createEquipment(
+        const EquipmentItem(
+          id: 'theirs',
+          diverId: 'owner',
+          name: 'Their loop',
+          type: EquipmentType.rebreather,
+        ),
+      );
+
+      expect(
+        await gearParentToSave(
+          equipment,
+          type: EquipmentType.o2Cell,
+          parentId: 'theirs',
+          diverId: 'd1',
+        ),
+        isNull,
+      );
+    });
+
+    test('is saved into a host shared with the diver', () async {
+      await addDiver('owner');
+      await equipment.createEquipment(
+        const EquipmentItem(
+          id: 'theirs',
+          diverId: 'owner',
+          name: 'Their loop',
+          type: EquipmentType.rebreather,
+        ),
+      );
+      await EquipmentShareRepository().shareMany(
+        equipmentIds: const ['theirs'],
+        diverIds: const ['d1'],
+        actingDiverId: 'owner',
+      );
+
+      expect(
+        await gearParentToSave(
+          equipment,
+          type: EquipmentType.o2Cell,
+          parentId: 'theirs',
+          diverId: 'd1',
+        ),
+        'theirs',
+      );
+    });
+  });
+
+  // A clone whose tags or place cannot be read still opens, without them,
+  // as the form's did: losing those is better than losing the clone.
+  group('when a starting pick cannot be read', () {
+    Future<GearCloneSource?> readWith(List<Override> failing) async {
+      await equipment.createEquipment(
+        const EquipmentItem(
+          id: 'src',
+          diverId: 'd1',
+          name: 'Steel 12',
+          type: EquipmentType.tank,
+        ),
+      );
+      final failingContainer = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+          defaultCurrencyProvider.overrideWithValue('EUR'),
+          ...failing,
+        ],
+      );
+      addTearDown(failingContainer.dispose);
+      return readGearClone(
+        failingContainer.read,
+        'src',
+        copyName: (n) => '$n (copy)',
+      );
+    }
+
+    test('a failed tag read leaves a clone without tags', () async {
+      final clone = await readWith([
+        tagsForEquipmentProvider(
+          'src',
+        ).overrideWith((ref) => Future.error(StateError('tags unreadable'))),
+      ]);
+
+      expect(clone?.copy.name, 'Steel 12 (copy)');
+      expect(clone!.ownTags, isEmpty);
+    });
+
+    test('a failed place read leaves a clone without a place', () async {
+      final clone = await readWith([
+        currentEquipmentLocationsProvider.overrideWith(
+          (ref) => Future.error(StateError('places unreadable')),
+        ),
+      ]);
+
+      expect(clone?.copy.name, 'Steel 12 (copy)');
+      expect(clone!.ownPlace, isNull);
+    });
   });
 }

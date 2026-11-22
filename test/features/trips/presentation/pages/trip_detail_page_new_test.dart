@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
@@ -16,9 +17,12 @@ import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'trip_detail_page_new_harness.dart';
+import 'trip_detail_page_unlock_harness.dart' show twoDivers;
+import 'trip_page_drag_helpers.dart';
 
 /// A new trip opens on the trip page, already unlocked, its Overview in
 /// the prepare shape (issue #4527, phase 3, plan 11).
@@ -137,12 +141,27 @@ void main() {
 
   testWidgets('in the pane, Save hands the id to the pane', (tester) async {
     final harness = await pumpNewTripPage(tester, embedded: true);
+    expect(find.text(l.trips_edit_appBar_add), findsOneWidget);
     await typeName(tester);
 
     await tester.tap(find.text(l.forms_save));
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(harness.createdIds, [harness.save.creates.single.trip.id]);
+  });
+
+  testWidgets('in the pane, Cancel with an entry asks first', (tester) async {
+    final harness = await pumpNewTripPage(tester, embedded: true);
+    await typeName(tester);
+
+    await tester.tap(find.text(l.forms_cancel));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text(l.forms_discard_title), findsOneWidget);
+    await tester.tap(find.text(l.forms_discard_discard));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(harness.cancelled, 1);
+    expect(harness.save.createAttempts, isEmpty);
   });
 
   testWidgets('in the pane, Cancel tells the pane and creates nothing', (
@@ -293,7 +312,87 @@ void main() {
 
     expect(harness.save.creates, hasLength(1));
     expect(harness.tripDives.assigned.single, ['v1']);
+    // To the trip just made, under the id it was created with.
+    expect(
+      harness.tripDives.assignedTo.single,
+      harness.save.creates.single.trip.id,
+    );
     expect(find.text(l.trips_diveScan_added(1)), findsOneWidget);
+  });
+
+  /// [diveIdsForTripProvider] of [tripId], counting its reads, kept alive
+  /// as a page showing that trip would keep it.
+  ({List<Object> overrides, int Function() reads}) countedDivesOf(
+    String tripId,
+  ) {
+    var reads = 0;
+    return (
+      overrides: [
+        diveIdsForTripProvider(tripId).overrideWith((ref) async {
+          reads++;
+          return const <String>[];
+        }),
+      ],
+      reads: () => reads,
+    );
+  }
+
+  testWidgets('a dive taken from another trip leaves that trip read again', (
+    tester,
+  ) async {
+    final egypt = countedDivesOf('egypt-trip');
+    final harness = await pumpNewTripPage(
+      tester,
+      candidates: [
+        DiveCandidate(
+          dive: Dive(id: 'v1', dateTime: DateTime(2030, 5, 31, 9)),
+          currentTripId: 'egypt-trip',
+          currentTripName: 'Egypt',
+        ),
+      ],
+      extraOverrides: egypt.overrides,
+    );
+    harness.container.listen(diveIdsForTripProvider('egypt-trip'), (_, _) {});
+    await tester.pumpAndSettle();
+    final before = egypt.reads();
+    await typeName(tester);
+
+    await tapSave(tester);
+    // A dive on another trip starts unticked: tick it, then add it.
+    await tester.tap(find.byType(Checkbox).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.trips_diveScan_addButton(1)));
+    await tester.pumpAndSettle();
+
+    expect(harness.tripDives.assigned.single, ['v1']);
+    expect(egypt.reads(), greaterThan(before));
+  });
+
+  testWidgets('a shared new trip shows who it is shared with, by the '
+      "diver's default", (tester) async {
+    await pumpNewTripPage(tester, divers: twoDivers, shareByDefault: true);
+
+    expect(find.byType(ItemSharingField), findsOneWidget);
+    expect(find.text('Everyone'), findsOneWidget);
+  });
+
+  testWidgets('a new trip shared with one profile writes that share under '
+      'its id, by the acting profile', (tester) async {
+    final harness = await pumpNewTripPage(tester, divers: twoDivers);
+
+    tester
+        .widget<ItemSharingField>(find.byType(ItemSharingField))
+        .onChanged(const ItemSharing(profileIds: {'d2'}));
+    await tester.pumpAndSettle();
+    expect(harness.shares.setCalls, isEmpty);
+    await typeName(tester);
+    await tapSave(tester);
+
+    final id = harness.save.creates.single.trip.id;
+    expect(harness.shares.setCalls, [
+      (id, const ItemSharing(profileIds: {'d2'})),
+    ]);
+    expect(harness.shares.setActingDivers, ['d1']);
   });
 
   testWidgets('dismissing the question creates the trip with no dives', (
@@ -353,5 +452,214 @@ void main() {
     expect(created.trip.name, 'Bonaire 2030');
     expect(created.trip.location, 'Bonaire');
     expect(created.dives, ['a', 'b']);
+  });
+
+  testWidgets('the trips a draft took its dives from are read again', (
+    tester,
+  ) async {
+    final source = countedDivesOf('p');
+    final draft = TripDraft(
+      trip: Trip(
+        id: '',
+        name: 'Bonaire 2030',
+        startDate: DateTime(2030, 5, 30),
+        endDate: DateTime(2030, 6, 2),
+        createdAt: DateTime(2030),
+        updatedAt: DateTime(2030),
+      ),
+      diveIds: const ['a'],
+      sourceTripIds: const {'p'},
+    );
+    final harness = await pumpNewTripPage(
+      tester,
+      draft: draft,
+      extraOverrides: source.overrides,
+    );
+    harness.container.listen(diveIdsForTripProvider('p'), (_, _) {});
+    await tester.pumpAndSettle();
+    final before = source.reads();
+
+    await tapSave(tester);
+
+    expect(harness.save.creates, hasLength(1));
+    expect(source.reads(), greaterThan(before));
+  });
+
+  /// Opens the date picker of [tile], types [date] (month/day/year) into
+  /// it and confirms.
+  Future<void> pickDate(WidgetTester tester, String tile, String date) async {
+    await tester.tap(find.byKey(Key(tile)));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.byIcon(Icons.edit_outlined),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.byType(TextField),
+      ),
+      date,
+    );
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+  }
+
+  DateTime endPickerOpensAt(WidgetTester tester) => tester
+      .widget<DatePickerDialog>(find.byType(DatePickerDialog))
+      .initialDate!;
+
+  // As the form's did (#2266 review): a new trip's end is a placeholder
+  // until the diver picks one, so its picker opens at the start just
+  // picked, not weeks away from it.
+  testWidgets('the end picker opens at a start just picked, until an end is '
+      'picked', (tester) async {
+    await pumpNewTripPage(tester);
+
+    await pickDate(tester, 'trip-edit-start', '01/15/2023');
+    await tester.tap(find.byKey(const Key('trip-edit-end')));
+    await tester.pumpAndSettle();
+    expect(endPickerOpensAt(tester), DateTime(2023, 1, 15));
+    await tester.tap(find.text('Cancel').last);
+    await tester.pumpAndSettle();
+
+    await pickDate(tester, 'trip-edit-end', '01/20/2023');
+    await tester.tap(find.byKey(const Key('trip-edit-end')));
+    await tester.pumpAndSettle();
+    expect(endPickerOpensAt(tester), DateTime(2023, 1, 20));
+  });
+
+  const headerFields = [
+    'trip-edit-type',
+    'trip-edit-name',
+    'trip-edit-start',
+    'trip-edit-end',
+    'trip-edit-return-flight',
+    'trip-edit-location',
+    'trip-edit-resort',
+    'trip-edit-liveaboard-name',
+  ];
+
+  Rect headerCard(WidgetTester tester) => tester.getRect(
+    find.ancestor(
+      of: find.byKey(const Key('trip-edit-name'), skipOffstage: false),
+      matching: find.byType(RecordCardFrame<Trip>, skipOffstage: false),
+    ),
+  );
+
+  // The header editor at its full height, the Overview below it, one page
+  // that scrolls, as on a stored trip's page (issue #4844).
+  for (final (name, size, embedded) in [
+    ('a phone', const Size(402, 874), false),
+    ('a desktop window', const Size(1280, 800), false),
+    ('the master-detail pane', const Size(900, 800), true),
+  ]) {
+    testWidgets('on $name every field of the header editor drags into view, '
+        'with the Overview below the card', (tester) async {
+      await pumpNewTripPage(tester, size: size, embedded: embedded);
+      expect(tester.takeException(), isNull);
+
+      for (final key in headerFields) {
+        final field = find.byKey(Key(key), skipOffstage: false);
+        await dragPageUntilShown(
+          tester,
+          field,
+          bottom: size.height,
+          from: Offset(size.width / 2, size.height / 2),
+        );
+        expectFullyShown(tester, field, bottom: size.height);
+      }
+      expect(
+        headerCard(tester).bottom,
+        lessThanOrEqualTo(
+          tester
+              .getRect(
+                find.byKey(
+                  const Key('trip-prepare-overview'),
+                  skipOffstage: false,
+                ),
+              )
+              .top,
+        ),
+      );
+    });
+  }
+
+  testWidgets('on a phone with the keyboard up, the header editor shows the '
+      'focused field and scrolls to its last', (tester) async {
+    await pumpNewTripPage(tester, size: const Size(402, 874));
+    tester.view.padding = const FakeViewPadding(top: 62, bottom: 34);
+    // The keyboard, as an iPhone 17 Pro shows it for the name field.
+    tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    const keyboardTop = 874.0 - 336;
+    expect(tester.getRect(nameField()).bottom, lessThanOrEqualTo(keyboardTop));
+    final last = find.byKey(
+      const Key('trip-edit-liveaboard-name'),
+      skipOffstage: false,
+    );
+    await dragPageUntilShown(
+      tester,
+      last,
+      bottom: keyboardTop,
+      from: const Offset(201, 300),
+    );
+    expectFullyShown(tester, last, bottom: keyboardTop);
+  });
+
+  testWidgets('on a phone a drag on the Overview scrolls the page before '
+      'the Overview, both ways', (tester) async {
+    const size = Size(402, 874);
+    await pumpNewTripPage(tester, size: size);
+    final name = find.byKey(const Key('trip-edit-name'), skipOffstage: false);
+    final overview = find.byKey(
+      const Key('trip-prepare-overview'),
+      skipOffstage: false,
+    );
+    Rect overviewRect() => tester.getRect(overview);
+    ScrollPosition overviewList() => tester
+        .state<ScrollableState>(
+          find
+              .descendant(
+                of: overview,
+                matching: find.byType(Scrollable, skipOffstage: false),
+              )
+              .first,
+        )
+        .position;
+
+    // The Overview into sight, dragging on the editor's margin, clear of
+    // its text fields.
+    for (var i = 0; i < 20 && overviewRect().top + 140 > size.height; i++) {
+      await tester.dragFrom(Offset(4, size.height / 3), const Offset(0, -100));
+      await tester.pumpAndSettle();
+    }
+
+    // Up from the Overview: the page moves, the Overview stays at its top.
+    final before = overviewRect().top;
+    await tester.dragFrom(
+      Offset(size.width / 2, overviewRect().top + 40),
+      const Offset(0, -60),
+    );
+    await tester.pumpAndSettle();
+    expect(overviewRect().top, lessThan(before));
+    expect(overviewList().pixels, 0);
+
+    // Down from the Overview brings the editor back.
+    for (var i = 0; i < 20; i++) {
+      final rect = tester.getRect(name);
+      if (rect.top > 0 && rect.bottom <= overviewRect().top) break;
+      await tester.dragFrom(
+        Offset(size.width / 2, overviewRect().top + 40),
+        const Offset(0, 150),
+      );
+      await tester.pumpAndSettle();
+    }
+    expectFullyShown(tester, name, bottom: size.height);
   });
 }

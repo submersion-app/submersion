@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -59,6 +58,7 @@ void main() {
                     ref,
                     schedule: schedule,
                     kind: kind,
+                    onHold: (_) {},
                   ),
                   child: const Text('open'),
                 ),
@@ -96,9 +96,6 @@ void main() {
             serviceRecordRepositoryProvider.overrideWithValue(
               _NoServiceRecords(),
             ),
-            serviceScheduleRepositoryProvider.overrideWithValue(
-              _RecordingScheduleRepository(onSaved),
-            ),
           ],
           child: MaterialApp(
             locale: const Locale('en'),
@@ -113,6 +110,7 @@ void main() {
                       ref,
                       schedule: schedule,
                       kind: kind,
+                      onHold: (s) => onSaved?.call(s),
                     ),
                     child: const Text('open'),
                   ),
@@ -203,23 +201,4 @@ void main() {
       expect(saved?.defaultCurrency, isNull);
     });
   });
-}
-
-/// Captures the schedule handed to updateSchedule so the tests can assert on
-/// what would have been persisted without standing up a database.
-class _RecordingScheduleRepository implements ServiceScheduleRepository {
-  final void Function(ServiceSchedule)? onSaved;
-
-  _RecordingScheduleRepository(this.onSaved);
-
-  @override
-  Future<void> updateSchedule(
-    ServiceSchedule schedule, {
-    bool notify = true,
-  }) async {
-    onSaved?.call(schedule);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
 }

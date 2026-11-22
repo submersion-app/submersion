@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 
 /// Gives downloaded `dive_data_sources` rows with no computer link back to
 /// the registered computer they came from: the rows a deleted computer left
@@ -24,20 +25,28 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 /// that match is exact), and so do the profile series that name the source
 /// (issue #4529); a series with no source takes it only where the dive has
 /// no other computer source. Each relinked row is restamped and
-/// marked pending, so the links reach the diver's other devices.
+/// marked pending, so the links reach the diver's other devices. Each dive
+/// that gained a source also gets the computer's Equipment item, as a
+/// download would have given it (issue #4846).
 class OrphanedSourceRelinker {
   /// Shares its owner's repositories rather than building its own.
   OrphanedSourceRelinker({
     required SyncRepository syncRepository,
     required ProfileSeriesRepository profileSeries,
     required TankPressureSeriesRepository tankSeries,
+    DiveComputerGearLinker? gearLinker,
   }) : _syncRepository = syncRepository,
        _profileSeries = profileSeries,
-       _tankSeries = tankSeries;
+       _tankSeries = tankSeries,
+       _gearLinkerOverride = gearLinker;
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureSeriesRepository _tankSeries;
+  final DiveComputerGearLinker? _gearLinkerOverride;
+  late final DiveComputerGearLinker _gearLinker =
+      _gearLinkerOverride ??
+      DiveComputerGearLinker(syncRepository: _syncRepository);
 
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(OrphanedSourceRelinker);
@@ -75,6 +84,7 @@ class OrphanedSourceRelinker {
     var linked = 0;
     for (final entry in byComputer.entries) {
       await _link(entry.key, entry.value);
+      await _linkGear(entry.key, entry.value);
       linked += entry.value.length;
     }
     if (linked > 0) {
@@ -188,6 +198,26 @@ class OrphanedSourceRelinker {
         sourceIds: relinked,
         now: now,
         notify: false,
+      );
+    }
+  }
+
+  /// Puts the computer's Equipment item on the dives that gained a source
+  /// (issue #4846). Best-effort like the serial heal: the item is a
+  /// convenience on top of the links, and a failure here must not roll the
+  /// links themselves back.
+  Future<void> _linkGear(String computerId, List<_Orphan> orphans) async {
+    try {
+      await _gearLinker.linkComputerGearToDives(
+        computerId: computerId,
+        diveIds: [for (final o in orphans) o.source.diveId],
+      );
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Failed to put the Equipment item of dive computer $computerId on '
+        'its relinked dives',
+        error: e,
+        stackTrace: stackTrace,
       );
     }
   }

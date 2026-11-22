@@ -3,8 +3,11 @@ import 'dart:isolate';
 
 import 'package:submersion_vision/onnx_runtime.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker_core.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/ort_model_runner.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/colour_profile.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/onnx_pipeline.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
@@ -18,7 +21,8 @@ typedef ProviderLibrary = ({String name, String path});
 
 /// The models and the pipeline, wherever they run.
 abstract interface class OnnxWorkerHandle {
-  Future<void> load(VisionModels models);
+  /// Opens [models]; answers the device they opened on, for the debug log.
+  Future<String?> load(VisionModels models);
   Future<PipelineResult> analyze(RgbaImage image);
   Future<List<PipelineBox>> detect(RgbaImage frame);
   Future<VisionMomentCrop?> cropAndEmbed(
@@ -57,6 +61,7 @@ class OnnxWorker implements OnnxWorkerHandle {
     List<OrtDevice> devices = const [OrtDevice.cpu],
     List<ProviderLibrary> providerLibraries = const [],
     int intraOpThreads = 0,
+    String? openingNote,
   }) async {
     // One port hears the worker's ready answer, a setup failure, an
     // uncaught error and the isolate's exit, whichever comes first.
@@ -71,6 +76,7 @@ class OnnxWorker implements OnnxWorkerHandle {
           devices,
           providerLibraries,
           intraOpThreads,
+          openingNote,
         ),
         debugName: 'species_id_onnx',
         onError: events.sendPort,
@@ -109,8 +115,13 @@ class OnnxWorker implements OnnxWorkerHandle {
     return worker;
   }
 
+  /// Where the models run, as the worker last reported it.
+  String? _device;
+  final _log = LoggerService.forClass(OnnxWorker);
+
   @override
-  Future<void> load(VisionModels models) => _call('load', models);
+  Future<String?> load(VisionModels models) async =>
+      await _call('load', models) as String?;
 
   @override
   Future<PipelineResult> analyze(RgbaImage image) async =>
@@ -139,6 +150,19 @@ class OnnxWorker implements OnnxWorkerHandle {
       _isolate.kill();
       _events.close();
     }
+  }
+
+  /// [value], after logging a move to another device: a run that failed on
+  /// the hardware engine and reopened the models on DirectML or the
+  /// processor (the load itself is logged by the engine).
+  Object? _noting(String? device, Object? value) {
+    if (device != null && _device != null && device != _device) {
+      _log.info('Marine life models moved to $device');
+    }
+    // A reply with no device means the models closed; the next load is
+    // logged by the engine, not as a move.
+    _device = device;
+    return value;
   }
 
   /// The isolate stopped: every call waiting on it fails, as will later
@@ -171,7 +195,10 @@ class OnnxWorker implements OnnxWorkerHandle {
     try {
       _requests.send((kind, payload, reply.sendPort));
       return switch (await answer.future) {
-        (true, final Object? value) => value,
+        (true, final Object? value, final String? device) => _noting(
+          device,
+          value,
+        ),
         (false, (final String code, final String? message)) =>
           throw VisionEngineException(code, message),
         final other => throw VisionEngineException(
@@ -186,7 +213,7 @@ class OnnxWorker implements OnnxWorkerHandle {
   }
 }
 
-typedef _Image = (int, int, TransferableTypedData);
+typedef _Image = (int, int, TransferableTypedData, SrgbConversion?);
 
 /// Runs [work], which answers nothing.
 Object? _done(void Function() work) {
@@ -194,16 +221,25 @@ Object? _done(void Function() work) {
   return null;
 }
 
-_Image _send(RgbaImage image) =>
-    (image.width, image.height, TransferableTypedData.fromList([image.bytes]));
+_Image _send(RgbaImage image) => (
+  image.width,
+  image.height,
+  TransferableTypedData.fromList([image.bytes]),
+  image.colour,
+);
 
-RgbaImage _receive(_Image image) =>
-    RgbaImage(image.$1, image.$2, image.$3.materialize().asUint8List());
+RgbaImage _receive(_Image image) => RgbaImage(
+  image.$1,
+  image.$2,
+  image.$3.materialize().asUint8List(),
+  colour: image.$4,
+);
 
 void _workerMain(
-  (SendPort, String?, List<OrtDevice>, List<ProviderLibrary>, int) args,
+  (SendPort, String?, List<OrtDevice>, List<ProviderLibrary>, int, String?)
+  args,
 ) {
-  final (ready, libraryPath, devices, libraries, threads) = args;
+  final (ready, libraryPath, devices, libraries, threads, notePath) = args;
   final OrtRuntime runtime;
   try {
     runtime = OrtRuntime.open(libraryPath: libraryPath);
@@ -213,29 +249,40 @@ void _workerMain(
   }
   for (final library in libraries) {
     // A hardware engine that will not register leaves the others, and
-    // DirectML and the processor, to run the models.
+    // DirectML and the processor, to run the models. ONNX Runtime's
+    // environment is one per process, so an engine an earlier worker
+    // registered refuses a second registration yet is still there: every
+    // engine given stays allowed, and one with no devices attaches nothing.
     try {
       runtime.registerProviderLibrary(library.name, library.path);
     } on OrtException {
       continue;
     }
   }
-  final core = OnnxWorkerCore(
-    open: (path, device) => OrtModelRunner(
-      runtime.openSession(
-        path,
-        settings: OrtSessionSettings(device: device, intraOpThreads: threads),
+  final engines = {for (final library in libraries) library.name};
+  ModelOpener open = (path, device) => OrtModelRunner(
+    runtime.openSession(
+      path,
+      settings: OrtSessionSettings(
+        device: device,
+        intraOpThreads: threads,
+        hardwareEngines: engines,
       ),
     ),
-    devices: devices,
   );
+  final note = notePath == null ? null : OpeningNote(notePath);
+  if (note != null) open = noteOpens(open, note);
+  final core = OnnxWorkerCore(open: open, devices: devices, firstRuns: note);
   final requests = ReceivePort();
   ready.send(requests.sendPort);
   requests.listen((message) {
     final (kind, payload, reply) = message as (String, Object?, SendPort);
     try {
       final Object? value = switch (kind) {
-        'load' => _done(() => core.load(payload! as VisionModels)),
+        'load' => () {
+          core.load(payload! as VisionModels);
+          return core.deviceDescription;
+        }(),
         'analyze' => core.analyze(_receive(payload! as _Image)),
         'detect' => core.detect(_receive(payload! as _Image)),
         'crop' => switch (payload! as (_Image, IdentificationBox)) {
@@ -244,7 +291,7 @@ void _workerMain(
         'unload' || 'close' => _done(core.unload),
         _ => throw ArgumentError.value(kind, 'kind'),
       };
-      reply.send((true, value));
+      reply.send((true, value, core.deviceDescription));
     } on VisionEngineException catch (e) {
       reply.send((false, (e.code, e.message)));
     } on Object catch (e) {

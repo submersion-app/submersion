@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 
 import '../../../../helpers/glyph_contrast.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -96,8 +97,10 @@ void main() {
     await _pump(tester, dives: AsyncValue.data([_diveAtSite(site)]));
 
     expect(find.byType(FlutterMap), findsOneWidget);
-    // The fit-all-sites control is part of the rendered map overlay.
-    expect(find.byIcon(Icons.my_location), findsOneWidget);
+    // The fit-all-sites and Show my location controls are part of the
+    // rendered map overlay.
+    expect(find.byIcon(Icons.zoom_out_map), findsOneWidget);
+    expect(find.byType(MyLocationButton), findsOneWidget);
 
     // Tapping empty map (a corner, away from the centered marker) clears the
     // selection via the map's onTap. No animation, so this is teardown-safe.
@@ -270,7 +273,7 @@ void main() {
       await tester.pump();
       expect(_camera(tester).center.latitude, closeTo(45.0, 1e-6));
 
-      await tester.tap(find.byIcon(Icons.my_location));
+      await tester.tap(find.byIcon(Icons.zoom_out_map));
       await tester.pump();
 
       // Back to the framing the map opened with, which shows both sites.

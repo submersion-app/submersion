@@ -4,15 +4,15 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
 import 'package:submersion/features/equipment/presentation/widgets/location_move_edit_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
-/// Neither of these runs the status prompt, so neither may offer a lend: the
-/// prompt stays on every lend (issue #3790).
+/// Editing a past move runs no status prompt, so it may not offer a lend:
+/// the prompt stays on every lend (issue #3790). A new item's first place
+/// is a move on its Location card, which does run it.
 void main() {
   final overrides = [
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -23,22 +23,6 @@ void main() {
       (ref) async => const <String, EquipmentLocation>{},
     ),
   ];
-
-  testWidgets('the new item form offers no buddy', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        locale: const Locale('en'),
-        overrides: overrides,
-        child: EquipmentLocationField(value: null, onChanged: (_) {}),
-      ),
-    );
-
-    await tester.tap(find.byKey(const ValueKey('equipment_location_field')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Choose a place'), findsOneWidget);
-    expect(find.text('Lend to a buddy'), findsNothing);
-  });
 
   testWidgets('editing a past move offers no buddy', (tester) async {
     final move = EquipmentLocationMove(
@@ -54,7 +38,8 @@ void main() {
         overrides: overrides,
         child: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => showLocationMoveEditDialog(context, ref, move),
+            onPressed: () =>
+                showLocationMoveEditDialog(context, ref, move, onHold: (_) {}),
             child: const Text('open'),
           ),
         ),

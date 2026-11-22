@@ -28,6 +28,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_interaction_op
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
 /// Map content widget for displaying dive sites on a map.
@@ -174,11 +176,15 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                     const BuiltInLayersButton(),
                     const HeatMapToggleButton(),
                     IconButton(
-                      icon: const Icon(Icons.my_location, size: 20),
+                      icon: const Icon(Icons.zoom_out_map, size: 20),
                       tooltip: context.l10n.diveSites_map_tooltip_fitAllSites,
                       onPressed: () => _camera.fitAll(
                         _sitePoints(sitesWithCounts.map((s) => s.site)),
                       ),
+                    ),
+                    MyLocationButton(
+                      onLocated: _camera.animateTo,
+                      iconSize: 20,
                     ),
                   ],
                 ),
@@ -357,6 +363,8 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                   loading: () => const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),
                 ),
+              // The device, once Show my location has found it (#4808).
+              const MyLocationLayer(),
               const MapAttribution(),
             ],
           ),

@@ -270,6 +270,7 @@ void main() {
                   ref,
                   equipmentId: 'reg',
                   serviceKindId: 'annual-service',
+                  onHold: (_) {},
                 ),
                 child: const Text('log'),
               ),

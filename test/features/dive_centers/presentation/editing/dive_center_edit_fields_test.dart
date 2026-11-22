@@ -37,6 +37,18 @@ void main() {
     expect(fillHoursProblem(480, null), FillHoursProblem.missingOne);
   });
 
+  test('fill hours with only a closing are a problem', () {
+    expect(fillHoursProblem(null, 1020), FillHoursProblem.missingOne);
+  });
+
+  test('both fill hours in order are fine', () {
+    expect(fillHoursProblem(480, 1020), isNull);
+  });
+
+  test('closing at the opening time is a problem', () {
+    expect(fillHoursProblem(480, 480), FillHoursProblem.closesBeforeOpens);
+  });
+
   test('closing before opening is a problem', () {
     expect(fillHoursProblem(600, 480), FillHoursProblem.closesBeforeOpens);
   });

@@ -94,12 +94,29 @@ the app has no video player there.
 
 ONNX Runtime ships through `packages/submersion_vision/hook/build.dart`,
 which downloads the pinned official package for the target (Maven for
-Android, NuGet `Microsoft.ML.OnnxRuntime` for Linux and Windows), checks it
+Android, NuGet `Microsoft.ML.OnnxRuntime` for Linux, NuGet
+`Microsoft.Windows.AI.MachineLearning`, Windows ML, for Windows), checks it
 and each library against the hashes in `lib/src/ort/ort_release.dart`, and
-ships the library as a code asset. Apple builds and the web get none. CI
+ships the libraries as code assets. Apple builds and the web get none. CI
 checks the Android archive (`scripts/check_native_libs_present.py`, ONNX
 Runtime on arm64-v8a and x86_64 only) and the desktop bundles
 (`scripts/check_bundled_native_assets.py`).
+
+On Windows the models open on a hardware engine Windows ML offers (a GPU or
+NPU vendor's, registered from its catalogue in `hardware_engines.dart`),
+then DirectML, then the processor. The session picks the hardware devices
+itself (`chooseHardwareDevices`) and never hands Windows' software renderer,
+the Microsoft Basic Render Driver, to an engine: that ends the process, and
+ONNX Runtime's own prefer-GPU policy does it on a PC without a display driver
+(`docs/design/findings/2026-11-20-windows-ml-unpackaged.md`). A vendor engine
+that is not on the PC is fetched once, as part of the pack's download; an
+installed one is prepared again at each launch, which downloads nothing. A
+device that ends the app twice in a row while a model opens on it or first
+runs there, at the first load or in a fallback after a failed run, is skipped
+from then on (`device_crash_guard.dart`: the worker notes each device before
+opening or first running a model there; one strike is forgiven, since closing
+the app mid-load leaves the same note, and a run that returns on a device clears its strike; never
+the processor), so one bad driver cannot make the app close at every launch.
 
 Devices need 8 GB at launch (`androidMinimumMemoryBytes` and
 `pcMinimumMemoryBytes` in `device_memory.dart`, 6.5 GiB as reported). A build
@@ -604,6 +621,55 @@ example 0.6) and bump its `packVersion`, serve it as above, install it, and
 turn the setting on. The new version is what makes media already analysed
 be named again, which sets their stored `confident` flags; they are then
 applied the next time they are opened or a run reaches them.
+
+## In the viewer: labels, modes and analysing by hand
+
+Issue #4825, spec
+[2026-11-20-marine-life-viewer-labels-design.md](../design/specs/2026-11-20-marine-life-viewer-labels-design.md).
+
+- **Labels.** Photos and videos share one painter (`IdentificationLabels`).
+  `VideoIdentificationLayer` feeds it `labelsAt` at the playhead;
+  `PhotoIdentificationLayer`, mounted inside the photo's `PhotoView` child,
+  feeds it `photoLabels`. A photo's labels are laid out at the zoomed size
+  and scaled back down, so they keep their size on screen; the zoom comes
+  from a `PhotoViewController` the gallery keeps per page index, as
+  `PhotoView` keeps its own state, while that page shows. The viewer's tap
+  layer lies over the photo, so a photo's labels
+  mark their taps (`LabelTap`) and the tap layer asks
+  `identificationLabelTap` first.
+- **Modes.** `LabelMode` (`names`, `allLife`, `off`) is a device preference,
+  `species_id_label_mode`, read through `labelModeNotifierProvider`. `labelKind`
+  holds the rules: All life dots every stored detection that has no pill;
+  Names keeps the guarded dot (open-score floor, and on video the one-second
+  minimum while paused). A photo's tag fills the pill only on a detection
+  the app could suggest or the diver named (a claim); the stored tag
+  matching is unchanged.
+- **The labels menu** (`showMarineLifeLabelsMenu`, toolbar action
+  `marine_life_labels`) switches the mode and offers Analyse (a request by
+  hand: `request(byHand: true)`, which ignores identify-on-open and carries
+  on a part-scanned video) or, once the item is up to date, Analyse again
+  (`request(fresh: true)`). The dive card's Check again is a fresh run
+  (`DiveSpeciesRun.start(fresh: true)`, `requestFromRun(fresh: true)`); a
+  photo refused for heat or the background is asked fresh again, a video
+  carries on where it stopped. A Lightroom-linked video gets no labels action: only its poster is on the
+  device. The menu's status line says what was found on any item looked
+  at, even in part ("Nothing found" included); "Not analysed yet" is only
+  for one never looked at.
+- **A fresh request** analyses the photo or scans the video from 0
+  whatever the refresh rules say, and reopens the item's dismissals
+  (`reopenDismissed`: undecided, with `decidedAt` set to the time of the
+  reopen, so `reopened` is true): a photo's once its new analysis is in
+  hand, so one whose analysis fails keeps them, and a video's once its file
+  opens. A reopened row is carried through later analyses like a
+  decision, and `identificationsToApply` never takes it; nothing is
+  auto-applied after a fresh request at all. The fresh flag is consumed when
+  the fresh start is stored, so a job put back in the queue resumes.
+- **Progress** is the tint of `ScannedRanges` on the scrub bar
+  (`VideoAnalysedStretches`, while the scan is incomplete) and a ring on the
+  labels icon (`ToolbarRing`) while the item is busy.
+- **The species list** under the viewer is one line (`OneLineOverflowRow`),
+  with a "+N" chip that opens the species sheet, or a read-only list
+  (`showMediaSpeciesListSheet`) on a locked item.
 
 ## Video
 

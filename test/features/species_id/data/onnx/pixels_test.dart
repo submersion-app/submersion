@@ -2,9 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/colour_profile.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+
+import 'icc_test_profiles.dart';
 
 void main() {
   RgbaImage uniform(int width, int height, List<int> rgb) => RgbaImage(
@@ -157,6 +160,47 @@ void main() {
     });
   });
 
+  group('CanvasDrawer', () {
+    test('draws the detectors\' inputs from one photo as drawInto does', () {
+      var seed = 3;
+      final photo = RgbaImage(
+        97,
+        61,
+        Uint8List.fromList([
+          for (var i = 0; i < 97 * 61; i++) ...[
+            for (var k = 0; k < 3; k++)
+              (seed = (seed * 1103515245 + 12345) & 0x7fffffff) >> 23,
+            255,
+          ],
+        ]),
+      );
+      const square = (left: 0.0, top: 0.0, width: 32.0, height: 32.0);
+      final letterbox = letterboxRect(97, 61, 32);
+      const grey = [114 / 255, 114 / 255, 114 / 255];
+      final drawer = CanvasDrawer(photo);
+      final drawn = [
+        drawer.draw(square, canvas: 32),
+        drawer.draw(letterbox, canvas: 32, fill: grey),
+      ];
+      final alone = [
+        drawInto(photo, square, canvas: 32),
+        drawInto(photo, letterbox, canvas: 32, fill: grey),
+      ];
+      for (var d = 0; d < 2; d++) {
+        expect(drawn[d].width, 32);
+        for (var i = 0; i < drawn[d].bytes.length; i++) {
+          expect(
+            (drawn[d].bytes[i] - alone[d].bytes[i]).abs(),
+            lessThanOrEqualTo(1),
+            reason: 'input $d, byte $i',
+          );
+        }
+      }
+      // The letterbox keeps its grey bars.
+      expect(pixel(drawn[1], 0, 0), [114, 114, 114]);
+    });
+  });
+
   group('cropOf', () {
     test('copies the pixels inside the rectangle', () {
       final image = RgbaImage(
@@ -190,6 +234,41 @@ void main() {
     test('writes a JPEG', () {
       final jpeg = jpegOf(uniform(8, 8, [1, 2, 3]));
       expect(jpeg.sublist(0, 2), [0xFF, 0xD8]);
+    });
+  });
+
+  group('inSrgb', () {
+    test('converts a photo carrying a conversion, and drops it', () {
+      final p3 = uniform(2, 1, [200, 100, 50]);
+      final photo = RgbaImage(
+        p3.width,
+        p3.height,
+        p3.bytes,
+        colour: srgbConversionOf(jpegWith(displayP3Profile())),
+      );
+
+      final srgb = inSrgb(photo);
+
+      expect(srgb.colour, isNull);
+      expect((srgb.width, srgb.height), (2, 1));
+      for (final (got, want) in [
+        (pixel(srgb, 0, 0), [215, 93, 31]),
+        (pixel(srgb, 1, 0), [215, 93, 31]),
+      ]) {
+        for (var c = 0; c < 3; c++) {
+          expect(
+            (got[c] - want[c]).abs(),
+            lessThanOrEqualTo(1),
+            reason: '$got',
+          );
+        }
+      }
+      expect(pixel(photo, 0, 0), [200, 100, 50], reason: 'input untouched');
+    });
+
+    test('returns a photo with no conversion as it is', () {
+      final photo = uniform(2, 1, [200, 100, 50]);
+      expect(identical(inSrgb(photo), photo), isTrue);
     });
   });
 }

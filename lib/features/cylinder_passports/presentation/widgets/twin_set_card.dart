@@ -44,11 +44,10 @@ class TwinSetCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
     final session = editing ?? scope?.session;
-    final readOnly = scope != null && editing == null;
-    if (session == null) return _build(context, ref, null, readOnly);
+    if (session == null) return _build(context, ref, null);
     return ListenableBuilder(
       listenable: session,
-      builder: (context, _) => _build(context, ref, session, readOnly),
+      builder: (context, _) => _build(context, ref, session),
     );
   }
 
@@ -56,7 +55,6 @@ class TwinSetCard extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     EditSession<EquipmentItem>? session,
-    bool readOnly,
   ) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -76,7 +74,8 @@ class TwinSetCard extends ConsumerWidget {
             ))
               if (p.involves(equipmentId)) p,
           ];
-    // In the open card, the writes are the sitting's.
+    // Only the open card acts, and its writes are the sitting's. Null
+    // offers no action.
     final editing = this.editing;
     final PairingWrites? writer = editing == null
         ? null
@@ -125,7 +124,7 @@ class TwinSetCard extends ConsumerWidget {
             const SizedBox(height: 8),
             if (current == null) ...[
               Text(l10n.twinSet_none),
-              if (!readOnly) ...[
+              if (writer != null) ...[
                 const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerRight,
@@ -145,7 +144,6 @@ class TwinSetCard extends ConsumerWidget {
               _CurrentPartner(
                 cylinder: cylinder,
                 pairing: current,
-                readOnly: readOnly,
                 writer: writer,
                 changed: changed(current),
               ),
@@ -156,7 +154,6 @@ class TwinSetCard extends ConsumerWidget {
                 _HistoryRow(
                   cylinderId: equipmentId,
                   pairing: p,
-                  readOnly: readOnly,
                   writer: writer,
                   changed: changed(p),
                 ),
@@ -172,14 +169,14 @@ class _CurrentPartner extends ConsumerWidget {
   const _CurrentPartner({
     required this.cylinder,
     required this.pairing,
-    required this.readOnly,
     required this.writer,
     required this.changed,
   });
 
   final EquipmentItem cylinder;
   final CylinderPairing pairing;
-  final bool readOnly;
+
+  /// The sitting's writes; null offers no action.
   final PairingWrites? writer;
   final bool changed;
 
@@ -190,6 +187,7 @@ class _CurrentPartner extends ConsumerWidget {
     final partnerId = pairing.partnerOf(cylinder.id);
     final partner = ref.watch(equipmentItemProvider(partnerId)).value;
     final status = partner?.effectiveStatus;
+    final writer = this.writer;
     final subtitle = [
       l10n.twinSet_since(units.formatDate(pairing.pairedOn)),
       if (status != null && isPartnerOutOfUse(status))
@@ -202,7 +200,7 @@ class _CurrentPartner extends ConsumerWidget {
           contentPadding: EdgeInsets.zero,
           title: _withDot(Text(partner?.name ?? ''), changed),
           subtitle: Text(subtitle),
-          trailing: readOnly
+          trailing: writer == null
               ? null
               : IconButton(
                   icon: const Icon(Icons.delete_outline),
@@ -216,7 +214,7 @@ class _CurrentPartner extends ConsumerWidget {
                 ),
           onTap: () => context.push('/equipment/$partnerId'),
         ),
-        if (!readOnly)
+        if (writer != null)
           Wrap(
             alignment: WrapAlignment.end,
             spacing: 8,
@@ -247,14 +245,14 @@ class _HistoryRow extends ConsumerWidget {
   const _HistoryRow({
     required this.cylinderId,
     required this.pairing,
-    required this.readOnly,
     required this.writer,
     required this.changed,
   });
 
   final String cylinderId;
   final CylinderPairing pairing;
-  final bool readOnly;
+
+  /// The sitting's writes; null offers no action.
   final PairingWrites? writer;
   final bool changed;
 
@@ -264,6 +262,7 @@ class _HistoryRow extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final partnerId = pairing.partnerOf(cylinderId);
     final partner = ref.watch(equipmentItemProvider(partnerId)).value;
+    final writer = this.writer;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       dense: true,
@@ -277,7 +276,7 @@ class _HistoryRow extends ConsumerWidget {
         ),
         changed,
       ),
-      trailing: readOnly
+      trailing: writer == null
           ? null
           : IconButton(
               icon: const Icon(Icons.delete_outline),

@@ -14,15 +14,14 @@ import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dar
 /// The requirement tracker card on the course detail page: overall progress
 /// header, one tile per requirement, and empty-state actions.
 ///
-/// On the course's page (issue #4527, phase 3) it offers nothing
-/// while locked ([readOnly]); in the page's sitting ([editing]) everything
-/// it adds, ticks, credits and removes is held until Save.
+/// It offers nothing outside the open Requirements card (issue #4527, phase
+/// 3); in the page's sitting ([editing]) everything it adds, ticks, credits
+/// and removes is held until Save.
 class CourseRequirementsSection extends ConsumerWidget {
   const CourseRequirementsSection({
     super.key,
     required this.courseId,
     this.editing,
-    this.readOnly = false,
     this.shown,
   });
 
@@ -31,9 +30,6 @@ class CourseRequirementsSection extends ConsumerWidget {
   /// The sitting its changes are held in: it is the Requirements card's
   /// editor, drawn inside the open card.
   final EditSession<Course>? editing;
-
-  /// Offers no action: the page is locked, or its card is closed.
-  final bool readOnly;
 
   /// The sitting whose requirements a closed card shows.
   final EditSession<Course>? shown;
@@ -72,11 +68,7 @@ class CourseRequirementsSection extends ConsumerWidget {
     final suggestions = held == null
         ? storedSuggestions
         : suggestionsInSitting(storedSuggestions, held);
-    final RequirementActions? actions = readOnly
-        ? null
-        : editing != null
-        ? HeldRequirementActions(editing)
-        : StoredRequirementActions(ref, courseId);
+    final actions = editing == null ? null : HeldRequirementActions(editing);
 
     final addButtons = actions == null
         ? null
@@ -116,7 +108,6 @@ class CourseRequirementsSection extends ConsumerWidget {
             progress: requirementProgress,
             suggestions: suggestions,
             actions: actions,
-            readOnly: actions == null,
           ),
       ] else ...[
         const SizedBox(height: 8),
@@ -124,10 +115,6 @@ class CourseRequirementsSection extends ConsumerWidget {
           context.l10n.courses_requirements_empty,
           style: theme.textTheme.bodySmall,
         ),
-        if (addButtons != null && editing == null) ...[
-          const SizedBox(height: 8),
-          addButtons,
-        ],
       ],
     ];
 
@@ -166,19 +153,7 @@ class CourseRequirementsSection extends ConsumerWidget {
                 Expanded(
                   child: Text(title, style: theme.textTheme.titleMedium),
                 ),
-                if (actions != null) ...[
-                  IconButton(
-                    tooltip: context.l10n.courses_action_addFromTemplate,
-                    icon: const Icon(Icons.library_add_outlined, size: 20),
-                    onPressed: () => actions.applyTemplate(context),
-                  ),
-                  IconButton(
-                    tooltip: context.l10n.courses_action_addRequirement,
-                    icon: const Icon(Icons.add, size: 20),
-                    onPressed: () => actions.add(context),
-                  ),
-                ],
-                if (readOnly) RecordCardPencil(cardTitle: title),
+                RecordCardPencil(cardTitle: title),
               ],
             ),
             ...rows,

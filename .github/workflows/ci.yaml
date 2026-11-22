@@ -574,7 +574,7 @@ jobs:
             test/features/insights/data/dive_filter_sql_test.dart
             test/features/trips/domain/entities/trip_test.dart
             test/features/trips/domain/entities/itinerary_day_test.dart
-            test/features/trips/presentation/pages/trip_edit_page_test.dart
+            test/features/trips/presentation/editing/trip_new_sitting_test.dart
             test/features/trips/presentation/widgets/trip_summary_widget_test.dart
             test/features/trips/presentation/widgets/story/trip_story_hero_test.dart
             test/features/trips/domain/entities/trip_upcoming_test.dart

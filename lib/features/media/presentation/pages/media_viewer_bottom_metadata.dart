@@ -41,6 +41,7 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
               key: ValueKey('video_controls_${item.id}'),
               controller: video,
               mediaId: item.id,
+              audio: _audio,
               // The controls hide 3 s after a reveal: hold them up while
               // scrubbing or under the mouse, so the bar is not pulled from
               // under the pointer.
@@ -198,6 +199,15 @@ class _BottomMetadataOverlay extends StatelessWidget {
                       mediaId: item.id,
                       sitting: sitting,
                       onSuggestionTap: onSuggestionTap,
+                      // Every species, from the "+N" chip: the sheet while
+                      // the photo is unlocked, else the list (issue #4825).
+                      onMoreTap:
+                          onSuggestionTap ??
+                          () => showMediaSpeciesListSheet(
+                            context,
+                            item,
+                            sitting: sitting,
+                          ),
                     ),
                     // Metadata row
                     Row(

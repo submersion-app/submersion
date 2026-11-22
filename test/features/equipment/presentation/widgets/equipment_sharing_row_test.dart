@@ -76,7 +76,6 @@ void main() {
     String activeDiver = 'me',
     EditSession<EquipmentItem>? editing,
     EditSession<EquipmentItem>? shown,
-    bool readOnly = false,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -96,7 +95,6 @@ void main() {
               equipment: bcd,
               editing: editing,
               shown: shown,
-              readOnly: readOnly,
             ),
           ),
         ),
@@ -114,18 +112,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('the owner\'s tap opens the checklist and shares at once', (
-    tester,
-  ) async {
-    await pumpRow(tester);
-
-    await shareWithSam(tester);
-
-    expect(await storedShares(), {'sam'});
-  });
-
-  testWidgets('a sharee sees it read only', (tester) async {
-    await pumpRow(tester, activeDiver: 'sam');
+  testWidgets('a sharee sees it read only, even in a sitting', (tester) async {
+    final session = EditSession(bcd);
+    addTearDown(session.dispose);
+    await tester.runAsync(
+      () => gearItemSharing.load(
+        session,
+        EquipmentSharesSharingAdapter(shares),
+        actingDiverId: 'sam',
+      ),
+    );
+    await pumpRow(tester, activeDiver: 'sam', editing: session);
 
     expect(find.text(l.equipment_sharing_ownedByLabel), findsOneWidget);
     await tester.tap(find.text(l.equipment_sharing_sharedWithLabel));
@@ -170,8 +167,8 @@ void main() {
     expect(await storedShares(), {'sam'});
   });
 
-  testWidgets('locked with the switch on, no tap writes', (tester) async {
-    await pumpRow(tester, readOnly: true);
+  testWidgets('locked, no tap writes', (tester) async {
+    await pumpRow(tester);
 
     await tester.tap(find.text(l.equipment_sharing_sharedWithLabel));
     await tester.pumpAndSettle();

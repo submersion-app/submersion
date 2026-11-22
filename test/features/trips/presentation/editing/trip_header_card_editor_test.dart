@@ -6,9 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_field.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -36,6 +41,29 @@ void main() {
 
   Future<void> save(WidgetTester tester) async {
     await tester.tap(find.text(l.forms_save));
+    await tester.pumpAndSettle();
+  }
+
+  /// Opens the date picker of [tile], types [date] (month/day/year) into
+  /// it and confirms.
+  Future<void> pickDate(WidgetTester tester, String tile, String date) async {
+    await tester.tap(find.byKey(Key(tile)));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.byIcon(Icons.edit_outlined),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.byType(TextField),
+      ),
+      date,
+    );
+    await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
   }
 
@@ -156,9 +184,11 @@ void main() {
         'spring-forward', (tester) async {
       await pumpTripPage(
         tester,
+        // Evening to morning: elapsed time floors to one day in any zone,
+        // the calendar counts three.
         trip: redSea.copyWith(
-          startDate: DateTime(2030, 3, 9),
-          endDate: DateTime(2030, 3, 11),
+          startDate: DateTime(2030, 3, 9, 18),
+          endDate: DateTime(2030, 3, 11, 9),
         ),
       );
       await openHeader(tester);
@@ -212,6 +242,101 @@ void main() {
       await openHeader(tester);
 
       expect(find.byType(PartOfTripField), findsOneWidget);
+    });
+
+    testWidgets('a start picked in the dialog is held and shown', (
+      tester,
+    ) async {
+      await pumpTripPage(tester);
+      await openHeader(tester);
+
+      await pickDate(tester, 'trip-edit-start', '05/20/2030');
+
+      expect(find.byType(DatePickerDialog), findsNothing);
+      expect(sessionOf(tester).working.startDate, DateTime(2030, 5, 20));
+      // In the diver's date format, the picked date, not the stored one.
+      const format = UnitFormatter(AppSettings());
+      Finder onStartTile(DateTime date) => find.descendant(
+        of: find.byKey(const Key('trip-edit-start')),
+        matching: find.text(format.formatDate(date)),
+      );
+      expect(onStartTile(DateTime(2030, 5, 20)), findsOneWidget);
+      expect(onStartTile(redSea.startDate), findsNothing);
+    });
+
+    testWidgets('a Day Trip moves its end with a start picked', (tester) async {
+      await pumpTripPage(
+        tester,
+        trip: redSea.copyWith(
+          tripType: TripType.dayTrip,
+          endDate: redSea.startDate,
+        ),
+      );
+      await openHeader(tester);
+
+      await pickDate(tester, 'trip-edit-start', '05/20/2030');
+
+      final working = sessionOf(tester).working;
+      expect(working.startDate, DateTime(2030, 5, 20));
+      expect(working.endDate, working.startDate);
+    });
+
+    testWidgets('a return flight is set through the date and time pickers', (
+      tester,
+    ) async {
+      await pumpTripPage(tester);
+      await openHeader(tester);
+      expect(
+        find.descendant(
+          of: find.byType(TripHeaderCardEditor),
+          matching: find.text(l.trips_edit_returnFlightNotSet),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('trip-edit-return-flight')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TimePickerDialog), findsOneWidget);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip(l.trips_edit_returnFlightClear), findsOneWidget);
+      // Wall clock as UTC: the end day at noon, the time picked.
+      expect(
+        sessionOf(tester).working.returnFlightAt,
+        DateTime.utc(2030, 6, 8, 12),
+      );
+    });
+
+    testWidgets('a larger trip chosen is written at Save', (tester) async {
+      final indonesia = Trip(
+        id: 'p2',
+        diverId: 'd1',
+        name: 'Indonesia',
+        startDate: DateTime(2030, 5, 1),
+        endDate: DateTime(2030, 7, 1),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      final harness = await pumpTripPage(
+        tester,
+        extraOverrides: [
+          allTripsProvider.overrideWith((ref) async => [redSea, indonesia]),
+        ],
+      );
+      await openHeader(tester);
+
+      await tester.tap(find.text(l.trips_edit_field_partOf));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Indonesia').last);
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      final call = harness.save.calls.single;
+      expect(call.after.parentTripId, 'p2');
+      expect(call.cards, {'header'});
     });
 
     testWidgets('a trip with side trips offers no larger trip', (tester) async {
@@ -275,6 +400,51 @@ void main() {
       );
       expect(field.mayShare, isFalse);
       expect(field.ownerId, 'd1');
+    });
+
+    testWidgets('locked while a profile switch reads the profile again', (
+      tester,
+    ) async {
+      final active = GatedActiveProfile.settled('d1');
+      await pumpTripPage(
+        tester,
+        divers: twoDivers,
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((_) => active.read()),
+        ],
+      );
+      await openHeader(tester);
+      ItemSharingField field() =>
+          tester.widget<ItemSharingField>(find.byType(ItemSharingField));
+      expect(field().mayShare, isTrue);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(ItemSharingField)),
+      ).invalidate(validatedCurrentDiverIdProvider);
+      await tester.pump();
+      expect(field().mayShare, isNull);
+
+      active.settle('d2');
+      await tester.pumpAndSettle();
+      expect(field().mayShare, isFalse);
+    });
+
+    testWidgets('locked while the profile cannot be read', (tester) async {
+      await pumpTripPage(
+        tester,
+        divers: twoDivers,
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith(
+            (_) => Future<String?>.error(StateError('no profile')),
+          ),
+        ],
+      );
+      await openHeader(tester);
+
+      expect(
+        tester.widget<ItemSharingField>(find.byType(ItemSharingField)).mayShare,
+        isNull,
+      );
     });
 
     testWidgets('locked while the sharing cannot be read', (tester) async {

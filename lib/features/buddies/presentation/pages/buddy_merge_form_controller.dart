@@ -23,9 +23,10 @@ class MergeFieldCandidate<T> {
 
 /// Manages merge candidate state and field cycling for the buddy merge form.
 ///
-/// Extracted from BuddyEditPage to keep file sizes under the 800-line limit.
-/// Holds candidate lists and indices but does not own widget state directly;
-/// mutation methods return new values for the caller to apply via setState.
+/// Kept apart from the merge page to keep file sizes under the 800-line
+/// limit. Holds candidate lists and indices but does not own widget state
+/// directly; mutation methods return new values for the caller to apply via
+/// setState.
 class BuddyMergeFormController {
   final Map<String, List<MergeFieldCandidate<String>>> textCandidates = {};
   final Map<String, int> fieldIndices = {};
@@ -52,8 +53,8 @@ class BuddyMergeFormController {
   /// Initialize merge candidate state from loaded buddies. Sets the text
   /// controller values and the merged photo path. Certifications are NOT
   /// cycled here (issue #553): the survivor inherits the union of certs at the
-  /// repository level, so the buddy edit form hides its cert section in merge
-  /// mode.
+  /// repository level, so the merge page offers no certifications to choose
+  /// between.
   void initialize({
     required List<Buddy> buddies,
     required TextEditingController nameController,

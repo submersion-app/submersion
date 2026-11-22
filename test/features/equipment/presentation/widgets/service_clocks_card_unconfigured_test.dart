@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
@@ -45,12 +44,7 @@ void main() {
           locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: ServiceClocksCard(
-              equipmentId: 'e1',
-              equipmentType: EquipmentType.mask,
-            ),
-          ),
+          home: Scaffold(body: ServiceClocksCard(equipmentId: 'e1')),
         ),
       ),
     );

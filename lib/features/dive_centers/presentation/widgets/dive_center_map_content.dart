@@ -17,6 +17,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_corner_control
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
@@ -113,17 +115,23 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     return Stack(
       children: [
         _buildMap(context, centers),
-        // Fit all centers control
+        // Fit all centers and Show my location controls
         Positioned(
           top: 8,
           right: 8,
           child: Card(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: IconButton(
-                icon: const Icon(Icons.my_location, size: 20),
-                tooltip: context.l10n.diveCenters_tooltip_fitAllCenters,
-                onPressed: () => _camera.fitAll(_centerPoints(centers)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.zoom_out_map, size: 20),
+                    tooltip: context.l10n.diveCenters_tooltip_fitAllCenters,
+                    onPressed: () => _camera.fitAll(_centerPoints(centers)),
+                  ),
+                  MyLocationButton(onLocated: _camera.animateTo, iconSize: 20),
+                ],
               ),
             ),
           ),
@@ -238,6 +246,8 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
                   },
                 ),
               ),
+              // The device, once Show my location has found it (#4808).
+              const MyLocationLayer(),
               const MapAttribution(),
             ],
           ),

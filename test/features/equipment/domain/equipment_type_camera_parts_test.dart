@@ -164,7 +164,7 @@ void main() {
   });
 
   test('a video light shows the battery installed in it', () {
-    // The edit page offers a battery these hosts, and the detail page shows
+    // The Details editor offers a battery these hosts, and the page shows
     // the Children card for the same set, so the battery is never hidden.
     expect(childHostTypes, contains(EquipmentType.videoLight));
   });

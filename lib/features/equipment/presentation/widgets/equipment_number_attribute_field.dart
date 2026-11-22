@@ -9,7 +9,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attri
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// One equipment number on the edit form, with a picker for the unit this
+/// One equipment number in the Details editor, with a picker for the unit this
 /// item's figure is in (issue #4534).
 ///
 /// The figure stays as typed: picking a unit relabels it rather than

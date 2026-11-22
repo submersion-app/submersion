@@ -310,7 +310,6 @@ class _BuddyDetailContent extends ConsumerWidget {
               BuddyCardId.gear,
               BuddyGearSection(
                 buddy: buddy,
-                readOnly: true,
                 shown: host.maybeEditController?.session,
               ),
             ),

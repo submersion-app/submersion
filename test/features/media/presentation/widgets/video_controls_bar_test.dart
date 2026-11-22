@@ -3,11 +3,16 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
+import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 import 'package:video_player/video_player.dart';
+
+import 'package:submersion/features/species_id/presentation/widgets/video_analysed_stretches.dart';
 
 import 'video_controls_bar_test_harness.dart';
 
@@ -579,5 +584,144 @@ void main() {
     expect(controller.value.position, const Duration(seconds: 20));
     await finishBar(tester, controller);
     semantics.dispose();
+  });
+
+  testWidgets('the analysed stretches sit under the played part (issue '
+      '#4825)', (tester) async {
+    useBarPlatform();
+    final controller = await readyController();
+    await tester.pumpWidget(
+      barApp(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+    await tester.pump();
+    final stack = tester.widget<Stack>(
+      find
+          .ancestor(
+            of: find.byType(VideoAnalysedStretches),
+            matching: find.byType(Stack),
+          )
+          .first,
+    );
+    final stretchesAt = stack.children.indexWhere(
+      (c) => c is VideoAnalysedStretches,
+    );
+    final playedAt = stack.children.indexWhere(
+      (c) => c is FractionallySizedBox,
+    );
+    expect(stretchesAt, greaterThan(0));
+    expect(stretchesAt, lessThan(playedAt));
+    await finishBar(tester, controller);
+  });
+
+  testWidgets('the analysed stretches are not made again as the playhead '
+      'glides (issue #4825)', (tester) async {
+    useBarPlatform();
+    final controller = await readyController();
+    await controller.play();
+    await tester.pumpWidget(
+      barApp(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+    await tester.pump();
+    double played() => tester
+        .widget<FractionallySizedBox>(find.byType(FractionallySizedBox))
+        .widthFactor!;
+    final before = tester.widget(find.byType(VideoAnalysedStretches));
+    final playedBefore = played();
+    // Frames with no report from the player: only the glide moves on.
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(played(), greaterThan(playedBefore));
+    expect(
+      identical(tester.widget(find.byType(VideoAnalysedStretches)), before),
+      isTrue,
+    );
+    await finishBar(tester, controller);
+  });
+
+  // Issue #4817: the mute button and volume slider ride on the bar.
+  testWidgets('the bar shows the volume control when given audio', (
+    tester,
+  ) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    final audio = ViewerAudio();
+    addTearDown(audio.dispose);
+    await tester.pumpWidget(
+      barApp(
+        VideoControlsBar(controller: controller, mediaId: 'm1', audio: audio),
+      ),
+    );
+    expect(find.byType(VideoVolumeControl), findsOneWidget);
+    await finishBar(tester, controller);
+  });
+
+  testWidgets('keyboard focus in the volume control holds the controls', (
+    tester,
+  ) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    final audio = ViewerAudio();
+    addTearDown(audio.dispose);
+    final holds = <bool>[];
+    await tester.pumpWidget(
+      barApp(
+        VideoControlsBar(
+          controller: controller,
+          mediaId: 'm1',
+          audio: audio,
+          onHoldChanged: holds.add,
+        ),
+      ),
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pumpAndSettle();
+    expect(holds.last, isTrue);
+    // On to the slider: still inside, still held.
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pumpAndSettle();
+    expect(holds.last, isTrue);
+    FocusManager.instance.primaryFocus!.unfocus();
+    await tester.pumpAndSettle();
+    expect(holds.last, isFalse);
+    await finishBar(tester, controller);
+  });
+
+  // The fullscreen fish labels keep VideoControlsBar.height clear above the
+  // bar, so the mute button must not make it taller (on a touch screen a
+  // Material button pads itself to 48).
+  testWidgets(
+    'the volume control keeps the bar at its own height',
+    (tester) async {
+      useBarPlatform();
+      final controller = (await tester.runAsync(readyController))!;
+      final audio = ViewerAudio();
+      addTearDown(audio.dispose);
+      await tester.pumpWidget(
+        barApp(
+          VideoControlsBar(controller: controller, mediaId: 'm1', audio: audio),
+        ),
+      );
+      expect(
+        tester.getSize(find.byType(VideoControlsBar)).height,
+        VideoControlsBar.height,
+      );
+      await finishBar(tester, controller);
+    },
+    variant: const TargetPlatformVariant({
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+    }),
+  );
+
+  testWidgets('the bar shows no volume control without audio', (tester) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    await tester.pumpWidget(
+      barApp(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+    expect(find.byType(VideoVolumeControl), findsNothing);
+    await finishBar(tester, controller);
   });
 }

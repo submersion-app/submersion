@@ -137,6 +137,7 @@ Future<DocumentPageHarness> pumpDocumentPage(
   // list entry still reads.
   Object? recordReadError,
   bool recordMissing = false,
+  List<dynamic> extraOverrides = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -181,6 +182,7 @@ Future<DocumentPageHarness> pumpDocumentPage(
         documentMutationsProvider.overrideWith(
           (ref) => mutations = FakeDocumentMutations(ref),
         ),
+        ...extraOverrides,
         documentEditSaveServiceProvider.overrideWith((ref) {
           final save = FakeDocumentSave(ref.watch(_storedProvider.notifier));
           harness = DocumentPageHarness(

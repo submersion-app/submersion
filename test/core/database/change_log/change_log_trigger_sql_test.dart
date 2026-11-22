@@ -85,23 +85,56 @@ void main() {
     );
   });
 
-  test('a delete copy only table gets a delete and an opt-in update '
+  test('a series table gets a delete and an opt-in update and insert '
       'trigger', () {
     final statements = buildChangeLogTriggers(
       _specFor(db, 'dive_profile_series'),
       ChangeLogClass.deleteCopyOnly,
       schemaVersion: 1,
     );
-    expect(statements, hasLength(2));
+    expect(statements, hasLength(3));
     expect(statements.where((s) => s.contains('AFTER DELETE')), hasLength(1));
-    final update = statements.singleWhere((s) => s.contains('AFTER UPDATE'));
-    expect(
-      update,
-      contains(
+    const optIn =
         "o.label IN ('remove_duplicate_cylinders', 'remove_source', "
-        "'update_planned_dives')",
-      ),
+        "'reparse', 'update_planned_dives')";
+    final update = statements.singleWhere((s) => s.contains('AFTER UPDATE'));
+    expect(update, contains(optIn));
+    // A re-parse replaces a series, so its revert must see the new one to
+    // take it away (issue #4848).
+    final insert = statements.singleWhere((s) => s.contains('AFTER INSERT'));
+    expect(insert, contains(optIn));
+  });
+
+  test('a delete copy only table outside the opt-in gets only a delete '
+      'trigger', () {
+    final statements = buildChangeLogTriggers(
+      _specFor(db, 'tide_records'),
+      ChangeLogClass.deleteCopyOnly,
+      schemaVersion: 1,
     );
+    expect(statements, hasLength(1));
+    expect(statements.single, contains('AFTER DELETE'));
+  });
+
+  test('a finding and a series lineage row log no insert', () {
+    for (final table in [
+      'dive_safety_findings',
+      'dive_profile_series_history',
+    ]) {
+      final spec = table == 'dive_profile_series_history'
+          ? changeLogRawTableSpecs.firstWhere((s) => s.table == table)
+          : _specFor(db, table);
+      final statements = buildChangeLogTriggers(
+        spec,
+        changeLogTables[table]!,
+        schemaVersion: 1,
+      );
+      expect(
+        statements.where((s) => s.contains('AFTER INSERT')),
+        isEmpty,
+        reason: table,
+      );
+    }
   });
 
   test('an excluded table gets none', () {

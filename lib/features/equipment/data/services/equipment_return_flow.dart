@@ -49,7 +49,6 @@ class EquipmentReturnFlow {
     required this.askMoveParts,
     required this.askStatus,
     required this.setStatus,
-    this.onStatusFailed,
   });
 
   final EquipmentLocationMoveRepository moves;
@@ -63,10 +62,6 @@ class EquipmentReturnFlow {
   final Future<void> Function(List<String> ids, EquipmentStatus status)
   setStatus;
 
-  /// Told when the status write fails. The moves are already recorded by
-  /// then, so the return itself still succeeded and is not reported failed.
-  final void Function()? onStatusFailed;
-
   /// Where [items] would go. Null stands for No location.
   Future<Set<EquipmentLocation?>> destinations({
     required List<EquipmentItem> items,
@@ -76,35 +71,6 @@ class EquipmentReturnFlow {
     for (final item in items)
       placeBeforeLoan(await moves.getMovesFor(item.id), places, buddyId),
   };
-
-  /// Returns [items] (and their parts with this buddy, if the diver agrees).
-  /// Returns how many items moved, parts included. A time before an item's
-  /// current move is held at that move, or the item would stay with the buddy.
-  Future<int> run({
-    required List<EquipmentItem> items,
-    required String buddyId,
-    required Map<String, EquipmentLocation> places,
-    required DateTime movedAt,
-    String note = '',
-  }) async {
-    if (items.isEmpty) return 0;
-    final statuses = {for (final i in items) i.id: i.status};
-    final parts = await _partsWithBuddy(statuses.keys, buddyId, places);
-    if (parts.isNotEmpty && await askMoveParts(parts.length)) {
-      statuses.addAll(parts);
-    }
-    await _recordReturn(statuses.keys, buddyId, places, movedAt, note);
-    final loaned = _loaned(statuses);
-    if (loaned.isNotEmpty &&
-        await askStatus(EquipmentStatus.active, loaned.length)) {
-      try {
-        await setStatus(loaned, EquipmentStatus.active);
-      } catch (_) {
-        onStatusFailed?.call();
-      }
-    }
-    return statuses.length;
-  }
 
   /// The ids of [statuses] that are Loaned Out.
   static List<String> _loaned(Map<String, EquipmentStatus> statuses) => [

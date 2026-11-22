@@ -16,8 +16,8 @@ import 'package:submersion/features/maps/presentation/widgets/world_camera_fit.d
 /// in-flight animation, which the per-call `AnimationController`s the maps
 /// used to carry could not do.
 ///
-/// Every method needs [controller] attached to a mounted `FlutterMap`;
-/// call them from `onMapReady` or later.
+/// Every method except [animateTo] needs [controller] attached to a mounted
+/// `FlutterMap`; call them from `onMapReady` or later.
 class MapCameraAnimator {
   MapCameraAnimator({required this.controller, required this.vsync});
 
@@ -29,11 +29,20 @@ class MapCameraAnimator {
 
   /// Eases to [target] over [duration]. Zooms in to 12 when the camera is
   /// wider than zoom 10; otherwise keeps the current zoom.
+  ///
+  /// Does nothing before a `FlutterMap` has rendered with [controller]: an
+  /// app-bar Show my location can answer while the map pane is still
+  /// loading (#4808).
   Future<void> animateTo(
     LatLng target, {
     Duration duration = const Duration(milliseconds: 500),
   }) {
-    final start = controller.camera;
+    final MapCamera start;
+    try {
+      start = controller.camera;
+    } on Exception {
+      return Future.value();
+    }
     final targetZoom = start.zoom < 10 ? 12.0 : start.zoom;
     return _run(start, target, targetZoom, duration);
   }

@@ -81,10 +81,10 @@ test/
   - Temperature extremes
   - Provider mocking
 
-- **Trip Pages** (`trip_list_page_test.dart`, `trip_detail_page_test.dart`, `trip_edit_page_test.dart`)
+- **Trip Pages** (`trip_list_page_test.dart`, `trip_detail_page_test.dart`, `trip_detail_page_unlock_test.dart`)
   - Trip list rendering
   - Trip detail display
-  - Trip creation and editing forms
+  - Trip creation and editing in place
   - Navigation flows
 
 ### Integration Tests (v1.1)

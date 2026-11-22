@@ -80,6 +80,20 @@ void main() {
     expect(find.byType(Card), findsNothing);
   });
 
+  testWidgets('a set expiry reminder shows with the expiry', (t) async {
+    await pump(
+      t,
+      DocumentDetailsCard(
+        document: insurance(
+          expiry: now.add(const Duration(days: 200)),
+        ).copyWith(reminderLeadDays: 14),
+        ownerLabel: null,
+      ),
+    );
+    expect(find.text('Remind me'), findsOneWidget);
+    expect(find.text('14 days before'), findsOneWidget);
+  });
+
   testWidgets('a permit shows no insurance rows', (t) async {
     await pump(
       t,

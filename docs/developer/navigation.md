@@ -162,22 +162,22 @@ GoRoute(
 | Path | Name | Screen |
 |------|------|--------|
 | `/equipment` | equipment | EquipmentListPage |
-| `/equipment/new` | newEquipment | EquipmentEditPage |
+| `/equipment/new` | newEquipment | EquipmentDetailPage (a new item, unlocked) |
 | `/equipment/sets` | equipmentSets | EquipmentSetListPage |
-| `/equipment/sets/new` | newEquipmentSet | EquipmentSetEditPage |
+| `/equipment/sets/new` | newEquipmentSet | EquipmentSetDetailPage (a new set, unlocked) |
 | `/equipment/sets/:setId` | equipmentSetDetail | EquipmentSetDetailPage |
-| `/equipment/sets/:setId/edit` | editEquipmentSet | EquipmentSetEditPage |
+| `/equipment/sets/:setId/edit` | editEquipmentSet | Redirects to `/equipment/sets/:setId?mode=edit` (the page unlocked) |
 | `/equipment/:equipmentId` | equipmentDetail | EquipmentDetailPage |
-| `/equipment/:equipmentId/edit` | editEquipment | EquipmentEditPage |
+| `/equipment/:equipmentId/edit` | editEquipment | Redirects to `/equipment/:equipmentId?mode=edit` (the page unlocked) |
 
 ### Buddies
 
 | Path | Name | Screen |
 |------|------|--------|
 | `/buddies` | buddies | BuddyListPage |
-| `/buddies/new` | newBuddy | BuddyEditPage |
+| `/buddies/new` | newBuddy | BuddyDetailPage (a new buddy, unlocked) |
 | `/buddies/:buddyId` | buddyDetail | BuddyDetailPage |
-| `/buddies/:buddyId/edit` | editBuddy | BuddyEditPage |
+| `/buddies/:buddyId/edit` | editBuddy | Redirects to `/buddies/:buddyId?mode=edit` (the page unlocked) |
 
 ### Divers
 
@@ -194,18 +194,18 @@ GoRoute(
 |------|------|--------|
 | `/certifications` | certifications | CertificationListPage |
 | `/certifications/wallet` | certificationWallet | CertificationWalletPage |
-| `/certifications/new` | newCertification | CertificationEditPage |
+| `/certifications/new` | newCertification | CertificationDetailPage (a new certification, unlocked) |
 | `/certifications/:certificationId` | certificationDetail | CertificationDetailPage |
-| `/certifications/:certificationId/edit` | editCertification | CertificationEditPage |
+| `/certifications/:certificationId/edit` | editCertification | Redirects to `/certifications/:certificationId?mode=edit` (the page unlocked) |
 
 ### Courses
 
 | Path | Name | Screen |
 |------|------|--------|
 | `/courses` | courses | CourseListPage |
-| `/courses/new` | newCourse | CourseEditPage |
+| `/courses/new` | newCourse | CourseDetailPage (a new course, unlocked) |
 | `/courses/:courseId` | courseDetail | CourseDetailPage |
-| `/courses/:courseId/edit` | editCourse | CourseEditPage |
+| `/courses/:courseId/edit` | editCourse | Redirects to `/courses/:courseId?mode=edit` (the page unlocked) |
 
 ### Dive Centers
 
@@ -214,18 +214,18 @@ GoRoute(
 | `/dive-centers` | diveCenters | DiveCenterListPage |
 | `/dive-centers/map` | diveCentersMap | DiveCenterMapPage |
 | `/dive-centers/import` | importDiveCenter | DiveCenterImportPage |
-| `/dive-centers/new` | newDiveCenter | DiveCenterEditPage |
+| `/dive-centers/new` | newDiveCenter | DiveCenterDetailPage (a new dive centre, unlocked) |
 | `/dive-centers/:centerId` | diveCenterDetail | DiveCenterDetailPage |
-| `/dive-centers/:centerId/edit` | editDiveCenter | DiveCenterEditPage |
+| `/dive-centers/:centerId/edit` | editDiveCenter | Redirects to `/dive-centers/:centerId?mode=edit` (the page unlocked) |
 
 ### Trips
 
 | Path | Name | Screen |
 |------|------|--------|
 | `/trips` | trips | TripListPage |
-| `/trips/new` | newTrip | TripEditPage |
+| `/trips/new` | newTrip | TripDetailPage (a new trip, unlocked) |
 | `/trips/:tripId` | tripDetail | TripDetailPage |
-| `/trips/:tripId/edit` | editTrip | TripEditPage |
+| `/trips/:tripId/edit` | editTrip | Redirects to `/trips/:tripId?mode=edit`, keeping `section` and `noteDay` (the page unlocked at that card) |
 | `/trips/:tripId/gallery` | tripGallery | TripGalleryPage |
 
 ### Planning
@@ -309,9 +309,9 @@ GoRoute(
 | Path | Name | Screen |
 |------|------|--------|
 | `/species` | speciesManage | SpeciesManagePage |
-| `/species/new` | newSpecies | SpeciesEditPage |
+| `/species/new` | newSpecies | SpeciesDetailPage (a new species, unlocked) |
 | `/species/:speciesId` | speciesDetail | SpeciesDetailPage |
-| `/species/:speciesId/edit` | editSpecies | SpeciesEditPage |
+| `/species/:speciesId/edit` | editSpecies | Redirects to `/species/:speciesId?mode=edit` (the page unlocked) |
 
 ### Tags
 

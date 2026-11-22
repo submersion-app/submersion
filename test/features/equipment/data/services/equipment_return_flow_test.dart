@@ -111,13 +111,11 @@ void main() {
   late List<(EquipmentStatus, int)> statusAsks;
   late List<int> partsAsks;
   late List<(List<String>, EquipmentStatus)> statusWrites;
-  late bool statusFailed;
 
   setUp(() {
     statusAsks = [];
     partsAsks = [];
     statusWrites = [];
-    statusFailed = false;
   });
 
   EquipmentReturnFlow flow(
@@ -139,21 +137,26 @@ void main() {
       if (failStatus) throw StateError('no');
       statusWrites.add((ids, status));
     },
-    onStatusFailed: () => statusFailed = true,
   );
 
+  /// A return as a buddy page's sitting makes it (issue #4527, phase 3):
+  /// asked about at the card ([EquipmentReturnFlow.plan]), written at Save
+  /// ([EquipmentReturnFlow.write]).
   Future<int> run(
     EquipmentReturnFlow f,
     List<EquipmentItem> items, {
     DateTime? movedAt,
     String note = '',
-  }) => f.run(
-    items: items,
-    buddyId: 'b1',
-    places: places,
-    movedAt: movedAt ?? returnAt,
-    note: note,
-  );
+  }) async {
+    final plan = await f.plan(
+      items: items,
+      buddyId: 'b1',
+      places: places,
+      movedAt: movedAt ?? returnAt,
+      note: note,
+    );
+    return f.write(plan, places: places);
+  }
 
   test('each item goes back to its own previous place', () async {
     final moves = _FakeMoves(
@@ -336,21 +339,24 @@ void main() {
     expect(moves.recorded.single.ids, ['a']);
   });
 
-  test('a failed status write is reported and the moves still count', () async {
-    final moves = _FakeMoves(
-      history: {
-        'a': history('a', ['shelf']),
-      },
-    );
+  test(
+    'a failed status write at Save is not swallowed, so the Save fails',
+    () async {
+      final moves = _FakeMoves(
+        history: {
+          'a': history('a', ['shelf']),
+        },
+      );
 
-    final count = await run(flow(moves, failStatus: true), [item('a')]);
+      await expectLater(
+        run(flow(moves, failStatus: true), [item('a')]),
+        throwsStateError,
+      );
+    },
+  );
 
-    expect(count, 1);
-    expect(statusFailed, isTrue);
-  });
-
-  test('a failed write takes nothing back, leaving no gear half returned '
-      'without its prompt', () async {
+  test('a failed write takes nothing back and sets no status, leaving no '
+      'gear half returned', () async {
     final moves = _FakeMoves(
       history: {
         'a': history('a', ['shelf']),
@@ -364,7 +370,7 @@ void main() {
     );
 
     expect(moves.recorded, isEmpty);
-    expect(statusAsks, isEmpty);
+    expect(statusWrites, isEmpty);
   });
 
   test('no items writes nothing and asks nothing', () async {

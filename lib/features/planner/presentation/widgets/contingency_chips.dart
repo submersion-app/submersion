@@ -8,7 +8,8 @@ import 'package:submersion/features/planner/presentation/widgets/plan_status_chi
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Selector for the ghosted contingency: Base / +depth / +time / both.
-/// Hidden when the plan has no segments.
+/// Hidden when the plan has no segments; the two time chips are hidden while
+/// the plan has no bottom to lengthen.
 class ContingencyChips extends ConsumerWidget {
   const ContingencyChips({super.key, this.overlay = false});
 
@@ -18,9 +19,16 @@ class ContingencyChips extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final canLengthen = ref.watch(planCanLengthenProvider);
+    final rawSelected = ref.watch(selectedDeviationProvider);
+    // SelectedDeviationNotifier drops a time selection once the plan loses
+    // its bottom; until it has, that selection reads as Base here rather
+    // than as no chip at all.
+    final staleTimeSelection =
+        !canLengthen && rawSelected != null && rawSelected != 'deeper';
     final state = ref.watch(divePlanNotifierProvider);
     if (state.segments.isEmpty) return const SizedBox.shrink();
-    final selected = ref.watch(selectedDeviationProvider);
+    final selected = staleTimeSelection ? null : rawSelected;
     final units = ref.watch(unitFormatterProvider);
 
     // The plan's own deviation, else the diver's Settings default (#3552).
@@ -30,7 +38,7 @@ class ContingencyChips extends ConsumerWidget {
     final timeLabel = '+${resolved.deviationTimeMinutes}′';
 
     void select(String? key) {
-      ref.read(selectedDeviationProvider.notifier).state = key;
+      ref.read(selectedDeviationProvider.notifier).select(key);
       // Only one contingency ghost can be on the chart at a time.
       if (key != null) {
         ref.read(selectedLostGasTankIdProvider.notifier).state = null;
@@ -46,8 +54,10 @@ class ContingencyChips extends ConsumerWidget {
     final chips = [
       chip(null, context.l10n.plannerCanvas_contingency_base),
       chip('deeper', depthLabel),
-      chip('longer', timeLabel),
-      chip('both', '$depthLabel $timeLabel'),
+      if (canLengthen) ...[
+        chip('longer', timeLabel),
+        chip('both', '$depthLabel $timeLabel'),
+      ],
     ];
 
     if (!overlay) {

@@ -1,4 +1,9 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+
+/// A dive proposed for an unlinked route: the only one overlapping its
+/// recording in time ([NavTrackMatcher.linkProposals]).
+typedef NavTrackLinkProposal = ({NavTrack route, Dive dive});
 
 /// Pure candidate lookup: which dives a route's recording window could
 /// belong to, by time alone.
@@ -68,6 +73,26 @@ class NavTrackMatcher {
     );
     return candidates.length == 1 ? candidates.single : null;
   }
+
+  /// The routes in [routes] with no dive yet that [soleCandidateFor] finds
+  /// one for, each with that dive, in the order [routes] came. The Tracks
+  /// page's Match offers these to the diver to link in one confirmation
+  /// (#4851); a route with no overlapping dive, or several, is left for the
+  /// diver to choose on its own page.
+  static List<NavTrackLinkProposal> linkProposals({
+    required List<NavTrack> routes,
+    required List<Dive> dives,
+  }) => [
+    for (final route in routes)
+      if (route.diveId == null)
+        if (soleCandidateFor(
+              routeStartSeconds: route.startTime ~/ 1000,
+              routeEndSeconds: route.endTime ~/ 1000,
+              dives: dives,
+            )
+            case final dive?)
+          (route: route, dive: dive),
+  ];
 
   /// How many dives [nearestByStart] offers by default: enough to reach the
   /// right dive past a recording device's wrong clock, few enough to scan.

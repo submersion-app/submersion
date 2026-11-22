@@ -10,6 +10,7 @@ import 'package:submersion/features/gps_log/data/repositories/track_geometry_cac
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
 
 /// Surface GPS tracks, through the repository the GPS log uses: a track is
 /// trimmed (its fixes kept, only hidden), split in two at a moment, or
@@ -278,11 +279,18 @@ class NavTrackWrites extends WritableEntry {
       if (next != null) {
         final hasPrimary = await _hasPrimary(next, id);
         if ((!hasPrimary) != wasPrimary) fields['is_primary'] = !hasPrimary;
-        if (document['site_id'] == null &&
-            document['anchor_latitude'] == null &&
-            !v.containsKey('site_id')) {
-          final site = await _diveSite(next);
-          if (site != null) fields['site_id'] = site;
+        // The site linking brings, as the repository decides it: a route
+        // with no site takes the new dive's, and one on the site of the
+        // dive it leaves follows it to the new dive's (#4851).
+        final wasSite = document['site_id'] as String?;
+        if (!v.containsKey('site_id') && next != wasOn) {
+          final follows =
+              wasSite == null ||
+              (wasOn != null && wasSite == await _diveSite(wasOn));
+          if (follows) {
+            final site = await _diveSite(next);
+            if (site != wasSite) fields['site_id'] = site;
+          }
         }
       }
     }
@@ -343,7 +351,22 @@ class NavTrackWrites extends WritableEntry {
       }
     }
     if (v.containsKey('site_id')) {
-      await repo.setSite(id, v['site_id'] as String?);
+      final siteId = v['site_id'] as String?;
+      // Read again: a dive change above may have moved the site and anchor.
+      final current = await _route(id);
+      // The anchor follows the site as the track page's site picker moves
+      // it: only one still on the old site's pin; one anywhere else stays.
+      final change = navTrackAnchorChangeForSite(
+        current.anchor,
+        await _sitePin(current.siteId),
+        await _sitePin(siteId),
+      );
+      await repo.setSite(
+        id,
+        siteId,
+        anchor: change.write ? change.anchor : null,
+        clearAnchor: change.write && change.anchor == null,
+      );
     }
     if (v.containsKey('equipment_id')) {
       final itemId = v['equipment_id'] as String?;
@@ -357,7 +380,9 @@ class NavTrackWrites extends WritableEntry {
       );
     }
     if (v.keys.any(_correction.contains)) {
-      final c = route.correction;
+      // Read again: the dive and site steps above may have moved the
+      // anchor, and the stale one must not be written back.
+      final c = (await _route(id)).correction;
       double? number(String key, double? held) =>
           v.containsKey(key) ? (v[key] as num?)?.toDouble() : held;
       GeoPoint? point(String lat, String lon, GeoPoint? held) {
@@ -386,6 +411,10 @@ class NavTrackWrites extends WritableEntry {
 
   @override
   Future<void> delete(String id, String? ownerId) => _r.navTracks.delete(id);
+
+  /// Where site [siteId] is pinned, or null for no site or no pin.
+  Future<GeoPoint?> _sitePin(String? siteId) async =>
+      siteId == null ? null : (await _r.sites.getSiteById(siteId))?.location;
 
   Future<NavTrack> _route(String id) async =>
       await _r.navTracks.getById(id, includePoints: false) ??

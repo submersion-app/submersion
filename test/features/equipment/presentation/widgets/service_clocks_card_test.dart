@@ -119,10 +119,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: ServiceClocksCard(
-              equipmentId: 'e1',
-              equipmentType: EquipmentType.tank,
-            ),
+            child: ServiceClocksCard(equipmentId: 'e1'),
           ),
         ),
       ),
@@ -232,18 +229,5 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Counting since Jan 1, 2025'), findsNWidgets(2));
-  });
-
-  testWidgets('Add clock sheet lists only unattached kinds', (tester) async {
-    await tester.pumpWidget(buildCard());
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Add clock'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('O2 clean'), findsOneWidget);
-    // hydro is already attached: only the card row shows it, not the sheet.
-    expect(find.text('Hydrostatic test'), findsOneWidget);
-    expect(find.text('Manage service types'), findsOneWidget);
   });
 }

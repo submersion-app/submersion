@@ -141,6 +141,114 @@ void main() {
     expect((await h.one('nav_tracks', 'r2'))!['is_primary'], isTrue);
   });
 
+  group('a site change moves the anchor as the track page does', () {
+    Future<void> sites() => db.customStatement(
+      'INSERT INTO dive_sites (id, diver_id, name, latitude, longitude, '
+      "created_at, updated_at) VALUES ('sa', '$kDiverA', 'A', 10.0, 20.0, "
+      "1, 1), ('sb', '$kDiverA', 'B', 30.0, 40.0, 1, 1)",
+    );
+
+    Future<void> placeOnSiteA(double lat, double lon) =>
+        (db.update(db.navTracks)..where((t) => t.id.equals('r1'))).write(
+          NavTracksCompanion(
+            siteId: const Value('sa'),
+            anchorLatitude: Value(lat),
+            anchorLongitude: Value(lon),
+          ),
+        );
+
+    Future<List<Object?>> place() async {
+      final row = (await h.one('nav_tracks', 'r1'))!;
+      return [row['site_id'], row['anchor_latitude'], row['anchor_longitude']];
+    }
+
+    test('an anchor on the old site\'s pin moves to the new one', () async {
+      await sites();
+      await route('r1');
+      await placeOnSiteA(10.0, 20.0);
+
+      await h.run([
+        updateOp('nav_tracks', 'r1', {'site_id': 'sb'}),
+      ]);
+
+      expect(await place(), ['sb', 30.0, 40.0]);
+    });
+
+    test(
+      'a correction change in the same update keeps the moved anchor',
+      () async {
+        await sites();
+        await route('r1');
+        await placeOnSiteA(10.0, 20.0);
+
+        await h.run([
+          updateOp('nav_tracks', 'r1', {'site_id': 'sb', 'scale_factor': 1.2}),
+        ]);
+
+        expect(await place(), ['sb', 30.0, 40.0]);
+        expect((await h.one('nav_tracks', 'r1'))!['scale_factor'], 1.2);
+      },
+    );
+
+    // The preview names the site a dive change brings, as apply writes it.
+    Future<void> divesAtSites() => db.customStatement(
+      'INSERT INTO dives (id, diver_id, site_id, dive_date_time, created_at, '
+      "updated_at) VALUES ('da', '$kDiverA', 'sa', $start, 1, 1), "
+      "('db', '$kDiverA', 'sb', $start, 1, 1)",
+    );
+
+    test('the preview shows an anchored route with no site taking the '
+        'dive\'s', () async {
+      await sites();
+      await divesAtSites();
+      await route('r1');
+      await (db.update(db.navTracks)..where((t) => t.id.equals('r1'))).write(
+        const NavTracksCompanion(
+          anchorLatitude: Value(1.0),
+          anchorLongitude: Value(2.0),
+        ),
+      );
+
+      final preview = await h.preview([
+        updateOp('nav_tracks', 'r1', {'dive_id': 'db'}),
+      ]);
+
+      final site = preview.items.single.fields['site_id']!;
+      expect([site.newValue, site.indirect], ['sb', true]);
+      await h.apply(preview);
+      expect((await place())[0], 'sb');
+    });
+
+    test('the preview shows a site taken from the old dive moving to the '
+        'new dive\'s', () async {
+      await sites();
+      await divesAtSites();
+      await route('r1', dive: 'da');
+      await placeOnSiteA(10.0, 20.0);
+
+      final preview = await h.preview([
+        updateOp('nav_tracks', 'r1', {'dive_id': 'db'}),
+      ]);
+
+      final site = preview.items.single.fields['site_id']!;
+      expect([site.newValue, site.indirect], ['sb', true]);
+      await h.apply(preview);
+      expect(await place(), ['sb', 30.0, 40.0]);
+    });
+
+    test('an anchor placed by hand stays', () async {
+      await sites();
+      await route('r1');
+      await placeOnSiteA(1.0, 2.0);
+
+      await h.run([
+        updateOp('nav_tracks', 'r1', {'site_id': 'sb'}),
+      ]);
+
+      expect(await place(), ['sb', 1.0, 2.0]);
+    });
+  });
+
   test('a scale of 5 is refused', () async {
     await route('r1');
 

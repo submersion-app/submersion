@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,12 +16,24 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/scoped_tags_field.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+
+/// A count to bump, so the active gear, which watches it, reloads as it
+/// does when the active diver changes.
+class _Tick extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state++;
+}
+
+final _reloadTick = NotifierProvider<_Tick, int>(_Tick.new);
 
 /// The gear item's header block edited in place (issue #4527, phase 3,
 /// plan 6): its name, type, tags and the purchase of wishlist gear.
@@ -49,6 +63,8 @@ void main() {
     EquipmentItem item = apex,
     Future<bool> Function()? hasDevice,
     Locale locale = const Locale('en'),
+    List<EquipmentItem> active = const [],
+    Future<List<EquipmentItem>> Function(Ref ref)? readActive,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 1600);
@@ -63,7 +79,9 @@ void main() {
           equipmentHasDeviceProvider(
             item.id,
           ).overrideWith((ref) => hasDevice?.call() ?? Future.value(false)),
-          activeEquipmentProvider.overrideWith((ref) async => const []),
+          activeEquipmentProvider.overrideWith(
+            (ref) => readActive?.call(ref) ?? Future.value(active),
+          ),
         ].cast(),
         child: MaterialApp(
           locale: locale,
@@ -92,6 +110,123 @@ void main() {
 
     expect(gearItemTagsList.failed(session), isTrue);
     expect(find.byType(SittingLoadFailed), findsOneWidget);
+    // Nothing can be typed over tags it never read, and none are written.
+    expect(
+      tester.widget<ScopedTagsField>(find.byType(ScopedTagsField)).enabled,
+      isFalse,
+    );
+    expect(session.isHeld(gearItemTagsList.key), isFalse);
+  });
+
+  testWidgets('a type its host cannot hold drops the host', (tester) async {
+    const computer = EquipmentItem(
+      id: 'dc1',
+      name: 'Perdix',
+      type: EquipmentType.computer,
+    );
+    final session = await pumpEditor(
+      tester,
+      item: const EquipmentItem(
+        id: 'g1',
+        name: 'Cell',
+        type: EquipmentType.battery,
+        parentEquipmentId: 'dc1',
+      ),
+      active: const [computer],
+    );
+
+    typeDropdown(tester).onChanged!(EquipmentType.o2Cell);
+    await tester.pumpAndSettle();
+
+    expect(session.working.type, EquipmentType.o2Cell);
+    expect(session.working.parentEquipmentId, isNull);
+  });
+
+  // Until the active gear is read the host cannot be checked, so a fitted
+  // item's type waits: a quick change must not keep a host the new type
+  // cannot be fitted to, which the save would write.
+  testWidgets("a fitted item's type waits for the active gear", (tester) async {
+    final active = Completer<List<EquipmentItem>>();
+    const cell = EquipmentItem(
+      id: 'g1',
+      name: 'Cell',
+      type: EquipmentType.battery,
+      parentEquipmentId: 'dc1',
+    );
+    await pumpEditor(tester, item: cell, readActive: (_) => active.future);
+
+    expect(typeDropdown(tester).onChanged, isNull);
+
+    active.complete(const [
+      EquipmentItem(id: 'dc1', name: 'Perdix', type: EquipmentType.computer),
+    ]);
+    await tester.pumpAndSettle();
+    expect(typeDropdown(tester).onChanged, isNotNull);
+  });
+
+  // A reload the active gear's own dependencies start (the active diver
+  // changing) keeps the old list, but a type picked then could not check
+  // the host against it, so the type waits again until the reload answers.
+  testWidgets("a fitted item's type waits while the active gear reloads", (
+    tester,
+  ) async {
+    final reloaded = Completer<List<EquipmentItem>>();
+    var reads = 0;
+    await pumpEditor(
+      tester,
+      item: const EquipmentItem(
+        id: 'g1',
+        name: 'Cell',
+        type: EquipmentType.battery,
+        parentEquipmentId: 'dc1',
+      ),
+      readActive: (ref) {
+        ref.watch(_reloadTick);
+        return reads++ == 0
+            ? Future.value(const [
+                EquipmentItem(
+                  id: 'dc1',
+                  name: 'Perdix',
+                  type: EquipmentType.computer,
+                ),
+              ])
+            : reloaded.future;
+      },
+    );
+    expect(typeDropdown(tester).onChanged, isNotNull);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(GearItemHeaderEditor)),
+    ).read(_reloadTick.notifier).bump();
+    await tester.pump();
+
+    expect(typeDropdown(tester).onChanged, isNull);
+  });
+
+  testWidgets('an item with no host picks its type while the active gear '
+      'loads', (tester) async {
+    await pumpEditor(
+      tester,
+      readActive: (_) => Completer<List<EquipmentItem>>().future,
+    );
+
+    expect(typeDropdown(tester).onChanged, isNotNull);
+  });
+
+  testWidgets("a tag chip's remove holds the tags without it", (tester) async {
+    final session = await pumpEditor(tester);
+
+    await tester.tap(
+      find.descendant(
+        of: find.widgetWithText(TagChip, 'Travel kit'),
+        matching: find.byIcon(Icons.close),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.isHeld(gearItemTagsList.key), isTrue);
+    expect(gearItemTagsList.current(session), isEmpty);
+    expect(session.changedCardIds, {'header'});
   });
 
   testWidgets('the type is locked for an item a computer names', (

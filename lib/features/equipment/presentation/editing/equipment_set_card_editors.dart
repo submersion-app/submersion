@@ -13,7 +13,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 
 /// The equipment set page's card editors (issue #4527, phase 3). Each sets
-/// only its own card's values, with the edit form's widgets and rules.
+/// only its own card's values, with the old edit form's widgets and rules.
 
 /// A text binding of [field], whose text is its value.
 FieldTextBinding<EquipmentSet, String> _bindText(
@@ -149,7 +149,7 @@ class EquipmentSetFigureEditor extends StatelessWidget {
 }
 
 /// The Bundle card: the sets it includes, its weight presets and its
-/// cylinder configurations, as the form edits them.
+/// cylinder configurations, as the form edited them.
 class EquipmentSetBundleEditor extends StatelessWidget {
   const EquipmentSetBundleEditor({super.key, required this.session});
 
@@ -171,7 +171,7 @@ class EquipmentSetBundleEditor extends StatelessWidget {
   );
 }
 
-/// The Geofences card, as the form edits them.
+/// The Geofences card, as the form edited them.
 class EquipmentSetGeofencesEditor extends StatelessWidget {
   const EquipmentSetGeofencesEditor({super.key, required this.session});
 

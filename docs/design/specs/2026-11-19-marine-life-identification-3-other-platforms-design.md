@@ -350,6 +350,35 @@ The resampling filter for each resize is the builder's choice; the accuracy
 gate judges it. Core ML's path draws with CoreGraphics' high quality
 interpolation.
 
+**Settled by the gate (D1, 2026-11-21).** The first gate run failed: the
+ONNX engine named 586 held-out photos right against Core ML's 602, and on
+the same pixels the two engines' models agree (embedding cosine 0.99999),
+so the gap was all in the pixels. Two causes, both fixed in the engine:
+
+- The filter. CoreGraphics' high quality interpolation, measured, blends
+  the two nearest pixels on a curve stepped in eighths when it enlarges,
+  and uses a cubic widened by the scale, with the first and last pixels
+  mapped to the first and last, when it shrinks. The engine now draws the
+  same way (`pipeline/resampling.dart`), to within a level or two.
+- Colour. Flutter's decoder ignores a photo's embedded colour profile,
+  which ImageIO converts to sRGB, so Display P3 photos reached the ONNX
+  models about 9 levels redder. The engine converts matrix profiles to sRGB
+  itself (`pipeline/colour_profile.dart`); a profile it cannot read leaves
+  the pixels as decoded.
+
+With both, ONNX names 602 right, as Core ML does. What remains is JPEG
+decoding: ImageIO and the decoder Flutter uses (as on Android, Windows and
+Linux) differ by about a level, which the engine cannot remove.
+
+Drawing as CoreGraphics does costs more than the filter it replaced: a
+12 MP photo's shrink reads about 25 source pixels across and 19 down for
+each output pixel. Measured on a Mac in one process, the two detector
+inputs take about 1.5 times as long as before (they share their first
+pass, and the arithmetic is in whole numbers), and converting a Display P3
+photo adds about as much again (fixed point, as littleCMS does it). On a
+phone this is still well under the models' seconds, but it is no longer
+tens of milliseconds.
+
 **Precision.** The pack carries the ONNX models with 16-bit weights, so the
 download is about Core ML's. Whether the engine widens them to 32-bit when it
 loads them, or computes in 16-bit where the processor supports it, is the
@@ -414,9 +443,15 @@ Runtime calls are the same as on Android and Linux. What Windows adds:
 - **Finding an engine.** Before creating sessions, the engine asks Windows
   ML's catalogue (its C interface, `WinMLEpCatalog.h`, through FFI) for the
   hardware engines Windows offers for this PC, and registers each one that is
-  ready with ONNX Runtime's environment. Session options then ask ONNX
-  Runtime to prefer the GPU, then an NPU, then the processor. DirectML and
-  the processor come with Windows ML and are always there.
+  ready with ONNX Runtime's environment. A session then attaches a hardware
+  engine's GPU devices (else its NPU devices) explicitly, then DirectML by
+  name, then the processor. DirectML and the processor come with Windows ML
+  and are always there. *(Amended 2026-11-20 after the spike: the first
+  design let ONNX Runtime's selection policy prefer the GPU, but on a PC
+  whose only graphics device is Windows' software renderer that policy, and
+  any explicit attach of that device, ends the process. The engine picks
+  devices itself and never the software renderer;
+  [findings](../findings/2026-11-20-windows-ml-unpackaged.md).)*
 - **Which engines.** Any engine Windows offers is used, whether or not it
   has been checked against the bars **(decided)**. The debug log records
   which engine ran each session.
@@ -441,7 +476,9 @@ Runtime calls are the same as on Android and Linux. What Windows adds:
   what it needs itself, is the builder's call; either way the app keeps
   working on Windows 10, with DirectML and the processor only. The first step
   of building this is a spike that proves the catalogue works from the app as
-  it is packaged today, an unpackaged Win32 app.
+  it is packaged today, an unpackaged Win32 app. *(Settled 2026-11-20 by the
+  spike: the app carries Windows ML's three libraries beside the executable,
+  with no Windows App SDK runtime or bootstrapper.)*
 
 The accuracy gate (section 6) covers the processor path, which every
 Windows PC can fall back to. The GPU and NPU paths are not gated
@@ -570,6 +607,15 @@ sample, with the pack's own bars and detector set:
 4. Junk (divers' hands, fins and the like) is named within the pack's own
    junk limit (`JUNK_LIMIT` in `gate.py`, measured as the pack measures it),
    and not significantly more often than by Core ML, by the paired test.
+   Junk crops are paired by their labelled box (overlap 0.9 or more). The
+   rows were labelled on Core ML's boxes, so a crop only one run found is
+   left out of the pairing, and the check fails when more than 5% of the
+   crops are left out in a way that could hide junk named: found only by
+   ONNX, or lost by ONNX with a box still over the same object (overlap
+   0.5 or more). A crop ONNX drew no box over names nothing there
+   **(decided 2026-11-21: "Count moved boxes too"; D1's last four lost
+   crops were boxes Core ML scored just over the 0.30 cut-off and ONNX
+   just under it, from JPEG decoding)**.
 
 A report beside it shows, for diagnosis only, how far the two engines' boxes
 and embeddings differ per photo.
@@ -685,7 +731,8 @@ differs.
 - The pinned ONNX Runtime version, the operator set, and how the hook fetches
   each platform's library.
 - The resampling filters, and whether models are widened to 32-bit at load,
-  both judged by the gate.
+  both judged by the gate (the filters settled by D1, under the detectors
+  above).
 - ONNX Runtime's thread counts and session options.
 - Whether the worker calls the frame channel directly.
 - Pass 1's decoder on Android (`MediaCodec` is proposed; anything that

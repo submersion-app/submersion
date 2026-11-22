@@ -15,17 +15,22 @@ class SearchEverywhereRow extends ConsumerWidget {
 
   final String text;
 
+  // Part of the search field's tap region: the row shows only while the
+  // field has focus, and a tap off the field drops it (#4813), so without
+  // this the row would be gone before the finger lifts.
   @override
-  Widget build(BuildContext context, WidgetRef ref) => ListTile(
-    key: kSearchEverywhereRowKey,
-    dense: true,
-    leading: const Icon(Icons.travel_explore),
-    title: Text(
-      context.l10n.search_everywhere(text.trim()),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+  Widget build(BuildContext context, WidgetRef ref) => TextFieldTapRegion(
+    child: ListTile(
+      key: kSearchEverywhereRowKey,
+      dense: true,
+      leading: const Icon(Icons.travel_explore),
+      title: Text(
+        context.l10n.search_everywhere(text.trim()),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => openGlobalSearch(context, ref, text.trim()),
     ),
-    trailing: const Icon(Icons.chevron_right),
-    onTap: () => openGlobalSearch(context, ref, text.trim()),
   );
 }

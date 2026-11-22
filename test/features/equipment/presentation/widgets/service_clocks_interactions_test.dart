@@ -12,9 +12,11 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -32,9 +34,10 @@ Finder get _baselineField => find.ancestor(
   matching: find.byType(InkWell),
 );
 
-/// End-to-end interactions on [ServiceClocksCard] against the real test
-/// database: the kind-picker sheet, pause/resume/remove menu actions, and
-/// the interval-override dialog all execute their real repository paths.
+/// The Service clocks card and the dialogs its open card's editor uses,
+/// against the real test database: the kind-picker sheet and the
+/// interval-override dialog read what is stored and hand what they make to
+/// the sitting (issue #4527, phase 3), writing nothing.
 void main() {
   // formatDate resolves DateFormat against Intl.defaultLocale, a process
   // global the app assigns from the diver's locale and a widget test never
@@ -79,7 +82,6 @@ void main() {
   Widget buildCard(
     String equipmentId, {
     EquipmentType type = EquipmentType.tank,
-    void Function(ServiceClockStatus)? onLogService,
   }) {
     return ProviderScope(
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
@@ -89,11 +91,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: ServiceClocksCard(
-              equipmentId: equipmentId,
-              equipmentType: type,
-              onLogService: onLogService,
-            ),
+            child: ServiceClocksCard(equipmentId: equipmentId),
           ),
         ),
       ),
@@ -110,111 +108,77 @@ void main() {
     return tank;
   }
 
-  Future<void> openMenu(WidgetTester tester, String kindName) async {
-    await tester.tap(
-      find.descendant(
-        of: find.widgetWithText(ListTile, kindName),
-        matching: find.byType(PopupMenuButton<String>),
+  /// Opens the interval dialog on [equipmentId]'s [kindId] clock as stored,
+  /// as the clocks editor opens it; the list gets what its Save hands over.
+  Future<List<ServiceSchedule>> openOverride(
+    WidgetTester tester,
+    String equipmentId,
+    String kindId,
+  ) async {
+    final held = <ServiceSchedule>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Consumer(
+            builder: (context, ref, _) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final schedules = await ref.read(
+                      serviceSchedulesForEquipmentProvider(equipmentId).future,
+                    );
+                    final kinds = await ref.read(
+                      allServiceKindsByIdProvider.future,
+                    );
+                    if (!context.mounted) return;
+                    await showScheduleOverrideDialog(
+                      context,
+                      ref,
+                      schedule: schedules.firstWhere(
+                        (s) => s.serviceKindId == kindId,
+                      ),
+                      kind: kinds[kindId]!,
+                      onHold: held.add,
+                    );
+                  },
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
+    await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
+    return held;
   }
 
-  testWidgets('picker sheet attaches a new clock through the repository', (
+  /// The [kindId] clock of [equipmentId] as stored.
+  Future<ServiceSchedule> stored(
+    WidgetTester tester,
+    String equipmentId,
+    String kindId,
+  ) async {
+    late ServiceSchedule schedule;
+    await tester.runAsync(() async {
+      final schedules = await scheduleRepo.getSchedulesForEquipment(
+        equipmentId,
+      );
+      schedule = schedules.firstWhere((s) => s.serviceKindId == kindId);
+    });
+    return schedule;
+  }
+
+  testWidgets('override dialog holds intervals and anchor date', (
     tester,
   ) async {
     final tank = await makeTank(tester);
-    await tester.pumpWidget(buildCard(tank.id));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Hydrostatic test'), findsOneWidget);
-    expect(find.text('O2 clean'), findsNothing);
-
-    await tester.tap(find.text('Add clock'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('O2 clean'));
-    await tester.pumpAndSettle();
-
-    // The new clock renders and the schedule row exists in the DB.
-    expect(find.text('O2 clean'), findsOneWidget);
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      expect(schedules.map((s) => s.serviceKindId), contains('o2-clean'));
-    });
-  });
-
-  testWidgets('pause moves a clock to the paused section; resume restores it', (
-    tester,
-  ) async {
-    final tank = await makeTank(tester);
-    await tester.pumpWidget(buildCard(tank.id));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Visual inspection (VIP)');
-    await tester.tap(find.text('Pause'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Paused'), findsOneWidget);
-    expect(find.text('Resume'), findsOneWidget);
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      final vip = schedules.firstWhere((s) => s.serviceKindId == 'vip');
-      expect(vip.enabled, isFalse);
-    });
-
-    await tester.tap(find.text('Resume'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Paused'), findsNothing);
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      final vip = schedules.firstWhere((s) => s.serviceKindId == 'vip');
-      expect(vip.enabled, isTrue);
-    });
-  });
-
-  testWidgets('remove deletes the schedule row', (tester) async {
-    final tank = await makeTank(tester);
-    await tester.pumpWidget(buildCard(tank.id));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Visual inspection (VIP)');
-    await tester.tap(find.text('Remove'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Visual inspection (VIP)'), findsNothing);
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      expect(schedules.map((s) => s.serviceKindId), isNot(contains('vip')));
-    });
-  });
-
-  testWidgets('log service menu action hands the clock to the callback', (
-    tester,
-  ) async {
-    final tank = await makeTank(tester);
-    final logged = <ServiceClockStatus>[];
-    await tester.pumpWidget(buildCard(tank.id, onLogService: logged.add));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Hydrostatic test');
-    await tester.tap(find.text('Log service'));
-    await tester.pumpAndSettle();
-
-    expect(logged, hasLength(1));
-    expect(logged.single.kind.id, 'hydro');
-  });
-
-  testWidgets('override dialog saves intervals and anchor date', (
-    tester,
-  ) async {
-    final tank = await makeTank(tester);
-    await tester.pumpWidget(buildCard(tank.id));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Hydrostatic test');
-    await tester.tap(find.text('Edit intervals'));
-    await tester.pumpAndSettle();
+    final held = await openOverride(tester, tank.id, 'hydro');
 
     await tester.enterText(
       find.widgetWithText(TextField, 'Interval (days)'),
@@ -240,21 +204,16 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
-      expect(hydro.intervalDays, 100);
-      expect(hydro.intervalDives, 50);
-      expect(hydro.intervalHours, 2.5);
-      expect(hydro.anchorDate, isNotNull);
-      // A newly set baseline records when, so records logged before it
-      // cannot outrank it.
-      expect(hydro.anchorSetAt, isNotNull);
-    });
-
-    // The card now renders the usage triggers alongside the date trigger.
-    expect(find.textContaining('of 50 dives,'), findsOneWidget);
-    expect(find.textContaining('of 2.5 hours,'), findsOneWidget);
+    final hydro = held.single;
+    expect(hydro.intervalDays, 100);
+    expect(hydro.intervalDives, 50);
+    expect(hydro.intervalHours, 2.5);
+    expect(hydro.anchorDate, isNotNull);
+    // A newly set baseline records when, so records logged before it
+    // cannot outrank it.
+    expect(hydro.anchorSetAt, isNotNull);
+    // Held, not written: the sitting writes it at Save.
+    expect((await stored(tester, tank.id, 'hydro')).intervalDays, isNull);
   });
 
   testWidgets('saving without touching the baseline keeps its set time', (
@@ -271,12 +230,7 @@ void main() {
         hydro.withBaseline(DateTime(2024, 6, 1), now: setAt),
       );
     });
-    await tester.pumpWidget(buildCard(tank.id));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Hydrostatic test');
-    await tester.tap(find.text('Edit intervals'));
-    await tester.pumpAndSettle();
+    final held = await openOverride(tester, tank.id, 'hydro');
     await tester.enterText(
       find.widgetWithText(TextField, 'Interval (days)'),
       '100',
@@ -284,13 +238,10 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
-      expect(hydro.intervalDays, 100);
-      expect(hydro.anchorDate, DateTime(2024, 6, 1));
-      expect(hydro.anchorSetAt, setAt);
-    });
+    final hydro = held.single;
+    expect(hydro.intervalDays, 100);
+    expect(hydro.anchorDate, DateTime(2024, 6, 1));
+    expect(hydro.anchorSetAt, setAt);
   });
 
   testWidgets('re-picking a pre-update baseline on the same day stamps it', (
@@ -307,12 +258,7 @@ void main() {
         hydro.copyWith(anchorDate: DateTime(2024, 6, 1)),
       );
     });
-    await tester.pumpWidget(buildCard(tank.id));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Hydrostatic test');
-    await tester.tap(find.text('Edit intervals'));
-    await tester.pumpAndSettle();
+    final held = await openOverride(tester, tank.id, 'hydro');
     await tester.ensureVisible(_baselineField);
     await tester.tap(_baselineField);
     await tester.pumpAndSettle();
@@ -322,12 +268,9 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
-      expect(hydro.anchorDate, DateTime(2024, 6, 1));
-      expect(hydro.anchorSetAt, isNotNull);
-    });
+    final hydro = held.single;
+    expect(hydro.anchorDate, DateTime(2024, 6, 1));
+    expect(hydro.anchorSetAt, isNotNull);
   });
 
   testWidgets(
@@ -346,12 +289,7 @@ void main() {
           hydro.copyWith(anchorDate: DateTime(2024, 6, 1)),
         );
       });
-      await tester.pumpWidget(buildCard(tank.id));
-      await tester.pumpAndSettle();
-
-      await openMenu(tester, 'Hydrostatic test');
-      await tester.tap(find.text('Edit intervals'));
-      await tester.pumpAndSettle();
+      final held = await openOverride(tester, tank.id, 'hydro');
       await tester.enterText(
         find.widgetWithText(TextField, 'Interval (days)'),
         '100',
@@ -359,12 +297,9 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      await tester.runAsync(() async {
-        final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-        final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
-        expect(hydro.anchorDate, DateTime(2024, 6, 1));
-        expect(hydro.anchorSetAt, isNotNull);
-      });
+      final hydro = held.single;
+      expect(hydro.anchorDate, DateTime(2024, 6, 1));
+      expect(hydro.anchorSetAt, isNotNull);
     },
   );
 
@@ -393,12 +328,7 @@ void main() {
         ),
       );
     });
-    await tester.pumpWidget(buildCard(tank.id));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Hydrostatic test');
-    await tester.tap(find.text('Edit intervals'));
-    await tester.pumpAndSettle();
+    final held = await openOverride(tester, tank.id, 'hydro');
     await tester.ensureVisible(_baselineField);
 
     expect(find.byTooltip('Clear baseline date'), findsNothing);
@@ -408,12 +338,9 @@ void main() {
     // the service that took over must be able to bring it back.
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
-      expect(hydro.anchorDate, DateTime(2024, 6, 1));
-      expect(hydro.anchorSetAt, DateTime(2025));
-    });
+    final hydro = held.single;
+    expect(hydro.anchorDate, DateTime(2024, 6, 1));
+    expect(hydro.anchorSetAt, DateTime(2025));
   });
 
   testWidgets('override dialog clear button nulls the anchor date', (
@@ -427,12 +354,7 @@ void main() {
         hydro.withBaseline(DateTime(2024, 6, 1), now: DateTime(2026)),
       );
     });
-    await tester.pumpWidget(buildCard(tank.id));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Hydrostatic test');
-    await tester.tap(find.text('Edit intervals'));
-    await tester.pumpAndSettle();
+    final held = await openOverride(tester, tank.id, 'hydro');
 
     await tester.ensureVisible(find.byTooltip('Clear baseline date'));
     await tester.tap(find.byTooltip('Clear baseline date'));
@@ -440,12 +362,9 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    await tester.runAsync(() async {
-      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
-      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
-      expect(hydro.anchorDate, isNull);
-      expect(hydro.anchorSetAt, isNull);
-    });
+    final hydro = held.single;
+    expect(hydro.anchorDate, isNull);
+    expect(hydro.anchorSetAt, isNull);
   });
 
   testWidgets('edit dialog shows kind default hints for usage intervals', (
@@ -461,12 +380,7 @@ void main() {
         ),
       );
     });
-    await tester.pumpWidget(buildCard(reg.id, type: EquipmentType.regulator));
-    await tester.pumpAndSettle();
-
-    await openMenu(tester, 'Regulator service');
-    await tester.tap(find.text('Edit intervals'));
-    await tester.pumpAndSettle();
+    await openOverride(tester, reg.id, 'regulator-service');
 
     // Regulator service defaults: 365 days OR 100 dives -> both hints.
     expect(find.text('Default: 365'), findsOneWidget);
@@ -483,10 +397,17 @@ void main() {
         GoRoute(
           path: '/',
           builder: (_, _) => Scaffold(
-            body: SingleChildScrollView(
-              child: ServiceClocksCard(
-                equipmentId: tank.id,
-                equipmentType: EquipmentType.tank,
+            body: Consumer(
+              builder: (context, ref, _) => ElevatedButton(
+                onPressed: () => showServiceKindPicker(
+                  context,
+                  ref,
+                  equipmentId: tank.id,
+                  equipmentType: EquipmentType.tank,
+                  attachedKindIds: const {},
+                  onHold: (_) {},
+                ),
+                child: const Text('Add clock'),
               ),
             ),
           ),

@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
@@ -124,7 +125,11 @@ Widget barApp(Widget child, {TextDirection? direction}) {
     body = Directionality(textDirection: direction, child: body);
   }
   return ProviderScope(
-    overrides: [mediaPeopleChipsProvider('m1').overrideWith((ref) async => [])],
+    overrides: [
+      mediaPeopleChipsProvider('m1').overrideWith((ref) async => []),
+      // Nothing analysed to tint (issue #4825).
+      videoScanStretchesProvider('m1').overrideWith((ref) async => null),
+    ],
     child: MaterialApp(
       // The tests read English labels, so the host's locale must not decide.
       locale: const Locale('en'),

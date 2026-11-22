@@ -115,9 +115,13 @@ class _GearItemHeaderEditorState extends ConsumerState<GearItemHeaderEditor> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final id = _session.stored.id;
+    // Kept loaded for [_pickType]: with only this card open, nothing else
+    // reads the active gear, and a type change would keep a host it cannot
+    // be fitted to.
+    final candidates = ref.watch(activeEquipmentProvider);
     // Locked until the lookup answers, so the field is never briefly
     // editable on a device's item. An item not yet created has no device
-    // (issue #4527, plan 11), as the form never locks a new item.
+    // (issue #4527, plan 11), as the form never locked one.
     final typeLocked =
         !_session.isNew &&
         (ref.watch(equipmentHasDeviceProvider(id)).value ?? true);
@@ -129,6 +133,14 @@ class _GearItemHeaderEditorState extends ConsumerState<GearItemHeaderEditor> {
       builder: (context, _) {
         final working = _session.working;
         final name = _session.valueOf(gearNameField);
+        // A host is checked against the active gear: until that is read, a
+        // new type could keep a host it cannot be fitted to, and the save
+        // would write it, so a fitted item's type waits for it. Read as
+        // [_pickType] reads it, so a reload the gear's own dependencies
+        // start (the active diver changing) waits too.
+        final hostUnchecked =
+            _session.valueOf(gearParentField) != null &&
+            candidates.valueOrNull == null;
         final tags = gearItemTagsList.current(_session);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -168,7 +180,7 @@ class _GearItemHeaderEditorState extends ConsumerState<GearItemHeaderEditor> {
                     child: Text(type.localizedName(l10n)),
                   ),
               ],
-              onChanged: typeLocked
+              onChanged: typeLocked || hostUnchecked
                   ? null
                   : (value) {
                       if (value != null) _pickType(value);

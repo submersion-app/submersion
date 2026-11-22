@@ -7,70 +7,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/services/move_time.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
-
-/// Takes [items] back from [buddyId]: the sheet, then the parts and status
-/// prompts, then a SnackBar. Returns how many items came back, or null when
-/// cancelled or when the return failed (a SnackBar says so).
-Future<int?> showEquipmentReturnFlow(
-  BuildContext context,
-  WidgetRef ref, {
-  required List<EquipmentItem> items,
-  required String buddyId,
-}) async {
-  if (items.isEmpty) return null;
-  final l10n = context.l10n;
-  final messenger = ScaffoldMessenger.of(context);
-  final notifier = ref.read(equipmentListNotifierProvider.notifier);
-  void failed() => messenger.showSnackBar(
-    SnackBar(content: Text(l10n.common_error_tryAgain)),
-  );
-  final flow = EquipmentReturnFlow(
-    moves: ref.read(equipmentLocationMoveRepositoryProvider),
-    askMoveParts: (n) => askMoveParts(context, n),
-    askStatus: (status, n) => askMoveStatus(context, status, n),
-    setStatus: notifier.setStatusForMany,
-    onStatusFailed: failed,
-  );
-  try {
-    final places = await ref.read(allEquipmentLocationsByIdProvider.future);
-    final destinations = await flow.destinations(
-      items: items,
-      buddyId: buddyId,
-      places: places,
-    );
-    if (!context.mounted) return null;
-    final draft = await showModalBottomSheet<_ReturnDraft>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => _ReturnEquipmentSheet(
-        itemCount: items.length,
-        destinations: destinations,
-      ),
-    );
-    if (draft == null) return null;
-    final returned = await flow.run(
-      items: items,
-      buddyId: buddyId,
-      places: places,
-      movedAt: draft.movedAt,
-      note: draft.note,
-    );
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.equipment_location_returned(returned))),
-    );
-    return returned;
-  } catch (_) {
-    // The flow fails only before or while the moves are written (a failed
-    // status write is reported apart), so the diver can simply try again.
-    failed();
-    return null;
-  }
-}
 
 /// A return asked about on a buddy's page in its sitting (issue #4527,
 /// phase 3), held until Save: the gear and the answers to the parts and

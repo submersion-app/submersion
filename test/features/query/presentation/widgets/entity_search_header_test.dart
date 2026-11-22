@@ -7,6 +7,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/core/ui/app_actions.dart';
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
 import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
@@ -80,6 +81,9 @@ Widget _app({bool alwaysShown = false}) {
       queryUnitPrefsProvider.overrideWithValue(kMetricPrefs),
     ],
     child: MaterialApp.router(
+      // The app's own, as lib/app.dart sets them: a tap off the field drops
+      // its focus, touch included (#4813).
+      actions: appActions(),
       routerConfig: router,
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -307,7 +311,14 @@ void main() {
       await tester.pump();
       final container = _container(tester);
 
-      await tester.tap(find.byKey(kSearchEverywhereRowKey));
+      // A finger's tap, with a frame between down and up: the down drops the
+      // field's focus, so the row must count as part of the field or it is
+      // gone by the time the finger lifts (#4813).
+      final finger = await tester.startGesture(
+        tester.getCenter(find.byKey(kSearchEverywhereRowKey)),
+      );
+      await tester.pump();
+      await finger.up();
       await tester.pumpAndSettle();
       expect(find.text('page /search'), findsOneWidget);
       expect(container.read(globalSearchRequestProvider)?.text, 'wreck');

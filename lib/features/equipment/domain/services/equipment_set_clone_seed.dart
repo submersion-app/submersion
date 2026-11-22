@@ -1,6 +1,6 @@
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 
-/// The set the Clone form starts from (issue #2156): [source] with no id or
+/// The set a clone starts from (issue #2156): [source] with no id or
 /// owner (the save assigns them) and the name from [copyName]. The
 /// description, members, figure preference and what the set carries besides
 /// gear (included sets, weight presets, cylinder configurations) are kept.

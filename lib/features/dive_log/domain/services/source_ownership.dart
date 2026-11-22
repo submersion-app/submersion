@@ -27,7 +27,11 @@ import 'package:submersion/core/database/database.dart';
 ///   gives it; the slot survives that, so this one does not (issue #4367).
 ///   A dive combined before v184 has a slot only where the v184 rung could
 ///   classify it, so the v356 rung stamps the rest while they still have no
-///   primary row (`stampCombinedDiveSourceSlots`).
+///   primary row (`stampCombinedDiveSourceSlots`). A lone download is left
+///   out of that stamp, and the v380 rung makes such a row primary again
+///   with no slot (`repairLoneDownloadSources`, issue #4847): its dive runs
+///   no longer than its own recording and its samples sit on its own clock,
+///   which a Combine that carried it would not leave.
 ///   It costs one false negative: [DiveUncombineService] keeps the slots of
 ///   a restored segment that holds several strands, whose samples it has
 ///   moved back to their own frame. Such a row keeps its profile rather

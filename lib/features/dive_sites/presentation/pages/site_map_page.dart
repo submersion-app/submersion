@@ -30,6 +30,7 @@ import 'package:submersion/features/maps/presentation/widgets/map_interaction_op
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
@@ -203,7 +204,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           onPressed: () => context.go('/sites'),
         ),
         IconButton(
-          icon: const Icon(Icons.my_location),
+          icon: const Icon(Icons.zoom_out_map),
           tooltip: context.l10n.diveSites_map_tooltip_fitAllSites,
           onPressed: () => _camera.fitAll(
             _sitePoints(sitesAsync.value?.map((s) => s.site) ?? const []),
@@ -384,6 +385,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                     );
                   },
                 ),
+              // The device, once Show my location has found it (#4808).
+              const MyLocationLayer(),
               const MapAttribution(),
             ],
           ),
@@ -408,13 +411,17 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           ),
         ),
 
-        // Map style switcher and reset-to-north compass (hidden until the map
-        // is rotated), tucked under the controls card as on the master-detail
-        // map.
+        // Map style switcher, Show my location (here rather than in the app
+        // bar, which a phone has no room left in, #4808) and reset-to-north
+        // compass (hidden until the map is rotated), tucked under the
+        // controls card as on the master-detail map.
         Positioned(
           top: 64,
           right: 8,
-          child: MapCornerControls(controller: _mapController),
+          child: MapCornerControls(
+            controller: _mapController,
+            onLocated: _camera.animateTo,
+          ),
         ),
         const BuiltInOverlayCaptionSlot(),
 

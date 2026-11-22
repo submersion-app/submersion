@@ -280,7 +280,6 @@ class _CertificationDetailContent extends ConsumerWidget {
               CertificationCardId.currency,
               CertificationCurrencySection(
                 certification: certification,
-                readOnly: true,
                 shown: host.maybeEditController?.session,
               ),
             ),

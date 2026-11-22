@@ -28,6 +28,32 @@ void main() {
     },
   );
 
+  Future<String> textOf(String package) async {
+    final entries = await LicenseRegistry.licenses.toList();
+    return entries
+        .where((e) => e.packages.contains(package))
+        .expand((e) => e.paragraphs)
+        .map((p) => p.text)
+        .join(' ');
+  }
+
+  test("on Windows it also carries Microsoft's Windows ML terms", () async {
+    // Windows ships Windows ML's files, whose terms the app's users agree
+    // to (the installer shows them too).
+    OnnxRuntimeAttribution.registerLicense(platform: TargetPlatform.windows);
+    final text = await textOf(OnnxRuntimeAttribution.windowsMlPackageName);
+
+    expect(text, contains('MICROSOFT SOFTWARE LICENSE TERMS'));
+    expect(text, contains('Microsoft Windows ML Runtime'));
+  });
+
+  test('Android and Linux carry no Windows ML terms', () async {
+    OnnxRuntimeAttribution.registerLicense(platform: TargetPlatform.android);
+    OnnxRuntimeAttribution.registerLicense(platform: TargetPlatform.linux);
+
+    expect(await textOf(OnnxRuntimeAttribution.windowsMlPackageName), isEmpty);
+  });
+
   test('registers nothing on Apple platforms, which use Core ML', () async {
     OnnxRuntimeAttribution.registerLicense(platform: TargetPlatform.iOS);
     OnnxRuntimeAttribution.registerLicense(platform: TargetPlatform.macOS);

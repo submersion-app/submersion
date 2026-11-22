@@ -367,23 +367,6 @@ void main() {
             'without any manual refresh() call',
       );
     });
-
-    test('toggleFavorite flips the flag and refreshes the list', () async {
-      final diver = await seedCurrentDiver();
-      final buddy = await buddyRepo.createBuddy(
-        _makeBuddy(name: 'Fave Buddy', diverId: diver.id),
-      );
-
-      final container = makeContainer();
-      addTearDown(container.dispose);
-
-      await container
-          .read(buddyListNotifierProvider.notifier)
-          .toggleFavorite(buddy.id);
-
-      final updated = await buddyRepo.getBuddyById(buddy.id);
-      expect(updated!.isFavorite, isTrue);
-    });
   });
 
   group('applyBuddyWithDiveCountSorting (issue #638)', () {

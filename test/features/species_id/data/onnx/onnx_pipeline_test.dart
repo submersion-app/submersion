@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/colour_profile.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/onnx_pipeline.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
@@ -10,6 +11,8 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
+
+import 'icc_test_profiles.dart';
 
 /// A model that records what it was given and answers with [answer].
 class FakeRunner implements ModelRunner {
@@ -258,5 +261,32 @@ void main() {
     final boxes = pipeline.detectFrame(image);
 
     expect(boxes.single.score, closeTo(0.9, 1e-6));
+  });
+
+  test('converts a photo with a colour profile to sRGB before anything '
+      'sees it', () {
+    final p3 = uniform(40, 20, [200, 100, 50]);
+    final photo = RgbaImage(
+      40,
+      20,
+      p3.bytes,
+      colour: srgbConversionOf(jpegWith(displayP3Profile())),
+    );
+    final det = rfdetr([
+      [0.5, 0.5, 0.5, 0.5, 0.9],
+    ]);
+    final pipeline = OnnxPipeline(
+      models: models(),
+      detectors: [det],
+      classifier: classifier([1, 2, 3]),
+    );
+
+    pipeline.analyze(photo);
+
+    // The detector's mean is 0 and its std 1: its input is v / 255.
+    final plane = 8 * 8, input = det.inputs.single;
+    for (final (c, want) in [(0, 215), (1, 93), (2, 31)]) {
+      expect(input[c * plane] * 255, closeTo(want, 1.01), reason: 'channel $c');
+    }
   });
 }

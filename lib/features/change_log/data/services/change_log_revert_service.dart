@@ -162,14 +162,85 @@ class ChangeLogRevertService {
       dependencies: dependencies,
       restoring: restoring,
     );
-    return [
-      ...restores,
-      ...edits,
-      ...await planner.planRemovals(
+    final paired = await planner.pairReadings(
+      restores,
+      await planner.planRemovals(
         events,
         releasing: ChangeLogRecordPlanner.releasedLinks(edits),
       ),
-    ];
+    );
+    final held = await _holdWithRestores(
+      paired.restores,
+      edits,
+      dependencies: dependencies,
+      restoring: restoring,
+    );
+    return [...held.restores, ...held.edits, ...paired.removals];
+  }
+
+  /// [restores] and [edits], with what needs a record whose restore is held
+  /// back as changed since held too: a restore that needs that record, as a
+  /// series' lineage row needs its series, an edit to it, or a link to it.
+  /// A revert of only the rest could not write them without it (issue
+  /// #4848).
+  Future<
+    ({List<ChangeLogRevertItem> restores, List<ChangeLogRevertItem> edits})
+  >
+  _holdWithRestores(
+    List<ChangeLogRevertItem> restores,
+    List<ChangeLogRevertItem> edits, {
+    required ChangeLogDependencyIndex dependencies,
+    required Set<String> restoring,
+  }) async {
+    String keyOf(ChangeLogRevertItem item) =>
+        changeLogRecordKey(item.event.table, item.event.recordId);
+    bool holdable(ChangeLogRevertItem item) =>
+        !item.isBlocked && !item.changedSince;
+    final held = {
+      for (final item in restores)
+        if (!item.isBlocked && item.changedSince) keyOf(item),
+    };
+    if (held.isEmpty) return (restores: restores, edits: edits);
+    Future<bool> needsHeld(
+      ChangeLogRevertItem item,
+      Map<String, Object?> row,
+    ) async =>
+        held.contains(keyOf(item)) ||
+        (await dependencies.missingParents(
+          item.event.table,
+          row,
+          restoring.difference(held),
+        )).any(held.contains);
+
+    // Holding a restore can hold another that needs it, so this repeats.
+    var grew = true;
+    while (grew) {
+      grew = false;
+      for (final item in restores) {
+        if (!holdable(item) || held.contains(keyOf(item))) continue;
+        final row = {for (final f in item.event.fields) f.column: f.oldValue};
+        if (!await needsHeld(item, row)) continue;
+        held.add(keyOf(item));
+        grew = true;
+      }
+    }
+    return (
+      restores: [
+        for (final item in restores)
+          if (holdable(item) && held.contains(keyOf(item)))
+            item.copyWith(changedSince: true)
+          else
+            item,
+      ],
+      edits: [
+        for (final item in edits)
+          if (holdable(item) &&
+              await needsHeld(item, {item.column!: item.target}))
+            item.copyWith(changedSince: true)
+          else
+            item,
+      ],
+    );
   }
 
   ChangeLogRecordPlanner _plannerWith(ChangeLogDependencyIndex dependencies) =>
@@ -546,6 +617,9 @@ class ChangeLogRevertService {
     List<ChangeLogRevertItem> edits,
     int now,
   ) async {
+    // A series' lineage row is raw SQL and never syncs, as in
+    // [_restoreRecord]: no Drift table to notify and nothing to stage.
+    final deviceLocal = changeLogDeviceLocalTables.contains(table);
     final hasUpdatedAt = (await _repository.liveColumns(
       table,
     )).contains('updated_at');
@@ -558,8 +632,9 @@ class ChangeLogRevertService {
         if (hasUpdatedAt) Variable<Object>(now),
         ...match.variables,
       ],
-      updates: {_infoOf(table)},
+      updates: deviceLocal ? const {} : {_infoOf(table)},
     );
+    if (deviceLocal) return;
 
     final entity = changeLogEntityType(table);
     final columns = {for (final edit in edits) edit.column!};
