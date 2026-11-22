@@ -13648,6 +13648,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divers_edit_nameLabel => 'Name *';
 
   @override
+  String get divers_edit_notFound => 'This diver no longer exists.';
+
+  @override
   String get divers_edit_notesLabel => 'Notes';
 
   @override
@@ -40276,6 +40279,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Delete entry';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Delete this measurement?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight on $date will be deleted. This cannot be undone.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Height (cm)';

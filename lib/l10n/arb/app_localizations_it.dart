@@ -13859,6 +13859,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divers_edit_nameLabel => 'Nome *';
 
   @override
+  String get divers_edit_notFound => 'Questo subacqueo non esiste più.';
+
+  @override
   String get divers_edit_notesLabel => 'Note';
 
   @override
@@ -40964,6 +40967,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Elimina voce';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Eliminare questa misurazione?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight del $date verrà eliminato. L\'operazione non può essere annullata.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Altezza (cm)';

@@ -21872,6 +21872,12 @@ abstract class AppLocalizations {
   /// **'Name *'**
   String get divers_edit_nameLabel;
 
+  /// No description provided for @divers_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This diver no longer exists.'**
+  String get divers_edit_notFound;
+
   /// No description provided for @divers_edit_notesLabel.
   ///
   /// In en, this message translates to:
@@ -63809,6 +63815,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete entry'**
   String get bodyWeight_deleteTooltip;
+
+  /// No description provided for @bodyWeight_deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this measurement?'**
+  String get bodyWeight_deleteConfirmTitle;
+
+  /// Body of the question asked before a body-weight entry is deleted. {weight} is the weight in the diver's units, such as 176.4 lbs; {date} is the date it was measured.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} on {date} will be deleted. This cannot be undone.'**
+  String bodyWeight_deleteConfirmBody(String weight, String date);
 
   /// No description provided for @bodyWeight_heightLabel.
   ///

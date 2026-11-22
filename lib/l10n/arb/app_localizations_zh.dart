@@ -13164,6 +13164,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_nameLabel => '名称 *';
 
   @override
+  String get divers_edit_notFound => '该潜水员已不存在。';
+
+  @override
   String get divers_edit_notesLabel => '备注';
 
   @override
@@ -38474,6 +38477,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => '删除条目';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => '删除此测量记录？';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$date 的 $weight 将被删除。此操作无法撤销。';
+  }
 
   @override
   String get bodyWeight_heightLabel => '身高（厘米）';

@@ -13858,6 +13858,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divers_edit_nameLabel => 'Nome *';
 
   @override
+  String get divers_edit_notFound => 'Este mergulhador já não existe.';
+
+  @override
   String get divers_edit_notesLabel => 'Notas';
 
   @override
@@ -40929,6 +40932,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Excluir entrada';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Eliminar esta medição?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight de $date será eliminado. Não é possível anular.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Altura (cm)';

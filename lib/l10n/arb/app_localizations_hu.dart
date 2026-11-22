@@ -13826,6 +13826,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_nameLabel => 'Név *';
 
   @override
+  String get divers_edit_notFound => 'Ez a búvár már nem létezik.';
+
+  @override
   String get divers_edit_notesLabel => 'Megjegyzések';
 
   @override
@@ -40719,6 +40722,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Bejegyzés törlése';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Törlöd ezt a mérést?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return 'A(z) $date napi $weight mérés törlődik. Ez nem vonható vissza.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Magasság (cm)';
