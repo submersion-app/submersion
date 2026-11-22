@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
@@ -19,7 +18,6 @@ import 'identification_fixtures.dart';
 /// The crops of named identifications sync with the logbook (issue #4876);
 /// unnamed ones stay files on the device that analysed them.
 void main() {
-  late AppDatabase db;
   late Directory support;
   late IdentificationCropRepository table;
   late IdentificationCropStore store;
@@ -28,7 +26,7 @@ void main() {
   final jpeg = Uint8List.fromList([0xFF, 0xD8, 1, 2, 0xFF, 0xD9]);
 
   setUp(() async {
-    db = await setUpTestDatabase();
+    await setUpTestDatabase();
     support = await Directory.systemTemp.createTemp('named_crops');
     // The app's own logbook: writes publish.
     table = IdentificationCropRepository();
