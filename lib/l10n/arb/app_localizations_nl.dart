@@ -16306,8 +16306,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'Geen serviceintervallen';
 
   @override
-  String get equipment_serviceClocks_unconfigured =>
-      'Geen interval ingesteld - tik om te configureren';
+  String get equipment_serviceClocks_unconfigured => 'Geen interval ingesteld';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {

@@ -16450,8 +16450,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'Aucun compteur d\'entretien';
 
   @override
-  String get equipment_serviceClocks_unconfigured =>
-      'Aucun intervalle défini - appuyez pour configurer';
+  String get equipment_serviceClocks_unconfigured => 'Aucun intervalle défini';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {

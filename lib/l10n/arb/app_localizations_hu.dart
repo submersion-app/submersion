@@ -16363,8 +16363,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'Nincsenek szervizintervallumok';
 
   @override
-  String get equipment_serviceClocks_unconfigured =>
-      'Nincs beállított időköz - koppintson a beállításhoz';
+  String get equipment_serviceClocks_unconfigured => 'Nincs beállított időköz';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {

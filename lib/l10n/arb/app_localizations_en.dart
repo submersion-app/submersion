@@ -16170,8 +16170,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'No service clocks';
 
   @override
-  String get equipment_serviceClocks_unconfigured =>
-      'No interval set - tap to configure';
+  String get equipment_serviceClocks_unconfigured => 'No interval set';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {

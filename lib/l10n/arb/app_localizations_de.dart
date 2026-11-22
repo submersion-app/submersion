@@ -16396,7 +16396,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_serviceClocks_unconfigured =>
-      'Kein Intervall festgelegt - zum Konfigurieren tippen';
+      'Kein Intervall festgelegt';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {
