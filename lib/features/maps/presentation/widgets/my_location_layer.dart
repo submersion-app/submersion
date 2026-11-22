@@ -8,7 +8,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The blue dot that marks the device on a map (issue #4808).
 ///
 /// Place it in a `FlutterMap`'s children after the site markers so the dot
-/// draws on top. It draws nothing until [MyLocationButton] has found a fix.
+/// draws on top. It draws nothing until [MyLocationButton] has found a fix,
+/// and nothing again once that fix lapses.
 class MyLocationLayer extends ConsumerWidget {
   const MyLocationLayer({super.key});
 
@@ -21,7 +22,7 @@ class MyLocationLayer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final point = ref.watch(deviceLocationProvider);
+    final point = ref.watch(deviceLocationNotifierProvider);
     if (point == null) return const SizedBox.shrink();
 
     return MarkerLayer(

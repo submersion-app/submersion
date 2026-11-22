@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/features/maps/presentation/providers/device_location_provider.dart';
 import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 
@@ -124,7 +125,9 @@ void main() {
     await tester.tap(find.byTooltip('Show my location'));
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    await tester.tap(find.byTooltip('Show my location'));
+    // Says it is busy, so a screen reader announces more than the label.
+    expect(find.byTooltip('Getting location...'), findsOneWidget);
+    await tester.tap(find.byType(MyLocationButton));
     await tester.pump();
 
     answer.complete();
@@ -133,6 +136,42 @@ void main() {
     expect(location.requests, 1);
     expect(located, hasLength(1));
     expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byTooltip('Show my location'), findsOneWidget);
+  });
+
+  testWidgets('the dot lapses once the fix is too old to be where you are', (
+    tester,
+  ) async {
+    await pumpMap(tester, _FakeLocation());
+
+    await tester.tap(find.byTooltip('Show my location'));
+    await tester.pumpAndSettle();
+    expect(_dot, findsOneWidget);
+
+    await tester.pump(
+      DeviceLocationNotifier.maxAge - const Duration(seconds: 1),
+    );
+    expect(_dot, findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(_dot, findsNothing);
+  });
+
+  testWidgets('a fresh fix restarts the clock on the dot', (tester) async {
+    await pumpMap(tester, _FakeLocation());
+
+    await tester.tap(find.byTooltip('Show my location'));
+    await tester.pumpAndSettle();
+    await tester.pump(
+      DeviceLocationNotifier.maxAge - const Duration(seconds: 1),
+    );
+
+    await tester.tap(find.byTooltip('Show my location'));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 2));
+
+    // The first fix's deadline has passed; the second's has not.
+    expect(_dot, findsOneWidget);
   });
 
   testWidgets('no fix on a phone says so and offers the app settings', (

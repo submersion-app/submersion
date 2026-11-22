@@ -135,7 +135,14 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
           onPressed: () =>
               _camera.fitAll(_centerPoints(centersAsync.value ?? [])),
         ),
-        MyLocationButton(onLocated: _camera.animateTo),
+        // Only while the pane draws the map: a fix found during the load or
+        // an error would have no map to move (#4808).
+        if (centersAsync.when(
+          data: (_) => true,
+          loading: () => false,
+          error: (_, _) => false,
+        ))
+          MyLocationButton(onLocated: _camera.animateTo),
       ],
     );
   }

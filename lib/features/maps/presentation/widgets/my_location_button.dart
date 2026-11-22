@@ -9,7 +9,7 @@ import 'package:submersion/features/maps/presentation/providers/device_location_
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The map's Show my location control (issue #4808): finds the device, draws
-/// the blue dot through [deviceLocationProvider] and hands the fix to
+/// the blue dot through [deviceLocationNotifierProvider] and hands the fix to
 /// [onLocated] so the map can move its camera there.
 ///
 /// The maps used to put this crosshair icon on their Fit all button, which
@@ -74,7 +74,7 @@ class _MyLocationButtonState extends ConsumerState<MyLocationButton> {
         return;
       }
       final point = LatLng(result.latitude, result.longitude);
-      ref.read(deviceLocationProvider.notifier).located(point);
+      ref.read(deviceLocationNotifierProvider.notifier).located(point);
       widget.onLocated(point);
     } finally {
       if (mounted) setState(() => _locating = false);
@@ -84,8 +84,13 @@ class _MyLocationButtonState extends ConsumerState<MyLocationButton> {
   @override
   Widget build(BuildContext context) {
     final size = widget.iconSize ?? IconTheme.of(context).size ?? 24;
+    final l10n = context.l10n;
     return IconButton(
-      tooltip: context.l10n.maps_myLocation_tooltip,
+      // Busy while locating, so a screen reader announces more than the
+      // button's name during a fix that can take several seconds.
+      tooltip: _locating
+          ? l10n.diveLog_edit_gettingLocation
+          : l10n.maps_myLocation_tooltip,
       onPressed: _locate,
       icon: _locating
           ? SizedBox.square(
