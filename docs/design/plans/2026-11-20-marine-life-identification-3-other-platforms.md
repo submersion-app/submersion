@@ -650,6 +650,12 @@ Do not start until Task B1 has answered how Windows ML is reached.
 
 ### Task D3: Windows and Linux by hand
 
+Ran in CI on 2026-11-22 instead, on GitHub's hosted runners, since no
+Windows or Linux PC was to hand; results in
+[the Windows and Linux findings](../findings/2026-11-22-marine-life-windows-linux-ci.md).
+The runners have no GPU, so step 1's GPU and Windows 10 checks, step 2
+and step 3 are still unchecked.
+
 - [ ] **Step 1:** Run spec section 7's checks on a Windows PC with a GPU (which engine ran, the vendor engine fetched in the Download, the fall back when the GPU engine is made to fail), on Windows 10 (DirectML and the processor), and on a Linux PC (photos only).
 - [ ] **Step 2:** Where a Windows GPU PC was used, run the 100-photo comparison on it and record its agreement in the findings, for information.
 - [ ] **Step 3 (added after B14's review):** on the Windows GPU PC, with debug mode on: download the pack, then quit and relaunch, and confirm from the log ("Marine life models open on hardware: ...") that the vendor engine is still the one that runs after the relaunch; confirm the engine list was read (Windows ML's `WinMLEpInfo` field order and its enumeration callback's thread have never run with an engine listed); confirm preparing an installed engine (`WinMLEpEnsureReady`) works on the worker's thread with no COM set up and downloads nothing, and that listing the engines makes no network request; on a PC with two vendor engines or two GPUs, note which one was chosen; confirm the engine's name in Windows ML's catalogue is the name its devices report to ONNX Runtime (the hardware session allows only catalogue names), and that Windows ML's catalogue takes two calls at once from different threads (an engine download while a worker lists the engines).
