@@ -148,6 +148,20 @@ void main() {
       },
     );
 
+    // The agent's view shows the link as none, so naming none is no change,
+    // even beside a field that does change: the planner drops it.
+    test('stays stored when named as none beside another change', () async {
+      await h.run([
+        updateOp('incidents', report, {
+          'severity': 'moderate',
+          'observation_id': null,
+        }),
+      ]);
+
+      final row = await stored();
+      expect([row.severity, row.observationId], ['moderate', checkIn]);
+    });
+
     test('goes with a move to another item, as in the editor', () async {
       await db
           .into(db.equipment)
