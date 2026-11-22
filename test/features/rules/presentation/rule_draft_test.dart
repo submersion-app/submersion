@@ -35,6 +35,7 @@ void main() {
     Set<RuleTrigger> triggers = const {RuleTrigger.afterImport},
     QueryNode? condition,
     bool conditionValid = true,
+    bool replacesBrokenCondition = false,
     List<RuleAction> actions = const [kAddDeepType],
   }) => RuleDraft(
     name: name,
@@ -42,6 +43,7 @@ void main() {
     triggers: triggers,
     condition: condition,
     conditionValid: conditionValid,
+    replacesBrokenCondition: replacesBrokenCondition,
     actions: actions,
   );
 
@@ -100,6 +102,16 @@ void main() {
     expect(changes.triggers, {RuleTrigger.afterManualCreate});
     expect(changes.condition, (node: depthOver(30)));
     expect(changes.actions, const [notes]);
+  });
+
+  test('a condition edited over one that did not load is written, even '
+      'as no condition', () {
+    // The stored condition did not load, so both read as no condition; the
+    // diver editing it means "every dive", which replaces what is stored.
+    final edited = draft(replacesBrokenCondition: true);
+    expect(edited, isNot(draft()));
+    expect(ruleChanges(edited, draft()).condition, (node: null));
+    expect(ruleChanges(draft(), draft()).condition, isNull);
   });
 
   test('ruleChanges carries a cleared condition', () {

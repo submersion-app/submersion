@@ -362,6 +362,28 @@ void main() {
     expect(save(tester).onPressed, isNotNull);
   });
 
+  testWidgets('a condition that did not load can be cleared to match every '
+      'dive', (tester) async {
+    const broken =
+        '{"version":1,"node":{"t":"cond","path":["noSuchField"],'
+        '"op":"eq","value":{"k":"str","v":"x"}}}';
+    final id = await stored();
+    await db.customStatement(
+      "UPDATE rules SET condition_json = '$broken' WHERE id = '$id'",
+    );
+    await pump(tester, ruleId: id);
+    expect(save(tester).onPressed, isNull);
+
+    await tester.enterText(conditionField(), 'depth > 10');
+    await tester.pumpAndSettle();
+    await tester.enterText(conditionField(), '');
+    await tester.pumpAndSettle();
+    expect(save(tester).onPressed, isNotNull);
+    await tapSave(tester);
+
+    expect((await row(id))!.conditionJson, encodeRuleCondition(null));
+  });
+
   testWidgets('a rule deleted while open is refused at Save', (tester) async {
     final id = await stored();
     await pump(tester, ruleId: id);

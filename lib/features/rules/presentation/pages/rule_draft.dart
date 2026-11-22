@@ -20,6 +20,7 @@ class RuleDraft {
     required this.triggers,
     required this.condition,
     required this.conditionValid,
+    this.replacesBrokenCondition = false,
     required this.actions,
   });
 
@@ -34,6 +35,12 @@ class RuleDraft {
   /// the last tree that did, which is not what the diver sees, so the draft
   /// reads as changed.
   final bool conditionValid;
+
+  /// The diver has edited the condition of a rule whose stored condition
+  /// did not load. Both read as no condition, so without this a broken
+  /// condition cleared to "every dive" would look unchanged and stay
+  /// stored.
+  final bool replacesBrokenCondition;
   final List<RuleAction> actions;
 
   @override
@@ -44,6 +51,7 @@ class RuleDraft {
       setEquals(other.triggers, triggers) &&
       other.condition == condition &&
       other.conditionValid == conditionValid &&
+      other.replacesBrokenCondition == replacesBrokenCondition &&
       listEquals(other.actions, actions);
 
   @override
@@ -53,6 +61,7 @@ class RuleDraft {
     Object.hashAllUnordered(triggers),
     condition,
     conditionValid,
+    replacesBrokenCondition,
     Object.hashAll(actions),
   );
 }
@@ -79,11 +88,14 @@ RuleDraft ruleDraftOf(Rule rule) => RuleDraft(
 );
 
 /// What Save writes on a stored rule: each part whose draft value differs
-/// from [start]'s. Never the subject, which is fixed once a rule exists.
+/// from [start]'s, and the condition once the diver has edited one that did
+/// not load. Never the subject, which is fixed once a rule exists.
 RuleChanges ruleChanges(RuleDraft draft, RuleDraft start) => (
   name: draft.name == start.name ? null : draft.name,
   triggers: setEquals(draft.triggers, start.triggers) ? null : draft.triggers,
-  condition: draft.condition == start.condition
+  condition:
+      draft.condition == start.condition &&
+          draft.replacesBrokenCondition == start.replacesBrokenCondition
       ? null
       : (node: draft.condition),
   actions: listEquals(draft.actions, start.actions) ? null : draft.actions,
