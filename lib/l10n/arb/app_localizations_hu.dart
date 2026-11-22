@@ -9778,14 +9778,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'Letöltés folyamatban. A Beállítások > Fajfelismerés alatt követheted.';
+      'Letöltés folyamatban. A Beállítások > Adatok > Fotók és videók > Fajfelismerés alatt követheted.';
 
   @override
   String get setup_speciesModel_installed => 'Telepítve ezen az eszközön';
 
   @override
   String get setup_speciesModel_later =>
-      'A letöltés most nem érhető el. Később a Beállítások > Fajfelismerés alatt találod.';
+      'A letöltés most nem érhető el. Később a Beállítások > Adatok > Fotók és videók > Fajfelismerés alatt találod.';
 
   @override
   String get setup_speciesModel_download => 'Letöltés';

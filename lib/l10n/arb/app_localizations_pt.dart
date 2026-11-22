@@ -9799,14 +9799,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'Baixando. Você pode acompanhar em Configurações > Identificação de espécies.';
+      'Baixando. Você pode acompanhar em Configurações > Dados > Fotos e vídeos > Identificação de espécies.';
 
   @override
   String get setup_speciesModel_installed => 'Instalado neste dispositivo';
 
   @override
   String get setup_speciesModel_later =>
-      'Não foi possível acessar o download agora. Você o encontrará depois em Configurações > Identificação de espécies.';
+      'Não foi possível acessar o download agora. Você o encontrará depois em Configurações > Dados > Fotos e vídeos > Identificação de espécies.';
 
   @override
   String get setup_speciesModel_download => 'Baixar';

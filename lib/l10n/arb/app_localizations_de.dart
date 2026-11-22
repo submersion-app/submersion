@@ -9796,14 +9796,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'Wird heruntergeladen. Den Fortschritt siehst du unter Einstellungen > Arterkennung.';
+      'Wird heruntergeladen. Den Fortschritt siehst du unter Einstellungen > Daten > Fotos & Videos > Arterkennung.';
 
   @override
   String get setup_speciesModel_installed => 'Auf diesem Gerät installiert';
 
   @override
   String get setup_speciesModel_later =>
-      'Der Download ist gerade nicht erreichbar. Du findest ihn später unter Einstellungen > Arterkennung.';
+      'Der Download ist gerade nicht erreichbar. Du findest ihn später unter Einstellungen > Daten > Fotos & Videos > Arterkennung.';
 
   @override
   String get setup_speciesModel_download => 'Herunterladen';

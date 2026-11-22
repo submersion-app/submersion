@@ -9831,14 +9831,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'Téléchargement en cours. Vous pouvez le suivre dans Réglages > Identification des espèces.';
+      'Téléchargement en cours. Vous pouvez le suivre dans Réglages > Données > Photos et vidéos > Identification des espèces.';
 
   @override
   String get setup_speciesModel_installed => 'Installé sur cet appareil';
 
   @override
   String get setup_speciesModel_later =>
-      'Le téléchargement est inaccessible pour le moment. Vous le retrouverez plus tard dans Réglages > Identification des espèces.';
+      'Le téléchargement est inaccessible pour le moment. Vous le retrouverez plus tard dans Réglages > Données > Photos et vidéos > Identification des espèces.';
 
   @override
   String get setup_speciesModel_download => 'Télécharger';

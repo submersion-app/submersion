@@ -9649,14 +9649,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'Downloading. You can follow it in Settings > Species identification.';
+      'Downloading. You can follow it in Settings > Data > Photos & videos > Species identification.';
 
   @override
   String get setup_speciesModel_installed => 'Installed on this device';
 
   @override
   String get setup_speciesModel_later =>
-      'Can\'t reach the download right now. You\'ll find it later in Settings > Species identification.';
+      'Can\'t reach the download right now. You\'ll find it later in Settings > Data > Photos & videos > Species identification.';
 
   @override
   String get setup_speciesModel_download => 'Download';

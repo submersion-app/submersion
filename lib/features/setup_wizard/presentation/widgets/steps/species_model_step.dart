@@ -36,9 +36,10 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
   /// as the Settings confirmation does.
   var _fetchesEngine = false;
 
-  /// The step's own check has answered. Until then Download waits: a state
-  /// left from an earlier visit to Settings may be stale, and the check would
-  /// overwrite a download started meanwhile.
+  /// The step's own check has answered. Until then only a download under
+  /// way shows as it is: any other state left from an earlier visit to
+  /// Settings may be stale, and the check would overwrite a download
+  /// started meanwhile.
   var _checked = false;
 
   /// The hardware engine question has answered. Its line is the
@@ -104,7 +105,8 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
     );
     // The size is not known yet, or a state left from an earlier Settings
     // visit may be stale until the step's own check answers, or the hardware
-    // engine question is still open: show the check, not a dead Download.
+    // engine question is still open: show the check, not a dead Download
+    // or a failure that no longer holds.
     final (List<Widget>, String, VoidCallback?, Widget?) checking = (
       [
         const Align(
@@ -125,8 +127,17 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
       VoidCallback? onPrimary,
       Widget? secondary,
     ) = switch (state) {
+      PackDownloading() || PackInstalling() => (
+        [line(l10n.setup_speciesModel_downloading)],
+        l10n.settings_setUpDevice_next,
+        widget.onNext,
+        null,
+      ),
+      // Any other state may be one left from an earlier visit to Settings,
+      // such as a failure while offline: wait for the step's own check.
+      _ when !_checked => checking,
       PackChecking() => checking,
-      PackNotInstalled() when !_checked || !_engineAsked => checking,
+      PackNotInstalled() when !_engineAsked => checking,
       PackNotInstalled(:final bytes, :final resumable) => (
         [
           line(l10n.setup_speciesModel_size(formatBytes(bytes))),
@@ -138,12 +149,6 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
             : l10n.settings_speciesId_download(formatBytes(bytes)),
         _download,
         skip,
-      ),
-      PackDownloading() || PackInstalling() => (
-        [line(l10n.setup_speciesModel_downloading)],
-        l10n.settings_setUpDevice_next,
-        widget.onNext,
-        null,
       ),
       PackInstalled() => (
         [line(l10n.setup_speciesModel_installed)],

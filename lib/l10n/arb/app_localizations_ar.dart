@@ -9950,14 +9950,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'جارٍ التنزيل. يمكنك متابعته في الإعدادات > التعرّف على الأنواع.';
+      'جارٍ التنزيل. يمكنك متابعته في الإعدادات > البيانات > الصور والفيديوهات > التعرّف على الأنواع.';
 
   @override
   String get setup_speciesModel_installed => 'مثبّت على هذا الجهاز';
 
   @override
   String get setup_speciesModel_later =>
-      'تعذّر الوصول إلى التنزيل الآن. ستجده لاحقًا في الإعدادات > التعرّف على الأنواع.';
+      'تعذّر الوصول إلى التنزيل الآن. ستجده لاحقًا في الإعدادات > البيانات > الصور والفيديوهات > التعرّف على الأنواع.';
 
   @override
   String get setup_speciesModel_download => 'تنزيل';

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
@@ -56,6 +58,36 @@ void main() {
     container.listen(speciesModelOfferProvider, (_, _) {});
     return (container, await container.read(speciesModelOfferProvider.future));
   }
+
+  // The installed pack can be invalidated while the offer waits for it, as
+  // when a download started in Settings finishes just as the assistant
+  // opens. The offer listens to it, so the reload answers instead of the
+  // first read hanging (issue #3807).
+  test('still answers when the installed pack reloads mid-read', () async {
+    var reads = 0;
+    final container = ProviderContainer(
+      overrides: [
+        visionAvailabilityProvider.overrideWith(
+          (ref) => Future.value(VisionAvailability.available),
+        ),
+        // The first read never answers on its own; the reload does.
+        installedSpeciesPackProvider.overrideWith((ref) async {
+          if (++reads == 1) return Completer<InstalledPack?>().future;
+          return null;
+        }),
+        speciesDownloadPromptDismissedNotifierProvider.overrideWith(
+          (ref) => SpeciesDownloadPromptDismissedNotifier.unstored(false),
+        ),
+        speciesPackControllerProvider.overrideWith(_MovablePackController.new),
+      ],
+    );
+    addTearDown(container.dispose);
+    final answer = container.awaitFuture(speciesModelOfferProvider.future);
+    await Future<void>.delayed(Duration.zero);
+    expect(reads, 1);
+    container.invalidate(installedSpeciesPackProvider);
+    expect(await answer.timeout(const Duration(seconds: 2)), isTrue);
+  });
 
   test('is offered where the model can run, none is installed and the '
       'offer was not dismissed', () async {

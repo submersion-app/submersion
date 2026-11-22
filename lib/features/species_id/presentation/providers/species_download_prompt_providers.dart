@@ -68,10 +68,18 @@ final libraryHasPhotosOrVideosProvider = FutureProvider.autoDispose<bool>((
 /// and the sample logbook is not open. Demo mode shares the device's
 /// preferences, so a dismissal made there would carry into the diver's own
 /// setup. Auto-disposed, so the library watch ends when Home goes.
+///
+/// Cheap checks first: the offer itself asks the vision engine (which loads
+/// ONNX Runtime on Android, Windows and Linux) and the pack store, so it is
+/// asked last, and never for a library with nothing for the model to see.
 final homeSpeciesBannerProvider = Provider.autoDispose<bool>((ref) {
   if (ref.watch(demoModeActiveProvider)) return false;
-  if (!ref.watch(speciesDownloadPromptProvider)) return false;
-  return ref.watch(libraryHasPhotosOrVideosProvider).value ?? false;
+  if (!marineLifeIdEnabled) return false;
+  if (ref.watch(speciesDownloadPromptDismissedNotifierProvider)) return false;
+  if (!(ref.watch(libraryHasPhotosOrVideosProvider).value ?? false)) {
+    return false;
+  }
+  return ref.watch(speciesDownloadPromptProvider);
 });
 
 /// Whether the setup wizard offers the species model (issue #4881), by the
@@ -79,10 +87,15 @@ final homeSpeciesBannerProvider = Provider.autoDispose<bool>((ref) {
 /// device, none is installed, and the diver has not dismissed the offer (a
 /// removal dismisses it too). Read once, as a snapshot: it never follows
 /// the pack controller, so a download started from the step keeps the step.
+///
+/// It watches what it awaits: a future read with `ref.read` leaves its
+/// provider with no listener, and a reload of the installed pack mid-read
+/// (a download from Settings finishing) would then never answer (issue
+/// #3807).
 final speciesModelOfferProvider = FutureProvider.autoDispose<bool>((ref) async {
   if (!marineLifeIdEnabled) return false;
-  if (ref.read(speciesDownloadPromptDismissedNotifierProvider)) return false;
-  final availability = await ref.read(visionAvailabilityProvider.future);
+  if (ref.watch(speciesDownloadPromptDismissedNotifierProvider)) return false;
+  final availability = await ref.watch(visionAvailabilityProvider.future);
   if (availability != VisionAvailability.available) return false;
-  return await ref.read(installedSpeciesPackProvider.future) == null;
+  return await ref.watch(installedSpeciesPackProvider.future) == null;
 });

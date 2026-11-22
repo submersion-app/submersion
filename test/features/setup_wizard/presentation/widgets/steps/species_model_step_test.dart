@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/species_model_step.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -98,6 +99,9 @@ void main() {
     ];
     await tester.pumpWidget(
       ProviderScope(
+        // A fresh scope every pump: an updated overrideWith does not replace
+        // a controller already built, so a loop would keep the first one.
+        key: UniqueKey(),
         overrides: overrides,
         child: MaterialApp(
           locale: const Locale('en'),
@@ -228,8 +232,14 @@ void main() {
       PackNotPublished(),
       PackNotForThisDevice(),
       PackNeedsAppUpdate(),
+      PackUnsupported(VisionAvailability.deviceNotEligible),
     ]) {
-      await pumpStep(tester, state);
+      final container = await pumpStep(tester, state);
+      expect(
+        container.read(speciesPackControllerProvider),
+        same(state),
+        reason: '${state.runtimeType}',
+      );
       expect(
         find.text(l10n.setup_speciesModel_later),
         findsOneWidget,
@@ -246,7 +256,12 @@ void main() {
       PackDownloading(received: 1, total: bytes),
       PackInstalling(),
     ]) {
-      await pumpStep(tester, state);
+      final container = await pumpStep(tester, state);
+      expect(
+        container.read(speciesPackControllerProvider),
+        same(state),
+        reason: '${state.runtimeType}',
+      );
       expect(
         find.text(l10n.setup_speciesModel_downloading),
         findsOneWidget,
@@ -292,6 +307,26 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(tester.widget<FilledButton>(download).onPressed, isNotNull);
+  });
+
+  // A failure left in the controller by an earlier visit to Settings may be
+  // stale: the step shows its own check, not "can't reach", until it answers.
+  testWidgets('a failure left from Settings waits for the step\'s own check', (
+    tester,
+  ) async {
+    final done = Completer<void>();
+    await pumpStep(
+      tester,
+      const PackFailed(reason: PackDownloadFailure.network, bytes: 0),
+      refreshDone: done.future,
+    );
+    expect(find.text(l10n.setup_speciesModel_later), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(next, findsNothing);
+    done.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(l10n.setup_speciesModel_later), findsOneWidget);
   });
 
   // The Windows ML line is the confirmation that an engine comes too: no

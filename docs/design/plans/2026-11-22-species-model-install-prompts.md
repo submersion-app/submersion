@@ -107,9 +107,9 @@ Strings (en values fixed here; key group `setup_speciesModel_*`, inserted after 
 | `setup_speciesModel_size` (`{size}` String) | `Download: {size}` |
 | `setup_speciesModel_wifi` | `Wi-Fi recommended` |
 | `setup_speciesModel_hardware` | `Windows may also download an engine for your graphics card or NPU from Microsoft.` |
-| `setup_speciesModel_downloading` | `Downloading. You can follow it in Settings > Species identification.` |
+| `setup_speciesModel_downloading` | `Downloading. You can follow it in Settings > Data > Photos & videos > Species identification.` |
 | `setup_speciesModel_installed` | `Installed on this device` |
-| `setup_speciesModel_later` | `Can't reach the download right now. You'll find it later in Settings > Species identification.` |
+| `setup_speciesModel_later` | `Can't reach the download right now. You'll find it later in Settings > Data > Photos & videos > Species identification.` |
 
 Buttons reuse `settings_setUpDevice_skip`, `settings_setUpDevice_next`, `common_action_back`, and `settings_speciesId_download(size)` for Download.
 

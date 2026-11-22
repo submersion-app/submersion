@@ -9586,14 +9586,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'מתבצעת הורדה. אפשר לעקוב אחריה ב\'הגדרות > זיהוי מינים\'.';
+      'מתבצעת הורדה. אפשר לעקוב אחריה ב\'הגדרות > נתונים > תמונות וסרטונים > זיהוי מינים\'.';
 
   @override
   String get setup_speciesModel_installed => 'מותקן במכשיר הזה';
 
   @override
   String get setup_speciesModel_later =>
-      'אין גישה להורדה כרגע. אפשר למצוא אותה מאוחר יותר ב\'הגדרות > זיהוי מינים\'.';
+      'אין גישה להורדה כרגע. אפשר למצוא אותה מאוחר יותר ב\'הגדרות > נתונים > תמונות וסרטונים > זיהוי מינים\'.';
 
   @override
   String get setup_speciesModel_download => 'הורדה';

@@ -9807,14 +9807,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'Descargando. Puedes seguirlo en Configuración > Identificación de especies.';
+      'Descargando. Puedes seguirlo en Configuración > Datos > Fotos y vídeos > Identificación de especies.';
 
   @override
   String get setup_speciesModel_installed => 'Instalado en este dispositivo';
 
   @override
   String get setup_speciesModel_later =>
-      'No se puede acceder a la descarga ahora. La encontrarás más tarde en Configuración > Identificación de especies.';
+      'No se puede acceder a la descarga ahora. La encontrarás más tarde en Configuración > Datos > Fotos y vídeos > Identificación de especies.';
 
   @override
   String get setup_speciesModel_download => 'Descargar';

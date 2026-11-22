@@ -9289,13 +9289,15 @@ class AppLocalizationsZh extends AppLocalizations {
       'Windows 还可能从 Microsoft 下载适用于你的显卡或 NPU 的引擎。';
 
   @override
-  String get setup_speciesModel_downloading => '正在下载。你可以在“设置 > 物种识别”中查看进度。';
+  String get setup_speciesModel_downloading =>
+      '正在下载。你可以在“设置 > 数据 > 照片与视频 > 物种识别”中查看进度。';
 
   @override
   String get setup_speciesModel_installed => '已安装在此设备上';
 
   @override
-  String get setup_speciesModel_later => '目前无法连接到下载。你稍后可以在“设置 > 物种识别”中找到它。';
+  String get setup_speciesModel_later =>
+      '目前无法连接到下载。你稍后可以在“设置 > 数据 > 照片与视频 > 物种识别”中找到它。';
 
   @override
   String get setup_speciesModel_download => '下载';

@@ -15427,7 +15427,7 @@ abstract class AppLocalizations {
   /// No description provided for @setup_speciesModel_downloading.
   ///
   /// In en, this message translates to:
-  /// **'Downloading. You can follow it in Settings > Species identification.'**
+  /// **'Downloading. You can follow it in Settings > Data > Photos & videos > Species identification.'**
   String get setup_speciesModel_downloading;
 
   /// No description provided for @setup_speciesModel_installed.
@@ -15439,7 +15439,7 @@ abstract class AppLocalizations {
   /// No description provided for @setup_speciesModel_later.
   ///
   /// In en, this message translates to:
-  /// **'Can\'t reach the download right now. You\'ll find it later in Settings > Species identification.'**
+  /// **'Can\'t reach the download right now. You\'ll find it later in Settings > Data > Photos & videos > Species identification.'**
   String get setup_speciesModel_later;
 
   /// No description provided for @setup_speciesModel_download.

@@ -9741,14 +9741,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_speciesModel_downloading =>
-      'Bezig met downloaden. Je kunt het volgen in Instellingen > Soortherkenning.';
+      'Bezig met downloaden. Je kunt het volgen in Instellingen > Gegevens > Foto\'s en video\'s > Soortherkenning.';
 
   @override
   String get setup_speciesModel_installed => 'Geïnstalleerd op dit apparaat';
 
   @override
   String get setup_speciesModel_later =>
-      'De download is nu niet bereikbaar. Je vindt hem later in Instellingen > Soortherkenning.';
+      'De download is nu niet bereikbaar. Je vindt hem later in Instellingen > Gegevens > Foto\'s en video\'s > Soortherkenning.';
 
   @override
   String get setup_speciesModel_download => 'Downloaden';

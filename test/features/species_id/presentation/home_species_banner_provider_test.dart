@@ -7,7 +7,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 /// A media library of [count] photos and videos, and the change stream the
 /// provider listens to, with how many listen to it.
@@ -75,6 +77,35 @@ void main() {
     await container.read(libraryHasPhotosOrVideosProvider.future);
     await Future<void>.delayed(Duration.zero);
     expect(container.read(homeSpeciesBannerProvider), isTrue);
+  });
+
+  // Cheap checks first: a library with nothing for the model to look at
+  // never asks the vision engine (which loads ONNX Runtime on Android,
+  // Windows and Linux) or the pack store.
+  test('an empty library never asks the vision engine', () async {
+    final media = _FakeMedia(0);
+    var engineAsked = 0;
+    final container = ProviderContainer(
+      overrides: [
+        mediaRepositoryProvider.overrideWithValue(media),
+        demoModeActiveProvider.overrideWithValue(false),
+        visionAvailabilityProvider.overrideWith((ref) async {
+          engineAsked++;
+          return VisionAvailability.available;
+        }),
+        installedSpeciesPackProvider.overrideWith((ref) async => null),
+        speciesDownloadPromptDismissedNotifierProvider.overrideWith(
+          (ref) => SpeciesDownloadPromptDismissedNotifier.unstored(false),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    addTearDown(media.changes.close);
+    container.listen(homeSpeciesBannerProvider, (_, _) {});
+    await container.read(libraryHasPhotosOrVideosProvider.future);
+    await Future<void>.delayed(Duration.zero);
+    expect(container.read(homeSpeciesBannerProvider), isFalse);
+    expect(engineAsked, 0);
   });
 
   // Home gone, nothing keeps the media watch alive.

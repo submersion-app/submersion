@@ -121,7 +121,7 @@ when it opens):
 | `PackNotInstalled` | Intro, "Download: <size>", and on iPhone/iPad/Android "Wi-Fi recommended"; when `downloadFetchesHardwareEngine()` is true, a new line saying the download also fetches Windows ML (the Settings confirmation has this only inside `settings_speciesId_downloadConfirmBodyHardware`, a full sentence with the size) | Skip, **Download** |
 | `PackDownloading` / `PackInstalling` | Intro, progress line | Next |
 | `PackInstalled` | "Installed" line | Next |
-| `PackFailed` (offline, server error) | "Can't reach the download right now. You'll find it later in Settings > Species identification." | Next |
+| `PackFailed` (offline, server error) | "Can't reach the download right now. You'll find it later in Settings > Data > Photos & videos > Species identification." | Next |
 | `PackNotPublished`, `PackNotForThisDevice`, `PackNeedsAppUpdate`, `PackUnsupported` | Not reached in practice; if it is, the same "you'll find it later in Settings" line | Next |
 
 Intro text: what it does (suggests the species in your dive photos and videos,
