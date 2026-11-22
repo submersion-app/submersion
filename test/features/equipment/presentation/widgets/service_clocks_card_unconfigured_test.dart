@@ -55,5 +55,14 @@ void main() {
     // configured in the open card's editor.
     expect(find.text('No interval set'), findsOneWidget);
     expect(find.textContaining('tap to configure'), findsNothing);
+    // Nothing on the row can be tapped, which is why it gives no instruction.
+    final row = tester.widget<ListTile>(
+      find.ancestor(
+        of: find.text('No interval set'),
+        matching: find.byType(ListTile),
+      ),
+    );
+    expect(row.onTap, isNull);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
   });
 }
