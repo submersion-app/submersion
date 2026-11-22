@@ -19263,7 +19263,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_diveMediaSection_replaceEditedTitle => 'ファイルの内容が異なります';
 
   @override
-  String get media_diveMediaSection_unlinkButton => 'リンク解除';
+  String get media_diveMediaSection_unlinkButton => 'リンクを解除';
 
   @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {

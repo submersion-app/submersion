@@ -5813,7 +5813,7 @@
   "media_diveMediaSection_replaceButton": "再リンク",
   "media_diveMediaSection_replaceEditedContent": "このファイルの内容は元のファイルと異なります。再リンクすると、メディアストアに再アップロードされます。",
   "media_diveMediaSection_replaceEditedTitle": "ファイルの内容が異なります",
-  "media_diveMediaSection_unlinkButton": "リンク解除",
+  "media_diveMediaSection_unlinkButton": "リンクを解除",
   "media_diveMediaSection_unlinkSelectedButton": "{count}件のリンクを解除",
   "media_diveMediaSection_unlinkSelectedContent": "{count}件のメディアを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブサイトで使用中のメディアは残ります。元のファイルには影響しません。",
   "media_diveMediaSection_unlinkSelectedTitle": "{count}件のリンクを解除しますか？",
