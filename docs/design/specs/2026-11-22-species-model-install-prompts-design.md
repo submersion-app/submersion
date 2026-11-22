@@ -155,8 +155,9 @@ dismisses. No new strings.
 
 - `speciesDownloadPromptProvider` is true (eligible, no pack, not dismissed,
   controller not downloading or ruled out);
-- the log has at least one photo or video (any media row of type photo or
-  video, in any dive, for the active diver's log as Home sees it);
+- the library has at least one photo or video (any media row of type photo
+  or video, whatever it is attached to, the count Set up this device's
+  Photos step already uses: `MediaRepository.countPhotosAndVideos()`);
 - demo mode is not active (`demoModeActiveProvider` is false). Demo mode
   shares the device's preferences and support directory with the real log,
   so a dismissal or download made from the sample logbook would carry into
