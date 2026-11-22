@@ -288,7 +288,7 @@ void main() {
       packVersion: '2026.12.1',
       locationCell: () => null,
     );
-    await repo.updateNames([identification('a')], run: renamed);
+    expect(await repo.updateNames([identification('a')], run: renamed), ['a']);
     expect(await repo.runFor('m1'), renamed);
   });
 
@@ -303,10 +303,11 @@ void main() {
     );
     await repo.storeRun(theirs, insert: const [], deleteIds: []);
 
-    await repo.updateNames([
+    final written = await repo.updateNames([
       identification('a').copyWith(openScore: 0.9),
     ], run: mine.copyWith(packVersion: '2026.12.1'));
 
+    expect(written, isEmpty, reason: 'its crops are not promoted either');
     expect(await repo.runFor('m1'), theirs);
     expect((await repo.forMedia('m1')).single.openScore, 0.42);
   });

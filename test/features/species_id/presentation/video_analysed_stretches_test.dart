@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -67,6 +69,20 @@ void main() {
       durationMs: 25000,
     ));
     expect(find.byKey(const ValueKey('video_analysed_0')), findsNothing);
+  });
+
+  testWidgets('draws nothing on Linux, where video labels never show '
+      '(issue #4876)', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    try {
+      await pump(tester, (
+        scanned: ScannedRanges.of([(startMs: 0, endMs: 10000)]),
+        durationMs: 25000,
+      ));
+      expect(find.byKey(const ValueKey('video_analysed_0')), findsNothing);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('takes no taps: the bar under it does', (tester) async {

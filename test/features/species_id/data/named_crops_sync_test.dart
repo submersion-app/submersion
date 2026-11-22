@@ -93,11 +93,25 @@ void main() {
   });
 
   test('promote moves a file crop into the logbook once', () async {
+    await identifications.storeRun(
+      run(),
+      insert: [identification('a')],
+      deleteIds: const [],
+    );
     await store.write('m1', 'a', jpeg);
     expect(await store.promote('m1', ['a', 'missing']), 1);
     expect(await table.bytesFor('a'), jpeg);
     expect(await fileExists('m1', 'a'), isFalse);
     expect(await store.promote('m1', ['a']), 0);
+  });
+
+  test('promote leaves a crop whose identification a sync has deleted since '
+      'the rows were read: it never comes back as a synced crop', () async {
+    await store.write('m1', 'gone', jpeg);
+
+    expect(await store.promote('m1', ['gone']), 0);
+    expect(await table.bytesFor('gone'), isNull);
+    expect(await pendingCrops(), isEmpty);
   });
 
   test('deleting crops tombstones the synced ones only', () async {

@@ -149,26 +149,21 @@ List<MediaIdentification> applyNamingLevel(
 /// them (issue #4876). By the bars the run kept of the pack that named it,
 /// when it kept them: so a device with no pack, or another one, shows what
 /// the device that analysed it shows. Otherwise as [applyNamingLevel] reads
-/// them with [installed], the installed pack's level in force. Surer, or no
-/// choice, reads as stored.
+/// them with [installed], the installed pack's level in force. Surer, no
+/// choice, or a choice the pack measured no looser level for (it resolves
+/// to Surer) reads as stored: the stored flags also carry what naming alone
+/// does not, such as a renamed video track keeping no suggestion.
 List<MediaIdentification> applyChosenLevel(
   List<MediaIdentification> all, {
   required MediaIdentificationRun? run,
   required NamingLevel? chosen,
   required LevelInForce? installed,
 }) {
-  final bars = run?.namingBars;
-  if (chosen != null && chosen != NamingLevel.surer && bars != null) {
-    return applyNamingLevel(
-      all,
-      level: levelFromBars(bars, chosen, packVersion: run!.packVersion),
-      namedWithPack: run.packVersion,
-    );
-  }
   if (chosen == NamingLevel.surer) return all;
-  return applyNamingLevel(
-    all,
-    level: installed,
-    namedWithPack: run?.packVersion,
-  );
+  final bars = run?.namingBars;
+  final level = chosen != null && bars != null
+      ? levelFromBars(bars, chosen, packVersion: run!.packVersion)
+      : installed;
+  if (level == null || level.level == NamingLevel.surer) return all;
+  return applyNamingLevel(all, level: level, namedWithPack: run?.packVersion);
 }

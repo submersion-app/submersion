@@ -314,7 +314,8 @@ class MediaIdentificationRepository {
   /// read as (issue #4876): a run synced in from another device since is
   /// newer than this naming. Of the run, only what naming moves is
   /// written (its pack, place and bars), so a scan stored since stays.
-  Future<void> updateNames(
+  /// Returns the ids of the rows written, none when it wrote nothing.
+  Future<List<String>> updateNames(
     List<MediaIdentification> changed, {
     required MediaIdentificationRun run,
   }) async {
@@ -363,6 +364,7 @@ class MediaIdentificationRepository {
     });
     await _marks?.rowsWritten(written.rows);
     if (written.run) await _marks?.runsWritten([run.mediaId]);
+    return written.rows;
   }
 
   /// Returns how many rows it wrote: none when the row is gone.
@@ -536,11 +538,17 @@ class MediaIdentificationRepository {
           'WHERE media_id $gone '
           'UNION '
           'SELECT media_id FROM media_identifications '
+          'WHERE media_id $gone '
+          // A synced crop has no reference either, and may be all that is
+          // left of a media's results here.
+          'UNION '
+          'SELECT media_id FROM media_identification_crops '
           'WHERE media_id $gone',
           variables: [Variable<String>(deviceId)],
           readsFrom: {
             db.mediaIdentificationRuns,
             db.mediaIdentifications,
+            db.mediaIdentificationCrops,
             db.media,
             db.deletionLog,
           },
