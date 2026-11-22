@@ -17,6 +17,8 @@ import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 export 'package:submersion/core/services/database_migration_models.dart';
 
+part 'database_migration_folder_checks.dart';
+
 /// Service for safely migrating the database between storage locations
 ///
 /// Each move runs as a [SyncCoordinator] turn, so a sync still merging
@@ -31,31 +33,6 @@ class DatabaseMigrationService {
   static const Duration _functionalCheckTimeout = Duration(seconds: 10);
   static const Duration _infoQueryTimeout = Duration(seconds: 5);
   static const Duration _checkpointTimeout = Duration(seconds: 10);
-  static const String _alreadyHere = 'Database is already at this location';
-  static const String _cannotCompare =
-      'Could not tell whether the selected folder is the one the database is '
-      'already in, so nothing was changed. Check that both folders can be '
-      'reached and try again.';
-
-  /// Whether [folderPath] is the folder the open database lives in, under
-  /// any name (see [compareFolders]). Nothing may open or copy the live file
-  /// through a second name for it (issue #4834), so callers about to do
-  /// either treat [FolderIdentity.unknown] as a refusal.
-  Future<FolderIdentity> _compareToCurrent(
-    String currentPath,
-    String folderPath,
-  ) => compareFolders(p.dirname(currentPath), folderPath);
-
-  /// The refusal for a move or copy into [folderPath], or null when it is
-  /// safe to go ahead because the folder is certainly another one.
-  Future<MigrationResult?> _refuseUnlessElsewhere(
-    String currentPath,
-    String folderPath,
-  ) async => switch (await _compareToCurrent(currentPath, folderPath)) {
-    FolderIdentity.same => MigrationResult.failure(_alreadyHere),
-    FolderIdentity.unknown => MigrationResult.failure(_cannotCompare),
-    FolderIdentity.different => null,
-  };
 
   Future<T> _withTimeout<T>(
     Future<T> future,
@@ -79,8 +56,10 @@ class DatabaseMigrationService {
 
     try {
       // Bounded like the probe: a share that has stopped answering must not
-      // leave the folder change waiting with nothing on screen (issue #4834).
-      // A timeout lands in the catch below, as an unreadable folder does.
+      // leave the folder change waiting forever (issue #4834). A timeout
+      // lands in the catch below, as an unreadable folder does, and reads as
+      // nothing there: the plain move then refuses a folder that holds a dive
+      // log after all, so this can never become an overwrite.
       final exists = await _withTimeout(
         file.exists(),
         'Folder check',
@@ -207,7 +186,12 @@ class DatabaseMigrationService {
   Future<MigrationResult> migrateToCustomFolder(String folderPath) =>
       SyncCoordinator.join(() => _migrateToCustomFolder(folderPath));
 
-  Future<MigrationResult> _migrateToCustomFolder(String folderPath) async {
+  /// [replacing] is for [replaceExistingDatabase], which has already backed
+  /// up the dive log in [folderPath] that this overwrites.
+  Future<MigrationResult> _migrateToCustomFolder(
+    String folderPath, {
+    bool replacing = false,
+  }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final currentPath = await _dbService.databasePath;
     final newPath = p.join(
@@ -222,9 +206,12 @@ class DatabaseMigrationService {
 
     // Verify destination folder is writable
     if (!await _locationService.verifyFolderAccessible(folderPath)) {
-      return MigrationResult.failure(
-        'Cannot write to the selected folder. Please check permissions.',
-      );
+      return MigrationResult.failure(_cannotWrite);
+    }
+
+    if (!replacing) {
+      final occupied = await _refuseIfOccupied(newPath);
+      if (occupied != null) return occupied;
     }
 
     String? backupPath;
@@ -331,7 +318,7 @@ class DatabaseMigrationService {
     // Don't migrate if already at default, however either folder is named
     final identity = await _compareToCurrent(currentPath, defaultDir);
     if (identity == FolderIdentity.unknown) {
-      return MigrationResult.failure(_cannotCompare);
+      return MigrationResult.failure(_cannotCompareDefault);
     }
     if (identity == FolderIdentity.same) {
       // Just update config, and drop the custom folder's bookmark as the full
@@ -545,7 +532,8 @@ class DatabaseMigrationService {
       await _createBackup(newPath);
     }
 
-    return migrateToCustomFolder(folderPath);
+    // Already inside this turn's SyncCoordinator.join
+    return _migrateToCustomFolder(folderPath, replacing: true);
   }
 
   /// Verify database integrity using SQLite PRAGMA

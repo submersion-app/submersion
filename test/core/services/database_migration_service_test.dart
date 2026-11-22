@@ -27,8 +27,10 @@ class _FakeLocation implements DatabaseLocationService {
   @override
   Future<String> getDefaultDatabaseDirectory() async => defaultDir;
 
+  bool accessible = true;
+
   @override
-  Future<bool> verifyFolderAccessible(String folderPath) async => true;
+  Future<bool> verifyFolderAccessible(String folderPath) async => accessible;
 
   StorageConfig? savedConfig;
 
@@ -203,6 +205,62 @@ void main() {
       reason: 'sidecar must travel with the database on a storage move',
     );
   });
+
+  test('migrateToCustomFolder does not overwrite a dive log already in the '
+      'folder: only Replace does, with its backup', () async {
+    // The folder check said nothing was there, or ran out of time before it
+    // could say (a NAS still waking), and the diver confirmed Copy here.
+    final service = await initServiceAt(p.join(root.path, 'default'));
+    final targetDir = p.join(root.path, 'target');
+    final targetPath = p.join(
+      targetDir,
+      DatabaseLocationService.databaseFilename,
+    );
+    await _seedDatabase(targetPath);
+    final before = File(targetPath).readAsBytesSync();
+
+    final result = await service.migrateToCustomFolder(targetDir);
+
+    expect(result.success, isFalse);
+    expect(result.errorMessage, contains('already a dive log'));
+    expect(File(targetPath).readAsBytesSync(), before);
+    expect(DatabaseService.instance.currentPath, currentPath);
+    expect(location.savedConfig, isNull);
+  });
+
+  test('a folder the app may not write to is refused as such, not as one '
+      'that could not be compared', () async {
+    final service = await initServiceAt(p.join(root.path, 'default'));
+    final targetDir = p.join(root.path, 'target');
+    await Directory(targetDir).create();
+    location.accessible = false;
+
+    // Readable, so certainly another folder: refused by the write check.
+    final readable = await service.migrateToCustomFolder(targetDir);
+    expect(readable.errorMessage, contains('Cannot write'));
+
+    // Nothing can be opened through it, so the folders cannot be compared.
+    await Process.run('chmod', ['000', targetDir]);
+    try {
+      try {
+        Directory(targetDir).listSync();
+        markTestSkipped('permissions are not enforced for this user');
+        return;
+      } on FileSystemException {
+        // Unreadable, as intended.
+      }
+
+      final moved = await service.migrateToCustomFolder(targetDir);
+      final replaced = await service.replaceExistingDatabase(targetDir);
+
+      for (final result in [moved, replaced]) {
+        expect(result.success, isFalse);
+        expect(result.errorMessage, contains('Cannot write'));
+      }
+    } finally {
+      await Process.run('chmod', ['755', targetDir]);
+    }
+  }, skip: Platform.isWindows ? 'chmod is POSIX only' : false);
 
   test('migrateToDefault closes strictly and reopens at the default '
       'directory', () async {
@@ -381,6 +439,8 @@ void main() {
           expect(result.success, isFalse);
           expect(result.errorMessage, contains('Could not tell'));
         }
+        // Nothing was selected for this one, so it names the default folder.
+        expect(home.errorMessage, contains("app's default folder"));
         expect(DatabaseService.instance.currentPath, currentPath);
         expect(location.savedConfig, isNull);
       } finally {
