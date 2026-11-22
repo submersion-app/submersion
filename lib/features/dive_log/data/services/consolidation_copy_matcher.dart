@@ -77,16 +77,28 @@ class ConsolidationCopyMatcher {
     return null;
   }
 
-  /// Whether the target already holds the switch [copySwitch] makes, once its
-  /// tank is mapped to [targetTankId] and its time shifted by [offset].
+  /// Whether the target already holds the switch [copySwitch] of the copy
+  /// owned by [copyComputerId] makes, once its tank is mapped to
+  /// [targetTankId] and its time shifted by [offset].
+  ///
+  /// A switch another computer logged on the target is that computer's own
+  /// record and repeats nothing of the copy's. One that names no computer
+  /// could be either's (#2582), so it still counts.
   bool repeatsGasSwitch(
     GasSwitche copySwitch,
+    String? copyComputerId,
     String targetTankId,
     int offset,
   ) {
+    final shared = {targetComputerId, copyComputerId}.nonNulls.toSet();
+    final copyKey = _switchRecorder(copySwitch.computerId, shared);
     for (final g in _targetSwitches) {
       if (_claimedSwitches.contains(g.id)) continue;
       if (g.tankId != targetTankId) continue;
+      final targetKey = _switchRecorder(g.computerId, shared);
+      if (copyKey != null && targetKey != null && copyKey != targetKey) {
+        continue;
+      }
       if ((g.timestamp - (copySwitch.timestamp + offset)).abs() >
           toleranceSeconds) {
         continue;
@@ -124,6 +136,13 @@ class ConsolidationCopyMatcher {
         ))
           p,
     ];
+  }
+
+  /// The shared computer's key for a switch [computerId] names, the id
+  /// itself for any other computer, null when it names none.
+  static Object? _switchRecorder(String? computerId, Set<String> shared) {
+    if (computerId == null) return null;
+    return shared.contains(computerId) ? _sharedComputer : computerId;
   }
 
   static Object? _recorder(

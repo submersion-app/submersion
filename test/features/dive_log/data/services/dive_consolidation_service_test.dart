@@ -1278,6 +1278,38 @@ void main() {
         },
       );
 
+      test('keeps a switch of the copy that only another computer\'s switch '
+          'on the target sits beside', () async {
+        await seedSplitDive(
+          wholeTanks: [tank('tk-w', o2: 21, start: 200, end: 60, order: 0)],
+          halfTanks: [tank('tk-h', o2: 21, start: 200, end: 60, order: 0)],
+        );
+        await seedGasSwitch(
+          'sw-other',
+          diveId: 'whole',
+          tankId: 'tk-w',
+          timestamp: 1500,
+          computerId: 'comp-y',
+        );
+        await seedGasSwitch(
+          'sw-h',
+          diveId: 'half',
+          tankId: 'tk-h',
+          timestamp: 200,
+          computerId: 'comp-x',
+        );
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final switches = await (db.select(
+          db.gasSwitches,
+        )..where((g) => g.diveId.equals('whole'))).get();
+        expect(switches.map((g) => g.computerId).toList()..sort(), [
+          'comp-x',
+          'comp-y',
+        ]);
+      });
+
       test('adds no source for a copy that has no source row', () async {
         await seedSplitDive(halfHasSource: false);
 

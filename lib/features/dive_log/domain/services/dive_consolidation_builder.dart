@@ -395,6 +395,44 @@ class DiveConsolidationBuilder {
     return true;
   }
 
+  /// The primary cylinder that [tank] of a same-computer copy is, among
+  /// those not yet [claimed], or null when none can be told for sure.
+  ///
+  /// The copy's pressures need not equal the primary's (a second half starts
+  /// at the pressure the split left it at), but each must lie within the
+  /// primary cylinder's own fill-to-end range. Several cylinders of one gas
+  /// that all fit are told apart by position, since one computer lists its
+  /// cylinders in one order; failing that, the copy's cylinder stays its own
+  /// rather than taking one at a guess with another cylinder's pressures.
+  DiveTank? _copyTankMatch(
+    List<DiveTank> primaryTanks,
+    DiveTank tank,
+    Set<String> claimed,
+  ) {
+    final fits = [
+      for (final p in primaryTanks)
+        if (!claimed.contains(p.id) &&
+            _tankMatches(p, tank, comparePressures: false) &&
+            _withinRange(p, tank.startPressure) &&
+            _withinRange(p, tank.endPressure))
+          p,
+    ];
+    if (fits.length == 1) return fits.single;
+    return fits.where((p) => p.order == tank.order).singleOrNull;
+  }
+
+  /// Whether [reading] could be a pressure [primary] passed through: no more
+  /// than its fill, no less than where it ended. A side the primary does not
+  /// report bounds nothing.
+  bool _withinRange(DiveTank primary, double? reading) {
+    if (reading == null) return true;
+    final start = primary.startPressure;
+    final end = primary.endPressure;
+    if (start != null && reading > start + _pressureToleranceBar) return false;
+    if (end != null && reading < end - _pressureToleranceBar) return false;
+    return true;
+  }
+
   /// Whether a pair of pressure readings is compatible.
   ///
   /// A reading missing on either side carries no evidence either way, so it
@@ -471,19 +509,21 @@ class DiveConsolidationBuilder {
           }
         }
       }
+      final isCopy = classification.duplicateIds.contains(s.id);
       for (final tank in s.tanks) {
         if (tankMerges.containsKey(tank.id)) continue;
-        for (final pTank in primary.tanks) {
-          if (claimedPrimaryTanks.contains(pTank.id)) continue;
-          if (_tankMatches(
-            pTank,
-            tank,
-            comparePressures: !classification.duplicateIds.contains(s.id),
-          )) {
-            tankMerges[tank.id] = pTank.id;
-            claimedPrimaryTanks.add(pTank.id);
-            break;
-          }
+        final pTank = isCopy
+            ? _copyTankMatch(primary.tanks, tank, claimedPrimaryTanks)
+            : primary.tanks
+                  .where(
+                    (p) =>
+                        !claimedPrimaryTanks.contains(p.id) &&
+                        _tankMatches(p, tank),
+                  )
+                  .firstOrNull;
+        if (pTank != null) {
+          tankMerges[tank.id] = pTank.id;
+          claimedPrimaryTanks.add(pTank.id);
         }
       }
     }

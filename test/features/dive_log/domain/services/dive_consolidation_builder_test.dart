@@ -352,6 +352,67 @@ void main() {
         expect(plan.duplicateIds, {'b'});
         expect(plan.tankMerges, {'tb': 'ta'});
       });
+
+      group('with two cylinders of one gas on the primary', () {
+        DiveTank air(String id, double start, double end, {int order = 0}) =>
+            DiveTank(
+              id: id,
+              gasMix: const GasMix(o2: 21, he: 0),
+              startPressure: start,
+              endPressure: end,
+              order: order,
+            );
+        DiveConsolidationPlan fold(
+          List<DiveTank> primaryTanks,
+          List<DiveTank> copyTanks,
+        ) {
+          final whole = reefProfile();
+          return builder.build([
+            makeDive(
+              'a',
+              entry: t,
+              serial: 'SAME',
+              profile: whole,
+              tanks: primaryTanks,
+            ),
+            makeDive(
+              'b',
+              entry: t.add(const Duration(seconds: 1300)),
+              runtimeMin: 25,
+              serial: 'SAME',
+              profile: secondHalf(whole, 1300),
+              tanks: copyTanks,
+            ),
+          ]);
+        }
+
+        test('the copy\'s cylinder joins the one its pressures fit', () {
+          final plan = fold(
+            [air('ta1', 200, 120), air('ta2', 200, 60, order: 1)],
+            [air('tb', 130, 60)],
+          );
+
+          expect(plan.tankMerges, {'tb': 'ta2'});
+        });
+
+        test('cylinders that all fit pair by position', () {
+          final plan = fold(
+            [air('ta1', 200, 60), air('ta2', 200, 60, order: 1)],
+            [air('tb2', 130, 60, order: 1), air('tb1', 130, 60)],
+          );
+
+          expect(plan.tankMerges, {'tb1': 'ta1', 'tb2': 'ta2'});
+        });
+
+        test('a cylinder that cannot be told apart stays its own', () {
+          final plan = fold(
+            [air('ta1', 200, 60), air('ta2', 200, 60, order: 1)],
+            [air('tb', 130, 60, order: 2)],
+          );
+
+          expect(plan.tankMerges, isEmpty);
+        });
+      });
     });
 
     test('dive entirely after the other is not overlapping', () {

@@ -614,7 +614,12 @@ class DiveConsolidationService {
           final newTankId = tankIdMap[row.tankId];
           if (newTankId == null) continue;
           if (isDuplicate &&
-              copyMatcher.repeatsGasSwitch(row, newTankId, offset)) {
+              copyMatcher.repeatsGasSwitch(
+                row,
+                secRow.computerId,
+                newTankId,
+                offset,
+              )) {
             continue;
           }
           final switchId = _uuid.v4();
