@@ -219,22 +219,45 @@ void main() {
     expect(await equipmentOn('d2'), isEmpty);
   });
 
-  test('stops, unmarked, when another library is opened part way', () async {
+  test('stops, unmarked, when another library is opened part way, and '
+      'writes nothing into it', () async {
     await insertItem('gear-1');
     await insertItem('gear-2');
     await insertComputer('c1', equipmentId: 'gear-1');
     await insertComputer('c2', equipmentId: 'gear-2');
     await insertDive('d1', computerId: 'c1');
     await insertDive('d2', computerId: 'c2');
+    // Another copy of the same library, as a restored backup would be.
     final other = createTestDatabase();
     addTearDown(() async {
       DatabaseService.instance.setTestDatabase(db);
       await other.close();
     });
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await other.customStatement('PRAGMA foreign_keys = OFF');
+    for (final n in ['1', '2']) {
+      await other.customStatement(
+        'INSERT INTO equipment (id, name, type, status, purchase_currency, '
+        "notes, is_active, created_at, updated_at) VALUES (?, ?, 'computer', "
+        "'active', 'USD', '', 1, ?, ?)",
+        ['gear-$n', 'gear-$n', t, t],
+      );
+      await other.customStatement(
+        'INSERT INTO dive_computers (id, name, equipment_id, created_at, '
+        'updated_at) VALUES (?, ?, ?, ?, ?)',
+        ['c$n', 'c$n', 'gear-$n', t, t],
+      );
+      await other.customStatement(
+        'INSERT INTO dives (id, dive_date_time, computer_id, created_at, '
+        'updated_at) VALUES (?, ?, ?, ?, ?)',
+        ['d$n', t, 'c$n', t, t],
+      );
+    }
 
     await ComputerGearDiveHeal(
       linker: _BeforeFirstLink(
         () async => DatabaseService.instance.setTestDatabase(other),
+        database: db,
       ),
     ).run();
 
@@ -244,6 +267,7 @@ void main() {
       )..where((t) => t.key.equals(ComputerGearDiveHeal.doneKey))).get();
       expect(marker, isEmpty);
     }
+    expect(await other.select(other.diveEquipment).get(), isEmpty);
   });
 
   test('runs once per library: a link removed afterwards stays removed, '
@@ -268,7 +292,7 @@ void main() {
 /// Runs [before] once, ahead of the first link, as a job running
 /// alongside the pass would.
 class _BeforeFirstLink extends DiveComputerGearLinker {
-  _BeforeFirstLink(this.before);
+  _BeforeFirstLink(this.before, {super.database});
 
   final Future<void> Function() before;
   var _ran = false;

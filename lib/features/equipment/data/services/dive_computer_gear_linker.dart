@@ -17,16 +17,22 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 /// computer registration, so a twin the user deleted (which clears
 /// `dive_computers.equipment_id`) simply produces no link and stays deleted.
 class DiveComputerGearLinker {
+  /// With [database], every read and write of [linkComputerGearToDives]
+  /// stays on that library even if another is opened meanwhile; pass a
+  /// [syncRepository] on the same database with it.
   DiveComputerGearLinker({
     DiveRepository? diveRepository,
     SyncRepository? syncRepository,
+    AppDatabase? database,
   }) : _dives = diveRepository ?? DiveRepository(),
-       _sync = syncRepository ?? SyncRepository();
+       _sync = syncRepository ?? SyncRepository(database: database),
+       _database = database;
 
   final DiveRepository _dives;
   final SyncRepository _sync;
+  final AppDatabase? _database;
 
-  AppDatabase get _db => DatabaseService.instance.database;
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
 
   /// Returns true when at least one twin was attached.
   ///

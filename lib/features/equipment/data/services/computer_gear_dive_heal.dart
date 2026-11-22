@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -25,17 +26,15 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 /// pulls the rows this pass staged pulls the marker with them and has
 /// nothing left to do.
 class ComputerGearDiveHeal {
-  ComputerGearDiveHeal({
-    AppSettingsRepository? settings,
-    DiveComputerGearLinker? linker,
-  }) : _settings = settings ?? AppSettingsRepository(),
-       _linker = linker ?? DiveComputerGearLinker();
+  /// [linker] replaces the one the pass builds on the library it opens with,
+  /// for tests.
+  ComputerGearDiveHeal({DiveComputerGearLinker? linker})
+    : _linkerOverride = linker;
 
   /// The setting that records the pass has run for this library.
   static const doneKey = 'computer_gear_dives_linked';
 
-  final AppSettingsRepository _settings;
-  final DiveComputerGearLinker _linker;
+  final DiveComputerGearLinker? _linkerOverride;
   static final _log = LoggerService.forClass(ComputerGearDiveHeal);
 
   /// Runs the pass unless this library has had it, and returns how many
@@ -46,13 +45,17 @@ class ComputerGearDiveHeal {
   /// joining a synced library starts empty, and a marker written then would
   /// reach every peer and stop their pass before any of them had run it.
   ///
-  /// The pass works on the library open when it starts. If another takes
-  /// its place part way (a restore, or a sync that adopts the cloud
-  /// library), it stops and leaves the marker unset, since the library now
-  /// open is not the one it healed.
+  /// The pass works on the library open when it starts, and every read and
+  /// write stays on it. If another takes its place part way (a restore, or a
+  /// sync that adopts the cloud library), it stops and leaves the marker
+  /// unset, since the library now open is not the one it healed.
   Future<int> run() async {
     final db = DatabaseService.instance.databaseOrNull;
     if (db == null) return 0;
+    final sync = SyncRepository(database: db);
+    final linker =
+        _linkerOverride ??
+        DiveComputerGearLinker(database: db, syncRepository: sync);
     try {
       if (await _isDone(db)) return 0;
       final computers = await _computersWithItems(db);
@@ -71,7 +74,7 @@ class ComputerGearDiveHeal {
           db,
           label: ChangeLogLabels.qualityRepair,
           body: () => db.transaction(
-            () async => _linker.linkComputerGearToDives(
+            () async => linker.linkComputerGearToDives(
               computerId: computerId,
               diveIds: await _recordedDives(db, computerId),
               removedKeys: removedKeys,
@@ -80,9 +83,9 @@ class ComputerGearDiveHeal {
         );
       }
       if (!_stillOpen(db)) return linked;
-      await _settings.setRawSetting(doneKey, 'true');
+      await _markDone(db, sync);
+      SyncEventBus.notifyLocalChange();
       if (linked > 0) {
-        SyncEventBus.notifyLocalChange();
         _log.info('Linked $linked dive(s) to their computer\'s item');
       }
       return linked;
@@ -94,6 +97,26 @@ class ComputerGearDiveHeal {
       );
       return 0;
     }
+  }
+
+  /// Sets the marker in [db] and stages it for sync, as
+  /// [AppSettingsRepository.setRawSetting] would in the open library.
+  Future<void> _markDone(AppDatabase db, SyncRepository sync) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.settings)
+        .insertOnConflictUpdate(
+          SettingsCompanion(
+            key: const Value(doneKey),
+            value: const Value('true'),
+            updatedAt: Value(now),
+          ),
+        );
+    await sync.markRecordPending(
+      entityType: 'settings',
+      recordId: doneKey,
+      localUpdatedAt: now,
+    );
   }
 
   /// Whether [db] is still the library the app has open.
