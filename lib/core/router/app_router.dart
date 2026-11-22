@@ -1988,6 +1988,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'personal',
                     name: 'editPersonalInfo',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const PersonalInfoEditPage(),
                   ),
                   GoRoute(

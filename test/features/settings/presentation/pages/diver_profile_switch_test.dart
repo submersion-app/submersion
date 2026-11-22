@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'diver_profile_harness.dart';
@@ -145,4 +146,23 @@ void main() {
     expect(find.text('Hub'), findsOneWidget);
     expect((await storedDiver('b'))!.allergies, 'None');
   });
+
+  for (final change in [false, true]) {
+    testWidgets('personal info closes on a switch (changed: $change)', (
+      tester,
+    ) async {
+      await pumpProfilePage(
+        tester,
+        path: 'personal',
+        page: const PersonalInfoEditPage(),
+        activeDiverId: 'a',
+      );
+      if (change) await typeInto(tester, 'Email', 'alice@example.com');
+
+      await switchWithoutAsking(tester, 'b');
+
+      expect(find.text('Hub'), findsOneWidget);
+      expect((await storedDiver('a'))!.email, isNull);
+    });
+  }
 }
