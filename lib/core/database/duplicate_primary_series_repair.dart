@@ -17,10 +17,13 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 ///
 /// Within one source's live series, the source's own are those whose
 /// computer is the source's (`IS`, so a file source's own series carries
-/// none). Another live series of that source which overlaps one of them in
-/// time is demoted, not deleted: it stays in the profile's history, its
-/// label untouched. One that overlaps none is a segment of its own, the
-/// shape a merge of one computer's split dive writes, and stays live.
+/// none). Another live series of that source whose span lies within one of
+/// theirs (give or take a minute) repeats minutes the chart already shows,
+/// and is demoted, not deleted: it stays in the profile's history, its label
+/// untouched. One that overlaps none is a segment of its own, the shape a
+/// merge of one computer's split dive writes, and stays live. So is one that
+/// overlaps but reaches past them, as a label that changed partway through a
+/// profile leaves it: demoting it would hide the minutes only it holds.
 ///
 /// Only a computer's label marks a duplicate, and only one that no source
 /// row of the dive names. A live series with no computer beside the
@@ -171,7 +174,7 @@ Future<int> _repairDives(AppDatabase db, List<String>? ids) async {
         // demoted generation beneath it to give it away by shape.
         if (label == null || label == computerId) continue;
         if (computersWithSource.contains(label)) continue;
-        if (!own.any((o) => _overlaps(o, s))) continue;
+        if (!own.any((o) => _contains(o, s))) continue;
         // One more on updated_at moves the stamp the device-local caches
         // key on (diveSourceStampSql), so the dive's metrics are rebuilt
         // from the profile it now shows. Sync exports by the HLC, which
@@ -189,6 +192,15 @@ Future<int> _repairDives(AppDatabase db, List<String>? ids) async {
 }
 
 bool _overlaps(_Series a, _Series b) => a.start <= b.end && b.start <= a.end;
+
+/// How far a duplicate may run past the series it repeats: two copies of one
+/// recording can differ by a sample at either end.
+const _spanSlackSeconds = 60;
+
+/// Whether [inner]'s span lies within [outer]'s, give or take the slack.
+bool _contains(_Series outer, _Series inner) =>
+    inner.start >= outer.start - _spanSlackSeconds &&
+    inner.end <= outer.end + _spanSlackSeconds;
 
 bool _anyOverlap(List<_Series> series) {
   for (var i = 0; i < series.length; i++) {

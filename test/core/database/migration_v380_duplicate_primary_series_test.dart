@@ -213,6 +213,34 @@ void main() {
       expect(await primaryFlags(db, 'dive'), {'own': true, 'later': true});
     });
 
+    test('a series reaching past the own one is not a duplicate', () async {
+      // A label that changed partway through: the stray holds minutes the
+      // source's own series does not, so demoting it would hide them.
+      await insertDive(db, 'dive');
+      await insertSource(db, 'src', 'dive', computerId: 'comp-a');
+      await insertSeries(
+        db,
+        'own',
+        'dive',
+        sourceId: 'src',
+        computerId: 'comp-a',
+        start: 1500,
+        end: 3000,
+      );
+      await insertSeries(
+        db,
+        'stray',
+        'dive',
+        sourceId: 'src',
+        computerId: 'comp-b',
+        start: 0,
+        end: 1600,
+      );
+
+      expect(await demoteDuplicatePrimarySeries(db), 0);
+      expect(await primaryFlags(db, 'dive'), {'own': true, 'stray': true});
+    });
+
     test('two series that both match, or neither, are left alone', () async {
       await insertDive(db, 'both');
       await insertSource(db, 'both-src', 'both', computerId: 'comp-a');
