@@ -4814,7 +4814,11 @@ class SyncService {
           // tombstone runs the same repair.
           try {
             await _serializer.applyInDeferredFkTransaction(() async {
-              final local = await _serializer.fetchRecord(entityType, recordId);
+              // Only an identification's row is needed, for its media; other
+              // rows can carry large blobs.
+              final local = entityType == 'mediaIdentifications'
+                  ? await _serializer.fetchRecord(entityType, recordId)
+                  : null;
               await _serializer.deleteRecord(entityType, recordId);
               await _serializer.repairDanglingForeignKeys();
               await _syncRepository.logDeletionIfMissing(

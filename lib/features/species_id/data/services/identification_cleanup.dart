@@ -102,9 +102,11 @@ class IdentificationCleanup {
   }
 
   /// The crop files and embeddings of identifications this logbook has
-  /// deleted (issue #4890): what a sync's hook missed, by a crash or an
-  /// older build. Only files whose id this logbook holds a tombstone for,
-  /// since the crops folder is shared by every logbook on the device.
+  /// deleted (issue #4890): what a sync's hook missed, by a crash or a
+  /// failure. Only files whose id this logbook holds a tombstone for,
+  /// since the crops folder is shared by every logbook on the device, so
+  /// only while the sync keeps that tombstone: at least 30 days, and until
+  /// every peer has acknowledged it.
   /// Embeddings with no file behind them are left to the local cache
   /// sweep.
   Future<void> _sweepDeletedLeftovers() async {
