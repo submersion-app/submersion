@@ -187,7 +187,39 @@ void main() {
     );
     await pump(tester, ruleId: id);
 
+    expect(
+      find.text(
+        'The condition names something that was deleted. Edit the rule to '
+        'run it.',
+      ),
+      findsOneWidget,
+    );
     expect(save(tester).onPressed, isNull);
+    await back(tester);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('LIST'), findsOneWidget);
+  });
+
+  testWidgets('a condition typed into a rule with none stored and cleared '
+      'again is no change', (tester) async {
+    // The rule loads with a problem (its actions cannot be read) but has no
+    // stored condition: an empty condition is what it had.
+    final id = await stored();
+    await db.customStatement(
+      "UPDATE rules SET condition_json = '', actions_json = 'not json' "
+      "WHERE id = '$id'",
+    );
+    await pump(tester, ruleId: id);
+    expect(
+      find.text("This rule's condition can't be read. Edit or delete it."),
+      findsOneWidget,
+    );
+
+    await tester.enterText(conditionField(), 'depth > 10');
+    await tester.pumpAndSettle();
+    await tester.enterText(conditionField(), '');
+    await tester.pumpAndSettle();
+
     await back(tester);
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('LIST'), findsOneWidget);
@@ -226,11 +258,33 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Add at least one action.'), findsOneWidget);
     await back(tester);
     expect(find.byType(AlertDialog), findsOneWidget);
     await tester.tap(find.text('Keep editing'));
     await tester.pumpAndSettle();
-    expect(find.text('Add at least one action.'), findsOneWidget);
+
+    // The same action again, through the picker.
+    await tester.ensureVisible(find.byKey(const ValueKey('rule_add_action')));
+    await tester.tap(find.byKey(const ValueKey('rule_add_action')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('rule_action_search')),
+      'Add dive types',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add dive types').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Deep').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add dive types: Deep'), findsOneWidget);
+
+    expect(save(tester).onPressed, isNull);
+    await back(tester);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('LIST'), findsOneWidget);
   });
 
   testWidgets('a condition that does not parse is a change', (tester) async {

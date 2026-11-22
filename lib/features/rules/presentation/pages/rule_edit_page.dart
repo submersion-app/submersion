@@ -65,6 +65,18 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage>
 
   bool get _isNew => widget.ruleId == null;
 
+  /// The rule has a stored condition that did not load into a tree (it can
+  /// no longer be read, or names a field this version rejects): the editor
+  /// shows none, so an edit of it replaces what is stored even when it ends
+  /// as none. A condition that loaded, or no stored condition, is compared
+  /// as it reads.
+  bool get _storedConditionUnloaded {
+    final original = _original;
+    return original != null &&
+        original.conditionJson.isNotEmpty &&
+        original.condition == null;
+  }
+
   bool get _readOnly =>
       _original?.problem == RuleLoadProblem.newerVersion ||
       _actions.any((a) => a is UnknownRuleAction);
@@ -164,7 +176,7 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage>
     triggers: {..._triggers},
     condition: _condition,
     conditionValid: _conditionValid,
-    replacesBrokenCondition: _original?.problem != null && _conditionTouched,
+    replacesBrokenCondition: _storedConditionUnloaded && _conditionTouched,
     actions: [..._actions],
   );
 
