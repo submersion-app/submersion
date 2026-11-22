@@ -172,7 +172,7 @@ extension _VideoScanning on MediaIdentificationService {
       },
       memoryReadout: _memoryReadout,
       keepGoing: () =>
-          !job.cancelled &&
+          !job.stopForLeaving() &&
           !_disposed &&
           _paused == 0 &&
           !_otherWaiting(job) &&
@@ -183,7 +183,7 @@ extension _VideoScanning on MediaIdentificationService {
     _changed();
     try {
       while (true) {
-        if (job.cancelled ||
+        if (job.stopForLeaving() ||
             _disposed ||
             _freshWaiting(job) ||
             _databaseGeneration() != generation) {

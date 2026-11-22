@@ -3,6 +3,10 @@
 /// widgets.
 library;
 
+import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/services/track_labels.dart';
+
 /// How far the app has looked at a photo or video.
 enum MediaAnalysisState {
   /// No species model is installed.
@@ -85,4 +89,35 @@ LabelsMenuModel labelsMenuModel({
     action: action,
     actionEnabled: state != MediaAnalysisState.noModel,
   );
+}
+
+/// What the viewer says once an Analyse the diver asked for has finished,
+/// when its finds would draw no name (issue #4872): without it the tap
+/// looks as if it did nothing.
+enum AnalysedNotice {
+  /// It found nothing.
+  nothingFound,
+
+  /// It found animals, but could name none of them: Names draws no pill.
+  noneNamed,
+}
+
+/// How many of [found] count as found: a dismissed one does not.
+int foundCount(List<MediaIdentification> found) =>
+    found.where((i) => i.decision != IdentificationDecision.rejected).length;
+
+/// The notice for what an Analyse left on an item, [found] being its
+/// identifications as the naming level in force reads them; null when one
+/// has a name to show, its pill being answer enough.
+AnalysedNotice? analysedNotice(List<MediaIdentification> found) {
+  if (foundCount(found) == 0) return AnalysedNotice.nothingFound;
+  final named = found.any(
+    (i) => switch (labelKind(i, playing: false, mode: LabelMode.names)) {
+      TrackLabelKind.confident ||
+      TrackLabelKind.suggestion ||
+      TrackLabelKind.accepted => true,
+      _ => false,
+    },
+  );
+  return named ? null : AnalysedNotice.noneNamed;
 }

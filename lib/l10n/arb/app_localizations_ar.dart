@@ -56548,6 +56548,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عُثر على $count، ولم يُسمَّ أيٌّ منها',
+      many: 'عُثر على $count، ولم يُسمَّ أيٌّ منها',
+      few: 'عُثر على $count، ولم يُسمَّ أيٌّ منها',
+      two: 'عُثر على اثنين، دون اسم',
+      one: 'عُثر على واحد، دون اسم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'إظهار كل الكائنات';
+
+  @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
 
   @override

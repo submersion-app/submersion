@@ -162,6 +162,22 @@ class _Job {
   /// A video the diver left: its scan stops after the chunk in progress.
   var cancelled = false;
 
+  /// The scan saw [cancelled] and is stopping for it (issue #4872). The
+  /// diver coming back after that clears [cancelled] too late to keep the
+  /// scan going, so the job goes back in the queue when it ends.
+  var stopSeen = false;
+
+  /// Whether the scan should stop because the diver left, noting that it
+  /// saw it ([stopSeen]).
+  bool stopForLeaving() {
+    if (cancelled) stopSeen = true;
+    return cancelled;
+  }
+
+  /// The diver came back after the scan saw them leave: it is to carry on
+  /// in a fresh pass once this one ends.
+  bool get revived => stopSeen && !cancelled;
+
   /// This request asked again, in the logbook of [generation], by hand or
   /// fresh if either asking was.
   _Job withLocation(

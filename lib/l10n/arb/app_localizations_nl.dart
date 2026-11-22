@@ -55396,6 +55396,20 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gevonden, geen met naam',
+      one: '$count gevonden, zonder naam',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Al het leven tonen';
+
+  @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';
 
   @override

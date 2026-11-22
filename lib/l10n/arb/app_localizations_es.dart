@@ -55796,6 +55796,20 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count encontrados, ninguno con nombre',
+      one: '$count encontrado, sin nombre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Mostrar toda la vida';
+
+  @override
   String get media_species_possibleMatches => 'Posibles coincidencias';
 
   @override

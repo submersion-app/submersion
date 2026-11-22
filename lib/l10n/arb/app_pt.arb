@@ -16450,6 +16450,8 @@
   "media_labels_statusAnalysing": "Analisando...",
   "media_labels_statusAnalysingPercent": "Analisando, {percent}",
   "media_labels_statusFound": "{count, plural, =0{Nada encontrado} =1{{count} encontrado} other{{count} encontrados}}",
+  "media_labels_foundNoneNamed": "{count, plural, =1{{count} encontrado, sem nome} other{{count} encontrados, nenhum com nome}}",
+  "media_labels_showAllLife": "Mostrar toda a vida",
   "media_species_possibleMatches": "Possíveis correspondências",
   "media_species_cropUnavailable": "Imagem não está neste dispositivo",
   "media_species_taggedOnPhoto": "Marcadas nesta foto",

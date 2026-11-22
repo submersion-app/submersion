@@ -16450,6 +16450,8 @@
   "media_labels_statusAnalysing": "正在分析...",
   "media_labels_statusAnalysingPercent": "正在分析，{percent}",
   "media_labels_statusFound": "{count, plural, =0{未发现任何内容} other{发现 {count} 个}}",
+  "media_labels_foundNoneNamed": "{count, plural, other{发现 {count} 个，均未命名}}",
+  "media_labels_showAllLife": "显示所有生物",
   "media_species_possibleMatches": "可能的匹配",
   "media_species_cropUnavailable": "图像不在此设备上",
   "media_species_taggedOnPhoto": "此照片中已标记",

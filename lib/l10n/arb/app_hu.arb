@@ -16450,6 +16450,8 @@
   "media_labels_statusAnalysing": "Elemzés folyamatban...",
   "media_labels_statusAnalysingPercent": "Elemzés folyamatban, {percent}",
   "media_labels_statusFound": "{count, plural, =0{Nincs találat} =1{{count} találat} other{{count} találat}}",
+  "media_labels_foundNoneNamed": "{count, plural, =1{{count} találat, név nélkül} other{{count} találat, egyiknek sincs neve}}",
+  "media_labels_showAllLife": "Minden élőlény mutatása",
   "media_species_possibleMatches": "Lehetséges egyezések",
   "media_species_cropUnavailable": "A kép nincs ezen az eszközön",
   "media_species_taggedOnPhoto": "Ezen a fotón címkézve",
