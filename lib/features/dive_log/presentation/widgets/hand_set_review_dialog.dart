@@ -82,28 +82,16 @@ class _HandSetReviewDialogState extends State<HandSetReviewDialog> {
                 style: textTheme.titleSmall,
               ),
               const SizedBox(height: 4),
-              Text(
-                l10n.handSetReview_yours(
-                  handSetValueText(
-                    change.field,
-                    change.storedValue,
-                    widget.units,
-                    l10n,
+              ...switch (handSetValueTexts(change, widget.units, l10n)) {
+                (:final stored, :final parsed) => [
+                  Text(l10n.handSetReview_yours(stored)),
+                  Text(
+                    (fromComputer
+                        ? l10n.handSetReview_fromComputer
+                        : l10n.handSetReview_fromFile)(parsed),
                   ),
-                ),
-              ),
-              Text(
-                (fromComputer
-                    ? l10n.handSetReview_fromComputer
-                    : l10n.handSetReview_fromFile)(
-                  handSetValueText(
-                    change.field,
-                    change.parsedValue,
-                    widget.units,
-                    l10n,
-                  ),
-                ),
-              ),
+                ],
+              },
               const SizedBox(height: 8),
               SegmentedButton<bool>(
                 key: ValueKey('handSetChoice_${change.field.name}'),
@@ -166,21 +154,43 @@ String handSetFieldLabel(
   HandSetField.diluent => DiveField.diluentGas.labelFor(l10n),
 };
 
+/// [change]'s two values as the dialog shows them. When they would read the
+/// same, a depth or temperature is shown to two decimals, so a row never
+/// offers a choice between what look like equal values.
+({String stored, String parsed}) handSetValueTexts(
+  HandSetChange change,
+  UnitFormatter units,
+  AppLocalizations l10n,
+) {
+  String text(Object? value, {bool precise = false}) =>
+      handSetValueText(change.field, value, units, l10n, precise: precise);
+  final stored = text(change.storedValue);
+  final parsed = text(change.parsedValue);
+  if (stored != parsed) return (stored: stored, parsed: parsed);
+  return (
+    stored: text(change.storedValue, precise: true),
+    parsed: text(change.parsedValue, precise: true),
+  );
+}
+
 /// [value], in [HandSetField.valueIn]'s shape, as the diver reads it, in
-/// their units.
+/// their units; [precise] gives a depth or temperature two decimals.
 String handSetValueText(
   HandSetField field,
   Object? value,
   UnitFormatter units,
-  AppLocalizations l10n,
-) {
+  AppLocalizations l10n, {
+  bool precise = false,
+}) {
+  final decimals = precise ? 2 : 1;
   DateTime instant(int ms) =>
       DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
   final text = switch ((field, value)) {
     (HandSetField.maxDepth || HandSetField.avgDepth, final double depth) =>
-      units.formatDepth(depth),
+      units.formatDepth(depth, decimals: decimals),
     (HandSetField.waterTemp, final double temp) => units.formatTemperature(
       temp,
+      decimals: decimals,
     ),
     (HandSetField.runtime || HandSetField.bottomTime, final int seconds) =>
       _minutesSeconds(seconds),
@@ -201,9 +211,10 @@ String handSetValueText(
       final int gf,
     ) =>
       '$gf%',
-    (HandSetField.diluent, (final double? o2, final double? he))
-        when o2 != null =>
-      GasMix(o2: o2, he: he ?? 0).name,
+    (HandSetField.diluent, (final double o2, final double he)) => GasMix(
+      o2: o2,
+      he: he,
+    ).name,
     (_, null) || (HandSetField.diluent, _) => null,
     (_, final Object other) => '$other',
   };

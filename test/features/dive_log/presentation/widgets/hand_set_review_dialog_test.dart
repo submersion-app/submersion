@@ -29,6 +29,34 @@ void main() {
     expect(text(HandSetField.waterTemp, 24.0, imperial), contains('F'));
   });
 
+  test('values that read alike show more decimals', () {
+    final pair = handSetValueTexts(
+      const HandSetChange(
+        field: HandSetField.maxDepth,
+        storedValue: 30.04,
+        parsedValue: 30.0,
+      ),
+      metric,
+      l10n,
+    );
+    expect(pair.stored, metric.formatDepth(30.04, decimals: 2));
+    expect(pair.parsed, metric.formatDepth(30.0, decimals: 2));
+    expect(pair.stored, isNot(pair.parsed));
+  });
+
+  test('values that read apart keep the usual decimals', () {
+    final pair = handSetValueTexts(
+      const HandSetChange(
+        field: HandSetField.waterTemp,
+        storedValue: 26.0,
+        parsedValue: 22.0,
+      ),
+      metric,
+      l10n,
+    );
+    expect(pair.stored, metric.formatTemperature(26));
+  });
+
   test('a duration shows its seconds, so close values read apart', () {
     expect(text(HandSetField.bottomTime, 2430), '40:30');
     expect(text(HandSetField.runtime, 2400), '40:00');
@@ -55,7 +83,7 @@ void main() {
 
   test('a missing value reads as not set', () {
     expect(text(HandSetField.waterTemp, null), 'Not set');
-    expect(text(HandSetField.diluent, (null, null)), 'Not set');
+    expect(text(HandSetField.diluent, null), 'Not set');
   });
 
   test('every field has a label', () {

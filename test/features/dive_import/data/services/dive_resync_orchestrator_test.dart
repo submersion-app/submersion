@@ -278,6 +278,22 @@ void main() {
       expect(dive.runtime, 41 * 60);
     });
 
+    test('the preview of a dive with nothing marked reads no file', () async {
+      await seedDiveWithSource(
+        dateTime: dateTime,
+        maxDepth: 19.0,
+        bottomTimeSeconds: 40 * 60,
+        importedFileId: 'file-uddf',
+      );
+      final orchestrator = DiveResyncOrchestrator(
+        db: db,
+        importedFiles: _FakeImportedFiles({'file-uddf': Uint8List(0)}),
+        parserFor: (_) => throw StateError('must not parse'),
+      );
+
+      expect(await orchestrator.previewHandSetChanges('dive-1'), isEmpty);
+    });
+
     test('the preview lists them and writes nothing', () async {
       final orchestrator = await markedDive();
 

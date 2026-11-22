@@ -90,8 +90,25 @@ void main() {
       );
     });
 
+    test('a diluent read back with its helium filled in is no change, nor '
+        'is an unknown mode read back as open circuit', () async {
+      // The dive page reads a missing helium as 0 and an unknown mode as
+      // open circuit, and writes them back on any Save.
+      final before = (await insertDive()).copyWith(
+        diluentO2: const Value(21),
+        diveMode: 'future-mode',
+      );
+      expect(
+        changedHandSetFields(
+          before,
+          before.copyWith(diluentHe: const Value(0), diveMode: 'oc'),
+        ),
+        isEmpty,
+      );
+    });
+
     test('a diluent is one field of two columns', () async {
-      final before = await insertDive();
+      final before = (await insertDive()).copyWith(diluentO2: const Value(10));
       expect(
         changedHandSetFields(
           before,

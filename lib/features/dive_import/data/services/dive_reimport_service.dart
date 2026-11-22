@@ -154,7 +154,11 @@ class DiveReimportService {
       // have authored the summary, so nothing overwrites it.
       if (primary != null || sourceRows.isEmpty) {
         await _updateDiveRow(
-          diveRow: diveRow,
+          // Read again inside the transaction: the marks a write landing
+          // since the read above made are the ones to keep (issue #4909).
+          diveRow: await (db.select(
+            db.dives,
+          )..where((t) => t.id.equals(diveId))).getSingle(),
           diveData: diveData,
           now: now,
           replaceHandSet: replaceHandSet,

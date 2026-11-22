@@ -320,6 +320,7 @@ class ReparseBatchService {
     String diveId, {
     required RawDiveParseFn parseFn,
   }) async {
+    if (!await hasHandSetMarks(_db, diveId)) return const [];
     final parsed = await _parseSources(diveId, parseFn, null);
     if (parsed.stop != null) return const [];
     return [

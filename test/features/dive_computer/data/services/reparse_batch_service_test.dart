@@ -461,6 +461,23 @@ void main() {
       expect(await lastParsedAt('s1'), isNull);
     });
 
+    test('the preview of a dive with nothing marked parses nothing', () async {
+      await addDive('d1');
+      await addSource(id: 's1', diveId: 'd1');
+
+      var parses = 0;
+      final changes = await batch.previewSingleDive(
+        'd1',
+        parseFn: (vendor, product, model, raw) {
+          parses++;
+          return okParse(vendor, product, model, raw);
+        },
+      );
+
+      expect(changes, isEmpty);
+      expect(parses, 0);
+    });
+
     test('the preview of a dive that fails to parse is empty', () async {
       await addDive('d1');
       await addSource(id: 's1', diveId: 'd1');

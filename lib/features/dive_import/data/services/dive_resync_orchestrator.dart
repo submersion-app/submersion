@@ -86,6 +86,7 @@ class DiveResyncOrchestrator {
   /// writes nothing. None when the file or the dive in it cannot be found:
   /// the resync itself then says why.
   Future<List<HandSetChange>> previewHandSetChanges(String diveId) async {
+    if (!await hasHandSetMarks(db, diveId)) return const [];
     final best = (await _finder.find(diveId)).parsedDive;
     if (best == null) return const [];
     return _writer.previewHandSetChanges(diveId: diveId, diveData: best);

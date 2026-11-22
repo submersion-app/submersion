@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// A computer-written value of a dive that the diver can set by hand (issue
@@ -36,6 +37,10 @@ enum HandSetField {
   }
 
   /// This field's value in [row], one comparable object across its columns.
+  ///
+  /// Read as the dive page reads it, so the page writing back what it read
+  /// is no change: a diluent without helium is one with none, and a mode
+  /// this version does not know is open circuit.
   Object? valueIn(Dive row) => switch (this) {
     maxDepth => row.maxDepth,
     avgDepth => row.avgDepth,
@@ -44,12 +49,15 @@ enum HandSetField {
     exitTime => row.exitTime,
     bottomTime => row.bottomTime,
     waterTemp => row.waterTemp,
-    diveMode => row.diveMode,
+    diveMode => DiveMode.fromCode(row.diveMode).code,
     gradientFactorLow => row.gradientFactorLow,
     gradientFactorHigh => row.gradientFactorHigh,
     decoAlgorithm => row.decoAlgorithm,
     decoConservatism => row.decoConservatism,
-    diluent => (row.diluentO2, row.diluentHe),
+    diluent => switch (row.diluentO2) {
+      null => null,
+      final o2 => (o2, row.diluentHe ?? 0.0),
+    },
   };
 
   /// [companion] with this field's columns left as stored.
@@ -109,6 +117,17 @@ abstract final class HandSetMarks {
   static Set<HandSetField> fieldsOf(Set<String> keys) => {
     for (final key in keys) ?HandSetField.fromKey(key),
   };
+}
+
+/// Whether the diver has set any value of [diveId] by hand. A preview asks
+/// first, so a dive with none is never parsed twice.
+Future<bool> hasHandSetMarks(AppDatabase db, String diveId) async {
+  final row =
+      await (db.selectOnly(db.dives)
+            ..addColumns([db.dives.handSetFields])
+            ..where(db.dives.id.equals(diveId)))
+          .getSingleOrNull();
+  return HandSetMarks.decode(row?.read(db.dives.handSetFields)).isNotEmpty;
 }
 
 /// The fields whose columns differ between [before] and [after].
