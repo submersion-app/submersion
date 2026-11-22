@@ -43343,9 +43343,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Was beim nächsten Mal helfen würde (optional)';
 
   @override
-  String get incidentEdit_save => 'Speichern';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Beinahe-Unfall-Berichte synchronisieren sich zwischen deinen Geräten und sind in Backups enthalten, aber niemals in Exporten oder geteilten Logbuchseiten.';
 
@@ -61085,6 +61082,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rules_edit_noActions => 'Füge mindestens eine Aktion hinzu.';
 
   @override
+  String get rules_edit_notFound => 'Diese Regel existiert nicht mehr.';
+
+  @override
   String get rules_picker_search => 'Aktionen suchen';
 
   @override
@@ -65638,6 +65638,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'jetzt';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Letztes Jahr $value';
   }
@@ -65668,6 +65671,60 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Letzte Tauchausflüge';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings Ausflüge',
+      one: '1 Ausflug',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth max.';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Arten',
+      one: '1 Art',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Ausflüge erscheinen hier, sobald ein Tauchgang erfasst ist';
+
+  @override
+  String get dashboard_outings_unnamed => 'Tauchgänge';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Tauchgänge pro Monat';
@@ -65877,6 +65934,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Aktivitätskalender';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Letzte Tauchausflüge';
 
   @override
   String get settings_homeKeyNumbers_description =>

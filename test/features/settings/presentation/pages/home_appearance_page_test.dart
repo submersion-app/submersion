@@ -124,6 +124,9 @@ void main() {
     final notifier = await _pump(tester, initial: _custom());
     final reset = find.byKey(const Key('homePanelsReset'));
     await tester.scrollUntilVisible(reset, 100);
+    // Fully on screen: the list can stop with the button at its edge.
+    await tester.ensureVisible(reset);
+    await tester.pumpAndSettle();
     await tester.tap(reset);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Reset'));

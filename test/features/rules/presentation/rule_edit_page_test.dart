@@ -73,7 +73,9 @@ void main() {
   }
 
   Future<void> save(WidgetTester tester) async {
-    await tester.tap(find.byKey(const ValueKey('rule_save')));
+    // The bar's Save enables on the frame after the edit.
+    await tester.pump();
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 100)),
     );
@@ -193,7 +195,7 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('rule_name')), 'Empty');
     await tester.pump();
     final button = tester.widget<AppBarTextAction>(
-      find.byKey(const ValueKey('rule_save')),
+      find.widgetWithText(AppBarTextAction, 'Save'),
     );
     expect(button.onPressed, isNull);
   });
@@ -254,7 +256,7 @@ void main() {
     });
     await pumpEditor(tester, ruleId: id);
     expect(find.textContaining('Made by a newer version'), findsOneWidget);
-    expect(find.byKey(const ValueKey('rule_save')), findsNothing);
+    expect(find.widgetWithText(AppBarTextAction, 'Save'), findsNothing);
   });
 
   testWidgets('Save waits while the condition text does not parse', (
@@ -279,7 +281,7 @@ void main() {
       matching: find.byType(TextField),
     );
     AppBarTextAction save() =>
-        tester.widget(find.byKey(const ValueKey('rule_save')));
+        tester.widget(find.widgetWithText(AppBarTextAction, 'Save'));
 
     await tester.enterText(field, 'depth > 30 and site = "Nowhere"');
     await tester.pumpAndSettle();
@@ -358,7 +360,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('rule_action_ok')));
     await tester.pumpAndSettle();
     final save = tester.widget<AppBarTextAction>(
-      find.byKey(const ValueKey('rule_save')),
+      find.widgetWithText(AppBarTextAction, 'Save'),
     );
     expect(save.onPressed, isNotNull);
   });

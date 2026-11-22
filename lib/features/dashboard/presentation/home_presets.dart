@@ -17,10 +17,12 @@ const _waitingOnYou = [
 /// The panels a preset shows, in order. Every other panel is hidden.
 List<HomePanelType> homePresetPanels(HomeLayoutPreset preset) =>
     switch (preset) {
+      // Recent outings in the calendar's place (issue #4898): most divers dive
+      // in a few trips a year, so a fixed window of days is mostly empty.
       HomeLayoutPreset.balanced => const [
         HomePanelType.keyNumbers,
         ..._waitingOnYou,
-        HomePanelType.activityCalendar,
+        HomePanelType.recentOutings,
         HomePanelType.gearService,
         HomePanelType.latestProfile,
         HomePanelType.recentDives,
@@ -55,11 +57,13 @@ List<HomePanelType> homePresetPanels(HomeLayoutPreset preset) =>
         HomePanelType.topBuddies,
         HomePanelType.diveTypes,
       ],
+      // Latest vs average follows the outings so a desktop row is full.
       HomeLayoutPreset.logbook => const [
         HomePanelType.keyNumbers,
         ..._waitingOnYou,
-        HomePanelType.latestProfile,
+        HomePanelType.recentOutings,
         HomePanelType.latestVsAverage,
+        HomePanelType.latestProfile,
         HomePanelType.recentDives,
         HomePanelType.photoRibbon,
         HomePanelType.recentSitesMap,

@@ -43435,9 +43435,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Cosa aiuterebbe la prossima volta (facoltativo)';
 
   @override
-  String get incidentEdit_save => 'Salva';
-
-  @override
   String get incidentEdit_privacyNote =>
       'I rapporti di quasi incidente si sincronizzano tra i tuoi dispositivi e sono inclusi nei backup, ma mai nelle esportazioni o nelle pagine condivise del logbook.';
 
@@ -61218,6 +61215,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get rules_edit_noActions => 'Aggiungi almeno un\'azione.';
 
   @override
+  String get rules_edit_notFound => 'Questa regola non esiste più.';
+
+  @override
   String get rules_picker_search => 'Cerca azioni';
 
   @override
@@ -65774,6 +65774,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'ora';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'L\'anno scorso $value';
   }
@@ -65804,6 +65807,60 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Uscite recenti';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings uscite',
+      one: '1 uscita',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives immersioni',
+      one: '1 immersione',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth max';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specie',
+      one: '1 specie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Le tue uscite appariranno qui quando registrerai un\'immersione';
+
+  @override
+  String get dashboard_outings_unnamed => 'Immersioni';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Immersioni al mese';
@@ -66013,6 +66070,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Calendario attività';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Uscite recenti';
 
   @override
   String get settings_homeKeyNumbers_description =>

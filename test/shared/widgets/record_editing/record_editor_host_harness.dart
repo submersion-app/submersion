@@ -66,6 +66,9 @@ class EditorProbe {
   /// The record cannot be opened: the page leaves as it starts, while its
   /// route is still being pushed, in place of opening.
   bool leaveAtStart = false;
+
+  /// Whether the form may be saved at all, given the draft; null always.
+  bool Function(String draft)? canSave;
 }
 
 /// An editor with no read page, as small as one can be: one text field
@@ -136,6 +139,9 @@ class FakeEditorState extends ConsumerState<FakeEditorPage>
 
   @override
   bool validateEditor() => widget.probe.valid;
+
+  @override
+  bool get editorCanSave => widget.probe.canSave?.call(text.text) ?? true;
 
   @override
   Future<void> writeEditor(String recordId) async {

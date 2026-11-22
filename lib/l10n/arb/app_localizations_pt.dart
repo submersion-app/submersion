@@ -43399,9 +43399,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'O que ajudaria da próxima vez (opcional)';
 
   @override
-  String get incidentEdit_save => 'Salvar';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Relatos de quase acidentes sincronizam entre seus dispositivos e entram nos backups, mas nunca em exportações ou páginas compartilhadas do logbook.';
 
@@ -61195,6 +61192,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get rules_edit_noActions => 'Adicione pelo menos uma ação.';
 
   @override
+  String get rules_edit_notFound => 'Esta regra já não existe.';
+
+  @override
   String get rules_picker_search => 'Pesquisar ações';
 
   @override
@@ -65748,6 +65748,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'agora';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Ano passado $value';
   }
@@ -65778,6 +65781,60 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Saídas recentes';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings saídas',
+      one: '$outings saída',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos',
+      one: '$dives mergulho',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth máx.';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count espécies',
+      one: '$count espécie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Suas saídas aparecem aqui quando você registrar um mergulho';
+
+  @override
+  String get dashboard_outings_unnamed => 'Mergulhos';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Mergulhos por mês';
@@ -65986,6 +66043,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Calendário de atividade';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Saídas recentes';
 
   @override
   String get settings_homeKeyNumbers_description =>

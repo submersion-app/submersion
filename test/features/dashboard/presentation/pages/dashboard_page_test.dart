@@ -16,6 +16,7 @@ import 'package:submersion/features/dashboard/presentation/panels/recent_dives_p
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_outings_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
@@ -122,6 +123,9 @@ Future<void> pumpHome(
         ),
         homeActivityDaysProvider.overrideWith(
           (ref) async => _count('activity', <DateTime, int>{}),
+        ),
+        homeRecentOutingsProvider.overrideWith(
+          (ref) async => _count('outings', <HomeOuting>[]),
         ),
         homeMonthlyDivesProvider.overrideWith(
           (ref) async => _count('months', [
@@ -323,7 +327,7 @@ void main() {
     );
     expect(first.top, lessThan(dives.top));
     expect(
-      tester.getRect(find.text('ACTIVITY, 12 MONTHS')).top,
+      tester.getRect(find.text('RECENT OUTINGS')).top,
       greaterThan(first.top),
     );
   });
