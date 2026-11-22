@@ -242,6 +242,27 @@ void main() {
     expect(find.text('All clear'), findsOneWidget);
   });
 
+  // The sheet's pills are drawn full size but, like the header's, each is
+  // tappable across at least 44 points of height.
+  testWidgets('phone: every light in the sheet is at least 44 high', (
+    tester,
+  ) async {
+    await _pump(tester, width: 390);
+    await tester.tap(find.text('3 all clear'));
+    await tester.pumpAndSettle();
+    final pills = find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byType(HomeLightChip),
+    );
+    expect(pills, findsWidgets);
+    for (final e in pills.evaluate()) {
+      expect(
+        tester.getSize(find.byWidget(e.widget)).height,
+        greaterThanOrEqualTo(44),
+      );
+    }
+  });
+
   testWidgets('phone: the count pill opens every light', (tester) async {
     await _pump(tester, width: 390);
     await tester.tap(find.text('3 all clear'));

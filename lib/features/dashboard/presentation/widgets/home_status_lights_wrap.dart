@@ -27,9 +27,10 @@ class HomeStatusLightsWrap extends ConsumerWidget {
         final lights = buildHomeStatusLights(context, ref, g, hidden);
         if (lights.isEmpty) return const SizedBox.shrink();
         // The same order as the header and the phone strip.
+        // No run spacing: each pill's 44-point tap height already spaces
+        // the rows.
         return Wrap(
           spacing: 8,
-          runSpacing: 8,
           children: [
             for (final light in orderLightsBySeverity(lights))
               HomeLightChip(light),

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_status_lights.dart';
 
-/// The height every dense pill can be tapped across: the header's 44-point
-/// minimum, though the pill is drawn smaller.
+/// The height every pill can be tapped across, in the header and in the
+/// sheet of every light: the 44-point minimum, though the pill is drawn
+/// smaller.
 const double homeLightMinHitHeight = 44;
 
 /// One status light drawn as a pill: tinted by its tone, with its icon and
@@ -72,10 +73,9 @@ class HomeLightChip extends StatelessWidget {
         ),
       ),
     );
-    if (!dense) return chip;
-    // Drawn small for the slim header, but tappable across 44 points of
-    // height, as every control in the bar is: a tap just above or below the
-    // pill still reaches it. On the pill itself its own ink wins the tap.
+    // Drawn smaller than a finger, but tappable across 44 points of height:
+    // a tap just above or below the pill still reaches it. On the pill
+    // itself its own ink wins the tap.
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       excludeFromSemantics: true,

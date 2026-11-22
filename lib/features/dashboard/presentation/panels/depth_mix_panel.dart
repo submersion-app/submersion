@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -45,7 +47,7 @@ class DepthMixPanel extends ConsumerWidget {
             labels: [for (final b in bands) depthBucketLabel(b, units, l10n)],
             colors: [
               for (var i = 0; i < bands.length; i++)
-                depthBandColor(i, brightness),
+                depthBandColor(i, brightness, bands: bands.length),
             ],
           );
         },
@@ -60,12 +62,16 @@ class DepthMixPanel extends ConsumerWidget {
 /// one.
 const int _lightThemeRampStart = 5;
 
-/// Band [index]'s colour, shallow to deep, from the Insights depth chart's
-/// palette: from its lightest on a dark theme, as Insights draws it, and
-/// from its mid shades on a light one. Bands past the end of the palette
-/// keep its darkest colour.
-Color depthBandColor(int index, Brightness brightness) {
-  final start = brightness == Brightness.light ? _lightThemeRampStart : 0;
+/// Band [index] of [bands]' colour, shallow to deep, from the Insights depth
+/// chart's palette: from its lightest on a dark theme, as Insights draws it,
+/// and from its mid shades on a light one. A log deep enough to need more
+/// colours than the mid shades leave starts the light ramp only as far in
+/// as it has room for, so every band keeps a colour of its own.
+Color depthBandColor(int index, Brightness brightness, {required int bands}) {
+  final room = math.max(0, depthBucketColors.length - bands);
+  final start = brightness == Brightness.light
+      ? math.min(_lightThemeRampStart, room)
+      : 0;
   final at = start + index;
   return depthBucketColors[at < depthBucketColors.length
       ? at

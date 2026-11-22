@@ -285,12 +285,29 @@ void main() {
       });
     }
 
-    // A log with very deep dives runs past the end of the shifted ramp: the
-    // deepest bands keep its darkest colour.
-    test('the light ramp holds its darkest colour past its end', () {
-      expect(depthBandColor(13, Brightness.light), depthBucketColors.last);
-      expect(depthBandColor(13, Brightness.dark), depthBucketColors[13]);
-      expect(depthBandColor(0, Brightness.light), depthBucketColors[5]);
+    // A log reaching the deepest bands has no room for the shifted start:
+    // the light ramp starts only as far in as the band count allows, so
+    // every band keeps a colour of its own.
+    test('every band keeps its own colour however deep the log', () {
+      final total = depthBucketColors.length;
+      for (final brightness in Brightness.values) {
+        for (var bands = 1; bands <= total; bands++) {
+          final colours = {
+            for (var i = 0; i < bands; i++)
+              depthBandColor(i, brightness, bands: bands),
+          };
+          expect(colours, hasLength(bands), reason: '$brightness $bands');
+        }
+      }
+      // A shallow log on a light theme still starts at the mid shades.
+      expect(
+        depthBandColor(0, Brightness.light, bands: 3),
+        depthBucketColors[5],
+      );
+      expect(
+        depthBandColor(0, Brightness.dark, bands: 3),
+        depthBucketColors[0],
+      );
     });
 
     testWidgets('no dives shows the empty text', (tester) async {
