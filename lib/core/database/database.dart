@@ -140,6 +140,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaRepairLog,
     MediaIdentificationRuns,
     MediaIdentifications,
+    MediaIdentificationCrops,
     MediaSmartAlbums,
     Settings,
     Buddies,
@@ -332,7 +333,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 380;
+  static const int currentSchemaVersion = 381;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -508,7 +509,16 @@ class AppDatabase extends _$AppDatabase {
   /// confirming the app's tags on every device. Peers below 378 are held
   /// until they update. Their own payloads still arrive here and decode
   /// cleanly: a missing column is null, the diver's own tag.
-  static const int minimumCompatibleSchemaVersion = 378;
+  ///
+  /// Raised 378 -> 381 by syncing marine life results (#4876): v381 gives
+  /// media_identification_runs and media_identifications their clocks and
+  /// adds media_identification_crops. A peer below 381 drops those keys and
+  /// moves its cursor past the changesets that carry them, so once it
+  /// upgraded it would never receive the results published before (nothing
+  /// triggers a full resync in normal use): the device that analysed
+  /// usually updates first. Held below the floor, it reads them all once it
+  /// updates. Its own payloads still arrive here and decode cleanly.
+  static const int minimumCompatibleSchemaVersion = 381;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1775,6 +1785,7 @@ class AppDatabase extends _$AppDatabase {
     // computer's label is demoted (issue #4847). Data only; the floor does
     // not move.
     380,
+    381,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

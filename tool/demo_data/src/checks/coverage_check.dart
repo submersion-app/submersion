@@ -41,9 +41,11 @@ const demoCoverageExclusions = <String, String>{
   'equipment_service_status': 'a local cache the app rebuilds from the gear',
   'dive_deco_status': 'a local cache the app rebuilds from dive analysis',
   'media_identification_runs':
-      'made on this device by the marine life model, never synced',
+      'made by the marine life model on a device that analysed the media',
   'media_identifications':
-      'made on this device by the marine life model, never synced',
+      'made by the marine life model on a device that analysed the media',
+  'media_identification_crops':
+      'crops the marine life model cut from the media it analysed',
   'dive_safety_reviews': 'computed by the app when a dive is opened',
   'dive_safety_findings': 'computed by the app when a dive is opened',
 };

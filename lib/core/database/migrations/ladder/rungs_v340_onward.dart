@@ -313,5 +313,12 @@ extension RungsFromV340 on AppDatabase {
     if (from < 380) await repairLoneDownloadSources(this);
     if (from < 380) await demoteDuplicatePrimarySeries(this);
     if (from < 380) await reportProgress();
+
+    // v381 (issue #4876): marine life results sync. Clocks on both
+    // identification tables, a run's origin, run id and naming bars, the
+    // decision clock, and the crops table; each run gets a run id shared by
+    // its rows. The floor rises to 381 (see minimumCompatibleSchemaVersion).
+    if (from < 381) await _assertIdentificationSyncSchema();
+    if (from < 381) await reportProgress();
   }
 }

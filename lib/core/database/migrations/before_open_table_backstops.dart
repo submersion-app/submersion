@@ -171,5 +171,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v378 backstop: the marks on a species tag the app applied (issue
     // #4727; synced columns, idempotent).
     await _assertMediaSpeciesAppTagColumns();
+
+    // v381 backstop: what syncing marine life results needs (issue #4876;
+    // synced, idempotent). After the v375 to v377 backstops.
+    await _assertIdentificationSyncSchema();
   }
 }

@@ -43,8 +43,12 @@ void main() {
 
   test('the floor rises to 378', () {
     // An older peer would publish the marks as explicit nulls once it
-    // updates, silently confirming the app's tags everywhere.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 378);
+    // updates, silently confirming the app's tags everywhere. A later rung
+    // (v381, issue #4876) raised it again.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(378),
+    );
   });
 
   test('a fresh database has the three columns', () async {
