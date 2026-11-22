@@ -27,7 +27,13 @@ with Japanese glyph shapes, and formatted with Japanese dates and numbers.
 
 - Review by a native speaker before merge. The PR invites the issue author to
   review; corrections land as follow-up issues, as for other languages.
-- Any change to the existing 11 languages.
+- Any change to the wording of the existing 11 languages. Two shared fixes
+  that Japanese needed do touch them, without changing what they say:
+  open-ended date ranges (`formatter_dateRange_from` / `_until`) take the date
+  as a placeholder, so each language places it in its own word order (every
+  language but Japanese keeps its connector-then-date wording); and
+  `joinSentences` joins multi-sentence messages, which also ends Chinese
+  sentences with 。 instead of a Latin ". ".
 - Machine translation inside the app.
 
 ## Anti-goals
