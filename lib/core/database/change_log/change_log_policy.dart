@@ -580,6 +580,17 @@ bool changeLogOptInLogsInserts(String table) =>
     changeLogOptInKeepsDeletes(table) &&
     !changeLogDeviceLocalTables.contains(table);
 
+/// The columns that name one reading of a machine table whose rows an
+/// opted-in operation replaces: a computer's strand on a dive, or its
+/// pressure curve on a tank. A replaced row does not return while a newer
+/// reading of the same columns stays, which a later re-parse of the same
+/// source wrote, or the dive would show two strands of one computer (issue
+/// #4848). A manual edit is never a reading.
+const Map<String, List<String>> changeLogReadingColumns = {
+  'dive_profile_series': ['dive_id', 'source_id', 'computer_id'],
+  'tank_pressure_series': ['tank_id', 'source_id', 'computer_id'],
+};
+
 /// Machine columns an entry lists, for any operation: what a diver changes
 /// on a machine row (issue #4527). Every other machine row and column stays
 /// out of the entry and is kept only for a revert or a restore.

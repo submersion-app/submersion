@@ -312,6 +312,42 @@ void main() {
     expect(row['is_primary'], 0);
   });
 
+  // A series rewritten in place updates its lineage row's content hash, and
+  // that row is raw SQL that never syncs (issue #4848).
+  test('revert restores a lineage row an opted-in operation updated', () async {
+    await db.customStatement(
+      'INSERT INTO dive_profile_series_history (series_id, dive_id, '
+      'root_series_id, content_hash, revision_kind, created_at) VALUES '
+      "('series', 'dive', 'series', 'old-hash', 'create', 0)",
+    );
+    await forget();
+    String? operationId;
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.removeSource,
+      body: () async {
+        operationId = ChangeLogScope.currentOperationId;
+        await editSeries();
+        await db.customStatement(
+          "UPDATE dive_profile_series_history SET content_hash = 'new-hash' "
+          "WHERE series_id = 'series'",
+        );
+      },
+    );
+    await repository.settleAll();
+
+    await service.execute(await service.planOperation(operationId!));
+
+    final lineage = await db
+        .customSelect(
+          'SELECT content_hash FROM dive_profile_series_history '
+          "WHERE series_id = 'series'",
+        )
+        .getSingle();
+    expect(lineage.data['content_hash'], 'old-hash');
+    expect((await seriesRow())['samples'], [1, 2, 3]);
+  });
+
   test('the opt-in sources are the agent and a revert', () {
     expect(changeLogSeriesUpdateSources, {
       ChangeLogSource.agent.name,

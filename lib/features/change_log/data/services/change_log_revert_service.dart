@@ -546,6 +546,9 @@ class ChangeLogRevertService {
     List<ChangeLogRevertItem> edits,
     int now,
   ) async {
+    // A series' lineage row is raw SQL and never syncs, as in
+    // [_restoreRecord]: no Drift table to notify and nothing to stage.
+    final deviceLocal = changeLogDeviceLocalTables.contains(table);
     final hasUpdatedAt = (await _repository.liveColumns(
       table,
     )).contains('updated_at');
@@ -558,8 +561,9 @@ class ChangeLogRevertService {
         if (hasUpdatedAt) Variable<Object>(now),
         ...match.variables,
       ],
-      updates: {_infoOf(table)},
+      updates: deviceLocal ? const {} : {_infoOf(table)},
     );
+    if (deviceLocal) return;
 
     final entity = changeLogEntityType(table);
     final columns = {for (final edit in edits) edit.column!};

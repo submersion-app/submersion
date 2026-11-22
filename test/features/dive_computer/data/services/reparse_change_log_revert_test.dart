@@ -174,7 +174,8 @@ void main() {
     await repository.settleAll();
     final operation = await db
         .customSelect(
-          'SELECT id FROM change_log_operations WHERE label = ?',
+          'SELECT id FROM change_log_operations WHERE label = ? '
+          'ORDER BY started_at DESC, rowid DESC LIMIT 1',
           variables: [Variable.withString(ChangeLogLabels.reparse)],
         )
         .getSingle();
@@ -232,6 +233,32 @@ void main() {
     await revert(undo.read<String>('id'));
 
     expect(await profile(), reparsed);
+  });
+
+  test('reverting an older re-parse after a newer one keeps the newer '
+      'series alone', () async {
+    await addComputer('c1');
+    await addSource('s1', computerId: 'c1', isPrimary: true);
+    await addSeries('s1', computerId: 'c1', isPrimary: true);
+    await forget();
+
+    final batch = ReparseBatchService(reparse);
+    await batch.run(['dive'], parseFn: (_, _, _, _) async => parsed());
+    final older = await reparseOperation();
+    await batch.run(['dive'], parseFn: (_, _, _, _) async => parsed());
+    final newer = await profile();
+
+    final service = ChangeLogRevertService(afterDiveWrites: (_) {});
+    final plan = await service.planOperation(older);
+    expect(
+      plan.items.where(
+        (i) => i.event.table == 'dive_profile_series' && i.isBlocked,
+      ),
+      isNotEmpty,
+    );
+    await service.execute(plan);
+
+    expect(await profile(), newer);
   });
 
   test(

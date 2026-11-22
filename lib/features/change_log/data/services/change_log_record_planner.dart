@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/change_log/change_log_rewrites.dart';
+import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_dependencies.dart';
@@ -44,8 +45,18 @@ class ChangeLogRecordPlanner {
     }.values.toList();
     final blocks = <String, ChangeLogBlock>{};
     final restoring = <String>{};
+    // The rows the same revert removes, which a replaced reading returns in
+    // place of.
+    final removing = {
+      for (final event in events)
+        if (event.action == ChangeLogAction.insert) _keyOf(event),
+    };
     for (final event in deletes) {
-      final block = await _restoreBlock(event);
+      final block =
+          await _restoreBlock(event) ??
+          (await _superseded(event, removing)
+              ? ChangeLogBlock.alreadyRestored
+              : null);
       if (block == null) {
         restoring.add(_keyOf(event));
       } else {
@@ -77,6 +88,37 @@ class ChangeLogRecordPlanner {
         ChangeLogRevertItem(event: event, block: blocks[_keyOf(event)]),
     ];
   }
+
+  /// Whether a newer reading of the same source has replaced the row
+  /// [event] deleted ([changeLogReadingColumns]): a live row with its
+  /// reading columns that this revert does not remove. Reverting an older
+  /// re-parse after a newer one would otherwise bring the old strand back
+  /// beside the new (issue #4848).
+  Future<bool> _superseded(ChangeLogEvent event, Set<String> removing) async {
+    final columns = changeLogReadingColumns[event.table];
+    if (columns == null) return false;
+    final copy = {for (final f in event.fields) f.column: f.oldValue};
+    final profile = event.table == 'dive_profile_series';
+    if (profile && _isTrue(copy['is_edit'])) return false;
+    final spec = _repository.specOf(event.table);
+    if (spec == null) return false;
+    final rows = await _db
+        .customSelect(
+          'SELECT ${changeLogRecordIdSql('"${event.table}"', spec.keyColumns)} '
+          'AS record_id FROM "${event.table}" WHERE '
+          '${columns.map((c) => '"$c" IS ?').join(' AND ')}'
+          '${profile ? ' AND COALESCE(is_edit, 0) = 0' : ''}',
+          variables: [for (final c in columns) Variable<Object>(copy[c])],
+        )
+        .get();
+    return rows.any(
+      (row) => !removing.contains(
+        changeLogRecordKey(event.table, row.read<String>('record_id')),
+      ),
+    );
+  }
+
+  static bool _isTrue(Object? value) => value == 1 || value == true;
 
   Future<ChangeLogBlock?> _restoreBlock(ChangeLogEvent event) async {
     if (_repository.specOf(event.table) == null) {

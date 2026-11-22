@@ -214,6 +214,17 @@ void main() {
     expect(changeLogOptInLogsInserts('dives'), isFalse);
   });
 
+  test('every reading column exists on a table whose inserts are noted', () {
+    final columns = _columnsByTable(db);
+    for (final MapEntry(key: table, value: reading)
+        in changeLogReadingColumns.entries) {
+      expect(changeLogOptInLogsInserts(table), isTrue, reason: table);
+      for (final column in reading) {
+        expect(columns[table], contains(column), reason: '$table.$column');
+      }
+    }
+  });
+
   // A gear item's sitting dismisses its condition findings (issue #4527,
   // phase 3): logged as the dive's safety findings are, under the item.
   test('equipment findings are delete copy only, under their item', () {
