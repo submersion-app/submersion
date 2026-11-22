@@ -64431,6 +64431,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'עכשיו';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'שנה שעברה $value';
   }
@@ -64461,6 +64464,60 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'יציאות אחרונות';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings יציאות',
+      one: 'יציאה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth מקס׳';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים',
+      one: 'מין אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'היציאות שלך יופיעו כאן לאחר שתתעד צלילה';
+
+  @override
+  String get dashboard_outings_unnamed => 'צלילות';
 
   @override
   String get dashboard_panel_divesPerMonth => 'צלילות לחודש';
@@ -64667,6 +64724,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'לוח פעילות';
+
+  @override
+  String get settings_homePanels_recentOutings => 'יציאות אחרונות';
 
   @override
   String get settings_homeKeyNumbers_description =>

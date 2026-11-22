@@ -65374,6 +65374,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'nu';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Vorig jaar $value';
   }
@@ -65404,6 +65407,60 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Recente duikuitjes';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings uitjes',
+      one: '1 uitje',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken',
+      one: '1 duik',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth max';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count soorten',
+      one: '1 soort',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Je uitjes verschijnen hier zodra je een duik logt';
+
+  @override
+  String get dashboard_outings_unnamed => 'Duiken';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Duiken per maand';
@@ -65612,6 +65669,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Activiteitenkalender';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Recente duikuitjes';
 
   @override
   String get settings_homeKeyNumbers_description =>

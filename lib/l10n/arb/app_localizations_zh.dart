@@ -61675,6 +61675,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => '现在';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return '去年 $value';
   }
@@ -61693,6 +61696,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String dashboard_panel_activitySummary(int dives, int days) {
     return '$dives 次潜水 · $days 天';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => '近期潜水行程';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    return '$outings 次行程 · $dives 次潜水';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    return '$count 次潜水';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '最深 $depth';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    return '$count 个物种';
+  }
+
+  @override
+  String get dashboard_outings_empty => '记录潜水后，你的行程会显示在这里';
+
+  @override
+  String get dashboard_outings_unnamed => '潜水';
 
   @override
   String get dashboard_panel_divesPerMonth => '每月潜水';
@@ -61880,6 +61912,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => '活动日历';
+
+  @override
+  String get settings_homePanels_recentOutings => '近期潜水行程';
 
   @override
   String get settings_homeKeyNumbers_description =>
