@@ -36,16 +36,25 @@ class _FakeLocation implements DatabaseLocationService {
   /// Set to make the dive log look-up never answer.
   bool stallExistsCheck = false;
 
+  /// Set to make the dive log look-up fail, as an unreadable share does.
+  bool failExistsCheck = false;
+
   @override
   Future<bool> verifyFolderAccessible(String folderPath) =>
       stallWriteCheck ? Completer<bool>().future : Future.value(accessible);
 
   @override
-  Future<bool> databaseExistsAt(String folderPath) => stallExistsCheck
-      ? Completer<bool>().future
-      : File(
-          p.join(folderPath, DatabaseLocationService.databaseFilename),
-        ).exists();
+  Future<bool> databaseExistsAt(String folderPath) async {
+    if (stallExistsCheck) return Completer<bool>().future;
+    if (failExistsCheck) {
+      throw const FileSystemException(
+        'The network name is no longer available',
+      );
+    }
+    return File(
+      p.join(folderPath, DatabaseLocationService.databaseFilename),
+    ).exists();
+  }
 
   StorageConfig? savedConfig;
 
@@ -293,17 +302,41 @@ void main() {
     final targetDir = p.join(root.path, 'target');
     await Directory(targetDir).create();
     location.stallExistsCheck = true;
+    final stalled = await service.migrateToCustomFolder(targetDir);
+    location
+      ..stallExistsCheck = false
+      ..failExistsCheck = true;
+    final failed = await service.migrateToCustomFolder(targetDir);
 
-    final result = await service.migrateToCustomFolder(targetDir);
-
-    expect(result.success, isFalse);
-    expect(result.errorMessage, contains('did not answer in time'));
+    for (final result in [stalled, failed]) {
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('Could not check'));
+    }
     expect(
       File(
         p.join(targetDir, DatabaseLocationService.databaseFilename),
       ).existsSync(),
       isFalse,
     );
+    expect(DatabaseService.instance.currentPath, currentPath);
+    expect(location.savedConfig, isNull);
+  });
+
+  test('a plain move refuses when the folder stops answering at its write '
+      'check, rather than wait on it', () async {
+    final service = await initServiceAt(
+      p.join(root.path, 'default'),
+      folderTimeout: const Duration(seconds: 1),
+    );
+    final targetDir = p.join(root.path, 'target');
+    await Directory(targetDir).create();
+    // Answers the identity probe, then stalls.
+    location.stallWriteCheck = true;
+
+    final result = await service.migrateToCustomFolder(targetDir);
+
+    expect(result.success, isFalse);
+    expect(result.errorMessage, contains('did not answer in time'));
     expect(DatabaseService.instance.currentPath, currentPath);
     expect(location.savedConfig, isNull);
   });

@@ -20,6 +20,9 @@ const String _occupied =
 const String _unanswered =
     'The selected folder did not answer in time, so nothing was changed. '
     'Check that it can be reached and try again.';
+const String _cannotCheck =
+    'Could not check whether the selected folder already holds a dive log, so '
+    'nothing was changed. Check that it can be reached and try again.';
 
 extension _FolderChecks on DatabaseMigrationService {
   /// Whether [folderPath] is the folder the open database lives in, under
@@ -44,30 +47,41 @@ extension _FolderChecks on DatabaseMigrationService {
     FolderIdentity.same => MigrationResult.failure(_alreadyHere),
     // Often just a folder this app may not write to, which the diver can fix
     FolderIdentity.unknown => MigrationResult.failure(
-      await _refusesWrites(folderPath) ? _cannotWrite : _cannotCompare,
+      await _writeCheck(folderPath) == false ? _cannotWrite : _cannotCompare,
     ),
     FolderIdentity.different => null,
   };
 
-  /// True only when [folderPath] is known not to take new files. A check
-  /// that does not answer in time is not a refusal.
-  Future<bool> _refusesWrites(String folderPath) async {
+  /// Whether [folderPath] takes new files, or null when the check does not
+  /// answer in time, which is not a refusal.
+  Future<bool?> _writeCheck(String folderPath) async {
     try {
-      return !await _withTimeout(
+      return await _withTimeout(
         _locationService.verifyFolderAccessible(folderPath),
         'Folder check',
         timeout: _folderTimeout,
       );
     } on TimeoutException {
-      return false;
+      return null;
     }
   }
 
+  /// The refusal for a move into [folderPath] that the app cannot write to,
+  /// or that does not answer in time, or null when it takes new files. A
+  /// share can answer the identity probe and then stall here, so this is
+  /// bounded too.
+  Future<MigrationResult?> _refuseUnlessWritable(String folderPath) async =>
+      switch (await _writeCheck(folderPath)) {
+        true => null,
+        false => MigrationResult.failure(_cannotWrite),
+        null => MigrationResult.failure(_unanswered),
+      };
+
   /// The refusal for a plain move into [folderPath] when a dive log is
-  /// already there, or null when there is none. The folder check found
-  /// nothing there, or ran out of time before it could tell (a NAS still
-  /// waking, say), so one that is there after all is overwritten only through
-  /// Replace, which backs it up first.
+  /// already there or it cannot be told, or null when there is certainly
+  /// none. The folder check found nothing there, or ran out of time before
+  /// it could tell (a NAS still waking, say), so one that is there after all
+  /// is overwritten only through Replace, which backs it up first.
   Future<MigrationResult?> _refuseIfOccupied(String folderPath) async {
     try {
       final occupied = await _withTimeout(
@@ -77,7 +91,10 @@ extension _FolderChecks on DatabaseMigrationService {
       );
       return occupied ? MigrationResult.failure(_occupied) : null;
     } on TimeoutException {
-      return MigrationResult.failure(_unanswered);
+      return MigrationResult.failure(_cannotCheck);
+    } on FileSystemException {
+      // Not "nothing there": a dive log may be behind the error
+      return MigrationResult.failure(_cannotCheck);
     }
   }
 }

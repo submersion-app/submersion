@@ -130,12 +130,21 @@ class DatabaseMigrationService {
     final currentPath = await _dbService.databasePath;
     final file = File(currentPath);
 
-    if (!await file.exists()) {
-      return null;
-    }
-
     try {
-      final stat = await file.stat();
+      // Bounded: the live log may sit on a share that has stopped answering
+      // (issue #4834), and a timeout lands in the catch below.
+      final exists = await _withTimeout(
+        file.exists(),
+        'Folder check',
+        timeout: _folderTimeout,
+      );
+      if (!exists) return null;
+
+      final stat = await _withTimeout(
+        file.stat(),
+        'Folder check',
+        timeout: _folderTimeout,
+      );
       final fileSize = stat.size;
       final lastModified = stat.modified;
 
@@ -213,10 +222,9 @@ class DatabaseMigrationService {
     final refusal = await _refuseUnlessElsewhere(currentPath, folderPath);
     if (refusal != null) return refusal;
 
-    // Verify destination folder is writable
-    if (!await _locationService.verifyFolderAccessible(folderPath)) {
-      return MigrationResult.failure(_cannotWrite);
-    }
+    // Verify destination folder is writable, and is still answering
+    final unwritable = await _refuseUnlessWritable(folderPath);
+    if (unwritable != null) return unwritable;
 
     if (!replacing) {
       final occupied = await _refuseIfOccupied(folderPath);
