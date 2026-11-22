@@ -11959,7 +11959,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_filter_depth_min_label => '最小';
 
   @override
-  String get diveSites_filter_depth_separator => '～';
+  String get diveSites_filter_depth_separator => '〜';
 
   @override
   String get diveSites_filter_difficulty_any => '指定なし';
@@ -12140,7 +12140,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveSites_list_activeFilter_depthRangeBoth(Object min, Object max) {
-    return '$min～$max';
+    return '$min〜$max';
   }
 
   @override
@@ -14890,7 +14890,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get passport_logFill_notes => 'メモ';
 
   @override
-  String get passport_logFill_invalidMix => 'O2とHeはそれぞれ0～100で、合計100以下にしてください';
+  String get passport_logFill_invalidMix => 'O2とHeはそれぞれ0〜100で、合計100以下にしてください';
 
   @override
   String get passport_logFill_saveFailed => '充填を保存できませんでした。もう一度お試しください。';
@@ -18908,7 +18908,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get marineLife_abundance_exact => '正確な数';
 
   @override
-  String get marineLife_abundance_ranges => '少数は2～10、多数は11～100、非常に多いは100超';
+  String get marineLife_abundance_ranges => '少数は2〜10、多数は11〜100、非常に多いは100超';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => '最近見た順';
@@ -19771,7 +19771,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String start,
     String end,
   ) {
-    return '$date · $start～$end';
+    return '$date · $start〜$end';
   }
 
   @override
@@ -21872,7 +21872,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String safetyReview_timeRange(String start, String end) {
-    return '$start～$end';
+    return '$start〜$end';
   }
 
   @override
@@ -26711,7 +26711,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get documents_export_passwordCharacters =>
-      'どのコンピューターでもZIPを開けるように、半角英字（A～Z）、数字、スペース、一般的な記号のみを使用してください';
+      'どのコンピューターでもZIPを開けるように、半角英字（A〜Z）、数字、スペース、一般的な記号のみを使用してください';
 
   @override
   String get documents_export_passwordMismatch => 'パスワードが一致しません';
@@ -30853,12 +30853,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String insights_focus_noMatch_above(String value, String min, String max) {
-    return '$valueを超えるダイブはありません。あなたのダイブの範囲は$min～$maxです。';
+    return '$valueを超えるダイブはありません。あなたのダイブの範囲は$min〜$maxです。';
   }
 
   @override
   String insights_focus_noMatch_below(String value, String min, String max) {
-    return '$valueを下回るダイブはありません。あなたのダイブの範囲は$min～$maxです。';
+    return '$valueを下回るダイブはありません。あなたのダイブの範囲は$min〜$maxです。';
   }
 
   @override
@@ -32098,7 +32098,7 @@ class AppLocalizationsJa extends AppLocalizations {
     String low,
     String high,
   ) {
-    return '過去12か月の平均浮上速度は$rateでした（$dives本のダイブ）。一般的な目安は$low～$high、またはそれより遅い速度です';
+    return '過去12か月の平均浮上速度は$rateでした（$dives本のダイブ）。一般的な目安は$low〜$high、またはそれより遅い速度です';
   }
 
   @override
@@ -34053,7 +34053,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_gallery_diveSection_title(Object number, Object site) {
-    return 'ダイブ#$number - $site';
+    return 'ダイブ#$number：$site';
   }
 
   @override
@@ -35867,12 +35867,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String universalImport_fillDraft_window(String start, String end) {
-    return '下書き：$start～$end';
+    return '下書き：$start〜$end';
   }
 
   @override
   String universalImport_fillDraft_windowOpen(String start) {
-    return '下書き：$start～';
+    return '下書き：$start〜';
   }
 
   @override
@@ -37402,7 +37402,7 @@ class AppLocalizationsJa extends AppLocalizations {
     Object minZoom,
     Object maxZoom,
   ) {
-    return '$size、$countタイル、ズーム$minZoom～$maxZoom';
+    return '$size、$countタイル、ズーム$minZoom〜$maxZoom';
   }
 
   @override
@@ -42865,7 +42865,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String dataQuality_msg_tempRange(String min, String max) {
-    return '水温が妥当な範囲（$min～$max）を外れています';
+    return '水温が妥当な範囲（$min〜$max）を外れています';
   }
 
   @override
@@ -54096,12 +54096,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String media_timeInDive_range(String max) {
-    return '0:00～$max';
+    return '0:00〜$max';
   }
 
   @override
   String media_timeInDive_invalid(String max) {
-    return '0:00～$maxの時間を入力してください';
+    return '0:00〜$maxの時間を入力してください';
   }
 
   @override
@@ -55052,7 +55052,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String insights_trend_gap_noDives(String start, String end) {
-    return 'ダイブなし：$start～$end';
+    return 'ダイブなし：$start〜$end';
   }
 
   @override
@@ -61122,7 +61122,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String twinSet_historyRange(String partner, String from, String to) {
-    return '$partner、$from～$to';
+    return '$partner、$from〜$to';
   }
 
   @override
@@ -61596,7 +61596,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'モデルが想定する16の仮想組織で、それぞれ固有の速さでガスを取り込み、排出します。1～5は速い組織（脳など血流の多い組織に相当）、6～10は中程度（筋肉や皮膚に相当）、11～16は遅い組織（脂肪や骨に相当）で、速い組織は短く深いダイブを、遅い組織は長いダイブや反復ダイブを制限します（組織名はおおよその例えで、解剖学的なものではありません）。';
+      'モデルが想定する16の仮想組織で、それぞれ固有の速さでガスを取り込み、排出します。1〜5は速い組織（脳など血流の多い組織に相当）、6〜10は中程度（筋肉や皮膚に相当）、11〜16は遅い組織（脂肪や骨に相当）で、速い組織は短く深いダイブを、遅い組織は長いダイブや反復ダイブを制限します（組織名はおおよその例えで、解剖学的なものではありません）。';
 
   @override
   String get info_term_leadingCompartment_label => '支配コンパートメント';
@@ -62678,7 +62678,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_calculators_rockBottom_background =>
-      '通常の2～3倍程度とされるストレス時の呼吸量を使い、2人のダイバーが1本のタンクを使うものとして計算します。オプションがオンの場合は安全停止も含めます。';
+      '通常の2〜3倍程度とされるストレス時の呼吸量を使い、2人のダイバーが1本のタンクを使うものとして計算します。オプションがオンの場合は安全停止も含めます。';
 
   @override
   String get info_calculators_rockBottom_howToUse =>
