@@ -22,8 +22,7 @@ typedef PdfThumbRenderer =
       int quality,
     });
 
-/// A page-1 render with the document's page count, for the large site card
-/// (issue #1039).
+/// A page-1 render with the document's page count.
 class PdfPagePreview {
   const PdfPagePreview({required this.jpeg, required this.pageCount});
 
@@ -32,16 +31,6 @@ class PdfPagePreview {
   /// Null when it is unknown (a cache entry written without one).
   final int? pageCount;
 }
-
-/// Signature of the large-preview seam, injectable for the same reason as
-/// [PdfThumbRenderer]. Matches [PdfPageRenderer.renderFirstPagePreview].
-typedef PdfPreviewRenderer =
-    Future<PdfPagePreview?> Function({
-      File? file,
-      Uint8List? bytes,
-      int maxDimension,
-      int quality,
-    });
 
 /// Renders the first page of a PDF to JPEG bytes for thumbnails.
 ///

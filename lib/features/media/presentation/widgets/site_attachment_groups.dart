@@ -10,8 +10,8 @@ import 'package:submersion/features/media/presentation/helpers/site_attachment_l
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/justified_media_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_span_packer.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
-import 'package:submersion/features/media/presentation/widgets/site_attachment_large_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
@@ -23,11 +23,12 @@ const double kSiteAttachmentRowHeight = 120;
 const double kSiteAttachmentGap = 4;
 
 /// A site's attachments in category groups (issue #1039): a heading per
-/// group when anything is categorized, the group's large cards, then its
-/// tiles in justified rows that keep each one's shape (issue #4741).
+/// group when anything is categorized, then its items in justified rows that
+/// keep each one's shape (issue #4741). A Large item spans two rows at the
+/// start of its group, with tiles beside it (issue #4786).
 ///
-/// Every grid and card reports to the one id-based [selection], so a
-/// selection can span groups.
+/// Every grid reports to the one id-based [selection], so a selection can
+/// span groups. An item's details are edited through Select.
 class SiteAttachmentGroups extends ConsumerWidget {
   const SiteAttachmentGroups({
     super.key,
@@ -36,7 +37,6 @@ class SiteAttachmentGroups extends ConsumerWidget {
     required this.isSelectionMode,
     required this.settings,
     required this.onOpen,
-    this.onEditDetails,
   });
 
   final SiteAttachmentLayout layout;
@@ -45,20 +45,15 @@ class SiteAttachmentGroups extends ConsumerWidget {
   final UnitFormatterSettings settings;
   final void Function(MediaItem) onOpen;
 
-  /// Edit details for one attachment; null offers none, where the
-  /// attachment is edited under its own lock (issue #4527, phase 2).
-  final void Function(MediaItem)? onEditDetails;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // The tiles wait for the shapes the library has learned from decoded
     // thumbnails, as the library does, so a photo stored sideways never
     // lays out wide and then jumps. A cache that cannot be read loads as
-    // empty, so this never waits for good. Read only when there are tiles.
-    final hasTiles = layout.groups.any((g) => g.tiles.isNotEmpty);
-    final learned = hasTiles
-        ? ref.watch(mediaLearnedAspectsProvider).value
-        : null;
+    // empty, so this never waits for good. Read only when there are items.
+    final learned = layout.groups.isEmpty
+        ? null
+        : ref.watch(mediaLearnedAspectsProvider).value;
     final children = <Widget>[];
     for (final group in layout.groups) {
       if (children.isNotEmpty) children.add(const SizedBox(height: 16));
@@ -76,35 +71,14 @@ class SiteAttachmentGroups extends ConsumerWidget {
           ),
         );
       }
-      for (final item in group.large) {
-        children.add(
-          // Keyed on the Column's direct child, where Flutter matches keys, so
-          // a recategorized card keeps its element instead of inheriting a
-          // neighbour's.
-          Padding(
-            key: ValueKey('large-${item.id}'),
-            padding: const EdgeInsets.only(bottom: 8),
-            child: SiteAttachmentLargeCard(
-              item: item,
-              isSelectionMode: isSelectionMode,
-              isSelected: selection.value.isChecked(item.id),
-              onTap: isSelectionMode
-                  ? () => selection.toggle(item.id)
-                  : () => onOpen(item),
-              onEditDetails: switch (onEditDetails) {
-                final edit? => () => edit(item),
-                null => null,
-              },
-            ),
-          ),
-        );
-      }
-      if (group.tiles.isNotEmpty && learned != null) {
+      if (learned != null) {
         children.add(
           _TileGrid(
             key: ValueKey('tiles-${group.category?.storageKey ?? 'none'}'),
+            large: group.large,
             tiles: group.tiles,
-            ratios: mediaLayoutRatios(group.tiles, learned),
+            largeRatios: mediaLayoutRatios(group.large, learned),
+            tileRatios: mediaLayoutRatios(group.tiles, learned),
             selection: selection,
             isSelectionMode: isSelectionMode,
             settings: settings,
@@ -120,23 +94,35 @@ class SiteAttachmentGroups extends ConsumerWidget {
   }
 }
 
-/// One group's tiles in justified rows, in a drag-select grid that reports
-/// to the shared [selection].
+/// A group's cells in the order its grid builds them, and where each goes.
+/// Kept by shape alone, so the items are looked up from the cells on every
+/// build: an item swapped for another of the same shape is never stale.
+typedef _GroupLayout = ({
+  List<JustifiedSpanCell> cells,
+  JustifiedMediaTable table,
+});
+
+/// One group's items in justified rows, its Large ones spanning two, in a
+/// drag-select grid that reports to the shared [selection].
 class _TileGrid extends ConsumerStatefulWidget {
   const _TileGrid({
     super.key,
+    required this.large,
     required this.tiles,
-    required this.ratios,
+    required this.largeRatios,
+    required this.tileRatios,
     required this.selection,
     required this.isSelectionMode,
     required this.settings,
     required this.onOpen,
   });
 
+  final List<MediaItem> large;
   final List<MediaItem> tiles;
 
-  /// Each tile's shape, as [mediaLayoutRatios] gives it.
-  final List<double> ratios;
+  /// Each item's shape, as [mediaLayoutRatios] gives it.
+  final List<double> largeRatios;
+  final List<double> tileRatios;
   final SelectionController selection;
   final bool isSelectionMode;
   final UnitFormatterSettings settings;
@@ -151,36 +137,69 @@ class _TileGridState extends ConsumerState<_TileGrid> {
   /// same, so the grid delegate (which compares tables by identity) does not
   /// lay the grid out again on every rebuild: every check in Select mode
   /// rebuilds every group.
-  ({List<double> ratios, double width, JustifiedMediaTable table})? _layout;
+  ({
+    List<double> largeRatios,
+    List<double> tileRatios,
+    double width,
+    _GroupLayout layout,
+  })?
+  _layout;
 
-  JustifiedMediaTable _tableFor(List<double> ratios, double width) {
+  /// The group's cells in reading order: the order the grid builds its items
+  /// in, which puts each Large item before the tiles beside it.
+  _GroupLayout _layoutFor(double width) {
+    final largeRatios = widget.largeRatios;
+    final tileRatios = widget.tileRatios;
     final cached = _layout;
     if (cached != null &&
         cached.width == width &&
-        listEquals(cached.ratios, ratios)) {
-      return cached.table;
+        listEquals(cached.largeRatios, largeRatios) &&
+        listEquals(cached.tileRatios, tileRatios)) {
+      return cached.layout;
     }
-    final table = JustifiedMediaTable.build(
-      sections: [JustifiedSection(headerExtents: const [], ratios: ratios)],
+    final cells = packJustifiedSpans(
+      largeRatios: largeRatios,
+      tileRatios: tileRatios,
       paneWidth: width,
       targetHeight: kSiteAttachmentRowHeight,
       gap: kSiteAttachmentGap,
-      inset: 0,
+      minTileWidth: kMediaThumbnailMinTileWidth,
     );
-    _layout = (ratios: ratios, width: width, table: table);
-    return table;
+    final layout = (
+      cells: cells,
+      table: JustifiedMediaTable.placed(
+        rects: [for (final c in cells) c.rect],
+        ratios: [
+          for (final c in cells)
+            c.isLarge ? largeRatios[c.index] : tileRatios[c.index],
+        ],
+        paneWidth: width,
+        targetHeight: kSiteAttachmentRowHeight,
+      ),
+    );
+    _layout = (
+      largeRatios: largeRatios,
+      tileRatios: tileRatios,
+      width: width,
+      layout: layout,
+    );
+    return layout;
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) =>
-          _grid(context, _tableFor(widget.ratios, constraints.maxWidth)),
+          _grid(context, _layoutFor(constraints.maxWidth)),
     );
   }
 
-  Widget _grid(BuildContext context, JustifiedMediaTable table) {
-    final tiles = widget.tiles;
+  Widget _grid(BuildContext context, _GroupLayout layout) {
+    final tiles = [
+      for (final c in layout.cells)
+        c.isLarge ? widget.large[c.index] : widget.tiles[c.index],
+    ];
+    final table = layout.table;
     final selection = widget.selection;
     final groupIds = {for (final t in tiles) t.id};
     final indexById = {for (var i = 0; i < tiles.length; i++) tiles[i].id: i};
