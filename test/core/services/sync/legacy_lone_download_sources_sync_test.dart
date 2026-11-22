@@ -50,8 +50,10 @@ void main() {
     deletions: const {},
   );
 
-  /// Later than anything the test writes locally, so the peer's row wins.
-  final peerUpdatedAt = DateTime.now().millisecondsSinceEpoch + 60000;
+  /// Later than anything the test has written locally, so the peer's row
+  /// wins. Read when a payload is built, not when main() declares the tests:
+  /// CI runs many files in one isolate, so a test can start minutes later.
+  int peerUpdatedAt() => DateTime.now().millisecondsSinceEpoch + 60000;
 
   String peerHlc() => Hlc(
     DateTime.now().millisecondsSinceEpoch + 60000,
@@ -99,7 +101,7 @@ void main() {
             ...local,
             'isPrimary': false,
             'mergeSourceSlot': 0,
-            'updatedAt': peerUpdatedAt,
+            'updatedAt': peerUpdatedAt(),
             'hlc': peerHlc(),
           },
         ],
@@ -171,7 +173,7 @@ void main() {
           {
             ...local,
             'isPrimary': true,
-            'updatedAt': peerUpdatedAt,
+            'updatedAt': peerUpdatedAt(),
             'hlc': peerHlc(),
           },
         ],

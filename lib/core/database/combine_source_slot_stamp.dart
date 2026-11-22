@@ -119,10 +119,7 @@ Future<int> _stampDives(AppDatabase db, List<String>? ids) async {
     final sources = [for (final r in rows) db.diveDataSources.map(r.data)];
     if (sources.length == 1 &&
         hasRuntime &&
-        loneDownloadSpansDive(
-          diveRuntime: await diveRuntimeOf(db, diveId),
-          source: sources.single,
-        )) {
+        await isLoneDownload(db, sources.single)) {
       continue;
     }
     stamped++;

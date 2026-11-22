@@ -63,6 +63,34 @@ void main() {
             ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
           .get();
 
+  /// A series [sourceId] owns, from [start] to [end] seconds.
+  Future<void> insertSeries(
+    AppDatabase db,
+    String id,
+    String diveId,
+    String sourceId, {
+    required int start,
+    required int end,
+  }) => db
+      .into(db.diveProfileSeries)
+      .insert(
+        DiveProfileSeriesCompanion.insert(
+          id: id,
+          diveId: diveId,
+          sourceId: Value(sourceId),
+          sampleCount: 2,
+          startTimestamp: start,
+          endTimestamp: end,
+          maxDepth: 30,
+          firstDepth: 0,
+          lastDepth: 0,
+          codecVersion: 1,
+          samples: Uint8List(0),
+          createdAt: 0,
+          updatedAt: 0,
+        ),
+      );
+
   Future<DiveDataSourcesData> rowOf(AppDatabase db, String id) => (db.select(
     db.diveDataSources,
   )..where((t) => t.id.equals(id))).getSingle();
@@ -93,6 +121,22 @@ void main() {
 
       expect(await stampCombinedDiveSourceSlots(db), 1);
       expect((await rowOf(db, 'carried')).mergeSourceSlot, 0);
+    });
+
+    test('a lone row whose samples sit later on the timeline is '
+        'stamped', () async {
+      await insertDive(db, 'shifted', runtime: 3000);
+      await insertSource(db, 'carried', 'shifted', duration: 3000);
+      await insertSeries(
+        db,
+        'series',
+        'shifted',
+        'carried',
+        start: 2400,
+        end: 5400,
+      );
+
+      expect(await stampCombinedDiveSourceSlots(db), 1);
     });
 
     test('a lone row it cannot measure is stamped as before', () async {
@@ -196,6 +240,56 @@ void main() {
         expect(row.mergeSourceSlot, 0);
       },
     );
+
+    test(
+      'a download whose samples start on its own clock is repaired',
+      () async {
+        await insertDive(db, 'lone', runtime: 3000);
+        await insertSource(
+          db,
+          'download',
+          'lone',
+          mergeSourceSlot: 0,
+          duration: 3000,
+        );
+        await insertSeries(
+          db,
+          'series',
+          'lone',
+          'download',
+          start: 10,
+          end: 3000,
+        );
+
+        expect(await repairLoneDownloadSources(db), 1);
+      },
+    );
+
+    test('a download whose samples sit later on the timeline keeps its '
+        'slot', () async {
+      // What an Uncombine leaves when a hand-logged stretch came first: the
+      // kept download's runtime is its own span again, but its samples are
+      // still shifted by the stretch and the gap.
+      await insertDive(db, 'kept', runtime: 3000);
+      await insertSource(
+        db,
+        'download',
+        'kept',
+        mergeSourceSlot: 0,
+        duration: 3000,
+      );
+      await insertSeries(
+        db,
+        'series',
+        'kept',
+        'download',
+        start: 2400,
+        end: 5400,
+      );
+
+      expect(await repairLoneDownloadSources(db), 0);
+      expect((await rowOf(db, 'download')).isPrimary, isFalse);
+    });
 
     test('a dive it cannot measure is left alone', () async {
       await insertDive(db, 'no-runtime');

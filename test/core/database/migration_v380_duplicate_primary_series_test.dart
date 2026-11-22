@@ -140,6 +140,44 @@ void main() {
       });
     });
 
+    test('moves the cache stamp of the demoted series, not its sync '
+        'stamp', () async {
+      await seedPair(db);
+      await db.customStatement(
+        "UPDATE dive_profile_series SET hlc = 'hlc-stray' "
+        "WHERE id = 'dive-stray'",
+      );
+
+      await demoteDuplicatePrimarySeries(db);
+
+      final stray = await (db.select(
+        db.diveProfileSeries,
+      )..where((t) => t.id.equals('dive-stray'))).getSingle();
+      // Device-local caches key on the sum of the series' updated_at
+      // (diveSourceStampSql); sync exports by the HLC.
+      expect(stray.updatedAt, isNot(0));
+      expect(stray.hlc, 'hlc-stray');
+    });
+
+    test('a no-computer series beside its recording is an edit and stays '
+        'live', () async {
+      // A dive re-parsed before #3189 holds its recording live beside the
+      // edit that corrects it; the re-parse keeps that edit too.
+      await insertDive(db, 'dive');
+      await insertSource(db, 'src', 'dive', computerId: 'comp-a');
+      await insertSeries(
+        db,
+        'recording',
+        'dive',
+        sourceId: 'src',
+        computerId: 'comp-a',
+      );
+      await insertSeries(db, 'edit', 'dive', sourceId: 'src', computerId: null);
+
+      expect(await demoteDuplicatePrimarySeries(db), 0);
+      expect(await primaryFlags(db, 'dive'), {'recording': true, 'edit': true});
+    });
+
     test('leaves the computer label alone', () async {
       await seedPair(db);
 

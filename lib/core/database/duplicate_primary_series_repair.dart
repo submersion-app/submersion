@@ -19,19 +19,26 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 /// computer is the source's (`IS`, so a file source's own series carries
 /// none). Another live series of that source which overlaps one of them in
 /// time is demoted, not deleted: it stays in the profile's history, its
-/// label untouched. Only a label no source row of the dive names counts: a
-/// computer with a row of its own on the dive recorded those minutes itself,
-/// and a Combine re-points a pre-v154 series with no source at its segment's
-/// owner, so such a series of a second computer is not a duplicate. One that
-/// overlaps none is a segment of its own, the shape
-/// a merge of one computer's split dive writes, and stays live. A source is
-/// left alone when it has no own series, or two of them overlap (nothing
-/// tells which is right), or any of its live series is a manual edit, marked
-/// or by shape ([ProfileSeriesRepository.liveEditIdsOf]): an edit is the
-/// diver's choice of samples.
+/// label untouched. One that overlaps none is a segment of its own, the
+/// shape a merge of one computer's split dive writes, and stays live.
+///
+/// Only a computer's label marks a duplicate, and only one that no source
+/// row of the dive names. A live series with no computer beside the
+/// recording is the diver's edit, as a re-parse reads it, even with no
+/// demoted generation beneath it. A computer with a row of its own on the
+/// dive recorded those minutes itself: a Combine re-points a pre-v154 series
+/// with no source at its segment's owner, so a second computer's series can
+/// carry the first one's source. A source is left alone when it has no own
+/// series, or two of them overlap (nothing tells which is right), or any of
+/// its live series is a manual edit, marked or by shape
+/// ([ProfileSeriesRepository.liveEditIdsOf]): an edit is the diver's choice
+/// of samples.
 ///
 /// Runs again after an inbound sync apply, as the v356 stamp does; the sync
-/// stamp (`hlc`) does not move, since every device runs this same repair.
+/// stamp (`hlc`) does not move, since every device runs this same repair. A
+/// demoted series' `updated_at` goes up by one, which moves the stamp the
+/// device-local caches key on (`diveSourceStampSql`) without moving the HLC
+/// sync exports by.
 /// `is_primary` is deliberately not declared in `changeLogRewrittenColumns`:
 /// it is never null, so declaring it would refuse restoring every series
 /// deleted before v380. [diveIds] limits it to the dives a payload touched;
@@ -157,11 +164,20 @@ Future<int> _repairDives(AppDatabase db, List<String>? ids) async {
       ];
       if (own.isEmpty || _anyOverlap(own)) continue;
       for (final s in live) {
-        if (s.identity.computerId == computerId) continue;
-        if (computersWithSource.contains(s.identity.computerId)) continue;
+        final label = s.identity.computerId;
+        // No computer beside the recording is the diver's edit, as a
+        // re-parse reads it (`ReparseService._keptEdits`), even with no
+        // demoted generation beneath it to give it away by shape.
+        if (label == null || label == computerId) continue;
+        if (computersWithSource.contains(label)) continue;
         if (!own.any((o) => _overlaps(o, s))) continue;
+        // One more on updated_at moves the stamp the device-local caches
+        // key on (diveSourceStampSql), so the dive's metrics are rebuilt
+        // from the profile it now shows. Sync exports by the HLC, which
+        // stays where it was.
         await db.customUpdate(
-          'UPDATE dive_profile_series SET is_primary = 0 WHERE id = ?',
+          'UPDATE dive_profile_series '
+          'SET is_primary = 0, updated_at = updated_at + 1 WHERE id = ?',
           variables: [Variable<String>(s.identity.id)],
         );
         demoted++;
