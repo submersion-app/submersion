@@ -241,11 +241,13 @@ extension _SiteDetailBars on _SiteDetailContentState {
     final libraryButtons = _libraryButtons(context, ref, site);
     final locked = LayoutBuilder(
       builder: (context, constraints) {
+        // How much the buttons' words grow: a platform's nonlinear scaler
+        // grows a label far more than it would a 560 px "size".
+        final labelSize = textTheme.labelLarge?.fontSize ?? 14;
+        final growth =
+            MediaQuery.textScalerOf(context).scale(labelSize) / labelSize;
         final compact =
-            constraints.maxWidth <
-            MediaQuery.textScalerOf(
-              context,
-            ).scale(_kSitePaneCompactHeaderWidth);
+            constraints.maxWidth < _kSitePaneCompactHeaderWidth * growth;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(

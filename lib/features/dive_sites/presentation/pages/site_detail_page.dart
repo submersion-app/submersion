@@ -801,7 +801,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       membership = await ref.read(
         currentMembershipProvider(site.sharedLibraryId!).future,
       );
-    } catch (_) {
+    } catch (e, stack) {
+      _editLog.warning(
+        'Could not read the library membership for Connect',
+        error: e,
+        stackTrace: stack,
+      );
       membership = null;
     }
     final prefix = membership?.prefixHint ?? '';

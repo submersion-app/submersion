@@ -75,6 +75,7 @@ void main() {
     double width = 390,
     String? initialLocation,
     bool membershipFails = false,
+    TransitionBuilder? appBuilder,
   }) => pumpSitePage(
     tester,
     site: librarySite,
@@ -83,6 +84,7 @@ void main() {
     onClose: () {},
     size: Size(width, 1400),
     initialLocation: initialLocation,
+    appBuilder: appBuilder,
     extraRoutes: [
       GoRoute(
         path: '/settings/shared-libraries/connect',
@@ -220,5 +222,37 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l.sharedLibrary_site_connectHere), findsOneWidget);
     });
+
+    testWidgets('a nonlinear text scaler folds Connect as its label grows', (
+      tester,
+    ) async {
+      // As Android 14's: small text doubles, large sizes barely grow.
+      await pumpPane(
+        tester,
+        connected: false,
+        width: 640,
+        appBuilder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const _SmallTextDoubles()),
+          child: child!,
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(l.sharedLibrary_site_connectHere), findsNothing);
+    });
   });
+}
+
+/// Doubles sizes up to 20 and leaves larger ones as they are, the shape of
+/// a platform's nonlinear font scaling.
+class _SmallTextDoubles extends TextScaler {
+  const _SmallTextDoubles();
+
+  @override
+  double scale(double fontSize) => fontSize <= 20 ? fontSize * 2 : fontSize;
+
+  @override
+  double get textScaleFactor => 2;
 }

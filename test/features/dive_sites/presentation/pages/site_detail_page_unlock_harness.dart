@@ -147,6 +147,7 @@ Future<SiteUnlockHarness> pumpSitePage(
   Size size = const Size(600, 1400),
   String? initialLocation,
   List<RouteBase> extraRoutes = const [],
+  TransitionBuilder? appBuilder,
   List<Override> extra = const [],
 }) async {
   tester.view.devicePixelRatio = 1.0;
@@ -218,6 +219,9 @@ Future<SiteUnlockHarness> pumpSitePage(
               locale: const Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
+              // Wraps the app, for a test that sets what the app reads
+              // above the page (its text scaler, say).
+              builder: appBuilder,
               home: embedded ? Scaffold(body: page) : page,
             ),
     ),
