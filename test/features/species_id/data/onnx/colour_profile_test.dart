@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -85,6 +86,54 @@ void main() {
       expect(srgbConversionOf(Uint8List.fromList([0xff, 0xd8, 0xff])), isNull);
       expect(srgbConversionOf(Uint8List(0)), isNull);
     });
+  });
+
+  test('toSrgbBytes stays within a level of the direct calculation', () {
+    // The conversion as a formula: decode each channel, multiply by the
+    // matrix, encode with the sRGB curve. Over a grid of colours and every
+    // grey, the fast path may differ only where the result sits on a
+    // rounding edge.
+    final c = srgbConversionOf(jpegWith(displayP3Profile()))!;
+    int encode(double linear) {
+      final l = linear.clamp(0.0, 1.0);
+      final v = l <= 0.0031308
+          ? 12.92 * l
+          : 1.055 * math.pow(l, 1 / 2.4) - 0.055;
+      return (v * 255 + 0.5).floor().clamp(0, 255);
+    }
+
+    final colours = [
+      for (var r = 0; r < 256; r += 15)
+        for (var g = 0; g < 256; g += 15)
+          for (var b = 0; b < 256; b += 15) [r, g, b],
+      for (var v = 0; v < 256; v++) [v, v, v],
+    ];
+    final input = Uint8List.fromList([
+      for (final rgb in colours) ...[...rgb, 255],
+    ]);
+    final out = toSrgbBytes(input, c);
+    var off = 0;
+    for (var p = 0; p < colours.length; p++) {
+      final lin = [
+        for (var ch = 0; ch < 3; ch++) c.decode[ch * 256 + colours[p][ch]],
+      ];
+      for (var k = 0; k < 3; k++) {
+        final want = encode(
+          c.matrix[k * 3] * lin[0] +
+              c.matrix[k * 3 + 1] * lin[1] +
+              c.matrix[k * 3 + 2] * lin[2],
+        );
+        final got = out[p * 4 + k];
+        expect(
+          (got - want).abs(),
+          lessThanOrEqualTo(1),
+          reason: '${colours[p]}',
+        );
+        if (got != want) off++;
+      }
+    }
+    // Rounding edges are rare: well under 1% of values.
+    expect(off, lessThan(colours.length * 3 ~/ 100));
   });
 
   test('toSrgbBytes converts every pixel and leaves the input as it was', () {

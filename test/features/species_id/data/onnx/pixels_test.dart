@@ -160,6 +160,47 @@ void main() {
     });
   });
 
+  group('CanvasDrawer', () {
+    test('draws the detectors\' inputs from one photo as drawInto does', () {
+      var seed = 3;
+      final photo = RgbaImage(
+        97,
+        61,
+        Uint8List.fromList([
+          for (var i = 0; i < 97 * 61; i++) ...[
+            for (var k = 0; k < 3; k++)
+              (seed = (seed * 1103515245 + 12345) & 0x7fffffff) >> 23,
+            255,
+          ],
+        ]),
+      );
+      const square = (left: 0.0, top: 0.0, width: 32.0, height: 32.0);
+      final letterbox = letterboxRect(97, 61, 32);
+      const grey = [114 / 255, 114 / 255, 114 / 255];
+      final drawer = CanvasDrawer(photo);
+      final drawn = [
+        drawer.draw(square, canvas: 32),
+        drawer.draw(letterbox, canvas: 32, fill: grey),
+      ];
+      final alone = [
+        drawInto(photo, square, canvas: 32),
+        drawInto(photo, letterbox, canvas: 32, fill: grey),
+      ];
+      for (var d = 0; d < 2; d++) {
+        expect(drawn[d].width, 32);
+        for (var i = 0; i < drawn[d].bytes.length; i++) {
+          expect(
+            (drawn[d].bytes[i] - alone[d].bytes[i]).abs(),
+            lessThanOrEqualTo(1),
+            reason: 'input $d, byte $i',
+          );
+        }
+      }
+      // The letterbox keeps its grey bars.
+      expect(pixel(drawn[1], 0, 0), [114, 114, 114]);
+    });
+  });
+
   group('cropOf', () {
     test('copies the pixels inside the rectangle', () {
       final image = RgbaImage(

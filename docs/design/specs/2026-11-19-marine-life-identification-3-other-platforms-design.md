@@ -370,6 +370,15 @@ With both, ONNX names 602 right, as Core ML does. What remains is JPEG
 decoding: ImageIO and the decoder Flutter uses (as on Android, Windows and
 Linux) differ by about a level, which the engine cannot remove.
 
+Drawing as CoreGraphics does costs more than the filter it replaced: a
+12 MP photo's shrink reads about 25 source pixels across and 19 down for
+each output pixel. Measured on a Mac in one process, the two detector
+inputs take about 1.5 times as long as before (they share their first
+pass, and the arithmetic is in whole numbers), and converting a Display P3
+photo adds about as much again (fixed point, as littleCMS does it). On a
+phone this is still well under the models' seconds, but it is no longer
+tens of milliseconds.
+
 **Precision.** The pack carries the ONNX models with 16-bit weights, so the
 download is about Core ML's. Whether the engine widens them to 32-bit when it
 loads them, or computes in 16-bit where the processor supports it, is the

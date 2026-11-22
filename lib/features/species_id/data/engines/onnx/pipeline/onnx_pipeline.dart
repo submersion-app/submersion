@@ -116,10 +116,41 @@ class OnnxPipeline {
   VisionMomentCrop? cropAndEmbed(RgbaImage image, IdentificationBox box) =>
       _cropAndEmbed(image, box.x, box.y, box.width, box.height);
 
-  List<List<PipelineBox>> _detectEach(RgbaImage image) => [
-    for (var i = 0; i < _detectors.length; i++)
-      _detect(image, models.detectors[i], _detectors[i]),
-  ];
+  List<List<PipelineBox>> _detectEach(RgbaImage image) {
+    final inputs = _detectorInputs(image);
+    return [
+      for (var i = 0; i < _detectors.length; i++)
+        _detect(image, inputs[i], models.detectors[i], _detectors[i]),
+    ];
+  }
+
+  /// Every detector's input drawn before any model runs, from one drawer:
+  /// the square and the letterbox share most of their resampling, and the
+  /// shared work is let go before inference.
+  List<RgbaImage> _detectorInputs(RgbaImage image) {
+    final drawer = CanvasDrawer(image);
+    return [
+      for (final detector in models.detectors)
+        detector.format == DetectorFormat.yolo
+            ? drawer.draw(
+                letterboxRect(image.width, image.height, detector.inputSize),
+                canvas: detector.inputSize,
+                fill: const [
+                  letterboxGrey / 255,
+                  letterboxGrey / 255,
+                  letterboxGrey / 255,
+                ],
+              )
+            // Resized straight to the square input, no letterbox, as the
+            // detector was trained.
+            : drawer.draw((
+                left: 0,
+                top: 0,
+                width: detector.inputSize.toDouble(),
+                height: detector.inputSize.toDouble(),
+              ), canvas: detector.inputSize),
+    ];
+  }
 
   /// One detector's boxes as they are; two detectors' merged.
   List<PipelineBox> _combined(List<List<PipelineBox>> runs) => runs.length == 1
@@ -128,6 +159,7 @@ class OnnxPipeline {
 
   List<PipelineBox> _detect(
     RgbaImage image,
+    RgbaImage square,
     VisionDetector detector,
     ModelRunner runner,
   ) {
@@ -135,16 +167,6 @@ class OnnxPipeline {
     final shape = [1, 3, size, size];
     if (detector.format == DetectorFormat.yolo) {
       final rect = letterboxRect(image.width, image.height, size);
-      final square = drawInto(
-        image,
-        rect,
-        canvas: size,
-        fill: const [
-          letterboxGrey / 255,
-          letterboxGrey / 255,
-          letterboxGrey / 255,
-        ],
-      );
       final outputs = runner.run(_tensor(square, detector), shape);
       final output = outputs.where((o) => o.shape.length == 3).firstOrNull;
       if (output == null) {
@@ -171,14 +193,6 @@ class OnnxPipeline {
         maxBoxes: detector.maxBoxes,
       );
     }
-    // Resized straight to the square input, no letterbox, as the detector
-    // was trained.
-    final square = drawInto(image, (
-      left: 0,
-      top: 0,
-      width: size.toDouble(),
-      height: size.toDouble(),
-    ), canvas: size);
     final outputs = runner.run(_tensor(square, detector), shape);
     ModelOutput? boxes, scores;
     for (final output in outputs) {

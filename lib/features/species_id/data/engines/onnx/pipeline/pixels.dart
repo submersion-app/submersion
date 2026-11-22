@@ -47,29 +47,40 @@ RgbaImage drawInto(
   PixelRect target, {
   required int canvas,
   List<double>? fill,
-}) {
-  final out = Uint8List(canvas * canvas * 4);
-  if (fill != null) {
-    final r = (fill[0] * 255).round(), g = (fill[1] * 255).round();
-    final b = (fill[2] * 255).round();
-    for (var i = 0; i < out.length; i += 4) {
-      out[i] = r;
-      out[i + 1] = g;
-      out[i + 2] = b;
-      out[i + 3] = 255;
+}) => CanvasDrawer(source).draw(target, canvas: canvas, fill: fill);
+
+/// Draws one image into several canvases as [drawInto] does, sharing the
+/// work of draws that resample an axis alike ([Resampler]): the detectors'
+/// square and letterbox from one photo or frame.
+class CanvasDrawer {
+  CanvasDrawer(RgbaImage source)
+    : _resampler = Resampler(source.bytes, source.width, source.height);
+
+  final Resampler _resampler;
+
+  RgbaImage draw(PixelRect target, {required int canvas, List<double>? fill}) {
+    final out = Uint8List(canvas * canvas * 4);
+    if (fill != null) {
+      final r = (fill[0] * 255).round(), g = (fill[1] * 255).round();
+      final b = (fill[2] * 255).round();
+      for (var i = 0; i < out.length; i += 4) {
+        out[i] = r;
+        out[i + 1] = g;
+        out[i + 2] = b;
+        out[i + 3] = 255;
+      }
     }
+    _resampler.draw(
+      out,
+      canvas,
+      canvas,
+      left: target.left,
+      top: target.top,
+      width: target.width,
+      height: target.height,
+    );
+    return RgbaImage(canvas, canvas, out);
   }
-  _resample(
-    source,
-    out,
-    canvas,
-    canvas,
-    target.left,
-    target.top,
-    target.width,
-    target.height,
-  );
-  return RgbaImage(canvas, canvas, out);
 }
 
 /// A `[1, 3, size, size]` tensor of a square image: R, G and B planes, each
@@ -144,7 +155,18 @@ RgbaImage fittedWithin(RgbaImage image, int side) {
   final w = math.max(1, (image.width * scale).round());
   final h = math.max(1, (image.height * scale).round());
   final out = Uint8List(w * h * 4);
-  _resample(image, out, w, h, 0, 0, w.toDouble(), h.toDouble());
+  resampleRgba(
+    image.bytes,
+    image.width,
+    image.height,
+    out,
+    w,
+    h,
+    left: 0,
+    top: 0,
+    width: w.toDouble(),
+    height: h.toDouble(),
+  );
   return RgbaImage(w, h, out);
 }
 
@@ -158,30 +180,4 @@ Uint8List jpegOf(RgbaImage image) => img.encodeJpg(
     numChannels: 4,
   ),
   quality: 85,
-);
-
-/// Resamples [source] into the rectangle at [left], [top] of [width] by
-/// [height] in [out] (a [outWidth] by [outHeight] RGBA buffer), with the
-/// pipeline's one filter, Core Graphics' as the Swift pipeline draws
-/// (`resampling.dart`).
-void _resample(
-  RgbaImage source,
-  Uint8List out,
-  int outWidth,
-  int outHeight,
-  double left,
-  double top,
-  double width,
-  double height,
-) => resampleRgba(
-  source.bytes,
-  source.width,
-  source.height,
-  out,
-  outWidth,
-  outHeight,
-  left: left,
-  top: top,
-  width: width,
-  height: height,
 );

@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
+
 /// The ONNX pipeline's one resampling filter: a model of Core Graphics
 /// drawing an image with `interpolationQuality = .high`, which is how the
 /// Swift pipeline (`VisionPipeline.swift`, `rgba`) draws every detector
@@ -41,106 +43,205 @@ void resampleRgba(
   required double top,
   required double width,
   required double height,
-}) {
-  if (width <= 0 || height <= 0 || sourceWidth <= 0 || sourceHeight <= 0) {
-    return;
+}) => Resampler(source, sourceWidth, sourceHeight).draw(
+  out,
+  outWidth,
+  outHeight,
+  left: left,
+  top: top,
+  width: width,
+  height: height,
+);
+
+/// Draws one RGBA image into several targets as [resampleRgba] does,
+/// keeping the first of the two passes (one axis, then the other) of its
+/// last draw. A draw that resamples one axis exactly as the last draw did
+/// starts from that pass: the detectors' two inputs from a photo (a square
+/// stretched to the input, a letterbox fitted in it) always share one, the
+/// photo's longer side, and the shared pass is most of the work.
+class Resampler {
+  Resampler(this.source, this.sourceWidth, this.sourceHeight);
+
+  final Uint8List source;
+  final int sourceWidth;
+  final int sourceHeight;
+
+  _FirstPass? _kept;
+
+  /// How many first passes the draws so far have computed.
+  @visibleForTesting
+  int firstPasses = 0;
+
+  /// Resamples the source into the rectangle at [left], [top] of [width]
+  /// by [height] in [out] ([outWidth] by [outHeight] RGBA), writing only
+  /// the output pixels whose centres lie in it, opaque.
+  void draw(
+    Uint8List out,
+    int outWidth,
+    int outHeight, {
+    required double left,
+    required double top,
+    required double width,
+    required double height,
+  }) {
+    if (width <= 0 || height <= 0 || sourceWidth <= 0 || sourceHeight <= 0) {
+      return;
+    }
+    final xs = _AxisTaps(sourceWidth, outWidth, left, width);
+    final ys = _AxisTaps(sourceHeight, outHeight, top, height);
+    if (xs.isEmpty || ys.isEmpty) return;
+    final kept = _kept;
+    final _FirstPass pass;
+    if (kept != null && kept.rows && kept.taps.sameAs(ys)) {
+      pass = kept;
+    } else if (kept != null && !kept.rows && kept.taps.sameAs(xs)) {
+      pass = kept;
+    } else {
+      // The axis that leaves the smaller intermediate goes first.
+      final rows = ys.count * sourceWidth <= sourceHeight * xs.count;
+      pass = rows ? _down(ys) : _across(xs);
+      _kept = pass;
+      firstPasses++;
+    }
+    if (pass.rows) {
+      _acrossMid(pass, xs, ys.start, out, outWidth);
+    } else {
+      _downMid(pass, ys, xs.start, out, outWidth);
+    }
   }
-  final xs = _AxisTaps(sourceWidth, outWidth, left, width);
-  final ys = _AxisTaps(sourceHeight, outHeight, top, height);
-  if (xs.isEmpty || ys.isEmpty) return;
-  // Separable: the axis that leaves the smaller intermediate goes first.
-  final rowsFirst = ys.count * sourceWidth <= sourceHeight * xs.count;
-  if (rowsFirst) {
-    // Each output row from the source rows, then across.
-    final mid = Float32List(ys.count * sourceWidth * 3);
+
+  /// Each output row from the source rows, every source column kept.
+  _FirstPass _down(_AxisTaps ys) {
+    final mid = Int32List(ys.count * sourceWidth * 3);
+    final step = sourceWidth * 4;
     for (var r = 0; r < ys.count; r++) {
       final taps = ys.first[r], n = ys.length[r], w0 = ys.offset[r];
+      final m0 = r * sourceWidth * 3;
       for (var x = 0; x < sourceWidth; x++) {
-        var red = 0.0, green = 0.0, blue = 0.0;
-        for (var k = 0; k < n; k++) {
-          final i = ((taps + k) * sourceWidth + x) * 4;
+        var red = 0, green = 0, blue = 0;
+        var i = (taps * sourceWidth + x) * 4;
+        for (var k = 0; k < n; k++, i += step) {
           final w = ys.weights[w0 + k];
           red += source[i] * w;
           green += source[i + 1] * w;
           blue += source[i + 2] * w;
         }
-        final m = (r * sourceWidth + x) * 3;
+        final m = m0 + x * 3;
         mid[m] = red;
         mid[m + 1] = green;
         mid[m + 2] = blue;
       }
     }
-    for (var r = 0; r < ys.count; r++) {
-      for (var c = 0; c < xs.count; c++) {
-        final taps = xs.first[c], n = xs.length[c], w0 = xs.offset[c];
-        var red = 0.0, green = 0.0, blue = 0.0;
-        for (var k = 0; k < n; k++) {
-          final m = (r * sourceWidth + taps + k) * 3;
-          final w = xs.weights[w0 + k];
-          red += mid[m] * w;
-          green += mid[m + 1] * w;
-          blue += mid[m + 2] * w;
-        }
-        _put(
-          out,
-          ((ys.start + r) * outWidth + xs.start + c) * 4,
-          red,
-          green,
-          blue,
-        );
-      }
-    }
-  } else {
-    // Each source row across first, then down.
-    final mid = Float32List(sourceHeight * xs.count * 3);
+    return _FirstPass(true, ys, mid, sourceWidth);
+  }
+
+  /// Each source row across, to the output columns.
+  _FirstPass _across(_AxisTaps xs) {
+    final mid = Int32List(sourceHeight * xs.count * 3);
     for (var y = 0; y < sourceHeight; y++) {
+      final row = y * sourceWidth;
+      final m0 = y * xs.count * 3;
       for (var c = 0; c < xs.count; c++) {
         final taps = xs.first[c], n = xs.length[c], w0 = xs.offset[c];
-        var red = 0.0, green = 0.0, blue = 0.0;
-        for (var k = 0; k < n; k++) {
-          final i = (y * sourceWidth + taps + k) * 4;
+        var red = 0, green = 0, blue = 0;
+        var i = (row + taps) * 4;
+        for (var k = 0; k < n; k++, i += 4) {
           final w = xs.weights[w0 + k];
           red += source[i] * w;
           green += source[i + 1] * w;
           blue += source[i + 2] * w;
         }
-        final m = (y * xs.count + c) * 3;
+        final m = m0 + c * 3;
         mid[m] = red;
         mid[m + 1] = green;
         mid[m + 2] = blue;
       }
     }
-    for (var r = 0; r < ys.count; r++) {
-      final taps = ys.first[r], n = ys.length[r], w0 = ys.offset[r];
-      for (var c = 0; c < xs.count; c++) {
-        var red = 0.0, green = 0.0, blue = 0.0;
-        for (var k = 0; k < n; k++) {
-          final m = ((taps + k) * xs.count + c) * 3;
-          final w = ys.weights[w0 + k];
-          red += mid[m] * w;
-          green += mid[m + 1] * w;
-          blue += mid[m + 2] * w;
-        }
-        _put(
-          out,
-          ((ys.start + r) * outWidth + xs.start + c) * 4,
-          red,
-          green,
-          blue,
-        );
+    return _FirstPass(false, xs, mid, xs.count);
+  }
+}
+
+/// A first pass: [mid] holds, scaled by [_one], one axis already resampled
+/// ([rows]: the rows, else the columns), [width] values (times three) to
+/// a line.
+class _FirstPass {
+  _FirstPass(this.rows, this.taps, this.mid, this.width);
+
+  final bool rows;
+  final _AxisTaps taps;
+  final Int32List mid;
+  final int width;
+}
+
+/// The second pass after the rows: across each kept row.
+void _acrossMid(
+  _FirstPass pass,
+  _AxisTaps xs,
+  int rowStart,
+  Uint8List out,
+  int outWidth,
+) {
+  final mid = pass.mid;
+  for (var r = 0; r < pass.taps.count; r++) {
+    final m0 = r * pass.width * 3;
+    final o0 = ((rowStart + r) * outWidth + xs.start) * 4;
+    for (var c = 0; c < xs.count; c++) {
+      final taps = xs.first[c], n = xs.length[c], w0 = xs.offset[c];
+      var red = 0, green = 0, blue = 0;
+      var m = m0 + taps * 3;
+      for (var k = 0; k < n; k++, m += 3) {
+        final w = xs.weights[w0 + k];
+        red += mid[m] * w;
+        green += mid[m + 1] * w;
+        blue += mid[m + 2] * w;
       }
+      _put(out, o0 + c * 4, red, green, blue);
     }
   }
 }
 
-void _put(Uint8List out, int o, double red, double green, double blue) {
+/// The second pass after the columns: down each kept column.
+void _downMid(
+  _FirstPass pass,
+  _AxisTaps ys,
+  int columnStart,
+  Uint8List out,
+  int outWidth,
+) {
+  final mid = pass.mid, stride = pass.width * 3;
+  for (var r = 0; r < ys.count; r++) {
+    final taps = ys.first[r], n = ys.length[r], w0 = ys.offset[r];
+    final o0 = ((ys.start + r) * outWidth + columnStart) * 4;
+    for (var c = 0; c < pass.taps.count; c++) {
+      var red = 0, green = 0, blue = 0;
+      var m = taps * stride + c * 3;
+      for (var k = 0; k < n; k++, m += stride) {
+        final w = ys.weights[w0 + k];
+        red += mid[m] * w;
+        green += mid[m + 1] * w;
+        blue += mid[m + 2] * w;
+      }
+      _put(out, o0 + c * 4, red, green, blue);
+    }
+  }
+}
+
+/// A weight of one, in whole numbers.
+const _bits = 14;
+const _one = 1 << _bits;
+
+/// Two passes' sums, scaled by [_one] twice, rounded to a byte.
+void _put(Uint8List out, int o, int red, int green, int blue) {
   out[o] = _byte(red);
   out[o + 1] = _byte(green);
   out[o + 2] = _byte(blue);
   out[o + 3] = 255;
 }
 
-int _byte(double v) => (v + 0.5).floor().clamp(0, 255);
+int _byte(int sum) {
+  final v = (sum + (1 << (2 * _bits - 1))) >> (2 * _bits);
+  return v < 0 ? 0 : (v > 255 ? 255 : v);
+}
 
 /// Core Graphics' blend of the two nearest pixels when growing, by the
 /// distance between them in eighths of a pixel (measured).
@@ -166,7 +267,8 @@ double _keys(double x) {
 
 /// One axis's taps: for each output pixel from [start] (the first whose
 /// centre lies in the target span) for [count] pixels, the first source
-/// pixel it reads, how many in a row, and their weights (summing to one).
+/// pixel it reads, how many in a row, and their weights (in whole
+/// 1/[_one]ths, summing to [_one]).
 class _AxisTaps {
   factory _AxisTaps(int n, int outLength, double spanStart, double span) {
     // Output pixels whose centres lie in [spanStart, spanStart + span).
@@ -219,16 +321,18 @@ class _AxisTaps {
       }
     }
     return _AxisTaps._(
+      (n, outLength, spanStart, span),
       start,
       count,
       first,
       length,
       offset,
-      Float64List.fromList(weights),
+      _whole(weights, offset, length),
     );
   }
 
   const _AxisTaps._(
+    this._key,
     this.start,
     this.count,
     this.first,
@@ -237,12 +341,33 @@ class _AxisTaps {
     this.weights,
   );
 
+  /// What the taps were made from: equal keys, equal taps.
+  final (int, int, double, double) _key;
   final int start;
   final int count;
   final Int32List first;
   final Int32List length;
   final Int32List offset;
-  final Float64List weights;
+  final Int32List weights;
 
   bool get isEmpty => count == 0;
+
+  bool sameAs(_AxisTaps other) => _key == other._key;
+}
+
+/// [weights] in whole 1/[_one]ths, each output pixel's rounded so they
+/// still sum to exactly [_one] (the remainder on its largest weight).
+Int32List _whole(List<double> weights, Int32List offset, Int32List length) {
+  final out = Int32List(weights.length);
+  for (var o = 0; o < offset.length; o++) {
+    final w0 = offset[o];
+    var sum = 0, largest = w0;
+    for (var k = w0; k < w0 + length[o]; k++) {
+      out[k] = (weights[k] * _one).round();
+      sum += out[k];
+      if (weights[k] > weights[largest]) largest = k;
+    }
+    out[largest] += _one - sum;
+  }
+  return out;
 }

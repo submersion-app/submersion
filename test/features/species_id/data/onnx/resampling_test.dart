@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -135,6 +136,77 @@ void main() {
         reason: '64 to $out',
       );
     }
+  });
+
+  group('several draws from one source', () {
+    Uint8List noiseImage(int width, int height) {
+      var seed = 5;
+      return Uint8List.fromList([
+        for (var i = 0; i < width * height; i++) ...[
+          for (var k = 0; k < 3; k++)
+            (seed = (seed * 1103515245 + 12345) & 0x7fffffff) >> 23,
+          255,
+        ],
+      ]);
+    }
+
+    int worstDifference(Uint8List a, Uint8List b) {
+      var worst = 0;
+      for (var i = 0; i < a.length; i++) {
+        worst = math.max(worst, (a[i] - b[i]).abs());
+      }
+      return worst;
+    }
+
+    // The detectors' inputs from one photo: a square stretched to the
+    // input, and a letterbox that shares one of its axes.
+    for (final (shape, width, height, letterbox) in [
+      ('wide', 403, 302, (left: 0.0, top: 8.0, width: 64.0, height: 48.0)),
+      ('tall', 302, 403, (left: 8.0, top: 0.0, width: 48.0, height: 64.0)),
+    ]) {
+      test('a $shape photo\'s letterbox reuses the square\'s first pass', () {
+        final source = noiseImage(width, height);
+        final resampler = Resampler(source, width, height);
+        final square = Uint8List(64 * 64 * 4);
+        resampler.draw(square, 64, 64, left: 0, top: 0, width: 64, height: 64);
+        final shared = Uint8List(64 * 64 * 4);
+        resampler.draw(
+          shared,
+          64,
+          64,
+          left: letterbox.left,
+          top: letterbox.top,
+          width: letterbox.width,
+          height: letterbox.height,
+        );
+        expect(resampler.firstPasses, 1);
+        // Drawn as a draw of its own draws it, give or take a rounding
+        // edge from taking the axes in the other order.
+        final alone = Uint8List(64 * 64 * 4);
+        resampleRgba(
+          source,
+          width,
+          height,
+          alone,
+          64,
+          64,
+          left: letterbox.left,
+          top: letterbox.top,
+          width: letterbox.width,
+          height: letterbox.height,
+        );
+        expect(worstDifference(shared, alone), lessThanOrEqualTo(1));
+      });
+    }
+
+    test('a draw that shares no axis with the last makes its own pass', () {
+      final source = noiseImage(120, 90);
+      final resampler = Resampler(source, 120, 90);
+      final out = Uint8List(64 * 64 * 4);
+      resampler.draw(out, 64, 64, left: 0, top: 0, width: 64, height: 64);
+      resampler.draw(out, 64, 64, left: 3, top: 5, width: 20, height: 30);
+      expect(resampler.firstPasses, 2);
+    });
   });
 
   test('draws only the pixels whose centres lie in the target', () {
