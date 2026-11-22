@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -49,8 +51,9 @@ class ContingencyService {
   /// The three deviation keys, in slate order.
   static const deviationKeys = ['deeper', 'longer', 'both'];
 
-  /// The deeper / longer / both variants (empty when the plan has no
-  /// segments).
+  /// The deeper / longer / both variants that apply to [plan], in slate
+  /// order: empty when the plan has no segments, and only 'deeper' when it
+  /// has no bottom to lengthen (see [canLengthen]).
   ///
   /// Every method here takes the live plan's [startState] (a repetitive
   /// dive's residual tissue loading): a contingency is an alternative to the
@@ -58,23 +61,38 @@ class ContingencyService {
   List<DeviationOutcome> deviations(
     domain.DivePlan plan, {
     TissueState? startState,
-  }) {
-    if (plan.segments.isEmpty) return const [];
-    return [
-      for (final key in deviationKeys)
-        deviationFor(plan, key, startState: startState)!,
-    ];
+  }) => [
+    for (final key in deviationKeys)
+      ?deviationFor(plan, key, startState: startState),
+  ];
+
+  /// Whether [plan] has a bottom a time delta can lengthen (see
+  /// [SegmentChain.bottomLegIndex]). A plan with none, such as one linear
+  /// descent that never holds at depth, gets no '+time' variant: it would
+  /// equal the base plan, and 'both' would equal 'deeper' (#4849).
+  bool canLengthen(domain.DivePlan plan) {
+    final ordered = List<PlanSegment>.from(plan.segments)
+      ..sort((a, b) => a.order.compareTo(b.order));
+    const chain = SegmentChain();
+    return chain.bottomLegIndex(
+          chain.resolve(ordered),
+          descentRate: config.resolvedFor(plan).descentRate,
+        ) !=
+        null;
   }
 
   /// A single deviation variant by [key] ('deeper' | 'longer' | 'both'), or
-  /// null when the plan has no segments. Lets callers (the chart ghost) run
-  /// just the one variant the user selected instead of all three.
+  /// null when the plan has no segments, or when [key] adds time and the
+  /// plan has no bottom to lengthen (see [canLengthen]). Lets callers (the
+  /// chart ghost) run just the one variant the user selected instead of all
+  /// three.
   DeviationOutcome? deviationFor(
     domain.DivePlan plan,
     String key, {
     TissueState? startState,
   }) {
     if (plan.segments.isEmpty) return null;
+    if (key != 'deeper' && !canLengthen(plan)) return null;
     final variant = switch (key) {
       'deeper' => _deepened(plan),
       'longer' => _lengthened(plan),
@@ -172,15 +190,23 @@ class ContingencyService {
   // Resolved against [plan] (issue #3552): this service's own [config] is
   // the app-wide one, not necessarily already resolvedFor this plan, unlike
   // PlanEngine/BailoutSolver's internal copy.
-  domain.DivePlan _deepened(domain.DivePlan plan) => deviatePlan(
-    plan,
-    depthDelta: config.resolvedFor(plan).deviationDepthDelta,
-  );
+  domain.DivePlan _deepened(domain.DivePlan plan) {
+    final resolved = config.resolvedFor(plan);
+    return deviatePlan(
+      plan,
+      depthDelta: resolved.deviationDepthDelta,
+      descentRate: resolved.descentRate,
+    );
+  }
 
-  domain.DivePlan _lengthened(domain.DivePlan plan) => deviatePlan(
-    plan,
-    timeDeltaMinutes: config.resolvedFor(plan).deviationTimeMinutes,
-  );
+  domain.DivePlan _lengthened(domain.DivePlan plan) {
+    final resolved = config.resolvedFor(plan);
+    return deviatePlan(
+      plan,
+      timeDeltaMinutes: resolved.deviationTimeMinutes,
+      descentRate: resolved.descentRate,
+    );
+  }
 }
 
 /// A [plan] variant deviated by [depthDelta] meters and/or
@@ -191,8 +217,16 @@ class ContingencyService {
 /// depth. The bottom leg grows (or shrinks) by the time delta. Shared by the
 /// contingency trio and the range tables so every "what if" variant deviates
 /// the same way.
+///
+/// [descentRate] is the plan's resolved descent rate, the one the engine
+/// splits rate-split descents with (#4849). It decides whether such a
+/// descent holds and so can be the bottom (see [SegmentChain.bottomLegIndex]),
+/// and, because a descent authored shorter than its travel is stretched to
+/// the travel time, the delta is added to that stretched duration rather
+/// than to the authored one.
 domain.DivePlan deviatePlan(
   domain.DivePlan plan, {
+  required double descentRate,
   double depthDelta = 0,
   int timeDeltaMinutes = 0,
 }) {
@@ -212,21 +246,29 @@ domain.DivePlan deviatePlan(
   }
 
   if (timeDeltaMinutes != 0) {
-    // The delta buys bottom time once, on the deepest level leg, rather than
-    // once per level leg as the old per-type loop did on a multi-level plan.
+    // The delta buys bottom time once, on the bottom leg (see
+    // SegmentChain.bottomLegIndex), rather than once per level leg as the old
+    // per-type loop did on a multi-level plan.
     final ordered = List<PlanSegment>.from(segments)
       ..sort((a, b) => a.order.compareTo(b.order));
     const chain = SegmentChain();
-    final bottomIndex = chain.bottomLegIndex(chain.resolve(ordered));
+    final legs = chain.resolve(ordered);
+    final bottomIndex = chain.bottomLegIndex(legs, descentRate: descentRate);
     if (bottomIndex != null) {
-      final bottomId = ordered[bottomIndex].id;
+      final bottom = legs[bottomIndex];
+      final bottomId = bottom.segment.id;
+      final travelSeconds = bottom.isDepthChange
+          ? PlanSegment.travelSeconds(
+              metres: bottom.endDepth - bottom.startDepth,
+              ratePerMinute: descentRate,
+            )
+          : 0;
+      final fromSeconds = math.max(bottom.durationSeconds, travelSeconds);
       final extraSeconds = timeDeltaMinutes * 60;
       segments = [
         for (final segment in segments)
           segment.id == bottomId
-              ? segment.copyWith(
-                  durationSeconds: segment.durationSeconds + extraSeconds,
-                )
+              ? segment.copyWith(durationSeconds: fromSeconds + extraSeconds)
               : segment,
       ];
     }

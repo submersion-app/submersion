@@ -90,6 +90,119 @@ void main() {
       expect(baseRow[minusFiveIndex], isNotNull);
     });
 
+    // Issue #4849: the time columns must vary a plan whose bottom is the
+    // hold half of a single descent split at the configured rate.
+    test('time columns vary a single rate-split descent plan', () {
+      const service = RangeTableService();
+      final plan = _plan().copyWith(
+        segments: [
+          const PlanSegment(
+            id: 'seg-1',
+            targetDepth: 40.0,
+            durationSeconds: 25 * 60,
+            tankId: 'tank-1',
+            gasMix: _air,
+            splitAtConfiguredRate: true,
+          ),
+        ],
+      );
+      final table = service.compute(plan);
+      final baseRow = table.cells[table.depthDeltas.indexOf(0.0)];
+      final base = table.baseCell!;
+      final plusFive = baseRow[table.timeDeltas.indexOf(5)]!;
+      final minusFive = baseRow[table.timeDeltas.indexOf(-5)]!;
+
+      expect(
+        plusFive.outcome.runtimeSeconds,
+        greaterThan(base.outcome.runtimeSeconds),
+      );
+      expect(
+        minusFive.outcome.runtimeSeconds,
+        lessThan(base.outcome.runtimeSeconds),
+      );
+    });
+
+    test(
+      'a rate-split descent can shrink only by its hold, not its travel',
+      () {
+        // 40 m at 18 m/min is 2:13 of travel, so a 10:00 descent holds 7:47:
+        // -5 min still leaves a bottom, -10 min would eat into the travel.
+        const service = RangeTableService();
+        final plan = _plan().copyWith(
+          segments: [
+            const PlanSegment(
+              id: 'seg-1',
+              targetDepth: 40.0,
+              durationSeconds: 10 * 60,
+              tankId: 'tank-1',
+              gasMix: _air,
+              splitAtConfiguredRate: true,
+            ),
+          ],
+        );
+        final table = service.compute(plan);
+        final baseRow = table.cells[table.depthDeltas.indexOf(0.0)];
+
+        expect(baseRow[table.timeDeltas.indexOf(-10)], isNull);
+        expect(baseRow[table.timeDeltas.indexOf(-5)], isNotNull);
+      },
+    );
+
+    test('a deeper row measures the hold left after its longer travel', () {
+      // At 3 m/min, 40 m is 13:20 of travel and 46 m is 15:20. A 24:20
+      // descent holds 11:00 at 40 m but only 9:00 at 46 m, so -10 min still
+      // leaves a bottom in the base row and none in the +6 m row.
+      const service = RangeTableService(
+        config: PlanEngineConfig(descentRate: 3.0),
+      );
+      final plan = _plan().copyWith(
+        segments: [
+          const PlanSegment(
+            id: 'seg-1',
+            targetDepth: 40.0,
+            durationSeconds: 1460,
+            tankId: 'tank-1',
+            gasMix: _air,
+            splitAtConfiguredRate: true,
+          ),
+        ],
+      );
+      final table = service.compute(plan);
+      final minusTen = table.timeDeltas.indexOf(-10);
+
+      expect(table.cells[table.depthDeltas.indexOf(0.0)][minusTen], isNotNull);
+      expect(table.cells[table.depthDeltas.indexOf(6.0)][minusTen], isNull);
+    });
+
+    test('time columns are blank when the plan has no bottom to vary', () {
+      // A linear descent never holds at depth, so a time delta has nothing
+      // to lengthen; those cells must not repeat the base value.
+      const service = RangeTableService();
+      final plan = _plan().copyWith(
+        segments: [
+          const PlanSegment(
+            id: 'seg-1',
+            targetDepth: 40.0,
+            durationSeconds: 25 * 60,
+            tankId: 'tank-1',
+            gasMix: _air,
+          ),
+        ],
+      );
+      final table = service.compute(plan);
+
+      for (var r = 0; r < table.depthDeltas.length; r++) {
+        for (var c = 0; c < table.timeDeltas.length; c++) {
+          final cell = table.cells[r][c];
+          if (table.timeDeltas[c] == 0) {
+            expect(cell, isNotNull, reason: 'row ${table.depthDeltas[r]}');
+          } else {
+            expect(cell, isNull, reason: '${table.timeDeltas[c]} min');
+          }
+        }
+      }
+    });
+
     test('empty plan yields an empty table', () {
       const service = RangeTableService();
       final table = service.compute(

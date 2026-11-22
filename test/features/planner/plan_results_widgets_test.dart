@@ -388,15 +388,15 @@ void main() {
     );
     await _seedDecoPlan(tester, find.byType(PlanStatusChips));
 
-    container.read(selectedDeviationProvider.notifier).state = 'deeper';
+    container.read(selectedDeviationProvider.notifier).select('deeper');
     await tester.pumpAndSettle();
     expect(find.textContaining('Previewing: +5m'), findsOneWidget);
 
-    container.read(selectedDeviationProvider.notifier).state = 'longer';
+    container.read(selectedDeviationProvider.notifier).select('longer');
     await tester.pumpAndSettle();
     expect(find.textContaining("Previewing: +5′"), findsOneWidget);
 
-    container.read(selectedDeviationProvider.notifier).state = 'both';
+    container.read(selectedDeviationProvider.notifier).select('both');
     await tester.pumpAndSettle();
     expect(find.textContaining("Previewing: +5m +5′"), findsOneWidget);
 
