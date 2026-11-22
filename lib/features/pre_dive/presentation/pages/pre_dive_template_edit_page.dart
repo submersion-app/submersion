@@ -59,18 +59,19 @@ class _PreDiveTemplateEditPageState
   /// for anything that offers editing.
   bool get _readOnly => _builtIn;
 
-  /// Whether the editing chrome may be shown yet: the sitting is open.
+  /// Whether the editing chrome may be shown yet.
   ///
   /// The built-in flag lives on the fetched row, so while a template is in
   /// flight this page does not know which mode it is in. Treating "not known
   /// to be read-only" as editable put the edit title and a Save button on the
   /// first frame and then withdrew them the instant a built-in resolved.
-  /// Waiting is the claim that can only be upgraded, never retracted. A
-  /// built-in never opens the sitting.
+  /// Waiting is the claim that can only be upgraded, never retracted.
   ///
-  /// A brand new template opens its sitting at once, so it is editable at
-  /// once.
-  bool get _editable => editorOpen;
+  /// It follows what was loaded, not the sitting: the sitting ends as the
+  /// page leaves (a Save, a discard, a change of diver), and the title must
+  /// not turn to "View" on the way out. A brand new template has nothing to
+  /// fetch, so it is editable at once.
+  bool get _editable => _loaded && !_builtIn;
 
   @override
   void initState() {

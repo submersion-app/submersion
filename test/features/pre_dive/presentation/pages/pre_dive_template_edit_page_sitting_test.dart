@@ -245,6 +245,21 @@ void main() {
     expect(save(tester).onPressed, isNull);
   });
 
+  testWidgets('a saved template keeps its edit title as it leaves', (
+    tester,
+  ) async {
+    await pump(tester, templateId: await stored());
+    await rename(tester, 'Renamed');
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    // Step through the save and the page's exit, frame by frame.
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(find.text('View Pre-Dive Checklist'), findsNothing);
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('LIST'), findsOneWidget);
+  });
+
   testWidgets('a built-in View has the plain bar, a back arrow and no Save', (
     tester,
   ) async {
