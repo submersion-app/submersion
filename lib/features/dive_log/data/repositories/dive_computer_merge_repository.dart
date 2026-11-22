@@ -8,6 +8,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
+import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/equipment/data/services/equipment_item_fold.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -53,17 +54,23 @@ class DiveComputerMergeRepository {
     TankPressureSeriesRepository? tankSeries,
     DiveComputerConnectionRepository? connections,
     EquipmentItemFold? itemFold,
+    DiveComputerGearLinker? gearLinker,
   }) : _syncRepository = syncRepository ?? SyncRepository(),
        _profileSeries = profileSeries ?? ProfileSeriesRepository(),
        _tankSeries = tankSeries ?? TankPressureSeriesRepository(),
        _connections = connections ?? DiveComputerConnectionRepository(),
-       _itemFold = itemFold;
+       _itemFold = itemFold,
+       _gearLinkerOverride = gearLinker;
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureSeriesRepository _tankSeries;
   final DiveComputerConnectionRepository _connections;
   final EquipmentItemFold? _itemFold;
+  final DiveComputerGearLinker? _gearLinkerOverride;
+  late final DiveComputerGearLinker _gearLinker =
+      _gearLinkerOverride ??
+      DiveComputerGearLinker(syncRepository: _syncRepository);
   final _log = LoggerService.forClass(DiveComputerMergeRepository);
 
   db.AppDatabase get _db => DatabaseService.instance.database;
@@ -210,6 +217,7 @@ class DiveComputerMergeRepository {
 
       await _db.transaction(() async {
         affectedDives = await _affectedDiveIds(duplicates);
+        final duplicateDives = affectedDives.toList(growable: false);
 
         await _repointDiveOwnedTables(duplicates, survivorId, now);
         await _repointQualityFindings(duplicates, survivorId, now);
@@ -226,6 +234,15 @@ class DiveComputerMergeRepository {
 
         await _bumpDives(affectedDives.toList(growable: false), now);
         await _writeSurvivor(merged, now);
+        // The duplicates' dives now name the survivor; give each its item
+        // where the duplicate's own link was missing (issue #4846). Only
+        // those dives: the survivor's own were the diver's to edit, and a
+        // link taken off one of them long ago has no tombstone left to say
+        // so.
+        await _gearLinker.linkComputerGearToDives(
+          computerId: survivorId,
+          diveIds: duplicateDives,
+        );
         await _repointTransmitterChannels(duplicates, survivorId, now);
         // Before the duplicates go: their connections would cascade away
         // with no tombstone. Folded onto the survivor instead (#3106).

@@ -84,6 +84,7 @@ import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
+import 'package:submersion/features/equipment/data/services/computer_gear_dive_heal.dart';
 
 /// Callback signature for the service initializer used by [StartupWrapper].
 ///
@@ -1253,6 +1254,13 @@ class _StartupWrapperState extends State<StartupWrapper>
         debugPrint('Scanned logs migration: $report');
       }
     }());
+
+    // Every computer's Equipment item onto every dive it recorded, once per
+    // library (issue #4846). Fire-and-forget like the sweeps around it: on a
+    // large library it writes a row per dive, and it never throws. Started
+    // before the tombstone GC below, which can only take tombstones older
+    // than its month-long floor.
+    unawaited(ComputerGearDiveHeal().run());
 
     // Tombstone GC for a library that never syncs, every launch. The cloud
     // path runs GC at the tail of a successful sync, which a device with no

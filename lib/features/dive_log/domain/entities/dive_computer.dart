@@ -38,7 +38,9 @@ class DiveComputer extends Equatable {
   /// Used for incremental downloads -- libdivecomputer stops at this dive.
   final String? lastDiveFingerprint;
 
-  /// Number of dives downloaded from this computer
+  /// Number of distinct dives this computer recorded, "Dives imported":
+  /// counted by the repository from its data sources and the dives
+  /// attributed to it (issue #4846), not the stored download counter.
   final int diveCount;
 
   /// Whether this is the user's primary/favorite computer

@@ -108,8 +108,16 @@ class DiveComputerRepository {
   /// inside a download that also writes dives, profiles, tanks, and data
   /// sources, so an un-debounced tick would rebuild the pickers repeatedly
   /// mid-download instead of once on the settled state.
+  ///
+  /// Data sources tick it too: "Dives imported" is counted from them (issue
+  /// #4846), and a dive delete reaches them through its cascade.
   Stream<void> watchComputersChanges() => _db
-      .tableUpdates(TableUpdateQuery.onTable(_db.diveComputers))
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.diveComputers),
+          TableUpdateQuery.onTable(_db.diveDataSources),
+        ]),
+      )
       .debounce(DiveRepository.changeTickDebounce);
 
   /// The same refcounted sweep the dive-deletion cascade uses (issue #478):
@@ -144,7 +152,7 @@ class DiveComputerRepository {
                 (t) => OrderingTerm.asc(t.id),
               ]))
             .get();
-    return rows.map(_mapRowToComputer).toList();
+    return await _toComputers(rows);
   }
 
   /// Get all dive computers
@@ -161,11 +169,9 @@ class DiveComputerRepository {
       }
 
       final rows = await query.get();
-      return sortedByText(
-        rows,
-        (r) => r.name,
-        groupOf: (r) => r.isFavorite,
-      ).map((row) => _mapRowToComputer(row)).toList();
+      return await _toComputers(
+        sortedByText(rows, (r) => r.name, groupOf: (r) => r.isFavorite),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all dive computers',
@@ -183,7 +189,7 @@ class DiveComputerRepository {
         ..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToComputer(row) : null;
+      return row != null ? await _toComputer(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dive computer by id: $id',
@@ -206,7 +212,7 @@ class DiveComputerRepository {
       }
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToComputer(row) : null;
+      return row != null ? await _toComputer(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get favorite dive computer',
@@ -244,7 +250,7 @@ class DiveComputerRepository {
       }
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToComputer(row) : null;
+      return row != null ? await _toComputer(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find dive computer by bluetooth address: $address',
@@ -305,7 +311,7 @@ class DiveComputerRepository {
           serialNumber,
           shearwater: shearwater,
         )) {
-          return _mapRowToComputer(row);
+          return await _toComputer(row);
         }
       }
       return null;
@@ -575,7 +581,9 @@ class DiveComputerRepository {
         _db.diveComputers,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
       if (row != null) {
-        await _backfillProvenanceSnapshots(_mapRowToComputer(row));
+        await _backfillProvenanceSnapshots(
+          _mapRowToComputer(row, diveCount: row.diveCount),
+        );
         // A source saved before the computer knew its serial still has an
         // empty serial copy unless a heal has run since. Fill it while the
         // link still says which computer it is, or nothing would identify
@@ -784,6 +792,8 @@ class DiveComputerRepository {
   void _notifyRelinked() => _db.notifyUpdates({
     TableUpdate.onTable(_db.diveDataSources, kind: UpdateKind.update),
     TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
+    // The relink also puts the computer's item on the dives (issue #4846).
+    TableUpdate.onTable(_db.diveEquipment, kind: UpdateKind.update),
   });
 
   /// Set or clear one computer's opt-out from auto-download (issue #3361),
@@ -994,7 +1004,7 @@ class DiveComputerRepository {
         ..where((t) => t.id.isIn(computerIds));
 
       final rows = await query.get();
-      return rows.map((row) => _mapRowToComputer(row)).toList();
+      return await _toComputers(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get computers for dive: $diveId',
@@ -2603,7 +2613,7 @@ class DiveComputerRepository {
         ),
       );
       if (match != null) {
-        return _mapRowToComputer(rows.firstWhere((r) => r.id == match.id));
+        return await _toComputer(rows.firstWhere((r) => r.id == match.id));
       }
 
       // Deterministic, so the import and the beforeOpen self-heal agree and a
@@ -2622,7 +2632,7 @@ class DiveComputerRepository {
       final byDerivedId = await (_db.select(
         _db.diveComputers,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (byDerivedId != null) return _mapRowToComputer(byDerivedId);
+      if (byDerivedId != null) return await _toComputer(byDerivedId);
 
       final trimmedModel = model.trim();
       final trimmedManufacturer = manufacturer?.trim();
@@ -2677,7 +2687,7 @@ class DiveComputerRepository {
 
       final existing = await query.getSingleOrNull();
       if (existing != null) {
-        return _mapRowToComputer(existing);
+        return await _toComputer(existing);
       }
 
       // Create new computer
@@ -2855,7 +2865,61 @@ class DiveComputerRepository {
   // Mapping Helpers
   // ============================================================================
 
-  domain.DiveComputer _mapRowToComputer(db.DiveComputer row) {
+  /// [row] as a domain computer whose `diveCount` is counted from the dives
+  /// it recorded (see [_diveCountsFor]).
+  Future<domain.DiveComputer> _toComputer(db.DiveComputer row) async =>
+      (await _toComputers([row])).single;
+
+  /// [rows] in order, each with its counted `diveCount`, in one query.
+  Future<List<domain.DiveComputer>> _toComputers(
+    List<db.DiveComputer> rows,
+  ) async {
+    final counts = await _diveCountsFor([for (final r in rows) r.id]);
+    return [
+      for (final r in rows) _mapRowToComputer(r, diveCount: counts[r.id] ?? 0),
+    ];
+  }
+
+  /// The number of distinct dives each of [computerIds] recorded: a data
+  /// source from it, primary or not, or the dive's own `computer_id` (a dive
+  /// attributed before data sources existed). This is what "Dives imported"
+  /// shows (issue #4846). The stored `dive_count` only ever counted a
+  /// computer's own downloads, so dives that came to it later by a relink
+  /// or a merge were missing from it. The same union decides which dives
+  /// carry the computer's Equipment item.
+  Future<Map<String, int>> _diveCountsFor(List<String> computerIds) async {
+    final counts = <String, int>{};
+    // Each id is bound twice per statement.
+    for (final chunk in seriesIdChunks(
+      computerIds.toSet().toList(),
+      size: kSeriesIdChunkSize ~/ 2,
+    )) {
+      final marks = List.filled(chunk.length, '?').join(', ');
+      final rows = await _db
+          .customSelect(
+            'SELECT computer_id, COUNT(*) AS dives FROM ('
+            'SELECT computer_id, dive_id FROM dive_data_sources '
+            'WHERE computer_id IN ($marks) '
+            'UNION SELECT computer_id, id FROM dives '
+            'WHERE computer_id IN ($marks)'
+            ') GROUP BY computer_id',
+            variables: [
+              for (final id in [...chunk, ...chunk]) Variable<String>(id),
+            ],
+            readsFrom: {_db.diveDataSources, _db.dives},
+          )
+          .get();
+      for (final r in rows) {
+        counts[r.read<String>('computer_id')] = r.read<int>('dives');
+      }
+    }
+    return counts;
+  }
+
+  domain.DiveComputer _mapRowToComputer(
+    db.DiveComputer row, {
+    required int diveCount,
+  }) {
     return domain.DiveComputer(
       id: row.id,
       diverId: row.diverId,
@@ -2870,7 +2934,7 @@ class DiveComputerRepository {
       lastDownload: row.lastDownloadTimestamp != null
           ? DateTime.fromMillisecondsSinceEpoch(row.lastDownloadTimestamp!)
           : null,
-      diveCount: row.diveCount,
+      diveCount: diveCount,
       isFavorite: row.isFavorite,
       autoDownloadDisabled: row.autoDownloadDisabled,
       notes: row.notes,

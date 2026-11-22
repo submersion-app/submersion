@@ -1,9 +1,11 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 /// Attaches the gear twins of the dive computers that logged a dive (v175).
 ///
@@ -15,10 +17,14 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 /// computer registration, so a twin the user deleted (which clears
 /// `dive_computers.equipment_id`) simply produces no link and stays deleted.
 class DiveComputerGearLinker {
-  DiveComputerGearLinker({DiveRepository? diveRepository})
-    : _dives = diveRepository ?? DiveRepository();
+  DiveComputerGearLinker({
+    DiveRepository? diveRepository,
+    SyncRepository? syncRepository,
+  }) : _dives = diveRepository ?? DiveRepository(),
+       _sync = syncRepository ?? SyncRepository();
 
   final DiveRepository _dives;
+  final SyncRepository _sync;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -46,6 +52,60 @@ class DiveComputerGearLinker {
       // Best-effort: never let gear linking fail the dive operation.
       return false;
     }
+  }
+
+  /// Puts computer [computerId]'s Equipment item on each of [diveIds] that
+  /// does not carry it yet, and returns how many dives gained it (issue
+  /// #4846). For the seams that give a computer dives it did not download
+  /// itself: a relink once the computer is set up again, a merge, the
+  /// one-time heal.
+  ///
+  /// A dive the diver took the item off keeps it off while its
+  /// `diveEquipment` tombstone is held. Each row is written through
+  /// [DiveRepository.bulkAddEquipment], so it is staged for sync like one
+  /// the diver added. No transaction and no sync notify of its own: callers
+  /// run it inside theirs and notify once. Unlike [linkComputerGearForDive]
+  /// it rethrows, so a caller decides whether a failure is fatal.
+  Future<int> linkComputerGearToDives({
+    required String computerId,
+    required Iterable<String> diveIds,
+  }) async {
+    final candidates = diveIds.toSet().toList();
+    if (candidates.isEmpty) return 0;
+    final computer = await (_db.select(
+      _db.diveComputers,
+    )..where((t) => t.id.equals(computerId))).getSingleOrNull();
+    final itemId = computer?.equipmentId;
+    if (itemId == null || itemId.isEmpty) return 0;
+
+    final missing = <String>[];
+    for (final chunk in seriesIdChunks(candidates)) {
+      final linked =
+          await (_db.selectOnly(_db.diveEquipment)
+                ..addColumns([_db.diveEquipment.diveId])
+                ..where(
+                  _db.diveEquipment.equipmentId.equals(itemId) &
+                      _db.diveEquipment.diveId.isIn(chunk),
+                ))
+              .map((r) => r.read(_db.diveEquipment.diveId)!)
+              .get();
+      final linkedSet = linked.toSet();
+      final unlinked = [
+        for (final id in chunk)
+          if (!linkedSet.contains(id)) id,
+      ];
+      if (unlinked.isEmpty) continue;
+      final removed = await _sync.deletedIds('diveEquipment', [
+        for (final id in unlinked) '$id|$itemId',
+      ]);
+      missing.addAll([
+        for (final id in unlinked)
+          if (!removed.contains('$id|$itemId')) id,
+      ]);
+    }
+    if (missing.isEmpty) return 0;
+    await _dives.bulkAddEquipment(missing, [itemId]);
+    return missing.length;
   }
 
   /// Gear-twin equipment ids of every computer that logged [diveId], for
