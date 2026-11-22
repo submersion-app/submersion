@@ -8,9 +8,12 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart'
     hide CylinderConfig, CylinderConfigItem;
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
+import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
@@ -39,6 +42,15 @@ class _FailingItemsRepository extends CylinderConfigRepository {
     if (fail) throw StateError('disk full');
     await super.saveItems(configId, desired);
   }
+}
+
+/// A repository whose configuration read fails, as a closed database would.
+class _FailingReadRepository extends CylinderConfigRepository {
+  @override
+  Future<CylinderConfig?> getConfigById(
+    String id, {
+    bool includeItems = true,
+  }) => Future.error(StateError('database closed'));
 }
 
 /// The cylinder configuration editor on the shared Cancel and Save bar
@@ -422,6 +434,21 @@ void main() {
     expect(find.text('This configuration no longer exists.'), findsOneWidget);
     expect(await repo.getConfigById(id), isNull);
     expect(await repo.getAllConfigs(), isEmpty);
+  });
+
+  testWidgets('a configuration that fails to load says so, logs why and goes '
+      'back', (tester) async {
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+    await pump(tester, configId: 'c1', repository: _FailingReadRepository());
+
+    expect(find.text('LIST'), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(
+      logged.where((e) => e.message.contains('database closed')),
+      isNotEmpty,
+    );
   });
 
   testWidgets('a configuration that is missing says so and goes back', (

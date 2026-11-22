@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
@@ -40,6 +41,8 @@ class CylinderConfigEditPage extends ConsumerStatefulWidget {
 
 class _CylinderConfigEditPageState extends ConsumerState<CylinderConfigEditPage>
     with RecordEditorHost<CylinderConfigEditPage, CylinderConfigDraft> {
+  static final _log = LoggerService.forClass(CylinderConfigEditPage);
+
   final _formKey = GlobalKey<FormState>();
   final _uuid = const Uuid();
   final _nameController = TextEditingController();
@@ -80,7 +83,12 @@ class _CylinderConfigEditPageState extends ConsumerState<CylinderConfigEditPage>
     final CylinderConfig? config;
     try {
       config = await ref.read(cylinderConfigProvider(widget.configId!).future);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Loading cylinder configuration ${widget.configId} failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) _leaveUnopened(context.l10n.recordEdit_loadFailed);
       return;
     }
