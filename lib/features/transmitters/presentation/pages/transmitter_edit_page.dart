@@ -31,6 +31,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_after_save.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_draft.dart';
+import 'package:submersion/features/transmitters/presentation/widgets/transmitter_field_note.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_saved.dart';
 import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
@@ -191,9 +192,17 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage>
       openEditor();
     }
     final cylinderId = setup?.equipmentId;
-    if (cylinderId != null) {
+    if (cylinderId == null) return;
+    try {
       final gear = await ref.read(equipmentItemProvider(cylinderId).future);
       if (mounted) setState(() => _equipmentName = gear?.name);
+    } catch (e, stackTrace) {
+      // Only the cylinder's name: the key opens without it.
+      _log.warning(
+        'Reading the cylinder failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -594,7 +603,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage>
                     }),
                   ),
                   const SizedBox(height: 16),
-                  _FieldNote(l10n.transmitters_field_gear_subtitle),
+                  TransmitterFieldNote(l10n.transmitters_field_gear_subtitle),
                   ListTile(
                     key: const Key('transmitter_gear'),
                     contentPadding: EdgeInsets.zero,
@@ -710,7 +719,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage>
                     ],
                   ),
                   if (_missingSizeHint)
-                    _FieldNote(
+                    TransmitterFieldNote(
                       l10n.transmitters_hint_missingSize,
                       key: const Key('transmitter_missing_size_hint'),
                       padding: const EdgeInsets.only(top: 4, bottom: 16),
@@ -764,32 +773,5 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage>
       }
       return false;
     }
-  }
-}
-
-/// Muted explanatory line beside a field: the shared FormCaption style,
-/// without its overline indent, since these sit flush with the fields.
-class _FieldNote extends StatelessWidget {
-  const _FieldNote(
-    this.text, {
-    super.key,
-    this.padding = const EdgeInsets.only(bottom: 2),
-  });
-
-  final String text;
-  final EdgeInsets padding;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: padding,
-      child: Text(
-        text,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
   }
 }

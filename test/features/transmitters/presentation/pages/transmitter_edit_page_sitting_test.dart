@@ -6,8 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
@@ -71,6 +74,7 @@ void main() {
     bool configured = true,
     double? volumeL = 11.1,
     double? workingPressureBar = 207,
+    String? cylinderId,
   }) => Transmitter(
     id: id,
     diverId: 'diver-1',
@@ -78,6 +82,7 @@ void main() {
     label: 'Back gas tx',
     volumeL: volumeL,
     workingPressureBar: workingPressureBar,
+    equipmentId: cylinderId,
     transmitterEquipmentId: 'tx-gear',
     isConfigured: configured,
     createdAt: then,
@@ -202,6 +207,40 @@ void main() {
       expect(find.text('LIST'), findsOneWidget);
     },
   );
+
+  testWidgets('a cylinder whose name fails to load leaves the key editable', (
+    tester,
+  ) async {
+    await DatabaseService.instance.database.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+      "updated_at) VALUES ('cyl-1', 'diver-1', 'Steel 12', 'tank', 1, 1)",
+    );
+    await repo.create(key('k1', cylinderId: 'cyl-1'));
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+    await pumpTransmitterPage(
+      tester,
+      buildTransmitterPage(
+        diverIdNotifier,
+        prefs,
+        transmitterId: 'k1',
+        results: results,
+        overrides: [
+          equipmentItemProvider(
+            'cyl-1',
+          ).overrideWith((ref) async => throw StateError('database closed')),
+        ],
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(
+      logged.where((e) => e.message.contains('database closed')),
+      isNotEmpty,
+    );
+  });
 
   testWidgets('a size with no working pressure shows in cuft, unchanged', (
     tester,

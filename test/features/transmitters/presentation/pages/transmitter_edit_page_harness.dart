@@ -52,6 +52,7 @@ Widget buildTransmitterPage(
   MockSettingsNotifier? settings,
   TransmitterRepository? repository,
   List<Object?>? results,
+  List<Object> overrides = const [],
 }) {
   final router = GoRouter(
     routes: [
@@ -83,6 +84,7 @@ Widget buildTransmitterPage(
       ),
       if (repository != null)
         transmitterRepositoryProvider.overrideWithValue(repository),
+      ...overrides,
     ].cast(),
     child: MaterialApp.router(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
