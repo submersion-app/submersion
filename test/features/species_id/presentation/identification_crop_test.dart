@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -34,7 +35,9 @@ void main() {
   });
 
   testWidgets('a file crop draws from its file', (tester) async {
-    await pump(tester, CropFile(File('/nowhere/a.jpg')));
+    // Never read: the widget only builds its image from the path.
+    final file = File(p.join(Directory.systemTemp.path, 'no_crop', 'a.jpg'));
+    await pump(tester, CropFile(file));
     await tester.pump();
     final image = tester.widget<Image>(find.byType(Image));
     expect(image.image, isA<FileImage>());

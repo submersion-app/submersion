@@ -308,11 +308,28 @@ class MediaIdentificationRepository {
   /// in one transaction. Decisions, claims, boxes and paths stay as stored:
   /// the diver may have decided since [changed] was read. Only rows still
   /// stored are written, and [run] only while it is.
+  ///
+  /// Nothing is written once another run is stored than the one [run] was
+  /// read as (issue #4876): a run synced in from another device since is
+  /// newer than this naming. Of the run, only what naming moves is
+  /// written (its pack, place and bars), so a scan stored since stays.
   Future<void> updateNames(
     List<MediaIdentification> changed, {
     required MediaIdentificationRun run,
   }) async {
     final written = await _transaction((db) async {
+      final runs = db.mediaIdentificationRuns;
+      if (run.runId != null) {
+        final stored =
+            await (db.selectOnly(runs)
+                  ..addColumns([runs.runId])
+                  ..where(runs.mediaId.equals(run.mediaId)))
+                .map((r) => r.read(runs.runId))
+                .getSingleOrNull();
+        if (stored != run.runId) {
+          return (rows: const <String>[], run: false);
+        }
+      }
       final written = <String>[];
       for (final identification in changed) {
         final row = _toCompanion(identification);
@@ -330,13 +347,18 @@ class MediaIdentificationRepository {
         );
         if (count > 0) written.add(identification.id);
       }
-      // Only the columns the run sets: its clock, and a maker, run id or
-      // bars it does not know, stay as stored.
-      final runs =
-          await (db.update(db.mediaIdentificationRuns)
-                ..where((r) => r.mediaId.equals(run.mediaId)))
-              .write(_runToCompanion(run));
-      return (rows: written, run: runs > 0);
+      // Only what naming moves; bars it does not know stay as stored.
+      final moved =
+          await (db.update(
+            runs,
+          )..where((r) => r.mediaId.equals(run.mediaId))).write(
+            MediaIdentificationRunsCompanion(
+              packVersion: Value(run.packVersion),
+              locationCell: Value(run.locationCell),
+              namingBars: Value.absentIfNull(run.namingBars?.toJson()),
+            ),
+          );
+      return (rows: written, run: moved > 0);
     });
     await _marks?.rowsWritten(written.rows);
     if (written.run) await _marks?.runsWritten([run.mediaId]);

@@ -292,6 +292,42 @@ void main() {
     expect(await repo.runFor('m1'), renamed);
   });
 
+  test('a rename read before another device\'s run synced in writes '
+      'nothing over it (issue #4876)', () async {
+    final mine = run().copyWith(runId: () => 'mine');
+    await repo.storeRun(mine, insert: [identification('a')], deleteIds: []);
+    final theirs = run().copyWith(
+      runId: () => 'theirs',
+      analysedBy: () => 'laptop',
+      packVersion: '2026.11.9',
+    );
+    await repo.storeRun(theirs, insert: const [], deleteIds: []);
+
+    await repo.updateNames([
+      identification('a').copyWith(openScore: 0.9),
+    ], run: mine.copyWith(packVersion: '2026.12.1'));
+
+    expect(await repo.runFor('m1'), theirs);
+    expect((await repo.forMedia('m1')).single.openScore, 0.42);
+  });
+
+  test('a rename moves only what naming sets: the pack, the place and the '
+      'bars; the scan as stored stays', () async {
+    await repo.storeRun(
+      videoRun().copyWith(scannedMs: () => 5000),
+      insert: const [],
+      deleteIds: [],
+    );
+    // Read when only a second had been scanned.
+    final stale = videoRun().copyWith(scannedMs: () => 1000);
+
+    await repo.updateNames(const [], run: stale.copyWith(packVersion: 'p2'));
+
+    final stored = (await repo.runFor('v1'))!;
+    expect(stored.packVersion, 'p2');
+    expect(stored.scannedMs, 5000);
+  });
+
   test('an update that lands after the rows were cleared brings nothing '
       'back', () async {
     await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);

@@ -7,12 +7,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_sync_marks.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/naming_bars_fill.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
@@ -29,6 +32,37 @@ class _BrokenSync implements SyncRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       Future<void>.error(StateError('no sync'));
+}
+
+/// A sweep that records when it runs.
+class _RecordingCleanup extends IdentificationCleanup {
+  _RecordingCleanup(
+    this.steps, {
+    required super.identifications,
+    required super.embeddings,
+    required super.crops,
+  });
+
+  final List<String> steps;
+
+  @override
+  Future<int> sweepOrphans() async {
+    steps.add('sweep');
+    return super.sweepOrphans();
+  }
+}
+
+/// A crop store that records when the backfill looks for files to move.
+class _RecordingCrops extends IdentificationCropStore {
+  _RecordingCrops(this.steps, {required super.supportPath, super.table});
+
+  final List<String> steps;
+
+  @override
+  Future<List<String>> mediaWithFiles() async {
+    steps.add('backfill');
+    return super.mediaWithFiles();
+  }
 }
 
 /// The launch steps that bring this device's results from before sync up
@@ -161,6 +195,60 @@ void main() {
           1,
         ]);
       },
+    );
+  });
+
+  test('at launch the orphan sweep runs before the crop backfill, so a crop '
+      'of media being purged is never moved into the logbook', () async {
+    marineLifeIdEnabled = true;
+    addTearDown(resetMarineLifeIdEnabled);
+    final support = await Directory.systemTemp.createTemp('launch_order');
+    addTearDown(() => deleteTempDir(support));
+    final local = LocalCacheDatabase(NativeDatabase.memory());
+    addTearDown(local.close);
+    final steps = <String>[];
+    final crops = _RecordingCrops(
+      steps,
+      supportPath: () async => support.path,
+      table: IdentificationCropRepository(database: db),
+    );
+    addTearDown(crops.dispose);
+    // Made here, its media gone: an orphan, with a named crop still a file.
+    await repo.storeRun(
+      run(),
+      insert: [identification('a')],
+      deleteIds: const [],
+    );
+    await crops.write('m1', 'a', Uint8List.fromList([1]));
+    final container = ProviderContainer(
+      overrides: [
+        mediaIdentificationRepositoryProvider.overrideWithValue(repo),
+        speciesPackStoreProvider.overrideWithValue(
+          SpeciesPackStore(
+            supportPath: () async => support.path,
+            engine: 'none',
+          ),
+        ),
+        identificationCropStoreProvider.overrideWithValue(crops),
+        identificationCleanupProvider.overrideWithValue(
+          _RecordingCleanup(
+            steps,
+            identifications: repo,
+            embeddings: IdentificationEmbeddingRepository(database: local),
+            crops: crops,
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await runIdentificationLaunchSteps(container);
+
+    expect(steps, ['sweep', 'backfill']);
+    expect(await repo.runFor('m1'), isNull);
+    expect(
+      await IdentificationCropRepository(database: db).bytesFor('a'),
+      isNull,
     );
   });
 

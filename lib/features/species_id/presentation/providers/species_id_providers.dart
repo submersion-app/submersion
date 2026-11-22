@@ -291,6 +291,18 @@ Future<void> sweepIdentificationOrphansAtLaunch(
   await cleanup.sweepOrphans();
 }
 
+/// The marine life steps at app start, one after another (issue #4876):
+/// the orphan sweep first, so the crop backfill never moves a crop of
+/// media the sweep is purging into the logbook and publishes it again;
+/// then the naming bars, then the backfill. Never throws.
+Future<void> runIdentificationLaunchSteps(ProviderContainer container) async {
+  await sweepIdentificationOrphansAtLaunch(
+    container.read(identificationCleanupProvider),
+  );
+  await fillIdentificationNamingBarsAtLaunch(container);
+  await backfillNamedCropsAtLaunch(container);
+}
+
 /// Moves the crops of named identifications this device analysed before
 /// crops synced into the logbook, once at app start (issue #4876). Never
 /// throws.
