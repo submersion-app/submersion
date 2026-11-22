@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/change_log/change_log_rewrites.dart';
+import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_dependencies.dart';
@@ -13,6 +16,12 @@ String _keyOf(ChangeLogEvent event) =>
 
 String _rootKeyOf(ChangeLogEvent event) =>
     changeLogRecordKey(event.root.table, event.root.id);
+
+/// A WHERE clause and its values.
+typedef _ReadingSql = ({String sql, List<Variable<Object>> variables});
+
+/// The table whose manual edits are never a reading.
+const _profileTable = 'dive_profile_series';
 
 /// Works out which deleted records can return and which created records can
 /// go, before anything is written.
@@ -44,8 +53,18 @@ class ChangeLogRecordPlanner {
     }.values.toList();
     final blocks = <String, ChangeLogBlock>{};
     final restoring = <String>{};
+    // The rows the same revert removes, which a replaced reading returns in
+    // place of.
+    final removing = {
+      for (final event in events)
+        if (event.action == ChangeLogAction.insert) _keyOf(event),
+    };
     for (final event in deletes) {
-      final block = await _restoreBlock(event);
+      final block =
+          await _restoreBlock(event) ??
+          (await _superseded(event, removing)
+              ? ChangeLogBlock.alreadyRestored
+              : null);
       if (block == null) {
         restoring.add(_keyOf(event));
       } else {
@@ -77,6 +96,140 @@ class ChangeLogRecordPlanner {
         ChangeLogRevertItem(event: event, block: blocks[_keyOf(event)]),
     ];
   }
+
+  /// Whether a newer reading of the same source has replaced the row
+  /// [event] deleted ([changeLogReadingColumns]): a live row of its reading,
+  /// written since the delete, that this revert does not remove. Reverting
+  /// an older re-parse after a newer one would otherwise bring the old strand
+  /// back beside the new (issue #4848). A row older than the delete is one
+  /// the operation kept, such as the unmarked edit a re-parse leaves beside
+  /// the recording it replaces (issue #4529), and says nothing.
+  Future<bool> _superseded(ChangeLogEvent event, Set<String> removing) async {
+    final reading = _readingOf(event.table, _copyOf(event));
+    final spec = _repository.specOf(event.table);
+    if (reading == null || spec == null) return false;
+    final rows = await _db
+        .customSelect(
+          'SELECT ${changeLogRecordIdSql('"${event.table}"', spec.keyColumns)} '
+          'AS record_id FROM "${event.table}" '
+          'WHERE ${reading.sql} AND created_at >= ?',
+          variables: [
+            ...reading.variables,
+            Variable<int>(event.changedAt.millisecondsSinceEpoch),
+          ],
+        )
+        .get();
+    return rows.any(
+      (row) => !removing.contains(
+        changeLogRecordKey(event.table, row.read<String>('record_id')),
+      ),
+    );
+  }
+
+  /// Pairs each replaced reading with the rows that replaced it, so a revert
+  /// leaves a source with neither two readings nor none (issue #4848). A new
+  /// row stays while a row of the reading it replaced cannot return, as when
+  /// that row's computer has since been deleted. A replaced row returns only
+  /// with its replacement's removal, so it changed since when that removal
+  /// did: a revert of only what did not change keeps both out. A reading
+  /// that is already back loses nothing.
+  Future<
+    ({List<ChangeLogRevertItem> restores, List<ChangeLogRevertItem> removals})
+  >
+  pairReadings(
+    List<ChangeLogRevertItem> restores,
+    List<ChangeLogRevertItem> removals,
+  ) async {
+    String? keyOf(ChangeLogRevertItem item) =>
+        _readingKey(item.event.table, _copyOf(item.event));
+    final stranded = {
+      for (final item in restores)
+        if (item.block case final block?
+            when block != ChangeLogBlock.alreadyRestored)
+          ?keyOf(item),
+    };
+    final pairedRemovals = <ChangeLogRevertItem>[];
+    final changed = <String>{};
+    for (final item in removals) {
+      final key = await _liveReadingKey(item.event);
+      final kept = !item.isBlocked && key != null && stranded.contains(key);
+      final paired = kept
+          ? item.copyWith(block: ChangeLogBlock.parentGone)
+          : item;
+      if (key != null && !paired.isBlocked && paired.changedSince) {
+        changed.add(key);
+      }
+      pairedRemovals.add(paired);
+    }
+    return (
+      restores: [
+        for (final item in restores)
+          if (!item.isBlocked && changed.contains(keyOf(item)))
+            item.copyWith(changedSince: true)
+          else
+            item,
+      ],
+      removals: pairedRemovals,
+    );
+  }
+
+  /// The reading key of the live row [event] created, null when it has gone
+  /// or its table has no readings.
+  Future<String?> _liveReadingKey(ChangeLogEvent event) async {
+    final columns = changeLogReadingColumns[event.table];
+    final spec = _repository.specOf(event.table);
+    if (columns == null || spec == null) return null;
+    final match = changeLogKeyMatch(spec, event.recordId);
+    final row = await _db
+        .customSelect(
+          'SELECT ${[...columns, 'computer_id', if (event.table == _profileTable) 'is_edit'].map((c) => '"$c"').join(', ')} '
+          'FROM "${event.table}" WHERE ${match.where}',
+          variables: match.variables,
+        )
+        .getSingleOrNull();
+    return row == null ? null : _readingKey(event.table, row.data);
+  }
+
+  /// The reading [row] of [table] belongs to, as one comparable value, or
+  /// null for a table with no readings or a manual edit, which is none.
+  static String? _readingKey(String table, Map<String, Object?> row) {
+    final named = _namedColumns(table, row);
+    return named == null
+        ? null
+        : jsonEncode([
+            table,
+            for (final c in named) [c, row[c]],
+          ]);
+  }
+
+  /// The columns that name the reading of [row] ([changeLogReadingColumns]),
+  /// the computer only for a row with no source, or null when it has none.
+  static List<String>? _namedColumns(String table, Map<String, Object?> row) {
+    final columns = changeLogReadingColumns[table];
+    if (columns == null) return null;
+    if (table == _profileTable && _isTrue(row['is_edit'])) return null;
+    return [...columns, if (row['source_id'] == null) 'computer_id'];
+  }
+
+  static Map<String, Object?> _copyOf(ChangeLogEvent event) => {
+    for (final f in event.fields) f.column: f.oldValue,
+  };
+
+  /// The rows of [table] in the reading [row] belongs to, as SQL, or null
+  /// for a table with no readings or a manual edit, which is none.
+  static _ReadingSql? _readingOf(String table, Map<String, Object?> row) {
+    final named = _namedColumns(table, row);
+    if (named == null) return null;
+    return (
+      sql: [
+        for (final c in named) '"$c" IS ?',
+        if (table == _profileTable) 'COALESCE(is_edit, 0) = 0',
+      ].join(' AND '),
+      variables: [for (final c in named) Variable<Object>(row[c])],
+    );
+  }
+
+  static bool _isTrue(Object? value) => value == 1 || value == true;
 
   Future<ChangeLogBlock?> _restoreBlock(ChangeLogEvent event) async {
     if (_repository.specOf(event.table) == null) {
