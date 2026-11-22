@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
@@ -23,10 +24,17 @@ class IdentificationCropStore {
   IdentificationCropStore({
     required Future<String> Function() supportPath,
     IdentificationCropRepository? table,
+    bool files = !kIsWeb,
   }) : _supportPath = supportPath,
-       _table = table;
+       _table = table,
+       _files = files;
 
   final Future<String> Function() _supportPath;
+
+  /// Whether crops are kept as files here. Not in a browser, which has no
+  /// files and never analyses: there only the synced crops show (issue
+  /// #4876).
+  final bool _files;
 
   /// The synced crops, or null where only files are kept (a test).
   final IdentificationCropRepository? _table;
@@ -56,8 +64,10 @@ class IdentificationCropStore {
     String mediaId,
     String identificationId,
   ) async {
-    final file = await fileFor(mediaId, identificationId);
-    if (await file.exists()) return CropFile(file);
+    if (_files) {
+      final file = await fileFor(mediaId, identificationId);
+      if (await file.exists()) return CropFile(file);
+    }
     final bytes = await _table?.bytesFor(identificationId);
     return bytes == null ? null : CropBytes(bytes);
   }
@@ -73,11 +83,14 @@ class IdentificationCropStore {
     final table = _table;
     if (named && table != null) {
       await table.put(identificationId, mediaId, jpeg);
-      final file = await fileFor(mediaId, identificationId);
-      if (await file.exists()) await file.delete();
+      if (_files) {
+        final file = await fileFor(mediaId, identificationId);
+        if (await file.exists()) await file.delete();
+      }
       _changed(mediaId);
       return;
     }
+    if (!_files) return;
     final file = await fileFor(mediaId, identificationId);
     await file.parent.create(recursive: true);
     final temporary = File('${file.path}.tmp');
@@ -91,13 +104,14 @@ class IdentificationCropStore {
   /// stays without one, instead of the photo being analysed at every
   /// opening.
   Future<void> markAnalysed(String mediaId) async {
+    if (!_files) return;
     final marker = await _markerFor(mediaId);
     await marker.parent.create(recursive: true);
     await marker.writeAsBytes(const [], flush: true);
   }
 
   Future<bool> wasAnalysedHere(String mediaId) async =>
-      (await _markerFor(mediaId)).exists();
+      _files && await (await _markerFor(mediaId)).exists();
 
   Future<File> _markerFor(String mediaId) async {
     _checkId(mediaId);
@@ -110,7 +124,7 @@ class IdentificationCropStore {
   /// many it moved.
   Future<int> promote(String mediaId, List<String> identificationIds) async {
     final table = _table;
-    if (table == null || identificationIds.isEmpty) return 0;
+    if (!_files || table == null || identificationIds.isEmpty) return 0;
     var moved = 0;
     try {
       final synced = await table.presentAmong(identificationIds);
@@ -137,7 +151,9 @@ class IdentificationCropStore {
   ) async {
     final missing = <String>[];
     for (final id in identificationIds) {
-      if (!await (await fileFor(mediaId, id)).exists()) missing.add(id);
+      if (!_files || !await (await fileFor(mediaId, id)).exists()) {
+        missing.add(id);
+      }
     }
     if (missing.isEmpty) return true;
     final synced = await _table?.presentAmong(missing) ?? const <String>{};
@@ -146,6 +162,10 @@ class IdentificationCropStore {
 
   Future<void> deleteMedia(List<String> mediaIds) async {
     await _table?.deleteForMedia(mediaIds);
+    if (!_files) {
+      mediaIds.forEach(_changed);
+      return;
+    }
     final base = await root();
     for (final mediaId in mediaIds) {
       _checkId(mediaId);
@@ -157,7 +177,7 @@ class IdentificationCropStore {
 
   Future<void> delete(String mediaId, List<String> identificationIds) async {
     await _table?.deleteIds(identificationIds);
-    for (final id in identificationIds) {
+    for (final id in _files ? identificationIds : const <String>[]) {
       final file = await fileFor(mediaId, id);
       if (await file.exists()) await file.delete();
     }
@@ -169,6 +189,7 @@ class IdentificationCropStore {
   }
 
   Future<int> sizeBytes() async {
+    if (!_files) return 0;
     final base = await root();
     if (!await base.exists()) return 0;
     var total = 0;

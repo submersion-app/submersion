@@ -164,4 +164,24 @@ void main() {
       expect(moved, 0);
     });
   });
+
+  test('in a browser only the synced crops are read, and no file is '
+      'touched', () async {
+    final browser = IdentificationCropStore(
+      // A support folder a browser does not have: reaching it fails.
+      supportPath: () async => throw UnsupportedError('no files'),
+      table: table,
+      files: false,
+    );
+    addTearDown(browser.dispose);
+    await table.put('named', 'm1', jpeg);
+
+    expect(await browser.read('m1', 'named'), isA<CropBytes>());
+    expect(await browser.read('m1', 'plain'), isNull);
+    expect(await browser.allPresent('m1', ['named']), isTrue);
+    expect(await browser.wasAnalysedHere('m1'), isFalse);
+    expect(await browser.sizeBytes(), 0);
+    await browser.delete('m1', ['named']);
+    expect(await table.bytesFor('named'), isNull);
+  });
 }
