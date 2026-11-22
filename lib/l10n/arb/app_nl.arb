@@ -5879,8 +5879,6 @@
   "media_attachmentDetails_open": "Openen",
   "media_siteAttachment_editDetails": "Details bewerken",
   "media_siteAttachment_groupHeading": "{category} ({count})",
-  "media_siteAttachment_moreOptions": "Meer opties",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} pagina} other{{count} pagina's}}",
   "media_siteAttachment_saveError": "Opslaan mislukt: {error}",
   "media_siteAttachment_setCategory": "Categorie instellen",
   "media_siteAttachment_setCategoryError": "Categorie instellen mislukt: {error}",

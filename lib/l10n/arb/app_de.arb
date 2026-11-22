@@ -6005,8 +6005,6 @@
   "media_attachmentDetails_open": "Öffnen",
   "media_siteAttachment_editDetails": "Details bearbeiten",
   "media_siteAttachment_groupHeading": "{category} ({count})",
-  "media_siteAttachment_moreOptions": "Weitere Optionen",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} Seite} other{{count} Seiten}}",
   "media_siteAttachment_saveError": "Speichern fehlgeschlagen: {error}",
   "media_siteAttachment_setCategory": "Kategorie festlegen",
   "media_siteAttachment_setCategoryError": "Kategorie konnte nicht festgelegt werden: {error}",

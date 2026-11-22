@@ -5753,8 +5753,6 @@
   "media_attachmentDetails_open": "Ouvrir",
   "media_siteAttachment_editDetails": "Modifier les détails",
   "media_siteAttachment_groupHeading": "{category} ({count})",
-  "media_siteAttachment_moreOptions": "Plus d'options",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} page} other{{count} pages}}",
   "media_siteAttachment_saveError": "Échec de l'enregistrement : {error}",
   "media_siteAttachment_setCategory": "Définir la catégorie",
   "media_siteAttachment_setCategoryError": "Échec de la définition de la catégorie : {error}",

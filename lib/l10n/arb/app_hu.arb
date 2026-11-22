@@ -5753,8 +5753,6 @@
   "media_attachmentDetails_open": "Megnyitás",
   "media_siteAttachment_editDetails": "Adatok szerkesztése",
   "media_siteAttachment_groupHeading": "{category} ({count})",
-  "media_siteAttachment_moreOptions": "További lehetőségek",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} oldal} other{{count} oldal}}",
   "media_siteAttachment_saveError": "Nem sikerült menteni: {error}",
   "media_siteAttachment_setCategory": "Kategória beállítása",
   "media_siteAttachment_setCategoryError": "Nem sikerült beállítani a kategóriát: {error}",

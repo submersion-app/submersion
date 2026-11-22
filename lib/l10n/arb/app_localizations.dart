@@ -31842,18 +31842,6 @@ abstract class AppLocalizations {
   /// **'{category} ({count})'**
   String media_siteAttachment_groupHeading(String category, int count);
 
-  /// No description provided for @media_siteAttachment_moreOptions.
-  ///
-  /// In en, this message translates to:
-  /// **'More options'**
-  String get media_siteAttachment_moreOptions;
-
-  /// Page count badge on a large PDF card
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{{count} page} other{{count} pages}}'**
-  String media_siteAttachment_pageCount(int count);
-
   /// Edit details save failure
   ///
   /// In en, this message translates to:
