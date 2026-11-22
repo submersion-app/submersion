@@ -29,14 +29,6 @@ Future<void> _seedCourseFixture() async {
 }
 
 void main() {
-  setUp(() async {
-    await setUpTestDatabase();
-  });
-
-  tearDown(() async {
-    await tearDownTestDatabase();
-  });
-
   test('v383 upgrades existing requirements without rewriting them', () async {
     expect(AppDatabase.migrationVersions, contains(383));
     expect(
@@ -74,6 +66,9 @@ void main() {
   });
 
   group('v121 course requirement schema', () {
+    setUp(setUpTestDatabase);
+    tearDown(tearDownTestDatabase);
+
     test('course_requirements has the expected columns', () async {
       final cols = await _columns('course_requirements');
       expect(
