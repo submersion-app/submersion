@@ -44,20 +44,24 @@ class _SectionCard extends ConsumerWidget {
   /// Opens the key editor at [path]. Once it has saved, says so, and after
   /// a first setup, a downloaded key confirmed or a takeover offers to fill
   /// the dives already logged (spec section 5): the card's own Apply, with
-  /// its counts and confirmation (issue #4527, phase 4).
+  /// its counts and confirmation (issue #4527, phase 4). The message goes
+  /// out even when this card was rebuilt meanwhile; the offer needs the card
+  /// that opened the editor, so it goes with it.
   Future<void> _openKeyEditor(
     BuildContext context,
     WidgetRef ref,
     String path,
   ) async {
-    final saved = await context.push<Object?>(path);
-    if (saved is! TransmitterKeySaved || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    ScaffoldMessenger.of(context).showSnackBar(
+    final saved = await context.push<Object?>(path);
+    if (saved is! TransmitterKeySaved) return;
+    final offerApply = saved.offerApply && context.mounted;
+    messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.transmitters_saved),
         persist: false,
-        action: !saved.offerApply
+        action: !offerApply
             ? null
             : SnackBarAction(
                 label: l10n.transmitters_action_apply,

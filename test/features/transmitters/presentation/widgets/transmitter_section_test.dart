@@ -100,6 +100,7 @@ void main() {
     TransmitterRepository? repository,
     Object? editorResult,
     RecordEditController<EquipmentItem>? item,
+    ValueNotifier<bool>? relayout,
   }) async {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
@@ -114,9 +115,20 @@ void main() {
         GoRoute(
           path: '/equipment/:id',
           builder: (_, s) {
+            final card = TransmitterSection(
+              equipmentId: s.pathParameters['id']!,
+            );
             final section = Scaffold(
               body: SingleChildScrollView(
-                child: TransmitterSection(equipmentId: s.pathParameters['id']!),
+                // The item page laid out afresh puts the card in a new
+                // place: a new element, the old one unmounted.
+                child: relayout == null
+                    ? card
+                    : ValueListenableBuilder<bool>(
+                        valueListenable: relayout,
+                        builder: (_, moved, _) =>
+                            moved ? Column(children: [card]) : card,
+                      ),
               ),
             );
             // The item page's sitting, when the test gives it one.
@@ -381,6 +393,28 @@ void main() {
 
       expect(find.text('Transmitter saved'), findsOneWidget);
       expect(snackApply(tester), isNull);
+    });
+
+    testWidgets('Saved still shows when the card was rebuilt meanwhile', (
+      tester,
+    ) async {
+      final relayout = ValueNotifier(false);
+      addTearDown(relayout.dispose);
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repoWithDives(),
+        editorResult: const TransmitterKeySaved(offerApply: true),
+        relayout: relayout,
+      );
+      await tester.tap(find.text('Add serial or channel'));
+      await tester.pumpAndSettle();
+      relayout.value = true;
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('SAVE KEY'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Transmitter saved'), findsOneWidget);
     });
 
     testWidgets('leaving the editor without saving shows nothing', (
