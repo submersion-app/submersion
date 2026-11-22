@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -383,6 +384,33 @@ void main() {
       expectFullyShown(tester, name, bottom: size.height);
     });
   }
+
+  // Opening the header editor lays the page out afresh, which would rebuild
+  // the Plan card and drop its unreadable text with the mark that stops
+  // Save (issue #4844).
+  testWidgets('the header editor does not open while the Plan card holds '
+      'text that is not a number, and the text stays', (tester) async {
+    await pumpTripPage(tester);
+    await unlock(tester);
+    await openCard(tester, l.trips_overview_plan);
+    final divesPerDay = find.byKey(const Key('trip-edit-dives-per-day'));
+    await tester.enterText(divesPerDay, '1.5');
+    await tester.pumpAndSettle();
+
+    await openCard(tester, l.settings_conflict_ref_trip);
+
+    expect(find.byKey(const Key('trip-edit-name')), findsNothing);
+    expect(
+      find.descendant(of: divesPerDay, matching: find.text('1.5')),
+      findsOneWidget,
+    );
+    expect(
+      RecordEditScope.maybeOf<Trip>(
+        tester.element(find.byType(RecordCardFrame<Trip>).first),
+      )!.invalidCardIds,
+      {TripCardId.plan.name},
+    );
+  });
 
   testWidgets('an open Notes card keeps its text across the header editor '
       'opening and closing', (tester) async {

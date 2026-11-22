@@ -114,6 +114,11 @@ mixin _TripDetailPageEditing
     controller.openCard(id.name);
   }
 
+  /// Opening or closing the header block's editor lays the page out
+  /// afresh ([TripPageBody]), building the cards below it again.
+  @override
+  Set<String> get hostRelayoutCardIds => {TripCardId.header.name};
+
   /// Whether the header block's editor is open, which lays the page out
   /// as one scroll (issue #4844).
   bool get _headerEditorOpen =>
