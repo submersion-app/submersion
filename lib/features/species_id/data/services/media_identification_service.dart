@@ -201,7 +201,7 @@ class MediaIdentificationService {
       running.cancelled = false;
       // Asked by hand, it runs whether or not media are identified on
       // opening, revived or not.
-      if (byHand || fresh) running.byHand = true;
+      if (byHand) running.byHand = true;
       return running.done.future;
     }
     final queued = _waiting.remove(item.id);
