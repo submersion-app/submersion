@@ -687,9 +687,18 @@ from the pack with its ONNX files added (`PACK`) and a work folder
 1. `score.py --pack PACK --engine coreml --naming-from PACK --work WORK`,
    then the same with `--engine onnx` and `SUBMERSION_APP` set to an app
    checkout at the engine's commit; the ONNX results go to `WORK/onnx`.
-2. `engine_gate.py --work WORK --pack PACK`, and `gate.py` with
-   `--trained WORK --trained-onnx WORK/onnx` beside its usual baseline
-   and check folders.
-3. For x64, the app's scoring runner (`tool/species_vision_onnx`) over
-   the same 100 held-out photos on the Mac and on a Linux x64 machine,
-   then `engine_compare.py --pack PACK MAC.jsonl X64.jsonl`.
+2. `engine_gate.py --work WORK --pack PACK`, then
+   `gate.py --baseline W0 --baseline-pack P0 --trained WORK --trained-pack PACK --check W2 --check-pack P2 --trained-onnx WORK/onnx --set testdata/accuracy_set.csv`,
+   where P0 is the baseline pack (`2026.11.18.0356` with ONNX files
+   added), P2 the rare-species check pack, and W0 and W2 their work
+   folders, each scored with `--naming-from PACK` as `gate.py`'s own
+   header describes.
+3. For x64, a request file for the app's scoring runner, built with
+   species-pack's `score.onnx_request`: the pack's manifest, both
+   detectors' and the classifier's ONNX files, `centreCrop`, the 100
+   held-out photos, and as `out` the JSON lines file to write. Then, in
+   an app checkout at the engine's commit, on the Mac and on a Linux x64
+   machine,
+   `SPECIES_VISION_REQUEST=request.json flutter test tool/species_vision_onnx/species_vision_onnx_test.dart`,
+   which writes `MAC.jsonl` and `X64.jsonl` respectively, and
+   `engine_compare.py --pack PACK MAC.jsonl X64.jsonl`.
