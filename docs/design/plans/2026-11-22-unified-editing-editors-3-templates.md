@@ -879,3 +879,8 @@ on:
   elsewhere is created again and the items the form shows in it go back in
   with it. Stale doc comments, the first-frame test and the new strings'
   `@` descriptions were brought up to date.
+- **A third review (code-review, xhigh, all findings):** two findings,
+  both fixed test-first. A re-created section takes back only the items its
+  delete left with no section, each otherwise as stored (a title synced in
+  meanwhile is kept, an item moved elsewhere stays). The item dialog's
+  section picker offers a title as it is being typed.
