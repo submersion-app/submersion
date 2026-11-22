@@ -22,10 +22,8 @@ class TripCardSlots {
     required this.showsWhileEmpty,
     required this.openCard,
     required this.unlockAt,
-    this.isOpen = _noneOpen,
+    required this.isOpen,
   });
-
-  static bool _noneOpen(TripCardId id) => false;
 
   /// The trip the cards show: the sitting's while unlocked.
   final Trip shown;
