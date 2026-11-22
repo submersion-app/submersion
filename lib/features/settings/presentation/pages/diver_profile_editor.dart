@@ -65,9 +65,12 @@ mixin DiverProfileEditor<W extends ConsumerStatefulWidget, D>
   void openProfileEditor() {
     ref.listenManual<AsyncValue<Diver?>>(currentDiverProvider, (_, next) {
       if (_profileDiverId != null || !mounted) return;
+      // A diver being worked out again still carries the one it replaces:
+      // only a settled answer is the diver the host has noted.
+      if (next.isLoading) return;
       final diver = next.value;
       if (diver == null) {
-        if (next.hasError && !next.isLoading) {
+        if (next.hasError) {
           setState(() => _loadError = next.error);
         }
         return;

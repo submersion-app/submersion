@@ -67,8 +67,9 @@ Future<void> seedDiver(Diver diver) => DiverRepository().createDiver(diver);
 Future<Diver?> storedDiver(String id) => DiverRepository().getDiverById(id);
 
 /// A profile page pushed over a stand-in hub, on a route with the app's
-/// leave check, with [activeDiverId] active. Returns the router; the
-/// container is [profileContainer].
+/// leave check, with [activeDiverId] active. With [push] false the page is
+/// only routed, for the test to push. Returns the router; the container is
+/// [profileContainer].
 Future<GoRouter> pumpProfilePage(
   WidgetTester tester, {
   required String path,
@@ -76,6 +77,7 @@ Future<GoRouter> pumpProfilePage(
   String activeDiverId = 'diver-1',
   List<Document> documents = const [],
   List<Override> overrides = const [],
+  bool push = true,
 }) async {
   tester.view.physicalSize = const Size(900, 2400);
   tester.view.devicePixelRatio = 1;
@@ -117,8 +119,10 @@ Future<GoRouter> pumpProfilePage(
     tester,
   ).read(currentDiverIdProvider.notifier).setCurrentDiver(activeDiverId);
   await tester.pumpAndSettle();
-  unawaited(router.push('$diverProfileHub/$path'));
-  await tester.pumpAndSettle();
+  if (push) {
+    unawaited(router.push('$diverProfileHub/$path'));
+    await tester.pumpAndSettle();
+  }
   return router;
 }
 

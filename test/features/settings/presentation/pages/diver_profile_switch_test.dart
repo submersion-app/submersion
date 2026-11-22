@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/emergency_contacts_edit_page.dart';
@@ -220,4 +221,47 @@ void main() {
       expect(await sittings(db), isEmpty);
     });
   }
+
+  testWidgets(
+    'a page opened while the active diver still loads fills from the settled '
+    'diver',
+    (tester) async {
+      Completer<void>? gate;
+      final router = await pumpProfilePage(
+        tester,
+        path: 'medical',
+        page: const MedicalInfoEditPage(),
+        activeDiverId: 'a',
+        push: false,
+        overrides: [
+          currentDiverProvider.overrideWith((ref) async {
+            final id = ref.watch(currentDiverIdProvider);
+            await gate?.future;
+            return id == null ? null : DiverRepository().getDiverById(id);
+          }),
+        ],
+      );
+      final container = profileContainer(tester);
+      final listening = container.listen(currentDiverProvider, (_, _) {});
+      addTearDown(listening.close);
+      await tester.pumpAndSettle();
+
+      // Bob becomes active: the validated id settles on him at once, while
+      // the active diver still holds Alice as it reloads.
+      gate = Completer<void>();
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver('b');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      unawaited(router.push('$diverProfileHub/medical'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Penicillin'), findsNothing);
+      expect(find.text('None'), findsOneWidget);
+    },
+  );
 }
