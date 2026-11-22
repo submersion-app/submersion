@@ -21193,6 +21193,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'تشغيل الأصل';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'تشغيل أو إيقاف الفيديو';
 
   @override

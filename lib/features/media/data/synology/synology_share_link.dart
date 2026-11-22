@@ -113,8 +113,48 @@ class SynologyShareLink {
     },
   );
 
-  /// The [size] thumbnail of the item a stored URL ([originalUri] or
-  /// [thumbnailUri]) points at, or null when [stored] is not such a URL.
+  /// Video item [id] streamed at [quality], one of the conversions the item
+  /// lists in `video_convert` (`high` is Synology's 720p rendition). Plain
+  /// MP4 that honours Range. Carries `cache_key` for [thumbnailFor], like
+  /// [originalUri].
+  Uri streamUri({
+    required int id,
+    required String cacheKey,
+    String quality = 'high',
+  }) => apiUri.replace(
+    queryParameters: {
+      'api': 'SYNO.Foto.Streaming',
+      'method': 'streaming',
+      'version': '2',
+      'id': '$id',
+      'quality': quality,
+      'passphrase': code,
+      '_sharing_id': code,
+      'cache_key': cacheKey,
+    },
+  );
+
+  /// Whether [stored] streams a conversion rather than serving the
+  /// original file.
+  static bool isStream(Uri stored) =>
+      tryParseApiUri(stored) != null &&
+      stored.queryParameters['api'] == 'SYNO.Foto.Streaming';
+
+  /// The original file of the item a stored URL points at, for playing a
+  /// video in full quality instead of its conversion; null when [stored] is
+  /// no share URL.
+  static Uri? originalFor(Uri stored) {
+    final link = tryParseApiUri(stored);
+    if (link == null) return null;
+    final id = int.tryParse(stored.queryParameters['id'] ?? '');
+    final cacheKey = stored.queryParameters['cache_key'];
+    if (id == null || cacheKey == null || cacheKey.isEmpty) return null;
+    return link.originalUri(id: id, cacheKey: cacheKey);
+  }
+
+  /// The [size] thumbnail of the item a stored URL ([originalUri],
+  /// [streamUri] or [thumbnailUri]) points at, or null when [stored] is not
+  /// such a URL.
   static Uri? thumbnailFor(Uri stored, SynologyThumbnailSize size) {
     final link = tryParseApiUri(stored);
     if (link == null) return null;

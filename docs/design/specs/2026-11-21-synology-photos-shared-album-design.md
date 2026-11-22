@@ -317,6 +317,36 @@ unfinished setup:
   rethrows an unreachable share, so a check while offline stays transient
   and never asks for a password.
 
+### 11. Videos and live photos
+
+Observed: the list (with `additional` `video_meta` and `video_convert`)
+gives a video's length, codecs and the conversions Synology made; `high` is
+a 720p H.264 MP4. `SYNO.Foto.Streaming` (method `streaming`, version 2,
+`id`, `quality`, `passphrase`, `_sharing_id`) serves a conversion as
+`video/mp4` and honours Range; `quality=orig_h264` serves the original
+size. The thumbnail API gives a video's poster frame. Every one of them
+needs the session cookie: a session id in the query is refused (error 101).
+
+- **Import:** videos become `video` entries with their length. The row
+  points at the `high` stream (`SynologyShareLink.streamUri`), about a fifth
+  of the original's size, or at the original when there is no conversion
+  (a view-only share streams in any case). Live photos become photos
+  pointing at their xl rendition, the still frame; the original bundles the
+  still with a motion clip no viewer here shows.
+- **Poster:** `thumbnailFor` derives it from the stream URL like from an
+  original, so the grid shows the video's frame.
+- **Playing:** the app could not play a network video at all before.
+  A player sends no headers, so `NetworkVideoCache` downloads the video
+  with the source's headers into `CacheLocation.networkVideos` and the
+  viewer plays the file (`resolvedFilePathProvider`). One download per URL,
+  a file once here is reused, JSON or HTML answers are refused, and the
+  least recently used files go once the directory passes 2 GB. Not
+  Synology specific: any `networkUrl` or `manifestEntry` video plays this
+  way.
+- **Original:** a video playing a conversion shows "Play original" in the
+  viewer; it switches this session's playback to the original
+  (`SynologyShareLink.originalFor`), downloaded the same way.
+
 ## Security
 
 - The share code alone does not open a password-protected share; the password
@@ -330,8 +360,8 @@ unfinished setup:
 
 ## Open points (for the real feature)
 
-1. **Videos.** Originals are large; Synology keeps 720p conversions behind a
-   streaming API that still has to be explored.
+1. **Videos.** Done in the prototype (section 11). Open: playing while the
+   download runs instead of after it, and a setting for the cache size.
 2. **Two devices, one share.** If a login really ends every other session of
    the share (observed from one client; not yet confirmed across clients),
    phone and desktop knock each other out. The validation step limits the

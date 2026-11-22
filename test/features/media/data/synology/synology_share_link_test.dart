@@ -185,4 +185,46 @@ void main() {
     )!;
     expect({a.key, b.key, c.key}, hasLength(3));
   });
+
+  group('videos', () {
+    final link = SynologyShareLink.tryParseShareLink(
+      Uri.parse('https://nas.example.com:5001/mo/sharing/code1'),
+    )!;
+    final stream = link.streamUri(id: 7, cacheKey: '7_1');
+
+    test('stream the high conversion by default', () {
+      expect(stream.queryParameters['api'], 'SYNO.Foto.Streaming');
+      expect(stream.queryParameters['quality'], 'high');
+      expect(stream.queryParameters['id'], '7');
+      expect(stream.queryParameters['_sharing_id'], 'code1');
+      expect(SynologyShareLink.isStream(stream), isTrue);
+      expect(
+        SynologyShareLink.isStream(link.originalUri(id: 7, cacheKey: '7_1')),
+        isFalse,
+      );
+      expect(
+        SynologyShareLink.isStream(Uri.parse('https://example.com/a.mp4')),
+        isFalse,
+      );
+    });
+
+    test('a stream leads to its original and its poster', () {
+      expect(
+        SynologyShareLink.originalFor(stream),
+        link.originalUri(id: 7, cacheKey: '7_1'),
+      );
+      expect(
+        SynologyShareLink.thumbnailFor(stream, SynologyThumbnailSize.m),
+        link.thumbnailUri(
+          id: 7,
+          cacheKey: '7_1',
+          size: SynologyThumbnailSize.m,
+        ),
+      );
+      expect(
+        SynologyShareLink.originalFor(Uri.parse('https://example.com/a.mp4')),
+        isNull,
+      );
+    });
+  });
 }

@@ -6032,6 +6032,7 @@
   "media_photoViewer_nextTooltip": "Volgende media",
   "media_photoViewer_noPhotosAvailable": "Geen foto's beschikbaar",
   "media_photoViewer_pageIndicator": "{current} / {total}",
+  "media_viewer_playOriginal": "Origineel afspelen",
   "media_photoViewer_playPauseVideoLabel": "Video afspelen of pauzeren",
   "media_photoViewer_previousTooltip": "Vorige media",
   "media_photoViewer_seekVideoLabel": "Videopositie zoeken",

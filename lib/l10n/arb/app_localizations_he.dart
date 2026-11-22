@@ -20389,6 +20389,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'הפעלת המקור';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'הפעל או השהה סרטון';
 
   @override

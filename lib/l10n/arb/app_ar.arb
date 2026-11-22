@@ -6032,6 +6032,7 @@
   "media_photoViewer_nextTooltip": "الوسائط التالية",
   "media_photoViewer_noPhotosAvailable": "لا توجد صور متاحة",
   "media_photoViewer_pageIndicator": "{current} / {total}",
+  "media_viewer_playOriginal": "تشغيل الأصل",
   "media_photoViewer_playPauseVideoLabel": "تشغيل أو إيقاف الفيديو",
   "media_photoViewer_previousTooltip": "الوسائط السابقة",
   "media_photoViewer_seekVideoLabel": "تحريك موضع الفيديو",

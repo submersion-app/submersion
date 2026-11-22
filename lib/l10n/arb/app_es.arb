@@ -6032,6 +6032,7 @@
   "media_photoViewer_nextTooltip": "Elemento siguiente",
   "media_photoViewer_noPhotosAvailable": "No hay fotos disponibles",
   "media_photoViewer_pageIndicator": "{current} / {total}",
+  "media_viewer_playOriginal": "Reproducir original",
   "media_photoViewer_playPauseVideoLabel": "Reproducir o pausar video",
   "media_photoViewer_previousTooltip": "Elemento anterior",
   "media_photoViewer_seekVideoLabel": "Buscar posición del video",

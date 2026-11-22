@@ -26,7 +26,8 @@ bool synologyNeedsPassword(String? message) =>
 /// Reads a shared Synology Photos album as if it were a manifest feed, so the
 /// subscription poller and the manifest panel need no Synology branch.
 ///
-/// Only photos are read in this prototype; videos and live photos are
+/// Photos, videos (as their 720p conversion when Synology made one) and
+/// live photos (as their still frame) are read; other item types are
 /// skipped. See
 /// `docs/design/specs/2026-11-21-synology-photos-shared-album-design.md`.
 class SynologyAlbumSource {
@@ -125,7 +126,7 @@ class SynologyAlbumSource {
         'offset': '${page * pageSize}',
         'limit': '$pageSize',
         'passphrase': link.code,
-        'additional': '["thumbnail","resolution"]',
+        'additional': '["thumbnail","resolution","video_meta","video_convert"]',
       });
       final list = data['list'];
       if (list is! List<Object?>) {
@@ -212,7 +213,8 @@ class SynologyAlbumSource {
 }
 
 /// Entries mapped from a share's item list, plus a warning per item skipped
-/// because it was malformed. Videos and live photos are skipped silently.
+/// because it was malformed. Item types this client does not import are
+/// skipped silently.
 typedef SynologyMappedEntries = ({
   List<ManifestEntry> entries,
   List<String> warnings,
@@ -224,8 +226,8 @@ typedef SynologyMappedEntries = ({
 /// A changed API must fail the fetch, never pass as a smaller album: the
 /// poller reads every entry missing from a successful fetch as removed and
 /// marks its row missing on every device. So a list whose items carry no
-/// type this client knows, or whose photos mostly fail to parse, is a
-/// failure. A few unreadable photos are not: those are skipped with a
+/// type this client knows, or whose items mostly fail to parse, is a
+/// failure. A few unreadable items are not: those are skipped with a
 /// warning, as before.
 String? synologyFormatProblem(
   List<Object?> items,
@@ -240,13 +242,13 @@ String? synologyFormatProblem(
     return 'Album format not recognised: none of ${items.length} items has a '
         'known type (seen: ${seen.isEmpty ? 'no objects' : seen})';
   }
-  final photos = objects.where((i) => i['type'] == 'photo').length;
-  if (photos > 0 && mapped.entries.length * 2 < photos) {
+  // Every imported type counts: they are all read the same way.
+  if (typed > 0 && mapped.entries.length * 2 < typed) {
     final first = mapped.warnings.isEmpty
         ? ''
         : ' First: ${mapped.warnings.first}';
     return 'Album format not recognised: only ${mapped.entries.length} of '
-        '$photos photos could be read.$first';
+        '$typed items could be read.$first';
   }
   return null;
 }
@@ -270,8 +272,9 @@ SynologyMappedEntries synologyEntriesFrom(
       warnings.add('item $index: not an object');
       continue;
     }
-    if (raw['type'] != 'photo') continue;
-    final photo = _Photo.tryParse(raw);
+    final kind = _ItemKind.of(raw['type']);
+    if (kind == null) continue;
+    final photo = _Photo.tryParse(raw, kind);
     if (photo == null) {
       // Field names, never values: enough to see what Synology renamed,
       // nothing about the photo.
@@ -305,15 +308,7 @@ SynologyMappedEntries synologyEntriesFrom(
     for (final photo in photos)
       ManifestEntry(
         entryKey: keyOf[photo]!,
-        url:
-            (downloadsAllowed
-                    ? link.originalUri(id: photo.id, cacheKey: photo.cacheKey)
-                    : link.thumbnailUri(
-                        id: photo.id,
-                        cacheKey: photo.cacheKey,
-                        size: SynologyThumbnailSize.xl,
-                      ))
-                .toString(),
+        url: _urlFor(photo, link, downloadsAllowed).toString(),
         // Synology stores the capture time as local wall clock seconds read
         // as UTC: the same convention as MediaItem.takenAt.
         takenAt: DateTime.fromMillisecondsSinceEpoch(
@@ -322,7 +317,10 @@ SynologyMappedEntries synologyEntriesFrom(
         ),
         width: photo.width,
         height: photo.height,
-        mediaType: 'photo',
+        durationSeconds: photo.kind == _ItemKind.video
+            ? photo.durationSeconds
+            : null,
+        mediaType: photo.kind == _ItemKind.video ? 'video' : 'photo',
         metadataComplete: true,
         filename: photo.filename,
       ),
@@ -330,8 +328,56 @@ SynologyMappedEntries synologyEntriesFrom(
   return (entries: entries, warnings: warnings);
 }
 
+/// Where an item's row points:
+/// - a photo: its original, or the xl rendition when the share allows no
+///   downloads;
+/// - a live photo: the xl rendition, its still frame (the original is the
+///   still and the motion clip together, which no viewer here shows);
+/// - a video: Synology's 720p conversion when it has one, much smaller than
+///   the original and what a phone plays without stalling, else the
+///   original file. The original stays one tap away ([SynologyShareLink
+///   .originalFor]).
+Uri _urlFor(_Photo item, SynologyShareLink link, bool downloadsAllowed) {
+  switch (item.kind) {
+    case _ItemKind.video:
+      return item.hasHighConversion || !downloadsAllowed
+          ? link.streamUri(id: item.id, cacheKey: item.cacheKey)
+          : link.originalUri(id: item.id, cacheKey: item.cacheKey);
+    case _ItemKind.live:
+      return link.thumbnailUri(
+        id: item.id,
+        cacheKey: item.cacheKey,
+        size: SynologyThumbnailSize.xl,
+      );
+    case _ItemKind.photo:
+      return downloadsAllowed
+          ? link.originalUri(id: item.id, cacheKey: item.cacheKey)
+          : link.thumbnailUri(
+              id: item.id,
+              cacheKey: item.cacheKey,
+              size: SynologyThumbnailSize.xl,
+            );
+  }
+}
+
+/// The item types this client imports.
+enum _ItemKind {
+  photo,
+  video,
+  live;
+
+  static _ItemKind? of(Object? type) => switch (type) {
+    'photo' => photo,
+    'video' => video,
+    'live' => live,
+    _ => null,
+  };
+}
+
+/// One album item this client imports: a photo, a video or a live photo.
 class _Photo {
   const _Photo({
+    required this.kind,
     required this.id,
     required this.time,
     required this.filesize,
@@ -339,8 +385,11 @@ class _Photo {
     this.filename,
     this.width,
     this.height,
+    this.durationSeconds,
+    this.hasHighConversion = false,
   });
 
+  final _ItemKind kind;
   final int id;
   final int time;
   final int filesize;
@@ -349,9 +398,15 @@ class _Photo {
   final int? width;
   final int? height;
 
+  /// A video's length, from `video_meta.duration` (milliseconds).
+  final int? durationSeconds;
+
+  /// Synology lists a `high` (720p) conversion for this video.
+  final bool hasHighConversion;
+
   String get baseKey => 't$time-s$filesize';
 
-  static _Photo? tryParse(Map<String, Object?> raw) {
+  static _Photo? tryParse(Map<String, Object?> raw, _ItemKind kind) {
     final id = raw['id'];
     final time = raw['time'];
     final filesize = raw['filesize'];
@@ -370,7 +425,17 @@ class _Photo {
       return value is int && value > 0 ? value : null;
     }
 
+    final meta = additional['video_meta'];
+    final durationMs = meta is Map<String, Object?> ? meta['duration'] : null;
+    final conversions = additional['video_convert'];
+    final hasHigh =
+        conversions is List<Object?> &&
+        conversions.any(
+          (c) => c is Map<String, Object?> && c['quality'] == 'high',
+        );
+
     return _Photo(
+      kind: kind,
       id: id,
       time: time,
       filesize: filesize,
@@ -378,6 +443,10 @@ class _Photo {
       filename: raw['filename'] is String ? raw['filename'] as String : null,
       width: dimension('width'),
       height: dimension('height'),
+      durationSeconds: durationMs is num && durationMs > 0
+          ? (durationMs / 1000).round()
+          : null,
+      hasHighConversion: hasHigh,
     );
   }
 }

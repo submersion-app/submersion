@@ -6173,6 +6173,7 @@
   "media_photoViewer_nextTooltip": "下一个媒体",
   "media_photoViewer_noPhotosAvailable": "无照片可用",
   "media_photoViewer_pageIndicator": "{current} / {total}",
+  "media_viewer_playOriginal": "播放原始视频",
   "media_photoViewer_playPauseVideoLabel": "播放或暂停视频",
   "media_photoViewer_previousTooltip": "上一个媒体",
   "media_photoViewer_seekVideoLabel": "调整视频位置",

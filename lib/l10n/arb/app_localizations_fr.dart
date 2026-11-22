@@ -20882,6 +20882,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Lire l\'original';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Lire ou mettre en pause la vidéo';
 

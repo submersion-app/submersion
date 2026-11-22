@@ -147,7 +147,7 @@ void main() {
     );
   });
 
-  test('skips videos, live photos and unknown types', () async {
+  test('reads photos, videos and live photos, skips unknown types', () async {
     final album = _FakeAlbum([
       _photo(1),
       _photo(2, type: 'video', time: 2),
@@ -156,7 +156,84 @@ void main() {
     ]);
     final parsed =
         ((await _source(album).fetch(_link)) as ManifestFetchSuccess).parsed;
-    expect(parsed.entries, hasLength(1));
+    expect(parsed.entries.map((e) => e.mediaType), ['photo', 'video', 'photo']);
+  });
+
+  group('videos', () {
+    Map<String, Object?> video(
+      int id, {
+      bool high = true,
+      int durationMs = 17000,
+    }) {
+      final v = _photo(id, type: 'video', time: id, cacheKey: '${id}_1');
+      return {
+        ...v,
+        'additional': <String, Object?>{
+          ...(v['additional']! as Map<String, Object?>),
+          'video_meta': {'duration': durationMs},
+          'video_convert': [
+            if (high) {'quality': 'high'},
+            {'quality': 'orig_h264'},
+          ],
+        },
+      };
+    }
+
+    test('play the 720p conversion, with their length', () async {
+      final parsed =
+          ((await _source(_FakeAlbum([video(7)])).fetch(_link))
+                  as ManifestFetchSuccess)
+              .parsed;
+      final entry = parsed.entries.single;
+      expect(entry.mediaType, 'video');
+      expect(entry.durationSeconds, 17);
+      expect(Uri.parse(entry.url), _link.streamUri(id: 7, cacheKey: '7_1'));
+    });
+
+    test('without a conversion play the original', () async {
+      final parsed =
+          ((await _source(_FakeAlbum([video(7, high: false)])).fetch(_link))
+                  as ManifestFetchSuccess)
+              .parsed;
+      expect(
+        Uri.parse(parsed.entries.single.url),
+        _link.originalUri(id: 7, cacheKey: '7_1'),
+      );
+    });
+
+    test('in a view-only share stream, never download', () async {
+      final parsed =
+          ((await _source(
+                    _FakeAlbum([
+                      video(7, high: false),
+                    ], privacyType: 'public-view'),
+                  ).fetch(_link))
+                  as ManifestFetchSuccess)
+              .parsed;
+      expect(
+        SynologyShareLink.isStream(Uri.parse(parsed.entries.single.url)),
+        isTrue,
+      );
+    });
+  });
+
+  test('a live photo is its still frame', () async {
+    final parsed =
+        ((await _source(
+                  _FakeAlbum([_photo(9, type: 'live', cacheKey: '9_1')]),
+                ).fetch(_link))
+                as ManifestFetchSuccess)
+            .parsed;
+    final entry = parsed.entries.single;
+    expect(entry.mediaType, 'photo');
+    expect(
+      Uri.parse(entry.url),
+      _link.thumbnailUri(
+        id: 9,
+        cacheKey: '9_1',
+        size: SynologyThumbnailSize.xl,
+      ),
+    );
   });
 
   test('skips malformed items with a warning', () async {
@@ -302,7 +379,7 @@ void main() {
       final outcome = await _source(album).fetch(_link);
       expect(outcome, isA<ManifestFetchFailure>());
       final message = (outcome as ManifestFetchFailure).message;
-      expect(message, contains('only 1 of 3 photos'));
+      expect(message, contains('only 1 of 3 items'));
       // Field names, so a developer sees what changed; no values.
       expect(message, contains('taken_time'));
       expect(message, isNot(contains('P2.JPG')));
@@ -321,11 +398,14 @@ void main() {
       expect(parsed.warnings.single, contains('fields: id, type'));
     });
 
-    test('an album of videos only is not a format problem', () async {
+    test('an album of videos only is read as videos', () async {
       final album = _FakeAlbum([_photo(1, type: 'video')]);
       final outcome = await _source(album).fetch(_link);
       expect(outcome, isA<ManifestFetchSuccess>());
-      expect((outcome as ManifestFetchSuccess).parsed.entries, isEmpty);
+      expect(
+        (outcome as ManifestFetchSuccess).parsed.entries.single.mediaType,
+        'video',
+      );
     });
   });
 

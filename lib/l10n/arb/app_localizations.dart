@@ -32815,6 +32815,12 @@ abstract class AppLocalizations {
   /// **'{current} / {total}'**
   String media_photoViewer_pageIndicator(Object current, Object total);
 
+  /// Video viewer button: a shared album video plays as a smaller conversion; this plays the original file instead
+  ///
+  /// In en, this message translates to:
+  /// **'Play original'**
+  String get media_viewer_playOriginal;
+
   /// No description provided for @media_photoViewer_playPauseVideoLabel.
   ///
   /// In en, this message translates to:

@@ -20764,6 +20764,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Eredeti lejátszása';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Videó lejátszása vagy szüneteltetése';
 

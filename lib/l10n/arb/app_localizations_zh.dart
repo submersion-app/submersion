@@ -19807,6 +19807,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => '播放原始视频';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => '播放或暂停视频';
 
   @override

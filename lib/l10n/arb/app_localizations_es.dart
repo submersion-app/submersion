@@ -20826,6 +20826,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Reproducir original';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Reproducir o pausar video';
 

@@ -5906,6 +5906,7 @@
   "media_photoViewer_nextTooltip": "Média suivant",
   "media_photoViewer_noPhotosAvailable": "Aucune photo disponible",
   "media_photoViewer_pageIndicator": "{current} / {total}",
+  "media_viewer_playOriginal": "Lire l'original",
   "media_photoViewer_playPauseVideoLabel": "Lire ou mettre en pause la vidéo",
   "media_photoViewer_previousTooltip": "Média précédent",
   "media_photoViewer_seekVideoLabel": "Déplacer la position de la vidéo",

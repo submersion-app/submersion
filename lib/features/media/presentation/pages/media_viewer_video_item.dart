@@ -188,6 +188,16 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     return KeyEventResult.ignored;
   }
 
+  /// Switches this video to its original file: the player is let go and
+  /// reopened from the original, which [resolvedFilePathProvider] fetches
+  /// once the choice is set. The viewer's loading state covers the download.
+  void _playOriginal() {
+    ref.read(playVideoOriginalProvider(widget.item.id).notifier).state = true;
+    _release();
+    setState(() {});
+    _initializeVideo();
+  }
+
   Future<void> _initializeVideo() async {
     final generation = ++_loadGeneration;
     // Gone, or swiped away and released while this load was in flight.
@@ -488,6 +498,24 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                         ),
                       ),
                     ),
+            ),
+
+          // A shared album's video plays its smaller conversion; the
+          // original is one tap away. Gone once chosen, and in tag mode.
+          if (widget.isCurrent &&
+              (!widget.fullscreen || widget.showOverlay) &&
+              !widget.people.active &&
+              hasPlayableOriginal(widget.item) &&
+              !ref.watch(playVideoOriginalProvider(widget.item.id)))
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + 12,
+              right: 12,
+              child: FilledButton.tonalIcon(
+                key: const Key('videoPlayOriginal'),
+                icon: const Icon(Icons.high_quality_outlined),
+                label: Text(context.l10n.media_viewer_playOriginal),
+                onPressed: _playOriginal,
+              ),
             ),
 
           // Fullscreen's controls bar, at the bottom edge.

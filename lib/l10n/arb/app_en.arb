@@ -12569,6 +12569,8 @@
   "media_photoViewer_nextTooltip": "Next media",
   "media_photoViewer_noPhotosAvailable": "No photos available",
   "media_photoViewer_pageIndicator": "{current} / {total}",
+  "media_viewer_playOriginal": "Play original",
+  "@media_viewer_playOriginal": {"description": "Video viewer button: a shared album video plays as a smaller conversion; this plays the original file instead"},
   "media_photoViewer_playPauseVideoLabel": "Play or pause video",
   "media_photoViewer_previousTooltip": "Previous media",
   "media_photoViewer_seekVideoLabel": "Seek video position",
