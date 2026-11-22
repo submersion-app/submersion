@@ -307,6 +307,21 @@ void main() {
       expect(marked('Vomit annotation:a1 end'), 'Vomit <annotation:a1> end');
     });
 
+    test('a bracket earlier in the paragraph with no markup after it is '
+        'not the link', () {
+      expect(
+        marked('Saw [reef shark today. Vomit annotation:a1'),
+        'Saw [reef shark today. Vomit <annotation:a1>',
+      );
+    });
+
+    test('a link that lost its closing bracket, from its opening one', () {
+      expect(
+        marked('Calm [Vomit(annotation:a1) end'),
+        'Calm <[Vomit(annotation:a1)> end',
+      );
+    });
+
     test('looks for the bracket in its own paragraph only', () {
       expect(
         marked('[Calm\n\nVomit](annotation:a1'),

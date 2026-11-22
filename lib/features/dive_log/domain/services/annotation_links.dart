@@ -169,8 +169,9 @@ int _brokenMarkupStart(String notes, int address) {
 final RegExp _blankLine = RegExp(r'\n[ \t]*\n');
 
 /// A link's words up to the end of the text, from their opening bracket,
-/// with the `]` and `(` after them if they are still there.
-final RegExp _openedLink = RegExp(r'\[(?:\\[\s\S]|[^\[\]\\])*\]?\(?$');
+/// with the `]`, `](` or `(` still after them: without any of these, a `[`
+/// earlier in the paragraph is not this address's link.
+final RegExp _openedLink = RegExp(r'\[(?:\\[\s\S]|[^\[\]\\])*(?:\]\(?|\()$');
 
 /// What is left of a link's markup at the end of the text.
 final RegExp _markupLeft = RegExp(r'\]?\(?$');
