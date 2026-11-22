@@ -51,11 +51,18 @@ Map<String, Object?> _photo(
 /// A share serving [items] in pages; scripted failures are injected through
 /// [onList].
 class _FakeAlbum {
-  _FakeAlbum(this.items, {this.privacyType = 'public-download'});
+  _FakeAlbum(
+    this.items, {
+    this.privacyType = 'public-download',
+    this.password = 'secret',
+  });
 
   static const name = 'Dives';
   final List<Map<String, Object?>> items;
   final String privacyType;
+
+  /// The share's password; empty for a share without one.
+  final String password;
   int logins = 0;
   final List<int> listedOffsets = [];
   String? current;
@@ -66,7 +73,7 @@ class _FakeAlbum {
     switch (form['api']) {
       case 'SYNO.Core.Sharing.Login':
         logins++;
-        if (form['password'] != 'secret') return _error(101);
+        if (form['password'] != password) return _error(1001);
         current = 'sid-$logins';
         return _ok({'sharing_sid': current});
       case 'SYNO.Foto.Browse.Album':
@@ -256,6 +263,15 @@ void main() {
     ).fetch(_link);
     expect(outcome, isA<ManifestFetchFailure>());
     expect((outcome as ManifestFetchFailure).unauthorized, isTrue);
+    // Asked for, not refused: the form shows no red reason for this one.
+    expect(outcome.message, kSynologyPasswordMissingMessage);
+  });
+
+  test('a share without a password is read without one', () async {
+    final album = _FakeAlbum([_photo(1)], password: '');
+    final outcome = await _source(album, password: null).fetch(_link);
+    expect(outcome, isA<ManifestFetchSuccess>());
+    expect(album.logins, 1);
   });
 
   test('a wrong password is unauthorized', () async {

@@ -43,7 +43,7 @@ void main() {
   late NetworkCredentialsService service;
 
   // Each share accepts only its own password.
-  const passwords = {'code1': 'secret', 'code2': 'other'};
+  const passwords = {'code1': 'secret', 'code2': 'other', 'open1': ''};
 
   setUp(() {
     keychain = InMemoryKeychain();
@@ -221,7 +221,20 @@ void main() {
       share1.originalUri(id: 1, cacheKey: '1_1'),
     );
     expect(headers?['Authorization'], startsWith('Basic '));
-    expect(logins, 0);
+    // One try without a password, then remembered as refused.
+    await service.headersFor(share1.originalUri(id: 2, cacheKey: '2_2'));
+    expect(loginPasswords, ['']);
+  });
+
+  test('a share without a password gets headers without one', () async {
+    final open = SynologyShareLink.tryParseShareLink(
+      Uri.parse('https://$host:5001/mo/sharing/open1'),
+    )!;
+    final headers = await service.headersFor(
+      open.originalUri(id: 1, cacheKey: '1_1'),
+    );
+    expect(headers?['X-SYNO-SHARING'], 'open1');
+    expect(loginPasswords, ['']);
   });
 
   test('without sessions a share secret yields no headers', () async {

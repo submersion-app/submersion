@@ -171,6 +171,13 @@ prototype) is still read as a fallback; the share's own password wins.
 
 - A share URI (link or API URL) with a password for its share: the session
   headers from `SynologyShareSessions`.
+- A share URI with no password saved: a login with an empty password, which
+  is how a share without a password opens (observed: an open share accepts
+  it, a protected one answers error 1001). `SynologyAlbumSource` does the
+  same, and only when that is refused reports the share as needing its
+  password. `SynologyShareSessions` remembers a refused password for its
+  validation interval, so the thumbnails of a protected share without a
+  saved password do not each send a login.
 - Otherwise the host's secret as before: basic / bearer headers unchanged, a
   host-wide share password yields nothing for non-share URLs.
 

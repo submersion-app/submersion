@@ -145,6 +145,11 @@ class NetworkCredentialsService {
     if (share != null) {
       final password = await synologySharePassword(share);
       if (password != null) return _synologyHeaders(share, password);
+      // A share without a password opens with an empty one. A protected
+      // share refuses it; the sessions remember that, so its thumbnails do
+      // not each try a login.
+      final open = await _synologyHeaders(share, '');
+      if (open != null) return open;
     }
     final secret = await _secretFor(uri.host);
     return switch (secret) {

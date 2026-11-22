@@ -55,20 +55,18 @@ class SynologyAlbumSource {
     } catch (e) {
       return ManifestFetchFailure(message: 'Could not read the password: $e');
     }
-    if (password == null || password.isEmpty) {
-      return const ManifestFetchFailure(
-        statusCode: 401,
-        message: kSynologyPasswordMissingMessage,
-      );
-    }
+    // A share without a password logs in with an empty one. Without a saved
+    // password that is tried first; refused, the share needs its password.
+    final saved = password != null && password.isNotEmpty;
+    final effective = saved ? password : '';
     try {
       try {
-        return await _read(link, password);
+        return await _read(link, effective);
       } on _SessionLost catch (lost) {
         // Another login (another device, or the web page) replaced the
         // session. One fresh login; a second loss is a real failure.
         _sessions.invalidate(link, lost.sid);
-        return await _read(link, password);
+        return await _read(link, effective);
       }
     } on _SessionLost {
       return const ManifestFetchFailure(
@@ -76,9 +74,11 @@ class SynologyAlbumSource {
       );
     } on SynologyShareException catch (e) {
       if (e.kind == SynologyShareErrorKind.wrongPassword) {
-        return const ManifestFetchFailure(
+        return ManifestFetchFailure(
           statusCode: 401,
-          message: 'The share did not accept the password',
+          message: saved
+              ? 'The share did not accept the password'
+              : kSynologyPasswordMissingMessage,
         );
       }
       return ManifestFetchFailure(message: e.message);

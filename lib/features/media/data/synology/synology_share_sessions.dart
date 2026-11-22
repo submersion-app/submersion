@@ -37,6 +37,9 @@ class SynologyShareSessions {
   final Map<String, Future<_Session>> _logins = {};
   final Map<String, Future<void>> _probes = {};
 
+  /// The last password each share refused, and when. See [sessionFor].
+  final Map<String, ({String password, DateTime at})> _refused = {};
+
   /// The session id for [link], logging in with [password] when there is no
   /// session yet or it was opened with a different password.
   ///
@@ -44,6 +47,18 @@ class SynologyShareSessions {
   Future<String> sessionFor(SynologyShareLink link, String password) async {
     final cached = _sessions[link.key];
     if (cached != null && cached.password == password) return cached.sid;
+    // A password the share just refused is refused again without asking:
+    // an open share is tried with no password, so every thumbnail of a
+    // protected share with none saved would otherwise send its own login.
+    final refused = _refused[link.key];
+    if (refused != null &&
+        refused.password == password &&
+        _now().isBefore(refused.at.add(validateEvery))) {
+      throw const SynologyShareException(
+        SynologyShareErrorKind.wrongPassword,
+        'The share did not accept the password',
+      );
+    }
     return (await _login(link, password)).sid;
   }
 
@@ -120,6 +135,7 @@ class SynologyShareSessions {
       // The share answered with an error code: for a login that means the
       // password (or the share code) was not accepted.
       if (e.code != null) {
+        _refused[link.key] = (password: password, at: _now());
         throw SynologyShareException(
           SynologyShareErrorKind.wrongPassword,
           'The share did not accept the password',
@@ -137,6 +153,7 @@ class SynologyShareSessions {
     }
     final session = _Session(sid: sid, password: password, validatedAt: _now());
     _sessions[link.key] = session;
+    _refused.remove(link.key);
     return session;
   }
 

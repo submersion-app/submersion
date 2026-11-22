@@ -109,6 +109,28 @@ void main() {
     expect(await sessions.sessionFor(_link, 'secret'), 'sid-2');
   });
 
+  test('a refused password is refused again without a login', () async {
+    await expectLater(sessions.sessionFor(_link, ''), throwsA(anything));
+    await expectLater(
+      sessions.sessionFor(_link, ''),
+      throwsA(
+        isA<SynologyShareException>().having(
+          (e) => e.kind,
+          'kind',
+          SynologyShareErrorKind.wrongPassword,
+        ),
+      ),
+    );
+    expect(share.logins, 1);
+  });
+
+  test('a refused password is tried again after a while', () async {
+    await expectLater(sessions.sessionFor(_link, ''), throwsA(anything));
+    now = now.add(sessions.validateEvery);
+    await expectLater(sessions.sessionFor(_link, ''), throwsA(anything));
+    expect(share.logins, 2);
+  });
+
   test('a changed password logs in again', () async {
     await sessions.sessionFor(_link, 'secret');
     await expectLater(sessions.sessionFor(_link, 'other'), throwsA(anything));
