@@ -167,7 +167,10 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   @override
   void initState() {
     super.initState();
-    _noteDiver(ref.read(validatedCurrentDiverIdProvider).valueOrNull);
+    // `value`, not `valueOrNull`: while the diver is being worked out again
+    // (after a divers-table change) it still holds the diver it is
+    // replacing, which is the one active as the page starts.
+    _noteDiver(ref.read(validatedCurrentDiverIdProvider).value);
     final controller = editorController;
     final target = _shortcutTarget = RecordEditShortcutTarget(
       controller: controller,
@@ -192,7 +195,9 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     _opened = true;
     // Another diver became active while the record loaded: it is not the
     // new diver's to edit. The page leaves without a sitting.
-    final diverId = ref.read(validatedCurrentDiverIdProvider).valueOrNull;
+    // `value` keeps the diver being replaced while it is worked out again;
+    // the listener sees the settled answer.
+    final diverId = ref.read(validatedCurrentDiverIdProvider).value;
     _noteDiver(diverId);
     if (_isAnotherDiver(diverId)) {
       setState(() {});

@@ -168,6 +168,7 @@ void main() {
     bool shell = false,
     bool onExit = false,
     String? diver = 'a',
+    Future<void> Function()? beforeEdit,
   }) async {
     final list = GoRoute(
       path: shell ? 'list' : '/',
@@ -236,6 +237,7 @@ void main() {
       router.push('/list');
       await tester.pumpAndSettle();
     }
+    await beforeEdit?.call();
     router.push(shell ? '/list/edit' : '/edit');
     await tester.pumpAndSettle();
     return tester.state<_FakeEditorState>(find.byType(_FakeEditorPage));
@@ -717,6 +719,37 @@ void main() {
     gate.complete('a');
     await tester.pumpAndSettle();
     expect(probe.writes, ['rec-1']);
+  });
+
+  testWidgets('a new record opened while the diver is being worked out '
+      'again closes on a switch before that settles', (tester) async {
+    final gate = Completer<String?>();
+    await pump(
+      tester,
+      storedId: null,
+      beforeEdit: () async {
+        // 'a' is settled, then worked out again: the editor opens while the
+        // provider still holds 'a' from before.
+        expect(
+          await container.read(validatedCurrentDiverIdProvider.future),
+          'a',
+        );
+        probe.diverGate = gate;
+        // A change the provider depends on (the raw id repaired) makes it
+        // reload, not refresh: the reload holds the previous diver aside.
+        await container
+            .read(currentDiverIdProvider.notifier)
+            .setCurrentDiver('a-repaired');
+        await tester.pump();
+      },
+    );
+    await type(tester, 'typed');
+    probe.diverGate = null;
+    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
+    gate.complete('b');
+    await tester.pumpAndSettle();
+    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(probe.writes, isEmpty);
   });
 
   testWidgets('a diver switch while the record loads closes the page '
