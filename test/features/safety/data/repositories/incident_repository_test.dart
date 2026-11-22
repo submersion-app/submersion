@@ -67,8 +67,9 @@ void main() {
     expect(listed.single.occurredAt, when);
     expect(listed.single.occurredAt.isUtc, isTrue);
 
-    await repo.updateIncident(
-      created.copyWith(severity: IncidentSeverity.serious),
+    await repo.applyIncidentChanges(
+      created.id,
+      const IncidentChanges(severity: IncidentSeverity.serious),
     );
     expect(
       (await repo.getIncidentById(created.id))!.severity,
@@ -193,7 +194,10 @@ void main() {
         narrative: 'n',
         equipmentId: 'reg',
       );
-      await repo.updateIncident(created.copyWith(clearEquipmentId: true));
+      await repo.applyIncidentChanges(
+        created.id,
+        const IncidentChanges(equipmentId: (value: null)),
+      );
       expect((await repo.getIncidentById(created.id))!.equipmentId, isNull);
     });
 
