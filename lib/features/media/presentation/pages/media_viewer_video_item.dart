@@ -434,7 +434,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
           // Name pills and dots on the fish (issue #4675). Out of tag mode
           // and white-point picking, which take the taps.
-          if (marineLifeIdEnabled &&
+          if (marineLifeLabelsShown &&
               widget.isCurrent &&
               !widget.people.active &&
               !widget.hideIdentifications)

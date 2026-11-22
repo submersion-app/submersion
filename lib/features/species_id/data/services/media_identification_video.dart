@@ -16,6 +16,7 @@ extension _VideoScanning on MediaIdentificationService {
     required int? cell,
     required bool cropsPresent,
     required bool embeddingsPresent,
+    required bool madeHere,
     required int generation,
   }) async {
     final manifest = pack.pack.manifest;
@@ -30,6 +31,7 @@ extension _VideoScanning on MediaIdentificationService {
             cell: cell,
             cropsPresent: cropsPresent,
             embeddingsPresent: embeddingsPresent,
+            madeHere: madeHere,
           );
     switch (action) {
       case VideoRefreshAction.none:
@@ -101,6 +103,11 @@ extension _VideoScanning on MediaIdentificationService {
           scannedMs: 0,
           // Known already: the analysed stretches show from the start.
           videoDurationMs: run?.videoDurationMs,
+          // A scan from the start is a new run here (issue #4876); its
+          // later chunks keep this id.
+          analysedBy: await _deviceId(),
+          runId: _newRunId(),
+          namingBars: NamingBars.fromNaming(manifest.naming),
         );
         if (_databaseGeneration() != generation) return false;
         await _identifications.storeRun(

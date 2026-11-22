@@ -6,6 +6,7 @@ library;
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/pack_versions.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 
 /// How much two boxes must overlap to be taken for the same animal.
@@ -233,7 +234,23 @@ RefreshAction decideRefresh({
   required int? cell,
   required bool cropsPresent,
   required bool embeddingsPresent,
+  bool madeHere = true,
 }) {
+  // A run another device made is trusted (issue #4876): its crops and
+  // embeddings are that device's, and its place was its own. Only newer
+  // models here analyse it again.
+  if (run != null && !madeHere) {
+    return hasNewerModels(
+          packVersion: packVersion,
+          detectorId: detectorId,
+          classifierId: classifierId,
+          runPackVersion: run.packVersion,
+          runDetectorId: run.detectorId,
+          runClassifierId: run.classifierId,
+        )
+        ? RefreshAction.analyse
+        : RefreshAction.none;
+  }
   if (run == null ||
       !cropsPresent ||
       run.detectorId != detectorId ||
@@ -283,6 +300,7 @@ MediaIdentification _reopenedAt(MediaIdentification i, DateTime now) =>
       claimedSpeciesId: i.claimedSpeciesId,
       confident: i.confident,
       specific: i.specific,
+      runId: i.runId,
     );
 
 /// What to store after a photo is analysed again.
@@ -395,3 +413,27 @@ MediaIdentification? _matchFor(
   }
   return null;
 }
+
+/// [rows] as shown (issue #4876): a run's own rows, and every row the diver
+/// said something on. An undecided, unclaimed row from another run is a
+/// leftover of a run that lost a sync race (two devices analysed the same
+/// media before syncing), and is hidden until the next analysis here
+/// deletes it. With no run, or a run from before run ids, every row shows.
+List<MediaIdentification> visibleRows(
+  MediaIdentificationRun? run,
+  List<MediaIdentification> rows,
+) {
+  final runId = run?.runId;
+  if (runId == null) return rows;
+  return [
+    for (final i in rows)
+      if (i.runId == null || i.runId == runId || i.saidByDiver) i,
+  ];
+}
+
+/// Whether [i] has a name to show anywhere (issue #4876): it looks like
+/// something in particular, is suggested, or the diver said something on
+/// it. Its crop then syncs with the logbook; an unnamed one's stays a file
+/// on the device that analysed it.
+bool isNamed(MediaIdentification i) =>
+    i.specific || i.suggestable || i.saidByDiver;

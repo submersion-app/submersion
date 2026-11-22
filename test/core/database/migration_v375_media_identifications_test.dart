@@ -33,27 +33,16 @@ void main() {
     expect(AppDatabase.migrationStepCount(374), greaterThanOrEqualTo(1));
   });
 
-  test(
-    'a fresh database has both tables, neither with an hlc column',
-    () async {
-      final db = AppDatabase(
-        NativeDatabase.memory(setup: registerAppSqlFunctions),
-      );
-      addTearDown(db.close);
-      final tables = await _tables(db);
-      expect(tables, contains('media_identification_runs'));
-      expect(tables, contains('media_identifications'));
-      // Never synced: sync reads and writes only tables with an hlc.
-      expect(
-        await _columns(db, 'media_identification_runs'),
-        isNot(contains('hlc')),
-      );
-      expect(
-        await _columns(db, 'media_identifications'),
-        isNot(contains('hlc')),
-      );
-    },
-  );
+  test('a fresh database has both tables', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    final tables = await _tables(db);
+    expect(tables, contains('media_identification_runs'));
+    expect(tables, contains('media_identifications'));
+    // Local at v375; v381 gave both an hlc so they sync (issue #4876).
+  });
 
   test('the identification columns are the spec\'s', () async {
     final db = AppDatabase(

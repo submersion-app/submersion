@@ -140,6 +140,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaRepairLog,
     MediaIdentificationRuns,
     MediaIdentifications,
+    MediaIdentificationCrops,
     MediaSmartAlbums,
     Settings,
     Buddies,
@@ -332,7 +333,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 380;
+  static const int currentSchemaVersion = 381;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -508,7 +509,16 @@ class AppDatabase extends _$AppDatabase {
   /// confirming the app's tags on every device. Peers below 378 are held
   /// until they update. Their own payloads still arrive here and decode
   /// cleanly: a missing column is null, the diver's own tag.
-  static const int minimumCompatibleSchemaVersion = 378;
+  ///
+  /// Raised 378 -> 381 by syncing marine life results (#4876): v381 gives
+  /// media_identification_runs and media_identifications their clocks and
+  /// adds media_identification_crops. A peer below 381 drops those keys and
+  /// moves its cursor past the changesets that carry them, so once it
+  /// upgraded it would never receive the results published before (nothing
+  /// triggers a full resync in normal use): the device that analysed
+  /// usually updates first. Held below the floor, it reads them all once it
+  /// updates. Its own payloads still arrive here and decode cleanly.
+  static const int minimumCompatibleSchemaVersion = 381;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1752,16 +1762,16 @@ class AppDatabase extends _$AppDatabase {
     374,
     // v375: media_identification_runs and media_identifications, what the
     // on-device model found on each photo (issue #4668). Tables with no
-    // hlc, never synced, so the floor does not move. Renumbered from 374,
-    // which main took for #4660.
+    // hlc then, not synced until v381, so the floor did not move.
+    // Renumbered from 374, which main took for #4660.
     375,
     // v376: video columns on media_identification_runs and
-    // media_identifications (issue #4675). Columns on tables that never
-    // sync, no backfill; the floor does not move.
+    // media_identifications (issue #4675). Columns on tables not synced
+    // until v381, no backfill; the floor did not move.
     376,
     // v377: media_identification_runs.scanned_ranges, the stretches of a
-    // video scanned (issue #4709). A column on a table that never syncs, no
-    // backfill; the floor does not move.
+    // video scanned (issue #4709). A column on a table not synced until
+    // v381, no backfill; the floor did not move.
     377,
     // v378: media_species.unconfirmed, created_sighting and created_species,
     // the marks on a tag the app applied (issue #4727). Synced columns, no
@@ -1775,6 +1785,11 @@ class AppDatabase extends _$AppDatabase {
     // computer's label is demoted (issue #4847). Data only; the floor does
     // not move.
     380,
+    // v381: marine life results sync (issue #4876): clocks on both
+    // identification tables, a run's maker, run id and naming bars, the
+    // decision clock, and media_identification_crops. The floor rises to
+    // 381 (see minimumCompatibleSchemaVersion).
+    381,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

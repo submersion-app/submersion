@@ -127,6 +127,10 @@ class ConflictReferenceResolver {
     'serviceKindId': 'serviceKinds',
     'locationId': 'equipmentLocations',
     'speciesId': 'species',
+    // What the diver decided or named on a marine life identification
+    // (issue #4876).
+    'decidedSpeciesId': 'species',
+    'claimedSpeciesId': 'species',
     'sightingId': 'sightings',
     'mediaId': 'media',
     // An item's cover photo (issue #3355).

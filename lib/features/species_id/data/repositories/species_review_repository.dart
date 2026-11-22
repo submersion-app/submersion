@@ -62,11 +62,13 @@ class SpeciesReviewRepository {
   /// [diverId] keeps the log to that diver's dives and the media on no
   /// dive. [level] is the naming level in force, null for the pack's own
   /// bars (issue #4721), so the Suggested list matches the viewer's.
+  /// [chosen] is the level the diver chose (issue #4876).
   Future<List<ReviewGroup>> load(
     ReviewScope scope, {
     required bool withSuggestions,
     String? diverId,
     LevelInForce? level,
+    NamingLevel? chosen,
   }) async {
     final diveId = switch (scope) {
       DiveReviewScope(:final diveId) => diveId,
@@ -76,7 +78,10 @@ class SpeciesReviewRepository {
       diveId: diveId,
       diverId: diverId,
     );
-    final loose = level != null && level.level != NamingLevel.surer;
+    // The level the diver chose: a run that kept its pack's naming bars is
+    // named by them at it, with or without a pack here (issue #4876).
+    final choice = chosen ?? level?.level;
+    final loose = choice != null && choice != NamingLevel.surer;
     final diveMedia = diveId == null
         ? null
         : await _media.getMediaForDive(diveId);
@@ -98,15 +103,17 @@ class SpeciesReviewRepository {
         await _media.getMediaByIds(wanted.toList());
     final ids = [for (final m in items) m.id];
 
-    // At a looser level the rows are named again by their run's pack, so
-    // both are read in one snapshot (issue #4721). No track paths: the
-    // review reads names, scores and decisions only.
-    final (runs, found) = loose
-        ? await _identifications.forMediaIdsWithRuns(ids, withPaths: false)
-        : (
-            const <String, MediaIdentificationRun>{},
-            await _identifications.forMediaIds(ids, withPaths: false),
-          );
+    // The runs and rows are read in one snapshot: at a looser level the
+    // rows are named again by their run's pack (issue #4721), and the rows
+    // shown are the run's own (issue #4876). No track paths: the review
+    // reads names, scores and decisions only.
+    final (runs, stored) = await _identifications.forMediaIdsWithRuns(
+      ids,
+      withPaths: false,
+    );
+    final found = {
+      for (final e in stored.entries) e.key: visibleRows(runs[e.key], e.value),
+    };
     final tagged = open.isEmpty
         ? const <String, List<TaggedSpecies>>{}
         : await _identifications.taggedSpeciesFor([
@@ -128,10 +135,11 @@ class SpeciesReviewRepository {
       if (rows == null || rows.isEmpty) continue;
       if (open.contains(id)) {
         suggestionsByMedia[id] = groupSuggestions(
-          applyNamingLevel(
+          applyChosenLevel(
             rows,
-            level: level,
-            namedWithPack: runs[id]?.packVersion,
+            run: runs[id],
+            chosen: choice,
+            installed: level,
           ),
           tagged[id] ?? const [],
         );

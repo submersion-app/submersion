@@ -24944,6 +24944,141 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_mediaSpecies_createdSpecies => '由应用添加的物种';
 
   @override
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion =>
+      '模型包版本';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId =>
+      '检测器';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId =>
+      '命名模型';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell =>
+      '区域单元';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt =>
+      '分析时间';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth =>
+      '分析图像宽度';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight =>
+      '分析图像高度';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount =>
+      '发现的动物';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs =>
+      '视频扫描至';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs =>
+      '视频时长';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges =>
+      '已扫描的视频片段';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy =>
+      '分析设备';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_runId => '分析';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars =>
+      '命名阈值';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxX => '框左边缘';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxY => '框上边缘';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxWidth => '框宽度';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxHeight => '框高度';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth =>
+      '框宽度（像素）';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight =>
+      '框高度（像素）';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_detectorScore =>
+      '检测器得分';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_openScore => '相似度得分';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_candidatesJson =>
+      '可能的物种';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_locationLimited =>
+      '仅限附近物种';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_suggestable => '已建议';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decision => '决定';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId =>
+      '确定的物种';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedAt => '决定时间';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId =>
+      '从画面中指定的物种';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_startMs => '首次出现';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_endMs => '最后出现';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_bestMs => '最佳时刻';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_trackPath => '视频中的轨迹';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_confident => '高置信匹配';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_specific =>
+      '看起来像特定的东西';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_runId => '分析';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decisionHlc => '决定时钟';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg => '裁剪图';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate => '体检合格证明到期';
 
   @override
@@ -27255,7 +27390,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      '这将移除所有建议及其裁剪图像。你已标记的物种不受影响。';
+      '这将在同步此日志的每台设备上移除所有建议及其裁剪图像。你已标记的物种不受影响。';
 
   @override
   String get settings_speciesId_credits => '致谢与许可';

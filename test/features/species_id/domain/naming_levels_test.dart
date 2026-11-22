@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
@@ -108,6 +109,35 @@ void main() {
     });
   });
 
+  group('levelFromBars (issue #4876)', () {
+    test('is null with no bars', () {
+      expect(levelFromBars(null, NamingLevel.eager, packVersion: 'p'), isNull);
+    });
+
+    test('names every level exactly as levelInForce does for the pack', () {
+      final pack = _pack(levels: [_balanced, _eager]);
+      final bars = NamingBars.fromNaming(pack.naming);
+      for (final chosen in NamingLevel.values) {
+        expect(
+          levelFromBars(bars, chosen, packVersion: pack.packVersion),
+          levelInForce(pack, chosen),
+          reason: chosen.id,
+        );
+      }
+    });
+
+    test('survives a round trip through the stored JSON', () {
+      final pack = _pack(levels: [_balanced, _eager]);
+      final bars = NamingBars.fromJson(
+        NamingBars.fromNaming(pack.naming).toJson(),
+      );
+      expect(
+        levelFromBars(bars, NamingLevel.eager, packVersion: pack.packVersion),
+        levelInForce(pack, NamingLevel.eager),
+      );
+    });
+  });
+
   test('LevelInForce.copyWith replaces each field and keeps the rest', () {
     const level = LevelInForce(
       level: NamingLevel.surer,
@@ -170,6 +200,60 @@ void main() {
     expect(accuracyPercent(0.7999), 75);
     expect(accuracyPercent(1.0), 100);
     expect(accuracyPercent(0.07), 5);
+  });
+
+  group('applyChosenLevel (issue #4876)', () {
+    // A row the pack's bars would suggest, stored as not suggested: as a
+    // video track renamed to another species is (suggestableOnRename).
+    final withdrawn = _named(0.9);
+
+    test('a choice that resolves to Surer on the run\'s bars reads the rows '
+        'as stored', () {
+      final unmeasured = _pack();
+      final named = run().copyWith(
+        packVersion: unmeasured.packVersion,
+        namingBars: () => NamingBars.fromNaming(unmeasured.naming),
+      );
+      expect(
+        applyChosenLevel(
+          [withdrawn],
+          run: named,
+          chosen: NamingLevel.eager,
+          installed: null,
+        ),
+        [withdrawn],
+      );
+    });
+
+    test('so does one that resolves to Surer on the installed pack', () {
+      final unmeasured = _pack();
+      expect(
+        applyChosenLevel(
+          [withdrawn],
+          run: run().copyWith(packVersion: unmeasured.packVersion),
+          chosen: NamingLevel.eager,
+          installed: levelInForce(unmeasured, NamingLevel.eager),
+        ),
+        [withdrawn],
+      );
+    });
+
+    test('a measured looser level names by its bars', () {
+      final measured = _pack(levels: [_balanced, _eager]);
+      final named = run().copyWith(
+        packVersion: measured.packVersion,
+        namingBars: () => NamingBars.fromNaming(measured.naming),
+      );
+      expect(
+        applyChosenLevel(
+          [_named(0.35)],
+          run: named,
+          chosen: NamingLevel.eager,
+          installed: null,
+        ).single.suggestable,
+        isTrue,
+      );
+    });
   });
 
   group('applyNamingLevel', () {

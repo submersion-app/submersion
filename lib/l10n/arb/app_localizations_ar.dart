@@ -26732,6 +26732,151 @@ class AppLocalizationsAr extends AppLocalizations {
       'نوع أضافه التطبيق';
 
   @override
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion =>
+      'إصدار حزمة النماذج';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId =>
+      'الكاشف';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId =>
+      'نموذج التسمية';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell =>
+      'خلية المنطقة';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt =>
+      'تاريخ التحليل';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth =>
+      'عرض الصورة المحللة';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight =>
+      'ارتفاع الصورة المحللة';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount =>
+      'الحيوانات المكتشفة';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs =>
+      'تم فحص الفيديو حتى';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs =>
+      'مدة الفيديو';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges =>
+      'مقاطع الفيديو المفحوصة';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy =>
+      'تم التحليل على الجهاز';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_runId => 'التحليل';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars =>
+      'عتبات التسمية';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxX =>
+      'الحافة اليسرى للإطار';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxY =>
+      'الحافة العلوية للإطار';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxWidth =>
+      'عرض الإطار';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxHeight =>
+      'ارتفاع الإطار';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth =>
+      'عرض الإطار بالبكسل';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight =>
+      'ارتفاع الإطار بالبكسل';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_detectorScore =>
+      'درجة الكاشف';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_openScore =>
+      'درجة التشابه';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_candidatesJson =>
+      'الأنواع المحتملة';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_locationLimited =>
+      'مقتصر على الأنواع القريبة';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_suggestable =>
+      'مقترح';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decision => 'القرار';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId =>
+      'النوع المحدد';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedAt =>
+      'تاريخ القرار';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId =>
+      'النوع المحدد من الصورة';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_startMs => 'أول ظهور';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_endMs => 'آخر ظهور';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_bestMs => 'أفضل لحظة';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_trackPath =>
+      'المسار عبر الفيديو';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_confident =>
+      'تطابق مؤكد';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_specific =>
+      'يبدو شيئًا محددًا';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_runId => 'التحليل';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decisionHlc =>
+      'ساعة القرار';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'القصاصة';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'انتهاء الشهادة الطبية';
 
@@ -29188,7 +29333,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'سيؤدي هذا إلى إزالة كل الاقتراحات وصورها المقتطعة. لن تتأثر الأنواع التي وسمتها.';
+      'سيؤدي هذا إلى إزالة كل الاقتراحات وصورها المقتطعة على كل جهاز يزامن هذا السجل. لن تتأثر الأنواع التي وسمتها.';
 
   @override
   String get settings_speciesId_credits => 'الإشادات والتراخيص';

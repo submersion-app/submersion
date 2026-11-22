@@ -73,9 +73,13 @@ clear that preference.
 What is stored:
 
 - Identifications and the diver's decisions: the main database,
-  `media_identification_runs` and `media_identifications`. Never synced.
+  `media_identification_runs` and `media_identifications`. Synced since
+  v381 (see [Sync](#sync)).
+- Crops of named identifications: the main database,
+  `media_identification_crops`, synced. Crops of unnamed ones:
+  `<application support>/species_id/crops/`, this device only.
 - Crop embeddings: the device-local cache, `identification_embeddings`.
-- Crops: `<application support>/species_id/crops/`.
+  Never synced.
 - The installed pack: `<application support>/species_id/pack/`, excluded
   from device backups (on Android by the backup rules in
   `android/app/src/main/res/xml/`, since no runtime call can exclude a
@@ -768,6 +772,51 @@ seconds) takes most of the time. Neither has been measured on a phone.
 What is checked by hand, since no automated test runs the real models:
 labels sit on the fish in a landscape and a portrait clip, and a diver or a
 hand in frame gets no dot.
+
+## Sync
+
+Issue #4876; design in
+[docs/design/specs/2026-11-22-marine-life-identification-sync-design.md](../design/specs/2026-11-22-marine-life-identification-sync-design.md).
+Results travel with the logbook, so a device that cannot run the models
+(below the memory floor, or on a platform with no engine) shows what
+another one found.
+
+- **What syncs.** Runs (`mediaIdentificationRuns`, keyed by media id),
+  identifications (`mediaIdentifications`) and the crops of named
+  identifications (`mediaIdentificationCrops`), all clock-guarded children
+  of media. A crop is synced when its identification is *named*
+  (`isNamed`: specific, suggestable, or said by the diver). Embeddings and
+  unnamed crops never leave the device that analysed.
+- **Decisions.** The diver's fields (`decision`, `decidedSpeciesId`,
+  `decidedAt`, `claimedSpeciesId`) are the `identificationDecision` sync
+  fact group, with their own clock (`decision_hlc`, null meaning unset).
+  A decision or claim stamps only that clock
+  (`IdentificationSyncMarks.decisionsWritten`); an analysis, rename or
+  video chunk stamps only the row clock. Neither can undo the other.
+- **Where a run came from.** `analysed_by` is the sync device id of the
+  device that analysed or last renamed it; a run from before v381 is
+  stamped before it first publishes. `run_id` is minted when an analysis
+  starts and kept by later video chunks and renames; rows carry it, and
+  `visibleRows` hides the undecided rows of a run that lost a sync race.
+- **The trust rule.** For a run made elsewhere, `decideRefresh` and
+  `decideVideoRefresh` analyse again only when the installed pack is
+  later *and* has a new detector, tracker or naming model
+  (`hasNewerModels`). Missing crops, embeddings or another region cell
+  never start an analysis, and a part-scanned video is never resumed.
+  Analyse again always analyses. Only the device that made a run
+  auto-applies from it.
+- **Naming bars.** Each run keeps its pack's bars (`naming_bars`), so a
+  device with no pack, or another one, names its rows at the diver's level
+  (`applyChosenLevel`).
+- **Shown versus analysed.** `marineLifeLabelsShown` gates showing results
+  (labels, modes, review, suggestions) on every platform;
+  `marineLifeIdEnabled` gates analysing and everything that offers it.
+- **Cleanup.** The launch sweep purges results only for media with a
+  `media` tombstone. Clear all tombstones runs, rows and crops, so it
+  holds on every device.
+- **At launch,** `fillIdentificationNamingBarsAtLaunch` gives this
+  device's old runs the installed pack's bars, and
+  `backfillNamedCropsAtLaunch` moves its named crop files into the table.
 
 ## Memory readout
 

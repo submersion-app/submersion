@@ -46,4 +46,38 @@ extension IdentificationMigrations on AppDatabase {
     'scanned_ranges',
     'BLOB',
   );
+
+  /// v381: what syncing the results needs (issue #4876): clocks on both
+  /// tables, a run's origin, run id and naming bars, the decision clock, and
+  /// the crops table. Each existing run gets a run id, shared by its rows.
+  /// Idempotent: a run id once written is kept.
+  Future<void> _assertIdentificationSyncSchema() async {
+    for (final column in ['hlc', 'analysed_by', 'run_id', 'naming_bars']) {
+      await _addColumnIfMissing('media_identification_runs', column, 'TEXT');
+    }
+    for (final column in ['hlc', 'run_id', 'decision_hlc']) {
+      await _addColumnIfMissing('media_identifications', column, 'TEXT');
+    }
+    await Migrator(this).createTable(mediaIdentificationCrops);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_media_identification_crops_media '
+      'ON media_identification_crops(media_id)',
+    );
+    // A partial schema (a test's, or a damaged file) may lack either table;
+    // the backstop creates them on a later open.
+    if (!await _tableExists('media_identification_runs') ||
+        !await _tableExists('media_identifications')) {
+      return;
+    }
+    await customStatement(
+      'UPDATE media_identification_runs '
+      'SET run_id = lower(hex(randomblob(16))) WHERE run_id IS NULL',
+    );
+    await customStatement(
+      'UPDATE media_identifications SET run_id = ('
+      'SELECT r.run_id FROM media_identification_runs r '
+      'WHERE r.media_id = media_identifications.media_id) '
+      'WHERE run_id IS NULL',
+    );
+  }
 }

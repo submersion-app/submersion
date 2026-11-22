@@ -26417,6 +26417,156 @@ class AppLocalizationsEs extends AppLocalizations {
       'Especie añadida por la app';
 
   @override
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion =>
+      'Versión del paquete de modelos';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId =>
+      'Detector';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId =>
+      'Modelo de nombres';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell =>
+      'Celda de región';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt =>
+      'Analizado';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth =>
+      'Ancho de la imagen analizada';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight =>
+      'Alto de la imagen analizada';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount =>
+      'Animales encontrados';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs =>
+      'Vídeo analizado hasta';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs =>
+      'Duración del vídeo';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges =>
+      'Tramos de vídeo analizados';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy =>
+      'Analizado en el dispositivo';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_runId =>
+      'Análisis';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars =>
+      'Umbrales de nombres';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxX =>
+      'Borde izquierdo del recuadro';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxY =>
+      'Borde superior del recuadro';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxWidth =>
+      'Ancho del recuadro';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxHeight =>
+      'Alto del recuadro';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth =>
+      'Ancho del recuadro en píxeles';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight =>
+      'Alto del recuadro en píxeles';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_detectorScore =>
+      'Puntuación del detector';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_openScore =>
+      'Puntuación de parecido';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_candidatesJson =>
+      'Especies posibles';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_locationLimited =>
+      'Limitado a especies cercanas';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_suggestable =>
+      'Sugerido';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decision =>
+      'Decisión';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId =>
+      'Especie decidida';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedAt =>
+      'Decidido';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId =>
+      'Especie nombrada desde la imagen';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_startMs =>
+      'Visto por primera vez';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_endMs =>
+      'Visto por última vez';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_bestMs =>
+      'Mejor momento';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_trackPath =>
+      'Recorrido en el vídeo';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_confident =>
+      'Coincidencia segura';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_specific =>
+      'Parece algo concreto';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_runId => 'Análisis';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decisionHlc =>
+      'Reloj de la decisión';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Recorte';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Vencimiento del certificado médico';
 
@@ -28912,7 +29062,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Se eliminarán todas las sugerencias y sus recortes. Las especies que has etiquetado no se ven afectadas.';
+      'Se eliminarán todas las sugerencias y sus recortes en todos los dispositivos que sincronizan este cuaderno. Las especies que has etiquetado no se ven afectadas.';
 
   @override
   String get settings_speciesId_credits => 'Créditos y licencias';

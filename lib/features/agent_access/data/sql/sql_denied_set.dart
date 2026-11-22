@@ -20,6 +20,7 @@ const Set<String> kSqlDeniedTables = {
   'deletion_log',
   'local_publish_states',
   'media_fetch_diagnostics',
+  'media_identification_crops',
   'media_repair_log',
   'media_subscription_state',
   'nearby_peers',

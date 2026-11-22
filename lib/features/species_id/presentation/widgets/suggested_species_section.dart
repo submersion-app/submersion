@@ -14,6 +14,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
+import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/recorded_nearby_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -473,12 +474,23 @@ class IdentificationCrop extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final file = ref
-        .watch(identificationCropFileProvider((mediaId, identificationId)))
+    final crop = ref
+        .watch(identificationCropProvider((mediaId, identificationId)))
         .value;
     final placeholder = _Placeholder(showReason: showReason);
-    if (file == null) return placeholder;
-    return Image.file(file, fit: fit, errorBuilder: (_, _, _) => placeholder);
+    return switch (crop) {
+      null => placeholder,
+      CropFile(:final file) => Image.file(
+        file,
+        fit: fit,
+        errorBuilder: (_, _, _) => placeholder,
+      ),
+      CropBytes(:final bytes) => Image.memory(
+        bytes,
+        fit: fit,
+        errorBuilder: (_, _, _) => placeholder,
+      ),
+    };
   }
 }
 

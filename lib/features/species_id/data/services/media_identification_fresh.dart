@@ -52,18 +52,22 @@ extension _FreshRuns on MediaIdentificationService {
     final naming = pack.pack.manifest.naming;
     final changed = [
       for (var k = 0; k < undecided.length; k++)
-        MediaIdentificationService._renamed(
-          undecided[k],
-          MediaIdentificationService._named(undecided[k], results[k], naming),
-        ),
+        _renamed(undecided[k], _named(undecided[k], results[k], naming)),
     ];
     if (_databaseGeneration() != generation) return;
-    await _identifications.updateNames(
+    final written = await _identifications.updateNames(
       changed,
       run: run.copyWith(
         packVersion: pack.pack.manifest.packVersion,
         locationCell: () => cell,
+        namingBars: () => NamingBars.fromNaming(naming),
       ),
     );
+    // Only what was written: nothing when a run synced in meanwhile, whose
+    // rows these crops are not (issue #4876).
+    await _promoteNamed(run.mediaId, [
+      for (final c in changed)
+        if (written.contains(c.id)) c,
+    ]);
   }
 }

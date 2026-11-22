@@ -63,9 +63,39 @@ bool get marineLifeIdEnabled =>
 @visibleForTesting
 set marineLifeIdEnabled(bool value) => _marineLifeIdOverride = value;
 
-/// Drops a test's override, so [marineLifeIdEnabled] follows the platform.
+/// Drops a test's override, so [marineLifeIdEnabled] follows the platform,
+/// and [marineLifeLabelsShown] with it.
 @visibleForTesting
-void resetMarineLifeIdEnabled() => _marineLifeIdOverride = null;
+void resetMarineLifeIdEnabled() {
+  _marineLifeIdOverride = null;
+  _marineLifeLabelsOverride = null;
+}
+
+/// Whether marine life results are shown (issue #4876): the labels over
+/// photos and videos, their modes, the species to review, the suggestions
+/// on a photo, and accepting, dismissing and naming from the frame. Unlike
+/// [marineLifeIdEnabled] it does not need an engine here: results analysed
+/// on another device sync, so a phone that can never run the models, the
+/// browser app included, still shows them. Analysing (and everything that
+/// offers it) stays behind [marineLifeIdEnabled].
+///
+/// Off only in a build passing `--dart-define=MARINE_LIFE_ID=false`. A test
+/// that turns [marineLifeIdEnabled] on or off turns this with it, unless it
+/// sets this too; [resetMarineLifeIdEnabled] drops both.
+bool get marineLifeLabelsShown =>
+    _marineLifeLabelsOverride ?? _marineLifeIdOverride ?? _marineLifeIdDefine;
+
+/// Overrides [marineLifeLabelsShown], for tests.
+@visibleForTesting
+set marineLifeLabelsShown(bool value) => _marineLifeLabelsOverride = value;
+
+bool? _marineLifeLabelsOverride;
+
+/// Whether labels show over videos on [platform] (issue #4876): wherever
+/// the viewer plays one, which is everywhere but Linux. Scanning a video
+/// is narrower ([visionVideoRuns]): a browser plays videos but scans none.
+bool videoLabelsShown(TargetPlatform platform, {bool web = kIsWeb}) =>
+    web || platform != TargetPlatform.linux;
 
 const _marineLifeIdDefine = bool.fromEnvironment(
   'MARINE_LIFE_ID',

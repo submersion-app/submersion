@@ -48,6 +48,8 @@ final exempt = <String, String>{
       'verdicts derived from dive analysis, recomputed from the dives',
   'lib/features/species_id/data/repositories/media_identification_repository.dart:*':
       'what the on-device model found; derived by the app, never the diver',
+  'lib/features/species_id/data/repositories/identification_crop_repository.dart:*':
+      'crops the on-device model cut from media; derived by the app',
   'lib/features/species_id/data/repositories/identification_embedding_repository.dart:*':
       'a cache',
   'lib/features/insights/data/repositories/observation_dismissals_repository.dart:*':

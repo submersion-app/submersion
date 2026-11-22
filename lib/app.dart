@@ -225,11 +225,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _republishOwnedMedia();
       _convertGearFiles();
       _importSiteCatalogue();
-      unawaited(
-        sweepIdentificationOrphansAtLaunch(
-          ref.read(identificationCleanupProvider),
-        ),
-      );
+      unawaited(runIdentificationLaunchSteps(ref.container));
       _fileShareHandler.initialize();
       _passportLinks.start();
       _buddyCardLinks.start();

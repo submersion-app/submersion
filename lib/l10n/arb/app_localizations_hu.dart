@@ -26301,6 +26301,154 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az alkalmazás vette fel a fajt';
 
   @override
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion =>
+      'Modellcsomag verziója';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId =>
+      'Detektor';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId =>
+      'Elnevezési modell';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell =>
+      'Régiócella';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt =>
+      'Elemezve';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth =>
+      'Elemzett kép szélessége';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight =>
+      'Elemzett kép magassága';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount =>
+      'Talált állatok';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs =>
+      'Videó átvizsgálva eddig';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs =>
+      'Videó hossza';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges =>
+      'Átvizsgált videószakaszok';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy =>
+      'Elemezve ezen az eszközön';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_runId => 'Elemzés';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars =>
+      'Elnevezési küszöbök';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxX =>
+      'Keret bal széle';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxY =>
+      'Keret felső széle';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxWidth =>
+      'Keret szélessége';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxHeight =>
+      'Keret magassága';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth =>
+      'Keret szélessége képpontban';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight =>
+      'Keret magassága képpontban';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_detectorScore =>
+      'Detektor pontszáma';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_openScore =>
+      'Hasonlósági pontszám';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_candidatesJson =>
+      'Lehetséges fajok';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_locationLimited =>
+      'Közeli fajokra korlátozva';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_suggestable =>
+      'Javasolva';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decision => 'Döntés';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId =>
+      'Kiválasztott faj';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedAt =>
+      'Eldöntve';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId =>
+      'A képen megnevezett faj';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_startMs =>
+      'Először látva';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_endMs =>
+      'Utoljára látva';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_bestMs =>
+      'Legjobb pillanat';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_trackPath =>
+      'Útvonal a videóban';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_confident =>
+      'Biztos egyezés';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_specific =>
+      'Valami konkrétnak tűnik';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_runId => 'Elemzés';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decisionHlc =>
+      'Döntés órája';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Kivágás';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Orvosi alkalmasság lejárata';
 
@@ -28763,7 +28911,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Ez eltávolít minden javaslatot és a hozzájuk tartozó kivágott képeket. Az általad címkézett fajok megmaradnak.';
+      'Ez eltávolít minden javaslatot és a hozzájuk tartozó kivágott képeket minden eszközön, amely ezt a naplót szinkronizálja. Az általad címkézett fajok megmaradnak.';
 
   @override
   String get settings_speciesId_credits => 'Köszönetnyilvánítás és licencek';

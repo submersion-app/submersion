@@ -8,6 +8,7 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/data/repositories/species_review_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
@@ -258,6 +259,50 @@ void main() {
     );
   });
 
+  test('with no pack installed, the chosen level names a run by the bars it '
+      'kept (issue #4876)', () async {
+    await insertTestMedia(id: 'p4', diveId: 'd1');
+    await identifications.storeRun(
+      run(mediaId: 'p4').copyWith(
+        namingBars: () => const NamingBars(
+          minCropSide: 64,
+          minOpenScore: 0.1,
+          suggestScore: 0.95,
+          suggestScoreNoLocation: 0.95,
+          levels: [
+            MeasuredNamingLevel(
+              level: NamingLevel.eager,
+              target: 0.65,
+              suggestScore: 0.3,
+              suggestScoreNoLocation: 0.3,
+              precision: 0.7,
+            ),
+          ],
+        ),
+      ),
+      insert: [
+        identification('i-p4', mediaId: 'p4').copyWith(suggestable: false),
+      ],
+      deleteIds: const [],
+    );
+
+    final surer = await review.load(
+      const DiveReviewScope('d1'),
+      withSuggestions: true,
+      chosen: NamingLevel.surer,
+    );
+    final eager = await review.load(
+      const DiveReviewScope('d1'),
+      withSuggestions: true,
+      chosen: NamingLevel.eager,
+    );
+
+    int suggested(List<ReviewGroup> g) => g.isEmpty
+        ? 0
+        : g.single.suggested.fold(0, (n, r) => n + r.items.length);
+    expect(suggested(eager), suggested(surer) + 1);
+  });
+
   test('a looser naming level suggests a crop below the pack\'s bar', () async {
     await insertTestMedia(id: 'p3', diveId: 'd1');
     await identifications.storeRun(
@@ -291,8 +336,8 @@ void main() {
     expect(suggested(loose), suggested(stored) + 1);
   });
 
-  test('a looser level reads each media\'s run and rows in one snapshot '
-      '(issue #4721), and no track paths', () async {
+  test('each media\'s run and rows are read in one snapshot (issues #4721, '
+      '#4876), and no track paths', () async {
     final spy = _SpyIdentifications();
     final spied = SpeciesReviewRepository(
       tags: tags,
@@ -319,9 +364,11 @@ void main() {
     // none of them decodes track paths.
     expect(spy.reads, ['snapshot', 'runs', 'rows']);
 
+    // The pack's own level reads the snapshot too: the rows shown are
+    // each run's own (issue #4876).
     spy.reads.clear();
     await spied.load(const DiveReviewScope('d1'), withSuggestions: true);
-    expect(spy.reads, ['rows']);
+    expect(spy.reads, ['snapshot', 'runs', 'rows']);
   });
 
   test('a dive is headed by its own name before its site\'s', () async {

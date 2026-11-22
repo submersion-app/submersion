@@ -47,6 +47,7 @@ void main() {
   late Directory support;
   late _SpyIdentifications identifications;
   late MediaIdentificationService service;
+  var deviceReads = 0;
   final installed = pack().pack.manifest;
   const reef = GeoPoint(12.1, -68.9);
 
@@ -78,6 +79,7 @@ void main() {
     support = await Directory.systemTemp.createTemp('identification_ready');
     identifications = _SpyIdentifications(database: library);
     var ids = 0;
+    deviceReads = 0;
     service = MediaIdentificationService(
       engine: FakeEngine(),
       loadPack: () async => pack(),
@@ -91,6 +93,10 @@ void main() {
       databaseGeneration: () => 0,
       now: () => DateTime.utc(2026, 11, 18),
       newId: () => 'id-${ids++}',
+      deviceId: () async {
+        deviceReads++;
+        return 'phone';
+      },
     );
   });
   tearDown(() async {
@@ -123,6 +129,15 @@ void main() {
       {'m1'},
     );
     expect(identifications.reads, isEmpty);
+  });
+
+  test('reads this device\'s id once for every item, not once each (issue '
+      '#4876)', () async {
+    await lookAt(photo('m1'));
+    await lookAt(photo('m2'));
+    deviceReads = 0;
+    expect(await upToDate([photo('m1'), photo('m2')]), {'m1', 'm2'});
+    expect(deviceReads, 1);
   });
 
   test('a photo never looked at is not', () async {

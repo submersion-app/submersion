@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/species_id/data/services/identification_crop
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
@@ -32,6 +34,7 @@ import 'package:submersion/features/species_id/domain/services/vision_engine.dar
 part 'media_identification_fresh.dart';
 part 'media_identification_queue.dart';
 part 'media_identification_readiness.dart';
+part 'media_identification_reads.dart';
 part 'media_identification_run_lane.dart';
 part 'media_identification_video.dart';
 
@@ -72,6 +75,9 @@ class MediaIdentificationService {
     int firstVideoChunkMs = 2000,
     Future<void> Function(MediaItem item, int generation)? onItemSettled,
     Future<LevelInForce?> Function()? namingLevel,
+    NamingLevel Function()? chosenLevel,
+    Future<String?> Function()? deviceId,
+    String Function()? newRunId,
   }) : _engine = engine,
        _loadPack = loadPack,
        _identifications = identifications,
@@ -91,7 +97,10 @@ class MediaIdentificationService {
        _memoryReadout = memoryReadout,
        _firstVideoChunkMs = firstVideoChunkMs,
        _onItemSettled = onItemSettled ?? ((_, _) async {}),
-       _namingLevel = namingLevel ?? (() async => null);
+       _namingLevel = namingLevel ?? (() async => null),
+       _chosenLevel = chosenLevel,
+       _deviceId = deviceId ?? syncDeviceIdOrNull,
+       _newRunId = newRunId ?? const Uuid().v4;
 
   final VisionEngine _engine;
   final Future<LoadedPack?> Function() _loadPack;
@@ -134,6 +143,20 @@ class MediaIdentificationService {
   /// The naming level the diver chose, as the installed pack names at it,
   /// or null for the pack's own bars (issue #4721).
   final Future<LevelInForce?> Function() _namingLevel;
+
+  /// The level the diver chose (issue #4876), so a run that kept its
+  /// pack's naming bars reconciles at it with no pack installed. Null reads
+  /// the level from [_namingLevel] alone.
+  final NamingLevel Function()? _chosenLevel;
+
+  /// This device's sync id, which a run records as its maker (issue #4876),
+  /// or null when it cannot be read: the run then counts as this device's
+  /// and is stamped before it first publishes.
+  final Future<String?> Function() _deviceId;
+
+  /// A run id, minted when an analysis of a media starts (issue #4876).
+  final String Function() _newRunId;
+
   final _log = LoggerService.forClass(MediaIdentificationService);
 
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
@@ -314,6 +337,7 @@ class MediaIdentificationService {
         _identifications,
         mediaId,
         await _namingLevel(),
+        chosen: _chosenLevel?.call(),
       );
       if (all.isEmpty) return;
       final changed = reconcileDecisions(
@@ -323,6 +347,7 @@ class MediaIdentificationService {
       );
       if (changed.isNotEmpty && _databaseGeneration() == generation) {
         await _identifications.updateDecisions(changed);
+        await _promoteNamed(mediaId, changed);
       }
     } on Object catch (e) {
       _log.debug('Could not reconcile identifications of $mediaId', error: e);
@@ -348,6 +373,7 @@ class MediaIdentificationService {
       ];
       if (changed.isNotEmpty && _databaseGeneration() == generation) {
         await _identifications.updateDecisions(changed);
+        await _promoteNamed(mediaId, changed);
       }
     } on Object catch (e) {
       _log.debug('Could not dismiss suggestions of $mediaId', error: e);
@@ -366,6 +392,8 @@ class MediaIdentificationService {
   ) async {
     try {
       await _identifications.claim(identificationId, speciesId);
+      // Named now: its crop syncs (issue #4876).
+      await _crops.promote(mediaId, [identificationId]);
     } on Object catch (e) {
       _log.debug('Could not record the fish named on $mediaId', error: e);
     }
@@ -473,7 +501,14 @@ class MediaIdentificationService {
       final cell = _regionCell(manifest, job.location);
 
       final run = await _identifications.runFor(item.id);
-      final stored = await _identifications.forMedia(item.id);
+      final madeHere = await _madeHere(run);
+      final stored = await _withoutLeftovers(
+        item.id,
+        run,
+        await _identifications.forMedia(item.id),
+        madeHere: madeHere,
+        generation: generation,
+      );
       // A video's fish kept unnamed at a stop have no crop or embedding
       // yet: the resumed scan names them.
       final named = [
@@ -511,6 +546,7 @@ class MediaIdentificationService {
           cell: cell,
           cropsPresent: cropsPresent,
           embeddingsPresent: embeddingsPresent,
+          madeHere: madeHere,
           generation: generation,
         );
       } else {
@@ -524,6 +560,7 @@ class MediaIdentificationService {
                 cell: cell,
                 cropsPresent: cropsPresent,
                 embeddingsPresent: embeddingsPresent,
+                madeHere: madeHere,
               );
         switch (action) {
           case RefreshAction.none:
@@ -641,6 +678,9 @@ class MediaIdentificationService {
         imageWidth: analysis.imageWidth,
         imageHeight: analysis.imageHeight,
         detectionCount: carried.keep.length + carried.insert.length,
+        analysedBy: await _deviceId(),
+        runId: _newRunId(),
+        namingBars: NamingBars.fromNaming(manifest.naming),
       ),
       insert: carried.insert,
       deleteIds: carried.deleteIds,
@@ -653,40 +693,14 @@ class MediaIdentificationService {
       for (final i in carried.insert) i.id: byId[i.id]!.embedding,
     }, classifierId: manifest.classifier.embeddingId);
     for (final i in carried.insert) {
-      await _crops.write(item.id, i.id, byId[i.id]!.cropJpeg);
+      await _crops.write(
+        item.id,
+        i.id,
+        byId[i.id]!.cropJpeg,
+        named: isNamed(i),
+      );
     }
     await _crops.markAnalysed(item.id);
-  }
-
-  /// [identification] with what naming found, including the label flags.
-  static MediaIdentification _named(
-    MediaIdentification identification,
-    NamingResult result,
-    NamingConfig naming,
-  ) {
-    final flags = namingFlags(result, naming);
-    return identification.copyWith(
-      openScore: result.openScore,
-      candidates: result.candidates,
-      locationLimited: result.locationLimited,
-      suggestable: result.suggestable,
-      confident: flags.confident,
-      specific: flags.specific,
-    );
-  }
-
-  /// [renamed] as [suggestableOnRename] allows, given [before]: a video
-  /// track keeps a suggestion only under the same name.
-  static MediaIdentification _renamed(
-    MediaIdentification before,
-    MediaIdentification renamed,
-  ) {
-    final suggestable = suggestableOnRename(before: before, renamed: renamed);
-    if (suggestable == renamed.suggestable) return renamed;
-    return renamed.copyWith(
-      suggestable: suggestable,
-      confident: renamed.confident && suggestable,
-    );
   }
 
   /// Runs the models over [image]. Models the system unloaded behind the
@@ -753,22 +767,4 @@ class MediaIdentificationService {
       _log.debug('Could not unload the marine life models', error: e);
     }
   }
-}
-
-/// [mediaId]'s identifications as [level] would suggest them, when the
-/// pack in force named them (issue #4721). The run and rows are read in
-/// one snapshot, so the pack the run names is the pack the rows were
-/// named with: a rename landing in between cannot pair them wrongly.
-Future<List<MediaIdentification>> identificationsAtLevel(
-  MediaIdentificationRepository repository,
-  String mediaId,
-  LevelInForce? level,
-) async {
-  // Surer is the pack's own bars, so its rows read as stored: no run to
-  // read and nothing to work out again.
-  if (level == null || level.level == NamingLevel.surer) {
-    return repository.forMedia(mediaId);
-  }
-  final (run, rows) = await repository.forMediaWithRun(mediaId);
-  return applyNamingLevel(rows, level: level, namedWithPack: run?.packVersion);
 }

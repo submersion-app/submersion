@@ -145,7 +145,7 @@ void main() {
           ).overrideWith((ref) => Stream.value(busy)),
           mediaIdentificationServiceProvider.overrideWithValue(service),
           suggestionAcceptorProvider.overrideWithValue(acceptor),
-          identificationCropFileProvider.overrideWith((ref, key) async => null),
+          identificationCropProvider.overrideWith((ref, key) async => null),
           allSpeciesProvider.overrideWith((ref) async => allSpecies),
           mediaIdentificationProgressProvider(
             'p1',

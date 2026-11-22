@@ -76,6 +76,38 @@ void main() {
 
   // Without this index every per-dive media read walks the whole library,
   // so a trip's cost was dives times library size (issue #3832).
+  test('the sync watermark reads of marine life results use an index, not '
+      'a scan past every crop image (issue #4876)', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+
+    Future<String> plan(String sql) async =>
+        (await db.customSelect('EXPLAIN QUERY PLAN $sql').get())
+            .map((r) => r.read<String>('detail'))
+            .join('\n');
+
+    expect(
+      await plan("SELECT id FROM media_identification_crops WHERE hlc > 'a'"),
+      contains('idx_media_identification_crops_hlc'),
+    );
+    expect(
+      await plan('SELECT id FROM media_identification_crops WHERE hlc IS NULL'),
+      contains('idx_media_identification_crops_hlc'),
+    );
+    expect(
+      await plan("SELECT id FROM media_identifications WHERE hlc > 'a'"),
+      contains('idx_media_identifications_hlc'),
+    );
+    expect(
+      await plan(
+        "SELECT id FROM media_identifications WHERE decision_hlc > 'a'",
+      ),
+      contains('idx_media_identifications_decision_hlc'),
+    );
+  });
+
   test('a dive finds its media through idx_media_dive_taken', () async {
     final db = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),

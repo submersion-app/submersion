@@ -7,6 +7,7 @@ library;
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
@@ -67,21 +68,35 @@ List<NamingLevel> offeredLevels(NamingConfig naming) => naming.levels.isEmpty
 /// The level [manifest]'s pack names at when the diver chose [chosen]: the
 /// chosen one if the pack carries it, else the nearest surer one it does.
 /// Null with no pack.
-LevelInForce? levelInForce(SpeciesPackManifest? manifest, NamingLevel chosen) {
-  if (manifest == null) return null;
-  final naming = manifest.naming;
+LevelInForce? levelInForce(SpeciesPackManifest? manifest, NamingLevel chosen) =>
+    manifest == null
+    ? null
+    : levelFromBars(
+        NamingBars.fromNaming(manifest.naming),
+        chosen,
+        packVersion: manifest.packVersion,
+      );
+
+/// [levelInForce] from the bars a run kept of the pack that named it
+/// (issue #4876), for a device with no pack or another one. Null with none.
+LevelInForce? levelFromBars(
+  NamingBars? bars,
+  NamingLevel chosen, {
+  required String packVersion,
+}) {
+  if (bars == null) return null;
   MeasuredNamingLevel? measured;
-  for (final level in naming.levels) {
+  for (final level in bars.levels) {
     if (level.level.index <= chosen.index) measured = level;
   }
   return LevelInForce(
     level: measured?.level ?? NamingLevel.surer,
-    packVersion: manifest.packVersion,
-    minCropSide: naming.minCropSide,
-    minOpenScore: naming.minOpenScore,
-    suggestScore: measured?.suggestScore ?? naming.suggestScore,
+    packVersion: packVersion,
+    minCropSide: bars.minCropSide,
+    minOpenScore: bars.minOpenScore,
+    suggestScore: measured?.suggestScore ?? bars.suggestScore,
     suggestScoreNoLocation:
-        measured?.suggestScoreNoLocation ?? naming.suggestScoreNoLocation,
+        measured?.suggestScoreNoLocation ?? bars.suggestScoreNoLocation,
   );
 }
 
@@ -128,4 +143,27 @@ List<MediaIdentification> applyNamingLevel(
   return [
     for (final i in all) i.copyWith(suggestable: suggestableAt(i, level)),
   ];
+}
+
+/// [all], the rows of [run], as the diver's [chosen] level would suggest
+/// them (issue #4876). By the bars the run kept of the pack that named it,
+/// when it kept them: so a device with no pack, or another one, shows what
+/// the device that analysed it shows. Otherwise as [applyNamingLevel] reads
+/// them with [installed], the installed pack's level in force. Surer, no
+/// choice, or a choice the pack measured no looser level for (it resolves
+/// to Surer) reads as stored: the stored flags also carry what naming alone
+/// does not, such as a renamed video track keeping no suggestion.
+List<MediaIdentification> applyChosenLevel(
+  List<MediaIdentification> all, {
+  required MediaIdentificationRun? run,
+  required NamingLevel? chosen,
+  required LevelInForce? installed,
+}) {
+  if (chosen == NamingLevel.surer) return all;
+  final bars = run?.namingBars;
+  final level = chosen != null && bars != null
+      ? levelFromBars(bars, chosen, packVersion: run!.packVersion)
+      : installed;
+  if (level == null || level.level == NamingLevel.surer) return all;
+  return applyNamingLevel(all, level: level, namedWithPack: run?.packVersion);
 }

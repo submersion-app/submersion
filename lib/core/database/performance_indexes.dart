@@ -664,6 +664,28 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_media_identifications_media '
         'ON media_identifications(media_id)',
   ),
+  // The sync watermark filters on marine life results (issue #4876): the
+  // export, the clock seed's MAX and the launch republish of unstamped
+  // crops. Each clock sits after a blob (a crop's JPEG, a track's path),
+  // so unindexed every read walks past each one.
+  (
+    name: 'idx_media_identifications_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_identifications_hlc '
+        'ON media_identifications(hlc)',
+  ),
+  (
+    name: 'idx_media_identifications_decision_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_identifications_decision_hlc '
+        'ON media_identifications(decision_hlc)',
+  ),
+  (
+    name: 'idx_media_identification_crops_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_identification_crops_hlc '
+        'ON media_identification_crops(hlc)',
+  ),
 ];
 
 /// Creates any canonical index missing from [db], returning the names of

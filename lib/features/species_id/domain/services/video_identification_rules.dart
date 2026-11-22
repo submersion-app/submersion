@@ -8,6 +8,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/pack_versions.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
@@ -38,7 +39,23 @@ VideoRefreshAction decideVideoRefresh({
   required int? cell,
   required bool cropsPresent,
   required bool embeddingsPresent,
+  bool madeHere = true,
 }) {
+  // A run another device made is trusted (issue #4876), and never resumed:
+  // joining tracks across where its scan stopped needs that device's
+  // embeddings. Only newer models here scan it again, from the start.
+  if (run != null && !madeHere) {
+    return hasNewerModels(
+          packVersion: packVersion,
+          detectorId: detectorId,
+          classifierId: classifierId,
+          runPackVersion: run.packVersion,
+          runDetectorId: run.detectorId,
+          runClassifierId: run.classifierId,
+        )
+        ? VideoRefreshAction.rescan
+        : VideoRefreshAction.none;
+  }
   if (run == null ||
       !cropsPresent ||
       run.detectorId != detectorId ||
@@ -299,6 +316,7 @@ MediaIdentification _decided(
   path: i.path,
   confident: i.confident,
   specific: i.specific,
+  runId: i.runId,
 );
 
 /// Where two scanned stretches meet at [seamMs] (issue #4709): which of

@@ -135,4 +135,26 @@ void main() {
     resetMarineLifeIdEnabled();
     expect(marineLifeIdEnabled, isTrue);
   });
+
+  group('labels shown (issue #4876)', () {
+    tearDown(resetMarineLifeIdEnabled);
+
+    test('follow the feature, not the engine, unless set', () {
+      marineLifeIdEnabled = false;
+      expect(marineLifeLabelsShown, isFalse);
+      marineLifeLabelsShown = true;
+      expect(marineLifeLabelsShown, isTrue);
+      expect(marineLifeIdEnabled, isFalse);
+      resetMarineLifeIdEnabled();
+      marineLifeIdEnabled = true;
+      expect(marineLifeLabelsShown, isTrue);
+    });
+
+    test('video labels show wherever the viewer plays videos', () {
+      expect(videoLabelsShown(TargetPlatform.android, web: false), isTrue);
+      expect(videoLabelsShown(TargetPlatform.windows, web: false), isTrue);
+      expect(videoLabelsShown(TargetPlatform.linux, web: false), isFalse);
+      expect(videoLabelsShown(TargetPlatform.linux, web: true), isTrue);
+    });
+  });
 }

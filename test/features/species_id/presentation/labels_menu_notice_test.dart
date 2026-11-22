@@ -33,6 +33,13 @@ class _StoredRepository extends MediaIdentificationRepository {
 
   @override
   Future<List<MediaIdentification>> forMedia(String mediaId) async => rows;
+
+  /// The run and rows in one snapshot, as the readers take them since the
+  /// rows shown follow their run (issue #4876).
+  @override
+  Future<(MediaIdentificationRun?, List<MediaIdentification>)> forMediaWithRun(
+    String mediaId,
+  ) async => (run, rows);
 }
 
 MediaIdentificationRun _run(String mediaId, {int? scannedMs, int? lengthMs}) =>

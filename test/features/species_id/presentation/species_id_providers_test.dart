@@ -21,6 +21,7 @@ import 'package:submersion/features/species_id/data/engines/channel_vision_engin
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
@@ -155,13 +156,19 @@ void main() {
 
     setUp(() async {
       support = await Directory.systemTemp.createTemp('crop_providers');
-      crops = IdentificationCropStore(supportPath: () async => support.path);
+      crops = IdentificationCropStore(
+        supportPath: () async => support.path,
+        table: IdentificationCropRepository(database: db),
+      );
       withCrops = ProviderContainer(
         overrides: [
           mediaIdentificationRepositoryProvider.overrideWithValue(
             MediaIdentificationRepository(database: db),
           ),
           identificationCropStoreProvider.overrideWithValue(crops),
+          identificationCropRepositoryProvider.overrideWithValue(
+            IdentificationCropRepository(database: db),
+          ),
         ],
       );
     });
@@ -172,20 +179,65 @@ void main() {
 
     test('a crop written after it was looked for shows', () async {
       const key = ('m1', 'i1');
-      final sub = withCrops.listen(
-        identificationCropFileProvider(key),
-        (_, _) {},
-      );
+      final sub = withCrops.listen(identificationCropProvider(key), (_, _) {});
       addTearDown(sub.close);
       expect(
-        await withCrops.read(identificationCropFileProvider(key).future),
+        await withCrops.read(identificationCropProvider(key).future),
         isNull,
       );
       await crops.write('m1', 'i1', Uint8List.fromList([0xFF, 0xD8]));
       await pumpEventQueue();
       expect(
-        await withCrops.read(identificationCropFileProvider(key).future),
+        await withCrops.read(identificationCropProvider(key).future),
         isNotNull,
+      );
+    });
+
+    test('a named crop synced from another device shows, and follows the '
+        'logbook (issue #4876)', () async {
+      const key = ('m1', 'i2');
+      final sub = withCrops.listen(identificationCropProvider(key), (_, _) {});
+      addTearDown(sub.close);
+      expect(
+        await withCrops.read(identificationCropProvider(key).future),
+        isNull,
+      );
+      // As a sync writes it: straight into the table.
+      await IdentificationCropRepository(
+        database: db,
+      ).put('i2', 'm1', Uint8List.fromList([0xFF, 0xD8, 9]));
+      await pumpEventQueue();
+      final crop = await withCrops.read(identificationCropProvider(key).future);
+      expect(crop, isA<CropBytes>());
+      expect((crop! as CropBytes).bytes, [0xFF, 0xD8, 9]);
+    });
+
+    test('a crop already shown is not read again when other crops sync in, '
+        'so its picture is not drawn again (issue #4876)', () async {
+      const key = ('m1', 'i3');
+      final table = IdentificationCropRepository(database: db);
+      await table.put('i3', 'm1', Uint8List.fromList([0xFF, 0xD8, 3]));
+      var builds = 0;
+      final sub = withCrops.listen(identificationCropProvider(key), (_, next) {
+        if (next.hasValue) builds++;
+      }, fireImmediately: true);
+      addTearDown(sub.close);
+      final shown = await withCrops.read(
+        identificationCropProvider(key).future,
+      );
+      await pumpEventQueue();
+      final before = builds;
+
+      await table.put('other', 'm2', Uint8List.fromList([0xFF, 0xD8, 4]));
+      await pumpEventQueue();
+
+      expect(builds, before);
+      expect(
+        identical(
+          await withCrops.read(identificationCropProvider(key).future),
+          shown,
+        ),
+        isTrue,
       );
     });
 
@@ -371,6 +423,10 @@ void main() {
   });
 
   group('the naming level (issue #4721)', () {
+    // A pack is read only where the models run; the file's tearDown puts
+    // the flag back.
+    setUp(() => marineLifeIdEnabled = true);
+
     // The fixture pack names at 0.50 with a location; Eager at 0.3.
     InstalledPack levelledPack() => InstalledPack(
       manifest: SpeciesPackManifest.parse(
@@ -569,6 +625,29 @@ void main() {
       final notifier = NamingLevelNotifier(prefs);
       expect(notifier.state, NamingLevel.surer);
       expect(notifier.picked, isTrue);
+    });
+
+    test('where no model can run, no pack is ever read: a run\'s own bars '
+        'name its rows (issue #4876)', () async {
+      marineLifeIdEnabled = false;
+      var reads = 0;
+      final c = ProviderContainer(
+        overrides: [
+          installedSpeciesPackProvider.overrideWith((ref) async {
+            reads++;
+            return levelledPack();
+          }),
+          namingLevelNotifierProvider.overrideWith(
+            (ref) =>
+                NamingLevelNotifier.unstored(NamingLevel.eager, picked: true),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      expect(c.read(levelInForceProvider), isNull);
+      expect(await awaitLevelInForce(c), isNull);
+      await pumpEventQueue();
+      expect(reads, 0);
     });
 
     test('Surer is no level and never reads the pack', () async {
