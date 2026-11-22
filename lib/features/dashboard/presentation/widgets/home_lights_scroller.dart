@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -43,8 +44,9 @@ class HomeLightsScrollerState extends State<HomeLightsScroller> {
   /// order, so a right-to-left bar fades its right edge as its start.
   void _update(ScrollMetrics metrics) {
     if (!metrics.hasContentDimensions) return;
-    final start = metrics.extentBefore > 0;
-    final end = metrics.extentAfter > 0;
+    // A fling or a fractional pixel ratio can stop a hair short of an end.
+    final start = metrics.extentBefore > precisionErrorTolerance;
+    final end = metrics.extentAfter > precisionErrorTolerance;
     if (start == _fadesStart && end == _fadesEnd) return;
     setState(() {
       _fadesStart = start;

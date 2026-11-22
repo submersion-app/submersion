@@ -87,4 +87,21 @@ void main() {
     expect(_state(tester).fadesEnd, isFalse);
     expect(_mask, findsNothing);
   });
+
+  testWidgets('the scroll view survives the mask going in and out', (
+    tester,
+  ) async {
+    await _pump(tester, width: 900);
+    final scrollable = find.descendant(
+      of: find.byType(HomeLightsScroller),
+      matching: find.byType(Scrollable),
+    );
+    final before = tester.state<ScrollableState>(scrollable);
+    await _pump(tester, width: 300);
+    expect(_mask, findsOneWidget);
+    expect(tester.state<ScrollableState>(scrollable), same(before));
+    await _pump(tester, width: 900);
+    expect(_mask, findsNothing);
+    expect(tester.state<ScrollableState>(scrollable), same(before));
+  });
 }

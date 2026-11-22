@@ -462,6 +462,23 @@ void main() {
     });
   }
 
+  testWidgets('no stray divider with every light hidden', (tester) async {
+    await _pump(
+      tester,
+      width: 1280,
+      divers: 2,
+      gauges: () async => const DashboardGauges(
+        hasGear: true,
+        insurance: null,
+        noFlyStatus: null,
+        daysSinceLastDive: null,
+      ),
+      hiddenChips: {for (final t in HomeChipType.values) t.name},
+    );
+    expect(find.byType(HomeLightChip), findsNothing);
+    expect(find.byKey(HomeHeaderBar.dividerKey), findsNothing);
+  });
+
   testWidgets('phone: no divider, the lights sit in the strip', (tester) async {
     await _pump(tester, width: 400, divers: 2);
     expect(find.byKey(HomeHeaderBar.dividerKey), findsNothing);

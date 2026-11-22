@@ -51,8 +51,9 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
 /// Home's slim header: a + button at the leading edge for the quick actions
 /// (logging and planning a dive, the buddy swap and the emergency card), the
 /// status lights after it (tablet and up) then a divider, the diver switcher
-/// with more than one diver profile, and the logo (no wordmark) closing the bar, which
-/// opens About Submersion. Every control has at least a 44 by 44 hit area.
+/// with more than one diver profile, and the logo (no wordmark) closing the
+/// bar, which opens About Submersion. Every control has at least a 44 by 44
+/// hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
 
@@ -75,9 +76,13 @@ class HomeHeaderBar extends ConsumerWidget {
     final phone = homeWidthTierOf(context) == HomeWidthTier.phone;
     final gaugesAsync = ref.watch(dashboardGaugesProvider);
     final lights = _watchLights(context, ref);
+    final retry = gaugesAsync.hasError && lights == null;
+    // The divider parts lights from the diver, so it shows only with a light
+    // (or the retry pill) in the row.
+    final divided = !phone && (retry || (lights?.isNotEmpty ?? false));
 
     Widget lightsRow() {
-      if (gaugesAsync.hasError && lights == null) {
+      if (retry) {
         return Align(
           alignment: AlignmentDirectional.centerStart,
           child: HomeLightChip(_retryLight(context, ref), dense: true),
@@ -114,7 +119,7 @@ class HomeHeaderBar extends ConsumerWidget {
             // A rule with space each side parts the lights from the diver
             // and the logo, so the last pill never runs into the switcher
             // (issue #4920).
-            if (!phone)
+            if (divided)
               Padding(
                 key: dividerKey,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
