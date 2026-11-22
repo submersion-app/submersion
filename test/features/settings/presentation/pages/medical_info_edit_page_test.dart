@@ -1,6 +1,6 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DiversCompanion;
