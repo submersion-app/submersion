@@ -65,8 +65,10 @@ class OnnxPipeline {
   final List<ModelRunner> _detectors;
   final ModelRunner _classifier;
 
-  /// Detects, crops and embeds. A box too small to crop is left out.
-  PipelineResult analyze(RgbaImage image) {
+  /// Detects, crops and embeds, in sRGB ([inSrgb]: a photo's own colour
+  /// profile applied first). A box too small to crop is left out.
+  PipelineResult analyze(RgbaImage photo) {
+    final image = inSrgb(photo);
     final detectWatch = Stopwatch()..start();
     final runs = _detectEach(image);
     final boxes = _combined(runs);

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/colour_profile.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
@@ -37,12 +38,26 @@ Future<RgbaImage> decodeForAnalysis(
     if (data == null) {
       throw const VisionEngineException('decode_failed', 'no pixels');
     }
-    final decoded = RgbaImage(
-      image.width,
-      image.height,
-      data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+    final decoded = fittedWithin(
+      RgbaImage(
+        image.width,
+        image.height,
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      ),
+      maxSide,
     );
-    return fittedWithin(decoded, maxSide);
+    // Flutter hands back the stored values whatever the photo's profile;
+    // the conversion to sRGB, as the Core ML engine's photos are drawn,
+    // rides along to the worker, which applies it off this isolate.
+    final colour = srgbConversionOf(encoded);
+    return colour == null
+        ? decoded
+        : RgbaImage(
+            decoded.width,
+            decoded.height,
+            decoded.bytes,
+            colour: colour,
+          );
   } on VisionEngineException {
     rethrow;
   } on Object catch (e) {

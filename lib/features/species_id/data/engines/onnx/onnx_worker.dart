@@ -7,6 +7,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker_core.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/ort_model_runner.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/colour_profile.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/onnx_pipeline.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
@@ -212,7 +213,7 @@ class OnnxWorker implements OnnxWorkerHandle {
   }
 }
 
-typedef _Image = (int, int, TransferableTypedData);
+typedef _Image = (int, int, TransferableTypedData, SrgbConversion?);
 
 /// Runs [work], which answers nothing.
 Object? _done(void Function() work) {
@@ -220,11 +221,19 @@ Object? _done(void Function() work) {
   return null;
 }
 
-_Image _send(RgbaImage image) =>
-    (image.width, image.height, TransferableTypedData.fromList([image.bytes]));
+_Image _send(RgbaImage image) => (
+  image.width,
+  image.height,
+  TransferableTypedData.fromList([image.bytes]),
+  image.colour,
+);
 
-RgbaImage _receive(_Image image) =>
-    RgbaImage(image.$1, image.$2, image.$3.materialize().asUint8List());
+RgbaImage _receive(_Image image) => RgbaImage(
+  image.$1,
+  image.$2,
+  image.$3.materialize().asUint8List(),
+  colour: image.$4,
+);
 
 void _workerMain(
   (SendPort, String?, List<OrtDevice>, List<ProviderLibrary>, int, String?)

@@ -350,6 +350,26 @@ The resampling filter for each resize is the builder's choice; the accuracy
 gate judges it. Core ML's path draws with CoreGraphics' high quality
 interpolation.
 
+**Settled by the gate (D1, 2026-11-21).** The first gate run failed: the
+ONNX engine named 586 held-out photos right against Core ML's 602, and on
+the same pixels the two engines' models agree (embedding cosine 0.99999),
+so the gap was all in the pixels. Two causes, both fixed in the engine:
+
+- The filter. CoreGraphics' high quality interpolation, measured, blends
+  the two nearest pixels on a curve stepped in eighths when it enlarges,
+  and uses a cubic widened by the scale, with the first and last pixels
+  mapped to the first and last, when it shrinks. The engine now draws the
+  same way (`pipeline/resampling.dart`), to within a level or two.
+- Colour. Flutter's decoder ignores a photo's embedded colour profile,
+  which ImageIO converts to sRGB, so Display P3 photos reached the ONNX
+  models about 9 levels redder. The engine converts matrix profiles to sRGB
+  itself (`pipeline/colour_profile.dart`); a profile it cannot read leaves
+  the pixels as decoded.
+
+With both, ONNX names 602 right, as Core ML does. What remains is JPEG
+decoding: ImageIO and the decoder Flutter uses (as on Android, Windows and
+Linux) differ by about a level, which the engine cannot remove.
+
 **Precision.** The pack carries the ONNX models with 16-bit weights, so the
 download is about Core ML's. Whether the engine widens them to 32-bit when it
 loads them, or computes in 16-bit where the processor supports it, is the
@@ -578,6 +598,15 @@ sample, with the pack's own bars and detector set:
 4. Junk (divers' hands, fins and the like) is named within the pack's own
    junk limit (`JUNK_LIMIT` in `gate.py`, measured as the pack measures it),
    and not significantly more often than by Core ML, by the paired test.
+   Junk crops are paired by their labelled box (overlap 0.9 or more). The
+   rows were labelled on Core ML's boxes, so a crop only one run found is
+   left out of the pairing, and the check fails when more than 5% of the
+   crops are left out in a way that could hide junk named: found only by
+   ONNX, or lost by ONNX with a box still over the same object (overlap
+   0.5 or more). A crop ONNX drew no box over names nothing there
+   **(decided 2026-11-21: "Count moved boxes too"; D1's last four lost
+   crops were boxes Core ML scored just over the 0.30 cut-off and ONNX
+   just under it, from JPEG decoding)**.
 
 A report beside it shows, for diagnosis only, how far the two engines' boxes
 and embeddings differ per photo.
@@ -693,7 +722,8 @@ differs.
 - The pinned ONNX Runtime version, the operator set, and how the hook fetches
   each platform's library.
 - The resampling filters, and whether models are widened to 32-bit at load,
-  both judged by the gate.
+  both judged by the gate (the filters settled by D1, under the detectors
+  above).
 - ONNX Runtime's thread counts and session options.
 - Whether the worker calls the frame channel directly.
 - Pass 1's decoder on Android (`MediaCodec` is proposed; anything that

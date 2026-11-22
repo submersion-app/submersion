@@ -2,9 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/colour_profile.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+
+import 'icc_test_profiles.dart';
 
 void main() {
   RgbaImage uniform(int width, int height, List<int> rgb) => RgbaImage(
@@ -190,6 +193,41 @@ void main() {
     test('writes a JPEG', () {
       final jpeg = jpegOf(uniform(8, 8, [1, 2, 3]));
       expect(jpeg.sublist(0, 2), [0xFF, 0xD8]);
+    });
+  });
+
+  group('inSrgb', () {
+    test('converts a photo carrying a conversion, and drops it', () {
+      final p3 = uniform(2, 1, [200, 100, 50]);
+      final photo = RgbaImage(
+        p3.width,
+        p3.height,
+        p3.bytes,
+        colour: srgbConversionOf(jpegWith(displayP3Profile())),
+      );
+
+      final srgb = inSrgb(photo);
+
+      expect(srgb.colour, isNull);
+      expect((srgb.width, srgb.height), (2, 1));
+      for (final (got, want) in [
+        (pixel(srgb, 0, 0), [215, 93, 31]),
+        (pixel(srgb, 1, 0), [215, 93, 31]),
+      ]) {
+        for (var c = 0; c < 3; c++) {
+          expect(
+            (got[c] - want[c]).abs(),
+            lessThanOrEqualTo(1),
+            reason: '$got',
+          );
+        }
+      }
+      expect(pixel(photo, 0, 0), [200, 100, 50], reason: 'input untouched');
+    });
+
+    test('returns a photo with no conversion as it is', () {
+      final photo = uniform(2, 1, [200, 100, 50]);
+      expect(identical(inSrgb(photo), photo), isTrue);
     });
   });
 }
