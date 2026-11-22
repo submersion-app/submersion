@@ -236,18 +236,29 @@ class IdentificationCropStore {
   }
 
   /// The identifications with a crop file here, by media (issue #4890).
+  /// A folder removed while it is read (a final delete) is left out.
   Future<Map<String, List<String>>> fileIds() async {
+    final mediaIds = await _mediaFolders();
+    if (mediaIds.isEmpty) return const {};
+    final base = (await root()).path;
     final found = <String, List<String>>{};
-    for (final mediaId in await _mediaFolders()) {
-      final dir = Directory(p.join((await root()).path, mediaId));
-      final ids = [
+    for (final mediaId in mediaIds) {
+      final ids = await _cropIdsIn(Directory(p.join(base, mediaId)));
+      if (ids.isNotEmpty) found[mediaId] = ids;
+    }
+    return found;
+  }
+
+  Future<List<String>> _cropIdsIn(Directory dir) async {
+    try {
+      return [
         await for (final entity in dir.list(followLinks: false))
           if (entity is File && p.extension(entity.path) == '.jpg')
             p.basenameWithoutExtension(entity.path),
       ];
-      if (ids.isNotEmpty) found[mediaId] = ids;
+    } on FileSystemException {
+      return const [];
     }
-    return found;
   }
 
   void _changed(String mediaId) {

@@ -304,8 +304,9 @@ class SyncService {
   /// Told which identifications a peer's tombstones deleted, once the
   /// apply that deleted them has ended, so the files and cache rows this
   /// device keeps for them go too (issue #4890). Told after a rollback as
-  /// well: it must act only on ids whose row is gone. Optional: most tests
-  /// build the service without one.
+  /// well, and whether or not the tombstone was logged: it must act only on
+  /// ids whose row is gone. Optional: most tests build the service without
+  /// one.
   final Future<void> Function(List<DeletedIdentification> deleted)?
   _onIdentificationsDeleted;
 
@@ -3025,13 +3026,15 @@ class SyncService {
           if (clockOrdered) {
             if (localHlc.compareTo(deletionHlc) <= 0) {
               await _serializer.deleteRecord(entityType, recordId);
+              // Before the log: a log that fails is caught below, and the
+              // delete still commits.
+              _noteDeletedIdentification(entityType, local);
               await _syncRepository.logDeletionIfMissing(
                 entityType: entityType,
                 recordId: recordId,
                 deletedAt: deletionTimestamp,
                 originHlc: deletion.hlc,
               );
-              _noteDeletedIdentification(entityType, local);
               applied += 1;
               continue;
             }
@@ -3102,13 +3105,13 @@ class SyncService {
           }
 
           await _serializer.deleteRecord(entityType, recordId);
+          _noteDeletedIdentification(entityType, local);
           await _syncRepository.logDeletionIfMissing(
             entityType: entityType,
             recordId: recordId,
             deletedAt: deletionTimestamp,
             originHlc: deletion.hlc,
           );
-          _noteDeletedIdentification(entityType, local);
           applied += 1;
         } catch (e, stackTrace) {
           // A failed deletion is a real failure (surfaced via recordsFailed),

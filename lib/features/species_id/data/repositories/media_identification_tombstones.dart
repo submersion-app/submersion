@@ -36,4 +36,25 @@ extension MediaIdentificationTombstones on MediaIdentificationRepository {
     }
     return deleted;
   }
+
+  /// Those of [ids] with no row in this logbook, as committed: for ids
+  /// known to have been here, whose delete may have committed with no
+  /// tombstone logged.
+  Future<Set<String>> goneAmong(Iterable<String> ids) async {
+    final wanted = ids.toSet();
+    if (wanted.isEmpty) return const {};
+    final db = _db;
+    final rows = db.mediaIdentifications;
+    final live = <String>{};
+    for (final slice in wanted.slices(MediaIdentificationRepository._slice)) {
+      live.addAll(
+        await (db.selectOnly(rows)
+              ..addColumns([rows.id])
+              ..where(rows.id.isIn(slice)))
+            .map((r) => r.read(rows.id)!)
+            .get(),
+      );
+    }
+    return wanted.difference(live);
+  }
 }

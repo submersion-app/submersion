@@ -76,14 +76,16 @@ class IdentificationCleanup {
   /// peer's tombstones deleted here (issue #4890), say a newer model run on
   /// another device replacing this one's. Their crop files and embeddings
   /// stay on this device unless removed here. Only ids whose row is gone
-  /// with a tombstone are: the apply may have rolled back. Never throws;
-  /// the launch sweep picks up what is left.
+  /// are: the apply may have rolled back. No tombstone is asked for, since
+  /// sync saw each row here, and its delete can commit with the log of its
+  /// tombstone failed. Never throws; the launch sweep picks up what is
+  /// left.
   Future<void> onDeletedBySync(
     List<({String mediaId, String id})> deleted,
   ) async {
     if (deleted.isEmpty) return;
     try {
-      final gone = await _identifications.deletedAmong([
+      final gone = await _identifications.goneAmong([
         for (final d in deleted) d.id,
       ]);
       final byMedia = deleted
@@ -116,15 +118,14 @@ class IdentificationCleanup {
       files.values.expand((ids) => ids),
     );
     if (gone.isEmpty) return;
-    await _removeLeftovers(
-      {
-        for (final MapEntry(key: mediaId, value: ids) in files.entries)
+    await _removeLeftovers({
+      for (final MapEntry(key: mediaId, value: ids) in files.entries)
+        if (ids.any(gone.contains))
           mediaId: [
             for (final id in ids)
               if (gone.contains(id)) id,
           ],
-      }..removeWhere((_, ids) => ids.isEmpty),
-    );
+    });
   }
 
   /// Files first, then the embeddings, which no sync carries either.

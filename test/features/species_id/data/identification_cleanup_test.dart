@@ -228,6 +228,44 @@ void main() {
       expect(await embeddings.get(['i1'], classifierId: 'clf'), isEmpty);
     });
 
+    test('a deletion that committed with no tombstone logged still removes '
+        'the leftovers', () async {
+      await seedTwo('m1');
+      await library.customStatement(
+        "DELETE FROM media_identifications WHERE id = 'i1'",
+      );
+
+      await cleanup.onDeletedBySync([(mediaId: 'm1', id: 'i1')]);
+
+      expect(await crops.allPresent('m1', ['i1']), isFalse);
+      expect(await embeddings.get(['i1'], classifierId: 'clf'), isEmpty);
+      expect(await crops.allPresent('m1', ['i2']), isTrue);
+    });
+
+    test('each identification\'s file is removed from its own photo', () async {
+      await seedTwo('m1');
+      await identifications.storeRun(
+        run(mediaId: 'm2'),
+        insert: [identification('i3', mediaId: 'm2')],
+        deleteIds: const [],
+      );
+      await crops.write('m2', 'i3', jpeg);
+      // A crop of m2 named like m1's: only m1's goes.
+      await crops.write('m2', 'i1', jpeg);
+      await deletedByPeer('i1');
+      await deletedByPeer('i3');
+
+      await cleanup.onDeletedBySync([
+        (mediaId: 'm1', id: 'i1'),
+        (mediaId: 'm2', id: 'i3'),
+      ]);
+
+      expect(await crops.allPresent('m1', ['i1']), isFalse);
+      expect(await crops.allPresent('m2', ['i3']), isFalse);
+      expect(await crops.allPresent('m1', ['i2']), isTrue);
+      expect(await crops.allPresent('m2', ['i1']), isTrue);
+    });
+
     test('a deletion whose apply rolled back removes nothing', () async {
       await seedTwo('m1');
 
