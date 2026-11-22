@@ -127,6 +127,7 @@ TRANSLATION_LANGUAGES = [
     "ar",
     "he",
     "zh",
+    "ja",
 ]
 
 WIKIDATA_ENDPOINT = "https://www.wikidata.org/w/api.php"
