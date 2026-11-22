@@ -16450,6 +16450,8 @@
   "media_labels_statusAnalysing": "Bezig met analyseren...",
   "media_labels_statusAnalysingPercent": "Bezig met analyseren, {percent}",
   "media_labels_statusFound": "{count, plural, =0{Niets gevonden} =1{{count} gevonden} other{{count} gevonden}}",
+  "media_labels_foundNoneNamed": "{count, plural, =1{{count} gevonden, zonder naam} other{{count} gevonden, geen met naam}}",
+  "media_labels_showAllLife": "Al het leven tonen",
   "media_species_possibleMatches": "Mogelijke overeenkomsten",
   "media_species_cropUnavailable": "Afbeelding staat niet op dit apparaat",
   "media_species_taggedOnPhoto": "Getagd op deze foto",

@@ -55443,6 +55443,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count találat, egyiknek sincs neve',
+      one: '$count találat, név nélkül',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'Minden élőlény mutatása';
+
+  @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';
 
   @override

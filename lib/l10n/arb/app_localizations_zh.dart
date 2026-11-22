@@ -52266,6 +52266,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '发现 $count 个，均未命名',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => '显示所有生物';
+
+  @override
   String get media_species_possibleMatches => '可能的匹配';
 
   @override

@@ -30,6 +30,7 @@ import 'package:submersion/features/species_id/domain/services/video_tracker.dar
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 part 'media_identification_fresh.dart';
+part 'media_identification_queue.dart';
 part 'media_identification_readiness.dart';
 part 'media_identification_run_lane.dart';
 part 'media_identification_video.dart';
@@ -195,8 +196,12 @@ class MediaIdentificationService {
         running != null &&
         running.item.id == item.id &&
         (location == null || location == running.location)) {
-      // Back on a video whose scan was told to stop: it carries on.
+      // Back on a video whose scan was told to stop: it carries on, in a
+      // fresh pass if it has already stopped (issue #4872).
       running.cancelled = false;
+      // Asked by hand, it runs whether or not media are identified on
+      // opening, revived or not.
+      if (byHand) running.byHand = true;
       return running.done.future;
     }
     final queued = _waiting.remove(item.id);
@@ -422,39 +427,6 @@ class MediaIdentificationService {
     await _runningEnded;
     await _unloadModels();
     await _activity.close();
-  }
-
-  void _pump() {
-    if (_running != null ||
-        (_waiting.isEmpty && _runWaiting.isEmpty) ||
-        _disposed ||
-        _paused > 0) {
-      return;
-    }
-    // The viewer's newest request first; a run's oldest only when none
-    // waits (issue #4727).
-    final job = _waiting.isNotEmpty
-        ? _waiting.remove(_waiting.keys.last)!
-        : _runWaiting.remove(_runWaiting.keys.first)!;
-    _running = job;
-    _changed();
-    final ended = _process(job).then((putBack) {
-      _running = null;
-      _videoProgress = null;
-      // A video stopped for a newer request or a pack change goes to the
-      // oldest end, to carry on once the rest is done.
-      if (putBack && !_disposed && job.fromRun) {
-        _runWaiting = {job.item.id: job, ..._runWaiting};
-      } else if (putBack && !_disposed && !_waiting.containsKey(job.item.id)) {
-        _waiting = {job.item.id: job, ..._waiting};
-      } else {
-        job.done.complete();
-      }
-      _changed();
-      _pump();
-    });
-    _runningEnded = ended;
-    unawaited(ended);
   }
 
   void _changed() {

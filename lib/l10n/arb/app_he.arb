@@ -16450,6 +16450,8 @@
   "media_labels_statusAnalysing": "מנתח...",
   "media_labels_statusAnalysingPercent": "מנתח, {percent}",
   "media_labels_statusFound": "{count, plural, =0{לא נמצא דבר} =1{נמצא אחד} other{נמצאו {count}}}",
+  "media_labels_foundNoneNamed": "{count, plural, =1{נמצא {count}, ללא שם} other{נמצאו {count}, ללא שמות}}",
+  "media_labels_showAllLife": "הצגת כל היצורים",
   "media_species_possibleMatches": "התאמות אפשריות",
   "media_species_cropUnavailable": "התמונה לא נמצאת במכשיר זה",
   "media_species_taggedOnPhoto": "מתויגים בתמונה זו",

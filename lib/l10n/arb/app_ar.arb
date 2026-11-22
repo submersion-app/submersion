@@ -16450,6 +16450,8 @@
   "media_labels_statusAnalysing": "جارٍ التحليل...",
   "media_labels_statusAnalysingPercent": "جارٍ التحليل، {percent}",
   "media_labels_statusFound": "{count, plural, =0{لم يُعثر على شيء} =1{عُثر على واحد} two{عُثر على اثنين} few{عُثر على {count}} many{عُثر على {count}} other{عُثر على {count}}}",
+  "media_labels_foundNoneNamed": "{count, plural, =1{عُثر على واحد، دون اسم} two{عُثر على اثنين، دون اسم} few{عُثر على {count}، ولم يُسمَّ أيٌّ منها} many{عُثر على {count}، ولم يُسمَّ أيٌّ منها} other{عُثر على {count}، ولم يُسمَّ أيٌّ منها}}",
+  "media_labels_showAllLife": "إظهار كل الكائنات",
   "media_species_possibleMatches": "تطابقات محتملة",
   "media_species_cropUnavailable": "الصورة غير موجودة على هذا الجهاز",
   "media_species_taggedOnPhoto": "موسومة في هذه الصورة",

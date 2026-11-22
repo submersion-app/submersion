@@ -54585,6 +54585,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String media_labels_foundNoneNamed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נמצאו $count, ללא שמות',
+      one: 'נמצא $count, ללא שם',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_showAllLife => 'הצגת כל היצורים';
+
+  @override
   String get media_species_possibleMatches => 'התאמות אפשריות';
 
   @override

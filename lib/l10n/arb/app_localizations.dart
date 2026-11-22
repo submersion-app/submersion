@@ -87359,6 +87359,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}'**
   String media_labels_statusFound(int count);
 
+  /// Brief message after the diver asks for a photo or video to be analysed and it finds animals it cannot name, so no name label is drawn (issue #4872).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} found, none named} other{{count} found, none named}}'**
+  String media_labels_foundNoneNamed(int count);
+
+  /// Action on that message: switch the labels to All life, which draws the unnamed animals too.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all life'**
+  String get media_labels_showAllLife;
+
   /// No description provided for @media_species_possibleMatches.
   ///
   /// In en, this message translates to:
