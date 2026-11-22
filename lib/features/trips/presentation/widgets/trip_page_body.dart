@@ -27,8 +27,9 @@ class TripPageBody extends StatefulWidget {
 
   /// The rest of the page. While the editor is open its vertical scroll
   /// view takes the [PrimaryScrollController] it finds, which links it to
-  /// the page; it is built afresh when the editor opens or closes, so its
-  /// tabs start again at their top.
+  /// the page. It is built afresh when the editor opens or closes: its tabs
+  /// start again at their top, and an open card in them loses whatever it
+  /// has not handed to the sitting, such as text that is not yet a number.
   final Widget below;
 
   /// Whether the header's editor is open.

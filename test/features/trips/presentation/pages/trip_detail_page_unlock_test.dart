@@ -322,11 +322,16 @@ void main() {
       await openCard(tester, l.settings_conflict_ref_trip);
       final name = find.byKey(const Key('trip-edit-name'), skipOffstage: false);
       Rect tabRow() => tester.getRect(find.byType(TabBar, skipOffstage: false));
+      // The Overview's own list: the first Scrollable under the TabBarView
+      // is the TabBarView's horizontal page view.
       ScrollPosition overview() => tester
           .state<ScrollableState>(
             find
                 .descendant(
-                  of: find.byType(TabBarView, skipOffstage: false),
+                  of: find.byKey(
+                    const Key('trip-prepare-overview'),
+                    skipOffstage: false,
+                  ),
                   matching: find.byType(Scrollable, skipOffstage: false),
                 )
                 .first,

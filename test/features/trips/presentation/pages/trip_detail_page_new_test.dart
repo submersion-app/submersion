@@ -435,4 +435,55 @@ void main() {
     );
     expectFullyShown(tester, last, bottom: keyboardTop);
   });
+
+  testWidgets('on a phone a drag on the Overview scrolls the page before '
+      'the Overview, both ways', (tester) async {
+    const size = Size(402, 874);
+    await pumpNewTripPage(tester, size: size);
+    final name = find.byKey(const Key('trip-edit-name'), skipOffstage: false);
+    final overview = find.byKey(
+      const Key('trip-prepare-overview'),
+      skipOffstage: false,
+    );
+    Rect overviewRect() => tester.getRect(overview);
+    ScrollPosition overviewList() => tester
+        .state<ScrollableState>(
+          find
+              .descendant(
+                of: overview,
+                matching: find.byType(Scrollable, skipOffstage: false),
+              )
+              .first,
+        )
+        .position;
+
+    // The Overview into sight, dragging on the editor's margin, clear of
+    // its text fields.
+    for (var i = 0; i < 20 && overviewRect().top + 140 > size.height; i++) {
+      await tester.dragFrom(Offset(4, size.height / 3), const Offset(0, -100));
+      await tester.pumpAndSettle();
+    }
+
+    // Up from the Overview: the page moves, the Overview stays at its top.
+    final before = overviewRect().top;
+    await tester.dragFrom(
+      Offset(size.width / 2, overviewRect().top + 40),
+      const Offset(0, -60),
+    );
+    await tester.pumpAndSettle();
+    expect(overviewRect().top, lessThan(before));
+    expect(overviewList().pixels, 0);
+
+    // Down from the Overview brings the editor back.
+    for (var i = 0; i < 20; i++) {
+      final rect = tester.getRect(name);
+      if (rect.top > 0 && rect.bottom <= overviewRect().top) break;
+      await tester.dragFrom(
+        Offset(size.width / 2, overviewRect().top + 40),
+        const Offset(0, 150),
+      );
+      await tester.pumpAndSettle();
+    }
+    expectFullyShown(tester, name, bottom: size.height);
+  });
 }
