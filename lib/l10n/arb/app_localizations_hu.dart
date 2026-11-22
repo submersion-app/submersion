@@ -5693,6 +5693,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get notesEditor_action_annotate => 'Megjelölés';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'Javítsd ki a jelölés sérült hivatkozását, mielőtt itt jelölsz.';
+
+  @override
   String get notesEditor_action_preview => 'Előnézet';
 
   @override

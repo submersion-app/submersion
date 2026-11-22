@@ -1897,6 +1897,7 @@
   "notesEditor_action_bulletList": "Lista com marcadores",
   "notesEditor_action_numberedList": "Lista numerada",
   "notesEditor_action_annotate": "Marcar",
+  "notesEditor_annotate_brokenLink": "Conserte o link quebrado da marcação antes de marcar aqui.",
   "notesEditor_action_preview": "Pré-visualização",
   "courses_action_add": "Adicionar Curso",
   "courses_action_addFromTemplate": "Adicionar a partir de modelo",

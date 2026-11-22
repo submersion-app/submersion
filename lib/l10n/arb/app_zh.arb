@@ -1977,6 +1977,7 @@
   "notesEditor_action_bulletList": "项目符号列表",
   "notesEditor_action_numberedList": "编号列表",
   "notesEditor_action_annotate": "标注",
+  "notesEditor_annotate_brokenLink": "请先修复损坏的标注链接，再在此处添加标注。",
   "notesEditor_action_preview": "预览",
   "courses_action_add": "添加课程",
   "courses_action_addFromTemplate": "从模板添加",

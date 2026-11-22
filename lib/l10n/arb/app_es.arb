@@ -1897,6 +1897,7 @@
   "notesEditor_action_bulletList": "Lista con viñetas",
   "notesEditor_action_numberedList": "Lista numerada",
   "notesEditor_action_annotate": "Anotar",
+  "notesEditor_annotate_brokenLink": "Arregla el enlace roto de la anotación antes de anotar aquí.",
   "notesEditor_action_preview": "Vista previa",
   "courses_action_add": "Agregar Curso",
   "courses_action_addFromTemplate": "Agregar desde plantilla",

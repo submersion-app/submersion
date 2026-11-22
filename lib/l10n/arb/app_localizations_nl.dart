@@ -5673,6 +5673,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get notesEditor_action_annotate => 'Annoteren';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'Herstel de kapotte link van de annotatie voordat je hier annoteert.';
+
+  @override
   String get notesEditor_action_preview => 'Voorbeeld';
 
   @override

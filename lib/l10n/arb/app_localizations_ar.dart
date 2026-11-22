@@ -5810,6 +5810,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesEditor_action_annotate => 'تعليق';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'أصلح رابط التعليق المعطوب قبل إضافة تعليق هنا.';
+
+  @override
   String get notesEditor_action_preview => 'معاينة';
 
   @override

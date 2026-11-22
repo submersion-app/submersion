@@ -1897,6 +1897,7 @@
   "notesEditor_action_bulletList": "قائمة نقطية",
   "notesEditor_action_numberedList": "قائمة مرقمة",
   "notesEditor_action_annotate": "تعليق",
+  "notesEditor_annotate_brokenLink": "أصلح رابط التعليق المعطوب قبل إضافة تعليق هنا.",
   "notesEditor_action_preview": "معاينة",
   "courses_action_add": "إضافة دورة",
   "courses_action_addFromTemplate": "إضافة من قالب",

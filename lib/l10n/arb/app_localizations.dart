@@ -8898,6 +8898,12 @@ abstract class AppLocalizations {
   /// **'Annotate'**
   String get notesEditor_action_annotate;
 
+  /// Snack bar when the diver taps the notes editor's pin (Annotate) with the caret inside or right after an annotation link whose markup is broken; nothing is pinned until the link is mended
+  ///
+  /// In en, this message translates to:
+  /// **'Mend the broken annotation link before pinning here.'**
+  String get notesEditor_annotate_brokenLink;
+
   /// Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed
   ///
   /// In en, this message translates to:

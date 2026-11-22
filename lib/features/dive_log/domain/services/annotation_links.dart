@@ -116,7 +116,14 @@ final RegExp _annotationAddress = RegExp(
 /// hand. Save reads such an annotation as removed, though the diver only
 /// meant to edit around its link. [linked] is [annotationIdsInNotes] of
 /// [notes], for a caller that has already read it.
-List<String> strayAnnotationAddresses(String notes, {Set<String>? linked}) {
+List<String> strayAnnotationAddresses(String notes, {Set<String>? linked}) => [
+  for (final address in _strayAddresses(notes, linked))
+    '$annotationLinkScheme:${annotationIdFromHref(address[0]) ?? ''}',
+];
+
+/// The matches of [_annotationAddress] in [notes] that no link the Notes
+/// render holds. [linked] as for [strayAnnotationAddresses].
+List<RegExpMatch> _strayAddresses(String notes, Set<String>? linked) {
   if (!mayLinkAnnotations(notes)) return const [];
   final ids = linked ?? annotationIdsInNotes(notes);
   final links = [
@@ -128,9 +135,46 @@ List<String> strayAnnotationAddresses(String notes, {Set<String>? linked}) {
       if (!links.any(
         (link) => link.start < address.start && address.start < link.end,
       ))
-        '$annotationLinkScheme:${annotationIdFromHref(address[0]) ?? ''}',
+        address,
   ];
 }
+
+/// The markup of each annotation link in [notes] that no longer reads as
+/// one (#4815), in order: from the bracket that opened its words, when it
+/// is still there in the same paragraph, else from what is left of the
+/// markup before the address, to the end of the address and a parenthesis
+/// still after it. A pin from the Notes toolbar is refused inside or right
+/// after one, where its link would make the broken one harder to mend.
+List<({int start, int end})> brokenAnnotationLinkSpans(String notes) => [
+  for (final address in _strayAddresses(notes, null))
+    (
+      start: _brokenMarkupStart(notes, address.start),
+      end: notes.startsWith(')', address.end) ? address.end + 1 : address.end,
+    ),
+];
+
+/// Where the markup before an address at [address] starts: its link's
+/// opening bracket in the same paragraph, else the `](`, `]` or `(` left
+/// just before it, else the address itself.
+int _brokenMarkupStart(String notes, int address) {
+  final before = notes.substring(0, address);
+  final paragraph = _blankLine
+      .allMatches(before)
+      .fold(0, (_, blank) => blank.end);
+  final opened = _openedLink.firstMatch(before.substring(paragraph));
+  if (opened != null) return paragraph + opened.start;
+  return address - _markupLeft.firstMatch(before)!.group(0)!.length;
+}
+
+final RegExp _blankLine = RegExp(r'\n[ \t\r]*\n');
+
+/// A link's words up to the end of the text, from their opening bracket,
+/// with the `]`, `](` or `(` still after them: without any of these, a `[`
+/// earlier in the paragraph is not this address's link.
+final RegExp _openedLink = RegExp(r'\[(?:\\[\s\S]|[^\[\]\\])*(?:\]\(?|\()$');
+
+/// What is left of a link's markup at the end of the text.
+final RegExp _markupLeft = RegExp(r'\]?\(?$');
 
 /// What a dive's stored Notes hold of its annotation links, against which
 /// an edit of them is judged (#4815): the ids they link and the addresses

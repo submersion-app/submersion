@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_field_semantics.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_editing.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_toolbar.dart';
@@ -106,17 +107,25 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
     // The sheet takes focus, which can drop the selection; it is put back
     // for the edit when the text has not changed underneath it.
     final before = widget.controller.value;
+    // Inside or right after a link whose markup the diver broke, a pin's
+    // link would make that one harder to mend (#4815): asked to mend it
+    // first, the diver is not asked when it happened.
+    if (touchesBrokenAnnotationLink(before)) return _sayMendFirst();
     final result = await ask(selectedWords(before));
     if (result == null || !mounted) return;
-    _apply((v) {
-      final value = v.text == before.text ? before : v;
-      return wrapSelectionAsAnnotation(
-        value,
-        id: result.id,
-        words: result.words,
-      );
-    });
+    final now = widget.controller.value;
+    final value = now.text == before.text ? before : now;
+    // Notes changed while the sheet was up are checked again.
+    if (touchesBrokenAnnotationLink(value)) return _sayMendFirst();
+    _apply(
+      (_) =>
+          wrapSelectionAsAnnotation(value, id: result.id, words: result.words),
+    );
   }
+
+  void _sayMendFirst() => ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+    SnackBar(content: Text(context.l10n.notesEditor_annotate_brokenLink)),
+  );
 
   void _setPreview(bool on) {
     if (on == _previewing) return;

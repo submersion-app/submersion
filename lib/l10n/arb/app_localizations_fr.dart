@@ -5720,6 +5720,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notesEditor_action_annotate => 'Annoter';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'Réparez le lien d\'annotation cassé avant d\'annoter ici.';
+
+  @override
   String get notesEditor_action_preview => 'Aperçu';
 
   @override

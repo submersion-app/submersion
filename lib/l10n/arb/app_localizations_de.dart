@@ -5707,6 +5707,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notesEditor_action_annotate => 'Anmerken';
 
   @override
+  String get notesEditor_annotate_brokenLink =>
+      'Repariere den beschädigten Link der Anmerkung, bevor du hier anmerkst.';
+
+  @override
   String get notesEditor_action_preview => 'Vorschau';
 
   @override
