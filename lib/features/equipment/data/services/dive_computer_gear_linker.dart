@@ -91,12 +91,14 @@ class DiveComputerGearLinker {
     )..where((t) => t.id.equals(computerId))).getSingleOrNull();
     final itemId = computer?.equipmentId;
     if (itemId == null || itemId.isEmpty) return 0;
-    // A link a sync left dangling until the device gear heal repairs it:
-    // a row naming it would fail the foreign key and the caller with it.
+    // A link a sync left dangling, or one to an item of another type (which
+    // the device gear heal treats as no entry either), until that heal
+    // repairs it: a dangling id would fail the foreign key and the caller
+    // with it, and another item would be put on every dive in its place.
     final item = await (_db.select(
       _db.equipment,
     )..where((t) => t.id.equals(itemId))).getSingleOrNull();
-    if (item == null) return 0;
+    if (item == null || item.type != 'computer') return 0;
 
     final missing = <String>[];
     for (final chunk in seriesIdChunks(candidates)) {

@@ -188,12 +188,54 @@ void main() {
     },
   );
 
-  test('leaves a computer whose item a sync left dangling', () async {
-    await insertComputer('c1', equipmentId: 'ghost');
+  test('leaves a computer whose item a sync left dangling, and the library '
+      'unmarked so the pass runs again once it is repaired', () async {
+    await insertItem('gear-1');
+    await insertComputer('c1', equipmentId: 'gear-1');
+    await insertComputer('c2', equipmentId: 'ghost');
+    await insertDive('d1', computerId: 'c1');
+    await insertDive('d2', computerId: 'c2');
+
+    expect(await ComputerGearDiveHeal().run(), 1);
+    expect(await equipmentOn('d1'), {'gear-1'});
+    expect(await equipmentOn('d2'), isEmpty);
+    expect(
+      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
+      isNull,
+    );
+
+    // The device gear heal gives c2 its item; the next launch links it.
+    await insertItem('ghost');
+    expect(await ComputerGearDiveHeal().run(), 1);
+    expect(await equipmentOn('d2'), {'ghost'});
+    expect(
+      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
+      'true',
+    );
+  });
+
+  test('never puts an item of another type on a computer\'s dives', () async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'mask',
+            name: 'mask',
+            type: 'mask',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await insertComputer('c1', equipmentId: 'mask');
     await insertDive('d1', computerId: 'c1');
 
     expect(await ComputerGearDiveHeal().run(), 0);
     expect(await equipmentOn('d1'), isEmpty);
+    expect(
+      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
+      isNull,
+    );
   });
 
   test('keeps to the removals it read at the start when a tombstone GC runs '

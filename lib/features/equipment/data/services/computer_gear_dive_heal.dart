@@ -43,7 +43,11 @@ class ComputerGearDiveHeal {
   ///
   /// A library with no computer that has an item is left unmarked: a device
   /// joining a synced library starts empty, and a marker written then would
-  /// reach every peer and stop their pass before any of them had run it.
+  /// reach every peer and stop their pass before any of them had run it. So
+  /// is one where any computer lacks a valid item (none, a dangling id, or
+  /// an item of another type): the device gear heal repairs those on the
+  /// next open or sync, and the pass runs again to link that computer's
+  /// dives then. The computers that have one are linked meanwhile.
   ///
   /// The pass works on the library open when it starts, and every read and
   /// write stays on it. If another takes its place part way (a restore, or a
@@ -58,8 +62,8 @@ class ComputerGearDiveHeal {
         DiveComputerGearLinker(database: db, syncRepository: sync);
     try {
       if (await _isDone(db)) return 0;
-      final computers = await _computersWithItems(db);
-      if (computers.isEmpty) return 0;
+      final (:valid, :anyInvalid) = await _computerItems(db);
+      if (valid.isEmpty) return 0;
       // Read once, before any linking: a sync that finishes while the pass
       // runs collects old tombstones, and a removal read after that would
       // look like a link that was never there.
@@ -68,7 +72,7 @@ class ComputerGearDiveHeal {
       // One transaction and one change log scope per computer, not one for
       // the library: a long write would hold the diver's own saves until it
       // ended, and a long scope would file those saves under this repair.
-      for (final computerId in computers) {
+      for (final computerId in valid) {
         if (!_stillOpen(db)) return linked;
         linked += await ChangeLogScope.automatic(
           db,
@@ -83,6 +87,7 @@ class ComputerGearDiveHeal {
         );
       }
       if (!_stillOpen(db)) return linked;
+      if (anyInvalid) return linked;
       await _markDone(db, sync);
       SyncEventBus.notifyLocalChange();
       if (linked > 0) {
@@ -134,12 +139,28 @@ class ComputerGearDiveHeal {
     return row?.value == 'true';
   }
 
-  Future<List<String>> _computersWithItems(AppDatabase db) =>
-      (db.selectOnly(db.diveComputers)
-            ..addColumns([db.diveComputers.id])
-            ..where(db.diveComputers.equipmentId.isNotNull()))
-          .map((r) => r.read(db.diveComputers.id)!)
-          .get();
+  /// The computers whose item is a live computer item, and whether any
+  /// computer has none.
+  Future<({List<String> valid, bool anyInvalid})> _computerItems(
+    AppDatabase db,
+  ) async {
+    final rows = await db
+        .customSelect(
+          'SELECT c.id, (e.id IS NOT NULL AND e.type = \'computer\') AS ok '
+          'FROM dive_computers c '
+          'LEFT JOIN equipment e ON e.id = c.equipment_id '
+          'ORDER BY c.id',
+          readsFrom: {db.diveComputers, db.equipment},
+        )
+        .get();
+    return (
+      valid: [
+        for (final r in rows)
+          if (r.read<bool>('ok')) r.read<String>('id'),
+      ],
+      anyInvalid: rows.any((r) => !r.read<bool>('ok')),
+    );
+  }
 
   /// Every `dive|item` key a `diveEquipment` tombstone names.
   Future<Set<String>> _removedLinkKeys(AppDatabase db) async {
