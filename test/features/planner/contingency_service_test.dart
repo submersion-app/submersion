@@ -337,6 +337,48 @@ void main() {
     expect(longer.plan.segments.single.durationSeconds, 133 + 5 * 60);
   });
 
+  test('longer lengthens a deeper holding split descent, not a shallower '
+      'level', () {
+    // 20 m for 20 min, then a split descent to 40 m whose 15 min leaves a
+    // 12:47 hold at 18 m/min: the 40 m hold is the bottom, as it would be
+    // for a descent authored with its own level leg.
+    final plan = _plan().copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'down',
+          targetDepth: 20.0,
+          durationSeconds: 2 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          order: 0,
+        ),
+        const PlanSegment(
+          id: 'level',
+          targetDepth: 20.0,
+          durationSeconds: 20 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          order: 1,
+        ),
+        const PlanSegment(
+          id: 'deep',
+          targetDepth: 40.0,
+          durationSeconds: 15 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          splitAtConfiguredRate: true,
+          order: 2,
+        ),
+      ],
+    );
+
+    final longer = service.deviationFor(plan, 'longer')!;
+    final byId = {for (final s in longer.plan.segments) s.id: s};
+
+    expect(byId['level']!.durationSeconds, 20 * 60);
+    expect(byId['deep']!.durationSeconds, 20 * 60);
+  });
+
   test('no segments yields no deviations', () {
     final empty = domain.DivePlan(
       id: 'p',

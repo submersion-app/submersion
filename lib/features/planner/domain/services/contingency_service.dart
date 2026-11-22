@@ -174,10 +174,14 @@ class ContingencyService {
   // Resolved against [plan] (issue #3552): this service's own [config] is
   // the app-wide one, not necessarily already resolvedFor this plan, unlike
   // PlanEngine/BailoutSolver's internal copy.
-  domain.DivePlan _deepened(domain.DivePlan plan) => deviatePlan(
-    plan,
-    depthDelta: config.resolvedFor(plan).deviationDepthDelta,
-  );
+  domain.DivePlan _deepened(domain.DivePlan plan) {
+    final resolved = config.resolvedFor(plan);
+    return deviatePlan(
+      plan,
+      depthDelta: resolved.deviationDepthDelta,
+      descentRate: resolved.descentRate,
+    );
+  }
 
   domain.DivePlan _lengthened(domain.DivePlan plan) {
     final resolved = config.resolvedFor(plan);
@@ -198,15 +202,17 @@ class ContingencyService {
 /// contingency trio and the range tables so every "what if" variant deviates
 /// the same way.
 ///
-/// When the bottom is a descent split at the configured rate, [descentRate]
-/// (the plan's resolved rate) is its travel speed: a descent authored
-/// shorter than its travel is stretched to the travel time, so the delta is
-/// added to that stretched duration rather than to the authored one (#4849).
+/// [descentRate] is the plan's resolved descent rate, the one the engine
+/// splits rate-split descents with (#4849). It decides whether such a
+/// descent holds and so can be the bottom (see [SegmentChain.bottomLegIndex]),
+/// and, because a descent authored shorter than its travel is stretched to
+/// the travel time, the delta is added to that stretched duration rather
+/// than to the authored one.
 domain.DivePlan deviatePlan(
   domain.DivePlan plan, {
+  required double descentRate,
   double depthDelta = 0,
   int timeDeltaMinutes = 0,
-  double? descentRate,
 }) {
   var segments = plan.segments;
 
@@ -231,11 +237,11 @@ domain.DivePlan deviatePlan(
       ..sort((a, b) => a.order.compareTo(b.order));
     const chain = SegmentChain();
     final legs = chain.resolve(ordered);
-    final bottomIndex = chain.bottomLegIndex(legs);
+    final bottomIndex = chain.bottomLegIndex(legs, descentRate: descentRate);
     if (bottomIndex != null) {
       final bottom = legs[bottomIndex];
       final bottomId = bottom.segment.id;
-      final travelSeconds = bottom.isDepthChange && descentRate != null
+      final travelSeconds = bottom.isDepthChange
           ? PlanSegment.travelSeconds(
               metres: bottom.endDepth - bottom.startDepth,
               ratePerMinute: descentRate,

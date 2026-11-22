@@ -105,7 +105,9 @@ class RangeTableService {
     required TissueState? startState,
   }) {
     final minBottomMinutes = _shortestBottomMinutes(
-      depthDelta == 0 ? plan : deviatePlan(plan, depthDelta: depthDelta),
+      depthDelta == 0
+          ? plan
+          : deviatePlan(plan, depthDelta: depthDelta, descentRate: descentRate),
       descentRate,
     );
     return [
@@ -136,8 +138,11 @@ class RangeTableService {
     if (plan.segments.isEmpty) return null;
     // A variant must keep the bottom under water and its duration positive.
     if (maxDepth + depthDelta <= 0) return null;
-    if (minBottomMinutes != null && minBottomMinutes + timeDelta <= 0) {
-      return null;
+    if (timeDelta != 0) {
+      // With no bottom to vary, deviatePlan would leave the time unchanged
+      // and the cell would repeat the base value as if the time cost nothing.
+      if (minBottomMinutes == null) return null;
+      if (minBottomMinutes + timeDelta <= 0) return null;
     }
 
     final variant = deviatePlan(
@@ -164,7 +169,7 @@ class RangeTableService {
       ..sort((a, b) => a.order.compareTo(b.order));
     const chain = SegmentChain();
     final legs = chain.resolve(ordered);
-    final bottomIndex = chain.bottomLegIndex(legs);
+    final bottomIndex = chain.bottomLegIndex(legs, descentRate: descentRate);
     if (bottomIndex == null) return null;
     final bottom = legs[bottomIndex];
     if (!bottom.isDepthChange) return bottom.durationSeconds ~/ 60;

@@ -141,21 +141,34 @@ class SegmentChain {
   /// bottom split into two legs at the same depth extends at its far end.
   /// Replaces the old "first segment whose type is bottom" lookups.
   ///
-  /// With no level leg, the deepest descent flagged
-  /// [PlanSegment.splitAtConfiguredRate] instead: its duration beyond the
-  /// travel time is a hold at its target (#3264). A plan authored as that
-  /// one descent has no level leg at all, and without this the contingency
-  /// and range-table time deltas had nothing to lengthen (#4849). It is only
-  /// a fallback because the chain has no rate to tell whether such a descent
-  /// holds at all, so it never displaces a level leg the diver authored.
-  int? bottomLegIndex(List<ResolvedLeg> legs) =>
-      _deepest(legs, (leg) => leg.phase == SegmentPhase.level) ??
-      _deepest(
-        legs,
-        (leg) =>
-            leg.phase == SegmentPhase.descent &&
-            leg.segment.splitAtConfiguredRate,
-      );
+  /// A descent flagged [PlanSegment.splitAtConfiguredRate] holds at its
+  /// target for whatever its duration leaves after travel (#3264), so a plan
+  /// authored as that one descent has no level leg at all; without counting
+  /// it the contingency and range-table time deltas had nothing to lengthen
+  /// (#4849). Given the plan's resolved [descentRate], such a descent that
+  /// does hold competes on depth exactly like a descent plus a level leg,
+  /// and one that does not hold is skipped. Without a rate the chain cannot
+  /// tell, so level legs come first. Either way, when no leg holds, the
+  /// deepest rate-split descent is the bottom, so its time can still grow.
+  int? bottomLegIndex(List<ResolvedLeg> legs, {double? descentRate}) {
+    final holding = descentRate == null
+        ? _deepest(legs, (leg) => leg.phase == SegmentPhase.level)
+        : _deepest(
+            legs,
+            (leg) =>
+                leg.phase == SegmentPhase.level ||
+                (_isSplitDescent(leg) &&
+                    leg.durationSeconds >
+                        PlanSegment.travelSeconds(
+                          metres: leg.endDepth - leg.startDepth,
+                          ratePerMinute: descentRate,
+                        )),
+          );
+    return holding ?? _deepest(legs, _isSplitDescent);
+  }
+
+  static bool _isSplitDescent(ResolvedLeg leg) =>
+      leg.phase == SegmentPhase.descent && leg.segment.splitAtConfiguredRate;
 
   int? _deepest(List<ResolvedLeg> legs, bool Function(ResolvedLeg) accepts) {
     int? best;

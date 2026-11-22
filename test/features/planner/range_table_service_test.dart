@@ -174,6 +174,35 @@ void main() {
       expect(table.cells[table.depthDeltas.indexOf(6.0)][minusTen], isNull);
     });
 
+    test('time columns are blank when the plan has no bottom to vary', () {
+      // A linear descent never holds at depth, so a time delta has nothing
+      // to lengthen; those cells must not repeat the base value.
+      const service = RangeTableService();
+      final plan = _plan().copyWith(
+        segments: [
+          const PlanSegment(
+            id: 'seg-1',
+            targetDepth: 40.0,
+            durationSeconds: 25 * 60,
+            tankId: 'tank-1',
+            gasMix: _air,
+          ),
+        ],
+      );
+      final table = service.compute(plan);
+
+      for (var r = 0; r < table.depthDeltas.length; r++) {
+        for (var c = 0; c < table.timeDeltas.length; c++) {
+          final cell = table.cells[r][c];
+          if (table.timeDeltas[c] == 0) {
+            expect(cell, isNotNull, reason: 'row ${table.depthDeltas[r]}');
+          } else {
+            expect(cell, isNull, reason: '${table.timeDeltas[c]} min');
+          }
+        }
+      }
+    });
+
     test('empty plan yields an empty table', () {
       const service = RangeTableService();
       final table = service.compute(
