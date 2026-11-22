@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/models/log_entry.dart';
 
 /// Service for writing, reading, and rotating the application log file.
@@ -44,7 +45,7 @@ class LogFileService {
   /// Initialize the service, creating the log directory if needed. An
   /// instance that does not [rotates] trims an oversized file here.
   Future<void> initialize() async {
-    _logFilePath = '$logDirectory/$_logFileName';
+    _logFilePath = p.join(logDirectory, _logFileName);
     final dir = Directory(logDirectory);
     if (!dir.existsSync()) {
       await dir.create(recursive: true);
@@ -108,6 +109,11 @@ class LogFileService {
   /// Every non-empty line of the file as written, oldest first; empty when
   /// there is no file. Decoded leniently, for the reason [readEntries] is.
   Future<List<String>> readLines() async {
+    if (!_isInitialized) {
+      throw StateError(
+        'LogFileService.initialize() must be called before readLines()',
+      );
+    }
     final file = File(_logFilePath);
     if (!await file.exists()) return const [];
     final text = utf8.decode(await file.readAsBytes(), allowMalformed: true);
