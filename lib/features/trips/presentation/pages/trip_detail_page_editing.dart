@@ -14,13 +14,12 @@ mixin _TripDetailPageEditing
   /// Which page of the Overview's story shows.
   ValueNotifier<TripStorySelection?> get storySelection;
 
-  /// The cards only the story's Trip page draws, of those the Overview has.
-  static const _onStoryTripPage = {
-    TripCardId.header,
-    TripCardId.vessel,
-    TripCardId.plan,
-    TripCardId.documents,
-  };
+  /// The cards only the story's Trip page draws, of those the Overview has:
+  /// all of its cards but Notes, which a day page draws too, as its Day
+  /// plan.
+  static final _onStoryTripPage = tripStoryTripPageCards.difference({
+    TripCardId.notes,
+  });
 
   /// Shows the story's Trip page, where [id] is drawn, when the story is on
   /// a day: a card asked to show itself there (a Save refused for it, one

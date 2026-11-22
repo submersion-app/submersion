@@ -231,13 +231,18 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
                 constraints.maxWidth >= TripStoryDayPage.twoColumnMinWidth;
             return Column(
               children: [
-                if (!editing)
-                  _Picker(
+                // Kept while folded, with its scroll and its model, and
+                // taking no room.
+                Visibility(
+                  visible: !editing,
+                  maintainState: true,
+                  child: _Picker(
                     story: _story,
                     selectedDate: day?.date,
                     chartHeight: wide ? 76 : 60,
                     onSelect: _select,
                   ),
+                ),
                 Expanded(
                   child: day == null
                       ? TripStoryTripPage(
