@@ -18045,10 +18045,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get formatter_connector_at => 'om';
 
   @override
-  String get formatter_connector_from => 'Van';
+  String formatter_dateRange_from(String date) {
+    return 'Van $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Tot';
+  String formatter_dateRange_until(String date) {
+    return 'Tot $date';
+  }
 
   @override
   String get gas_air_description => 'Standaard lucht (21% O2)';

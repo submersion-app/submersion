@@ -18198,10 +18198,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get formatter_connector_at => 'à';
 
   @override
-  String get formatter_connector_from => 'Du';
+  String formatter_dateRange_from(String date) {
+    return 'Du $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Jusqu\'au';
+  String formatter_dateRange_until(String date) {
+    return 'Jusqu\'au $date';
+  }
 
   @override
   String get gas_air_description => 'Air standard (21% O2)';

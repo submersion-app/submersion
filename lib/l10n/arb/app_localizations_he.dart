@@ -17778,10 +17778,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get formatter_connector_at => 'ב';
 
   @override
-  String get formatter_connector_from => 'מ';
+  String formatter_dateRange_from(String date) {
+    return 'מ $date';
+  }
 
   @override
-  String get formatter_connector_until => 'עד';
+  String formatter_dateRange_until(String date) {
+    return 'עד $date';
+  }
 
   @override
   String get gas_air_description => 'אוויר סטנדרטי (21% O2)';

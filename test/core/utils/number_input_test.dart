@@ -45,6 +45,12 @@ void main() {
       expect(parseUserDecimal('\u3000\uff18\u3000'), 8);
     });
 
+    test('reads every digit set asciiDigits folds', () {
+      Intl.defaultLocale = 'en_US';
+      expect(parseUserDecimal('\u0661\u0662.\u0665'), 12.5);
+      expect(parseUserDecimal('\u06f8'), 8);
+    });
+
     test('folds full-width input under a comma locale too', () {
       Intl.defaultLocale = 'fr';
       expect(parseUserDecimal('\uff11\uff12\uff0c\uff15'), 12.5);

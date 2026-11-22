@@ -18434,10 +18434,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formatter_connector_at => 'عند';
 
   @override
-  String get formatter_connector_from => 'من';
+  String formatter_dateRange_from(String date) {
+    return 'من $date';
+  }
 
   @override
-  String get formatter_connector_until => 'حتى';
+  String formatter_dateRange_until(String date) {
+    return 'حتى $date';
+  }
 
   @override
   String get gas_air_description => 'هواء قياسي (21% O2)';

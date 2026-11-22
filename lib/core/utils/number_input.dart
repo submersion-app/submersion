@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/ascii_digits.dart';
 import 'package:submersion/core/utils/locale_number_symbols.dart';
 
 /// Locale-aware conversion between a number and the text a diver types into a
@@ -24,25 +25,22 @@ import 'package:submersion/core/utils/locale_number_symbols.dart';
 /// render with a seeding one: the two differ on trailing zeros, which is
 /// information in a rendered reading and noise in an editable field.
 
-/// [text] with full-width digits, separators, signs and the ideographic
-/// space turned into their ASCII forms. A Japanese or Chinese IME in
-/// full-width mode types `１２．５` for 12.5 (#4833); the forms are the same
-/// number, so reading them changes nothing for anyone else.
-String _foldFullWidth(String text) {
-  final buffer = StringBuffer();
-  for (final rune in text.runes) {
-    buffer.writeCharCode(switch (rune) {
-      >= 0xFF10 && <= 0xFF19 => rune - 0xFF10 + 0x30,
+/// [text] with every digit set [asciiDigits] knows folded to ASCII, and the
+/// full-width separators, signs and ideographic space a Japanese or Chinese
+/// IME types (`１２．５` for 12.5, #4833) turned into their ASCII forms. They
+/// are the same number, so reading them changes nothing for anyone else.
+String _foldFullWidth(String text) => String.fromCharCodes(
+  asciiDigits(text).runes.map(
+    (rune) => switch (rune) {
       0xFF0E => 0x2E, // ．
       0xFF0C => 0x2C, // ，
       0xFF0B => 0x2B, // ＋
       0xFF0D => 0x2D, // －
       0x3000 => 0x20, // ideographic space
       _ => rune,
-    });
-  }
-  return buffer.toString();
-}
+    },
+  ),
+);
 
 /// The number [text] represents in the active locale, or null when [text] is
 /// blank or cannot be read as a finite number.

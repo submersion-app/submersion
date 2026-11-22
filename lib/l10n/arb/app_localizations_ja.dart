@@ -17523,10 +17523,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get formatter_connector_at => '・';
 
   @override
-  String get formatter_connector_from => '開始';
+  String formatter_dateRange_from(String date) {
+    return '$dateから';
+  }
 
   @override
-  String get formatter_connector_until => '終了';
+  String formatter_dateRange_until(String date) {
+    return '$dateまで';
+  }
 
   @override
   String get gas_air_description => '標準の空気（O2 21%）';

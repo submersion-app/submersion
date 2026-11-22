@@ -17277,10 +17277,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get formatter_connector_at => '于';
 
   @override
-  String get formatter_connector_from => '从';
+  String formatter_dateRange_from(String date) {
+    return '从 $date';
+  }
 
   @override
-  String get formatter_connector_until => '至';
+  String formatter_dateRange_until(String date) {
+    return '至 $date';
+  }
 
   @override
   String get gas_air_description => '标准空气 (21% O2)';

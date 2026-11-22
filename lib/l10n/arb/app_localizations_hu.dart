@@ -18095,10 +18095,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get formatter_connector_at => '–';
 
   @override
-  String get formatter_connector_from => 'Ettől';
+  String formatter_dateRange_from(String date) {
+    return 'Ettől $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Eddig';
+  String formatter_dateRange_until(String date) {
+    return 'Eddig $date';
+  }
 
   @override
   String get gas_air_description => 'Standard levegő (21% O2)';

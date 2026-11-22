@@ -60,8 +60,8 @@ void main() {
 
     test('formatter connectors are English', () {
       expect(l10n.formatter_connector_at, 'at');
-      expect(l10n.formatter_connector_from, 'From');
-      expect(l10n.formatter_connector_until, 'Until');
+      expect(l10n.formatter_dateRange_from('Jan 15'), 'From Jan 15');
+      expect(l10n.formatter_dateRange_until('Jan 20'), 'Until Jan 20');
     });
   });
 
