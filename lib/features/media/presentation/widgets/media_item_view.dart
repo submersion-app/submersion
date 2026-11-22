@@ -320,7 +320,13 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     // still there. Reconciling on it would clear the orphan flag of every
     // missing photo that still has a thumbnail. The resolver checks the
     // original itself, off this path, and reports what it finds.
-    if (!(data is FileData && data.originUntouched)) {
+    //
+    // A network resolution is the same: it hands the URL to the image widget
+    // and fetches nothing, so it says nothing about the object behind it.
+    // Taking it as "bytes arrived" cleared the flag a subscription poll had
+    // just set on an entry that left its feed, the moment its tile was
+    // painted. The poll and the network scan decide those rows.
+    if (!(data is FileData && data.originUntouched) && data is! NetworkData) {
       _reconcileOrphanState(resolution.nativeFailure);
     }
     return resolution;
