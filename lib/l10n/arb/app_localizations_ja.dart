@@ -61441,7 +61441,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_gradientFactors_body =>
-      'ビュールマンの限界値を抑える2つのパーセント値です。GF Lowは最初の停止の位置を、GF Highは浮上時の限界を決めます。数値が低いほど、長く保守的なスケジュールになります。';
+      'ビュールマンの限界値を抑える2つのパーセント値で、GF Lowは最初の停止の位置を、GF Highは浮上時の限界を決めます。数値が低いほど、長く保守的なスケジュールになります。';
 
   @override
   String get info_term_cns_label => 'CNS%（中枢神経系酸素毒性）';
@@ -61596,7 +61596,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'モデルが想定する16の仮想組織で、それぞれ固有の速さでガスを取り込み、排出します。1～5は速い組織（脳など血流の多い組織に相当）、6～10は中程度（筋肉や皮膚に相当）、11～16は遅い組織（脂肪や骨に相当）です。速い組織は短く深いダイブを、遅い組織は長いダイブや反復ダイブを制限します。組織名はおおよその例えであり、解剖学的なものではありません。';
+      'モデルが想定する16の仮想組織で、それぞれ固有の速さでガスを取り込み、排出します。1～5は速い組織（脳など血流の多い組織に相当）、6～10は中程度（筋肉や皮膚に相当）、11～16は遅い組織（脂肪や骨に相当）で、速い組織は短く深いダイブを、遅い組織は長いダイブや反復ダイブを制限します（組織名はおおよその例えで、解剖学的なものではありません）。';
 
   @override
   String get info_term_leadingCompartment_label => '支配コンパートメント';
@@ -61645,7 +61645,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_heatMap_body =>
-      '各行が1つのコンパートメントで、上が速い組織、下が遅い組織です。時間は左から右へ進みます。色はその時点でのコンパートメントの負荷を示します。';
+      '各行が1つのコンパートメントで、上が速い組織、下が遅い組織、時間は左から右へ進みます。色はその時点でのコンパートメントの負荷を示します。';
 
   @override
   String get info_term_nitrox_label => 'ナイトロックス（EANx）';
@@ -61755,7 +61755,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_counterdiffusionProfile_body =>
-      'ダイブプロファイル上のオレンジ色の帯は、コンパートメントが呼吸ガスより多くの不活性ガスをすでに保持しながら、なおガスを顕著に取り込んでいる箇所を示します。ビュールマンモデルではヘリウムの排出が窒素の取り込みより速いため、トライミックスからナイトロックスへの切り替えで帯が表示されることはまれです。その代わりに、切り替え位置の破線で5分の1ルールを示します。';
+      'ダイブプロファイル上のオレンジ色の帯は、コンパートメントが呼吸ガスより多くの不活性ガスをすでに保持しながら、なおガスを顕著に取り込んでいる箇所を示します。ビュールマンモデルではヘリウムの排出が窒素の取り込みより速いため、トライミックスからナイトロックスへの切り替えで帯が表示されることはまれで、代わりに切り替え位置の破線で5分の1ルールを示します。';
 
   @override
   String get info_term_buoyancyProfile_label => 'プロファイル上の浮力';
