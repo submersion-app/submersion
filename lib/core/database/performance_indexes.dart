@@ -304,6 +304,15 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_dive_data_sources_dive_id '
         'ON dive_data_sources(dive_id)',
   ),
+  // A computer's "Dives imported" is counted from its sources, and the
+  // computer list reloads on every dive and source change (issue #4846).
+  // Covering, so the count reads the index alone.
+  (
+    name: 'idx_dive_data_sources_computer_dive',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_data_sources_computer_dive '
+        'ON dive_data_sources(computer_id, dive_id)',
+  ),
   (
     name: 'idx_tide_records_dive',
     ddl:

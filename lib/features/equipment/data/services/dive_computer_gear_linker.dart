@@ -61,14 +61,22 @@ class DiveComputerGearLinker {
   /// one-time heal.
   ///
   /// A dive the diver took the item off keeps it off while its
-  /// `diveEquipment` tombstone is held. Each row is written through
-  /// [DiveRepository.bulkAddEquipment], so it is staged for sync like one
-  /// the diver added. No transaction and no sync notify of its own: callers
-  /// run it inside theirs and notify once. Unlike [linkComputerGearForDive]
-  /// it rethrows, so a caller decides whether a failure is fatal.
+  /// `diveEquipment` tombstone is held. [removedKeys], when given, is that
+  /// set of tombstoned `dive|item` keys read once by the caller, for a pass
+  /// long enough that a tombstone GC could run part way through it.
+  ///
+  /// Only the item's own row is written, never its components: a part fitted
+  /// to the computer today was not on a dive it recorded years ago, and
+  /// expanding it there would inflate that part's dive count and service
+  /// tracking. Each row is inserted and marked pending, as
+  /// [DiveRepository.bulkAddEquipment] does, so it syncs like one the diver
+  /// added. No transaction and no sync notify of its own: callers run it
+  /// inside theirs and notify once. Unlike [linkComputerGearForDive] it
+  /// rethrows, so a caller decides whether a failure is fatal.
   Future<int> linkComputerGearToDives({
     required String computerId,
     required Iterable<String> diveIds,
+    Set<String>? removedKeys,
   }) async {
     final candidates = diveIds.toSet().toList();
     if (candidates.isEmpty) return 0;
@@ -77,6 +85,12 @@ class DiveComputerGearLinker {
     )..where((t) => t.id.equals(computerId))).getSingleOrNull();
     final itemId = computer?.equipmentId;
     if (itemId == null || itemId.isEmpty) return 0;
+    // A link a sync left dangling until the device gear heal repairs it:
+    // a row naming it would fail the foreign key and the caller with it.
+    final item = await (_db.select(
+      _db.equipment,
+    )..where((t) => t.id.equals(itemId))).getSingleOrNull();
+    if (item == null) return 0;
 
     final missing = <String>[];
     for (final chunk in seriesIdChunks(candidates)) {
@@ -95,16 +109,30 @@ class DiveComputerGearLinker {
           if (!linkedSet.contains(id)) id,
       ];
       if (unlinked.isEmpty) continue;
-      final removed = await _sync.deletedIds('diveEquipment', [
-        for (final id in unlinked) '$id|$itemId',
-      ]);
+      final removed =
+          removedKeys ??
+          await _sync.deletedIds('diveEquipment', [
+            for (final id in unlinked) '$id|$itemId',
+          ]);
       missing.addAll([
         for (final id in unlinked)
           if (!removed.contains('$id|$itemId')) id,
       ]);
     }
-    if (missing.isEmpty) return 0;
-    await _dives.bulkAddEquipment(missing, [itemId]);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in missing) {
+      await _db
+          .into(_db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(diveId: diveId, equipmentId: itemId),
+            mode: InsertMode.insertOrIgnore,
+          );
+      await _sync.markRecordPending(
+        entityType: 'diveEquipment',
+        recordId: '$diveId|$itemId',
+        localUpdatedAt: now,
+      );
+    }
     return missing.length;
   }
 

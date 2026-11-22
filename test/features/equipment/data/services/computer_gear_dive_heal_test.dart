@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/services/computer_gear_dive_heal.dart';
+import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -161,6 +163,89 @@ void main() {
     expect(await equipmentOn('d1'), isEmpty);
   });
 
+  test(
+    'puts the item alone on a dive, not the parts fitted to it since',
+    () async {
+      await insertItem('gear-1');
+      await insertItem('battery');
+      final t = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.equipmentComponents)
+          .insert(
+            EquipmentComponentsCompanion.insert(
+              id: 'comp-1',
+              parentEquipmentId: 'gear-1',
+              componentEquipmentId: 'battery',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await insertComputer('c1', equipmentId: 'gear-1');
+      await insertDive('old', computerId: 'c1');
+
+      expect(await ComputerGearDiveHeal().run(), 1);
+      expect(await equipmentOn('old'), {'gear-1'});
+    },
+  );
+
+  test('leaves a computer whose item a sync left dangling', () async {
+    await insertComputer('c1', equipmentId: 'ghost');
+    await insertDive('d1', computerId: 'c1');
+
+    expect(await ComputerGearDiveHeal().run(), 0);
+    expect(await equipmentOn('d1'), isEmpty);
+  });
+
+  test('keeps to the removals it read at the start when a tombstone GC runs '
+      'part way through', () async {
+    await insertItem('gear-1');
+    await insertItem('gear-2');
+    await insertComputer('c1', equipmentId: 'gear-1');
+    await insertComputer('c2', equipmentId: 'gear-2');
+    await insertDive('d1', computerId: 'c1');
+    await insertDive('d2', computerId: 'c2');
+    await SyncRepository().logDeletion(
+      entityType: 'diveEquipment',
+      recordId: 'd2|gear-2',
+    );
+
+    await ComputerGearDiveHeal(
+      linker: _BeforeFirstLink(
+        () => db.customStatement('DELETE FROM deletion_log'),
+      ),
+    ).run();
+
+    expect(await equipmentOn('d1'), {'gear-1'});
+    expect(await equipmentOn('d2'), isEmpty);
+  });
+
+  test('stops, unmarked, when another library is opened part way', () async {
+    await insertItem('gear-1');
+    await insertItem('gear-2');
+    await insertComputer('c1', equipmentId: 'gear-1');
+    await insertComputer('c2', equipmentId: 'gear-2');
+    await insertDive('d1', computerId: 'c1');
+    await insertDive('d2', computerId: 'c2');
+    final other = createTestDatabase();
+    addTearDown(() async {
+      DatabaseService.instance.setTestDatabase(db);
+      await other.close();
+    });
+
+    await ComputerGearDiveHeal(
+      linker: _BeforeFirstLink(
+        () async => DatabaseService.instance.setTestDatabase(other),
+      ),
+    ).run();
+
+    for (final library in [db, other]) {
+      final marker = await (library.select(
+        library.settings,
+      )..where((t) => t.key.equals(ComputerGearDiveHeal.doneKey))).get();
+      expect(marker, isEmpty);
+    }
+  });
+
   test('runs once per library: a link removed afterwards stays removed, '
       'whatever became of its tombstone', () async {
     await insertItem('gear-1');
@@ -178,4 +263,30 @@ void main() {
     expect(await ComputerGearDiveHeal().run(), 0);
     expect(await equipmentOn('d1'), isEmpty);
   });
+}
+
+/// Runs [before] once, ahead of the first link, as a job running
+/// alongside the pass would.
+class _BeforeFirstLink extends DiveComputerGearLinker {
+  _BeforeFirstLink(this.before);
+
+  final Future<void> Function() before;
+  var _ran = false;
+
+  @override
+  Future<int> linkComputerGearToDives({
+    required String computerId,
+    required Iterable<String> diveIds,
+    Set<String>? removedKeys,
+  }) async {
+    if (!_ran) {
+      _ran = true;
+      await before();
+    }
+    return super.linkComputerGearToDives(
+      computerId: computerId,
+      diveIds: diveIds,
+      removedKeys: removedKeys,
+    );
+  }
 }
