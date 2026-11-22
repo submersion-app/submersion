@@ -1,0 +1,80 @@
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/media/data/parsers/manifest_format.dart';
+import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
+
+void main() {
+  late AppDatabase db;
+  late ManifestSubscriptionRepository repo;
+
+  setUp(() {
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
+    DatabaseService.instance.setTestDatabase(db);
+    repo = ManifestSubscriptionRepository();
+  });
+
+  tearDown(() async {
+    await db.close();
+    DatabaseService.instance.resetForTesting();
+  });
+
+  Future<ManifestSubscription> create() => repo.createSubscription(
+    manifestUrl: 'https://feed.example.com/m.json',
+    format: ManifestFormat.json,
+  );
+
+  test('a new interval moves the next poll with it', () async {
+    final sub = await create();
+    final polled = DateTime.utc(2026, 1, 1, 12);
+    await repo.recordPollSuccess(
+      sub.id,
+      pollIntervalSeconds: 86400,
+      etag: null,
+      lastModified: null,
+      now: polled,
+    );
+
+    await repo.setPollInterval(sub.id, 3600);
+
+    final after = await repo.getById(sub.id);
+    expect(after!.pollIntervalSeconds, 3600);
+    expect(after.nextPollAt, polled.add(const Duration(hours: 1)));
+    expect(after.lastPolledAt, polled);
+  });
+
+  test('a subscription never polled stays due', () async {
+    final sub = await create();
+    await repo.setPollInterval(sub.id, 604800);
+    final after = await repo.getById(sub.id);
+    expect(after!.pollIntervalSeconds, 604800);
+    expect(after.nextPollAt, isNull);
+  });
+
+  test('a non-positive interval is refused', () async {
+    final sub = await create();
+    expect(() => repo.setPollInterval(sub.id, 0), throwsArgumentError);
+  });
+
+  group('pollIntervalOptionsIncluding', () {
+    test('a standard interval offers the standard list', () {
+      expect(pollIntervalOptionsIncluding(86400), same(kPollIntervalOptions));
+    });
+
+    test('an unusual interval is added in order', () {
+      final options = pollIntervalOptionsIncluding(7200);
+      expect(options.map((o) => o.seconds), [3600, 7200, 21600, 86400, 604800]);
+      expect(options[1].label, '2 hours');
+      expect(pollIntervalOptionsIncluding(1800).first.label, '30 minutes');
+      expect(
+        pollIntervalOptionsIncluding(
+          5400,
+        ).firstWhere((o) => o.seconds == 5400).label,
+        '1.5 hours',
+      );
+    });
+  });
+}

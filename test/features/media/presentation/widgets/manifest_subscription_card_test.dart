@@ -58,6 +58,13 @@ class _FakeRepo implements ManifestSubscriptionRepository {
   /// The error each subscription's last poll recorded, by id.
   final Map<String, String?> errors = {};
 
+  final List<({String id, int seconds})> intervalCalls = [];
+
+  @override
+  Future<void> setPollInterval(String id, int pollIntervalSeconds) async {
+    intervalCalls.add((id: id, seconds: pollIntervalSeconds));
+  }
+
   @override
   Future<ManifestSubscription?> getById(String id) async {
     final i = subs.indexWhere((s) => s.id == id);
@@ -448,6 +455,32 @@ void main() {
     expect(repo.editCalls.single.id, '1');
     expect(repo.editCalls.single.url, 'https://renamed.example.com/feed');
     expect(repo.editCalls.single.name, 'Renamed');
+    // The interval was left alone, so it is not written.
+    expect(repo.intervalCalls, isEmpty);
+  });
+
+  testWidgets('Edit action changes the poll interval', (tester) async {
+    final repo = _FakeRepo([_sub('1')]);
+    final poller = _FakePoller();
+    await tester.pumpWidget(
+      _wrap(const ManifestSubscriptionCard(), repo: repo, poller: poller),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('24 hours'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('manifestSubscriptionInterval')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('1 hour').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(repo.intervalCalls, [(id: '1', seconds: 3600)]);
   });
 
   testWidgets('Format chip renders an uppercase label', (tester) async {

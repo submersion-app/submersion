@@ -379,6 +379,50 @@ class ManifestSubscriptionRepository {
     }
   }
 
+  /// Changes how often [id] is polled. The next poll moves with it, to the
+  /// last poll plus the new interval, so a shorter interval takes effect now
+  /// instead of after the old one ran out. A subscription never polled on
+  /// this device keeps its next poll (none, which means due).
+  Future<void> setPollInterval(String id, int pollIntervalSeconds) async {
+    if (pollIntervalSeconds <= 0) {
+      throw ArgumentError.value(
+        pollIntervalSeconds,
+        'pollIntervalSeconds',
+        'must be positive',
+      );
+    }
+    try {
+      final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.mediaSubscriptions,
+        )..where((t) => t.id.equals(id))).write(
+          MediaSubscriptionsCompanion(
+            pollIntervalSeconds: Value(pollIntervalSeconds),
+            updatedAt: Value(nowMs),
+          ),
+        );
+        final state = await (_db.select(
+          _db.mediaSubscriptionState,
+        )..where((t) => t.subscriptionId.equals(id))).getSingleOrNull();
+        final lastPolledAt = state?.lastPolledAt;
+        if (lastPolledAt != null) {
+          await (_db.update(
+            _db.mediaSubscriptionState,
+          )..where((t) => t.subscriptionId.equals(id))).write(
+            MediaSubscriptionStateCompanion(
+              nextPollAt: Value(lastPolledAt + pollIntervalSeconds * 1000),
+            ),
+          );
+        }
+      });
+      await _markPending(id, nowMs);
+    } catch (e, st) {
+      _log.error('setPollInterval failed: $id', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
   Future<void> deleteById(String id) async {
     try {
       await _db.transaction(() async {

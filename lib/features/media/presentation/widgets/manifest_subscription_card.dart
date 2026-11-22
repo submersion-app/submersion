@@ -41,6 +41,7 @@ import 'package:submersion/features/media/data/synology/synology_share_link.dart
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
 import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -307,6 +308,8 @@ class _SubscriptionTile extends ConsumerWidget {
   Future<void> _showEditDialog(BuildContext context, WidgetRef ref) async {
     final urlController = TextEditingController(text: sub.manifestUrl);
     final nameController = TextEditingController(text: sub.displayName ?? '');
+    var interval = sub.pollIntervalSeconds;
+    final intervals = pollIntervalOptionsIncluding(sub.pollIntervalSeconds);
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -327,6 +330,23 @@ class _SubscriptionTile extends ConsumerWidget {
                 labelText: dialogContext.l10n.common_label_displayName,
               ),
             ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<int>(
+              key: const Key('manifestSubscriptionInterval'),
+              initialValue: interval,
+              // TODO(media): l10n
+              decoration: const InputDecoration(labelText: 'Check every'),
+              items: [
+                for (final option in intervals)
+                  DropdownMenuItem(
+                    value: option.seconds,
+                    child: Text(option.label),
+                  ),
+              ],
+              onChanged: (v) {
+                if (v != null) interval = v;
+              },
+            ),
           ],
         ),
         actions: [
@@ -345,15 +365,15 @@ class _SubscriptionTile extends ConsumerWidget {
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref
-          .read(manifestSubscriptionRepositoryProvider)
-          .updateUrlAndDisplayName(
-            sub.id,
-            manifestUrl: urlController.text,
-            displayName: nameController.text.isEmpty
-                ? null
-                : nameController.text,
-          );
+      final repo = ref.read(manifestSubscriptionRepositoryProvider);
+      await repo.updateUrlAndDisplayName(
+        sub.id,
+        manifestUrl: urlController.text,
+        displayName: nameController.text.isEmpty ? null : nameController.text,
+      );
+      if (interval != sub.pollIntervalSeconds) {
+        await repo.setPollInterval(sub.id, interval);
+      }
       if (!context.mounted) return;
       ref.invalidate(manifestSubscriptionsProvider);
     } catch (e) {

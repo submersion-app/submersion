@@ -42,15 +42,11 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_preview_pane.dart';
+import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
 
-/// Standard poll-interval choices surfaced in the dropdown. The plan's
-/// 24-hour default sits at the middle of the list.
-const List<_PollIntervalOption> _kPollIntervals = [
-  _PollIntervalOption(seconds: 3600, label: '1 hour'),
-  _PollIntervalOption(seconds: 21600, label: '6 hours'),
-  _PollIntervalOption(seconds: 86400, label: '24 hours'),
-  _PollIntervalOption(seconds: 604800, label: '7 days'),
-];
+/// Standard poll-interval choices surfaced in the dropdown, shared with the
+/// subscription's edit dialog.
+const List<PollIntervalOption> _kPollIntervals = kPollIntervalOptions;
 
 class ManifestModePanel extends ConsumerStatefulWidget {
   const ManifestModePanel({super.key});
@@ -650,11 +646,4 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
       ),
     );
   }
-}
-
-class _PollIntervalOption {
-  const _PollIntervalOption({required this.seconds, required this.label});
-
-  final int seconds;
-  final String label;
 }
