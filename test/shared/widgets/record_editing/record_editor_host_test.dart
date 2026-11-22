@@ -51,6 +51,9 @@ class _Probe {
   /// How the validated diver resolves the active diver's id: the app maps
   /// an id whose diver is gone to the default diver.
   String? Function(String? id)? resolveDiver;
+
+  /// While set, working out the diver fails (the database read throws).
+  bool diverFails = false;
 }
 
 /// An editor with no read page, as small as one can be: one text field
@@ -204,6 +207,7 @@ void main() {
           validatedCurrentDiverIdProvider.overrideWith((ref) async {
             probe.diverReadInScope.add(ChangeLogScope.currentOperationId);
             final current = ref.watch(currentDiverIdProvider);
+            if (probe.diverFails) throw StateError('database closed');
             final resolved = probe.resolveDiver?.call(current) ?? current;
             final gate = probe.diverGate;
             return gate == null ? resolved : gate.future;
@@ -669,6 +673,47 @@ void main() {
         .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
         .firstWhere((a) => a.label == 'Cancel');
     expect(cancel.onPressed, isNull);
+    gate.complete('a');
+    await tester.pumpAndSettle();
+    expect(probe.writes, ['rec-1']);
+  });
+
+  testWidgets('a diver that cannot be worked out fails the Save, saying so', (
+    tester,
+  ) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    probe.diverFails = true;
+    container.invalidate(validatedCurrentDiverIdProvider);
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+    expect(tester.takeException(), isNull);
+    expect(probe.writes, isEmpty);
+    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.text('changed'), findsOneWidget);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(_FakeEditorPage)),
+    );
+    expect(find.text(l10n.recordEdit_saveFailed), findsOneWidget);
+  });
+
+  testWidgets('Escape while Save works out the diver does not discard', (
+    tester,
+  ) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    final gate = probe.diverGate = Completer<String?>();
+    // The diver is being worked out again, as after a divers-table
+    // change: Save waits for it.
+    container.invalidate(validatedCurrentDiverIdProvider);
+    // No field holds the focus, so Escape is the page's cancel key.
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(AlertDialog), findsNothing);
     gate.complete('a');
     await tester.pumpAndSettle();
     expect(probe.writes, ['rec-1']);

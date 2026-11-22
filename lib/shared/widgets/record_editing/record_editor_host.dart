@@ -221,27 +221,46 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     // part of it, and Cancel must not discard what is being saved.
     setState(() => _saving = true);
     var saved = false;
+    var diverUnknown = false;
     try {
       // Resolved before the transaction opens: a provider rebuilding inside
       // it would wait on the transaction's lock, and the transaction on it.
-      final diverId = _saveDiverId = await ref.read(
-        validatedCurrentDiverIdProvider.future,
-      );
-      if (!mounted) return;
-      _noteDiver(diverId);
-      if (_isAnotherDiver(diverId)) {
-        // Another diver became active meanwhile: the record is not theirs.
-        _controller?.lock();
-      } else if (editorOpen && controller.isDirty && validateEditor()) {
-        // Checked now, after the wait, so what is checked is what is
-        // written: the form could change while the diver was resolved.
-        saved = await controller.save();
+      String? diverId;
+      try {
+        diverId = await _resolvedDiver();
+      } catch (error, stackTrace) {
+        // The diver could not be worked out (a read that failed): nothing
+        // is written, and the Save says it failed.
+        diverUnknown = true;
+        _log.error(
+          'Working out the diver to save $editorTable $editorRecordId failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+      if (mounted && !diverUnknown) {
+        _saveDiverId = diverId;
+        _noteDiver(diverId);
+        if (_isAnotherDiver(diverId)) {
+          // Another diver became active meanwhile: the record is not theirs.
+          _controller?.lock();
+        } else if (editorOpen && controller.isDirty && validateEditor()) {
+          // Checked now, after any wait, so what is checked is what is
+          // written: the form could change while the diver was resolved.
+          saved = await controller.save();
+        }
       }
     } finally {
       _saving = false;
       if (mounted) setState(() {});
     }
     if (!mounted) return;
+    if (diverUnknown) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.recordEdit_saveFailed)),
+      );
+      return;
+    }
     if (saved) {
       _leaving = true;
       try {
@@ -257,10 +276,12 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
       return;
     }
     // The diver changed while the save ran (the change was not acted on
-    // then): the sitting ends.
-    final diverNow = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (!mounted) return;
-    if (_isAnotherDiver(diverNow)) _controller?.lock();
+    // then): the sitting ends. One still being worked out reaches the
+    // listener once settled, now that the save is over.
+    final diverNow = ref.read(validatedCurrentDiverIdProvider);
+    if (_isSettled(diverNow) && _isAnotherDiver(diverNow.valueOrNull)) {
+      _controller?.lock();
+    }
     // The sitting ended while Save waited (the app's leave check discarded
     // it, or the diver changed): nothing will tell the page again, so it
     // leaves now.
@@ -282,14 +303,28 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   }
 
   /// Cancel, from the bar or Escape: asks when something changed, then
-  /// leaves.
+  /// leaves. Not while Save is working: what it is saving is not to be
+  /// discarded under it.
   Future<void> cancelEditor() async {
-    if (_leaving || !editorOpen) return;
+    if (_leaving || _saving || !editorOpen) return;
     if (!await cancelSitting(context, editorController)) return;
     if (!mounted || _leaving) return;
     _leaving = true;
     _pop();
   }
+
+  /// The active diver for Save: the one already worked out, at once, or the
+  /// one being worked out, once it is. Throws when it cannot be.
+  Future<String?> _resolvedDiver() async {
+    final known = ref.read(validatedCurrentDiverIdProvider);
+    if (_isSettled(known)) return known.valueOrNull;
+    return ref.read(validatedCurrentDiverIdProvider.future);
+  }
+
+  /// Whether [diver] is a settled answer: worked out, not being worked out
+  /// again, and not failed.
+  static bool _isSettled(AsyncValue<String?> diver) =>
+      diver.hasValue && !diver.isLoading && !diver.hasError;
 
   /// Notes [diverId] as the editor's diver when none is noted yet: the
   /// first diver known is the editor's, not a switch.
@@ -347,7 +382,7 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     ref.listen<AsyncValue<String?>>(validatedCurrentDiverIdProvider, (_, next) {
       // Only a settled answer: one being worked out again still carries the
       // diver it is replacing.
-      if (next.isLoading || next.hasError) return;
+      if (!_isSettled(next)) return;
       if (_leaving || _saving) return;
       final diverId = next.valueOrNull;
       _noteDiver(diverId);
