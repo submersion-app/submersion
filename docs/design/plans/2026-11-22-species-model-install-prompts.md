@@ -4,7 +4,7 @@
 
 **Goal:** Offer the species identification model in the first-run setup wizard (a new step after Photos) and on Home (a banner once the library has photos or videos), on eligible devices only.
 
-**Architecture:** Both surfaces read the facts behind the existing `speciesDownloadPromptProvider` (issue #4773). Home watches a new `homeSpeciesBannerProvider` (prompt provider AND library has a photo or video AND not demo mode) and renders the existing `SpeciesDownloadPrompt(banner: true)`. The wizard reads a one-shot `speciesModelOfferProvider` once, stores the answer on the draft as `speciesModelOffered`, and `computeSteps` inserts `SetupStepId.speciesModel` after `setUpPhotos`. The step widget drives `SpeciesPackController`.
+**Architecture:** Both surfaces read the facts behind the existing `speciesDownloadPromptProvider` (issue #4773). Home watches a new `homeSpeciesBannerProvider` (prompt provider AND library has a photo or video AND not demo mode) and renders the existing `SpeciesDownloadPrompt(banner: true)`. The wizard holds a one-shot `speciesModelOfferProvider` through the container until it answers, stores the answer on the draft as `speciesModelOffered`, and `computeSteps` inserts `SetupStepId.speciesModel` after `setUpPhotos`. The step widget drives `SpeciesPackController`.
 
 **Tech Stack:** Flutter, Riverpod (`core/providers/provider.dart`), Drift via `MediaRepository`, ARB l10n (11 locales).
 
@@ -41,7 +41,7 @@
 
 **Interfaces:**
 - Produces: `final libraryHasPhotosOrVideosProvider = FutureProvider.autoDispose<bool>` (reads `mediaRepositoryProvider`, `invalidateSelfWhen(media.watchMediaChanges())`, returns `await media.countPhotosAndVideos() > 0`, as `setUpPhotoCountProvider` does).
-- Produces: `final homeSpeciesBannerProvider = Provider<bool>`: `speciesDownloadPromptProvider && libraryHasPhotosOrVideosProvider.value == true && !demoModeActiveProvider`.
+- Produces: `final homeSpeciesBannerProvider = Provider.autoDispose<bool>` (auto-disposed, so the media watch ends when Home goes): `speciesDownloadPromptProvider && libraryHasPhotosOrVideosProvider.value == true && !demoModeActiveProvider`.
 - Produces: `class HomeSpeciesBanner extends ConsumerWidget` (const constructor): `SizedBox.shrink()` unless `homeSpeciesBannerProvider`, else `SpeciesDownloadPrompt(banner: true)`.
 
 - [ ] **Step 1: Write the failing tests** in `home_species_banner_test.dart`, reusing the `_FixedPackController` pattern and override list from `test/features/species_id/presentation/species_download_prompt_test.dart`, with `libraryHasPhotosOrVideosProvider` and `demoModeActiveProvider` overridden:
@@ -146,7 +146,7 @@ Buttons reuse `settings_setUpDevice_skip`, `settings_setUpDevice_next`, `common_
   - `Back from Finish returns to the species step after a download started` (Review Focus 1): controller fake whose `download()` never completes; tap Download, then Back; `SpeciesModelStep` shows the downloading line.
   - `an offer resolving on Finish does not add the step` (Review Focus 2): offer future completed only after reaching Finish; Finish stays on screen and `computeSteps` has no `speciesModel`.
 - [ ] **Step 2: Run** the file. Expected: FAIL.
-- [ ] **Step 3: Implement.** Add `SetupStepId.speciesModel` to `_indicatorZone`, map it to the Data dot in `_indicatorDot` and `_stepLabel`; a `_defFor` case with `hideBottomBar: true` building `SpeciesModelStep(onNext: _advance, onBack: _back)`. In `initState`, read `speciesModelOfferProvider.future` once; on `true`, if mounted and `_currentStepId() != SetupStepId.finish`, call `offerSpeciesModel()`. Errors from the future leave the step out.
+- [ ] **Step 3: Implement.** Add `SetupStepId.speciesModel` to `_indicatorZone`, map it to the Data dot in `_indicatorDot` and `_stepLabel`; a `_defFor` case with `hideBottomBar: true` building `SpeciesModelStep(onNext: _advance, onBack: _back)`. In `initState`, await `ProviderScope.containerOf(context, listen: false).awaitFuture(speciesModelOfferProvider.future)`: a plain `ref.read(...future)` drops its listener, and the auto-disposed provider is disposed while the vision engine answers on a cold first run. On `true`, if mounted and `speciesModelOfferFits(computeSteps(draft), _currentIndex)` (the diver has not passed Photos), call `offerSpeciesModel()`. A failed future is logged and leaves the step out.
 - [ ] **Step 4: Run** the file. Expected: PASS, existing cases included.
 - [ ] **Step 5:** `dart format .`, `flutter analyze`, then the test files from Tasks 1 to 4 by path.
 - [ ] **Step 6: Commit** `feat(setup-wizard): offer the species model after the Photos step`.
