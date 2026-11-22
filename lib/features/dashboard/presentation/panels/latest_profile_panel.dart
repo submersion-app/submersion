@@ -38,8 +38,11 @@ class LatestProfilePanel extends ConsumerWidget {
         value: latest,
         isEmpty: (v) => v == null || v.points.length < 2,
         emptyText: l10n.dashboard_recentDives_noProfileData,
+        // Against the sample times: a profile whose samples are unevenly
+        // spaced keeps its true shape.
         builder: (v) => HomeSparkline(
           [for (final p in v!.points) p.$2],
+          xs: [for (final p in v.points) p.$1],
           invert: true,
           fill: true,
         ),

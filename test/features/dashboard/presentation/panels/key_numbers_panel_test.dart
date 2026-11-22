@@ -270,6 +270,19 @@ void main() {
     expect(find.textContaining('0.8 h'), findsOneWidget);
   });
 
+  // 9.97 hours rounds to ten, so it reads as ten hours do: no decimal.
+  testWidgets('a total that rounds to ten hours shows no decimal', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 1280,
+      numbers: const HomeKeyNumbers(careerDives: 12, careerTimeSeconds: 35900),
+    );
+    expect(find.textContaining('10 h'), findsOneWidget);
+    expect(find.textContaining('10.0'), findsNothing);
+  });
+
   testWidgets('the trip checklist count comes before the trip name', (
     tester,
   ) async {

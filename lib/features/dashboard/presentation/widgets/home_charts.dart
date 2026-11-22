@@ -7,10 +7,43 @@ import 'package:submersion/core/theme/status_colors.dart';
 // package: at this size a chart needs no axes, legends or touch handling,
 // and every colour comes from the theme.
 
+/// Where each of [values] is drawn in a box of [size]: scaled to fill it,
+/// higher values higher (lower with [invert]). With [xs], one per value and
+/// spanning a range, each point sits at its own x across the width, so
+/// uneven spacing keeps its shape; otherwise the points are evenly spaced.
+/// One value gives a single point at the left edge.
+List<Offset> homeSparklinePoints(
+  List<double> values,
+  Size size, {
+  List<double>? xs,
+  bool invert = false,
+}) {
+  if (values.isEmpty) return const [];
+  final lo = values.reduce(math.min);
+  final hi = values.reduce(math.max);
+  final span = hi - lo;
+  double y(double v) {
+    final t = span == 0 ? 0.5 : (v - lo) / span;
+    final shown = invert ? t : 1 - t;
+    return 1 + shown * (size.height - 2);
+  }
+
+  final timed = xs != null && xs.length == values.length && xs.last > xs.first;
+  final step = values.length == 1 ? 0.0 : size.width / (values.length - 1);
+  double x(int i) =>
+      timed ? (xs[i] - xs.first) / (xs.last - xs.first) * size.width : i * step;
+  return [for (var i = 0; i < values.length; i++) Offset(x(i), y(values[i]))];
+}
+
 /// A line through [values] scaled to fill the box, with a faint fill under
 /// it. Nothing is drawn for an empty list; one value draws a flat line.
 class HomeSparkline extends StatelessWidget {
   final List<double> values;
+
+  /// Each value's position along the x axis (a depth profile's sample
+  /// times), so unevenly spaced values keep their shape. Null spaces them
+  /// evenly.
+  final List<double>? xs;
 
   /// Draws higher values lower, as a depth profile reads.
   final bool invert;
@@ -18,6 +51,7 @@ class HomeSparkline extends StatelessWidget {
 
   const HomeSparkline(
     this.values, {
+    this.xs,
     this.invert = false,
     this.fill = false,
     super.key,
@@ -28,13 +62,20 @@ class HomeSparkline extends StatelessWidget {
     final color = Theme.of(context).colorScheme.primary;
     return CustomPaint(
       size: Size.infinite,
-      painter: _SparklinePainter(values, color, invert: invert, fill: fill),
+      painter: _SparklinePainter(
+        values,
+        color,
+        xs: xs,
+        invert: invert,
+        fill: fill,
+      ),
     );
   }
 }
 
 class _SparklinePainter extends CustomPainter {
   final List<double> values;
+  final List<double>? xs;
   final Color color;
   final bool invert;
   final bool fill;
@@ -42,6 +83,7 @@ class _SparklinePainter extends CustomPainter {
   _SparklinePainter(
     this.values,
     this.color, {
+    required this.xs,
     required this.invert,
     required this.fill,
   });
@@ -49,22 +91,13 @@ class _SparklinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (values.isEmpty || size.isEmpty) return;
-    final lo = values.reduce(math.min);
-    final hi = values.reduce(math.max);
-    final span = hi - lo;
-    double y(double v) {
-      final t = span == 0 ? 0.5 : (v - lo) / span;
-      final shown = invert ? t : 1 - t;
-      return 1 + shown * (size.height - 2);
-    }
-
-    final step = values.length == 1 ? 0.0 : size.width / (values.length - 1);
-    final line = Path()..moveTo(0, y(values.first));
-    if (values.length == 1) {
-      line.lineTo(size.width, y(values.first));
+    final points = homeSparklinePoints(values, size, xs: xs, invert: invert);
+    final line = Path()..moveTo(points.first.dx, points.first.dy);
+    if (points.length == 1) {
+      line.lineTo(size.width, points.first.dy);
     } else {
-      for (var i = 1; i < values.length; i++) {
-        line.lineTo(i * step, y(values[i]));
+      for (final p in points.skip(1)) {
+        line.lineTo(p.dx, p.dy);
       }
     }
     if (fill) {
@@ -87,6 +120,7 @@ class _SparklinePainter extends CustomPainter {
   @override
   bool shouldRepaint(_SparklinePainter old) =>
       old.values != values ||
+      old.xs != xs ||
       old.color != color ||
       old.invert != invert ||
       old.fill != fill;
@@ -117,7 +151,11 @@ class HomeBars extends StatelessWidget {
         ),
         if (labels.isNotEmpty) ...[
           const SizedBox(height: 2),
+          // Left to right in every language, as the painter draws the bars:
+          // a row mirrored for a right-to-left locale would put each label
+          // under the wrong bar.
           Row(
+            textDirection: TextDirection.ltr,
             children: [
               for (final l in labels)
                 Expanded(

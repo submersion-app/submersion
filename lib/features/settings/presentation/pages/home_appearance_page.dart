@@ -326,7 +326,9 @@ class HomePresetTile extends StatelessWidget {
                                   Expanded(
                                     flex: row.units[i],
                                     child: Padding(
-                                      padding: const EdgeInsets.only(right: 2),
+                                      padding: const EdgeInsetsDirectional.only(
+                                        end: 2,
+                                      ),
                                       child: DecoratedBox(
                                         decoration: BoxDecoration(
                                           color: scheme.onSurfaceVariant

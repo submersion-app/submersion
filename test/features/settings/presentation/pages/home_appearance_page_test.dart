@@ -162,6 +162,41 @@ void main() {
     }
   });
 
+  // Right to left, the first bar of each row sits at the right edge, so the
+  // gap between bars must follow the reading direction too.
+  testWidgets('a right-to-left thumbnail reaches its right edge', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('he'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Center(
+          child: SizedBox(
+            width: 200,
+            child: HomePresetTile(
+              preset: HomeLayoutPreset.balanced,
+              selected: false,
+              onTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    final tile = tester.getRect(find.byType(HomePresetTile));
+    final bars = find.descendant(
+      of: find.byType(HomePresetTile),
+      matching: find.byType(DecoratedBox),
+    );
+    final rights = [
+      for (final e in bars.evaluate())
+        tester.getRect(find.byWidget(e.widget)).right,
+    ];
+    // The tile's inner padding is 8 on every side.
+    expect(rights.reduce((a, b) => a > b ? a : b), tile.right - 8);
+  });
+
   testWidgets('a narrow page puts the presets two by two', (tester) async {
     await _pump(tester, width: 340);
     final a = tester.getRect(find.byKey(const Key('homePreset_balanced')));

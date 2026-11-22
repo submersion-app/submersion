@@ -99,10 +99,12 @@ class LatestVsAveragePanel extends ConsumerWidget {
       );
     }
 
+    // Its site, or its own name without one, as the other panels name it.
+    final name = dive.site?.name ?? dive.name;
     return HomePanel(
       title: l10n.dashboard_panel_latestVsAverage,
-      trailing: dive.site?.name,
-      semanticsValue: dive.site?.name ?? '',
+      trailing: name,
+      semanticsValue: name ?? '',
       onTap: () => context.push('/dives/${dive.id}'),
       fit: HomePanelFit.clip,
       child: Column(mainAxisSize: MainAxisSize.min, children: rows),

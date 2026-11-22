@@ -14,6 +14,7 @@ import 'package:submersion/features/dashboard/presentation/panels/species_seen_p
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_charts.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -98,6 +99,27 @@ void main() {
       expect(nav.location, '/dives/d3');
     });
 
+    // Plotted against the sample times, so uneven spacing keeps its shape.
+    testWidgets('the profile is drawn against its sample times', (
+      tester,
+    ) async {
+      await pumpPanel(
+        tester,
+        const LatestProfilePanel(),
+        overrides: [
+          homeLatestProfileProvider.overrideWith(
+            (ref) async => (
+              dive: _dives.first,
+              points: [(0.0, 0.0), (120.0, 18.4), (2400.0, 5.0), (2580.0, 0.0)],
+            ),
+          ),
+        ],
+      );
+      final line = tester.widget<HomeSparkline>(find.byType(HomeSparkline));
+      expect(line.values, [0.0, 18.4, 5.0, 0.0]);
+      expect(line.xs, [0.0, 120.0, 2400.0, 2580.0]);
+    });
+
     testWidgets('a dive with no samples says so', (tester) async {
       await pumpPanel(
         tester,
@@ -134,6 +156,42 @@ void main() {
       );
       expect(find.textContaining('avg 21'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a dive with no site goes by its own name', (tester) async {
+      final handle = tester.ensureSemantics();
+      final unsited = Dive(
+        id: 'n1',
+        dateTime: DateTime.utc(2026, 11, 9, 21),
+        entryTime: DateTime.utc(2026, 11, 9, 21),
+        runtime: const Duration(minutes: 40),
+        maxDepth: 12,
+        name: 'Night drift',
+      );
+      await pumpPanel(
+        tester,
+        const LatestVsAveragePanel(),
+        overrides: [
+          recentDivesProvider.overrideWith((ref) async => [unsited]),
+          homeAveragesProvider.overrideWith(
+            (ref) async => (
+              averages: const HomeAverages(
+                maxDepth: 21,
+                runtimeSeconds: 2820,
+                diveCount: 40,
+              ),
+              sac: null,
+            ),
+          ),
+          homeSacSeriesProvider.overrideWith((ref) async => []),
+        ],
+      );
+      expect(find.text('Night drift'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Latest dive vs average, Night drift'),
+        findsOneWidget,
+      );
+      handle.dispose();
     });
 
     testWidgets('with no averages shows the values alone', (tester) async {

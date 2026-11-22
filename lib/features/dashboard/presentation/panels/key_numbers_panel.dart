@@ -284,12 +284,17 @@ class KeyNumbersPanel extends ConsumerWidget {
 }
 
 /// Hours from [seconds]: a decimal under ten, so a first 45-minute dive is
-/// not "0", and whole hours from there. In the locale's decimal separator.
+/// not "0", and whole hours from there. The choice is made on the value as
+/// rounded for display, so 9.97 hours reads "10", not "10.0". In the
+/// locale's decimal separator.
 String _hours(int seconds) {
   final exact = seconds / 3600;
-  return exact < 10
-      ? formatFixedForDisplay(exact, 1)
-      : exact.floor().toString();
+  final tenths = (exact * 10).round() / 10;
+  // Whole hours count down (10.9 is "10"), but never below the ten the
+  // rounding reached.
+  return tenths < 10
+      ? formatFixedForDisplay(tenths, 1)
+      : math.max(10, exact.floor()).toString();
 }
 
 /// One number tile: title, value with its unit, a comparison line, and a
