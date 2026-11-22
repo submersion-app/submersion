@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/models/log_entry.dart';
@@ -223,11 +224,11 @@ Future<void> shareLogFile(
   // lets the export carry the header at all. Reusing one name bounds the temp
   // directory to a single file across repeated shares.
   final tempDir = await getTemporaryDirectory();
-  final export = File('${tempDir.path}/$_exportFileName');
+  final export = File(p.join(tempDir.path, _exportFileName));
   await export.writeAsBytes(await buildLogExportBytes(file, header));
   final files = [XFile(export.path, mimeType: 'text/plain')];
   if (mediaReport != null) {
-    final report = File('${tempDir.path}/$_mediaReportFileName');
+    final report = File(p.join(tempDir.path, _mediaReportFileName));
     await report.writeAsString(mediaReport);
     files.add(XFile(report.path, mimeType: 'text/plain'));
   }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/auto_update/domain/entities/linux_install_method.dart';
 
 /// Reads the install-method marker that the Linux packages ship.
@@ -14,7 +15,9 @@ class LinuxInstallMethodReader {
 
   LinuxInstallMethod read() {
     try {
-      final marker = File('${File(executablePath).parent.path}/INSTALL_METHOD');
+      final marker = File(
+        p.join(File(executablePath).parent.path, 'INSTALL_METHOD'),
+      );
       if (!marker.existsSync()) return LinuxInstallMethod.tarball;
       return switch (marker.readAsStringSync().trim()) {
         'deb' => LinuxInstallMethod.deb,
