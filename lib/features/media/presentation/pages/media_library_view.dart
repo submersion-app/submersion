@@ -12,6 +12,7 @@ import 'package:submersion/features/media/presentation/widgets/media_map_content
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_missing_banner.dart';
+import 'package:submersion/features/media/presentation/widgets/media_subscription_error_banner.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_row_height_builder.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -136,6 +137,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
                 child: MediaLibraryHeaderToolbar(selection: _selection),
               ),
             const MediaLibraryActiveFilterChips(),
+            if (widget.showToolbar) const MediaSubscriptionErrorBanner(),
             if (showingMissing)
               MediaMissingBanner(isEmpty: state.entries.isEmpty),
             Expanded(

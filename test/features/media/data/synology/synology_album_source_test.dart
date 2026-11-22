@@ -160,14 +160,17 @@ void main() {
   });
 
   test('skips malformed items with a warning', () async {
+    // Most photos readable: the malformed minority is skipped, not fatal.
     final album = _FakeAlbum([
       _photo(1),
+      _photo(4, time: 4),
+      _photo(5, time: 5),
       {'id': 'not-a-number', 'type': 'photo'},
       {'id': 3, 'type': 'photo', 'time': 3, 'filesize': 3},
     ]);
     final parsed =
         ((await _source(album).fetch(_link)) as ManifestFetchSuccess).parsed;
-    expect(parsed.entries, hasLength(1));
+    expect(parsed.entries, hasLength(3));
     expect(parsed.warnings, hasLength(2));
   });
 
@@ -272,6 +275,58 @@ void main() {
     final outcome = await _source(album, password: null).fetch(_link);
     expect(outcome, isA<ManifestFetchSuccess>());
     expect(album.logins, 1);
+  });
+
+  group('a changed list format fails the fetch instead of emptying it', () {
+    test('items with no known type', () async {
+      final album = _FakeAlbum([
+        {..._photo(1), 'type': 'image'},
+        {..._photo(2, time: 2), 'type': 'image'},
+      ]);
+      final outcome = await _source(album).fetch(_link);
+      expect(outcome, isA<ManifestFetchFailure>());
+      final message = (outcome as ManifestFetchFailure).message;
+      expect(message, contains('Album format not recognised'));
+      expect(message, contains('image'));
+      expect(outcome.unauthorized, isFalse);
+    });
+
+    test('photos that mostly cannot be read', () async {
+      Map<String, Object?> renamed(int id) {
+        final p = Map<String, Object?>.of(_photo(id, time: id));
+        p['taken_time'] = p.remove('time');
+        return p;
+      }
+
+      final album = _FakeAlbum([_photo(1), renamed(2), renamed(3)]);
+      final outcome = await _source(album).fetch(_link);
+      expect(outcome, isA<ManifestFetchFailure>());
+      final message = (outcome as ManifestFetchFailure).message;
+      expect(message, contains('only 1 of 3 photos'));
+      // Field names, so a developer sees what changed; no values.
+      expect(message, contains('taken_time'));
+      expect(message, isNot(contains('P2.JPG')));
+    });
+
+    test('a few unreadable photos are only skipped', () async {
+      final album = _FakeAlbum([
+        _photo(1),
+        _photo(2, time: 2),
+        {'id': 3, 'type': 'photo'},
+      ]);
+      final outcome = await _source(album).fetch(_link);
+      expect(outcome, isA<ManifestFetchSuccess>());
+      final parsed = (outcome as ManifestFetchSuccess).parsed;
+      expect(parsed.entries, hasLength(2));
+      expect(parsed.warnings.single, contains('fields: id, type'));
+    });
+
+    test('an album of videos only is not a format problem', () async {
+      final album = _FakeAlbum([_photo(1, type: 'video')]);
+      final outcome = await _source(album).fetch(_link);
+      expect(outcome, isA<ManifestFetchSuccess>());
+      expect((outcome as ManifestFetchSuccess).parsed.entries, isEmpty);
+    });
   });
 
   test('a wrong password is unauthorized', () async {

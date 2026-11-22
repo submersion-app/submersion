@@ -147,6 +147,12 @@ class SubscriptionPoller {
           now: now,
         );
       case ManifestFetchFailure():
+        // The subscription id, never the URL: a share link carries its code.
+        _log.warning(
+          'Poll of subscription ${sub.id} failed'
+          '${outcome.statusCode == null ? '' : ' (HTTP ${outcome.statusCode})'}'
+          ': ${outcome.message}',
+        );
         await subscriptions.recordPollFailure(
           sub.id,
           pollIntervalSeconds: sub.pollIntervalSeconds,
@@ -154,6 +160,29 @@ class SubscriptionPoller {
           now: now,
         );
       case ManifestFetchSuccess():
+        final warnings = outcome.parsed.warnings;
+        if (warnings.isNotEmpty) {
+          _log.warning(
+            'Poll of subscription ${sub.id}: ${warnings.length} entries '
+            'skipped, e.g. ${warnings.take(3).join(' | ')}',
+          );
+        }
+        if (outcome.parsed.entries.isEmpty && await _holdsLiveRows(sub.id)) {
+          // A feed that suddenly lists nothing has far more likely changed
+          // its format or lost its contents by accident than been emptied
+          // on purpose, and taking it at its word marks every photo of the
+          // subscription missing on every device.
+          const error =
+              'The feed listed no entries; nothing was marked missing';
+          _log.warning('Poll of subscription ${sub.id}: $error');
+          await subscriptions.recordPollFailure(
+            sub.id,
+            pollIntervalSeconds: sub.pollIntervalSeconds,
+            error: error,
+            now: now,
+          );
+          return;
+        }
         await _applyDiff(sub, outcome.parsed, now);
         await subscriptions.recordPollSuccess(
           sub.id,
@@ -163,6 +192,11 @@ class SubscriptionPoller {
           now: now,
         );
     }
+  }
+
+  Future<bool> _holdsLiveRows(String subscriptionId) async {
+    final rows = await mediaRepo.getAllBySubscription(subscriptionId);
+    return rows.any((m) => !m.isOrphaned);
   }
 
   Future<void> _applyDiff(

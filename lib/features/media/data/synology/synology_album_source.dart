@@ -149,6 +149,11 @@ class SynologyAlbumSource {
       link: link,
       downloadsAllowed: downloadsAllowed,
     );
+    final problem = synologyFormatProblem(items, mapped);
+    if (problem != null) {
+      _log.warning('Synology album not read: $problem');
+      throw SynologyShareException(SynologyShareErrorKind.unexpected, problem);
+    }
     return ManifestFetchSuccess(
       parsed: ManifestParseResult(
         // No dedicated format yet: a Synology subscription is recognised by
@@ -213,6 +218,39 @@ typedef SynologyMappedEntries = ({
   List<String> warnings,
 });
 
+/// Why [items] look like a list this client no longer understands, or null
+/// when they read normally.
+///
+/// A changed API must fail the fetch, never pass as a smaller album: the
+/// poller reads every entry missing from a successful fetch as removed and
+/// marks its row missing on every device. So a list whose items carry no
+/// type this client knows, or whose photos mostly fail to parse, is a
+/// failure. A few unreadable photos are not: those are skipped with a
+/// warning, as before.
+String? synologyFormatProblem(
+  List<Object?> items,
+  SynologyMappedEntries mapped,
+) {
+  if (items.isEmpty) return null;
+  const knownTypes = {'photo', 'video', 'live'};
+  final objects = items.whereType<Map<String, Object?>>().toList();
+  final typed = objects.where((i) => knownTypes.contains(i['type'])).length;
+  if (typed == 0) {
+    final seen = {for (final i in objects) '${i['type']}'}.take(5).join(', ');
+    return 'Album format not recognised: none of ${items.length} items has a '
+        'known type (seen: ${seen.isEmpty ? 'no objects' : seen})';
+  }
+  final photos = objects.where((i) => i['type'] == 'photo').length;
+  if (photos > 0 && mapped.entries.length * 2 < photos) {
+    final first = mapped.warnings.isEmpty
+        ? ''
+        : ' First: ${mapped.warnings.first}';
+    return 'Album format not recognised: only ${mapped.entries.length} of '
+        '$photos photos could be read.$first';
+  }
+  return null;
+}
+
 /// Maps Synology item maps to manifest entries.
 ///
 /// `entryKey` is built from capture time and file size, not the Synology id:
@@ -235,7 +273,17 @@ SynologyMappedEntries synologyEntriesFrom(
     if (raw['type'] != 'photo') continue;
     final photo = _Photo.tryParse(raw);
     if (photo == null) {
-      warnings.add('item $index: missing id, time, size or cache key');
+      // Field names, never values: enough to see what Synology renamed,
+      // nothing about the photo.
+      final keys = [...raw.keys]..sort();
+      final additional = raw['additional'];
+      final extra = additional is Map<String, Object?>
+          ? ' additional: ${([...additional.keys]..sort()).join(', ')}'
+          : '';
+      warnings.add(
+        'item $index: missing id, time, size or cache key '
+        '(fields: ${keys.join(', ')};$extra)',
+      );
       continue;
     }
     photos.add(photo);

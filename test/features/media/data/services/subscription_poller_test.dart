@@ -785,6 +785,58 @@ void main() {
     expect(all, hasLength(2));
   });
 
+  test('a feed that suddenly lists nothing marks nothing missing', () async {
+    const feed = 'https://feed.example.com/m.json';
+    final outcomes = <String, ManifestFetchOutcome>{
+      feed: ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/photo1.jpg')]),
+      ),
+    };
+    final fetcher = _StaticFetcher(outcomes);
+    final poller = SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await poller.pollNow(sub.id, DateTime.utc(2024, 4, 27, 10));
+    expect(await mediaRepo.getAllBySubscription(sub.id), hasLength(1));
+
+    outcomes[feed] = ManifestFetchSuccess(parsed: _parsed(const []));
+    await poller.pollNow(sub.id, DateTime.utc(2024, 4, 28, 10));
+
+    final rows = await mediaRepo.getAllBySubscription(sub.id);
+    expect(rows.single.isOrphaned, isFalse);
+    final after = await subscriptions.getById(sub.id);
+    expect(after!.lastError, contains('listed no entries'));
+  });
+
+  test('an empty feed with nothing imported is a normal poll', () async {
+    const feed = 'https://feed.example.com/m.json';
+    final poller = SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: _StaticFetcher({
+        feed: ManifestFetchSuccess(parsed: _parsed(const [])),
+      }),
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await poller.pollNow(sub.id, DateTime.utc(2024, 4, 27, 10));
+    final after = await subscriptions.getById(sub.id);
+    expect(after!.lastError, isNull);
+    expect(after.lastPolledAt, isNotNull);
+  });
+
   test('rows of a live subscription are never taken over', () async {
     const feed = 'https://feed.example.com/m.json';
     final fetcher = _StaticFetcher({

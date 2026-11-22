@@ -274,6 +274,26 @@ void main() {
     expect(poller.calls, ['1']);
   });
 
+  testWidgets('Poll now that fails says why instead of "Polled"', (
+    tester,
+  ) async {
+    final repo = _FakeRepo([_sub('1')]);
+    final poller = _ScriptedPoller(repo, ['Album format not recognised']);
+    await tester.pumpWidget(
+      _wrap(const ManifestSubscriptionCard(), repo: repo, poller: poller),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Poll now'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('manifestPollErrorSnackBar')), findsOneWidget);
+    expect(find.textContaining('Album format not recognised'), findsWidgets);
+    expect(find.text('Polled Sub 1'), findsNothing);
+  });
+
   group('Poll now on a Synology Photos share', () {
     const shareUrl = 'https://nas.example.com:5001/mo/sharing/code1';
     final field = find.byKey(const Key('synologyPasswordDialogField'));

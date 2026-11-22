@@ -253,6 +253,28 @@ format, not only Synology:
   detached there for a moment, and a local subscription to the same URL
   could take them over.
 
+### 9. When the share changes its format
+
+The API is unofficial, so a DSM or Synology Photos update can change it. A
+poll that reads a changed list as a smaller album would mark every photo it
+cannot read missing, on every device. So:
+
+- `synologyFormatProblem` fails the fetch ("Album format not recognised")
+  when the list's items carry no type this client knows, or when fewer than
+  half of its photos parse. A few unreadable photos are skipped with a
+  warning that lists the item's field names (never values), which is what a
+  developer needs to see what was renamed.
+- For every feed, the poller refuses a successful fetch with no entries
+  while the subscription still holds rows it has not marked missing:
+  recorded as a failure, nothing marked. The price is that an album emptied
+  on purpose is not mirrored; its rows stay until deleted.
+- Every failed poll is logged with the subscription id (never the URL,
+  which carries the share code), and skipped entries with their count and
+  the first three warnings.
+- The user sees it: Poll now reports the recorded error instead of
+  "Polled", and the media library shows a banner while an active
+  subscription's last poll failed, with a button to the network sources.
+
 ## Security
 
 - The share code alone does not open a password-protected share; the password

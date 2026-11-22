@@ -213,7 +213,33 @@ class _SubscriptionTile extends ConsumerWidget {
       if (!context.mounted) return;
       polled = await _askForSharePassword(context, ref, polled: polled);
       if (!context.mounted) return;
+      // pollNow records a failed poll rather than throwing, so "Polled" alone
+      // would report a broken feed as fine. The recorded error says what
+      // went wrong.
+      final error = polled
+          ? (await ref
+                    .read(manifestSubscriptionRepositoryProvider)
+                    .getById(sub.id))
+                ?.lastError
+          : null;
+      if (!context.mounted) return;
       ref.invalidate(manifestSubscriptionsProvider);
+      messenger.hideCurrentSnackBar();
+      if (error != null && error.isNotEmpty) {
+        final colors = Theme.of(context).colorScheme;
+        messenger.showSnackBar(
+          SnackBar(
+            key: const Key('manifestPollErrorSnackBar'),
+            backgroundColor: colors.errorContainer,
+            duration: const Duration(seconds: 10),
+            content: Text(
+              '$label: ${l10n.media_manifest_pollError(error)}',
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+        );
+        return;
+      }
       messenger.showSnackBar(
         SnackBar(
           content: Text(
