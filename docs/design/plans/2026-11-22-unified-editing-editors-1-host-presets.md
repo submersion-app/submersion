@@ -478,7 +478,7 @@ changed from this plan, for plan 2 to build on:
   to the list, as the weight editor did. New string
   `tankPresets_edit_notFound` in all locales. `tankPresets_edit_errorSaving`
   stays: the dive's tank card uses it.
-- **Review rounds 2 and 3 (xhigh) changed the host further.** The diver is
+- **Review rounds after the build changed the host further.** The diver is
   tracked as `validatedCurrentDiverIdProvider` resolves it, noted in
   `initState` (`_noteDiver`, `_isAnotherDiver`): the first diver known is
   the editor's, a repair of the raw id that resolves to the same diver is
@@ -502,6 +502,13 @@ changed from this plan, for plan 2 to build on:
   the stored name when only rows changed, and a row whose amount text is
   unchanged keeps its stored kilograms. Plan 2's editors (cylinder
   configurations, transmitter keys) follow the same rule.
+- **Read a retained value with `AsyncValue.value`, not the repo's
+  `valueOrNull`.** The extension in `lib/core/providers/async_value_extensions.dart`
+  returns null while a provider reloads after a dependency change (a
+  refresh from `invalidate` keeps the value), while Riverpod 3's `value`
+  keeps the value being replaced. The host notes the editor's diver with
+  `value`; a test of that case must reload the provider through a
+  dependency (change the raw diver id), not `invalidate` it.
 - **A test that holds Save on the diver** must refresh the provider
   (`container.invalidate(validatedCurrentDiverIdProvider)`) after setting
   its gate, since the host has read it at start, and step frames instead of
