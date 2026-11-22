@@ -328,6 +328,38 @@ void main() {
     expect(probe.writes, isEmpty);
   });
 
+  testWidgets('a page with nothing under it saves and stays', (tester) async {
+    router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => _FakeEditorPage(probe: probe),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await type(tester, 'changed');
+    await tapSave(tester);
+    expect(tester.takeException(), isNull);
+    expect(probe.writes, ['rec-1']);
+    expect(find.byType(_FakeEditorPage), findsOneWidget);
+  });
+
   testWidgets('Ctrl+S saves and Escape cancels', (tester) async {
     await pump(tester);
     await type(tester, 'changed');

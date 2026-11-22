@@ -221,7 +221,13 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     _pop();
   }
 
-  void _pop() => Navigator.of(context).pop();
+  /// Leaves the page. An editor is always opened over its list, so there is
+  /// a page to go back to; one with nothing under it stays, rather than
+  /// leave nothing on screen.
+  void _pop() {
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) navigator.pop();
+  }
 
   /// A sitting that ended without this page's Save or Cancel (the app's
   /// leave check, a change of diver) leaves once the page is in view. Back
