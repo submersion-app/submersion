@@ -117,6 +117,7 @@ extension _ViewerChrome on _MediaViewerPageState {
           onMarineLifeLabels: labels.onPressed,
           marineLifeLabelsOn: labels.on,
           marineLifeRing: labels.ring,
+          marineLifeTone: labels.tone,
         );
       },
     );

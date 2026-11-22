@@ -12,7 +12,8 @@
       "hu": "csuka",
       "zh": "白斑狗鱼",
       "ar": "الكراكي الشمالي",
-      "he": "זאב מים צפוני"
+      "he": "זאב מים צפוני",
+      "ja": "ノーザンパイク"
     },
     "descriptions": {
       "en": "Long-bodied ambush predator with a duckbill snout, hanging motionless among weeds at lake margins.",
@@ -25,7 +26,8 @@
       "hu": "Megnyúlt testű, kacsacsőrszerű orrú lesből támadó ragadozó, mozdulatlanul áll a parti hínár között.",
       "zh": "身体细长、吻部像鸭嘴的伏击型掠食鱼，常一动不动地悬停在湖岸水草间。",
       "ar": "مفترس طويل الجسم بخطم يشبه منقار البط، يترصد بلا حراك بين نباتات حواف البحيرات.",
-      "he": "טורף ארוך גוף עם חרטום דמוי מקור ברווז, אורב ללא תנועה בין צמחי המים בשולי האגם."
+      "he": "טורף ארוך גוף עם חרטום דמוי מקור ברווז, אורב ללא תנועה בין צמחי המים בשולי האגם.",
+      "ja": "カモのくちばしのような吻を持つ細長い待ち伏せ型の捕食者で、湖岸の水草の間でじっと浮かんでいます。"
     }
   },
   {
@@ -41,7 +43,8 @@
       "hu": "Muskellunge csuka",
       "zh": "北美狗鱼",
       "ar": "ماسكلانج",
-      "he": "מסקלנג'"
+      "he": "מסקלנג'",
+      "ja": "マスキールンジ"
     },
     "descriptions": {
       "en": "The largest pike, a barred or spotted giant of clear northern lakes, rarely seen and never forgotten.",
@@ -54,7 +57,8 @@
       "hu": "A legnagyobb csukafaj, a tiszta északi tavak csíkos vagy pettyes óriása, ritkán látni, de felejthetetlen.",
       "zh": "最大的狗鱼，北方清澈湖泊中带条纹或斑点的巨型鱼，难得一见但令人难忘。",
       "ar": "أكبر أنواع الكراكي، عملاق مخطط أو مرقط في البحيرات الشمالية الصافية، نادر الرؤية ولا يُنسى.",
-      "he": "הגדול שבזאבי המים, ענק מפוספס או מנוקד של אגמים צפוניים צלולים, נדיר לראייה ובלתי נשכח."
+      "he": "הגדול שבזאבי המים, ענק מפוספס או מנוקד של אגמים צפוניים צלולים, נדיר לראייה ובלתי נשכח.",
+      "ja": "最大のパイクで、北の澄んだ湖に暮らす縞や斑点模様の巨魚です。めったに見られず、一度出会えば忘れられません。"
     }
   },
   {
@@ -70,7 +74,8 @@
       "hu": "Láncos csuka",
       "zh": "暗色狗鱼",
       "ar": "الكراكي المسلسل",
-      "he": "זאב מים שרשרת"
+      "he": "זאב מים שרשרת",
+      "ja": "チェーンピッケレル"
     },
     "descriptions": {
       "en": "Slender pike of weedy eastern North American ponds, named for the chain-like pattern along its flanks.",
@@ -83,7 +88,8 @@
       "hu": "Karcsú csuka Észak-Amerika keleti, hínáros tavaiból, oldalán láncszerű mintázatáról kapta a nevét.",
       "zh": "北美东部水草茂密池塘中的细长狗鱼，因体侧链状花纹而得名。",
       "ar": "كراكي نحيل يعيش في برك شرق أمريكا الشمالية العشبية، سُمي بذلك بسبب النمط الشبيه بالسلسلة على جانبيه.",
-      "he": "זאב מים דק של בריכות עשירות בצמחייה במזרח צפון אמריקה, שנקרא על שם דוגמת השרשרת שעל צדדיו."
+      "he": "זאב מים דק של בריכות עשירות בצמחייה במזרח צפון אמריקה, שנקרא על שם דוגמת השרשרת שעל צדדיו.",
+      "ja": "北米東部の水草の多い池に暮らす細身のパイクで、体側の鎖のような模様が名前の由来です。"
     }
   },
   {
@@ -99,7 +105,8 @@
       "hu": "Walleye",
       "zh": "玻璃梭鲈",
       "ar": "الوالاي",
-      "he": "וואליי"
+      "he": "וואליי",
+      "ja": "ウォールアイ"
     },
     "descriptions": {
       "en": "Golden-olive perch relative with large reflective eyes, hunting at dusk over rocky and sandy lake bottoms.",
@@ -112,7 +119,8 @@
       "hu": "Aranyzöld sügérrokon nagy, fényvisszaverő szemekkel, alkonyatkor vadászik sziklás és homokos tófenék fölött.",
       "zh": "金橄榄色的鲈科近亲，眼睛大而反光，黄昏时在岩石和沙质湖底上方捕食。",
       "ar": "قريب للفرخ بلون زيتوني ذهبي وعينين كبيرتين عاكستين، يصطاد عند الغسق فوق قيعان البحيرات الصخرية والرملية.",
-      "he": "קרוב של הדקר בצבע זית זהוב ועיניים גדולות מחזירות אור, צד בדמדומים מעל קרקעיות סלעיות וחוליות."
+      "he": "קרוב של הדקר בצבע זית זהוב ועיניים גדולות מחזירות אור, צד בדמדומים מעל קרקעיות סלעיות וחוליות.",
+      "ja": "光を反射する大きな目を持つ金色がかったオリーブ色のパーチの仲間で、夕暮れに湖の岩底や砂底の上で狩りをします。"
     }
   },
   {
@@ -128,7 +136,8 @@
       "hu": "Sauger",
       "zh": "加拿大梭鲈",
       "ar": "الساوغر",
-      "he": "סאוגר"
+      "he": "סאוגר",
+      "ja": "ソーガー"
     },
     "descriptions": {
       "en": "Smaller, blotchier cousin of the walleye that favours turbid rivers and reservoirs.",
@@ -141,7 +150,8 @@
       "hu": "A walleye kisebb, foltosabb rokona, zavaros folyókat és víztározókat kedvel.",
       "zh": "大眼梭鲈体型更小、斑纹更多的近亲，偏爱浑浊的河流和水库。",
       "ar": "ابن عم أصغر وأكثر تبقعاً لسمك الوالاي، يفضل الأنهار العكرة والخزانات.",
-      "he": "בן דוד קטן ומנומר יותר של הוואליי, מעדיף נהרות עכורים ומאגרים."
+      "he": "בן דוד קטן ומנומר יותר של הוואליי, מעדיף נהרות עכורים ומאגרים.",
+      "ja": "ウォールアイより小さく斑紋の多い近縁種で、濁った川や貯水池を好みます。"
     }
   },
   {
@@ -157,7 +167,8 @@
       "hu": "Sárga sügér",
       "zh": "黄金鲈",
       "ar": "الفرخ الأصفر",
-      "he": "דקר צהוב"
+      "he": "דקר צהוב",
+      "ja": "イエローパーチ"
     },
     "descriptions": {
       "en": "Schooling golden perch with dark vertical bars, common around docks and weed beds across North America.",
@@ -170,7 +181,8 @@
       "hu": "Rajokban járó aranysárga sügér sötét függőleges csíkokkal, gyakori stégek és hínárosok körül Észak-Amerikában.",
       "zh": "成群活动的金黄色鲈鱼，体侧有深色竖纹，在北美的码头和水草丛附近很常见。",
       "ar": "فرخ ذهبي يعيش في أسراب بخطوط عمودية داكنة، شائع حول الأرصفة ونباتات المياه في أمريكا الشمالية.",
-      "he": "דקר זהוב החי בלהקות עם פסים אנכיים כהים, נפוץ ליד מזחים ומצעי צמחייה ברחבי צפון אמריקה."
+      "he": "דקר זהוב החי בלהקות עם פסים אנכיים כהים, נפוץ ליד מזחים ומצעי צמחייה ברחבי צפון אמריקה.",
+      "ja": "暗色の横帯を持つ群れで泳ぐ金色のパーチで、北米各地の桟橋や水草帯の周りでよく見られます。"
     }
   },
   {
@@ -186,7 +198,8 @@
       "hu": "csapósügér",
       "zh": "河鲈",
       "ar": "الفرخ الأوروبي",
-      "he": "דקר אירופי"
+      "he": "דקר אירופי",
+      "ja": "ヨーロピアンパーチ"
     },
     "descriptions": {
       "en": "Striped, spiny-finned perch with red-orange lower fins, found in nearly every European lake and slow river.",
@@ -199,7 +212,8 @@
       "hu": "Csíkos, tüskés úszójú sügér vörös-narancs alsó úszókkal, szinte minden európai tóban és lassú folyóban megtalálható.",
       "zh": "带条纹、鳍有硬棘的鲈鱼，下鳍呈红橙色，几乎遍布欧洲所有湖泊和缓流河流。",
       "ar": "فرخ مخطط بزعانف شوكية وزعانف سفلية حمراء برتقالية، يوجد في كل بحيرة ونهر بطيء تقريباً في أوروبا.",
-      "he": "דקר מפוספס עם סנפירים קוצניים וסנפירים תחתונים אדומים-כתומים, מצוי כמעט בכל אגם ונהר איטי באירופה."
+      "he": "דקר מפוספס עם סנפירים קוצניים וסנפירים תחתונים אדומים-כתומים, מצוי כמעט בכל אגם ונהר איטי באירופה.",
+      "ja": "縞模様と棘のあるひれ、赤橙色の下側のひれを持つパーチで、ヨーロッパのほぼすべての湖や流れの緩やかな川に見られます。"
     }
   },
   {
@@ -215,7 +229,8 @@
       "hu": "Fogassüllő",
       "zh": "梭鲈",
       "ar": "الزاندر",
-      "he": "זנדר"
+      "he": "זנדר",
+      "ja": "ザンダー"
     },
     "descriptions": {
       "en": "Large pale predator with glassy eyes and fanged jaws, patrolling murky European lakes and rivers after dark.",
@@ -228,7 +243,8 @@
       "hu": "Nagy, sápadt ragadozó üveges szemekkel és agyarszerű fogakkal, sötétedés után járja a zavaros európai tavakat és folyókat.",
       "zh": "体型大、颜色淡的掠食鱼，眼睛呈玻璃状，口有尖牙，夜间在欧洲浑浊的湖河中巡游。",
       "ar": "مفترس كبير شاحب اللون بعينين زجاجيتين وفكين ذوي أنياب، يجوب بحيرات وأنهار أوروبا العكرة بعد حلول الظلام.",
-      "he": "טורף גדול וחיוור עם עיניים זגוגיות ולסתות עם ניבים, מסייר באגמים ובנהרות עכורים באירופה אחרי רדת החשכה."
+      "he": "טורף גדול וחיוור עם עיניים זגוגיות ולסתות עם ניבים, מסייר באגמים ובנהרות עכורים באירופה אחרי רדת החשכה.",
+      "ja": "ガラスのような目と牙のある顎を持つ淡い色の大型の捕食者で、夜になるとヨーロッパの濁った湖や川を巡回します。"
     }
   },
   {
@@ -244,7 +260,8 @@
       "hu": "vágó durbincs",
       "zh": "密歇根梅花鲈",
       "ar": "الرف",
-      "he": "רוף"
+      "he": "רוף",
+      "ja": "ラッフ"
     },
     "descriptions": {
       "en": "Small mottled perch with a spiny joined dorsal fin, abundant on soft bottoms of European lakes.",
@@ -257,7 +274,8 @@
       "hu": "Kis, márványozott mintájú vágó durbincs egybefüggő tüskés hátúszóval, gyakori az európai tavak puha fenekén.",
       "zh": "小型斑纹鲈鱼，背鳍连成一片且有硬棘，在欧洲湖泊的软质湖底大量出现。",
       "ar": "فرخ صغير مرقط بزعنفة ظهرية شوكية متصلة، وفير على القيعان الطرية في بحيرات أوروبا.",
-      "he": "דקר קטן ומנומר עם סנפיר גב קוצני מחובר, שכיח על קרקעיות רכות של אגמים אירופיים."
+      "he": "דקר קטן ומנומר עם סנפיר גב קוצני מחובר, שכיח על קרקעיות רכות של אגמים אירופיים.",
+      "ja": "棘のあるつながった背びれを持つ、まだら模様の小型のパーチで、ヨーロッパの湖の軟らかい底に数多く見られます。"
     }
   },
   {
@@ -273,7 +291,8 @@
       "hu": "pisztrángsügér",
       "zh": "大口黑鲈",
       "ar": "القاروص كبير الفم",
-      "he": "בס גדול פה"
+      "he": "בס גדול פה",
+      "ja": "オオクチバス"
     },
     "descriptions": {
       "en": "Green-backed bass with a dark side stripe and a huge mouth, lurking beside logs and weed edges in warm lakes.",
@@ -286,7 +305,8 @@
       "hu": "Zöld hátú sügér sötét oldalcsíkkal és hatalmas szájjal, fatörzsek és hínárszegélyek mellett les a meleg tavakban.",
       "zh": "背部绿色的黑鲈，体侧有深色条纹，嘴巴极大，潜伏在温暖湖泊的倒木和水草边缘。",
       "ar": "قاروص أخضر الظهر بخط جانبي داكن وفم ضخم، يترصد قرب جذوع الأشجار وحواف النباتات في البحيرات الدافئة.",
-      "he": "בס ירוק גב עם פס צד כהה ופה עצום, אורב ליד גזעים ושולי צמחייה באגמים חמימים."
+      "he": "בס ירוק גב עם פס צד כהה ופה עצום, אורב ליד גזעים ושולי צמחייה באגמים חמימים.",
+      "ja": "背が緑色で体側に暗色の縦帯と巨大な口を持つバスで、暖かい湖の倒木や水草帯の縁に潜んでいます。"
     }
   },
   {
@@ -302,7 +322,8 @@
       "hu": "Kisszájú sügér",
       "zh": "小口黑鲈",
       "ar": "القاروص صغير الفم",
-      "he": "בס קטן פה"
+      "he": "בס קטן פה",
+      "ja": "コクチバス"
     },
     "descriptions": {
       "en": "Bronze bass with faint vertical bars, holding over rock and gravel in clear, cool lakes and rivers.",
@@ -315,7 +336,8 @@
       "hu": "Bronzszínű sügér halvány függőleges csíkokkal, sziklás és kavicsos aljzat fölött áll tiszta, hűvös tavakban és folyókban.",
       "zh": "古铜色的黑鲈，体侧有淡淡的竖纹，栖息在清凉湖河的岩石和砾石上方。",
       "ar": "قاروص برونزي بخطوط عمودية باهتة، يستقر فوق الصخور والحصى في البحيرات والأنهار الصافية الباردة.",
-      "he": "בס ארדי עם פסים אנכיים עדינים, שוהה מעל סלע וחצץ באגמים ובנהרות צלולים וקרירים."
+      "he": "בס ארדי עם פסים אנכיים עדינים, שוהה מעל סלע וחצץ באגמים ובנהרות צלולים וקרירים.",
+      "ja": "かすかな横帯を持つブロンズ色のバスで、澄んだ冷たい湖や川の岩や礫の上に定位しています。"
     }
   },
   {
@@ -331,7 +353,8 @@
       "hu": "Sziklasügér",
       "zh": "岩钝鲈",
       "ar": "قاروص الصخور",
-      "he": "בס סלעים"
+      "he": "בס סלעים",
+      "ja": "ロックバス"
     },
     "descriptions": {
       "en": "Chunky red-eyed sunfish with rows of dark spots, sheltering among boulders in clear streams and lakes.",
@@ -344,7 +367,8 @@
       "hu": "Zömök, vörös szemű naphal sötét pontsorokkal, sziklatömbök között rejtőzik tiszta patakokban és tavakban.",
       "zh": "体型粗壮、眼睛发红的太阳鱼，体侧有成排深色斑点，藏身于清澈溪流和湖泊的巨石间。",
       "ar": "سمكة شمس ممتلئة بعينين حمراوين وصفوف من البقع الداكنة، تحتمي بين الصخور الكبيرة في الجداول والبحيرات الصافية.",
-      "he": "דג שמש גוץ אדום עיניים עם שורות כתמים כהים, מסתתר בין סלעים גדולים בנחלים ובאגמים צלולים."
+      "he": "דג שמש גוץ אדום עיניים עם שורות כתמים כהים, מסתתר בין סלעים גדולים בנחלים ובאגמים צלולים.",
+      "ja": "暗色の斑点の列と赤い目を持つずんぐりしたサンフィッシュの仲間で、澄んだ川や湖の岩の間に隠れています。"
     }
   },
   {
@@ -360,7 +384,8 @@
       "hu": "Kékkopoltyús naphal",
       "zh": "蓝鳃太阳鱼",
       "ar": "البلوجيل",
-      "he": "דג שמש כחול זימים"
+      "he": "דג שמש כחול זימים",
+      "ja": "ブルーギル"
     },
     "descriptions": {
       "en": "Disc-shaped sunfish with a blue-black ear flap and orange breast, nesting in colonies on shallow sandy bottoms.",
@@ -373,7 +398,8 @@
       "hu": "Korong alakú naphal kékesfekete kopoltyúfedő-lebennyel és narancssárga mellel, kolóniákban fészkel sekély homokos aljzaton.",
       "zh": "圆盘状的太阳鱼，鳃盖有蓝黑色耳片，胸部橙色，在浅沙底成群筑巢。",
       "ar": "سمكة شمس قرصية الشكل بغطاء خيشومي أزرق مسوّد وصدر برتقالي، تعشش في مستعمرات على القيعان الرملية الضحلة.",
-      "he": "דג שמש דמוי דיסקה עם דש זימים כחול-שחור וחזה כתום, מקנן במושבות על קרקעיות חוליות רדודות."
+      "he": "דג שמש דמוי דיסקה עם דש זימים כחול-שחור וחזה כתום, מקנן במושבות על קרקעיות חוליות רדודות.",
+      "ja": "青黒い耳状の突起とオレンジ色の胸を持つ円盤形のサンフィッシュで、浅い砂底に集団で巣を作ります。"
     }
   },
   {
@@ -389,7 +415,8 @@
       "hu": "naphal",
       "zh": "太阳鱼",
       "ar": "سمكة الشمس القرعية",
-      "he": "דג שמש זרע דלעת"
+      "he": "דג שמש זרע דלעת",
+      "ja": "パンプキンシード"
     },
     "descriptions": {
       "en": "Brightly speckled sunfish with a red-tipped ear flap and wavy blue cheek lines, common in weedy shallows.",
@@ -402,7 +429,8 @@
       "hu": "Élénken pettyezett naphal vörös szegélyű kopoltyúlebennyel és hullámos kék pofacsíkokkal, gyakori a hínáros sekélyesekben.",
       "zh": "色彩斑斓的太阳鱼，耳片末端红色，面颊有波浪状蓝纹，常见于水草茂密的浅水区。",
       "ar": "سمكة شمس منقطة بألوان زاهية بغطاء خيشومي ذي طرف أحمر وخطوط زرقاء متموجة على الخدين، شائعة في المياه الضحلة العشبية.",
-      "he": "דג שמש מנוקד בצבעים עזים עם דש זימים בקצה אדום וקווי לחי כחולים גליים, נפוץ ברדודים עשירי צמחייה."
+      "he": "דג שמש מנוקד בצבעים עזים עם דש זימים בקצה אדום וקווי לחי כחולים גליים, נפוץ ברדודים עשירי צמחייה.",
+      "ja": "先端が赤い耳状の突起と頬の青い波線を持つ、鮮やかな斑点模様のサンフィッシュで、水草の多い浅場でよく見られます。"
     }
   },
   {
@@ -418,7 +446,8 @@
       "hu": "Fekete crappie",
       "zh": "黑莓鲈",
       "ar": "الكرابي الأسود",
-      "he": "קראפי שחור"
+      "he": "קראפי שחור",
+      "ja": "ブラッククラッピー"
     },
     "descriptions": {
       "en": "Silvery, deep-bodied panfish speckled with black, schooling around submerged brush and pilings.",
@@ -431,7 +460,8 @@
       "hu": "Ezüstös, magas testű, fekete pettyes naphalféle, elmerült ágak és cölöpök körül rajzik.",
       "zh": "银色高身的小型鱼，布满黑色斑点，成群聚集在沉没的树枝和桩柱周围。",
       "ar": "سمكة فضية عالية الجسم مرقطة بالأسود، تتجمع في أسراب حول الأغصان الغارقة والأعمدة.",
-      "he": "דג כסוף וגבוה גוף מנוקד בשחור, נע בלהקות סביב ענפים שקועים ועמודים."
+      "he": "דג כסוף וגבוה גוף מנוקד בשחור, נע בלהקות סביב ענפים שקועים ועמודים.",
+      "ja": "黒い斑点を散らした体高のある銀色の魚で、水中の枝や杭の周りで群れを作ります。"
     }
   },
   {
@@ -447,7 +477,8 @@
       "hu": "Fehér crappie",
       "zh": "白莓鲈",
       "ar": "الكرابي الأبيض",
-      "he": "קראפי לבן"
+      "he": "קראפי לבן",
+      "ja": "ホワイトクラッピー"
     },
     "descriptions": {
       "en": "Paler crappie with faint vertical bands, favouring turbid reservoirs and slow rivers.",
@@ -460,7 +491,8 @@
       "hu": "Halványabb crappie gyenge függőleges sávokkal, zavaros víztározókat és lassú folyókat kedvel.",
       "zh": "颜色较淡的莓鲈，体侧有淡淡的竖带，偏爱浑浊的水库和缓流河流。",
       "ar": "كرابي أكثر شحوباً بأشرطة عمودية باهتة، يفضل الخزانات العكرة والأنهار البطيئة.",
-      "he": "קראפי חיוור יותר עם פסים אנכיים עדינים, מעדיף מאגרים עכורים ונהרות איטיים."
+      "he": "קראפי חיוור יותר עם פסים אנכיים עדינים, מעדיף מאגרים עכורים ונהרות איטיים.",
+      "ja": "かすかな横帯を持つ淡い色のクラッピーで、濁った貯水池や流れの緩やかな川を好みます。"
     }
   },
   {
@@ -476,7 +508,8 @@
       "hu": "sebes pisztráng",
       "zh": "褐鳟",
       "ar": "التروتة البنية",
-      "he": "פורל חום"
+      "he": "פורל חום",
+      "ja": "ブラウントラウト"
     },
     "descriptions": {
       "en": "Golden-brown trout with red and black spots, holding in the current of cool, clear rivers and lakes.",
@@ -489,7 +522,8 @@
       "hu": "Aranybarna pisztráng vörös és fekete pettyekkel, hűvös, tiszta folyók és tavak sodrában áll.",
       "zh": "金棕色的鳟鱼，身上有红色和黑色斑点，栖息在清凉河流和湖泊的水流中。",
       "ar": "تروتة بنية ذهبية ببقع حمراء وسوداء، تستقر في تيار الأنهار والبحيرات الباردة الصافية.",
-      "he": "פורל חום-זהוב עם נקודות אדומות ושחורות, שוהה בזרם של נהרות ואגמים קרירים וצלולים."
+      "he": "פורל חום-זהוב עם נקודות אדומות ושחורות, שוהה בזרם של נהרות ואגמים קרירים וצלולים.",
+      "ja": "赤と黒の斑点を持つ金褐色のマスで、冷たく澄んだ川や湖の流れの中に定位しています。"
     }
   },
   {
@@ -505,7 +539,8 @@
       "hu": "Szivárványos pisztráng",
       "zh": "虹鳟",
       "ar": "تروات قوس قزح",
-      "he": "טרוטת עין-הקשת"
+      "he": "טרוטת עין-הקשת",
+      "ja": "ニジマス"
     },
     "descriptions": {
       "en": "Silvery trout with a pink lateral band and fine black speckling, stocked and wild in cold waters worldwide.",
@@ -518,7 +553,8 @@
       "hu": "Ezüstös pisztráng rózsaszín oldalsávval és finom fekete pettyezéssel, telepített és vad populációi hideg vizekben világszerte.",
       "zh": "银色的鳟鱼，体侧有粉红色带，布满细小黑斑，在全球冷水中既有放流也有野生种群。",
       "ar": "تروتة فضية بشريط جانبي وردي ونقاط سوداء دقيقة، تُستزرع وتعيش برياً في المياه الباردة حول العالم.",
-      "he": "פורל כסוף עם פס צד ורוד ונקודות שחורות עדינות, מאוכלס ופראי במים קרים ברחבי העולם."
+      "he": "פורל כסוף עם פס צד ורוד ונקודות שחורות עדינות, מאוכלס ופראי במים קרים ברחבי העולם.",
+      "ja": "体側にピンクの帯と細かい黒い斑点を持つ銀色のマスで、世界中の冷水域に放流魚や野生魚として生息します。"
     }
   },
   {
@@ -534,7 +570,8 @@
       "hu": "pataki szaibling",
       "zh": "美洲红点鲑",
       "ar": "تروتة الجداول",
-      "he": "פורל נחלים"
+      "he": "פורל נחלים",
+      "ja": "カワマス"
     },
     "descriptions": {
       "en": "Char with worm-like markings on its back, red spots in blue halos and white-edged fins, in cold headwater streams.",
@@ -547,7 +584,8 @@
       "hu": "Pataki szaibling féregszerű hátmintázattal, kék udvarú vörös pettyekkel és fehér szegélyű úszókkal, hideg forrásvidéki patakokban.",
       "zh": "背部有蠕虫状花纹的红点鲑，红点外有蓝色光晕，鳍缘白色，栖息于寒冷的源头溪流。",
       "ar": "شار بعلامات دودية الشكل على ظهره وبقع حمراء بهالات زرقاء وزعانف بحواف بيضاء، في جداول المنبع الباردة.",
-      "he": "שאר עם סימנים דמויי תולעים על הגב, נקודות אדומות בהילות כחולות וסנפירים בשוליים לבנים, בנחלי מקור קרים."
+      "he": "שאר עם סימנים דמויי תולעים על הגב, נקודות אדומות בהילות כחולות וסנפירים בשוליים לבנים, בנחלי מקור קרים.",
+      "ja": "背中の虫食い模様、青い輪に囲まれた赤い斑点、縁が白いひれを持つイワナの仲間で、冷たい源流に暮らします。"
     }
   },
   {
@@ -563,7 +601,8 @@
       "hu": "Tavi szaibling",
       "zh": "突吻红点鲑",
       "ar": "تروتة البحيرات",
-      "he": "פורל אגמים"
+      "he": "פורל אגמים",
+      "ja": "レイクトラウト"
     },
     "descriptions": {
       "en": "Big grey char covered in pale spots with a forked tail, cruising the deep cold water of northern lakes.",
@@ -576,7 +615,8 @@
       "hu": "Nagy, szürke, világos foltokkal borított szaibling villás farokkal, az északi tavak mély, hideg vizét járja.",
       "zh": "大型灰色红点鲑，布满淡色斑点，尾鳍分叉，在北方湖泊深冷水域中巡游。",
       "ar": "شار رمادي كبير مغطى ببقع باهتة وذيل متشعب، يجوب المياه العميقة الباردة في البحيرات الشمالية.",
-      "he": "שאר אפור גדול מכוסה כתמים בהירים עם זנב מפוצל, משייט במים העמוקים והקרים של אגמים צפוניים."
+      "he": "שאר אפור גדול מכוסה כתמים בהירים עם זנב מפוצל, משייט במים העמוקים והקרים של אגמים צפוניים.",
+      "ja": "淡い斑点に覆われ、二叉した尾びれを持つ灰色の大型のイワナの仲間で、北の湖の冷たい深場を回遊します。"
     }
   },
   {
@@ -592,7 +632,8 @@
       "hu": "Sarki szaibling",
       "zh": "北极红点鲑",
       "ar": "الشار القطبي",
-      "he": "שאר ארקטי"
+      "he": "שאר ארקטי",
+      "ja": "ホッキョクイワナ"
     },
     "descriptions": {
       "en": "Northernmost freshwater fish, a slender char whose belly flushes orange-red in autumn spawning colours.",
@@ -605,7 +646,8 @@
       "hu": "A legészakibb édesvízi hal, karcsú szaibling, amelynek hasa az őszi ívási időszakban narancsvörösre színeződik.",
       "zh": "分布最北的淡水鱼，体形细长的红点鲑，秋季繁殖期腹部泛出橙红色。",
       "ar": "أقصى أسماك المياه العذبة شمالاً، شار نحيل يتورد بطنه باللون الأحمر البرتقالي في ألوان التزاوج الخريفية.",
-      "he": "דג המים המתוקים הצפוני ביותר, שאר דק שבטנו מסמיקה לכתום-אדום בצבעי ההטלה של הסתיו."
+      "he": "דג המים המתוקים הצפוני ביותר, שאר דק שבטנו מסמיקה לכתום-אדום בצבעי ההטלה של הסתיו.",
+      "ja": "最も北に分布する淡水魚で、秋の産卵期には細身の体の腹が橙赤色に染まります。"
     }
   },
   {
@@ -621,7 +663,8 @@
       "hu": "Atlanti lazac",
       "zh": "大西洋鲑",
       "ar": "سلمون الأطلسي",
-      "he": "סלמון אטלנטי"
+      "he": "סלמון אטלנטי",
+      "ja": "タイセイヨウサケ"
     },
     "descriptions": {
       "en": "Silver sea-run salmon with black X-shaped spots, leaping falls on its return to natal rivers to spawn.",
@@ -634,7 +677,8 @@
       "hu": "Ezüstös, tengerjáró lazac fekete X alakú pettyekkel, vízeséseket ugrik át, amikor ívni visszatér szülőfolyójába.",
       "zh": "银色的溯河洄游鲑鱼，身上有X形黑斑，返回出生河流产卵时会跃过瀑布。",
       "ar": "سلمون فضي مهاجر ببقع سوداء على شكل X، يقفز فوق الشلالات عند عودته إلى أنهار مولده للتكاثر.",
-      "he": "סלמון כסוף נודד בים עם נקודות שחורות בצורת X, מזנק מעל מפלים בדרכו חזרה לנהרות הולדתו להטלה."
+      "he": "סלמון כסוף נודד בים עם נקודות שחורות בצורת X, מזנק מעל מפלים בדרכו חזרה לנהרות הולדתו להטלה.",
+      "ja": "黒いX字形の斑点を持つ銀色の降海型のサケで、産卵のために生まれた川に戻る途中で滝を跳び越えます。"
     }
   },
   {
@@ -650,7 +694,8 @@
       "hu": "Királylazac",
       "zh": "帝王鲑",
       "ar": "سلمون الشينوك",
-      "he": "סלמון צ'ינוק"
+      "he": "סלמון צ'ינוק",
+      "ja": "マスノスケ"
     },
     "descriptions": {
       "en": "The largest Pacific salmon, blue-green backed with black gums, ascending big western rivers to spawn.",
@@ -663,7 +708,8 @@
       "hu": "A legnagyobb csendes-óceáni lazac, kékeszöld háttal és fekete ínnyel, ívni a nagy nyugati folyókba vándorol fel.",
       "zh": "体型最大的太平洋鲑，背部蓝绿色，牙龈黑色，溯游西部大河产卵。",
       "ar": "أكبر سلمون المحيط الهادئ، بظهر أزرق مخضر ولثة سوداء، يصعد الأنهار الغربية الكبيرة للتكاثر.",
-      "he": "הסלמון הגדול ביותר של האוקיינוס השקט, בעל גב כחול-ירוק וחניכיים שחורות, עולה בנהרות המערב הגדולים להטלה."
+      "he": "הסלמון הגדול ביותר של האוקיינוס השקט, בעל גב כחול-ירוק וחניכיים שחורות, עולה בנהרות המערב הגדולים להטלה.",
+      "ja": "最大の太平洋のサケで、背は青緑色、歯茎は黒く、北米西部の大河を遡上して産卵します。"
     }
   },
   {
@@ -679,7 +725,8 @@
       "hu": "Vörös lazac",
       "zh": "红鲑",
       "ar": "السلمون الأحمر",
-      "he": "סלמון אדום"
+      "he": "סלמון אדום",
+      "ja": "ベニザケ"
     },
     "descriptions": {
       "en": "Salmon that turns brilliant red with a green head at spawning, crowding gravel beds of lake-fed rivers.",
@@ -692,7 +739,8 @@
       "hu": "Íváskor élénkvörösre színeződő, zöld fejű lazac, ellepi a tavak táplálta folyók kavicságyait.",
       "zh": "产卵期体色变为鲜红、头部呈绿色的鲑鱼，成群聚集在湖泊补给河流的砾石床上。",
       "ar": "سلمون يتحول عند التكاثر إلى الأحمر الزاهي برأس أخضر، ويزدحم على قيعان الحصى في الأنهار التي تغذيها البحيرات.",
-      "he": "סלמון שהופך אדום בוהק עם ראש ירוק בעת ההטלה, וממלא את מצעי החצץ של נהרות הניזונים מאגמים."
+      "he": "סלמון שהופך אדום בוהק עם ראש ירוק בעת ההטלה, וממלא את מצעי החצץ של נהרות הניזונים מאגמים.",
+      "ja": "産卵期に頭が緑、体が鮮やかな赤に変わるサケで、湖に通じる川の礫床に群がります。"
     }
   },
   {
@@ -708,7 +756,8 @@
       "hu": "Ezüstlazac",
       "zh": "银鲑",
       "ar": "سلمون الكوهو",
-      "he": "סלמון קוהו"
+      "he": "סלמון קוהו",
+      "ja": "ギンザケ"
     },
     "descriptions": {
       "en": "Silver salmon with white gums and spots only on the upper tail, spawning in small coastal streams.",
@@ -721,7 +770,8 @@
       "hu": "Ezüstlazac fehér ínnyel és csak a farok felső felén lévő pettyekkel, kis parti patakokban ívik.",
       "zh": "银鲑，牙龈白色，斑点仅分布于尾鳍上半部，在小型沿海溪流中产卵。",
       "ar": "سلمون فضي بلثة بيضاء وبقع على الجزء العلوي من الذيل فقط، يتكاثر في الجداول الساحلية الصغيرة.",
-      "he": "סלמון כסוף עם חניכיים לבנות ונקודות רק בחלק העליון של הזנב, מטיל בנחלי חוף קטנים."
+      "he": "סלמון כסוף עם חניכיים לבנות ונקודות רק בחלק העליון של הזנב, מטיל בנחלי חוף קטנים.",
+      "ja": "歯茎が白く、尾びれの上半分にだけ斑点がある銀色のサケで、沿岸の小さな川で産卵します。"
     }
   },
   {
@@ -737,7 +787,8 @@
       "hu": "Tavi maréna",
       "zh": "鲱形白鲑",
       "ar": "السمك الأبيض البحيري",
-      "he": "דג לבן אגמים"
+      "he": "דג לבן אגמים",
+      "ja": "レイクホワイトフィッシュ"
     },
     "descriptions": {
       "en": "Silvery, small-mouthed whitefish of deep cold lakes, feeding on the bottom in large schools.",
@@ -750,7 +801,8 @@
       "hu": "Ezüstös, kis szájú maréna mély, hideg tavakból, nagy rajokban táplálkozik a fenéken.",
       "zh": "银色小嘴的白鲑，生活在寒冷的深水湖泊，成大群在湖底觅食。",
       "ar": "سمكة بيضاء فضية صغيرة الفم تعيش في البحيرات العميقة الباردة، تتغذى على القاع في أسراب كبيرة.",
-      "he": "דג לבן כסוף קטן פה של אגמים קרים ועמוקים, ניזון על הקרקעית בלהקות גדולות."
+      "he": "דג לבן כסוף קטן פה של אגמים קרים ועמוקים, ניזון על הקרקעית בלהקות גדולות.",
+      "ja": "深く冷たい湖に暮らす口の小さな銀色のホワイトフィッシュで、大きな群れで湖底の餌を食べます。"
     }
   },
   {
@@ -766,7 +818,8 @@
       "hu": "Cisco maréna",
       "zh": "湖白鲑",
       "ar": "السيسكو",
-      "he": "סיסקו"
+      "he": "סיסקו",
+      "ja": "シスコ"
     },
     "descriptions": {
       "en": "Slender herring-like whitefish that shoals in open water of cold northern lakes, prey for lake trout.",
@@ -779,7 +832,8 @@
       "hu": "Karcsú, heringre emlékeztető maréna, az északi hideg tavak nyílt vizében rajzik, a tavi szaibling zsákmánya.",
       "zh": "体形细长、似鲱鱼的白鲑，在北方冷水湖的开阔水域成群活动，是湖鳟的猎物。",
       "ar": "سمكة بيضاء نحيلة تشبه الرنجة تتجمع في أسراب في المياه المفتوحة للبحيرات الشمالية الباردة، فريسة لتروتة البحيرات.",
-      "he": "דג לבן דק דמוי הרינג שנע בלהקות במים הפתוחים של אגמים צפוניים קרים, טרף לפורל האגמים."
+      "he": "דג לבן דק דמוי הרינג שנע בלהקות במים הפתוחים של אגמים צפוניים קרים, טרף לפורל האגמים.",
+      "ja": "北の冷たい湖の沖合で群れを作る、ニシンのような細身のホワイトフィッシュで、レイクトラウトの餌になります。"
     }
   },
   {
@@ -795,7 +849,8 @@
       "hu": "pénzes pér",
       "zh": "茴鱼",
       "ar": "الغرايلينغ الأوروبي",
-      "he": "גרייילינג אירופי"
+      "he": "גרייילינג אירופי",
+      "ja": "ヨーロピアングレイリング"
     },
     "descriptions": {
       "en": "Silver-grey river fish with a tall, sail-like dorsal fin edged in purple, holding in fast clean gravel runs.",
@@ -808,7 +863,8 @@
       "hu": "Ezüstszürke folyami hal magas, vitorlaszerű, lila szegélyű hátúszóval, gyors, tiszta kavicsos szakaszokon áll.",
       "zh": "银灰色的河鱼，背鳍高耸如帆且边缘泛紫，栖息于水流湍急、砾石洁净的河段。",
       "ar": "سمكة نهرية رمادية فضية بزعنفة ظهرية عالية تشبه الشراع بحافة أرجوانية، تستقر في المجاري السريعة النظيفة ذات الحصى.",
-      "he": "דג נהר אפור-כסוף עם סנפיר גב גבוה דמוי מפרש בשוליים סגולים, שוהה בקטעי חצץ נקיים ומהירים."
+      "he": "דג נהר אפור-כסוף עם סנפיר גב גבוה דמוי מפרש בשוליים סגולים, שוהה בקטעי חצץ נקיים ומהירים.",
+      "ja": "縁が紫色の帆のような高い背びれを持つ銀灰色の川魚で、流れの速いきれいな礫底の瀬に定位しています。"
     }
   },
   {
@@ -824,7 +880,8 @@
       "hu": "ponty",
       "zh": "欧洲鲤",
       "ar": "شبوط شائع",
-      "he": "קרפיון מצוי"
+      "he": "קרפיון מצוי",
+      "ja": "コイ"
     },
     "descriptions": {
       "en": "Heavy bronze carp with large scales and two barbels, rooting through soft bottoms of warm lakes and rivers.",
@@ -837,7 +894,8 @@
       "hu": "Testes, bronzszínű ponty nagy pikkelyekkel és két bajuszszállal, meleg tavak és folyók puha fenekét túrja.",
       "zh": "体态厚重的古铜色鲤鱼，鳞片大，有两对须，在温暖湖河的软底中翻找食物。",
       "ar": "شبوط ثقيل برونزي اللون بحراشف كبيرة وزوجين من الزوائد اللمسية، ينبش القيعان الطرية في البحيرات والأنهار الدافئة.",
-      "he": "קרפיון כבד בצבע ארד עם קשקשים גדולים ושני זיפי חישה, נובר בקרקעיות רכות של אגמים ונהרות חמימים."
+      "he": "קרפיון כבד בצבע ארד עם קשקשים גדולים ושני זיפי חישה, נובר בקרקעיות רכות של אגמים ונהרות חמימים.",
+      "ja": "大きなウロコと2対のひげを持つ重量感のあるブロンズ色のコイで、暖かい湖や川の軟らかい底を掘り返して餌を探します。"
     }
   },
   {
@@ -853,7 +911,8 @@
       "hu": "amur",
       "zh": "草鱼",
       "ar": "شبوط الحشائش",
-      "he": "קרפיון עשב"
+      "he": "קרפיון עשב",
+      "ja": "ソウギョ"
     },
     "descriptions": {
       "en": "Torpedo-shaped Asian carp introduced worldwide to graze on aquatic weeds, often seen in clear quarry lakes.",
@@ -866,7 +925,8 @@
       "hu": "Torpedó alakú ázsiai ponty, világszerte betelepítették a vízinövények legelésére, gyakran látható tiszta bányatavakban.",
       "zh": "鱼雷形的亚洲鲤鱼，被引入世界各地以啃食水草，常见于清澈的采石场湖泊。",
       "ar": "شبوط آسيوي على شكل طوربيد أُدخل حول العالم لرعي الأعشاب المائية، يُشاهد كثيراً في بحيرات المحاجر الصافية.",
-      "he": "קרפיון אסייתי דמוי טורפדו שהוכנס ברחבי העולם כדי לרעות צמחי מים, נראה לעיתים קרובות באגמי מחצבה צלולים."
+      "he": "קרפיון אסייתי דמוי טורפדו שהוכנס ברחבי העולם כדי לרעות צמחי מים, נראה לעיתים קרובות באגמי מחצבה צלולים.",
+      "ja": "水草を食べさせるために世界中に移入された魚雷形のアジアのコイの仲間で、澄んだ採石場跡の湖でよく見られます。"
     }
   },
   {
@@ -882,7 +942,8 @@
       "hu": "compó",
       "zh": "丁鱥",
       "ar": "التنش",
-      "he": "טנץ'"
+      "he": "טנץ'",
+      "ja": "テンチ"
     },
     "descriptions": {
       "en": "Olive-green fish with tiny scales, red eyes and rounded fins, sliding through mud and reeds of still waters.",
@@ -895,7 +956,8 @@
       "hu": "Olajzöld hal apró pikkelyekkel, vörös szemekkel és lekerekített úszókkal, az állóvizek iszapjában és nádasában siklik.",
       "zh": "橄榄绿色的鱼，鳞片细小，眼睛红色，鳍圆钝，在静水的淤泥和芦苇间滑行。",
       "ar": "سمكة خضراء زيتونية بحراشف دقيقة وعينين حمراوين وزعانف مستديرة، تنساب بين الطين والقصب في المياه الراكدة.",
-      "he": "דג ירוק-זית עם קשקשים זעירים, עיניים אדומות וסנפירים מעוגלים, מחליק בבוץ ובקנים של מים עומדים."
+      "he": "דג ירוק-זית עם קשקשים זעירים, עיניים אדומות וסנפירים מעוגלים, מחליק בבוץ ובקנים של מים עומדים.",
+      "ja": "細かいウロコと赤い目、丸いひれを持つオリーブグリーンの魚で、止水の泥やヨシの間をすり抜けるように泳ぎます。"
     }
   },
   {
@@ -911,7 +973,8 @@
       "hu": "dévérkeszeg",
       "zh": "欧鳊",
       "ar": "أبراميس شائع",
-      "he": "אברמיס מצוי"
+      "he": "אברמיס מצוי",
+      "ja": "ブリーム"
     },
     "descriptions": {
       "en": "Deep, laterally flattened bronze fish that feeds head-down in muddy shoals, common across European lowlands.",
@@ -924,7 +987,8 @@
       "hu": "Magas testű, oldalról lapított bronzszínű hal, fejjel lefelé táplálkozik iszapos rajokban, gyakori az európai síkvidékeken.",
       "zh": "体高而侧扁的古铜色鱼，成群头朝下在泥底觅食，广泛分布于欧洲低地。",
       "ar": "سمكة برونزية عالية الجسم مفلطحة الجانبين تتغذى ورأسها إلى الأسفل في أسراب على القيعان الطينية، شائعة في سهول أوروبا.",
-      "he": "דג ארד גבוה ושטוח מהצדדים שניזון בראש כלפי מטה בלהקות על קרקעיות בוציות, נפוץ בשפלות אירופה."
+      "he": "דג ארד גבוה ושטוח מהצדדים שניזון בראש כלפי מטה בלהקות על קרקעיות בוציות, נפוץ בשפלות אירופה.",
+      "ja": "体高があり側扁したブロンズ色の魚で、頭を下にして泥底で群れで餌を食べます。ヨーロッパの低地に広く分布します。"
     }
   },
   {
@@ -940,7 +1004,8 @@
       "hu": "Bodorka",
       "zh": "拟鲤",
       "ar": "الروش",
-      "he": "רואץ'"
+      "he": "רואץ'",
+      "ja": "ローチ"
     },
     "descriptions": {
       "en": "Silver shoaling fish with red fins and a red iris, the most abundant fish in many European lakes and canals.",
@@ -953,7 +1018,8 @@
       "hu": "Ezüstös, rajokban élő hal vörös úszókkal és vörös szivárványhártyával, sok európai tó és csatorna leggyakoribb hala.",
       "zh": "银色的群游鱼，鳍红色，虹膜红色，是许多欧洲湖泊和运河中数量最多的鱼。",
       "ar": "سمكة فضية تعيش في أسراب بزعانف حمراء وقزحية حمراء، أكثر الأسماك وفرة في كثير من بحيرات أوروبا وقنواتها.",
-      "he": "דג כסוף החי בלהקות עם סנפירים אדומים וקשתית אדומה, הדג השכיח ביותר באגמים ובתעלות רבים באירופה."
+      "he": "דג כסוף החי בלהקות עם סנפירים אדומים וקשתית אדומה, הדג השכיח ביותר באגמים ובתעלות רבים באירופה.",
+      "ja": "赤いひれと赤い虹彩を持つ群れで泳ぐ銀色の魚で、ヨーロッパの多くの湖や運河で最も数の多い魚です。"
     }
   },
   {
@@ -969,7 +1035,8 @@
       "hu": "vörösszárnyú keszeg",
       "zh": "红眼鱼",
       "ar": "الرود",
-      "he": "ראד"
+      "he": "ראד",
+      "ja": "ラッド"
     },
     "descriptions": {
       "en": "Golden-flanked relative of the roach with bright red fins and an upturned mouth, feeding just under the surface.",
@@ -982,7 +1049,8 @@
       "hu": "A bodorka aranyoldalú rokona élénkvörös úszókkal és felfelé álló szájjal, közvetlenül a felszín alatt táplálkozik.",
       "zh": "拟鲤的近亲，体侧金色，鳍鲜红，口上位，在水面下方觅食。",
       "ar": "قريب للروش بجوانب ذهبية وزعانف حمراء زاهية وفم متجه للأعلى، يتغذى تحت السطح مباشرة.",
-      "he": "קרוב של הרואץ' עם צדדים זהובים, סנפירים אדומים בוהקים ופה מופנה כלפי מעלה, ניזון ממש מתחת לפני המים."
+      "he": "קרוב של הרואץ' עם צדדים זהובים, סנפירים אדומים בוהקים ופה מופנה כלפי מעלה, ניזון ממש מתחת לפני המים.",
+      "ja": "体側が金色で鮮やかな赤いひれと上向きの口を持つローチの近縁種で、水面直下で餌を食べます。"
     }
   },
   {
@@ -998,7 +1066,8 @@
       "hu": "Fejes domolykó",
       "zh": "宽头欧鲢",
       "ar": "الشوب الأوروبي",
-      "he": "צ'אב אירופי"
+      "he": "צ'אב אירופי",
+      "ja": "チャブ"
     },
     "descriptions": {
       "en": "Thick-set river fish with a broad head, large dark-edged scales and a big mouth, holding under overhanging trees.",
@@ -1011,7 +1080,8 @@
       "hu": "Zömök folyami hal széles fejjel, nagy, sötét szegélyű pikkelyekkel és nagy szájjal, a víz fölé hajló fák alatt áll.",
       "zh": "体格粗壮的河鱼，头宽，鳞片大且边缘深色，嘴大，常停留在悬垂的树下。",
       "ar": "سمكة نهرية ممتلئة برأس عريض وحراشف كبيرة ذات حواف داكنة وفم كبير، تستقر تحت الأشجار المتدلية فوق الماء.",
-      "he": "דג נהר מוצק עם ראש רחב, קשקשים גדולים בשוליים כהים ופה גדול, שוהה מתחת לעצים הנוטים מעל המים."
+      "he": "דג נהר מוצק עם ראש רחב, קשקשים גדולים בשוליים כהים ופה גדול, שוהה מתחת לעצים הנוטים מעל המים.",
+      "ja": "幅広い頭と縁が暗色の大きなウロコ、大きな口を持つがっしりした川魚で、川にせり出した木の下に定位しています。"
     }
   },
   {
@@ -1027,7 +1097,8 @@
       "hu": "márna",
       "zh": "正鲃",
       "ar": "بربل شائع",
-      "he": "ברבל מצוי"
+      "he": "ברבל מצוי",
+      "ja": "バーベル"
     },
     "descriptions": {
       "en": "Streamlined bottom-dweller with four barbels and an underslung mouth, hugging gravel in fast European rivers.",
@@ -1040,7 +1111,8 @@
       "hu": "Áramvonalas fenéklakó hal négy bajuszszállal és alsó állású szájjal, a gyors európai folyók kavicsához simul.",
       "zh": "流线型的底栖鱼，有四条须，口下位，紧贴欧洲湍急河流的砾石底。",
       "ar": "سمكة قاعية انسيابية بأربع زوائد لمسية وفم سفلي، تلتصق بالحصى في أنهار أوروبا السريعة.",
-      "he": "דג קרקעית זרים עם ארבעה זיפי חישה ופה תחתון, נצמד לחצץ בנהרות אירופיים מהירים."
+      "he": "דג קרקעית זרים עם ארבעה זיפי חישה ופה תחתון, נצמד לחצץ בנהרות אירופיים מהירים.",
+      "ja": "4本のひげと下向きの口を持つ流線形の底生魚で、ヨーロッパの流れの速い川の礫底に張り付くように暮らします。"
     }
   },
   {
@@ -1056,7 +1128,8 @@
       "hu": "európai angolna",
       "zh": "欧洲鳗鲡",
       "ar": "ثعبان الماء الأوروبي",
-      "he": "צלופח אירופי"
+      "he": "צלופח אירופי",
+      "ja": "ヨーロッパウナギ"
     },
     "descriptions": {
       "en": "Snake-like fish that spends decades in rivers and lakes before migrating to the Sargasso Sea to spawn once.",
@@ -1069,7 +1142,8 @@
       "hu": "Kígyószerű hal, amely évtizedeket tölt folyókban és tavakban, mielőtt egyetlen ívásra a Sargasso-tengerbe vándorol.",
       "zh": "蛇形鱼类，在河流湖泊中生活数十年后洄游至马尾藻海，一生仅产卵一次。",
       "ar": "سمكة تشبه الثعبان تقضي عقوداً في الأنهار والبحيرات قبل أن تهاجر إلى بحر سارجاسو لتتكاثر مرة واحدة.",
-      "he": "דג דמוי נחש המבלה עשרות שנים בנהרות ובאגמים לפני שהוא נודד לים הסרגסו להטלה אחת ויחידה."
+      "he": "דג דמוי נחש המבלה עשרות שנים בנהרות ובאגמים לפני שהוא נודד לים הסרגסו להטלה אחת ויחידה.",
+      "ja": "川や湖で数十年を過ごしたのち、一生に一度の産卵のためにサルガッソー海へ回遊するヘビのような魚です。"
     }
   },
   {
@@ -1085,7 +1159,8 @@
       "hu": "Amerikai angolna",
       "zh": "美洲鳗鲡",
       "ar": "ثعبان الماء الأمريكي",
-      "he": "צלופח אמריקאי"
+      "he": "צלופח אמריקאי",
+      "ja": "アメリカウナギ"
     },
     "descriptions": {
       "en": "North American eel that hides under rocks by day in rivers and lakes and returns to the Sargasso Sea to breed.",
@@ -1098,7 +1173,8 @@
       "hu": "Észak-amerikai angolna, nappal folyók és tavak kövei alatt rejtőzik, szaporodni a Sargasso-tengerbe tér vissza.",
       "zh": "北美鳗鱼，白天藏身于河流湖泊的岩石下，返回马尾藻海繁殖。",
       "ar": "ثعبان ماء أمريكي شمالي يختبئ نهاراً تحت الصخور في الأنهار والبحيرات ويعود إلى بحر سارجاسو للتكاثر.",
-      "he": "צלופח צפון אמריקאי המסתתר ביום מתחת לסלעים בנהרות ובאגמים וחוזר לים הסרגסו להתרבות."
+      "he": "צלופח צפון אמריקאי המסתתר ביום מתחת לסלעים בנהרות ובאגמים וחוזר לים הסרגסו להתרבות.",
+      "ja": "日中は川や湖の岩の下に隠れ、繁殖のためにサルガッソー海へ戻る北米のウナギです。"
     }
   },
   {
@@ -1114,7 +1190,8 @@
       "hu": "menyhal",
       "zh": "江鳕",
       "ar": "البربوت",
-      "he": "בורבוט"
+      "he": "בורבוט",
+      "ja": "カワメンタイ"
     },
     "descriptions": {
       "en": "The only freshwater cod, a mottled eel-like fish with a single chin barbel, hiding in cold deep water by day.",
@@ -1127,7 +1204,8 @@
       "hu": "Az egyetlen édesvízi tőkehalféle, márványozott, angolnaszerű hal egyetlen állbajuszszállal, nappal a hideg mélyvízben rejtőzik.",
       "zh": "唯一的淡水鳕鱼，体表斑驳、形似鳗鱼，下颌有一根须，白天藏于寒冷深水中。",
       "ar": "سمك القد الوحيد في المياه العذبة، سمكة مرقطة تشبه ثعبان الماء بزائدة لمسية واحدة على الذقن، تختبئ نهاراً في المياه العميقة الباردة.",
-      "he": "דג הבקלה היחיד במים מתוקים, דג מנומר דמוי צלופח עם זיף חישה בודד בסנטר, מסתתר ביום במים קרים ועמוקים."
+      "he": "דג הבקלה היחיד במים מתוקים, דג מנומר דמוי צלופח עם זיף חישה בודד בסנטר, מסתתר ביום במים קרים ועמוקים.",
+      "ja": "唯一の淡水性のタラの仲間で、下顎に1本のひげを持つまだら模様のウナギのような魚です。日中は冷たい深場に隠れています。"
     }
   },
   {
@@ -1143,7 +1221,8 @@
       "hu": "Pettyes harcsa",
       "zh": "斑点叉尾鮰",
       "ar": "سلور القنوات",
-      "he": "שפמנון תעלות"
+      "he": "שפמנון תעלות",
+      "ja": "アメリカナマズ"
     },
     "descriptions": {
       "en": "Grey catfish with scattered dark spots, a forked tail and eight barbels, common in rivers and reservoirs across North America.",
@@ -1156,7 +1235,8 @@
       "hu": "Szürke harcsa elszórt sötét foltokkal, villás farokkal és nyolc bajuszszállal, gyakori Észak-Amerika folyóiban és víztározóiban.",
       "zh": "灰色的鲶鱼，体表散布深色斑点，尾鳍分叉，有八根须，常见于北美的河流和水库。",
       "ar": "سمكة سلور رمادية ببقع داكنة متناثرة وذيل متشعب وثماني زوائد لمسية، شائعة في أنهار وخزانات أمريكا الشمالية.",
-      "he": "שפמנון אפור עם כתמים כהים פזורים, זנב מפוצל ושמונה זיפי חישה, נפוץ בנהרות ובמאגרים ברחבי צפון אמריקה."
+      "he": "שפמנון אפור עם כתמים כהים פזורים, זנב מפוצל ושמונה זיפי חישה, נפוץ בנהרות ובמאגרים ברחבי צפון אמריקה.",
+      "ja": "暗色の斑点が散らばる灰色のナマズで、二叉した尾びれと8本のひげを持ちます。北米各地の川や貯水池でよく見られます。"
     }
   },
   {
@@ -1172,7 +1252,8 @@
       "hu": "Laposfejű harcsa",
       "zh": "铲鮰",
       "ar": "السلور مسطح الرأس",
-      "he": "שפמנון שטוח ראש"
+      "he": "שפמנון שטוח ראש",
+      "ja": "フラットヘッドキャットフィッシュ"
     },
     "descriptions": {
       "en": "Huge mottled brown catfish with a flattened head and protruding lower jaw, lying in deep river holes.",
@@ -1185,7 +1266,8 @@
       "hu": "Hatalmas, barnán márványozott harcsa lapított fejjel és előreálló alsó állkapoccsal, mély folyami gödrökben fekszik.",
       "zh": "体型巨大的褐色斑纹鲶鱼，头部扁平，下颌突出，潜伏在河流深潭中。",
       "ar": "سلور بني مرقط ضخم برأس مسطح وفك سفلي بارز، يرقد في الحفر النهرية العميقة.",
-      "he": "שפמנון חום מנומר ענק עם ראש שטוח ולסת תחתונה בולטת, רובץ בבורות עמוקים בנהרות."
+      "he": "שפמנון חום מנומר ענק עם ראש שטוח ולסת תחתונה בולטת, רובץ בבורות עמוקים בנהרות.",
+      "ja": "平たい頭と突き出た下顎を持つまだら模様の茶色の巨大なナマズで、川の深い淵に潜んでいます。"
     }
   },
   {
@@ -1201,7 +1283,8 @@
       "hu": "törpeharcsa",
       "zh": "云斑鮰",
       "ar": "البولهيد البني",
-      "he": "בולהד חום"
+      "he": "בולהד חום",
+      "ja": "ブラウンブルヘッド"
     },
     "descriptions": {
       "en": "Small stocky catfish with dark barbels and a squared tail, tolerating muddy, warm and low-oxygen ponds.",
@@ -1214,7 +1297,8 @@
       "hu": "Kis, zömök törpeharcsa sötét bajuszszálakkal és egyenes farokkal, elviseli az iszapos, meleg, oxigénszegény tavakat.",
       "zh": "小型粗壮的鲶鱼，须呈深色，尾鳍平直，能耐受泥泞、温暖且缺氧的池塘。",
       "ar": "سلور صغير ممتلئ بزوائد لمسية داكنة وذيل مربع، يتحمل البرك الطينية الدافئة قليلة الأكسجين.",
-      "he": "שפמנון קטן וגוץ עם זיפי חישה כהים וזנב ישר, סובל בריכות בוציות, חמות ודלות חמצן."
+      "he": "שפמנון קטן וגוץ עם זיפי חישה כהים וזנב ישר, סובל בריכות בוציות, חמות ודלות חמצן.",
+      "ja": "暗色のひげと角ばった尾びれを持つずんぐりした小型のナマズで、泥が多く水温が高い低酸素の池にも耐えます。"
     }
   },
   {
@@ -1230,7 +1314,8 @@
       "hu": "Harcsa",
       "zh": "欧鲇",
       "ar": "سلور ويلس",
-      "he": "שפמנון אירופי"
+      "he": "שפמנון אירופי",
+      "ja": "ヨーロッパオオナマズ"
     },
     "descriptions": {
       "en": "Europe's largest freshwater fish, a scaleless giant with a broad flat head and long whiskers, lying in deep river holes.",
@@ -1243,7 +1328,8 @@
       "hu": "Európa legnagyobb édesvízi hala, pikkely nélküli óriás széles, lapos fejjel és hosszú bajuszszálakkal, mély folyami gödrökben fekszik.",
       "zh": "欧洲最大的淡水鱼，无鳞巨物，头宽而平，长须，潜伏在河流深潭中。",
       "ar": "أكبر أسماك المياه العذبة في أوروبا، عملاق بلا حراشف برأس عريض مسطح وشوارب طويلة، يرقد في الحفر النهرية العميقة.",
-      "he": "דג המים המתוקים הגדול ביותר באירופה, ענק חסר קשקשים עם ראש רחב ושטוח ושפמים ארוכים, רובץ בבורות עמוקים בנהרות."
+      "he": "דג המים המתוקים הגדול ביותר באירופה, ענק חסר קשקשים עם ראש רחב ושטוח ושפמים ארוכים, רובץ בבורות עמוקים בנהרות.",
+      "ja": "ヨーロッパ最大の淡水魚で、幅広く平たい頭と長いひげを持つウロコのない巨魚です。川の深い淵に潜んでいます。"
     }
   },
   {
@@ -1259,7 +1345,8 @@
       "hu": "Fehér tok",
       "zh": "白鲟",
       "ar": "الحفش الأبيض",
-      "he": "חדקן לבן"
+      "he": "חדקן לבן",
+      "ja": "シロチョウザメ"
     },
     "descriptions": {
       "en": "North America's largest freshwater fish, an armoured grey giant with a shark-like tail cruising big western rivers.",
@@ -1272,7 +1359,8 @@
       "hu": "Észak-Amerika legnagyobb édesvízi hala, páncélos szürke óriás cápaszerű farokkal, a nagy nyugati folyókat járja.",
       "zh": "北美最大的淡水鱼，披甲的灰色巨物，尾鳍似鲨鱼，在西部大河中巡游。",
       "ar": "أكبر أسماك المياه العذبة في أمريكا الشمالية، عملاق رمادي مدرع بذيل يشبه ذيل القرش يجوب الأنهار الغربية الكبيرة.",
-      "he": "דג המים המתוקים הגדול ביותר בצפון אמריקה, ענק אפור משוריין עם זנב דמוי כריש המשייט בנהרות המערב הגדולים."
+      "he": "דג המים המתוקים הגדול ביותר בצפון אמריקה, ענק אפור משוריין עם זנב דמוי כריש המשייט בנהרות המערב הגדולים.",
+      "ja": "北米最大の淡水魚で、サメのような尾びれを持つ装甲に覆われた灰色の巨魚です。北米西部の大河を回遊します。"
     }
   },
   {
@@ -1288,7 +1376,8 @@
       "hu": "Tavi tok",
       "zh": "湖鲟",
       "ar": "حفش البحيرات",
-      "he": "חדקן אגמים"
+      "he": "חדקן אגמים",
+      "ja": "レイクスタージョン"
     },
     "descriptions": {
       "en": "Slow-growing armoured sturgeon of the Great Lakes and Mississippi basin, vacuuming the bottom with its tube mouth.",
@@ -1301,7 +1390,8 @@
       "hu": "Lassan növő páncélos tok a Nagy-tavakból és a Mississippi vízgyűjtőjéből, csöves szájával a fenéket szívja fel.",
       "zh": "生长缓慢的披甲鲟鱼，分布于五大湖和密西西比流域，用管状口吸食底部食物。",
       "ar": "حفش مدرع بطيء النمو من البحيرات العظمى وحوض المسيسيبي، يكنس القاع بفمه الأنبوبي.",
-      "he": "חדקן משוריין איטי גדילה מהאגמים הגדולים ואגן המיסיסיפי, שואב את הקרקעית בפיו הצינורי."
+      "he": "חדקן משוריין איטי גדילה מהאגמים הגדולים ואגן המיסיסיפי, שואב את הקרקעית בפיו הצינורי.",
+      "ja": "五大湖とミシシッピ川流域に暮らす成長の遅いチョウザメで、管状の口で湖底の餌を吸い込みます。"
     }
   },
   {
@@ -1317,7 +1407,8 @@
       "hu": "Közönséges tok",
       "zh": "欧洲鲟",
       "ar": "حفش البحر الأوربي",
-      "he": "חדקן אירופי"
+      "he": "חדקן אירופי",
+      "ja": "ヨーロッパチョウザメ"
     },
     "descriptions": {
       "en": "Critically endangered armoured sturgeon of Atlantic rivers, now bred and released in the Garonne and Elbe.",
@@ -1330,7 +1421,8 @@
       "hu": "Kritikusan veszélyeztetett páncélos tok az atlanti folyókból, ma a Garonne-ba és az Elbába tenyésztik és telepítik vissza.",
       "zh": "极度濒危的披甲鲟鱼，原产大西洋沿岸河流，如今在加龙河和易北河进行人工繁育放流。",
       "ar": "حفش مدرع مهدد بالانقراض بشدة من الأنهار الأطلسية، يُربى اليوم ويُطلق في نهري غارون وإلبه.",
-      "he": "חדקן משוריין בסכנת הכחדה חמורה מנהרות האטלנטי, כיום מגודל ומשוחרר בגארון ובאלבה."
+      "he": "חדקן משוריין בסכנת הכחדה חמורה מנהרות האטלנטי, כיום מגודל ומשוחרר בגארון ובאלבה.",
+      "ja": "大西洋に注ぐ川に暮らす絶滅寸前のチョウザメで、現在はガロンヌ川やエルベ川で繁殖させて放流されています。"
     }
   },
   {
@@ -1346,7 +1438,8 @@
       "hu": "Aligátor kajmánhal",
       "zh": "鳄雀鳝",
       "ar": "سمكة التمساح",
-      "he": "גאר תנין"
+      "he": "גאר תנין",
+      "ja": "アリゲーターガー"
     },
     "descriptions": {
       "en": "Prehistoric giant with a broad toothy snout and diamond-shaped armour scales, surfacing to gulp air in southern rivers.",
@@ -1359,7 +1452,8 @@
       "hu": "Őskori óriás széles, fogas orral és rombusz alakú páncélpikkelyekkel, a déli folyókban levegőért jön a felszínre.",
       "zh": "史前巨鱼，吻宽而多齿，菱形甲鳞，在南方河流中会浮出水面吞气。",
       "ar": "عملاق ما قبل التاريخ بخطم عريض مسنن وحراشف مدرعة معينية الشكل، يصعد لابتلاع الهواء في الأنهار الجنوبية.",
-      "he": "ענק פרהיסטורי עם חרטום רחב ומשונן וקשקשי שריון בצורת מעוין, עולה לבלוע אוויר בנהרות הדרום."
+      "he": "ענק פרהיסטורי עם חרטום רחב ומשונן וקשקשי שריון בצורת מעוין, עולה לבלוע אוויר בנהרות הדרום.",
+      "ja": "歯の並んだ幅広い吻とひし形の硬いウロコを持つ太古の巨魚で、米国南部の川で水面に上がって空気を吸います。"
     }
   },
   {
@@ -1375,7 +1469,8 @@
       "hu": "Hosszúorrú kajmánhal",
       "zh": "长吻雀鳝",
       "ar": "الغار طويل الأنف",
-      "he": "גאר ארוך חרטום"
+      "he": "גאר ארוך חרטום",
+      "ja": "ロングノーズガー"
     },
     "descriptions": {
       "en": "Slender armoured fish with a needle-like snout, hanging motionless just below the surface of warm rivers.",
@@ -1388,7 +1483,8 @@
       "hu": "Karcsú páncélos hal tűszerű orral, mozdulatlanul lebeg közvetlenül a meleg folyók felszíne alatt.",
       "zh": "体形细长的甲鳞鱼，吻如针状，一动不动地悬停在温暖河流的水面下方。",
       "ar": "سمكة مدرعة نحيلة بخطم يشبه الإبرة، تتعلق بلا حراك تحت سطح الأنهار الدافئة مباشرة.",
-      "he": "דג משוריין דק עם חרטום דמוי מחט, תלוי ללא תנועה ממש מתחת לפני נהרות חמימים."
+      "he": "דג משוריין דק עם חרטום דמוי מחט, תלוי ללא תנועה ממש מתחת לפני נהרות חמימים.",
+      "ja": "針のような吻を持つ装甲に覆われた細長い魚で、暖かい川の水面直下でじっと浮かんでいます。"
     }
   },
   {
@@ -1404,7 +1500,8 @@
       "hu": "Iszaphal",
       "zh": "弓鳍鱼",
       "ar": "البوفين",
-      "he": "בואופין"
+      "he": "בואופין",
+      "ja": "アミア"
     },
     "descriptions": {
       "en": "Living fossil with a long undulating dorsal fin and a bony head, guarding its fry in weedy backwaters.",
@@ -1417,7 +1514,8 @@
       "hu": "Élő kövület hosszú, hullámzó hátúszóval és csontos fejjel, ivadékait hínáros holtágakban őrzi.",
       "zh": "活化石，背鳍长而波状起伏，头部骨质，在水草丛生的回水区守护幼鱼。",
       "ar": "أحفورة حية بزعنفة ظهرية طويلة متموجة ورأس عظمي، يحرس صغاره في المياه الراكدة العشبية.",
-      "he": "מאובן חי עם סנפיר גב ארוך ומתנועע וראש גרמי, שומר על צאצאיו במים אחוריים עשירי צמחייה."
+      "he": "מאובן חי עם סנפיר גב ארוך ומתנועע וראש גרמי, שומר על צאצאיו במים אחוריים עשירי צמחייה.",
+      "ja": "長く波打つ背びれと骨質の頭を持つ生きた化石で、水草の多い入り江で稚魚を守ります。"
     }
   },
   {
@@ -1433,7 +1531,8 @@
       "hu": "Amerikai lapátorrú hal",
       "zh": "匙吻鲟",
       "ar": "سمك المجداف الأميريكي",
-      "he": "דג משוט אמריקאי"
+      "he": "דג משוט אמריקאי",
+      "ja": "ヘラチョウザメ"
     },
     "descriptions": {
       "en": "Filter-feeding giant with a paddle-shaped snout a third of its length, swimming open-mouthed through big rivers.",
@@ -1446,7 +1545,8 @@
       "hu": "Szűrögető óriás lapátszerű orral, amely testhosszának harmadát teszi ki, nyitott szájjal úszik a nagy folyókban.",
       "zh": "滤食性巨鱼，桨状吻部占体长的三分之一，在大河中张口游动。",
       "ar": "عملاق مرشح للغذاء بخطم يشبه المجداف يبلغ ثلث طوله، يسبح بفم مفتوح في الأنهار الكبيرة.",
-      "he": "ענק מסנן מזון עם חרטום דמוי משוט באורך שליש מגופו, שוחה בפה פתוח בנהרות גדולים."
+      "he": "ענק מסנן מזון עם חרטום דמוי משוט באורך שליש מגופו, שוחה בפה פתוח בנהרות גדולים.",
+      "ja": "体長の3分の1に及ぶヘラ状の吻を持つ濾過食の巨魚で、口を開けたまま大河を泳ぎます。"
     }
   },
   {
@@ -1462,7 +1562,8 @@
       "hu": "Nagy tengeri ingola",
       "zh": "海七鳃鳗",
       "ar": "جلكى بحرية",
-      "he": "לימפרית ים"
+      "he": "לימפרית ים",
+      "ja": "ウミヤツメ"
     },
     "descriptions": {
       "en": "Jawless eel-like parasite with a sucker mouth ringed with teeth, spawning in gravel streams after feeding at sea or in lakes.",
@@ -1475,7 +1576,8 @@
       "hu": "Állkapocs nélküli, angolnaszerű élősködő fogakkal körülvett tapadószájjal, kavicsos patakokban ívik, miután a tengerben vagy tavakban táplálkozott.",
       "zh": "无颌、形似鳗鱼的寄生鱼，口为环形齿盘状吸盘，在海洋或湖泊觅食后到砾石溪流产卵。",
       "ar": "طفيلي عديم الفكين يشبه ثعبان الماء بفم ماص محاط بالأسنان، يتكاثر في جداول الحصى بعد التغذي في البحر أو البحيرات.",
-      "he": "טפיל חסר לסתות דמוי צלופח עם פה מצץ מוקף שיניים, מטיל בנחלי חצץ לאחר שניזון בים או באגמים."
+      "he": "טפיל חסר לסתות דמוי צלופח עם פה מצץ מוקף שיניים, מטיל בנחלי חצץ לאחר שניזון בים או באגמים.",
+      "ja": "歯の輪に囲まれた吸盤状の口を持つ顎のない寄生性のウナギのような魚で、海や湖で寄生して成長したあと礫底の川で産卵します。"
     }
   },
   {
@@ -1491,7 +1593,8 @@
       "hu": "Édesvízi dobhal",
       "zh": "淡水石首鱼",
       "ar": "الطبال النهري",
-      "he": "דג תוף מים מתוקים"
+      "he": "דג תוף מים מתוקים",
+      "ja": "フレッシュウォータードラム"
     },
     "descriptions": {
       "en": "Silvery humpbacked fish that grunts audibly and crushes mussels with throat teeth, common in big rivers and lakes.",
@@ -1504,7 +1607,8 @@
       "hu": "Ezüstös, púpos hátú hal, amely hallhatóan morog és garatfogaival kagylókat tör, gyakori nagy folyókban és tavakban.",
       "zh": "银色驼背鱼，能发出可闻的咕噜声，用咽齿碾碎贻贝，常见于大河和湖泊。",
       "ar": "سمكة فضية محدبة الظهر تصدر أصوات همهمة مسموعة وتسحق بلح البحر بأسنان بلعومية، شائعة في الأنهار والبحيرات الكبيرة.",
-      "he": "דג כסוף גבנוני שמשמיע נהמות נשמעות ומועך צדפות בשיני לוע, נפוץ בנהרות גדולים ובאגמים."
+      "he": "דג כסוף גבנוני שמשמיע נהמות נשמעות ומועך צדפות בשיני לוע, נפוץ בנהרות גדולים ובאגמים.",
+      "ja": "聞こえるほどの音でうなり、咽頭歯で二枚貝を砕く背の盛り上がった銀色の魚で、大河や湖でよく見られます。"
     }
   },
   {
@@ -1520,7 +1624,8 @@
       "hu": "Fehér szívóhal",
       "zh": "康氏亚口鱼",
       "ar": "الماص الأبيض",
-      "he": "מוצץ לבן"
+      "he": "מוצץ לבן",
+      "ja": "ホワイトサッカー"
     },
     "descriptions": {
       "en": "Cylindrical bottom-feeder with a fleshy downturned mouth, running up streams in spring spawning crowds.",
@@ -1533,7 +1638,8 @@
       "hu": "Hengeres testű fenéklakó hal húsos, lefelé álló szájjal, tavasszal ívó tömegekben vonul fel a patakokba.",
       "zh": "圆筒形底栖鱼，口肉质且朝下，春季成群溯溪产卵。",
       "ar": "سمكة قاعية أسطوانية بفم لحمي متجه للأسفل، تصعد الجداول في الربيع في حشود التكاثر.",
-      "he": "דג קרקעית גלילי עם פה בשרני מופנה מטה, עולה בנחלים באביב בהמוני הטלה."
+      "he": "דג קרקעית גלילי עם פה בשרני מופנה מטה, עולה בנחלים באביב בהמוני הטלה.",
+      "ja": "肉厚の下向きの口を持つ円筒形の底生魚で、春の産卵期には群れで川を遡上します。"
     }
   },
   {
@@ -1549,7 +1655,8 @@
       "hu": "fürge cselle",
       "zh": "阿尔泰鱥",
       "ar": "المنوة الأوروبية",
-      "he": "מינו אירופי"
+      "he": "מינו אירופי",
+      "ja": "ミノー"
     },
     "descriptions": {
       "en": "Tiny striped shoaling fish of clear cool streams and lakes, the males turning red and green in spring.",
@@ -1562,7 +1669,8 @@
       "hu": "Apró, csíkos, rajokban élő hal tiszta, hűvös patakokból és tavakból, a hímek tavasszal vörös és zöld színt öltenek.",
       "zh": "微小的条纹群游鱼，栖息于清凉的溪流和湖泊，雄鱼春季变为红绿色。",
       "ar": "سمكة صغيرة جداً مخططة تعيش في أسراب في الجداول والبحيرات الصافية الباردة، يتحول ذكورها إلى الأحمر والأخضر في الربيع.",
-      "he": "דג זעיר מפוספס החי בלהקות בנחלים ובאגמים צלולים וקרירים, הזכרים מאדימים ומוריקים באביב."
+      "he": "דג זעיר מפוספס החי בלהקות בנחלים ובאגמים צלולים וקרירים, הזכרים מאדימים ומוריקים באביב.",
+      "ja": "澄んだ冷たい川や湖で群れる縞模様の小魚で、春になるとオスが赤と緑に色づきます。"
     }
   },
   {
@@ -1578,7 +1686,8 @@
       "hu": "tüskés pikó",
       "zh": "三刺鱼",
       "ar": "أبو شوكة ثلاثي الأشواك",
-      "he": "דג הקוצים תלת קוצי"
+      "he": "דג הקוצים תלת קוצי",
+      "ja": "イトヨ"
     },
     "descriptions": {
       "en": "Tiny armoured fish with three dorsal spines whose red-throated males build and guard nests of plant fibres.",
@@ -1591,7 +1700,8 @@
       "hu": "Apró, páncélos hal három háttüskével, vörös torkú hímjei növényi rostokból építenek és őriznek fészket.",
       "zh": "微小的披甲鱼，背部有三根硬棘，喉部红色的雄鱼会用植物纤维筑巢并守护。",
       "ar": "سمكة صغيرة جداً مدرعة بثلاث أشواك ظهرية، يبني ذكورها ذوو الحلق الأحمر أعشاشاً من الألياف النباتية ويحرسونها.",
-      "he": "דג זעיר משוריין עם שלושה קוצי גב, שזכריו אדומי הגרון בונים ושומרים על קנים מסיבי צמחים."
+      "he": "דג זעיר משוריין עם שלושה קוצי גב, שזכריו אדומי הגרון בונים ושומרים על קנים מסיבי צמחים.",
+      "ja": "3本の背棘を持つ装甲に覆われた小魚で、喉の赤いオスが植物繊維で巣を作って守ります。"
     }
   },
   {
@@ -1607,7 +1717,8 @@
       "hu": "Alewife hering",
       "zh": "淡水大眼鲱",
       "ar": "الألوايف",
-      "he": "אלווייף"
+      "he": "אלווייף",
+      "ja": "エールワイフ"
     },
     "descriptions": {
       "en": "Silver herring that runs up rivers in spring and now fills the Great Lakes in vast schools.",
@@ -1620,7 +1731,8 @@
       "hu": "Ezüstös hering, tavasszal a folyókba vonul fel, és ma hatalmas rajokban tölti meg a Nagy-tavakat.",
       "zh": "银色的鲱鱼，春季溯河洄游，如今在五大湖中形成庞大鱼群。",
       "ar": "رنجة فضية تصعد الأنهار في الربيع وتملأ اليوم البحيرات العظمى بأسراب هائلة.",
-      "he": "הרינג כסוף שעולה בנהרות באביב וממלא כיום את האגמים הגדולים בלהקות עצומות."
+      "he": "הרינג כסוף שעולה בנהרות באביב וממלא כיום את האגמים הגדולים בלהקות עצומות.",
+      "ja": "春に川を遡上する銀色のニシンの仲間で、現在は五大湖で巨大な群れを作っています。"
     }
   },
   {
@@ -1636,7 +1748,8 @@
       "hu": "Nílusi sügér",
       "zh": "尼罗河鲈",
       "ar": "قشر البياض",
-      "he": "נסיכת הנילוס"
+      "he": "נסיכת הנילוס",
+      "ja": "ナイルパーチ"
     },
     "descriptions": {
       "en": "Massive silver predator with a black-rimmed eye, introduced into Lake Victoria where it dominates open water.",
@@ -1649,7 +1762,8 @@
       "hu": "Hatalmas ezüstös ragadozó fekete szegélyű szemmel, a Viktória-tóba telepítették, ahol uralja a nyílt vizet.",
       "zh": "体型庞大的银色掠食鱼，眼周有黑圈，被引入维多利亚湖后称霸开阔水域。",
       "ar": "مفترس فضي ضخم بعين محاطة بحافة سوداء، أُدخل إلى بحيرة فيكتوريا حيث يهيمن على المياه المفتوحة.",
-      "he": "טורף כסוף עצום עם עין בשוליים שחורים, שהוכנס לאגם ויקטוריה ושולט שם במים הפתוחים."
+      "he": "טורף כסוף עצום עם עין בשוליים שחורים, שהוכנס לאגם ויקטוריה ושולט שם במים הפתוחים.",
+      "ja": "黒く縁取られた目を持つ巨大な銀色の捕食者で、ビクトリア湖に移入され、沖合で優占しています。"
     }
   },
   {
@@ -1665,7 +1779,8 @@
       "hu": "Nílusi tilápia",
       "zh": "尼罗口孵非鲫",
       "ar": "بلطي نيلي",
-      "he": "אמנון הנילוס"
+      "he": "אמנון הנילוס",
+      "ja": "ナイルティラピア"
     },
     "descriptions": {
       "en": "Grey cichlid with vertical tail bars that broods its young in its mouth, farmed and feral in warm waters worldwide.",
@@ -1678,7 +1793,8 @@
       "hu": "Szürke bölcsőszájú hal függőleges farokcsíkokkal, ivadékait a szájában költi, világszerte tenyésztik és elvadult a meleg vizekben.",
       "zh": "灰色的慈鲷，尾部有竖纹，口孵幼鱼，在全球温暖水域被养殖并野化。",
       "ar": "بلطي رمادي بخطوط عمودية على الذيل يحضن صغاره في فمه، يُستزرع ويعيش متوحشاً في المياه الدافئة حول العالم.",
-      "he": "ציקליד אפור עם פסים אנכיים בזנב הדוגר על צאצאיו בפיו, מגודל ומשוטט חופשי במים חמים ברחבי העולם."
+      "he": "ציקליד אפור עם פסים אנכיים בזנב הדוגר על צאצאיו בפיו, מגודל ומשוטט חופשי במים חמים ברחבי העולם.",
+      "ja": "尾びれに縦縞を持つ灰色のシクリッドで、口の中で子育てをします。世界中の暖かい水域で養殖され、野生化もしています。"
     }
   },
   {
@@ -1694,7 +1810,8 @@
       "hu": "Afrikai tigrishal",
       "zh": "饰纹狗脂鲤",
       "ar": "سمكة النمر الأفريقية",
-      "he": "דג נמר אפריקאי"
+      "he": "דג נמר אפריקאי",
+      "ja": "タイガーフィッシュ"
     },
     "descriptions": {
       "en": "Striped silver predator with interlocking dagger teeth, hunting in fast African rivers such as the Zambezi.",
@@ -1707,7 +1824,8 @@
       "hu": "Csíkos ezüstös ragadozó egymásba illeszkedő tőrszerű fogakkal, gyors afrikai folyókban, például a Zambéziben vadászik.",
       "zh": "带条纹的银色掠食鱼，牙齿如匕首般交错，在赞比西河等湍急的非洲河流中捕食。",
       "ar": "مفترس فضي مخطط بأسنان خنجرية متشابكة، يصطاد في الأنهار الأفريقية السريعة مثل الزامبيزي.",
-      "he": "טורף כסוף מפוספס עם שיני פגיון משתלבות, צד בנהרות אפריקאיים מהירים כמו הזמבזי."
+      "he": "טורף כסוף מפוספס עם שיני פגיון משתלבות, צד בנהרות אפריקאיים מהירים כמו הזמבזי.",
+      "ja": "かみ合う短剣のような歯を持つ縞模様の銀色の捕食者で、ザンベジ川などアフリカの流れの速い川で狩りをします。"
     }
   },
   {
@@ -1723,7 +1841,8 @@
       "hu": "Márványos tüdőshal",
       "zh": "维多利亚肺鱼",
       "ar": "Samak el teen",
-      "he": "דג ריאות משויש"
+      "he": "דג ריאות משויש",
+      "ja": "マーブルハイギョ"
     },
     "descriptions": {
       "en": "Eel-shaped air-breathing fish with thread-like fins that survives droughts sealed in a mud cocoon.",
@@ -1736,7 +1855,8 @@
       "hu": "Angolna alakú, levegőt lélegző hal fonalszerű úszókkal, a szárazságot iszapgubóba zárkózva vészeli át.",
       "zh": "鳗形的呼吸空气的鱼，鳍呈丝状，干旱时封在泥茧中存活。",
       "ar": "سمكة ثعبانية الشكل تتنفس الهواء بزعانف خيطية، تنجو من الجفاف محبوسة في شرنقة طينية.",
-      "he": "דג דמוי צלופח הנושם אוויר עם סנפירים דמויי חוט, השורד בצורת חתום בפקעת בוץ."
+      "he": "דג דמוי צלופח הנושם אוויר עם סנפירים דמויי חוט, השורד בצורת חתום בפקעת בוץ.",
+      "ja": "糸状のひれを持つウナギ形の空気呼吸をする魚で、干ばつの間は泥の繭に閉じこもって生き延びます。"
     }
   },
   {
@@ -1752,7 +1872,8 @@
       "hu": "Elektromos harcsa",
       "zh": "电鲇",
       "ar": "السلور الكهربائي",
-      "he": "שפמנון חשמלי"
+      "he": "שפמנון חשמלי",
+      "ja": "デンキナマズ"
     },
     "descriptions": {
       "en": "Plump grey catfish of the Nile and Congo that stuns prey with shocks of several hundred volts.",
@@ -1765,7 +1886,8 @@
       "hu": "Kövér szürke harcsa a Nílusból és a Kongóból, több száz voltos áramütéssel bénítja meg zsákmányát.",
       "zh": "尼罗河和刚果河中的肥硕灰色鲶鱼，能以数百伏特的电击麻痹猎物。",
       "ar": "سلور رمادي ممتلئ من النيل والكونغو يصعق فرائسه بصدمات تبلغ عدة مئات من الفولتات.",
-      "he": "שפמנון אפור שמנמן מהנילוס ומהקונגו המהמם את טרפו במכות חשמל של מאות וולטים."
+      "he": "שפמנון אפור שמנמן מהנילוס ומהקונגו המהמם את טרפו במכות חשמל של מאות וולטים.",
+      "ja": "ナイル川やコンゴ川に暮らす丸々とした灰色のナマズで、数百ボルトの電気ショックで獲物を気絶させます。"
     }
   },
   {
@@ -1781,7 +1903,8 @@
       "hu": "Zebra mbuna",
       "zh": "斑马岩栖慈鲷",
       "ar": "مبونا الزرد",
-      "he": "מבונה זברה"
+      "he": "מבונה זברה",
+      "ja": "ゼブラムブナ"
     },
     "descriptions": {
       "en": "Blue-barred rock cichlid of Lake Malawi, grazing algae from boulders in dense territorial crowds.",
@@ -1794,7 +1917,8 @@
       "hu": "Kék csíkos sziklalakó bölcsőszájú hal a Malawi-tóból, sűrű, territoriális tömegekben legeli az algát a sziklákról.",
       "zh": "马拉维湖的蓝色条纹岩栖慈鲷，成群密集地在巨石上刮食藻类并守卫领地。",
       "ar": "بلطي صخري بخطوط زرقاء من بحيرة ملاوي، يرعى الطحالب من الصخور الكبيرة في حشود إقليمية كثيفة.",
-      "he": "ציקליד סלעים כחול פסים מאגם מלאווי, רועה אצות מסלעים בהמונים טריטוריאליים צפופים."
+      "he": "ציקליד סלעים כחול פסים מאגם מלאווי, רועה אצות מסלעים בהמונים טריטוריאליים צפופים.",
+      "ja": "マラウイ湖に暮らす青い横帯を持つ岩場のシクリッドで、縄張りを持って密集し、岩の藻を食べます。"
     }
   },
   {
@@ -1810,7 +1934,8 @@
       "hu": "Pillangó pávacichlida",
       "zh": "蝴蝶孔雀慈鲷",
       "ar": "بلطي الطاووس الفراشي",
-      "he": "ציקליד טווס פרפר"
+      "he": "ציקליד טווס פרפר",
+      "ja": "マラウイバタフライピーコック"
     },
     "descriptions": {
       "en": "Iridescent blue peacock cichlid of Lake Malawi caves, the males glowing with white-edged fins.",
@@ -1823,7 +1948,8 @@
       "hu": "Irizáló kék pávacichlida a Malawi-tó barlangjaiból, a hímek fehér szegélyű úszókkal pompáznak.",
       "zh": "马拉维湖洞穴中的虹彩蓝色孔雀慈鲷，雄鱼的鳍缘发白闪亮。",
       "ar": "بلطي طاووسي أزرق متقزح من كهوف بحيرة ملاوي، تتوهج ذكوره بزعانف ذات حواف بيضاء.",
-      "he": "ציקליד טווס כחול נוצץ ממערות אגם מלאווי, הזכרים זוהרים בסנפירים בשוליים לבנים."
+      "he": "ציקליד טווס כחול נוצץ ממערות אגם מלאווי, הזכרים זוהרים בסנפירים בשוליים לבנים.",
+      "ja": "マラウイ湖の洞窟に暮らす虹色に輝く青いピーコックシクリッドで、オスは縁が白いひれで輝いています。"
     }
   },
   {
@@ -1839,7 +1965,8 @@
       "hu": "Fuelleborn-cichlida",
       "zh": "蓝岩栖慈鲷",
       "ar": "بلطي فولبورن",
-      "he": "ציקליד פילבורן"
+      "he": "ציקליד פילבורן",
+      "ja": "フエルボルニー"
     },
     "descriptions": {
       "en": "Blunt-nosed Lake Malawi mbuna with a fleshy overhanging snout for scraping algae in the surf zone.",
@@ -1852,7 +1979,8 @@
       "hu": "Tompa orrú mbuna a Malawi-tóból húsos, előreálló orral, amellyel a hullámverés zónájában kaparja az algát.",
       "zh": "马拉维湖的钝吻岩栖慈鲷，肉质突出的吻部用于在浪击带刮食藻类。",
       "ar": "مبونا من بحيرة ملاوي بأنف مسطح لحمي بارز لكشط الطحالب في منطقة الأمواج.",
-      "he": "מבונה מאגם מלאווי עם חרטום קהה ובשרני בולט לגירוד אצות באזור הגלים."
+      "he": "מבונה מאגם מלאווי עם חרטום קהה ובשרני בולט לגירוד אצות באזור הגלים.",
+      "ja": "肉厚の突き出た吻を持つマラウイ湖の丸い鼻先のムブナで、波打ち際で藻を削り取って食べます。"
     }
   },
   {
@@ -1868,7 +1996,8 @@
       "hu": "Burundi hercegnő",
       "zh": "布隆迪公主慈鲷",
       "ar": "أميرة بوروندي",
-      "he": "נסיכת בורונדי"
+      "he": "נסיכת בורונדי",
+      "ja": "プリンセスオブブルンジ"
     },
     "descriptions": {
       "en": "Elegant Lake Tanganyika cichlid with lyre-shaped fins, living in extended families that share nest duties.",
@@ -1881,7 +2010,8 @@
       "hu": "Elegáns Tanganyika-tavi bölcsőszájú hal líra alakú úszókkal, nagycsaládokban él, amelyek megosztják a fészekgondozást.",
       "zh": "坦噶尼喀湖的优雅慈鲷，鳍呈琴形，以大家庭群体生活并共同照料巢穴。",
       "ar": "بلطي أنيق من بحيرة تنجانيقا بزعانف على شكل قيثارة، يعيش في عائلات ممتدة تتقاسم رعاية العش.",
-      "he": "ציקליד אלגנטי מאגם טנגנייקה עם סנפירים דמויי נבל, חי במשפחות מורחבות החולקות את הטיפול בקן."
+      "he": "ציקליד אלגנטי מאגם טנגנייקה עם סנפירים דמויי נבל, חי במשפחות מורחבות החולקות את הטיפול בקן.",
+      "ja": "竪琴形のひれを持つタンガニーカ湖の優美なシクリッドで、巣の世話を分担する大家族で暮らします。"
     }
   },
   {
@@ -1897,7 +2027,8 @@
       "hu": "Frontosa",
       "zh": "六间慈鲷",
       "ar": "الفرونتوزا",
-      "he": "פרונטוזה"
+      "he": "פרונטוזה",
+      "ja": "フロントーサ"
     },
     "descriptions": {
       "en": "Deep-water Tanganyika cichlid with bold blue-white bands and a humped forehead, moving slowly in groups over rocks.",
@@ -1910,7 +2041,8 @@
       "hu": "Mélyvízi Tanganyika-tavi bölcsőszájú hal erős kékesfehér sávokkal és púpos homlokkal, lassan, csoportosan mozog a sziklák fölött.",
       "zh": "坦噶尼喀湖的深水慈鲷，蓝白条纹醒目，前额隆起，成群在岩石上缓慢游动。",
       "ar": "بلطي من المياه العميقة في تنجانيقا بأشرطة زرقاء وبيضاء بارزة وجبهة محدبة، يتحرك ببطء في مجموعات فوق الصخور.",
-      "he": "ציקליד מים עמוקים מטנגנייקה עם פסים כחולים-לבנים בולטים ומצח גבנוני, נע לאט בקבוצות מעל סלעים."
+      "he": "ציקליד מים עמוקים מטנגנייקה עם פסים כחולים-לבנים בולטים ומצח גבנוני, נע לאט בקבוצות מעל סלעים.",
+      "ja": "くっきりした青白の帯と盛り上がった額を持つタンガニーカ湖の深場のシクリッドで、岩の上を群れでゆっくり移動します。"
     }
   },
   {
@@ -1926,7 +2058,8 @@
       "hu": "Moore-cichlida",
       "zh": "蓝岩慈鲷",
       "ar": "تروفيوس موري",
-      "he": "טרופאוס מורי"
+      "he": "טרופאוס מורי",
+      "ja": "トロフェウスモーリー"
     },
     "descriptions": {
       "en": "Stocky Tanganyika rock cichlid in dozens of colour forms, each confined to its own stretch of shore.",
@@ -1939,7 +2072,8 @@
       "hu": "Zömök Tanganyika-tavi sziklalakó bölcsőszájú hal több tucat színváltozatban, mindegyik saját partszakaszára korlátozódik.",
       "zh": "坦噶尼喀湖的粗壮岩栖慈鲷，有数十种色型，每种仅限于自己的一段湖岸。",
       "ar": "بلطي صخري ممتلئ من تنجانيقا بعشرات الأشكال اللونية، كل منها محصور في امتداد شاطئه الخاص.",
-      "he": "ציקליד סלעים גוץ מטנגנייקה בעשרות צורות צבע, כל אחת מוגבלת לרצועת החוף שלה."
+      "he": "ציקליד סלעים גוץ מטנגנייקה בעשרות צורות צבע, כל אחת מוגבלת לרצועת החוף שלה.",
+      "ja": "数十もの色彩型を持つタンガニーカ湖のずんぐりした岩場のシクリッドで、それぞれの型が湖岸の限られた区域にだけ暮らしています。"
     }
   },
   {
@@ -1955,7 +2089,8 @@
       "hu": "arapaima (pirarucu)",
       "zh": "巨骨舌鱼",
       "ar": "أربيمة عملاقة",
-      "he": "פיררוקו"
+      "he": "פיררוקו",
+      "ja": "ピラルク"
     },
     "descriptions": {
       "en": "One of the largest freshwater fish, an armoured Amazon giant with a red-flecked tail that rises to gulp air.",
@@ -1968,7 +2103,8 @@
       "hu": "Az egyik legnagyobb édesvízi hal, páncélos amazonasi óriás vörös pettyes farokkal, levegőért emelkedik a felszínre.",
       "zh": "最大的淡水鱼之一，亚马逊的披甲巨物，尾部有红色斑点，会浮出水面吞气。",
       "ar": "من أكبر أسماك المياه العذبة، عملاق مدرع من الأمازون بذيل مرقط بالأحمر يصعد لابتلاع الهواء.",
-      "he": "מדגי המים המתוקים הגדולים ביותר, ענק משוריין מהאמזונס עם זנב מנוקד באדום העולה לבלוע אוויר."
+      "he": "מדגי המים המתוקים הגדולים ביותר, ענק משוריין מהאמזונס עם זנב מנוקד באדום העולה לבלוע אוויר.",
+      "ja": "最大級の淡水魚で、赤い斑点の散る尾びれを持つアマゾンの装甲の巨魚です。空気を吸うために水面に上がってきます。"
     }
   },
   {
@@ -1984,7 +2120,8 @@
       "hu": "Ezüst arowana",
       "zh": "双须骨舌鱼",
       "ar": "أروانا فضية",
-      "he": "ארוואנה כסופה"
+      "he": "ארוואנה כסופה",
+      "ja": "シルバーアロワナ"
     },
     "descriptions": {
       "en": "Ribbon-like silver Amazon fish with two chin barbels that leaps clear of the water to snatch insects from branches.",
@@ -1997,7 +2134,8 @@
       "hu": "Szalagszerű ezüstös amazonasi hal két állbajuszszállal, kiugrik a vízből, hogy rovarokat kapjon el az ágakról.",
       "zh": "亚马逊的带状银色鱼，下颌有两根须，会跃出水面从树枝上叼食昆虫。",
       "ar": "سمكة فضية شريطية من الأمازون بزائدتين لمسيتين على الذقن، تقفز خارج الماء لخطف الحشرات من الأغصان.",
-      "he": "דג כסוף דמוי סרט מהאמזונס עם שני זיפי חישה בסנטר, מזנק מעל המים לחטוף חרקים מענפים."
+      "he": "דג כסוף דמוי סרט מהאמזונס עם שני זיפי חישה בסנטר, מזנק מעל המים לחטוף חרקים מענפים.",
+      "ja": "下顎に2本のひげを持つリボンのような銀色のアマゾンの魚で、水面から跳び上がって枝の昆虫を捕らえます。"
     }
   },
   {
@@ -2013,7 +2151,8 @@
       "hu": "Vöröshasú piranha",
       "zh": "纳氏臀点脂鲤",
       "ar": "البيرانا حمراء البطن",
-      "he": "פיראנה אדומת בטן"
+      "he": "פיראנה אדומת בטן",
+      "ja": "ピラニアナッテリー"
     },
     "descriptions": {
       "en": "Deep-bodied silver fish with a crimson belly and razor teeth, moving in shoals through Amazon backwaters.",
@@ -2026,7 +2165,8 @@
       "hu": "Magas testű ezüstös hal karmazsinvörös hassal és borotvaéles fogakkal, rajokban vonul az Amazonas holtágain.",
       "zh": "体高的银色鱼，腹部深红，牙齿锋利，成群在亚马逊回水区活动。",
       "ar": "سمكة فضية عالية الجسم ببطن قرمزي وأسنان حادة كالشفرة، تتنقل في أسراب عبر المياه الراكدة للأمازون.",
-      "he": "דג כסוף גבוה גוף עם בטן ארגמנית ושיניים חדות כתער, נע בלהקות במים אחוריים של האמזונס."
+      "he": "דג כסוף גבוה גוף עם בטן ארגמנית ושיניים חדות כתער, נע בלהקות במים אחוריים של האמזונס.",
+      "ja": "真紅の腹とかみそりのような歯を持つ体高のある銀色の魚で、アマゾンの淀みを群れで移動します。"
     }
   },
   {
@@ -2042,7 +2182,8 @@
       "hu": "Fekete piranha",
       "zh": "菱锯脂鲤",
       "ar": "البيرانا السوداء",
-      "he": "פיראנה שחורה"
+      "he": "פיראנה שחורה",
+      "ja": "ブラックピラニア"
     },
     "descriptions": {
       "en": "Large solitary piranha with red eyes and a dark diamond-shaped body, lurking in clear rocky Amazon tributaries.",
@@ -2055,7 +2196,8 @@
       "hu": "Nagy, magányos piranha vörös szemekkel és sötét, rombusz alakú testtel, tiszta, sziklás amazonasi mellékfolyókban les.",
       "zh": "大型独居的食人鱼，眼睛红色，身体深色呈菱形，潜伏在亚马逊清澈多岩的支流中。",
       "ar": "بيرانا كبيرة انفرادية بعينين حمراوين وجسم داكن معيني الشكل، تترصد في روافد الأمازون الصافية الصخرية.",
-      "he": "פיראנה גדולה ובודדת עם עיניים אדומות וגוף כהה בצורת מעוין, אורבת ביובלים צלולים וסלעיים של האמזונס."
+      "he": "פיראנה גדולה ובודדת עם עיניים אדומות וגוף כהה בצורת מעוין, אורבת ביובלים צלולים וסלעיים של האמזונס.",
+      "ja": "赤い目と暗色のひし形の体を持つ単独性の大型のピラニアで、アマゾンの澄んだ岩の多い支流に潜んでいます。"
     }
   },
   {
@@ -2071,7 +2213,8 @@
       "hu": "Vöröshasú pacu",
       "zh": "短盖肥脂鲤",
       "ar": "الباكو أحمر البطن",
-      "he": "פאקו אדום בטן"
+      "he": "פאקו אדום בטן",
+      "ja": "レッドベリーパクー"
     },
     "descriptions": {
       "en": "Piranha-like fruit eater with flat crushing teeth and a red belly, gathering under flooded forest trees.",
@@ -2084,7 +2227,8 @@
       "hu": "Piranhára emlékeztető gyümölcsevő lapos, zúzó fogakkal és vörös hassal, elárasztott erdők fái alatt gyülekezik.",
       "zh": "外形似食人鱼的食果鱼，牙齿扁平善于碾碎，腹部红色，聚集在被淹没的森林树下。",
       "ar": "آكل فاكهة يشبه البيرانا بأسنان مسطحة ساحقة وبطن أحمر، يتجمع تحت أشجار الغابة المغمورة.",
-      "he": "אוכל פירות דמוי פיראנה עם שיניים שטוחות מועכות ובטן אדומה, מתקבץ מתחת לעצי יער מוצף."
+      "he": "אוכל פירות דמוי פיראנה עם שיניים שטוחות מועכות ובטן אדומה, מתקבץ מתחת לעצי יער מוצף.",
+      "ja": "平たい臼状の歯と赤い腹を持つピラニアに似た果実食の魚で、浸水林の木の下に集まります。"
     }
   },
   {
@@ -2100,7 +2244,8 @@
       "hu": "Tambaqui",
       "zh": "黑盖巨脂鲤",
       "ar": "التامباكي",
-      "he": "טמבקי"
+      "he": "טמבקי",
+      "ja": "タンバキー"
     },
     "descriptions": {
       "en": "Huge dark pacu of the Amazon that crunches fallen nuts and seeds beneath flooded forest canopy.",
@@ -2113,7 +2258,8 @@
       "hu": "Hatalmas, sötét pacu az Amazonasból, az elárasztott erdő lombkoronája alatt lehullott dióféléket és magvakat ropogtat.",
       "zh": "亚马逊的巨型深色淡水鲳，在被淹没的森林树冠下嚼食落下的坚果和种子。",
       "ar": "باكو ضخم داكن من الأمازون يطحن المكسرات والبذور المتساقطة تحت مظلة الغابة المغمورة.",
-      "he": "פאקו כהה וענק מהאמזונס המפצח אגוזים וזרעים שנשרו מתחת לחופת יער מוצף."
+      "he": "פאקו כהה וענק מהאמזונס המפצח אגוזים וזרעים שנשרו מתחת לחופת יער מוצף.",
+      "ja": "アマゾンに暮らす暗色の巨大なパクーで、浸水林の林冠の下で落ちた木の実や種子をかみ砕きます。"
     }
   },
   {
@@ -2129,7 +2275,8 @@
       "hu": "Elektromos angolna",
       "zh": "电鳗",
       "ar": "أنقليس رعاد",
-      "he": "צלופח חשמלי"
+      "he": "צלופח חשמלי",
+      "ja": "デンキウナギ"
     },
     "descriptions": {
       "en": "Not an eel but a knifefish, a long dark air-breather that stuns prey with shocks of up to 600 volts.",
@@ -2142,7 +2289,8 @@
       "hu": "Nem angolna, hanem késhal, hosszú, sötét, levegőt lélegző hal, amely akár 600 voltos ütéssel bénítja meg zsákmányát.",
       "zh": "并非真正的鳗鱼而是裸背电鳗，体长而深色，能呼吸空气，以高达600伏的电击麻痹猎物。",
       "ar": "ليس ثعبان ماء بل سمكة سكين، طويلة داكنة تتنفس الهواء وتصعق فرائسها بصدمات تصل إلى 600 فولت.",
-      "he": "לא צלופח אלא דג סכין, נושם אוויר ארוך וכהה המהמם טרף במכות חשמל של עד 600 וולט."
+      "he": "לא צלופח אלא דג סכין, נושם אוויר ארוך וכהה המהמם טרף במכות חשמל של עד 600 וולט.",
+      "ja": "ウナギではなくナイフフィッシュの仲間で、空気呼吸をする長く暗色の魚です。最大600ボルトの電気ショックで獲物を気絶させます。"
     }
   },
   {
@@ -2158,7 +2306,8 @@
       "hu": "Vörösfarkú harcsa",
       "zh": "红尾护头鲿",
       "ar": "السلور أحمر الذيل",
-      "he": "שפמנון אדום זנב"
+      "he": "שפמנון אדום זנב",
+      "ja": "レッドテールキャットフィッシュ"
     },
     "descriptions": {
       "en": "Big Amazon catfish with a dark back, white belly and bright orange-red tail, resting in deep river pools.",
@@ -2171,7 +2320,8 @@
       "hu": "Nagy amazonasi harcsa sötét háttal, fehér hassal és élénk narancsvörös farokkal, mély folyami medencékben pihen.",
       "zh": "大型亚马逊鲶鱼，背部深色，腹部白色，尾鳍鲜橙红色，栖息于河流深潭。",
       "ar": "سلور أمازوني كبير بظهر داكن وبطن أبيض وذيل برتقالي أحمر زاهٍ، يستريح في برك الأنهار العميقة.",
-      "he": "שפמנון אמזונס גדול עם גב כהה, בטן לבנה וזנב כתום-אדום בוהק, נח בבריכות נהר עמוקות."
+      "he": "שפמנון אמזונס גדול עם גב כהה, בטן לבנה וזנב כתום-אדום בוהק, נח בבריכות נהר עמוקות.",
+      "ja": "暗色の背、白い腹、鮮やかな橙赤色の尾びれを持つアマゾンの大型のナマズで、川の深い淵で休んでいます。"
     }
   },
   {
@@ -2187,7 +2337,8 @@
       "hu": "Tigrisharcsa",
       "zh": "虎皮鸭嘴鲶",
       "ar": "السلور النمري",
-      "he": "שפמנון נמר"
+      "he": "שפמנון נמר",
+      "ja": "タイガーショベルノーズキャットフィッシュ"
     },
     "descriptions": {
       "en": "Sleek striped catfish with a long flattened snout, hunting along sandy South American river channels at night.",
@@ -2200,7 +2351,8 @@
       "hu": "Karcsú, csíkos harcsa hosszú, lapított orral, éjjel vadászik a dél-amerikai folyók homokos medrei mentén.",
       "zh": "流线型的条纹鲶鱼，吻长而扁平，夜间沿南美河流的沙质河道捕食。",
       "ar": "سلور مخطط انسيابي بخطم طويل مسطح، يصطاد ليلاً على طول القنوات الرملية لأنهار أمريكا الجنوبية.",
-      "he": "שפמנון מפוספס וחלק עם חרטום ארוך ושטוח, צד בלילה לאורך ערוצי נהר חוליים בדרום אמריקה."
+      "he": "שפמנון מפוספס וחלק עם חרטום ארוך ושטוח, צד בלילה לאורך ערוצי נהר חוליים בדרום אמריקה.",
+      "ja": "長く平たい吻を持つすらりとした縞模様のナマズで、夜に南米の川の砂地の水路沿いで狩りをします。"
     }
   },
   {
@@ -2216,7 +2368,8 @@
       "hu": "Pávasügér",
       "zh": "眼点丽鱼",
       "ar": "قاروص الطاووس",
-      "he": "בס טווס"
+      "he": "בס טווס",
+      "ja": "ピーコックバス"
     },
     "descriptions": {
       "en": "Aggressive Amazon cichlid with three dark bars and a tail eyespot, ambushing fish along sunken timber.",
@@ -2229,7 +2382,8 @@
       "hu": "Agresszív amazonasi bölcsőszájú hal három sötét sávval és farokfoltjával, elsüllyedt fák mentén les halakra.",
       "zh": "好斗的亚马逊慈鲷，体侧有三条深色竖纹，尾部有眼斑，在沉木旁伏击鱼类。",
       "ar": "بلطي أمازوني عدواني بثلاثة أشرطة داكنة وبقعة عينية على الذيل، يكمن للأسماك بجوار الأخشاب الغارقة.",
-      "he": "ציקליד אמזונס תוקפני עם שלושה פסים כהים וכתם עין בזנב, אורב לדגים לאורך עצים שקועים."
+      "he": "ציקליד אמזונס תוקפני עם שלושה פסים כהים וכתם עין בזנב, אורב לדגים לאורך עצים שקועים.",
+      "ja": "3本の暗色の横帯と尾の眼状斑を持つ攻撃的なアマゾンのシクリッドで、沈木に沿って魚を待ち伏せします。"
     }
   },
   {
@@ -2245,7 +2399,8 @@
       "hu": "Oszkár",
       "zh": "地图鱼",
       "ar": "أوسكار",
-      "he": "אוסקר"
+      "he": "אוסקר",
+      "ja": "オスカー"
     },
     "descriptions": {
       "en": "Stout dark cichlid with orange marbling and a tail eyespot, patrolling slow Amazon waters and flooded margins.",
@@ -2258,7 +2413,8 @@
       "hu": "Zömök, sötét bölcsőszájú hal narancssárga márványozással és farokfolttal, lassú amazonasi vizeket és elárasztott partokat jár be.",
       "zh": "粗壮的深色慈鲷，带橙色大理石纹，尾部有眼斑，在亚马逊缓流水域和淹没的岸边巡游。",
       "ar": "بلطي داكن ممتلئ برخامية برتقالية وبقعة عينية على الذيل، يجوب مياه الأمازون البطيئة والحواف المغمورة.",
-      "he": "ציקליד כהה ומוצק עם שיוש כתום וכתם עין בזנב, מסייר במימי אמזונס איטיים ובשוליים מוצפים."
+      "he": "ציקליד כהה ומוצק עם שיוש כתום וכתם עין בזנב, מסייר במימי אמזונס איטיים ובשוליים מוצפים.",
+      "ja": "オレンジ色のまだら模様と尾の眼状斑を持つずんぐりした暗色のシクリッドで、アマゾンの流れの緩やかな水域や浸水した岸辺を巡回します。"
     }
   },
   {
@@ -2274,7 +2430,8 @@
       "hu": "Vitorláshal",
       "zh": "神仙鱼",
       "ar": "سمكة الملاك النهرية",
-      "he": "דג מלאך מים מתוקים"
+      "he": "דג מלאך מים מתוקים",
+      "ja": "エンゼルフィッシュ"
     },
     "descriptions": {
       "en": "Tall, disc-shaped Amazon cichlid with trailing fins and vertical stripes, drifting among submerged roots.",
@@ -2287,7 +2444,8 @@
       "hu": "Magas, korong alakú amazonasi bölcsőszájú hal hosszú úszókkal és függőleges csíkokkal, elmerült gyökerek között lebeg.",
       "zh": "体高呈圆盘状的亚马逊慈鲷，鳍长而飘逸，体侧有竖纹，在沉没的树根间漂游。",
       "ar": "بلطي أمازوني عالٍ قرصي الشكل بزعانف طويلة وخطوط عمودية، ينساب بين الجذور المغمورة.",
-      "he": "ציקליד אמזונס גבוה ודמוי דיסקה עם סנפירים ארוכים ופסים אנכיים, נסחף בין שורשים שקועים."
+      "he": "ציקליד אמזונס גבוה ודמוי דיסקה עם סנפירים ארוכים ופסים אנכיים, נסחף בין שורשים שקועים.",
+      "ja": "長くたなびくひれと縦縞を持つ背の高い円盤形のアマゾンのシクリッドで、水中に沈んだ根の間を漂います。"
     }
   },
   {
@@ -2303,7 +2461,8 @@
       "hu": "Diszkoszhal",
       "zh": "七彩神仙鱼",
       "ar": "سمكة الديسكس",
-      "he": "דיסקוס"
+      "he": "דיסקוס",
+      "ja": "ディスカス"
     },
     "descriptions": {
       "en": "Round, laterally flattened cichlid with wavy blue lines that feeds its fry on mucus from its own skin.",
@@ -2316,7 +2475,8 @@
       "hu": "Kerek, oldalról lapított bölcsőszájú hal hullámos kék vonalakkal, ivadékait saját bőrének nyálkájával táplálja.",
       "zh": "圆形侧扁的慈鲷，体侧有波浪状蓝纹，用自身皮肤分泌的黏液喂养幼鱼。",
       "ar": "بلطي دائري مفلطح الجانبين بخطوط زرقاء متموجة يطعم صغاره بالمخاط من جلده.",
-      "he": "ציקליד עגול ושטוח מהצדדים עם קווים כחולים גליים המאכיל את צאצאיו בריר מעורו שלו."
+      "he": "ציקליד עגול ושטוח מהצדדים עם קווים כחולים גליים המאכיל את צאצאיו בריר מעורו שלו.",
+      "ja": "青い波線を持つ丸く側扁したシクリッドで、自分の体表から出る粘液で稚魚を育てます。"
     }
   },
   {
@@ -2332,7 +2492,8 @@
       "hu": "Vitorlás algaevő harcsa",
       "zh": "豹纹翼甲鲇",
       "ar": "البليكو الشراعي",
-      "he": "פלקו מפרש"
+      "he": "פלקו מפרש",
+      "ja": "セイルフィンプレコ"
     },
     "descriptions": {
       "en": "Armoured suckermouth catfish with a tall dorsal fin and leopard spots, rasping algae from wood and rock.",
@@ -2345,7 +2506,8 @@
       "hu": "Páncélos, tapadószájú harcsa magas hátúszóval és leopárdfoltokkal, fáról és szikláról kaparja le az algát.",
       "zh": "披甲的吸口鲶鱼，背鳍高耸，身披豹纹斑点，刮食木头和岩石上的藻类。",
       "ar": "سلور مدرع ذو فم ماص بزعنفة ظهرية عالية وبقع كالفهد، يكشط الطحالب عن الخشب والصخر.",
-      "he": "שפמנון משוריין עם פה מצץ, סנפיר גב גבוה וכתמי נמר, מגרד אצות מעץ ומסלע."
+      "he": "שפמנון משוריין עם פה מצץ, סנפיר גב גבוה וכתמי נמר, מגרד אצות מעץ ומסלע.",
+      "ja": "高い背びれとヒョウ柄を持つ装甲に覆われた吸盤口のナマズで、流木や岩の藻を削り取って食べます。"
     }
   },
   {
@@ -2361,7 +2523,8 @@
       "hu": "Kardinálishal",
       "zh": "阿氏霓虹脂鲤",
       "ar": "التترا الكاردينال",
-      "he": "טטרה קרדינל"
+      "he": "טטרה קרדינל",
+      "ja": "カージナルテトラ"
     },
     "descriptions": {
       "en": "Tiny tetra with a neon blue stripe over a full-length red band, shoaling in the dark waters of the Rio Negro.",
@@ -2374,7 +2537,8 @@
       "hu": "Apró pontylazac neonkék csíkkal egy teljes hosszúságú vörös sáv fölött, a Rio Negro sötét vizében rajzik.",
       "zh": "微小的脂鲤，霓虹蓝色条纹下是贯穿全身的红带，成群游弋在内格罗河的黑水中。",
       "ar": "تترا صغيرة جداً بخط أزرق نيوني فوق شريط أحمر على طول الجسم، تعيش في أسراب في مياه ريو نيغرو الداكنة.",
-      "he": "טטרה זעירה עם פס כחול ניאון מעל רצועה אדומה לכל האורך, נעה בלהקות במים הכהים של ריו נגרו."
+      "he": "טטרה זעירה עם פס כחול ניאון מעל רצועה אדומה לכל האורך, נעה בלהקות במים הכהים של ריו נגרו.",
+      "ja": "体全体に伸びる赤い帯の上にネオンブルーの線を持つ小さなテトラで、ネグロ川の黒い水の中で群れています。"
     }
   },
   {
@@ -2390,7 +2554,8 @@
       "hu": "Vak barlangi hal",
       "zh": "墨西哥麗脂鯉",
       "ar": "تترا مكسيكية",
-      "he": "טטרה מקסיקנית"
+      "he": "טטרה מקסיקנית",
+      "ja": "メキシカンテトラ"
     },
     "descriptions": {
       "en": "Silver tetra of Mexican rivers whose cave populations are blind and pale, a favourite of cenote divers.",
@@ -2403,7 +2568,8 @@
       "hu": "Ezüstös pontylazac a mexikói folyókból, barlangi populációi vakok és sápadtak, a cenote-búvárok kedvence.",
       "zh": "墨西哥河流中的银色脂鲤，其洞穴种群失明且体色苍白，深受天然井潜水者喜爱。",
       "ar": "تترا فضية من أنهار المكسيك، مجموعاتها الكهفية عمياء وشاحبة، مفضلة لدى غواصي السينوتي.",
-      "he": "טטרה כסופה מנהרות מקסיקו שאוכלוסיות המערות שלה עיוורות וחיוורות, אהובה על צוללני הסנוטות."
+      "he": "טטרה כסופה מנהרות מקסיקו שאוכלוסיות המערות שלה עיוורות וחיוורות, אהובה על צוללני הסנוטות.",
+      "ja": "メキシコの川に暮らす銀色のテトラで、洞窟の個体群は目がなく体色も淡く、セノーテダイバーに人気です。"
     }
   },
   {
@@ -2419,7 +2585,8 @@
       "hu": "Mekongi óriásharcsa",
       "zh": "湄公河巨鲶",
       "ar": "سلور الميكونغ العملاق",
-      "he": "שפמנון המקונג הענק"
+      "he": "שפמנון המקונג הענק",
+      "ja": "メコンオオナマズ"
     },
     "descriptions": {
       "en": "Critically endangered toothless giant of the Mekong, grey and barbel-less, once reaching three metres.",
@@ -2432,7 +2599,8 @@
       "hu": "Kritikusan veszélyeztetett, fogatlan óriás a Mekongból, szürke és bajuszszál nélküli, egykor három méteresre nőtt.",
       "zh": "湄公河中极度濒危的无齿巨型鲶鱼，灰色无须，曾可长达三米。",
       "ar": "عملاق بلا أسنان من نهر الميكونغ مهدد بالانقراض بشدة، رمادي وبلا زوائد لمسية، كان يبلغ ثلاثة أمتار.",
-      "he": "ענק חסר שיניים מהמקונג בסכנת הכחדה חמורה, אפור וללא זיפי חישה, שהגיע בעבר לשלושה מטרים."
+      "he": "ענק חסר שיניים מהמקונג בסכנת הכחדה חמורה, אפור וללא זיפי חישה, שהגיע בעבר לשלושה מטרים.",
+      "ja": "メコン川に暮らす絶滅寸前の歯のない巨大なナマズで、灰色でひげがなく、かつては3 mに達しました。"
     }
   },
   {
@@ -2448,7 +2616,8 @@
       "hu": "Óriásmárna",
       "zh": "巨暹罗鲤",
       "ar": "البربل العملاق",
-      "he": "ברבל ענק"
+      "he": "ברבל ענק",
+      "ja": "パーカーホ"
     },
     "descriptions": {
       "en": "The largest carp in the world, a big-scaled Mekong giant with a huge head, now rare in deep river pools.",
@@ -2461,7 +2630,8 @@
       "hu": "A világ legnagyobb pontyféléje, nagy pikkelyű mekongi óriás hatalmas fejjel, ma már ritka a mély folyami medencékben.",
       "zh": "世界上最大的鲤科鱼，湄公河的大鳞巨物，头部巨大，如今在河流深潭中已很稀少。",
       "ar": "أكبر شبوط في العالم، عملاق الميكونغ بحراشف كبيرة ورأس ضخم، أصبح نادراً في برك الأنهار العميقة.",
-      "he": "הקרפיון הגדול בעולם, ענק מהמקונג עם קשקשים גדולים וראש עצום, נדיר כיום בבריכות נהר עמוקות."
+      "he": "הקרפיון הגדול בעולם, ענק מהמקונג עם קשקשים גדולים וראש עצום, נדיר כיום בבריכות נהר עמוקות.",
+      "ja": "世界最大のコイの仲間で、巨大な頭と大きなウロコを持つメコン川の巨魚です。現在は川の深い淵にまれに見られるだけです。"
     }
   },
   {
@@ -2477,7 +2647,8 @@
       "hu": "Ázsiai csontnyelvű hal",
       "zh": "美丽硬仆骨舌鱼",
       "ar": "أروانا آسيوية",
-      "he": "ארוואנה אסייתית"
+      "he": "ארוואנה אסייתית",
+      "ja": "アジアアロワナ"
     },
     "descriptions": {
       "en": "Metallic red or gold dragon fish of Southeast Asian blackwater rivers, gliding just under the surface.",
@@ -2490,7 +2661,8 @@
       "hu": "Fémes vörös vagy arany sárkányhal Délkelet-Ázsia feketevizű folyóiból, közvetlenül a felszín alatt siklik.",
       "zh": "东南亚黑水河流中的金属红色或金色龙鱼，紧贴水面下方滑行。",
       "ar": "سمكة التنين الحمراء أو الذهبية المعدنية من أنهار المياه السوداء في جنوب شرق آسيا، تنساب تحت السطح مباشرة.",
-      "he": "דג דרקון אדום או זהוב מתכתי מנהרות מים שחורים בדרום-מזרח אסיה, מחליק ממש מתחת לפני המים."
+      "he": "דג דרקון אדום או זהוב מתכתי מנהרות מים שחורים בדרום-מזרח אסיה, מחליק ממש מתחת לפני המים.",
+      "ja": "東南アジアのブラックウォーターの川に暮らす金属光沢のある赤や金色の龍魚で、水面直下を滑るように泳ぎます。"
     }
   },
   {
@@ -2506,7 +2678,8 @@
       "hu": "Csíkos kígyófejű hal",
       "zh": "线鳢",
       "ar": "رأس الثعبان المخطط",
-      "he": "ראש נחש מפוספס"
+      "he": "ראש נחש מפוספס",
+      "ja": "ストライプド・スネークヘッド"
     },
     "descriptions": {
       "en": "Torpedo-shaped air-breathing predator with a flat snake-like head, guarding its fry in weedy Asian ponds.",
@@ -2519,7 +2692,8 @@
       "hu": "Torpedó alakú, levegőt lélegző ragadozó lapos, kígyószerű fejjel, ivadékait hínáros ázsiai tavakban őrzi.",
       "zh": "鱼雷形的呼吸空气的掠食鱼，头扁平似蛇，在水草茂密的亚洲池塘中守护幼鱼。",
       "ar": "مفترس على شكل طوربيد يتنفس الهواء برأس مسطح يشبه الثعبان، يحرس صغاره في البرك الآسيوية العشبية.",
-      "he": "טורף דמוי טורפדו הנושם אוויר עם ראש שטוח דמוי נחש, שומר על צאצאיו בבריכות אסייתיות עשירות בצמחייה."
+      "he": "טורף דמוי טורפדו הנושם אוויר עם ראש שטוח דמוי נחש, שומר על צאצאיו בבריכות אסייתיות עשירות בצמחייה.",
+      "ja": "魚雷形の体と平たいヘビのような頭を持つ空気呼吸の捕食者で、アジアの水草の多い池で稚魚を守ります。"
     }
   },
   {
@@ -2535,7 +2709,8 @@
       "hu": "Óriás kígyófejű hal",
       "zh": "小盾鳢",
       "ar": "رأس الثعبان العملاق",
-      "he": "ראש נחש ענק"
+      "he": "ראש נחש ענק",
+      "ja": "ジャイアント・スネークヘッド"
     },
     "descriptions": {
       "en": "Large fierce snakehead, striped when young and dark when grown, defending its bright red fry in Southeast Asian lakes.",
@@ -2548,7 +2723,8 @@
       "hu": "Nagy, harcias kígyófejű hal, fiatalon csíkos, felnőttként sötét, élénkvörös ivadékait délkelet-ázsiai tavakban védi.",
       "zh": "大型凶猛的鳢鱼，幼时带条纹，成年后体色变深，在东南亚湖泊中保护鲜红色的幼鱼。",
       "ar": "رأس ثعبان كبير شرس، مخطط في صغره وداكن عند البلوغ، يدافع عن صغاره الحمراء الزاهية في بحيرات جنوب شرق آسيا.",
-      "he": "ראש נחש גדול ופראי, מפוספס בצעירותו וכהה בבגרותו, מגן על צאצאיו האדומים הבוהקים באגמי דרום-מזרח אסיה."
+      "he": "ראש נחש גדול ופראי, מפוספס בצעירותו וכהה בבגרותו, מגן על צאצאיו האדומים הבוהקים באגמי דרום-מזרח אסיה.",
+      "ja": "大型で獰猛なスネークヘッドで、幼魚は縞模様、成魚は暗色になり、東南アジアの湖で鮮やかな赤い稚魚を守ります。"
     }
   },
   {
@@ -2564,7 +2740,8 @@
       "hu": "Kúszó sügér",
       "zh": "攀鲈",
       "ar": "فرخ متسلّق",
-      "he": "דקר מטפס"
+      "he": "דקר מטפס",
+      "ja": "キノボリウオ"
     },
     "descriptions": {
       "en": "Hardy olive fish that breathes air and crawls overland on its spiny gill covers between drying pools.",
@@ -2577,7 +2754,8 @@
       "hu": "Szívós olajzöld hal, levegőt lélegzik és tüskés kopoltyúfedőin kúszik a szárazföldön a kiszáradó tócsák között.",
       "zh": "耐受力强的橄榄色鱼，能呼吸空气，并借助带刺的鳃盖在干涸水塘间爬行。",
       "ar": "سمكة زيتونية صلبة تتنفس الهواء وتزحف على اليابسة بأغطيتها الخيشومية الشوكية بين البرك الجافة.",
-      "he": "דג זית עמיד הנושם אוויר וזוחל ביבשה על מכסי הזימים הקוצניים שלו בין שלוליות מתייבשות."
+      "he": "דג זית עמיד הנושם אוויר וזוחל ביבשה על מכסי הזימים הקוצניים שלו בין שלוליות מתייבשות.",
+      "ja": "空気呼吸をする丈夫なオリーブ色の魚で、干上がりかけた水たまりの間をトゲのあるエラぶたで陸上を這って移動します。"
     }
   },
   {
@@ -2593,7 +2771,8 @@
       "hu": "Márna",
       "zh": "黄鳍结鱼",
       "ar": "الماهسير الذهبي",
-      "he": "מהסיר זהוב"
+      "he": "מהסיר זהוב",
+      "ja": "ゴールデンマハシール"
     },
     "descriptions": {
       "en": "Golden-scaled carp of Himalayan rivers, a powerful swimmer holding in fast clear pools below rapids.",
@@ -2606,7 +2785,8 @@
       "hu": "Aranypikkelyű pontyféle a Himalája folyóiból, erős úszó, a zúgók alatti gyors, tiszta medencékben áll.",
       "zh": "喜马拉雅河流中的金鳞鲤科鱼，游泳有力，栖息在急流下方清澈湍急的水潭中。",
       "ar": "شبوط ذهبي الحراشف من أنهار الهيمالايا، سبّاح قوي يستقر في البرك الصافية السريعة أسفل المنحدرات.",
-      "he": "קרפיון זהוב קשקשים מנהרות ההימלאיה, שחיין חזק השוהה בבריכות צלולות ומהירות מתחת לאשדות."
+      "he": "קרפיון זהוב קשקשים מנהרות ההימלאיה, שחיין חזק השוהה בבריכות צלולות ומהירות מתחת לאשדות.",
+      "ja": "ヒマラヤの河川に棲む金色の鱗のコイ科魚類で、早瀬の下の速く澄んだ淵にとどまる力強い泳ぎ手です。"
     }
   },
   {
@@ -2622,7 +2802,8 @@
       "hu": "Koi",
       "zh": "华南鲤",
       "ar": "كوي",
-      "he": "קוי"
+      "he": "קוי",
+      "ja": "ニシキゴイ"
     },
     "descriptions": {
       "en": "Ornamental carp bred in Japan in white, red, black and gold patterns, at home in ponds and warm clear lakes.",
@@ -2635,7 +2816,8 @@
       "hu": "Japánban fehér, vörös, fekete és arany mintázatúra nemesített díszponty, tavakban és meleg, tiszta tavakban érzi otthon magát.",
       "zh": "在日本培育的观赏鲤，有白、红、黑、金等花纹，栖息于池塘和温暖清澈的湖泊。",
       "ar": "شبوط للزينة استُولد في اليابان بأنماط بيضاء وحمراء وسوداء وذهبية، يعيش في البرك والبحيرات الدافئة الصافية.",
-      "he": "קרפיון נוי שטופח ביפן בדוגמאות לבנות, אדומות, שחורות וזהובות, חי בבריכות ובאגמים חמימים וצלולים."
+      "he": "קרפיון נוי שטופח ביפן בדוגמאות לבנות, אדומות, שחורות וזהובות, חי בבריכות ובאגמים חמימים וצלולים.",
+      "ja": "日本で白、赤、黒、金の模様に改良された観賞用のコイで、池や暖かく澄んだ湖に適応しています。"
     }
   },
   {
@@ -2651,7 +2833,8 @@
       "hu": "Aranyhal",
       "zh": "鲫鱼",
       "ar": "سمك ذهبي",
-      "he": "דג זהב"
+      "he": "דג זהב",
+      "ja": "キンギョ"
     },
     "descriptions": {
       "en": "Domesticated Asian carp that reverts to olive-bronze in the wild, forming large feral schools in warm lakes.",
@@ -2664,7 +2847,8 @@
       "hu": "Háziasított ázsiai pontyféle, a vadonban olívabronz színűvé válik, meleg tavakban nagy elvadult rajokat alkot.",
       "zh": "驯化的亚洲鲫鱼，野化后恢复橄榄古铜色，在温暖湖泊中形成大群。",
       "ar": "شبوط آسيوي مستأنس يعود إلى اللون الزيتوني البرونزي في البرية، مكوّناً أسراباً متوحشة كبيرة في البحيرات الدافئة.",
-      "he": "קרפיון אסייתי מבוית שחוזר לגוון זית-ארד בטבע ויוצר להקות פראיות גדולות באגמים חמימים."
+      "he": "קרפיון אסייתי מבוית שחוזר לגוון זית-ארד בטבע ויוצר להקות פראיות גדולות באגמים חמימים.",
+      "ja": "家畜化されたアジアのコイ科魚類で、野生化するとオリーブブロンズ色に戻り、暖かい湖で大きな群れを作ります。"
     }
   },
   {
@@ -2680,7 +2864,8 @@
       "hu": "Óriásgurámi",
       "zh": "长丝鲈",
       "ar": "الغورامي العملاق",
-      "he": "גוראמי ענק"
+      "he": "גוראמי ענק",
+      "ja": "ジャイアントグラミー"
     },
     "descriptions": {
       "en": "Broad, humped Southeast Asian fish with thread-like pelvic fins that builds bubble nests in slow weedy water.",
@@ -2693,7 +2878,8 @@
       "hu": "Széles, púpos délkelet-ázsiai hal fonalszerű hasúszókkal, lassú, hínáros vízben habfészket épít.",
       "zh": "宽大驼背的东南亚鱼类，腹鳍呈丝状，在缓慢多草的水中筑泡巢。",
       "ar": "سمكة عريضة محدبة من جنوب شرق آسيا بزعانف حوضية خيطية تبني أعشاشاً من الفقاعات في المياه البطيئة العشبية.",
-      "he": "דג רחב וגבנוני מדרום-מזרח אסיה עם סנפירי אגן דמויי חוט הבונה קני בועות במים איטיים ועשירי צמחייה."
+      "he": "דג רחב וגבנוני מדרום-מזרח אסיה עם סנפירי אגן דמויי חוט הבונה קני בועות במים איטיים ועשירי צמחייה.",
+      "ja": "糸状の腹ビレを持つ、体高があり背の盛り上がった東南アジアの魚で、流れの緩い水草の多い水域に泡巣を作ります。"
     }
   },
   {
@@ -2709,7 +2895,8 @@
       "hu": "Bohóc késhal",
       "zh": "铠甲弓背鱼",
       "ar": "سمكة السكين المهرج",
-      "he": "דג סכין ליצן"
+      "he": "דג סכין ליצן",
+      "ja": "クラウンナイフフィッシュ"
     },
     "descriptions": {
       "en": "Silver blade-shaped fish with ocellated spots along a long rippling anal fin, hovering under Asian river snags.",
@@ -2722,7 +2909,8 @@
       "hu": "Ezüstös, pengeszerű hal szemfoltokkal a hosszú, hullámzó farokalatti úszó mentén, ázsiai folyók fatörzsei alatt lebeg.",
       "zh": "银色刀形鱼，长而波动的臀鳍上有眼状斑点，悬停在亚洲河流的沉木下。",
       "ar": "سمكة فضية على شكل نصل ببقع عينية على طول زعنفة شرجية طويلة متموجة، تحوم تحت جذوع أنهار آسيا.",
-      "he": "דג כסוף דמוי להב עם כתמי עין לאורך סנפיר שת ארוך וגלי, מרחף מתחת לגזעים בנהרות אסיה."
+      "he": "דג כסוף דמוי להב עם כתמי עין לאורך סנפיר שת ארוך וגלי, מרחף מתחת לגזעים בנהרות אסיה.",
+      "ja": "長く波打つ尻ビレに沿って眼状斑が並ぶ銀色の刃のような魚で、アジアの川の沈木の下でホバリングします。"
     }
   },
   {
@@ -2738,7 +2926,8 @@
       "hu": "Vándorló harcsa",
       "zh": "胡鲶",
       "ar": "السلور الماشي",
-      "he": "שפמנון מהלך"
+      "he": "שפמנון מהלך",
+      "ja": "ヒレナマズ"
     },
     "descriptions": {
       "en": "Slender air-breathing catfish that wriggles across wet ground between ponds, now feral in Florida.",
@@ -2751,7 +2940,8 @@
       "hu": "Karcsú, levegőt lélegző harcsa, nedves talajon tekereg a tavak között, ma Floridában elvadult.",
       "zh": "细长的呼吸空气的鲶鱼，能在池塘间的湿地上蠕动前行，如今在佛罗里达已野化。",
       "ar": "سلور نحيل يتنفس الهواء ويتلوى عبر الأرض الرطبة بين البرك، أصبح الآن متوحشاً في فلوريدا.",
-      "he": "שפמנון דק הנושם אוויר ומתפתל על קרקע רטובה בין בריכות, כיום משוטט חופשי בפלורידה."
+      "he": "שפמנון דק הנושם אוויר ומתפתל על קרקע רטובה בין בריכות, כיום משוטט חופשי בפלורידה.",
+      "ja": "空気呼吸をする細身のナマズで、湿った地面をくねりながら池から池へ移動し、現在はフロリダで野生化しています。"
     }
   },
   {
@@ -2767,7 +2957,8 @@
       "hu": "Japán angolna",
       "zh": "鳗鲡",
       "ar": "ثعبان الماء الياباني",
-      "he": "צלופח יפני"
+      "he": "צלופח יפני",
+      "ja": "ニホンウナギ"
     },
     "descriptions": {
       "en": "East Asian eel that grows up in rivers and lakes and migrates to the western Pacific to spawn.",
@@ -2780,7 +2971,8 @@
       "hu": "Kelet-ázsiai angolna, folyókban és tavakban nő fel, ívni a Csendes-óceán nyugati részére vándorol.",
       "zh": "东亚鳗鱼，在河流湖泊中成长，洄游至西太平洋产卵。",
       "ar": "ثعبان ماء من شرق آسيا ينمو في الأنهار والبحيرات ويهاجر إلى غرب المحيط الهادئ للتكاثر.",
-      "he": "צלופח מזרח אסייתי הגדל בנהרות ובאגמים ונודד למערב האוקיינוס השקט להטלה."
+      "he": "צלופח מזרח אסייתי הגדל בנהרות ובאגמים ונודד למערב האוקיינוס השקט להטלה.",
+      "ja": "東アジアのウナギで、川や湖で成長し、産卵のために西太平洋へ回遊します。"
     }
   },
   {
@@ -2796,7 +2988,8 @@
       "hu": "Ayu",
       "zh": "香鱼",
       "ar": "الآيو",
-      "he": "איו"
+      "he": "איו",
+      "ja": "アユ"
     },
     "descriptions": {
       "en": "Slender silver Japanese sweetfish that grazes algae from stones in clear rivers and defends a feeding territory.",
@@ -2809,7 +3002,8 @@
       "hu": "Karcsú, ezüstös japán hal, tiszta folyók kövein legeli az algát és táplálkozóterületet véd.",
       "zh": "细长的银色日本香鱼，在清澈河流的石头上刮食藻类并守卫觅食领地。",
       "ar": "سمكة يابانية فضية نحيلة ترعى الطحالب من الحجارة في الأنهار الصافية وتدافع عن منطقة تغذيتها.",
-      "he": "דג יפני כסוף ודק הרועה אצות מאבנים בנהרות צלולים ומגן על טריטוריית האכלה."
+      "he": "דג יפני כסוף ודק הרועה אצות מאבנים בנהרות צלולים ומגן על טריטוריית האכלה.",
+      "ja": "細身で銀色の日本の香魚で、澄んだ川の石に付いた藻を食み、餌場のなわばりを守ります。"
     }
   },
   {
@@ -2825,7 +3019,8 @@
       "hu": "Bajkáli omul",
       "zh": "贝加尔白鲑",
       "ar": "أومول بايكال",
-      "he": "אומול באיקל"
+      "he": "אומול באיקל",
+      "ja": "バイカルオームリ"
     },
     "descriptions": {
       "en": "Silver whitefish found only in Lake Baikal, schooling in the cold open water and running up rivers to spawn.",
@@ -2838,7 +3033,8 @@
       "hu": "Ezüstös maréna, amely csak a Bajkál-tóban él, a hideg nyílt vízben rajzik és ívni a folyókba vonul fel.",
       "zh": "仅见于贝加尔湖的银色白鲑，在寒冷的开阔水域成群活动，溯河产卵。",
       "ar": "سمكة بيضاء فضية لا توجد إلا في بحيرة بايكال، تتجمع في أسراب في المياه المفتوحة الباردة وتصعد الأنهار للتكاثر.",
-      "he": "דג לבן כסוף המצוי רק באגם באיקל, נע בלהקות במים הפתוחים הקרים ועולה בנהרות להטלה."
+      "he": "דג לבן כסוף המצוי רק באגם באיקל, נע בלהקות במים הפתוחים הקרים ועולה בנהרות להטלה.",
+      "ja": "バイカル湖にのみ生息する銀色のシロマス類で、冷たい沖合で群れを作り、産卵のために川を遡上します。"
     }
   },
   {
@@ -2854,7 +3050,8 @@
       "hu": "Golomjanka",
       "zh": "贝加尔油鱼",
       "ar": "غولوميانكا",
-      "he": "גולומיאנקה"
+      "he": "גולומיאנקה",
+      "ja": "ゴロミャンカ"
     },
     "descriptions": {
       "en": "Translucent, scaleless fish of Lake Baikal's depths, so rich in oil it is nearly see-through, giving birth to live young.",
@@ -2867,7 +3064,8 @@
       "hu": "Áttetsző, pikkely nélküli hal a Bajkál-tó mélyéből, olyan olajdús, hogy szinte átlátszó, és elevenszülő.",
       "zh": "贝加尔湖深处的半透明无鳞鱼，体内油脂丰富几近透明，为卵胎生。",
       "ar": "سمكة شفافة بلا حراشف من أعماق بايكال، غنية بالزيت لدرجة تكاد تكون شفافة، وتلد صغاراً أحياء.",
-      "he": "דג שקוף למחצה וחסר קשקשים ממעמקי באיקל, עשיר בשמן עד שכמעט רואים דרכו, ומשריץ צאצאים חיים."
+      "he": "דג שקוף למחצה וחסר קשקשים ממעמקי באיקל, עשיר בשמן עד שכמעט רואים דרכו, ומשריץ צאצאים חיים.",
+      "ja": "バイカル湖の深場に棲む半透明で鱗のない魚で、脂肪分が多くほとんど透けて見え、子を直接産みます。"
     }
   },
   {
@@ -2883,7 +3081,8 @@
       "hu": "Murray-tőkehal",
       "zh": "墨瑞鳕",
       "ar": "قد نهر موراي",
-      "he": "קוד המורי"
+      "he": "קוד המורי",
+      "ja": "マーレーコッド"
     },
     "descriptions": {
       "en": "Australia's largest freshwater fish, a mottled green giant with a white belly, holding beside snags in the Murray-Darling.",
@@ -2896,7 +3095,8 @@
       "hu": "Ausztrália legnagyobb édesvízi hala, zöldesen márványozott óriás fehér hassal, a Murray-Darling fatörzsei mellett áll.",
       "zh": "澳大利亚最大的淡水鱼，绿色斑纹巨物，腹部白色，栖息于墨累-达令河的沉木旁。",
       "ar": "أكبر أسماك المياه العذبة في أستراليا، عملاق أخضر مرقط ببطن أبيض، يستقر بجوار الجذوع في نهر موراي دارلينغ.",
-      "he": "דג המים המתוקים הגדול ביותר באוסטרליה, ענק ירוק מנומר עם בטן לבנה, שוהה ליד גזעים במורי-דארלינג."
+      "he": "דג המים המתוקים הגדול ביותר באוסטרליה, ענק ירוק מנומר עם בטן לבנה, שוהה ליד גזעים במורי-דארלינג.",
+      "ja": "オーストラリア最大の淡水魚で、白い腹を持つまだら模様の緑色の巨体が、マレー・ダーリング水系の沈木のそばに潜んでいます。"
     }
   },
   {
@@ -2912,7 +3112,8 @@
       "hu": "Aranysügér",
       "zh": "疑惑麦觉理鲈",
       "ar": "الفرخ الذهبي",
-      "he": "דקר זהוב"
+      "he": "דקר זהוב",
+      "ja": "ゴールデンパーチ"
     },
     "descriptions": {
       "en": "Deep-bodied golden-olive perch of Australian inland rivers, sheltering by fallen timber and rock ledges.",
@@ -2925,7 +3126,8 @@
       "hu": "Magas testű, aranyzöld sügér Ausztrália belső folyóiból, kidőlt fák és sziklapárkányok mellett rejtőzik.",
       "zh": "澳大利亚内陆河流的高身金橄榄色鲈鱼，藏身于倒木和岩架旁。",
       "ar": "فرخ ذهبي زيتوني عالي الجسم من أنهار أستراليا الداخلية، يحتمي بجوار الأخشاب الساقطة والحواف الصخرية.",
-      "he": "דקר זהוב-זית גבוה גוף מנהרות פנים אוסטרליה, מסתתר ליד עצים שנפלו ומדפי סלע."
+      "he": "דקר זהוב-זית גבוה גוף מנהרות פנים אוסטרליה, מסתתר ליד עצים שנפלו ומדפי סלע.",
+      "ja": "オーストラリア内陸の河川に棲む体高のある金色がかったオリーブ色のパーチで、倒木や岩棚の陰に隠れています。"
     }
   },
   {
@@ -2941,7 +3143,8 @@
       "hu": "Ausztrál sügér",
       "zh": "澳洲鲈",
       "ar": "القاروص الأسترالي",
-      "he": "בס אוסטרלי"
+      "he": "בס אוסטרלי",
+      "ja": "オーストラリアンバス"
     },
     "descriptions": {
       "en": "Bronze-green bass of eastern Australian coastal rivers that migrates downstream to spawn in brackish estuaries.",
@@ -2954,7 +3157,8 @@
       "hu": "Bronzzöld sügér Kelet-Ausztrália parti folyóiból, ívni lefelé vándorol a brakkvizű torkolatokba.",
       "zh": "澳大利亚东部沿海河流的古铜绿色鲈鱼，顺流而下到半咸水河口产卵。",
       "ar": "قاروص أخضر برونزي من أنهار شرق أستراليا الساحلية يهاجر مع مجرى النهر للتكاثر في مصبات المياه المالحة قليلاً.",
-      "he": "בס ירוק-ארד מנהרות החוף של מזרח אוסטרליה הנודד במורד הזרם להטיל בשפכים מליחים."
+      "he": "בס ירוק-ארד מנהרות החוף של מזרח אוסטרליה הנודד במורד הזרם להטיל בשפכים מליחים.",
+      "ja": "オーストラリア東部の沿岸河川に棲むブロンズグリーンのバスで、産卵のために汽水の河口域へ下ります。"
     }
   },
   {
@@ -2970,7 +3174,8 @@
       "hu": "Barramundi",
       "zh": "尖吻鲈",
       "ar": "الباراموندي",
-      "he": "ברמונדי"
+      "he": "ברמונדי",
+      "ja": "バラマンディ"
     },
     "descriptions": {
       "en": "Silver, hump-backed perch of northern Australian rivers and estuaries, changing sex from male to female with age.",
@@ -2983,7 +3188,8 @@
       "hu": "Ezüstös, púpos hátú sügér Észak-Ausztrália folyóiból és torkolataiból, korával hímből nősténnyé alakul.",
       "zh": "澳大利亚北部河流和河口的银色驼背鲈鱼，随年龄由雄性转变为雌性。",
       "ar": "فرخ فضي محدب الظهر من أنهار ومصبات شمال أستراليا، يتحول من ذكر إلى أنثى مع التقدم في العمر.",
-      "he": "דקר כסוף גבנוני מנהרות ושפכים בצפון אוסטרליה, המשנה את מינו מזכר לנקבה עם הגיל."
+      "he": "דקר כסוף גבנוני מנהרות ושפכים בצפון אוסטרליה, המשנה את מינו מזכר לנקבה עם הגיל.",
+      "ja": "オーストラリア北部の河川や河口域に棲む銀色で背の盛り上がったパーチで、成長とともにオスからメスへ性転換します。"
     }
   },
   {
@@ -2999,7 +3205,8 @@
       "hu": "Ezüstsügér",
       "zh": "银锯眶𬶟",
       "ar": "الفرخ الفضي",
-      "he": "דקר כסוף"
+      "he": "דקר כסוף",
+      "ja": "シルバーパーチ"
     },
     "descriptions": {
       "en": "Silver-grey grunter of the Murray-Darling with a small mouth and forked tail, once schooling in huge numbers.",
@@ -3012,7 +3219,8 @@
       "hu": "Ezüstszürke hal a Murray-Darlingból kis szájjal és villás farokkal, egykor hatalmas rajokban járt.",
       "zh": "墨累-达令河的银灰色鱼，嘴小，尾鳍分叉，曾经成群数量庞大。",
       "ar": "سمكة رمادية فضية من نهر موراي دارلينغ بفم صغير وذيل متشعب، كانت تتجمع في أسراب هائلة.",
-      "he": "דג אפור-כסוף ממורי-דארלינג עם פה קטן וזנב מפוצל, שנע בעבר בלהקות עצומות."
+      "he": "דג אפור-כסוף ממורי-דארלינג עם פה קטן וזנב מפוצל, שנע בעבר בלהקות עצומות.",
+      "ja": "マレー・ダーリング水系に棲む銀灰色のシマイサキ類で、小さな口と二叉の尾ビレを持ち、かつては大群を作っていました。"
     }
   },
   {
@@ -3028,7 +3236,8 @@
       "hu": "Északi saratoga",
       "zh": "澳洲硬仆骨舌鱼",
       "ar": "أروانا لؤلؤية",
-      "he": "סרטוגה צפונית"
+      "he": "סרטוגה צפונית",
+      "ja": "ガルフサラトガ"
     },
     "descriptions": {
       "en": "Bronze Australian arowana with red-flecked scales that broods its eggs in its mouth in northern billabongs.",
@@ -3041,7 +3250,8 @@
       "hu": "Bronzszínű ausztrál arowana vörös pettyes pikkelyekkel, ikráit a szájában költi az északi billabongokban.",
       "zh": "古铜色的澳大利亚龙鱼，鳞片带红色斑点，在北部死水潭中口孵鱼卵。",
       "ar": "أروانا أسترالية برونزية بحراشف مرقطة بالأحمر تحضن بيضها في فمها في برك الشمال.",
-      "he": "ארוואנה אוסטרלית ארדית עם קשקשים מנוקדים באדום הדוגרת על ביציה בפיה בבילבונגים הצפוניים."
+      "he": "ארוואנה אוסטרלית ארדית עם קשקשים מנוקדים באדום הדוגרת על ביציה בפיה בבילבונגים הצפוניים.",
+      "ja": "赤い斑点の入った鱗を持つブロンズ色のオーストラリアのアロワナで、北部のビラボンで卵を口の中で守ります。"
     }
   },
   {
@@ -3057,7 +3267,8 @@
       "hu": "Fekete morgóhal",
       "zh": "黑鲈鳉",
       "ar": "المزمجر الأسود",
-      "he": "נוהם שחור"
+      "he": "נוהם שחור",
+      "ja": "スーティーグランター"
     },
     "descriptions": {
       "en": "Dark, thickset grunter of northern Australian rivers, grazing algae and fruit around rocks and rapids.",
@@ -3070,7 +3281,8 @@
       "hu": "Sötét, zömök hal Észak-Ausztrália folyóiból, sziklák és zúgók körül algát és gyümölcsöt legel.",
       "zh": "澳大利亚北部河流的深色粗壮鱼类，在岩石和急流周围以藻类和果实为食。",
       "ar": "سمكة داكنة ممتلئة من أنهار شمال أستراليا، ترعى الطحالب والفاكهة حول الصخور والمنحدرات.",
-      "he": "דג כהה ומוצק מנהרות צפון אוסטרליה, רועה אצות ופירות סביב סלעים ואשדות."
+      "he": "דג כהה ומוצק מנהרות צפון אוסטרליה, רועה אצות ופירות סביב סלעים ואשדות.",
+      "ja": "オーストラリア北部の河川に棲む暗色でずんぐりしたシマイサキ類で、岩や早瀬の周りで藻や果実を食べます。"
     }
   },
   {
@@ -3086,7 +3298,8 @@
       "hu": "Angolnafarkú harcsa",
       "zh": "鳗尾鲶",
       "ar": "السلور ثعباني الذيل",
-      "he": "שפמנון זנב צלופח"
+      "he": "שפמנון זנב צלופח",
+      "ja": "イールテールキャットフィッシュ"
     },
     "descriptions": {
       "en": "Australian catfish with a tapering eel-like tail that builds and guards a gravel nest in clear river shallows.",
@@ -3099,7 +3312,8 @@
       "hu": "Ausztrál harcsa elkeskenyedő, angolnaszerű farokkal, tiszta folyói sekélyesekben kavicsfészket épít és őriz.",
       "zh": "澳大利亚鲶鱼，尾部渐细似鳗鱼，在清澈河流的浅水区筑砾石巢并守护。",
       "ar": "سلور أسترالي بذيل مدبب يشبه ثعبان الماء يبني عش حصى في المياه الضحلة الصافية ويحرسه.",
-      "he": "שפמנון אוסטרלי עם זנב מתחדד דמוי צלופח הבונה ושומר על קן חצץ ברדודים צלולים של נהרות."
+      "he": "שפמנון אוסטרלי עם זנב מתחדד דמוי צלופח הבונה ושומר על קן חצץ ברדודים צלולים של נהרות.",
+      "ja": "ウナギのように先細りの尾を持つオーストラリアのナマズで、澄んだ川の浅瀬に砂利の巣を作って守ります。"
     }
   },
   {
@@ -3115,7 +3329,8 @@
       "hu": "Flitteres sügér",
       "zh": "亮片鲈",
       "ar": "الفرخ المرصع",
-      "he": "דקר נוצץ"
+      "he": "דקר נוצץ",
+      "ja": "スパングルドパーチ"
     },
     "descriptions": {
       "en": "Small silver-spotted grunter found across inland Australia, colonising any waterhole a flood connects.",
@@ -3128,7 +3343,8 @@
       "hu": "Kis, ezüstpettyes hal Ausztrália egész belső részén, minden víznyelőt benépesít, amelyet egy árvíz összeköt.",
       "zh": "体小、带银色斑点的鱼，遍布澳大利亚内陆，洪水连通的任何水潭都会被它占据。",
       "ar": "سمكة صغيرة مرقطة بالفضي منتشرة في أنحاء داخل أستراليا، تستوطن أي بركة يصلها الفيضان.",
-      "he": "דג קטן מנוקד בכסף המצוי ברחבי פנים אוסטרליה, מאכלס כל בור מים ששיטפון מחבר אליו."
+      "he": "דג קטן מנוקד בכסף המצוי ברחבי פנים אוסטרליה, מאכלס כל בור מים ששיטפון מחבר אליו.",
+      "ja": "オーストラリア内陸全域に見られる銀色の斑点を持つ小型のシマイサキ類で、洪水でつながったあらゆる水場に住みつきます。"
     }
   },
   {
@@ -3144,7 +3360,8 @@
       "hu": "Keleti szivárványhal",
       "zh": "东部彩虹鱼",
       "ar": "سمكة قوس قزح الشرقية",
-      "he": "דג קשת מזרחי"
+      "he": "דג קשת מזרחי",
+      "ja": "イースタンレインボーフィッシュ"
     },
     "descriptions": {
       "en": "Small iridescent fish of eastern Australian creeks, the males flashing red and blue stripes in the sun.",
@@ -3157,7 +3374,8 @@
       "hu": "Kis, irizáló hal Kelet-Ausztrália patakjaiból, a hímek a napfényben vörös és kék csíkokat villantanak.",
       "zh": "澳大利亚东部溪流中的小型虹彩鱼，雄鱼在阳光下闪现红蓝条纹。",
       "ar": "سمكة صغيرة متقزحة من جداول شرق أستراليا، تلمع ذكورها بخطوط حمراء وزرقاء تحت الشمس.",
-      "he": "דג קטן ונוצץ מנחלי מזרח אוסטרליה, הזכרים מבזיקים פסים אדומים וכחולים בשמש."
+      "he": "דג קטן ונוצץ מנחלי מזרח אוסטרליה, הזכרים מבזיקים פסים אדומים וכחולים בשמש.",
+      "ja": "オーストラリア東部の小川に棲む虹色に輝く小魚で、オスは日差しの中で赤と青の縞をきらめかせます。"
     }
   },
   {
@@ -3173,7 +3391,8 @@
       "hu": "jelzőrák",
       "zh": "信号小龙虾",
       "ar": "جراد النهر الإشاري",
-      "he": "סרטן נהרות סימן"
+      "he": "סרטן נהרות סימן",
+      "ja": "ウチダザリガニ"
     },
     "descriptions": {
       "en": "Large brown crayfish with a white patch at the claw joint, an invasive North American species spreading through European rivers.",
@@ -3186,7 +3405,8 @@
       "hu": "Nagy, barna folyami rák fehér folttal az olló ízületénél, invazív észak-amerikai faj, amely Európa folyóiban terjed.",
       "zh": "大型褐色螯虾，螯关节处有白斑，是正在欧洲河流中蔓延的北美入侵物种。",
       "ar": "جراد نهر بني كبير ببقعة بيضاء عند مفصل المخلب، نوع غازٍ من أمريكا الشمالية ينتشر في أنهار أوروبا.",
-      "he": "סרטן נהרות חום גדול עם כתם לבן במפרק הצבת, מין פולש צפון אמריקאי המתפשט בנהרות אירופה."
+      "he": "סרטן נהרות חום גדול עם כתם לבן במפרק הצבת, מין פולש צפון אמריקאי המתפשט בנהרות אירופה.",
+      "ja": "ハサミの付け根に白い斑点がある大型の褐色のザリガニで、ヨーロッパの河川に広がる北米原産の外来種です。"
     }
   },
   {
@@ -3202,7 +3422,8 @@
       "hu": "kaliforniai vörösrák",
       "zh": "克氏原螯虾",
       "ar": "جراد المستنقعات الأحمر",
-      "he": "סרטן ביצות אדום"
+      "he": "סרטן ביצות אדום",
+      "ja": "アメリカザリガニ"
     },
     "descriptions": {
       "en": "Dark red crayfish with bumpy claws from Louisiana marshes, now burrowing into warm wetlands on every continent.",
@@ -3215,7 +3436,8 @@
       "hu": "Sötétvörös folyami rák dudoros ollókkal Louisiana mocsaraiból, ma minden kontinens meleg vizes élőhelyeibe ássa be magát.",
       "zh": "来自路易斯安那沼泽的深红色螯虾，螯上有瘤突，如今在各大洲的温暖湿地中掘穴扩散。",
       "ar": "جراد نهر أحمر داكن بمخالب خشنة من مستنقعات لويزيانا، يحفر الآن في الأراضي الرطبة الدافئة في كل قارة.",
-      "he": "סרטן נהרות אדום כהה עם צבתות מחוספסות מביצות לואיזיאנה, חופר כיום באזורי ביצה חמים בכל יבשת."
+      "he": "סרטן נהרות אדום כהה עם צבתות מחוספסות מביצות לואיזיאנה, חופר כיום באזורי ביצה חמים בכל יבשת.",
+      "ja": "ルイジアナの湿地原産の、凹凸のあるハサミを持つ暗赤色のザリガニで、今ではすべての大陸の温暖な湿地に穴を掘って暮らしています。"
     }
   },
   {
@@ -3231,7 +3453,8 @@
       "hu": "folyami rák",
       "zh": "奥斯塔欧洲螯虾",
       "ar": "جراد النهر النبيل",
-      "he": "סרטן נהרות אציל"
+      "he": "סרטן נהרות אציל",
+      "ja": "ヨーロッパザリガニ"
     },
     "descriptions": {
       "en": "Europe's native crayfish, dark brown with red-undersided claws, hiding in bank burrows of clean cool streams and lakes.",
@@ -3244,7 +3467,8 @@
       "hu": "Európa őshonos folyami rákja, sötétbarna, alul vörös ollókkal, tiszta, hűvös patakok és tavak parti üregeiben rejtőzik.",
       "zh": "欧洲本土螯虾，深褐色，螯的下面呈红色，藏身于洁净凉爽溪流湖泊的岸边洞穴中。",
       "ar": "جراد النهر الأصلي في أوروبا، بني داكن بمخالب حمراء من الأسفل، يختبئ في جحور الضفاف في الجداول والبحيرات النظيفة الباردة.",
-      "he": "סרטן הנהרות המקומי של אירופה, חום כהה עם צבתות אדומות מלמטה, מסתתר במחילות גדה של נחלים ואגמים נקיים וקרירים."
+      "he": "סרטן הנהרות המקומי של אירופה, חום כהה עם צבתות אדומות מלמטה, מסתתר במחילות גדה של נחלים ואגמים נקיים וקרירים.",
+      "ja": "ヨーロッパ在来のザリガニで、暗褐色の体とハサミの裏側の赤が特徴です。きれいで冷たい川や湖の岸の巣穴に隠れています。"
     }
   },
   {
@@ -3260,7 +3484,8 @@
       "hu": "Fehérkarmú rák",
       "zh": "白掌南溪虾",
       "ar": "جراد النهر أبيض المخالب",
-      "he": "סרטן נהרות לבן צבתות"
+      "he": "סרטן נהרות לבן צבתות",
+      "ja": "ホワイトクロード・クレイフィッシュ"
     },
     "descriptions": {
       "en": "Small olive crayfish with pale claw undersides, a threatened native of clean limestone streams in western Europe.",
@@ -3273,7 +3498,8 @@
       "hu": "Kis, olajzöld folyami rák halvány ollóaljjal, Nyugat-Európa tiszta mészkőpatakjainak veszélyeztetett őshonos faja.",
       "zh": "小型橄榄色螯虾，螯下面颜色淡，是西欧洁净石灰岩溪流中受威胁的本土物种。",
       "ar": "جراد نهر زيتوني صغير بمخالب شاحبة من الأسفل، نوع مهدد أصلي في جداول الحجر الجيري النظيفة في غرب أوروبا.",
-      "he": "סרטן נהרות קטן בצבע זית עם צבתות חיוורות מלמטה, מין מקומי מאוים של נחלי גיר נקיים במערב אירופה."
+      "he": "סרטן נהרות קטן בצבע זית עם צבתות חיוורות מלמטה, מין מקומי מאוים של נחלי גיר נקיים במערב אירופה.",
+      "ja": "ハサミの裏側が淡い色の小型のオリーブ色のザリガニで、西ヨーロッパのきれいな石灰岩質の川に棲む絶滅が危惧される在来種です。"
     }
   },
   {
@@ -3289,7 +3515,8 @@
       "hu": "Tasmán óriásrák",
       "zh": "古氏巨螯虾",
       "ar": "جراد النهر التسماني العملاق",
-      "he": "סרטן הנהרות הענק של טסמניה"
+      "he": "סרטן הנהרות הענק של טסמניה",
+      "ja": "タスマニアオオザリガニ"
     },
     "descriptions": {
       "en": "The world's largest freshwater invertebrate, a slow-growing blue-brown crayfish of shaded Tasmanian rivers.",
@@ -3302,7 +3529,8 @@
       "hu": "A világ legnagyobb édesvízi gerinctelenje, lassan növő kékesbarna folyami rák Tasmania árnyékos folyóiból.",
       "zh": "世界上最大的淡水无脊椎动物，塔斯马尼亚荫蔽河流中生长缓慢的蓝褐色螯虾。",
       "ar": "أكبر لافقاريات المياه العذبة في العالم، جراد نهر أزرق بني بطيء النمو من أنهار تسمانيا المظللة.",
-      "he": "חסר החוליות הגדול ביותר במים מתוקים בעולם, סרטן נהרות כחול-חום איטי גדילה מנהרות מוצלים בטסמניה."
+      "he": "חסר החוליות הגדול ביותר במים מתוקים בעולם, סרטן נהרות כחול-חום איטי גדילה מנהרות מוצלים בטסמניה.",
+      "ja": "世界最大の淡水無脊椎動物で、タスマニアの日陰の多い川に棲むゆっくり成長する青褐色のザリガニです。"
     }
   },
   {
@@ -3318,7 +3546,8 @@
       "hu": "vándorkagyló",
       "zh": "多型饰贝",
       "ar": "بلح البحر المخطط",
-      "he": "צדפת זברה"
+      "he": "צדפת זברה",
+      "ja": "カワホトトギスガイ"
     },
     "descriptions": {
       "en": "Thumbnail-sized striped mussel that carpets rocks, wrecks and pipes by the thousand, clearing the water as it spreads.",
@@ -3331,7 +3560,8 @@
       "hu": "Hüvelykujjköröm méretű, csíkos kagyló, ezrével borítja be a sziklákat, roncsokat és csöveket, terjedése közben kitisztítja a vizet.",
       "zh": "指甲大小的条纹贻贝，成千上万地覆盖岩石、沉船和管道，扩散的同时使水变清。",
       "ar": "بلح بحر مخطط بحجم ظفر الإبهام يغطي الصخور والحطام والأنابيب بالآلاف، ويصفّي الماء مع انتشاره.",
-      "he": "צדפה מפוספסת בגודל ציפורן המכסה סלעים, ספינות טרופות וצינורות באלפים ומצלילה את המים תוך התפשטותה."
+      "he": "צדפה מפוספסת בגודל ציפורן המכסה סלעים, ספינות טרופות וצינורות באלפים ומצלילה את המים תוך התפשטותה.",
+      "ja": "親指の爪ほどの縞模様の二枚貝で、岩や沈船、配管を何千個も覆い尽くし、広がりながら水を澄ませます。"
     }
   },
   {
@@ -3347,7 +3577,8 @@
       "hu": "bugi vándorkagyló",
       "zh": "布格河饰贝",
       "ar": "بلح البحر الكواجا",
-      "he": "צדפת קוואגה"
+      "he": "צדפת קוואגה",
+      "ja": "クワッガガイ"
     },
     "descriptions": {
       "en": "Rounder, paler relative of the zebra mussel that colonises soft bottoms and deep cold water the zebra cannot.",
@@ -3360,7 +3591,8 @@
       "hu": "A vándorkagyló kerekebb, halványabb rokona, puha aljzatot és mély, hideg vizet népesít be, ahová a vándorkagyló nem jut el.",
       "zh": "斑马贻贝更圆更淡的近亲，能在斑马贻贝无法生存的软底和深冷水域定居。",
       "ar": "قريب أكثر استدارة وشحوباً لبلح البحر المخطط، يستوطن القيعان الطرية والمياه العميقة الباردة التي لا يستطيع الآخر بلوغها.",
-      "he": "קרוב עגול וחיוור יותר של צדפת הזברה המאכלס קרקעיות רכות ומים עמוקים וקרים שהזברה אינה יכולה."
+      "he": "קרוב עגול וחיוור יותר של צדפת הזברה המאכלס קרקעיות רכות ומים עמוקים וקרים שהזברה אינה יכולה.",
+      "ja": "カワホトトギスガイの近縁種で、より丸く淡い色をしており、カワホトトギスガイが住めない軟らかい底や深く冷たい水域にも定着します。"
     }
   },
   {
@@ -3376,7 +3608,8 @@
       "hu": "Folyami gyöngykagyló",
       "zh": "珍珠蚌",
       "ar": "بلح المياه العذبة اللؤلؤي",
-      "he": "צדפת פנינים מים מתוקים"
+      "he": "צדפת פנינים מים מתוקים",
+      "ja": "カワシンジュガイ"
     },
     "descriptions": {
       "en": "Dark, elongated mussel that can live over a century half-buried in clean gravel of fast salmon rivers.",
@@ -3389,7 +3622,8 @@
       "hu": "Sötét, megnyúlt kagyló, amely több mint egy évszázadig élhet félig beásva a gyors lazacos folyók tiszta kavicsába.",
       "zh": "深色长形的贻贝，可在湍急鲑鱼河流的洁净砾石中半埋生活一个多世纪。",
       "ar": "بلح بحر داكن مستطيل يمكنه العيش أكثر من قرن نصف مدفون في الحصى النظيف لأنهار السلمون السريعة.",
-      "he": "צדפה כהה ומוארכת שיכולה לחיות יותר ממאה שנה חצי קבורה בחצץ נקי של נהרות סלמון מהירים."
+      "he": "צדפה כהה ומוארכת שיכולה לחיות יותר ממאה שנה חצי קבורה בחצץ נקי של נהרות סלמון מהירים.",
+      "ja": "暗色で細長い二枚貝で、サケが遡上する流れの速い川のきれいな砂利に半分埋まり、100年以上生きることがあります。"
     }
   },
   {
@@ -3405,7 +3639,8 @@
       "hu": "tavikagyló",
       "zh": "无齿蚌",
       "ar": "بلح البجع",
-      "he": "צדפת ברבור"
+      "he": "צדפת ברבור",
+      "ja": "スワンマッスル"
     },
     "descriptions": {
       "en": "Large thin-shelled mussel of muddy lakes and canals, filtering water with its siphons just above the silt.",
@@ -3418,7 +3653,8 @@
       "hu": "Nagy, vékony héjú kagyló iszapos tavakból és csatornákból, szifóival közvetlenül az iszap fölött szűri a vizet.",
       "zh": "大型薄壳贻贝，生活在泥底湖泊和运河中，用水管在淤泥上方过滤水体。",
       "ar": "بلح بحر كبير رقيق الصدفة يعيش في البحيرات والقنوات الطينية، يرشح الماء بسيفوناته فوق الطمي مباشرة.",
-      "he": "צדפה גדולה דקת קונכייה מאגמים ותעלות בוציים, מסננת מים בסיפונים שלה ממש מעל הטין."
+      "he": "צדפה גדולה דקת קונכייה מאגמים ותעלות בוציים, מסננת מים בסיפונים שלה ממש מעל הטין.",
+      "ja": "泥底の湖や運河に棲む殻の薄い大型の二枚貝で、泥のすぐ上で水管を使って水をろ過します。"
     }
   },
   {
@@ -3434,7 +3670,8 @@
       "hu": "Amuri kagyló",
       "zh": "背角华无齿蚌",
       "ar": "بلح البحر البركة الصيني",
-      "he": "צדפת בריכות סינית"
+      "he": "צדפת בריכות סינית",
+      "ja": "チャイニーズポンドマッスル"
     },
     "descriptions": {
       "en": "Very large invasive Asian mussel with a glossy brown shell, arriving with farmed fish and spreading through warm lakes.",
@@ -3447,7 +3684,8 @@
       "hu": "Nagyon nagy, invazív ázsiai kagyló fényes barna héjjal, tenyésztett halakkal érkezett és meleg tavakban terjed.",
       "zh": "体型极大的亚洲入侵贻贝，壳呈亮褐色，随养殖鱼类传入并在温暖湖泊中扩散。",
       "ar": "بلح بحر آسيوي غازٍ كبير جداً بصدفة بنية لامعة، وصل مع الأسماك المستزرعة وينتشر في البحيرات الدافئة.",
-      "he": "צדפה אסייתית פולשת גדולה מאוד עם קונכייה חומה מבריקה, הגיעה עם דגי חווה ומתפשטת באגמים חמימים."
+      "he": "צדפה אסייתית פולשת גדולה מאוד עם קונכייה חומה מבריקה, הגיעה עם דגי חווה ומתפשטת באגמים חמימים.",
+      "ja": "光沢のある褐色の殻を持つ非常に大きなアジア原産の外来二枚貝で、養殖魚とともに持ち込まれ、温暖な湖に広がっています。"
     }
   },
   {
@@ -3463,7 +3701,8 @@
       "hu": "Édesvízi szivacs",
       "zh": "湖针海绵",
       "ar": "الإسفنج النهري",
-      "he": "ספוג מים מתוקים"
+      "he": "ספוג מים מתוקים",
+      "ja": "タンスイカイメン"
     },
     "descriptions": {
       "en": "Green or grey branching sponge encrusting sticks and stones in clear lakes, coloured by algae living inside it.",
@@ -3476,7 +3715,8 @@
       "hu": "Zöld vagy szürke, elágazó szivacs, tiszta tavakban ágakat és köveket von be, színét a benne élő algák adják.",
       "zh": "绿色或灰色的分枝状海绵，附着在清澈湖泊的树枝和石头上，颜色来自体内共生的藻类。",
       "ar": "إسفنج متفرع أخضر أو رمادي يغطي الأغصان والحجارة في البحيرات الصافية، تلوّنه الطحالب التي تعيش داخله.",
-      "he": "ספוג מסתעף ירוק או אפור המצפה ענפים ואבנים באגמים צלולים, צבוע על ידי אצות החיות בתוכו."
+      "he": "ספוג מסתעף ירוק או אפור המצפה ענפים ואבנים באגמים צלולים, צבוע על ידי אצות החיות בתוכו.",
+      "ja": "澄んだ湖の枝や石を覆う緑色または灰色の枝状の海綿で、内部に共生する藻類によって色づいています。"
     }
   },
   {
@@ -3492,7 +3732,8 @@
       "hu": "Édesvízi medúza",
       "zh": "索氏桃花水母",
       "ar": "قنديل البحر المياه العذبة الشائع",
-      "he": "מדוזת מים מתוקים"
+      "he": "מדוזת מים מתוקים",
+      "ja": "マミズクラゲ"
     },
     "descriptions": {
       "en": "Coin-sized transparent jellyfish that appears in swarms in warm quarry lakes and reservoirs in late summer.",
@@ -3505,7 +3746,8 @@
       "hu": "Érme méretű, átlátszó medúza, nyár végén rajokban jelenik meg meleg bányatavakban és víztározókban.",
       "zh": "硬币大小的透明水母，夏末在温暖的采石场湖泊和水库中成群出现。",
       "ar": "قنديل بحر شفاف بحجم عملة معدنية يظهر في أسراب في بحيرات المحاجر الدافئة والخزانات في أواخر الصيف.",
-      "he": "מדוזה שקופה בגודל מטבע המופיעה בנחילים באגמי מחצבה חמימים ובמאגרים בסוף הקיץ."
+      "he": "מדוזה שקופה בגודל מטבע המופיעה בנחילים באגמי מחצבה חמימים ובמאגרים בסוף הקיץ.",
+      "ja": "硬貨ほどの大きさの透明なクラゲで、晩夏に暖かい採石場跡の湖や貯水池に群れで現れます。"
     }
   },
   {
@@ -3521,7 +3763,8 @@
       "hu": "nagy mocsáricsiga",
       "zh": "静水椎实螺",
       "ar": "حلزون البرك الكبير",
-      "he": "חילזון בריכות גדול"
+      "he": "חילזון בריכות גדול",
+      "ja": "ヨーロッパモノアラガイ"
     },
     "descriptions": {
       "en": "Large pointed-shelled snail gliding over plants and glass-clear surfaces of still European waters, breathing air at the surface.",
@@ -3534,7 +3777,8 @@
       "hu": "Nagy, hegyes házú csiga, az európai állóvizek növényein siklik és a felszínen levegőt lélegzik.",
       "zh": "大型尖壳螺，在欧洲静水的植物上滑行，浮到水面呼吸空气。",
       "ar": "حلزون كبير بصدفة مدببة ينساب فوق النباتات في المياه الراكدة الأوروبية ويتنفس الهواء عند السطح.",
-      "he": "חילזון גדול עם קונכייה מחודדת המחליק על צמחים במים עומדים באירופה ונושם אוויר על פני המים."
+      "he": "חילזון גדול עם קונכייה מחודדת המחליק על צמחים במים עומדים באירופה ונושם אוויר על פני המים.",
+      "ja": "先の尖った殻を持つ大型の巻貝で、ヨーロッパの止水域の植物やガラスのように澄んだ面を滑るように進み、水面で空気を吸います。"
     }
   },
   {
@@ -3550,7 +3794,8 @@
       "hu": "nagy tányércsiga",
       "zh": "平角卷螺",
       "ar": "حلزون قرن الكبش الكبير",
-      "he": "חילזון קרן איל גדול"
+      "he": "חילזון קרן איל גדול",
+      "ja": "グレートラムズホーンスネイル"
     },
     "descriptions": {
       "en": "Flat, coiled snail like a tiny ram's horn, grazing algae from leaves and stones in weedy ponds.",
@@ -3563,7 +3808,8 @@
       "hu": "Lapos, kosszarvra emlékeztető tekercses csiga, hínáros tavak levelein és kövein legeli az algát.",
       "zh": "扁平盘曲如小羊角的螺，在水草茂密的池塘中刮食叶片和石头上的藻类。",
       "ar": "حلزون مسطح ملتف مثل قرن كبش صغير، يرعى الطحالب من الأوراق والحجارة في البرك العشبية.",
-      "he": "חילזון שטוח ומפותל כמו קרן איל זעירה, רועה אצות מעלים ואבנים בבריכות עשירות בצמחייה."
+      "he": "חילזון שטוח ומפותל כמו קרן איל זעירה, רועה אצות מעלים ואבנים בבריכות עשירות בצמחייה.",
+      "ja": "小さな羊の角のように平たく巻いた巻貝で、水草の多い池で葉や石の藻を食べます。"
     }
   },
   {
@@ -3579,7 +3825,8 @@
       "hu": "Almacsiga",
       "zh": "小管福寿螺",
       "ar": "حلزون التفاح الذهبي",
-      "he": "חילזון תפוח"
+      "he": "חילזון תפוח",
+      "ja": "スクミリンゴガイ"
     },
     "descriptions": {
       "en": "Large golden-brown snail that lays bright pink egg clusters above the waterline, invasive in warm wetlands and rice fields.",
@@ -3592,7 +3839,8 @@
       "hu": "Nagy, aranybarna csiga, élénk rózsaszín petecsomóit a vízvonal fölé rakja, invazív a meleg vizes élőhelyeken és rizsföldeken.",
       "zh": "大型金褐色螺，在水线上方产下亮粉色卵块，在温暖湿地和稻田中为入侵物种。",
       "ar": "حلزون كبير بني ذهبي يضع عناقيد بيض وردية زاهية فوق خط الماء، غازٍ في الأراضي الرطبة الدافئة وحقول الأرز.",
-      "he": "חילזון גדול חום-זהוב המטיל אשכולות ביצים ורודות בוהקות מעל קו המים, פולש באזורי ביצה חמים ובשדות אורז."
+      "he": "חילזון גדול חום-זהוב המטיל אשכולות ביצים ורודות בוהקות מעל קו המים, פולש באזורי ביצה חמים ובשדות אורז.",
+      "ja": "金褐色の大型の巻貝で、水面より上に鮮やかなピンク色の卵塊を産み、温暖な湿地や水田で外来種となっています。"
     }
   },
   {
@@ -3608,7 +3856,8 @@
       "hu": "óriási mohaállat",
       "zh": "大型梳苔虫",
       "ar": "الطحلبيات الرائعة",
-      "he": "טחביון מפואר"
+      "he": "טחביון מפואר",
+      "ja": "オオマリコケムシ"
     },
     "descriptions": {
       "en": "Jelly-like colony the size of a football, studded with tiny animals, clinging to branches and ropes in warm still water.",
@@ -3621,7 +3870,8 @@
       "hu": "Focilabda méretű, kocsonyás telep, apró állatokkal telehintve, ágakon és köteleken tapad meleg, csendes vízben.",
       "zh": "足球大小的胶状群体，表面布满微小动物，附着在温暖静水中的树枝和绳索上。",
       "ar": "مستعمرة هلامية بحجم كرة القدم مرصعة بحيوانات دقيقة، تتشبث بالأغصان والحبال في المياه الدافئة الساكنة.",
-      "he": "מושבה דמוית ג'לי בגודל כדורגל, משובצת בבעלי חיים זעירים, נצמדת לענפים ולחבלים במים חמים ושקטים."
+      "he": "מושבה דמוית ג'לי בגודל כדורגל, משובצת בבעלי חיים זעירים, נצמדת לענפים ולחבלים במים חמים ושקטים.",
+      "ja": "小さな動物がびっしり並んだサッカーボールほどのゼリー状の群体で、暖かい止水域の枝やロープに付着しています。"
     }
   },
   {
@@ -3637,7 +3887,8 @@
       "hu": "Kínai gyapjasollós rák",
       "zh": "中华绒螯蟹",
       "ar": "سرطان القفاز الصيني",
-      "he": "סרטן כפפות סיני"
+      "he": "סרטן כפפות סיני",
+      "ja": "チュウゴクモクズガニ"
     },
     "descriptions": {
       "en": "Burrowing crab with furry claws that spends years in rivers before walking downstream to breed in estuaries.",
@@ -3650,7 +3901,8 @@
       "hu": "Üregásó rák szőrös ollókkal, éveket tölt folyókban, mielőtt a torkolatokba vándorol szaporodni.",
       "zh": "掘穴的螃蟹，螯上长有绒毛，在河流中生活数年后顺流而下到河口繁殖。",
       "ar": "سرطان حفّار بمخالب مشعرة يقضي سنوات في الأنهار قبل أن يسير مع مجرى النهر للتكاثر في المصبات.",
-      "he": "סרטן חופר עם צבתות שעירות המבלה שנים בנהרות לפני שהוא הולך במורד הזרם להתרבות בשפכים."
+      "he": "סרטן חופר עם צבתות שעירות המבלה שנים בנהרות לפני שהוא הולך במורד הזרם להתרבות בשפכים.",
+      "ja": "毛の生えたハサミを持つ穴を掘るカニで、何年も川で過ごした後、繁殖のために河口域へ歩いて下ります。"
     }
   },
   {
@@ -3666,7 +3918,8 @@
       "hu": "Óriás édesvízi garnéla",
       "zh": "罗氏沼虾",
       "ar": "الروبيان النهري العملاق",
-      "he": "שרימפס נהר ענק"
+      "he": "שרימפס נהר ענק",
+      "ja": "オニテナガエビ"
     },
     "descriptions": {
       "en": "Big blue-clawed prawn of Asian and Australian rivers with claws longer than its body in old males.",
@@ -3679,7 +3932,8 @@
       "hu": "Nagy, kék ollójú garnéla Ázsia és Ausztrália folyóiból, az idős hímek ollói hosszabbak a testüknél.",
       "zh": "亚洲和澳大利亚河流中的大型蓝螯虾，老年雄性的螯比身体还长。",
       "ar": "روبيان كبير بمخالب زرقاء من أنهار آسيا وأستراليا، مخالب الذكور المسنة أطول من أجسامها.",
-      "he": "שרימפס גדול עם צבתות כחולות מנהרות אסיה ואוסטרליה, שצבתותיהם של הזכרים הזקנים ארוכות מגופם."
+      "he": "שרימפס גדול עם צבתות כחולות מנהרות אסיה ואוסטרליה, שצבתותיהם של הזכרים הזקנים ארוכות מגופם.",
+      "ja": "アジアとオーストラリアの川に棲む青いハサミの大型のエビで、老成したオスでは体より長いハサミを持ちます。"
     }
   },
   {
@@ -3695,7 +3949,8 @@
       "hu": "aligátorteknős",
       "zh": "拟鳄龟",
       "ar": "سلحفاة نهاشة شائعة",
-      "he": "צב נושך מצוי"
+      "he": "צב נושך מצוי",
+      "ja": "カミツキガメ"
     },
     "descriptions": {
       "en": "Heavy, rough-shelled turtle with a long saw-toothed tail, lying in the mud of ponds and slow rivers with its head out.",
@@ -3708,7 +3963,8 @@
       "hu": "Nehéz, érdes páncélú teknős hosszú, fűrészes farokkal, kidugott fejjel fekszik tavak és lassú folyók iszapjában.",
       "zh": "体重壳糙的龟，尾长带锯齿，伏在池塘和缓流河流的泥中，头部露出。",
       "ar": "سلحفاة ثقيلة خشنة الدرع بذيل طويل مسنن، ترقد في طين البرك والأنهار البطيئة ورأسها خارج الطين.",
-      "he": "צב כבד עם שריון מחוספס וזנב ארוך משונן, רובץ בבוץ של בריכות ונהרות איטיים כשראשו בחוץ."
+      "he": "צב כבד עם שריון מחוספס וזנב ארוך משונן, רובץ בבוץ של בריכות ונהרות איטיים כשראשו בחוץ.",
+      "ja": "ゴツゴツした甲羅とノコギリ状の長い尾を持つ重量級のカメで、池や流れの緩い川の泥の中で頭を出して潜んでいます。"
     }
   },
   {
@@ -3724,7 +3980,8 @@
       "hu": "keselyűteknős",
       "zh": "大鳄龟",
       "ar": "سلحفاة القاطور النهاشة",
-      "he": "צב נושך תנין"
+      "he": "צב נושך תנין",
+      "ja": "ワニガメ"
     },
     "descriptions": {
       "en": "Prehistoric-looking giant with three ridged keels and a worm-like tongue lure, waiting open-mouthed on southern river bottoms.",
@@ -3737,7 +3994,8 @@
       "hu": "Őskori külsejű óriás három tarajos gerinccel és féregszerű nyelvcsalival, nyitott szájjal várakozik a déli folyók fenekén.",
       "zh": "外形似史前生物的巨龟，背甲有三道脊棱，舌上有蠕虫状诱饵，张口静待于南方河底。",
       "ar": "عملاق ذو مظهر ما قبل التاريخ بثلاثة أعراف مسننة وطعم لساني يشبه الدودة، ينتظر بفم مفتوح على قيعان الأنهار الجنوبية.",
-      "he": "ענק בעל מראה פרהיסטורי עם שלוש שדרות משוננות ופיתיון לשון דמוי תולעת, ממתין בפה פתוח על קרקעיות נהרות הדרום."
+      "he": "ענק בעל מראה פרהיסטורי עם שלוש שדרות משוננות ופיתיון לשון דמוי תולעת, ממתין בפה פתוח על קרקעיות נהרות הדרום.",
+      "ja": "3本の隆起した竜骨とミミズのような舌のルアーを持つ太古の姿の巨体で、南部の川底で口を開けて獲物を待ちます。"
     }
   },
   {
@@ -3753,7 +4011,8 @@
       "hu": "díszes ékszerteknős",
       "zh": "锦龟",
       "ar": "سلحفاة مزركشة",
-      "he": "צב מצויר"
+      "he": "צב מצויר",
+      "ja": "ニシキガメ"
     },
     "descriptions": {
       "en": "Smooth dark turtle with red and yellow stripes on its neck and shell rim, basking in rows on logs across North America.",
@@ -3766,7 +4025,8 @@
       "hu": "Sima, sötét teknős vörös és sárga csíkokkal a nyakán és a páncél szegélyén, sorban napozik fatörzseken Észak-Amerika-szerte.",
       "zh": "壳光滑的深色龟，颈部和甲缘有红黄条纹，在北美各地成排趴在倒木上晒太阳。",
       "ar": "سلحفاة داكنة ملساء بخطوط حمراء وصفراء على العنق وحافة الدرع، تتشمس في صفوف على جذوع الأشجار في أنحاء أمريكا الشمالية.",
-      "he": "צב כהה וחלק עם פסים אדומים וצהובים על הצוואר ושולי השריון, מתחמם בשורות על גזעים ברחבי צפון אמריקה."
+      "he": "צב כהה וחלק עם פסים אדומים וצהובים על הצוואר ושולי השריון, מתחמם בשורות על גזעים ברחבי צפון אמריקה.",
+      "ja": "首と甲羅の縁に赤と黄色の縞がある滑らかな暗色のカメで、北米各地で丸太の上に並んで日光浴をします。"
     }
   },
   {
@@ -3782,7 +4042,8 @@
       "hu": "Vörösfülű ékszerteknős",
       "zh": "红耳龟",
       "ar": "سلحفاة حمراء الأذنين",
-      "he": "צב אדום אוזן"
+      "he": "צב אדום אוזן",
+      "ja": "ミシシッピアカミミガメ"
     },
     "descriptions": {
       "en": "Green-striped pond turtle with a red stripe behind each eye, the pet-trade turtle now feral in warm waters worldwide.",
@@ -3795,7 +4056,8 @@
       "hu": "Zöld csíkos mocsári teknős vörös sávval mindkét szeme mögött, a kedvtelésből tartott teknős, ma világszerte elvadult a meleg vizekben.",
       "zh": "带绿色条纹的池龟，每只眼后有一道红纹，作为宠物流行，如今在全球温暖水域野化。",
       "ar": "سلحفاة برك بخطوط خضراء وشريط أحمر خلف كل عين، سلحفاة تجارة الحيوانات الأليفة التي باتت متوحشة في المياه الدافئة حول العالم.",
-      "he": "צב בריכות מפוספס ירוק עם פס אדום מאחורי כל עין, צב חיות המחמד שכיום משוטט חופשי במים חמים ברחבי העולם."
+      "he": "צב בריכות מפוספס ירוק עם פס אדום מאחורי כל עין, צב חיות המחמד שכיום משוטט חופשי במים חמים ברחבי העולם.",
+      "ja": "両目の後ろに赤い帯がある緑の縞模様のカメで、ペットとして流通し、今では世界中の温暖な水域で野生化しています。"
     }
   },
   {
@@ -3811,7 +4073,8 @@
       "hu": "térképes tarajosteknős",
       "zh": "地图龟",
       "ar": "سلحفاة الخريطة الشمالية",
-      "he": "צב מפה צפוני"
+      "he": "צב מפה צפוני",
+      "ja": "キタチズガメ"
     },
     "descriptions": {
       "en": "Olive turtle with map-like yellow lines on its shell and a low keel, basking on rocks along clear rivers and large lakes.",
@@ -3824,7 +4087,8 @@
       "hu": "Olajzöld teknős térképszerű sárga vonalakkal a páncélján és alacsony gerinccel, tiszta folyók és nagy tavak szikláin napozik.",
       "zh": "橄榄色的龟，甲壳上有地图状黄线，脊棱较低，在清澈河流和大湖的岩石上晒太阳。",
       "ar": "سلحفاة زيتونية بخطوط صفراء تشبه الخريطة على درعها وعرف منخفض، تتشمس على الصخور بمحاذاة الأنهار الصافية والبحيرات الكبيرة.",
-      "he": "צב זית עם קווים צהובים דמויי מפה על שריונו ושדרה נמוכה, מתחמם על סלעים לאורך נהרות צלולים ואגמים גדולים."
+      "he": "צב זית עם קווים צהובים דמויי מפה על שריונו ושדרה נמוכה, מתחמם על סלעים לאורך נהרות צלולים ואגמים גדולים.",
+      "ja": "甲羅に地図のような黄色い線と低い竜骨を持つオリーブ色のカメで、澄んだ川や大きな湖の岩の上で日光浴をします。"
     }
   },
   {
@@ -3840,7 +4104,8 @@
       "hu": "tüskés lágyhéjúteknős",
       "zh": "角鳖",
       "ar": "سلحفاة لينة الدرقة الشائكة",
-      "he": "צב רך קוצני"
+      "he": "צב רך קוצני",
+      "ja": "トゲスッポン"
     },
     "descriptions": {
       "en": "Flat, leathery pancake of a turtle with a snorkel snout, buried in sand in shallow rivers with only its head showing.",
@@ -3853,7 +4118,8 @@
       "hu": "Lapos, bőrszerű, palacsintára emlékeztető teknős szipkaszerű orral, sekély folyók homokjába ásva, csak a feje látszik ki.",
       "zh": "扁平如薄饼的软壳龟，吻部如呼吸管，埋在浅河的沙中只露出头部。",
       "ar": "سلحفاة مسطحة جلدية كالفطيرة بخطم يشبه أنبوب التنفس، مدفونة في رمال الأنهار الضحلة ولا يظهر منها سوى رأسها.",
-      "he": "צב שטוח ועורי כפנקייק עם חרטום דמוי שנורקל, קבור בחול בנהרות רדודים כשרק ראשו נראה."
+      "he": "צב שטוח ועורי כפנקייק עם חרטום דמוי שנורקל, קבור בחול בנהרות רדודים כשרק ראשו נראה.",
+      "ja": "シュノーケルのような鼻先を持つ平たく革質のパンケーキのようなカメで、浅い川の砂に潜り頭だけを出しています。"
     }
   },
   {
@@ -3869,7 +4135,8 @@
       "hu": "floridai lágyhéjúteknős",
       "zh": "佛罗里达鳖",
       "ar": "سلحفاة لينة الدرقة الفلوريدية",
-      "he": "צב רך פלורידה"
+      "he": "צב רך פלורידה",
+      "ja": "フロリダスッポン"
     },
     "descriptions": {
       "en": "Large dark softshell with a long tubular snout, common in Florida springs, canals and lakes.",
@@ -3882,7 +4149,8 @@
       "hu": "Nagy, sötét lágyhéjú teknős hosszú, csőszerű orral, gyakori Florida forrásaiban, csatornáiban és tavaiban.",
       "zh": "大型深色软壳龟，吻部长而呈管状，常见于佛罗里达的泉水、运河和湖泊。",
       "ar": "سلحفاة كبيرة داكنة رخوة الدرع بخطم أنبوبي طويل، شائعة في ينابيع فلوريدا وقنواتها وبحيراتها.",
-      "he": "צב רך שריון גדול וכהה עם חרטום צינורי ארוך, נפוץ במעיינות, בתעלות ובאגמים של פלורידה."
+      "he": "צב רך שריון גדול וכהה עם חרטום צינורי ארוך, נפוץ במעיינות, בתעלות ובאגמים של פלורידה.",
+      "ja": "長い管状の鼻先を持つ暗色の大型のスッポンで、フロリダの泉、運河、湖でよく見られます。"
     }
   },
   {
@@ -3898,7 +4166,8 @@
       "hu": "kétkarmú teknős",
       "zh": "猪鼻龟",
       "ar": "سلحفاة ذات أنف الخنزير",
-      "he": "צב אף החזיר"
+      "he": "צב אף החזיר",
+      "ja": "スッポンモドキ"
     },
     "descriptions": {
       "en": "Unique river turtle of New Guinea and northern Australia with sea-turtle flippers and a fleshy pig-like snout.",
@@ -3911,7 +4180,8 @@
       "hu": "Egyedülálló folyami teknős Új-Guineából és Észak-Ausztráliából tengeri teknősre emlékeztető uszonyokkal és húsos, disznószerű orral.",
       "zh": "新几内亚和澳大利亚北部特有的河龟，具有海龟般的鳍足和肉质猪鼻状吻部。",
       "ar": "سلحفاة نهرية فريدة من غينيا الجديدة وشمال أستراليا بزعانف كسلاحف البحر وخطم لحمي يشبه أنف الخنزير.",
-      "he": "צב נהר ייחודי מגינאה החדשה וצפון אוסטרליה עם סנפירי צב ים וחרטום בשרני דמוי חזיר."
+      "he": "צב נהר ייחודי מגינאה החדשה וצפון אוסטרליה עם סנפירי צב ים וחרטום בשרני דמוי חזיר.",
+      "ja": "ニューギニアとオーストラリア北部に棲む独特の川ガメで、ウミガメのようなヒレ状の脚と肉厚なブタのような鼻を持ちます。"
     }
   },
   {
@@ -3927,7 +4197,8 @@
       "hu": "Mary-folyói teknős",
       "zh": "巨尾隐龟",
       "ar": "سلحفاة نهر ماري",
-      "he": "צב נהר מרי"
+      "he": "צב נהר מרי",
+      "ja": "メアリーリバータートル"
     },
     "descriptions": {
       "en": "Rare Australian turtle that breathes through its cloaca and grows a green algae mohawk, found in a single Queensland river.",
@@ -3940,7 +4211,8 @@
       "hu": "Ritka ausztrál teknős, kloákáján át lélegzik és zöld algataréjt visel, egyetlen queenslandi folyóban él.",
       "zh": "稀有的澳大利亚龟，能通过泄殖腔呼吸，头顶长着绿藻莫西干发型，仅见于昆士兰的一条河流。",
       "ar": "سلحفاة أسترالية نادرة تتنفس عبر المذرق وتنمو على رأسها عرف من الطحالب الخضراء، توجد في نهر واحد في كوينزلاند.",
-      "he": "צב אוסטרלי נדיר הנושם דרך הביב שלו ומגדל ציצת אצות ירוקה, מצוי בנהר יחיד בקווינסלנד."
+      "he": "צב אוסטרלי נדיר הנושם דרך הביב שלו ומגדל ציצת אצות ירוקה, מצוי בנהר יחיד בקווינסלנד.",
+      "ja": "総排泄腔で呼吸し、緑の藻のモヒカンを生やすオーストラリアの希少なカメで、クイーンズランド州の1本の川にしか生息しません。"
     }
   },
   {
@@ -3956,7 +4228,8 @@
       "hu": "Terekay-folyamteknős",
       "zh": "黄头侧颈龟",
       "ar": "سلحفاة النهر صفراء النقط",
-      "he": "צב נהר צהוב כתמים"
+      "he": "צב נהר צהוב כתמים",
+      "ja": "モンキヨコクビガメ"
     },
     "descriptions": {
       "en": "Amazon side-necked turtle with yellow head spots, basking in groups on logs and sandbanks of large rivers.",
@@ -3969,7 +4242,8 @@
       "hu": "Amazonasi nyakfordító teknős sárga fejfoltokkal, csoportosan napozik nagy folyók fatörzsein és homokpadjain.",
       "zh": "亚马逊侧颈龟，头部有黄斑，成群在大河的倒木和沙洲上晒太阳。",
       "ar": "سلحفاة أمازونية جانبية العنق ببقع صفراء على الرأس، تتشمس في مجموعات على الجذوع والضفاف الرملية للأنهار الكبيرة.",
-      "he": "צב אמזונס מטה צוואר עם כתמים צהובים בראש, מתחמם בקבוצות על גזעים ושרטונות חול של נהרות גדולים."
+      "he": "צב אמזונס מטה צוואר עם כתמים צהובים בראש, מתחמם בקבוצות על גזעים ושרטונות חול של נהרות גדולים.",
+      "ja": "頭に黄色い斑点があるアマゾンのヨコクビガメで、大河の丸太や砂州の上で群れて日光浴をします。"
     }
   },
   {
@@ -3985,7 +4259,8 @@
       "hu": "mocsári teknős",
       "zh": "欧洲泽龟",
       "ar": "سلحفاة البرك الأوروبية",
-      "he": "צב-אגמים אירופי"
+      "he": "צב-אגמים אירופי",
+      "ja": "ヨーロッパヌマガメ"
     },
     "descriptions": {
       "en": "Dark turtle speckled with yellow dots, Europe's native freshwater turtle, slipping off sunny banks into weedy ponds.",
@@ -3998,7 +4273,8 @@
       "hu": "Sárga pöttyökkel hintett sötét teknős, Európa őshonos mocsári teknőse, napos partokról hínáros tavakba csusszan.",
       "zh": "布满黄色斑点的深色龟，欧洲本土淡水龟，从向阳的岸边滑入水草茂密的池塘。",
       "ar": "سلحفاة داكنة منقطة بنقاط صفراء، سلحفاة المياه العذبة الأصلية في أوروبا، تنزلق من الضفاف المشمسة إلى البرك العشبية.",
-      "he": "צב כהה מנוקד בנקודות צהובות, צב המים המתוקים המקומי של אירופה, מחליק מגדות שטופות שמש לבריכות עשירות בצמחייה."
+      "he": "צב כהה מנוקד בנקודות צהובות, צב המים המתוקים המקומי של אירופה, מחליק מגדות שטופות שמש לבריכות עשירות בצמחייה.",
+      "ja": "黄色い点が散らばる暗色のカメで、ヨーロッパ在来の淡水ガメです。日当たりのよい岸から水草の多い池へ滑り込みます。"
     }
   },
   {
@@ -4014,7 +4290,8 @@
       "hu": "mississippi aligátor",
       "zh": "美国短吻鳄",
       "ar": "قاطور أمريكي",
-      "he": "אליגטור אמריקאי"
+      "he": "אליגטור אמריקאי",
+      "ja": "アメリカアリゲーター"
     },
     "descriptions": {
       "en": "Broad-snouted armoured reptile of southeastern US swamps, springs and rivers, floating with only eyes and nostrils showing.",
@@ -4027,7 +4304,8 @@
       "hu": "Széles orrú páncélos hüllő az USA délkeleti mocsaraiból, forrásaiból és folyóiból, csak a szeme és az orrlyukai látszanak ki a vízből.",
       "zh": "美国东南部沼泽、泉水和河流中的宽吻披甲爬行动物，漂浮时仅露出眼睛和鼻孔。",
       "ar": "زاحف مدرع عريض الخطم من مستنقعات وينابيع وأنهار جنوب شرق الولايات المتحدة، يطفو ولا يظهر منه سوى العينين والمنخرين.",
-      "he": "זוחל משוריין רחב חרטום מביצות, מעיינות ונהרות בדרום-מזרח ארה\"ב, צף כשרק עיניו ונחיריו נראים."
+      "he": "זוחל משוריין רחב חרטום מביצות, מעיינות ונהרות בדרום-מזרח ארה\"ב, צף כשרק עיניו ונחיריו נראים.",
+      "ja": "米国南東部の湿地、泉、川に棲む幅広い吻の装甲を持つ爬虫類で、目と鼻の穴だけを出して浮かんでいます。"
     }
   },
   {
@@ -4043,7 +4321,8 @@
       "hu": "pápaszemes kajmán",
       "zh": "眼镜凯门鳄",
       "ar": "كايمن ذو النظارات",
-      "he": "קיימן משקפיים"
+      "he": "קיימן משקפיים",
+      "ja": "メガネカイマン"
     },
     "descriptions": {
       "en": "Small olive caiman with a bony ridge between its eyes, abundant in slow rivers and lagoons across Central and South America.",
@@ -4056,7 +4335,8 @@
       "hu": "Kis, olajzöld kajmán csontos taréjjal a szemei között, gyakori Közép- és Dél-Amerika lassú folyóiban és lagúnáiban.",
       "zh": "小型橄榄色凯门鳄，两眼间有骨质脊，在中南美洲的缓流河流和潟湖中数量众多。",
       "ar": "كيمن زيتوني صغير بحافة عظمية بين عينيه، وفير في الأنهار البطيئة والبحيرات الساحلية في أمريكا الوسطى والجنوبية.",
-      "he": "קיימן זית קטן עם רכס גרמי בין עיניו, שכיח בנהרות איטיים ובלגונות ברחבי מרכז ודרום אמריקה."
+      "he": "קיימן זית קטן עם רכס גרמי בין עיניו, שכיח בנהרות איטיים ובלגונות ברחבי מרכז ודרום אמריקה.",
+      "ja": "両目の間に骨の隆起がある小型のオリーブ色のカイマンで、中南米の流れの緩い川やラグーンに多く生息します。"
     }
   },
   {
@@ -4072,7 +4352,8 @@
       "hu": "fekete kajmán",
       "zh": "黑凯门鳄",
       "ar": "كايمن أسود",
-      "he": "קיימן שחור"
+      "he": "קיימן שחור",
+      "ja": "クロカイマン"
     },
     "descriptions": {
       "en": "The Amazon's largest predator, a black armoured caiman up to five metres long, hunting at night in lakes and flooded forest.",
@@ -4085,7 +4366,8 @@
       "hu": "Az Amazonas legnagyobb ragadozója, akár öt méteres fekete páncélos kajmán, éjjel vadászik tavakban és elárasztott erdőben.",
       "zh": "亚马逊最大的掠食者，黑色披甲凯门鳄，体长可达五米，夜间在湖泊和淹没森林中捕食。",
       "ar": "أكبر مفترس في الأمازون، كيمن أسود مدرع يصل طوله إلى خمسة أمتار، يصطاد ليلاً في البحيرات والغابات المغمورة.",
-      "he": "הטורף הגדול ביותר באמזונס, קיימן שחור משוריין באורך עד חמישה מטרים, צד בלילה באגמים וביער מוצף."
+      "he": "הטורף הגדול ביותר באמזונס, קיימן שחור משוריין באורך עד חמישה מטרים, צד בלילה באגמים וביער מוצף.",
+      "ja": "アマゾン最大の捕食者で、全長5mにもなる黒い装甲のカイマンです。夜間に湖や浸水林で狩りをします。"
     }
   },
   {
@@ -4101,7 +4383,8 @@
       "hu": "Johnson-krokodil",
       "zh": "澳洲淡水鳄",
       "ar": "تمساح أسترالي",
-      "he": "תנין מים מתוקים"
+      "he": "תנין מים מתוקים",
+      "ja": "ジョンストンワニ"
     },
     "descriptions": {
       "en": "Slender-snouted Australian crocodile of northern rivers and gorges, shy and far smaller than the saltwater crocodile.",
@@ -4114,7 +4397,8 @@
       "hu": "Keskeny orrú ausztrál krokodil az északi folyókból és szurdokokból, félénk és jóval kisebb a bordás krokodilnál.",
       "zh": "吻部细长的澳大利亚鳄鱼，栖息于北部河流和峡谷，性情胆怯，体型远小于湾鳄。",
       "ar": "تمساح أسترالي نحيل الخطم من أنهار وأخاديد الشمال، خجول وأصغر بكثير من تمساح المياه المالحة.",
-      "he": "תנין אוסטרלי צר חרטום מנהרות ומקניונים בצפון, ביישן וקטן בהרבה מתנין המים המלוחים."
+      "he": "תנין אוסטרלי צר חרטום מנהרות ומקניונים בצפון, ביישן וקטן בהרבה מתנין המים המלוחים.",
+      "ja": "オーストラリア北部の川や峡谷に棲む吻の細いワニで、臆病でイリエワニよりはるかに小型です。"
     }
   },
   {
@@ -4130,7 +4414,8 @@
       "hu": "Északi vízisikló",
       "zh": "北部美洲水蛇",
       "ar": "ثعبان الماء الشمالي",
-      "he": "נחש מים צפוני"
+      "he": "נחש מים צפוני",
+      "ja": "ノーザンウォータースネーク"
     },
     "descriptions": {
       "en": "Thick-bodied banded brown snake basking on rocks and branches over eastern North American streams, harmless but quick to bite.",
@@ -4143,7 +4428,8 @@
       "hu": "Vaskos testű, sávos barna kígyó, Észak-Amerika keleti patakjai fölött sziklákon és ágakon napozik, ártalmatlan, de gyorsan harap.",
       "zh": "身体粗壮、带环纹的褐色蛇，在北美东部溪流上方的岩石和树枝上晒太阳，无毒但易咬人。",
       "ar": "ثعبان بني سميك الجسم بأشرطة يتشمس على الصخور والأغصان فوق جداول شرق أمريكا الشمالية، غير سام لكنه سريع العض.",
-      "he": "נחש חום עבה גוף ומפוספס המתחמם על סלעים וענפים מעל נחלים במזרח צפון אמריקה, לא מסוכן אך מהיר לנשוך."
+      "he": "נחש חום עבה גוף ומפוספס המתחמם על סלעים וענפים מעל נחלים במזרח צפון אמריקה, לא מסוכן אך מהיר לנשוך.",
+      "ja": "北米東部の川の上の岩や枝で日光浴をする、帯模様のある胴の太い褐色のヘビで、無毒ですがすぐに噛みつきます。"
     }
   },
   {
@@ -4159,7 +4445,8 @@
       "hu": "zöld anakonda",
       "zh": "森蚺",
       "ar": "الأناكوندا الخضراء",
-      "he": "אנקונדה ירוקה"
+      "he": "אנקונדה ירוקה",
+      "ja": "オオアナコンダ"
     },
     "descriptions": {
       "en": "The heaviest snake on earth, an olive giant with black blotches, lying submerged in Amazon swamps and slow rivers.",
@@ -4172,7 +4459,8 @@
       "hu": "A Föld legnehezebb kígyója, olajzöld óriás fekete foltokkal, az Amazonas mocsaraiban és lassú folyóiban fekszik a víz alatt.",
       "zh": "世界上最重的蛇，橄榄色巨蟒，身上有黑斑，潜伏在亚马逊沼泽和缓流河流中。",
       "ar": "أثقل ثعبان على وجه الأرض، عملاق زيتوني ببقع سوداء، يرقد مغموراً في مستنقعات الأمازون وأنهاره البطيئة.",
-      "he": "הנחש הכבד ביותר על פני האדמה, ענק בצבע זית עם כתמים שחורים, רובץ שקוע בביצות האמזונס ובנהרות איטיים."
+      "he": "הנחש הכבד ביותר על פני האדמה, ענק בצבע זית עם כתמים שחורים, רובץ שקוע בביצות האמזונס ובנהרות איטיים.",
+      "ja": "地球上で最も重いヘビで、黒い斑紋のあるオリーブ色の巨体が、アマゾンの湿地や流れの緩い川に沈んで潜んでいます。"
     }
   },
   {
@@ -4188,7 +4476,8 @@
       "hu": "mocsári ördög",
       "zh": "美洲大鲵",
       "ar": "هلبندر",
-      "he": "סלמנדרת ענק אמריקנית"
+      "he": "סלמנדרת ענק אמריקנית",
+      "ja": "ヘルベンダー"
     },
     "descriptions": {
       "en": "Giant flat-headed salamander with wrinkled skin folds, hiding under big rocks in cold clear Appalachian rivers.",
@@ -4201,7 +4490,8 @@
       "hu": "Óriási, lapos fejű szalamandra ráncos bőrredőkkel, az Appalache-hegység hideg, tiszta folyóiban nagy kövek alatt rejtőzik.",
       "zh": "头部扁平、皮肤褶皱的巨型蝾螈，藏身于阿巴拉契亚寒冷清澈河流的大石头下。",
       "ar": "سلمندر عملاق مسطح الرأس بطيات جلدية مجعدة، يختبئ تحت الصخور الكبيرة في أنهار الأبالاش الباردة الصافية.",
-      "he": "סלמנדרה ענקית שטוחת ראש עם קפלי עור מקומטים, מסתתרת מתחת לסלעים גדולים בנהרות קרים וצלולים בהרי האפלצ'ים."
+      "he": "סלמנדרה ענקית שטוחת ראש עם קפלי עור מקומטים, מסתתרת מתחת לסלעים גדולים בנהרות קרים וצלולים בהרי האפלצ'ים.",
+      "ja": "しわの寄った皮膚のひだを持つ頭の平たい大型のサンショウウオで、冷たく澄んだアパラチアの川の大きな岩の下に隠れています。"
     }
   },
   {
@@ -4217,7 +4507,8 @@
       "hu": "Iszapkutya",
       "zh": "斑泥螈",
       "ar": "جرو الطين الشائع",
-      "he": "כלב בוץ"
+      "he": "כלב בוץ",
+      "ja": "マッドパピー"
     },
     "descriptions": {
       "en": "Brown spotted salamander that keeps its feathery red gills for life, crawling over lake and river bottoms at night.",
@@ -4230,7 +4521,8 @@
       "hu": "Barna, foltos szalamandra, tollas vörös kopoltyúit egész életében megtartja, éjjel tó- és folyófenéken mászik.",
       "zh": "褐色带斑点的蝾螈，终生保留羽状红鳃，夜间在湖底和河底爬行。",
       "ar": "سلمندر بني مرقط يحتفظ بخياشيمه الحمراء الريشية طوال حياته، يزحف ليلاً فوق قيعان البحيرات والأنهار.",
-      "he": "סלמנדרה חומה מנוקדת השומרת על זימיה האדומים הנוצתיים לכל חייה, זוחלת בלילה על קרקעיות אגמים ונהרות."
+      "he": "סלמנדרה חומה מנוקדת השומרת על זימיה האדומים הנוצתיים לכל חייה, זוחלת בלילה על קרקעיות אגמים ונהרות.",
+      "ja": "羽毛のような赤いエラを一生持ち続ける褐色の斑点のあるサンショウウオで、夜間に湖や川の底を這い回ります。"
     }
   },
   {
@@ -4246,7 +4538,8 @@
       "hu": "mexikói axolotl",
       "zh": "美西钝口螈",
       "ar": "سمندل المكسيك",
-      "he": "אמביסטומה מקסיקנית"
+      "he": "אמביסטומה מקסיקנית",
+      "ja": "メキシコサンショウウオ"
     },
     "descriptions": {
       "en": "Smiling gilled salamander that never leaves the water, critically endangered in the canals of Xochimilco near Mexico City.",
@@ -4259,7 +4552,8 @@
       "hu": "Mosolygós, kopoltyús szalamandra, sosem hagyja el a vizet, kritikusan veszélyeztetett Xochimilco csatornáiban Mexikóváros mellett.",
       "zh": "面带微笑的有鳃蝾螈，终生不离开水，在墨西哥城附近霍奇米尔科的运河中极度濒危。",
       "ar": "سلمندر مبتسم ذو خياشيم لا يغادر الماء أبداً، مهدد بالانقراض بشدة في قنوات خوتشيميلكو قرب مكسيكو سيتي.",
-      "he": "סלמנדרה מחייכת עם זימים שלעולם אינה עוזבת את המים, בסכנת הכחדה חמורה בתעלות שוצ'ימילקו ליד מקסיקו סיטי."
+      "he": "סלמנדרה מחייכת עם זימים שלעולם אינה עוזבת את המים, בסכנת הכחדה חמורה בתעלות שוצ'ימילקו ליד מקסיקו סיטי.",
+      "ja": "生涯水中で過ごす、笑ったような顔のエラのあるサンショウウオで、メキシコシティ近郊のソチミルコの運河で絶滅寸前となっています。"
     }
   },
   {
@@ -4275,7 +4569,8 @@
       "hu": "Kínai óriásszalamandra",
       "zh": "中国大鲵",
       "ar": "سمندل صيني عملاق",
-      "he": "סלמנדרת ענק סינית"
+      "he": "סלמנדרת ענק סינית",
+      "ja": "チュウゴクオオサンショウウオ"
     },
     "descriptions": {
       "en": "The largest amphibian alive, a wrinkled brown giant nearly two metres long, hiding in cool rocky mountain streams.",
@@ -4288,7 +4583,8 @@
       "hu": "A legnagyobb élő kétéltű, ráncos, barna, közel két méteres óriás, hűvös, sziklás hegyi patakokban rejtőzik.",
       "zh": "现存最大的两栖动物，皮肤褶皱的褐色巨物，体长近两米，藏身于凉爽多石的山溪中。",
       "ar": "أكبر برمائي حي، عملاق بني مجعد يبلغ طوله نحو مترين، يختبئ في جداول الجبال الباردة الصخرية.",
-      "he": "הדו-חי הגדול ביותר החי כיום, ענק חום מקומט באורך כמעט שני מטרים, מסתתר בנחלי הרים קרירים וסלעיים."
+      "he": "הדו-חי הגדול ביותר החי כיום, ענק חום מקומט באורך כמעט שני מטרים, מסתתר בנחלי הרים קרירים וסלעיים.",
+      "ja": "現生最大の両生類で、全長2m近くになるしわだらけの褐色の巨体が、冷たい岩の多い山の渓流に隠れています。"
     }
   },
   {
@@ -4304,7 +4600,8 @@
       "hu": "Pettyes gőte",
       "zh": "滑螈",
       "ar": "السمندل الأملس",
-      "he": "טריטון חלק"
+      "he": "טריטון חלק",
+      "ja": "スムースニュート"
     },
     "descriptions": {
       "en": "Small olive newt that returns to ponds each spring, the males growing a wavy crest and spotted orange belly.",
@@ -4317,7 +4614,8 @@
       "hu": "Kis, olajzöld gőte, minden tavasszal visszatér a tavakba, a hímek hullámos tarajt és foltos narancssárga hasat növesztenek.",
       "zh": "小型橄榄色蝾螈，每年春季回到池塘，雄性长出波状背嵴和带斑点的橙色腹部。",
       "ar": "سمندل زيتوني صغير يعود إلى البرك كل ربيع، تنمو للذكور قمة متموجة وبطن برتقالي مرقط.",
-      "he": "טריטון זית קטן החוזר לבריכות בכל אביב, הזכרים מגדלים ציצה גלית ובטן כתומה מנוקדת."
+      "he": "טריטון זית קטן החוזר לבריכות בכל אביב, הזכרים מגדלים ציצה גלית ובטן כתומה מנוקדת.",
+      "ja": "毎年春に池へ戻ってくる小型のオリーブ色のイモリで、オスは波打つ背びれとオレンジ色の斑点のある腹を発達させます。"
     }
   },
   {
@@ -4333,7 +4631,8 @@
       "hu": "Közönséges tarajosgőte",
       "zh": "冠欧螈",
       "ar": "نيوط متوج كبير",
-      "he": "טריטון הרכס"
+      "he": "טריטון הרכס",
+      "ja": "クシイモリ"
     },
     "descriptions": {
       "en": "Large black warty newt with a fiery orange belly, the breeding males sporting a jagged dragon-like crest.",
@@ -4346,7 +4645,8 @@
       "hu": "Nagy, fekete, szemölcsös gőte tűznarancs hassal, a nászruhás hímek csipkézett, sárkányszerű tarajt viselnek.",
       "zh": "大型黑色疣皮蝾螈，腹部呈火橙色，繁殖期雄性长出锯齿状的龙形背嵴。",
       "ar": "سمندل أسود كبير ثؤلولي ببطن برتقالي ناري، تحمل الذكور في موسم التزاوج قمة مسننة تشبه التنين.",
-      "he": "טריטון שחור גדול ומיובל עם בטן כתומה לוהטת, הזכרים בעונת הרבייה נושאים ציצה משוננת דמוית דרקון."
+      "he": "טריטון שחור גדול ומיובל עם בטן כתומה לוהטת, הזכרים בעונת הרבייה נושאים ציצה משוננת דמוית דרקון.",
+      "ja": "燃えるようなオレンジ色の腹を持つ大型の黒いイボイモリで、繁殖期のオスはギザギザの竜のような背びれをまといます。"
     }
   },
   {
@@ -4362,7 +4662,8 @@
       "hu": "ökörbéka",
       "zh": "美洲牛蛙",
       "ar": "ضفدع الثور الأمريكي",
-      "he": "צפרדע השור"
+      "he": "צפרדע השור",
+      "ja": "ウシガエル"
     },
     "descriptions": {
       "en": "Huge green frog with a bass bellow, sitting among lily pads in warm ponds and now invasive on several continents.",
@@ -4375,7 +4676,8 @@
       "hu": "Hatalmas zöld béka mély, bőgő hanggal, meleg tavak tavirózsái között ül, ma több kontinensen invazív.",
       "zh": "体型巨大的绿色蛙，叫声低沉如牛吼，栖息在温暖池塘的睡莲叶间，如今在多个大洲成为入侵物种。",
       "ar": "ضفدع أخضر ضخم بنقيق جهير عميق، يجلس بين أوراق زنابق الماء في البرك الدافئة وأصبح غازياً في عدة قارات.",
-      "he": "צפרדע ירוקה ענקית עם געייה עמוקה, יושבת בין עלי נופר בבריכות חמימות וכיום פולשת בכמה יבשות."
+      "he": "צפרדע ירוקה ענקית עם געייה עמוקה, יושבת בין עלי נופר בבריכות חמימות וכיום פולשת בכמה יבשות.",
+      "ja": "低い鳴き声を響かせる巨大な緑色のカエルで、暖かい池のスイレンの葉の間に座り、今ではいくつもの大陸で外来種となっています。"
     }
   },
   {
@@ -4391,7 +4693,8 @@
       "hu": "Gyepi béka",
       "zh": "欧洲林蛙",
       "ar": "الضفدع الشائع",
-      "he": "צפרדע מצויה"
+      "he": "צפרדע מצויה",
+      "ja": "ヨーロッパアカガエル"
     },
     "descriptions": {
       "en": "Brown frog with a dark eye mask that gathers in noisy spring crowds to spawn in European ponds and ditches.",
@@ -4404,7 +4707,8 @@
       "hu": "Barna béka sötét szemmaszkkal, tavasszal hangos tömegekben gyűlik össze petézni az európai tavakban és árkokban.",
       "zh": "褐色的蛙，眼部有深色面罩纹，春季成群喧闹地聚集在欧洲池塘和沟渠中产卵。",
       "ar": "ضفدع بني بقناع عيني داكن يتجمع في حشود ربيعية صاخبة للتكاثر في البرك والخنادق الأوروبية.",
-      "he": "צפרדע חומה עם מסכת עין כהה המתקבצת בהמונים רועשים באביב להטיל בבריכות ובתעלות באירופה."
+      "he": "צפרדע חומה עם מסכת עין כהה המתקבצת בהמונים רועשים באביב להטיל בבריכות ובתעלות באירופה.",
+      "ja": "目の周りに暗色のマスク模様がある褐色のカエルで、春にヨーロッパの池や水路に騒がしく集まって産卵します。"
     }
   },
   {
@@ -4420,7 +4724,8 @@
       "hu": "kanadai vidra",
       "zh": "北美水獭",
       "ar": "قضاعة الأنهار الشمالية",
-      "he": "לוטרה צפון-אמריקנית"
+      "he": "לוטרה צפון-אמריקנית",
+      "ja": "カナダカワウソ"
     },
     "descriptions": {
       "en": "Sleek playful otter that hunts fish and crayfish in rivers and lakes across North America, leaving mud slides on banks.",
@@ -4433,7 +4738,8 @@
       "hu": "Karcsú, játékos vidra, Észak-Amerika folyóiban és tavaiban halakra és rákokra vadászik, a partokon sárcsúszdákat hagy.",
       "zh": "身姿矫健、爱嬉戏的水獭，在北美的河流湖泊中捕食鱼类和螯虾，在岸边留下泥滑道。",
       "ar": "قضاعة رشيقة مرحة تصطاد الأسماك وجراد النهر في أنهار وبحيرات أمريكا الشمالية، تاركة منزلقات طينية على الضفاف.",
-      "he": "לוטרה חלקה ושובבה הצדה דגים וסרטני נהרות בנהרות ובאגמים ברחבי צפון אמריקה ומשאירה מגלשות בוץ על הגדות."
+      "he": "לוטרה חלקה ושובבה הצדה דגים וסרטני נהרות בנהרות ובאגמים ברחבי צפון אמריקה ומשאירה מגלשות בוץ על הגדות.",
+      "ja": "北米各地の川や湖で魚やザリガニを狩る、しなやかで遊び好きなカワウソで、岸に泥の滑り台を残します。"
     }
   },
   {
@@ -4449,7 +4755,8 @@
       "hu": "európai vidra",
       "zh": "水獭",
       "ar": "قضاعة أوراسية",
-      "he": "לוטרה אירופית"
+      "he": "לוטרה אירופית",
+      "ja": "ユーラシアカワウソ"
     },
     "descriptions": {
       "en": "Shy brown otter of European rivers, lakes and coasts, recovering across its range after decades of decline.",
@@ -4462,7 +4769,8 @@
       "hu": "Félénk, barna vidra Európa folyóiból, tavaiból és partjairól, évtizedes hanyatlás után egész elterjedési területén erősödik.",
       "zh": "胆怯的褐色水獭，栖息于欧洲的河流、湖泊和海岸，在数十年衰退后正于整个分布区恢复。",
       "ar": "قضاعة بنية خجولة تعيش في أنهار وبحيرات وسواحل أوروبا، تتعافى في كامل نطاقها بعد عقود من التراجع.",
-      "he": "לוטרה חומה ביישנית מנהרות, אגמים וחופים באירופה, המתאוששת בכל תחום תפוצתה אחרי עשורים של דעיכה."
+      "he": "לוטרה חומה ביישנית מנהרות, אגמים וחופים באירופה, המתאוששת בכל תחום תפוצתה אחרי עשורים של דעיכה.",
+      "ja": "ヨーロッパの川、湖、海岸に棲む臆病な褐色のカワウソで、数十年の減少を経て分布域全体で回復しつつあります。"
     }
   },
   {
@@ -4478,7 +4786,8 @@
       "hu": "óriásvidra",
       "zh": "巨獭",
       "ar": "قضاعة عملاقة",
-      "he": "לוטרה ענקית"
+      "he": "לוטרה ענקית",
+      "ja": "オオカワウソ"
     },
     "descriptions": {
       "en": "Nearly two-metre otter with a cream throat patch, living in noisy family groups on Amazon rivers and oxbow lakes.",
@@ -4491,7 +4800,8 @@
       "hu": "Közel két méteres vidra krémszínű torokfolttal, zajos családi csoportokban él az Amazonas folyóin és morotvatavain.",
       "zh": "体长近两米的水獭，喉部有乳白色斑块，在亚马逊河流和牛轭湖中以喧闹的家族群体生活。",
       "ar": "قضاعة يقارب طولها مترين ببقعة كريمية على الحلق، تعيش في مجموعات عائلية صاخبة على أنهار الأمازون وبحيراته الهلالية.",
-      "he": "לוטרה באורך כמעט שני מטרים עם כתם קרם בגרון, החיה בקבוצות משפחתיות רועשות בנהרות האמזונס ובאגמי פרסה."
+      "he": "לוטרה באורך כמעט שני מטרים עם כתם קרם בגרון, החיה בקבוצות משפחתיות רועשות בנהרות האמזונס ובאגמי פרסה.",
+      "ja": "喉にクリーム色の斑紋がある全長2m近いカワウソで、アマゾンの川や三日月湖で騒がしい家族群を作って暮らします。"
     }
   },
   {
@@ -4507,7 +4817,8 @@
       "hu": "kanadai hód",
       "zh": "北美河貍",
       "ar": "قندس أمريكي",
-      "he": "בונה קנדי"
+      "he": "בונה קנדי",
+      "ja": "アメリカビーバー"
     },
     "descriptions": {
       "en": "Large flat-tailed rodent that dams streams into ponds and swims beneath the ice with a lodge of sticks for shelter.",
@@ -4520,7 +4831,8 @@
       "hu": "Nagy, lapos farkú rágcsáló, patakokat duzzaszt tavakká és a jég alatt úszik, ágakból épített várában húzza meg magát.",
       "zh": "尾巴扁平的大型啮齿动物，筑坝将溪流变成池塘，在冰下游动，以树枝巢穴为庇护。",
       "ar": "قارض كبير مسطح الذيل يسد الجداول ليحولها إلى برك ويسبح تحت الجليد، ويتخذ من كوخ الأغصان مأوى.",
-      "he": "מכרסם גדול שטוח זנב הסוכר נחלים לבריכות ושוחה מתחת לקרח, עם מאורת ענפים למחסה."
+      "he": "מכרסם גדול שטוח זנב הסוכר נחלים לבריכות ושוחה מתחת לקרח, עם מאורת ענפים למחסה.",
+      "ja": "平たい尾を持つ大型の齧歯類で、川をせき止めて池を作り、枝で組んだ巣を隠れ家にして氷の下を泳ぎます。"
     }
   },
   {
@@ -4536,7 +4848,8 @@
       "hu": "eurázsiai hód",
       "zh": "欧亚河狸",
       "ar": "قندس أوراسي",
-      "he": "בונה אירופי"
+      "he": "בונה אירופי",
+      "ja": "ヨーロッパビーバー"
     },
     "descriptions": {
       "en": "Europe's largest rodent, reintroduced across the continent, felling riverside trees and building dams and lodges.",
@@ -4549,7 +4862,8 @@
       "hu": "Európa legnagyobb rágcsálója, a kontinens egészén visszatelepítették, parti fákat dönt ki, gátakat és várakat épít.",
       "zh": "欧洲最大的啮齿动物，已在全洲重新引入，啃倒河边树木，修筑水坝和巢穴。",
       "ar": "أكبر قوارض أوروبا، أعيد إدخاله في أنحاء القارة، يقطع أشجار ضفاف الأنهار ويبني السدود والأكواخ.",
-      "he": "המכרסם הגדול ביותר באירופה, שהושב לרחבי היבשת, מפיל עצי גדה ובונה סכרים ומאורות."
+      "he": "המכרסם הגדול ביותר באירופה, שהושב לרחבי היבשת, מפיל עצי גדה ובונה סכרים ומאורות.",
+      "ja": "ヨーロッパ最大の齧歯類で、大陸各地に再導入され、川辺の木を倒してダムや巣を作ります。"
     }
   },
   {
@@ -4565,7 +4879,8 @@
       "hu": "Pézsmapocok",
       "zh": "麝鼠",
       "ar": "فأر المسك",
-      "he": "אונדטרה"
+      "he": "אונדטרה",
+      "ja": "マスクラット"
     },
     "descriptions": {
       "en": "Rat-sized brown rodent with a scaly flattened tail, swimming through cattail marshes and building domed reed lodges.",
@@ -4578,7 +4893,8 @@
       "hu": "Patkány méretű, barna rágcsáló pikkelyes, lapított farokkal, gyékényes mocsarakban úszik és kupolás nádvárakat épít.",
       "zh": "鼠大小的褐色啮齿动物，尾巴有鳞且侧扁，在香蒲沼泽中游动，用芦苇筑圆顶巢。",
       "ar": "قارض بني بحجم الجرذ بذيل حرشفي مفلطح، يسبح عبر مستنقعات البردي ويبني أكواخاً قبابية من القصب.",
-      "he": "מכרסם חום בגודל חולדה עם זנב קשקשי ושטוח, שוחה בביצות סוף ובונה מאורות קנים כיפתיות."
+      "he": "מכרסם חום בגודל חולדה עם זנב קשקשי ושטוח, שוחה בביצות סוף ובונה מאורות קנים כיפתיות.",
+      "ja": "鱗のある平たい尾を持つネズミほどの大きさの褐色の齧歯類で、ガマの湿地を泳ぎ、ドーム形のアシの巣を作ります。"
     }
   },
   {
@@ -4594,7 +4910,8 @@
       "hu": "kacsacsőrű emlős",
       "zh": "鸭嘴兽",
       "ar": "خلد الماء",
-      "he": "ברווזן"
+      "he": "ברווזן",
+      "ja": "カモノハシ"
     },
     "descriptions": {
       "en": "Egg-laying mammal with a duck bill and webbed feet, foraging with closed eyes along eastern Australian creeks at dawn and dusk.",
@@ -4607,7 +4924,8 @@
       "hu": "Tojásrakó emlős kacsacsőrrel és úszóhártyás lábakkal, csukott szemmel keres táplálékot Kelet-Ausztrália patakjaiban hajnalban és alkonyatkor.",
       "zh": "卵生哺乳动物，长着鸭嘴和蹼足，黎明和黄昏时闭着眼睛在澳大利亚东部溪流中觅食。",
       "ar": "ثديي بيوض بمنقار بط وأقدام مكففة، يبحث عن الطعام مغمض العينين على طول جداول شرق أستراليا عند الفجر والغسق.",
-      "he": "יונק מטיל ביצים עם מקור ברווז ורגליים בעלות קרום שחייה, מלקט מזון בעיניים עצומות לאורך נחלי מזרח אוסטרליה עם שחר ודמדומים."
+      "he": "יונק מטיל ביצים עם מקור ברווז ורגליים בעלות קרום שחייה, מלקט מזון בעיניים עצומות לאורך נחלי מזרח אוסטרליה עם שחר ודמדומים.",
+      "ja": "カモのようなくちばしと水かきのある足を持つ卵生の哺乳類で、明け方と夕暮れにオーストラリア東部の小川で目を閉じて餌を探します。"
     }
   },
   {
@@ -4623,7 +4941,8 @@
       "hu": "dél-amerikai manátusz",
       "zh": "南美海牛",
       "ar": "خروف البحر الأمازوني",
-      "he": "פרת ים אמזונית"
+      "he": "פרת ים אמזונית",
+      "ja": "アマゾンマナティー"
     },
     "descriptions": {
       "en": "The smallest manatee, a smooth dark grazer with a white chest patch, browsing water plants in Amazon lakes and rivers.",
@@ -4636,7 +4955,8 @@
       "hu": "A legkisebb manátusz, sima, sötét növényevő fehér mellfolttal, az Amazonas tavaiban és folyóiban vízinövényeket legel.",
       "zh": "最小的海牛，皮肤光滑深色，胸部有白斑，在亚马逊湖河中啃食水生植物。",
       "ar": "أصغر أنواع خراف البحر، عاشب أملس داكن ببقعة بيضاء على الصدر، يرعى النباتات المائية في بحيرات الأمازون وأنهاره.",
-      "he": "פרת הים הקטנה ביותר, אוכלת עשב חלקה וכהה עם כתם לבן בחזה, הרועה צמחי מים באגמים ובנהרות האמזונס."
+      "he": "פרת הים הקטנה ביותר, אוכלת עשב חלקה וכהה עם כתם לבן בחזה, הרועה צמחי מים באגמים ובנהרות האמזונס.",
+      "ja": "最小のマナティーで、胸に白い斑紋がある滑らかな暗色の草食獣です。アマゾンの湖や川で水草を食べます。"
     }
   },
   {
@@ -4652,7 +4972,8 @@
       "hu": "amazonasi folyamidelfin",
       "zh": "亚马逊河豚",
       "ar": "دلفين الأمازون",
-      "he": "דולפין נהר האמזונס"
+      "he": "דולפין נהר האמזונס",
+      "ja": "アマゾンカワイルカ"
     },
     "descriptions": {
       "en": "Pink long-beaked dolphin with a flexible neck, weaving between trunks of flooded forest in the Amazon and Orinoco.",
@@ -4665,7 +4986,8 @@
       "hu": "Rózsaszín, hosszú csőrű delfin hajlékony nyakkal, az Amazonas és az Orinoco elárasztott erdőinek fatörzsei között kanyarog.",
       "zh": "长喙的粉红色河豚，颈部灵活，在亚马逊和奥里诺科河淹没森林的树干间穿梭。",
       "ar": "دلفين وردي طويل المنقار بعنق مرن، يتلوى بين جذوع الغابة المغمورة في الأمازون والأورينوكو.",
-      "he": "דולפין ורוד ארוך מקור עם צוואר גמיש, מתפתל בין גזעי יער מוצף באמזונס ובאורינוקו."
+      "he": "דולפין ורוד ארוך מקור עם צוואר גמיש, מתפתל בין גזעי יער מוצף באמזונס ובאורינוקו.",
+      "ja": "柔軟な首を持つピンク色の吻の長いイルカで、アマゾン川とオリノコ川の浸水林の幹の間を縫うように泳ぎます。"
     }
   },
   {
@@ -4681,7 +5003,8 @@
       "hu": "bajkáli fóka",
       "zh": "贝加尔海豹",
       "ar": "فقمة بايكال",
-      "he": "כלב ים באיקל"
+      "he": "כלב ים באיקל",
+      "ja": "バイカルアザラシ"
     },
     "descriptions": {
       "en": "The world's only freshwater seal, a small silver-grey seal that hauls out on Lake Baikal's ice and rocky shores.",
@@ -4694,7 +5017,8 @@
       "hu": "A világ egyetlen édesvízi fókája, kis, ezüstszürke fóka, a Bajkál-tó jegén és sziklás partjain pihen.",
       "zh": "世界上唯一的淡水海豹，体型小巧呈银灰色，在贝加尔湖的冰面和岩岸上休息。",
       "ar": "الفقمة الوحيدة في المياه العذبة في العالم، فقمة صغيرة رمادية فضية تستلقي على جليد بحيرة بايكال وشواطئها الصخرية.",
-      "he": "כלב הים היחיד בעולם במים מתוקים, כלב ים קטן אפור-כסוף העולה לנוח על הקרח והחופים הסלעיים של אגם באיקל."
+      "he": "כלב הים היחיד בעולם במים מתוקים, כלב ים קטן אפור-כסוף העולה לנוח על הקרח והחופים הסלעיים של אגם באיקל.",
+      "ja": "世界で唯一の淡水性アザラシで、バイカル湖の氷や岩の多い岸に上陸する小型の銀灰色のアザラシです。"
     }
   },
   {
@@ -4710,7 +5034,8 @@
       "hu": "vízidisznó",
       "zh": "水豚",
       "ar": "خنزير الماء",
-      "he": "קפיבארה מצויה"
+      "he": "קפיבארה מצויה",
+      "ja": "カピバラ"
     },
     "descriptions": {
       "en": "The largest rodent, a barrel-shaped grazer that wades and swims in South American rivers and wetlands in calm herds.",
@@ -4723,7 +5048,8 @@
       "hu": "A legnagyobb rágcsáló, hordó alakú növényevő, nyugodt csordákban gázol és úszik Dél-Amerika folyóiban és vizes élőhelyein.",
       "zh": "最大的啮齿动物，体型如桶的食草动物，成群安静地在南美河流和湿地中涉水游泳。",
       "ar": "أكبر القوارض، عاشب برميلي الشكل يخوض ويسبح في أنهار أمريكا الجنوبية وأراضيها الرطبة في قطعان هادئة.",
-      "he": "המכרסם הגדול ביותר, אוכל עשב דמוי חבית הבוסס ושוחה בנהרות ובאזורי ביצה בדרום אמריקה בעדרים רגועים."
+      "he": "המכרסם הגדול ביותר, אוכל עשב דמוי חבית הבוסס ושוחה בנהרות ובאזורי ביצה בדרום אמריקה בעדרים רגועים.",
+      "ja": "最大の齧歯類で、樽のような体型の草食獣です。南米の川や湿地を穏やかな群れで歩いて渡ったり泳いだりします。"
     }
   },
   {
@@ -4739,7 +5065,8 @@
       "hu": "nílusi víziló",
       "zh": "河马",
       "ar": "فرس النهر",
-      "he": "היפופוטם"
+      "he": "היפופוטם",
+      "ja": "カバ"
     },
     "descriptions": {
       "en": "Massive African river giant that spends the day submerged in pods and walks the bottom rather than swims; dangerous to approach.",
@@ -4752,7 +5079,8 @@
       "hu": "Hatalmas afrikai folyami óriás, a napot csoportokban a víz alatt tölti, és inkább jár a fenéken, mint úszik; veszélyes megközelíteni.",
       "zh": "庞大的非洲河流巨兽，白天成群潜伏水中，在水底行走而非游泳；靠近极为危险。",
       "ar": "عملاق نهري أفريقي ضخم يقضي النهار مغموراً في مجموعات ويمشي على القاع بدلاً من السباحة؛ الاقتراب منه خطير.",
-      "he": "ענק נהרות אפריקאי עצום המבלה את היום שקוע בלהקות והולך על הקרקעית במקום לשחות; מסוכן להתקרב אליו."
+      "he": "ענק נהרות אפריקאי עצום המבלה את היום שקוע בלהקות והולך על הקרקעית במקום לשחות; מסוכן להתקרב אליו.",
+      "ja": "アフリカの川に棲む巨体で、日中は群れで水中に沈み、泳ぐよりも川底を歩きます。近づくのは危険です。"
     }
   },
   {
@@ -4768,7 +5096,8 @@
       "hu": "fehér tündérrózsa",
       "zh": "白睡莲",
       "ar": "زنبق الماء الأبيض",
-      "he": "נימפאה לבנה"
+      "he": "נימפאה לבנה",
+      "ja": "ヨーロッパスイレン"
     },
     "descriptions": {
       "en": "Floating round leaves and large white flowers rising from thick rhizomes rooted in the mud of still European waters.",
@@ -4781,7 +5110,8 @@
       "hu": "Úszó, kerek levelek és nagy fehér virágok, amelyek az európai állóvizek iszapjában gyökerező vastag rizómákból emelkednek ki.",
       "zh": "圆形浮叶和大朵白花，从扎根于欧洲静水淤泥中的粗壮根茎抽出。",
       "ar": "أوراق مستديرة طافية وأزهار بيضاء كبيرة تنبثق من جذامير سميكة متجذرة في طين المياه الراكدة الأوروبية.",
-      "he": "עלים עגולים צפים ופרחים לבנים גדולים העולים מקני שורש עבים המושרשים בבוץ של מים עומדים באירופה."
+      "he": "עלים עגולים צפים ופרחים לבנים גדולים העולים מקני שורש עבים המושרשים בבוץ של מים עומדים באירופה.",
+      "ja": "ヨーロッパの止水域の泥に根を張る太い根茎から、丸い浮葉と大きな白い花を伸ばします。"
     }
   },
   {
@@ -4797,7 +5127,8 @@
       "hu": "sárga vízitök",
       "zh": "欧亚萍蓬草",
       "ar": "زنبق الماء الأصفر",
-      "he": "נופר צהוב"
+      "he": "נופר צהוב",
+      "ja": "セイヨウコウホネ"
     },
     "descriptions": {
       "en": "Heart-shaped floating leaves and cup-like yellow flowers, with large translucent underwater leaves visible to divers below.",
@@ -4810,7 +5141,8 @@
       "hu": "Szív alakú úszólevelek és kehelyszerű sárga virágok, nagy, áttetsző víz alatti levelekkel, amelyeket a búvárok alulról látnak.",
       "zh": "心形浮叶和杯状黄花，水下还有潜水者可见的大型半透明沉水叶。",
       "ar": "أوراق طافية قلبية الشكل وأزهار صفراء كأسية، مع أوراق كبيرة شفافة تحت الماء يراها الغواصون من الأسفل.",
-      "he": "עלים צפים בצורת לב ופרחים צהובים דמויי גביע, עם עלים תת-מימיים גדולים ושקופים למחצה הנראים לצוללנים מלמטה."
+      "he": "עלים צפים בצורת לב ופרחים צהובים דמויי גביע, עם עלים תת-מימיים גדולים ושקופים למחצה הנראים לצוללנים מלמטה.",
+      "ja": "ハート形の浮葉とカップ状の黄色い花を持ち、水中にはダイバーから見える大きな半透明の沈水葉があります。"
     }
   },
   {
@@ -4826,7 +5158,8 @@
       "hu": "Amerikai vízicsavar",
       "zh": "美洲苦草",
       "ar": "الفاليسنيريا الأمريكية",
-      "he": "ואליסנריה אמריקאית"
+      "he": "ואליסנריה אמריקאית",
+      "ja": "アメリカセキショウモ"
     },
     "descriptions": {
       "en": "Ribbon-like leaves up to two metres long swaying in the current of clear rivers and springs, a favourite of manatees.",
@@ -4839,7 +5172,8 @@
       "hu": "Szalagszerű, akár két méter hosszú levelek, tiszta folyók és források sodrában ringatóznak, a manátuszok kedvence.",
       "zh": "带状叶片可长达两米，在清澈河流和泉水的水流中摇曳，是海牛最爱的食物。",
       "ar": "أوراق شريطية يصل طولها إلى مترين تتمايل في تيار الأنهار والينابيع الصافية، مفضلة لدى خراف البحر.",
-      "he": "עלים דמויי סרט באורך עד שני מטרים המתנועעים בזרם של נהרות ומעיינות צלולים, מאכל אהוב על פרות ים."
+      "he": "עלים דמויי סרט באורך עד שני מטרים המתנועעים בזרם של נהרות ומעיינות צלולים, מאכל אהוב על פרות ים.",
+      "ja": "長さ2mにもなるリボン状の葉が澄んだ川や泉の流れに揺れる水草で、マナティーの好物です。"
     }
   },
   {
@@ -4855,7 +5189,8 @@
       "hu": "érdes tócsagaz",
       "zh": "金鱼藻",
       "ar": "شمبلان مغمور",
-      "he": "קרנן טבוע"
+      "he": "קרנן טבוע",
+      "ja": "マツモ"
     },
     "descriptions": {
       "en": "Rootless submerged plant with whorls of stiff forked leaves like a raccoon's tail, drifting in dense masses in still water.",
@@ -4868,7 +5203,8 @@
       "hu": "Gyökértelen, alámerült növény merev, villás levelekből álló örvökkel, mint egy mosómedve farka, sűrű tömegekben sodródik az állóvízben.",
       "zh": "无根的沉水植物，硬而分叉的叶片轮生如浣熊尾巴，在静水中成团漂浮。",
       "ar": "نبات مغمور بلا جذور بحلقات من أوراق صلبة متشعبة تشبه ذيل الراكون، ينجرف في كتل كثيفة في المياه الساكنة.",
-      "he": "צמח שקוע חסר שורשים עם דורים של עלים קשיחים ומפוצלים כזנב דביבון, נסחף בגושים צפופים במים עומדים."
+      "he": "צמח שקוע חסר שורשים עם דורים של עלים קשיחים ומפוצלים כזנב דביבון, נסחף בגושים צפופים במים עומדים.",
+      "ja": "アライグマの尾のような硬く二叉に分かれた葉が輪生する根のない沈水植物で、止水域で密な塊となって漂います。"
     }
   },
   {
@@ -4884,7 +5220,8 @@
       "hu": "füzéres süllőhínár",
       "zh": "穗状狐尾藻",
       "ar": "عديد الورق الأوراسي",
-      "he": "אלף-עלה משובל"
+      "he": "אלף-עלה משובל",
+      "ja": "ホザキノフサモ"
     },
     "descriptions": {
       "en": "Feathery submerged plant with whorls of finely divided leaves that forms thick mats near the surface, invasive in many lakes.",
@@ -4897,7 +5234,8 @@
       "hu": "Tollszerű, alámerült növény finoman szeldelt levelekből álló örvökkel, a felszín közelében vastag szőnyeget alkot, sok tóban invazív.",
       "zh": "羽状沉水植物，细裂的叶片轮生，在水面附近形成厚垫，在许多湖泊中为入侵物种。",
       "ar": "نبات مغمور ريشي بحلقات من أوراق دقيقة التقسيم يشكل حصائر كثيفة قرب السطح، غازٍ في كثير من البحيرات.",
-      "he": "צמח שקוע נוצתי עם דורים של עלים מחולקים דק היוצר מחצלות עבות ליד פני המים, פולש באגמים רבים."
+      "he": "צמח שקוע נוצתי עם דורים של עלים מחולקים דק היוצר מחצלות עבות ליד פני המים, פולש באגמים רבים.",
+      "ja": "細かく裂けた葉が輪生する羽毛のような沈水植物で、水面近くに厚いマットを作り、多くの湖で外来種となっています。"
     }
   },
   {
@@ -4913,7 +5251,8 @@
       "hu": "Csillárka",
       "zh": "普生轮藻",
       "ar": "الخارا",
-      "he": "כארה"
+      "he": "כארה",
+      "ja": "シャジクモ"
     },
     "descriptions": {
       "en": "Brittle, musky-smelling green alga with whorled branches, often crusted with lime, carpeting the bottom of clear hard-water lakes.",
@@ -4926,7 +5265,8 @@
       "hu": "Törékeny, pézsmaillatú zöldalga örvös ágakkal, gyakran mészkéreggel borítva, tiszta, kemény vizű tavak fenekét szőnyegezi be.",
       "zh": "质脆、有麝香味的绿藻，枝条轮生，常附有石灰结壳，铺满清澈硬水湖泊的湖底。",
       "ar": "طحلب أخضر هش برائحة المسك وفروع حلقية، غالباً مغطى بقشرة كلسية، يفرش قاع البحيرات الصافية ذات المياه العسرة.",
-      "he": "אצה ירוקה שבירה בעלת ריח מושק עם ענפים דוריים, לעיתים קרובות מצופה בגיר, מרפדת את קרקעית אגמים צלולים בעלי מים קשים."
+      "he": "אצה ירוקה שבירה בעלת ריח מושק עם ענפים דוריים, לעיתים קרובות מצופה בגיר, מרפדת את קרקעית אגמים צלולים בעלי מים קשים.",
+      "ja": "輪生する枝を持つもろく麝香のような匂いのする緑藻で、石灰に覆われていることが多く、澄んだ硬水の湖の底を覆います。"
     }
   },
   {
@@ -4942,7 +5282,8 @@
       "hu": "kanadai átokhínár",
       "zh": "伊乐藻",
       "ar": "الإيلوديا الكندية",
-      "he": "אלודאה קנדית"
+      "he": "אלודאה קנדית",
+      "ja": "カナダモ"
     },
     "descriptions": {
       "en": "Dense submerged plant with whorls of three small dark green leaves, spreading by fragments through cool lakes and canals worldwide.",
@@ -4955,7 +5296,8 @@
       "hu": "Sűrű, alámerült növény három kis sötétzöld levélből álló örvökkel, töredékekkel terjed hűvös tavakban és csatornákban világszerte.",
       "zh": "茂密的沉水植物，三片深绿色小叶轮生，靠断枝在全球凉爽的湖泊和运河中扩散。",
       "ar": "نبات مغمور كثيف بحلقات من ثلاث أوراق صغيرة خضراء داكنة، ينتشر بالشظايا في البحيرات والقنوات الباردة حول العالم.",
-      "he": "צמח שקוע צפוף עם דורים של שלושה עלים קטנים ירוקים כהים, מתפשט בשברים באגמים ובתעלות קרירים ברחבי העולם."
+      "he": "צמח שקוע צפוף עם דורים של שלושה עלים קטנים ירוקים כהים, מתפשט בשברים באגמים ובתעלות קרירים ברחבי העולם.",
+      "ja": "小さな濃緑色の葉が3枚ずつ輪生する密な沈水植物で、断片から増え、世界中の冷涼な湖や運河に広がっています。"
     }
   },
   {
@@ -4971,7 +5313,8 @@
       "hu": "Bodros békaszőlő",
       "zh": "菹草",
       "ar": "عشب البرك مجعد الأوراق",
-      "he": "נהרונית מסולסלת"
+      "he": "נהרונית מסולסלת",
+      "ja": "エビモ"
     },
     "descriptions": {
       "en": "Submerged plant with wavy-edged reddish-green leaves like crinkled lasagne, growing early in spring before other weeds.",
@@ -4984,7 +5327,8 @@
       "hu": "Alámerült növény hullámos szélű, vörösesnek tűnő zöld levelekkel, mint a fodros lasagne, kora tavasszal nő, más hínárok előtt.",
       "zh": "沉水植物，叶缘波状呈红绿色，形似皱褶的千层面，早春时先于其他水草生长。",
       "ar": "نبات مغمور بأوراق خضراء محمرة متموجة الحواف تشبه اللازانيا المجعدة، ينمو مبكراً في الربيع قبل الأعشاب الأخرى.",
-      "he": "צמח שקוע עם עלים ירוקים-אדמדמים בשוליים גליים כמו לזניה מקומטת, הצומח מוקדם באביב לפני צמחי מים אחרים."
+      "he": "צמח שקוע עם עלים ירוקים-אדמדמים בשוליים גליים כמו לזניה מקומטת, הצומח מוקדם באביב לפני צמחי מים אחרים.",
+      "ja": "縮れたラザニアのような波打つ縁の赤緑色の葉を持つ沈水植物で、ほかの水草より早く春先に成長します。"
     }
   },
   {
@@ -5000,7 +5344,8 @@
       "hu": "közönséges vízijácint",
       "zh": "水葫芦",
       "ar": "ورد النيل سميك الساق",
-      "he": "איכהורניה עבת-רגל"
+      "he": "איכהורניה עבת-רגל",
+      "ja": "ホテイアオイ"
     },
     "descriptions": {
       "en": "Floating plant with glossy leaves on air-filled stalks and spikes of lavender flowers, choking warm waterways worldwide.",
@@ -5013,7 +5358,8 @@
       "hu": "Úszó növény fényes levelekkel levegővel telt szárakon és levendulaszínű virágfüzérekkel, világszerte elfojtja a meleg vízi utakat.",
       "zh": "浮水植物，叶片光亮、叶柄膨大充气，开淡紫色穗状花，在全球温暖水道中大量堵塞水面。",
       "ar": "نبات طافٍ بأوراق لامعة على سيقان مملوءة بالهواء وسنابل من أزهار بنفسجية فاتحة، يخنق الممرات المائية الدافئة حول العالم.",
-      "he": "צמח צף עם עלים מבריקים על גבעולים מלאי אוויר ושיבולים של פרחי לבנדר, החונק נתיבי מים חמים ברחבי העולם."
+      "he": "צמח צף עם עלים מבריקים על גבעולים מלאי אוויר ושיבולים של פרחי לבנדר, החונק נתיבי מים חמים ברחבי העולם.",
+      "ja": "空気を含んだ葉柄に光沢のある葉と薄紫色の花穂を付ける浮遊植物で、世界中の温暖な水路をふさいでいます。"
     }
   },
   {
@@ -5029,7 +5375,8 @@
       "hu": "Közönséges nád",
       "zh": "芦苇",
       "ar": "قيصوب جنوبي",
-      "he": "קנה מצוי"
+      "he": "קנה מצוי",
+      "ja": "ヨシ"
     },
     "descriptions": {
       "en": "Tall feathery-headed grass forming dense beds along lake shores, its submerged stems sheltering fry and dragonfly larvae.",
@@ -5042,7 +5389,8 @@
       "hu": "Magas, tollas bugájú fűféle, sűrű nádasokat alkot a tópartokon; víz alatti szárai ivadékoknak és szitakötőlárváknak adnak menedéket.",
       "zh": "高大的芦苇草，顶端有羽状花序，在湖岸形成茂密苇丛，水下茎干为幼鱼和蜻蜓幼虫提供庇护。",
       "ar": "عشب طويل بعناقيد ريشية يشكل أحراشاً كثيفة على شواطئ البحيرات، وتؤوي سيقانه المغمورة صغار الأسماك ويرقات اليعسوب.",
-      "he": "עשב גבוה בעל ראשים נוצתיים היוצר סבכים צפופים לאורך חופי אגמים, וגבעוליו השקועים מספקים מחסה לדגיגים ולזחלי שפיריות."
+      "he": "עשב גבוה בעל ראשים נוצתיים היוצר סבכים צפופים לאורך חופי אגמים, וגבעוליו השקועים מספקים מחסה לדגיגים ולזחלי שפיריות.",
+      "ja": "羽毛のような穂を付ける背の高いイネ科植物で、湖岸に密な群落を作り、水中の茎が稚魚やトンボの幼虫の隠れ家になります。"
     }
   }
 ]

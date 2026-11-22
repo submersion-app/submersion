@@ -109,14 +109,15 @@ class PdfFonts {
   ///
   /// Roboto (or Helvetica, when [initialize] has not run or failed) covers
   /// Latin, Greek and Cyrillic, so those languages keep today's theme exactly.
-  /// Arabic, Hebrew and Chinese get a font covering both that script and
-  /// Latin as the BASE font, with the Latin font as a last-resort fallback.
-  /// Base rather than fallback matters: the pdf package hands every glyph
-  /// its base font lacks to the fallback one character at a time, and
-  /// characters laid out one at a time neither join (Arabic) nor keep their
-  /// order inside a mixed right-to-left line (Latin site names, units). Only those three languages trigger a download. Deliberately does
-  /// not call [initialize]: whether the Latin font is embedded stays the
-  /// caller's decision, as it was before.
+  /// Arabic, Hebrew, Chinese and Japanese get a font covering both that
+  /// script and Latin as the BASE font, with the Latin font as a last-resort
+  /// fallback. Base rather than fallback matters: the pdf package hands
+  /// every glyph its base font lacks to the fallback one character at a
+  /// time, and characters laid out one at a time neither join (Arabic) nor
+  /// keep their order inside a mixed right-to-left line (Latin site names,
+  /// units). Only the languages in [scriptFontLoaders] trigger a download.
+  /// Deliberately does not call [initialize]: whether the Latin font is
+  /// embedded stays the caller's decision, as it was before.
   ///
   /// Never throws. A script font that cannot be loaded (no network) leaves
   /// the Latin theme, which prints the characters it can, as before.
@@ -140,28 +141,43 @@ class PdfFonts {
     );
   }
 
+  /// The script font each non-Latin language prints in, by language code.
+  /// A language not listed prints in the Latin theme.
+  ///
+  /// Cairo and Heebo carry Latin glyphs beside their script (Heebo's Latin
+  /// is Roboto's), so site names and units never reach the per-character
+  /// fallback, which lays Latin out backwards on a right-to-left page. Noto
+  /// Sans SC and JP cover Latin themselves. Japanese shares Chinese code
+  /// points but draws many kanji differently, so it needs its own font, not
+  /// Noto Sans SC (#4833).
+  @visibleForTesting
+  static const Map<
+    String,
+    ({Future<pw.Font> Function() regular, Future<pw.Font> Function() bold})
+  >
+  scriptFontLoaders = {
+    'ar': (
+      regular: PdfGoogleFonts.cairoRegular,
+      bold: PdfGoogleFonts.cairoBold,
+    ),
+    'he': (
+      regular: PdfGoogleFonts.heeboRegular,
+      bold: PdfGoogleFonts.heeboBold,
+    ),
+    'zh': (
+      regular: PdfGoogleFonts.notoSansSCRegular,
+      bold: PdfGoogleFonts.notoSansSCBold,
+    ),
+    'ja': (
+      regular: PdfGoogleFonts.notoSansJPRegular,
+      bold: PdfGoogleFonts.notoSansJPBold,
+    ),
+  };
+
   Future<({pw.Font regular, pw.Font? bold})?> _scriptFontsFor(
     String languageCode,
   ) async {
-    final load = switch (languageCode) {
-      // Cairo and Heebo carry Latin glyphs beside their script (Heebo's
-      // Latin is Roboto's), so site names and units never reach the
-      // per-character fallback, which lays Latin out backwards on a
-      // right-to-left page. Noto Sans SC covers Latin itself.
-      'ar' => (
-        regular: PdfGoogleFonts.cairoRegular,
-        bold: PdfGoogleFonts.cairoBold,
-      ),
-      'he' => (
-        regular: PdfGoogleFonts.heeboRegular,
-        bold: PdfGoogleFonts.heeboBold,
-      ),
-      'zh' => (
-        regular: PdfGoogleFonts.notoSansSCRegular,
-        bold: PdfGoogleFonts.notoSansSCBold,
-      ),
-      _ => null,
-    };
+    final load = scriptFontLoaders[languageCode];
     if (load == null) return null;
     final cached = _scriptFonts[languageCode];
     if (cached != null) return cached;

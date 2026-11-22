@@ -89,20 +89,8 @@ class IncidentRepository {
     return incident;
   }
 
-  Future<void> updateIncident(Incident incident) async {
-    final now = DateTime.now();
-    final updated = incident.copyWith(updatedAt: now);
-    await _db.into(_db.incidents).insertOnConflictUpdate(_toCompanion(updated));
-    await _syncRepository.markRecordPending(
-      entityType: 'incidents',
-      recordId: incident.id,
-      localUpdatedAt: now.millisecondsSinceEpoch,
-    );
-    SyncEventBus.notifyLocalChange();
-  }
-
   /// Writes only the fields of [changes] given, on the report as stored,
-  /// with a new `updatedAt`, staged for sync. What the editor left alone
+  /// with a new `updatedAt`, staged for sync. What a change leaves alone
   /// keeps its stored value, including a check-in link that does not stand
   /// just now (a read gives it as null; see [_read]). An update by id only:
   /// false, writing nothing, when the report no longer exists, so a report

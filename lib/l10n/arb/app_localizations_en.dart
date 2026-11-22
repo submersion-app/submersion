@@ -17905,10 +17905,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formatter_connector_at => 'at';
 
   @override
-  String get formatter_connector_from => 'From';
+  String formatter_dateRange_from(String date) {
+    return 'From $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Until';
+  String formatter_dateRange_until(String date) {
+    return 'Until $date';
+  }
 
   @override
   String get gas_air_description => 'Standard air (21% O2)';

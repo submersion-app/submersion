@@ -18172,10 +18172,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get formatter_connector_at => 'alle';
 
   @override
-  String get formatter_connector_from => 'Da';
+  String formatter_dateRange_from(String date) {
+    return 'Da $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Fino a';
+  String formatter_dateRange_until(String date) {
+    return 'Fino a $date';
+  }
 
   @override
   String get gas_air_description => 'Aria standard (21% O2)';

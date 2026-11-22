@@ -23,12 +23,18 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the viewer's toolbar needs for the marine life labels action
 /// (issue #4825): what a tap does (null when [item] is not looked at on
-/// this device), whether labels are drawn, and the ring while it is being
-/// analysed. Read while the toolbar builds, so it follows them.
+/// this device), whether labels are drawn, the ring while it is being
+/// analysed, and the icon's colour for how far analysis has got (issue
+/// #4926). Read while the toolbar builds, so it follows them.
 ///
 /// [showing] says whether [item] is still the one on screen in the viewer
 /// still open; a notice on what an Analyse found waits for it.
-({void Function(BuildContext anchor)? onPressed, bool on, ToolbarRing? ring})
+({
+  void Function(BuildContext anchor)? onPressed,
+  bool on,
+  ToolbarRing? ring,
+  ToolbarTone? tone,
+})
 marineLifeLabelsAction(
   WidgetRef ref,
   MediaItem item,
@@ -44,13 +50,15 @@ marineLifeLabelsAction(
               item.sourceType != MediaSourceType.serviceConnector &&
               videoLabelsShown(defaultTargetPlatform)));
   final on = ref.watch(labelModeNotifierProvider) != LabelMode.off;
-  if (!applies) return (onPressed: null, on: on, ring: null);
-  // Kept read while the toolbar shows, so the menu opens on what is known.
-  // Listened to, not watched: the toolbar shows none of it, and it reloads
-  // on every write to the logbook's identifications.
-  ref.listen(
-    mediaAnalysisStatusProvider(AnalysisTarget(item, location)),
-    (_, _) {},
+  if (!applies) return (onPressed: null, on: on, ring: null, tone: null);
+  // Kept read while the toolbar shows, so the menu opens on what is known,
+  // and the icon's colour follows it. Only the state is watched: the status
+  // reloads on every write to the logbook's identifications, and a reload
+  // that leaves the state as it was rebuilds nothing.
+  final state = ref.watch(
+    mediaAnalysisStatusProvider(
+      AnalysisTarget(item, location),
+    ).select((status) => status.value?.state),
   );
   final busy = ref.watch(mediaIdentificationBusyProvider(item.id)).value;
   final progress = ref
@@ -69,6 +77,12 @@ marineLifeLabelsAction(
     on: on,
     // A video fills its ring as it is scanned; a photo's spins.
     ring: busy ?? false ? ToolbarRing(progress) : null,
+    tone: switch (labelsButtonStatus(state: state, busy: busy ?? false)) {
+      LabelsButtonStatus.notAnalysed => null,
+      LabelsButtonStatus.analysing => ToolbarTone.active,
+      LabelsButtonStatus.partial => ToolbarTone.warn,
+      LabelsButtonStatus.analysed => ToolbarTone.ok,
+    },
   );
 }
 

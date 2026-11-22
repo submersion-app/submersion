@@ -29,6 +29,7 @@ void main() {
       'nl',
       'pt',
       'zh',
+      'ja',
     ]) {
       final l10n = l10nForLocaleTag(tag);
       for (final c in QueryErrorCode.values) {
