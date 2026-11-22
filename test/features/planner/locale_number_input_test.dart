@@ -25,6 +25,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../helpers/mock_providers.dart';
 import '../../helpers/test_app.dart';
+import '../../helpers/test_database.dart';
 
 /// Locale-aware numeric input across the planner, cylinder configurations and
 /// tank presets (#1091).
@@ -269,11 +270,17 @@ void main() {
 
   group('TankPresetEditPage', () {
     late _RecordingPresetNotifier notifier;
+    late _StubPresetRepository repository;
+
+    // The editor saves inside one database transaction (issue #4527).
+    setUp(() async => setUpTestDatabase());
+    tearDown(() async => tearDownTestDatabase());
 
     Future<void> pumpPage(WidgetTester tester, TankPresetEntity preset) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       notifier = _RecordingPresetNotifier([preset]);
+      repository = _StubPresetRepository(preset);
 
       final router = GoRouter(
         routes: [
@@ -293,9 +300,7 @@ void main() {
             currentDiverIdProvider.overrideWith(
               (ref) => MockCurrentDiverIdNotifier(),
             ),
-            tankPresetRepositoryProvider.overrideWithValue(
-              _StubPresetRepository(preset),
-            ),
+            tankPresetRepositoryProvider.overrideWithValue(repository),
             tankPresetListNotifierProvider.overrideWith((ref) => notifier),
           ].cast(),
           child: MaterialApp.router(
@@ -321,22 +326,27 @@ void main() {
       updatedAt: DateTime(2026, 1, 1),
     );
 
-    testWidgets('a no-op save under a grouping-dot locale keeps the volume', (
+    testWidgets('a rename under a grouping-dot locale keeps the volume', (
       tester,
     ) async {
-      // The x10 regression guard for a validated form: the validator and the
-      // save-path parser must agree with the seed, or 12,5 L becomes 125 L.
+      // The x10 regression guard for a validated form: the validator must
+      // accept the seed, and the volume must not come back as 125 L. Save is
+      // offered once something changed, so the preset is renamed; the volume
+      // left alone keeps its stored value.
       Intl.defaultLocale = 'de';
       await pumpPage(tester, preset());
 
       expect(find.widgetWithText(TextFormField, '12,5'), findsOneWidget);
 
+      await tester.enterText(find.widgetWithText(TextFormField, 'Test'), 'T2');
+      await tester.pump();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(notifier.updated, isNotNull);
-      expect(notifier.updated!.volumeLiters, closeTo(12.5, 0.001));
-      expect(notifier.updated!.workingPressureBar, closeTo(200, 0.001));
+      expect(find.text('Enter a valid volume'), findsNothing);
+      expect(repository.updated, isNotNull);
+      expect(repository.updated!.volumeLiters, closeTo(12.5, 0.001));
+      expect(repository.updated!.workingPressureBar, closeTo(200, 0.001));
     });
 
     testWidgets('a comma-decimal volume passes the validator and saves', (
@@ -349,13 +359,14 @@ void main() {
         find.widgetWithText(TextFormField, 'Volume'),
         '14,2',
       );
+      await tester.pump();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
       // No validation error, and the typed value landed unrounded.
       expect(find.text('Enter a valid volume'), findsNothing);
-      expect(notifier.updated, isNotNull);
-      expect(notifier.updated!.volumeLiters, closeTo(14.2, 0.001));
+      expect(repository.updated, isNotNull);
+      expect(repository.updated!.volumeLiters, closeTo(14.2, 0.001));
     });
   });
 }
@@ -366,9 +377,15 @@ class _StubPresetRepository extends TankPresetRepository {
 
   final TankPresetEntity preset;
 
+  /// What the edit page wrote, through the repository.
+  TankPresetEntity? updated;
+
   @override
   Future<TankPresetEntity?> getPresetById(String id) async =>
       preset.id == id ? preset : null;
+
+  @override
+  Future<void> updatePreset(TankPresetEntity preset) async => updated = preset;
 
   @override
   Future<List<TankPresetEntity>> getAllPresets({String? diverId}) async => [
