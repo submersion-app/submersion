@@ -109,12 +109,12 @@ class PdfFonts {
   ///
   /// Roboto (or Helvetica, when [initialize] has not run or failed) covers
   /// Latin, Greek and Cyrillic, so those languages keep today's theme exactly.
-  /// Arabic, Hebrew and Chinese get a font covering both that script and
+  /// Arabic, Hebrew, Chinese and Japanese get a font covering both that script and
   /// Latin as the BASE font, with the Latin font as a last-resort fallback.
   /// Base rather than fallback matters: the pdf package hands every glyph
   /// its base font lacks to the fallback one character at a time, and
   /// characters laid out one at a time neither join (Arabic) nor keep their
-  /// order inside a mixed right-to-left line (Latin site names, units). Only those three languages trigger a download. Deliberately does
+  /// order inside a mixed right-to-left line (Latin site names, units). Only those four languages trigger a download. Deliberately does
   /// not call [initialize]: whether the Latin font is embedded stays the
   /// caller's decision, as it was before.
   ///
@@ -147,7 +147,7 @@ class PdfFonts {
       // Cairo and Heebo carry Latin glyphs beside their script (Heebo's
       // Latin is Roboto's), so site names and units never reach the
       // per-character fallback, which lays Latin out backwards on a
-      // right-to-left page. Noto Sans SC covers Latin itself.
+      // right-to-left page. Noto Sans SC and JP cover Latin themselves.
       'ar' => (
         regular: PdfGoogleFonts.cairoRegular,
         bold: PdfGoogleFonts.cairoBold,
@@ -159,6 +159,12 @@ class PdfFonts {
       'zh' => (
         regular: PdfGoogleFonts.notoSansSCRegular,
         bold: PdfGoogleFonts.notoSansSCBold,
+      ),
+      // Japanese shares Chinese code points but draws many kanji
+      // differently, so it needs its own font, not Noto Sans SC (#4833).
+      'ja' => (
+        regular: PdfGoogleFonts.notoSansJPRegular,
+        bold: PdfGoogleFonts.notoSansJPBold,
       ),
       _ => null,
     };

@@ -79,11 +79,11 @@ void main() {
         return null;
       };
 
-      for (final code in ['en', 'fr', 'de', 'hu', 'zh', 'ar', 'he']) {
+      for (final code in ['en', 'fr', 'de', 'hu', 'zh', 'ja', 'ar', 'he']) {
         await PdfFonts.instance.themeFor(PdfLocalization.forLanguageCode(code));
       }
 
-      expect(requested, ['zh', 'ar', 'he']);
+      expect(requested, ['zh', 'ja', 'ar', 'he']);
     });
 
     test(
