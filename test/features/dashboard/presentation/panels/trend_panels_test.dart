@@ -259,20 +259,38 @@ void main() {
       expect(find.textContaining('ft'), findsWidgets);
     });
 
-    // Shallow to deep in the same colours as the Insights depth chart, so
-    // a band reads the same on both pages.
-    testWidgets('colours each band as Insights does', (tester) async {
-      await pumpPanel(
+    // Shallow to deep in the Insights depth chart's colours. On a dark
+    // theme the ramp starts at its lightest, as Insights does; on a light
+    // one it starts at the mid shades, whose lightest bar still stands at
+    // about 3:1 against the panel.
+    for (final (brightness, first) in [
+      (Brightness.dark, 0),
+      (Brightness.light, 5),
+    ]) {
+      testWidgets('colours each band shallow to deep (${brightness.name})', (
         tester,
-        const DepthMixPanel(),
-        overrides: [
-          diveStatisticsProvider.overrideWith(
-            (ref) async => _stats(depths: _depths),
-          ),
-        ],
-      );
-      final bars = tester.widget<HomeBars>(find.byType(HomeBars));
-      expect(bars.colors, depthBucketColors.take(3).toList());
+      ) async {
+        await pumpPanel(
+          tester,
+          const DepthMixPanel(),
+          theme: ThemeData(brightness: brightness),
+          overrides: [
+            diveStatisticsProvider.overrideWith(
+              (ref) async => _stats(depths: _depths),
+            ),
+          ],
+        );
+        final bars = tester.widget<HomeBars>(find.byType(HomeBars));
+        expect(bars.colors, depthBucketColors.sublist(first, first + 3));
+      });
+    }
+
+    // A log with very deep dives runs past the end of the shifted ramp: the
+    // deepest bands keep its darkest colour.
+    test('the light ramp holds its darkest colour past its end', () {
+      expect(depthBandColor(13, Brightness.light), depthBucketColors.last);
+      expect(depthBandColor(13, Brightness.dark), depthBucketColors[13]);
+      expect(depthBandColor(0, Brightness.light), depthBucketColors[5]);
     });
 
     testWidgets('no dives shows the empty text', (tester) async {

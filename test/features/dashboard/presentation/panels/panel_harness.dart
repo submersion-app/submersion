@@ -23,6 +23,7 @@ Future<PanelNav> pumpPanel(
   AppSettings settings = const AppSettings(),
   double textScale = 1,
   Locale? locale,
+  ThemeData? theme,
 }) async {
   tester.view.physicalSize = Size(width, height + 200);
   tester.view.devicePixelRatio = 1;
@@ -58,6 +59,7 @@ Future<PanelNav> pumpPanel(
       overrides: [...base, ...overrides].cast(),
       child: MaterialApp.router(
         locale: locale,
+        theme: theme,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,

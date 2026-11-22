@@ -37,21 +37,39 @@ class DepthMixPanel extends ConsumerWidget {
         emptyText: l10n.dashboard_panel_noDives,
         builder: (s) {
           final bands = trimmedDepthBands(s.depthDistribution);
-          // Shallow to deep in the Insights depth chart's colours, so a
-          // band reads the same on both pages. Trimming only drops bands
-          // from the deep end, so each keeps its index.
+          // Trimming only drops bands from the deep end, so each keeps its
+          // index.
+          final brightness = Theme.of(context).brightness;
           return HomeBars(
             [for (final b in bands) b.count.toDouble()],
             labels: [for (final b in bands) depthBucketLabel(b, units, l10n)],
             colors: [
               for (var i = 0; i < bands.length; i++)
-                depthBucketColors[i % depthBucketColors.length],
+                depthBandColor(i, brightness),
             ],
           );
         },
       ),
     );
   }
+}
+
+/// Where the depth ramp starts on a light theme: its mid shades, the first
+/// whose lightest bar stands at about 3:1 against a light panel. The light
+/// shades before it are made for a dark page and all but vanish on a light
+/// one.
+const int _lightThemeRampStart = 5;
+
+/// Band [index]'s colour, shallow to deep, from the Insights depth chart's
+/// palette: from its lightest on a dark theme, as Insights draws it, and
+/// from its mid shades on a light one. Bands past the end of the palette
+/// keep its darkest colour.
+Color depthBandColor(int index, Brightness brightness) {
+  final start = brightness == Brightness.light ? _lightThemeRampStart : 0;
+  final at = start + index;
+  return depthBucketColors[at < depthBucketColors.length
+      ? at
+      : depthBucketColors.length - 1];
 }
 
 /// The bands up to the deepest one with dives: the empty bands past it say
