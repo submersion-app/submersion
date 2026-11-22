@@ -40,6 +40,8 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
 import 'package:submersion/features/media/presentation/widgets/share_password_flow.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -103,8 +105,18 @@ class _SubscriptionTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A failing subscription carries the same mark the data health puts on
+    // the rows leading here, so the one that needs the diver is found.
+    final failing = sub.lastError != null && sub.lastError!.isNotEmpty;
+    final colors = Theme.of(context).colorScheme;
     return ListTile(
-      leading: const Icon(Icons.feed_outlined),
+      leading: failing
+          ? const HealthSymbol(
+              key: Key('manifestSubscriptionFailing'),
+              level: HealthLevel.attention,
+              size: 24,
+            )
+          : const Icon(Icons.feed_outlined),
       title: Row(
         children: [
           Expanded(
@@ -117,7 +129,10 @@ class _SubscriptionTile extends ConsumerWidget {
           _FormatChip(format: sub.format),
         ],
       ),
-      subtitle: Text(_subtitle(context.l10n)),
+      subtitle: Text(
+        _subtitle(context.l10n),
+        style: failing ? TextStyle(color: colors.error) : null,
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

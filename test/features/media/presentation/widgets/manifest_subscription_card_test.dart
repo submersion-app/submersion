@@ -525,5 +525,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('HTTP 500: server error'), findsOneWidget);
+    // The failing row carries the attention mark; a healthy one does not.
+    expect(
+      find.byKey(const Key('manifestSubscriptionFailing')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a subscription without an error carries no mark', (
+    tester,
+  ) async {
+    final repo = _FakeRepo([_sub('1')]);
+    await tester.pumpWidget(
+      _wrap(
+        const ManifestSubscriptionCard(),
+        repo: repo,
+        poller: _FakePoller(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('manifestSubscriptionFailing')), findsNothing);
   });
 }
