@@ -126,8 +126,8 @@ for measuring a smaller phone lifts the floor:
 flutter build apk --dart-define=MARINE_LIFE_ID_ONNX=true --dart-define=MARINE_LIFE_ID_IGNORE_FLOOR=true
 ```
 
-The package's tests run the real ONNX Runtime. On Linux they load the hook's
-library; on a Mac they need ONNX Runtime's macOS library (from the same NuGet
+The package's tests run the real ONNX Runtime. On Linux and Windows they load
+the hook's library (CI runs both, on the processor); on a Mac they need ONNX Runtime's macOS library (from the same NuGet
 package, `runtimes/osx-arm64/native/libonnxruntime.dylib`) named in
 `SUBMERSION_ORT_LIBRARY`, and skip without it:
 
