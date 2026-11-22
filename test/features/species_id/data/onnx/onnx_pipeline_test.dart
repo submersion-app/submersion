@@ -248,21 +248,38 @@ void main() {
   });
 
   group('how wide a crop is (issue #4882)', () {
-    // A white square on black: how much black the classifier is given says
-    // how much was padded around the box.
-    RgbaImage squareOnBlack(int side, int square) {
-      final pixels = Uint8List(side * side * 4);
-      final from = (side - square) ~/ 2;
-      for (var y = 0; y < side; y++) {
-        for (var x = 0; x < side; x++) {
-          final i = (y * side + x) * 4;
-          final white =
-              x >= from && x < from + square && y >= from && y < from + square;
+    // A white rectangle on black: how much black the classifier is given
+    // says how much was padded around the box.
+    RgbaImage whiteOnBlack(
+      int width,
+      int height, {
+      required int left,
+      required int top,
+      required int w,
+      required int h,
+    }) {
+      final pixels = Uint8List(width * height * 4);
+      for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+          final i = (y * width + x) * 4;
+          final white = x >= left && x < left + w && y >= top && y < top + h;
           pixels[i] = pixels[i + 1] = pixels[i + 2] = white ? 255 : 0;
           pixels[i + 3] = 255;
         }
       }
-      return RgbaImage(side, side, pixels);
+      return RgbaImage(width, height, pixels);
+    }
+
+    RgbaImage squareOnBlack(int side, int square) {
+      final from = (side - square) ~/ 2;
+      return whiteOnBlack(
+        side,
+        side,
+        left: from,
+        top: from,
+        w: square,
+        h: square,
+      );
     }
 
     Float32List momentInput(
@@ -313,6 +330,18 @@ void main() {
     test('a video box of 256 px or more keeps the pack padding', () {
       final img = squareOnBlack(1000, 300);
       const box = IdentificationBox(x: 0.35, y: 0.35, width: 0.3, height: 0.3);
+
+      final input = momentInput(models(), img, box);
+
+      expect(input, momentInput(at(0.1), img, box));
+      expect(input, isNot(momentInput(at(0.6), img, box)));
+    });
+
+    test('a box is sized against its own side of a tall frame', () {
+      // 360 by 300 px: not small. Sized against the other side of the
+      // frame it would be 1800 by 60 px, and small.
+      final img = whiteOnBlack(400, 2000, left: 20, top: 800, w: 360, h: 300);
+      const box = IdentificationBox(x: 0.05, y: 0.4, width: 0.9, height: 0.15);
 
       final input = momentInput(models(), img, box);
 

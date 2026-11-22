@@ -170,13 +170,14 @@ class VisionModels extends Equatable {
   /// The padding of a video moment's crop, for a box [boxWidth] by
   /// [boxHeight] in the frame's pixels (issue #4882): [smallBoxPadding] for
   /// a box under [smallBoxSide] on its shorter side, else [cropPadding].
-  /// A photo's crop is always padded by [cropPadding], the padding the
-  /// naming bars were measured with, and so is a big fish in a video: a
-  /// box that already fills much of the frame gains only its neighbours
-  /// from more padding.
+  /// A small box is never cropped tighter than [cropPadding], whatever a
+  /// pack sets it to. A photo's crop is always padded by [cropPadding], the
+  /// padding the naming bars were measured with, and so is a big fish in a
+  /// video: a box that already fills much of the frame gains only its
+  /// neighbours from more padding.
   double momentPadding({required double boxWidth, required double boxHeight}) =>
       math.min(boxWidth, boxHeight) < smallBoxSide
-      ? smallBoxPadding
+      ? math.max(smallBoxPadding, cropPadding)
       : cropPadding;
 
   Map<String, Object?> toChannel() => {

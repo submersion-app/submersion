@@ -17,7 +17,14 @@ void main() {
       final models = _models();
 
       expect(models.momentPadding(boxWidth: 400, boxHeight: 255.9), 0.6);
+      expect(models.momentPadding(boxWidth: 255, boxHeight: 1000), 0.6);
       expect(models.momentPadding(boxWidth: 64, boxHeight: 90), 0.6);
+    });
+
+    test('a small box is never cropped tighter than the pack padding', () {
+      final models = _models().copyWith(cropPadding: 0.8);
+
+      expect(models.momentPadding(boxWidth: 100, boxHeight: 100), 0.8);
     });
 
     test('a box 256 px or more on its shorter side keeps the pack padding', () {

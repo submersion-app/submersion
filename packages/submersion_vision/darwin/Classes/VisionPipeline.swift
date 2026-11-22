@@ -145,8 +145,8 @@ struct VisionModelSettings: Equatable {
     maxBoxes = try args.int("maxBoxes")
     cropPadding = try args.double("cropPadding")
     // Absent, as from a tool that predates them, means no wider crop.
-    smallBoxPadding = (values["smallBoxPadding"] as? NSNumber)?.doubleValue ?? cropPadding
-    smallBoxSide = (values["smallBoxSide"] as? NSNumber)?.doubleValue ?? 0
+    smallBoxPadding = try VisionModelSettings.nonNegative(values, "smallBoxPadding") ?? cropPadding
+    smallBoxSide = try VisionModelSettings.nonNegative(values, "smallBoxSide") ?? 0
     classifierPath = try args.string("classifierPath")
     classifierInputSize = try args.int("classifierInputSize")
     classifierMean = try args.triple("classifierMean")
@@ -162,6 +162,16 @@ struct VisionModelSettings: Equatable {
     } else {
       cropFit = .padSquare
     }
+  }
+
+  /// [key] of [values]: nil when absent, else a number of 0 or more, which
+  /// anything else fails as bad arguments.
+  private static func nonNegative(_ values: [String: Any], _ key: String) throws -> Double? {
+    guard let value = values[key] else { return nil }
+    guard let number = value as? NSNumber, number.doubleValue >= 0 else {
+      throw VisionError.badArguments(key)
+    }
+    return number.doubleValue
   }
 }
 
@@ -271,8 +281,9 @@ final class VisionPipeline {
     // Pixel box of the detection, then padded for the crop.
     let bx = x * Double(width), by = y * Double(height)
     let bw = w * Double(width), bh = h * Double(height)
+    // A small box is never cropped tighter than the pack's padding.
     let padding = moment && min(bw, bh) < settings.smallBoxSide
-      ? settings.smallBoxPadding : settings.cropPadding
+      ? max(settings.smallBoxPadding, settings.cropPadding) : settings.cropPadding
     let padX = bw * padding, padY = bh * padding
     let cropRect = CGRect(
       x: max(0, bx - padX), y: max(0, by - padY),
