@@ -19,25 +19,29 @@ class ContingencyChips extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // When the plan loses its bottom the time chips go, and so does a time
-    // preview the diver picked: left in place it would come back on its own
-    // the moment a bottom is added again.
-    ref.listen<bool>(planCanLengthenProvider, (_, canLengthen) {
-      if (canLengthen) return;
-      final selection = ref.read(selectedDeviationProvider);
-      if (selection != null && selection != 'deeper') {
-        ref.read(selectedDeviationProvider.notifier).state = null;
-      }
-    });
-    final state = ref.watch(divePlanNotifierProvider);
-    if (state.segments.isEmpty) return const SizedBox.shrink();
     final canLengthen = ref.watch(planCanLengthenProvider);
     final rawSelected = ref.watch(selectedDeviationProvider);
-    // Until the listener above has cleared it, a time selection the plan no
-    // longer offers reads as Base rather than as no chip at all.
-    final selected = canLengthen || rawSelected == 'deeper'
-        ? rawSelected
-        : null;
+    final staleTimeSelection =
+        !canLengthen && rawSelected != null && rawSelected != 'deeper';
+    if (staleTimeSelection) {
+      // Without a bottom the time chips go, and so does a time preview the
+      // diver picked: left in place it would come back on its own the moment
+      // a bottom is added again. Checked on every build, so it also catches
+      // a selection that went stale while these chips were not on screen.
+      // Cleared after the frame, since a provider cannot change mid-build.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        final notifier = ref.read(selectedDeviationProvider.notifier);
+        if (notifier.state == rawSelected &&
+            !ref.read(planCanLengthenProvider)) {
+          notifier.state = null;
+        }
+      });
+    }
+    final state = ref.watch(divePlanNotifierProvider);
+    if (state.segments.isEmpty) return const SizedBox.shrink();
+    // Until then, the stale selection reads as Base rather than as no chip.
+    final selected = staleTimeSelection ? null : rawSelected;
     final units = ref.watch(unitFormatterProvider);
 
     // The plan's own deviation, else the diver's Settings default (#3552).

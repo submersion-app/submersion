@@ -133,6 +133,40 @@ void main() {
     expect(container.read(selectedContingencyProvider), isNull);
   });
 
+  testWidgets('chips mounted on a plan with no bottom clear a stale +time '
+      'selection', (tester) async {
+    final showChips = ValueNotifier(false);
+    addTearDown(showChips.dispose);
+    await tester.pumpWidget(
+      testApp(
+        overrides: _overrides(),
+        child: ValueListenableBuilder<bool>(
+          key: const Key('chipsHost'),
+          valueListenable: showChips,
+          builder: (_, show, _) =>
+              show ? const ContingencyChips() : const SizedBox.shrink(),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const Key('chipsHost'))),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    container.read(selectedDeviationProvider.notifier).state = 'longer';
+    // The bottom goes while the chips are not on screen.
+    final hold = container.read(divePlanNotifierProvider).segments.last;
+    notifier.removeSegment(hold.id);
+
+    showChips.value = true;
+    await tester.pumpAndSettle();
+    expect(container.read(selectedDeviationProvider), isNull);
+
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+    expect(container.read(selectedContingencyProvider), isNull);
+  });
+
   testWidgets('overlay chips render a single row strip and drive selection', (
     tester,
   ) async {
