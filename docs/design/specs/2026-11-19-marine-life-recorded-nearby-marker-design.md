@@ -23,6 +23,9 @@ the tag.
    - each species row in Species to review.
 2. **It is looked up when shown** (approach 1 below), from the list the
    site page already fetches and saves.
+3. **Added 2026-11-22: the viewer's suggestion chips get it too**, as a
+   small pin at the end of the chip (see Look). That covers the chips over
+   a photo and the "+N" sheet they open, which draws the same chips.
 
 ## Goals and limits
 
@@ -37,10 +40,10 @@ the tag.
   Suggestions never wait for the list.
 - **No extra traffic per photo.** One lookup per place, shared with the
   site page and saved for 30 days, as today.
-- **Not in this:** the name labels drawn over a playing video, the
-  suggestion chips over a photo in the viewer (tapping either opens a
-  screen that shows the marker), tags already added, any new setting, and
-  using the list in scoring (that would need the bars measured again).
+- **Not in this:** the name labels drawn over a playing video (tapping one
+  opens a screen that shows the marker), tags already added, including the
+  app's tags still awaiting a confirm, any new setting, and using the list
+  in scoring (that would need the bars measured again).
 
 ## Approaches considered
 
@@ -83,6 +86,13 @@ the tag.
 - **Look.** A short line under the species name, in the row's secondary
   text style, so the marker adds no colour. It is part of the row's spoken
   label for screen readers.
+- **Look on a viewer chip.** The viewer's chips sit on one line, and what
+  does not fit becomes a "+N" chip, so a second line of text does not fit.
+  The chip ends with a small outlined pin in the label's colour, about
+  20 px wider. Screen readers hear "Recorded nearby" with the chip. The
+  two choices set aside: the word "nearby" in the label (about 50 px
+  wider, so fewer chips fit) and the pin in place of the "+" (no extra
+  width, but the chips stop all reading as "add a suggestion").
 
 ## Left to the builder
 

@@ -6,6 +6,7 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
 
 /// Every species on a locked photo or video, from its "+N" chip (issue
 /// #4825): the one line under the viewer shows only what fits. A tag opens
@@ -71,6 +72,7 @@ class _MediaSpeciesList extends ConsumerWidget {
               item.id,
               sitting,
               openUnconfirmed: true,
+              nearbyRequest: nearbyRequestForMedia(item),
             ),
           ),
         ],

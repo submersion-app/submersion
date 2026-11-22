@@ -8,7 +8,9 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_list_sheet.dart';
+import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -19,9 +21,12 @@ import '../support/media_widget_harness.dart';
 /// Every species on a locked photo or video, from its "+N" chip (issue
 /// #4825).
 void main() {
+  late List<NearbyListRequest> nearbyAsked;
+
   setUp(() {
     marineLifeIdEnabled = true;
     addTearDown(resetMarineLifeIdEnabled);
+    nearbyAsked = [];
   });
 
   const tang = SpeciesTagChip(
@@ -44,7 +49,7 @@ void main() {
     MediaType type = MediaType.photo,
   }) async {
     final overrides = await getBaseOverrides();
-    final item = testMediaItem(id: 'p1', mediaType: type);
+    final item = testMediaItem(id: 'p1', diveId: 'd1', mediaType: type);
     final router = GoRouter(
       initialLocation: '/viewer',
       routes: [
@@ -80,6 +85,10 @@ void main() {
               suggestion(chromis, score: 0.71),
             ],
           ),
+          recordedNearbyListProvider.overrideWith((ref, request) async {
+            nearbyAsked.add(request);
+            return const NearbySpecies(speciesKeys: {2});
+          }),
         ],
       ),
     );
@@ -131,5 +140,18 @@ void main() {
     await tester.tap(find.text('Rock Beauty'));
     await tester.pumpAndSettle();
     expect(find.text('DETAIL sp_rock_beauty'), findsOneWidget);
+  });
+
+  testWidgets('a suggestion recorded near the dive carries the pin '
+      '(issue #4668)', (tester) async {
+    await pump(tester);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('media_suggested_chip_2')),
+        matching: find.byKey(const ValueKey('recorded_nearby_pin')),
+      ),
+      findsOneWidget,
+    );
+    expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null)});
   });
 }
