@@ -208,10 +208,13 @@ the diver has hidden Dives) still takes the headline row, without a line.
 
 ### Trend line clipping
 
-The trend line maps a zero value to the bottom edge of its box, where half the
-stroke is clipped, so a series with empty months draws as broken dashes. The
-plotting area is inset by half the stroke width on every side so every value,
-zero included, draws whole. This applies to every use of `HomeSparkline`.
+A tile's content is taller than the short row allows: on a phone the trend
+line's 16-pixel box ends 3 pixels below the bottom of the tile's clipped
+content area (measured: line box bottom 194, content bottom 191), and the line
+draws its lowest values, zero included, in exactly those pixels. So a series
+with empty months draws as broken dashes. The trend line instead takes only
+the height left under the tile's text, at most 16 pixels, so it is never
+clipped; the point mapping in `homeSparklinePoints` is unchanged.
 
 ## Settings
 
@@ -244,7 +247,8 @@ line, the "Dives" fallback name, semantic labels) go in all 11 ARB files.
 - **Panel (widget):** loading, empty, error and data states at phone and
   desktop width without overflow, in metric and imperial; card taps reach the
   trip route and the dive list filtered to the outing's dive ids; hidden panel's provider not read.
-- **Sparkline:** a series of zeros paints fully inside its box.
+- **Trend line:** in a key number tile at phone and desktop width, at text
+  scale 1 and 1.6, the trend line's box lies inside the tile's content area.
 
 ## Calls made by the author, for the maintainer to check
 
