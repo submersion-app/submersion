@@ -7886,7 +7886,7 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get checklists_template_descriptionLabel;
 
-  /// No description provided for @checklists_template_edit_notFound.
+  /// Message shown when a checklist template opened for editing has been deleted, as the editor opens or at Save.
   ///
   /// In en, this message translates to:
   /// **'This template no longer exists.'**
@@ -8048,7 +8048,7 @@ abstract class AppLocalizations {
   /// **'Enter a name'**
   String get preDive_edit_nameRequired;
 
-  /// No description provided for @preDive_edit_notFound.
+  /// Message shown when a pre-dive checklist template opened for editing has been deleted, as the editor opens or at Save.
   ///
   /// In en, this message translates to:
   /// **'This checklist no longer exists.'**
