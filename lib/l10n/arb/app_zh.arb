@@ -1443,6 +1443,7 @@
   "checklists_template_nameLabel": "名称",
   "checklists_template_nameRequired": "名称为必填项",
   "checklists_template_descriptionLabel": "描述",
+  "checklists_template_edit_notFound": "此模板已不存在。",
   "checklists_template_itemsHeader": "事项",
   "checklists_template_addItem": "添加事项",
   "sectionEditor_addSection": "添加分区",

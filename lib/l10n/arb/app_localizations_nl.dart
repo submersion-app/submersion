@@ -5101,6 +5101,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'Beschrijving';
 
   @override
+  String get checklists_template_edit_notFound =>
+      'Deze sjabloon bestaat niet meer.';
+
+  @override
   String get checklists_template_itemsHeader => 'Items';
 
   @override

@@ -1363,6 +1363,7 @@
   "checklists_template_nameLabel": "Naam",
   "checklists_template_nameRequired": "Naam is verplicht",
   "checklists_template_descriptionLabel": "Beschrijving",
+  "checklists_template_edit_notFound": "Deze sjabloon bestaat niet meer.",
   "checklists_template_itemsHeader": "Items",
   "checklists_template_addItem": "Item toevoegen",
   "sectionEditor_addSection": "Sectie toevoegen",

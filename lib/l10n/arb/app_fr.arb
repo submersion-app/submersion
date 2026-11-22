@@ -1363,6 +1363,7 @@
   "checklists_template_nameLabel": "Nom",
   "checklists_template_nameRequired": "Le nom est requis",
   "checklists_template_descriptionLabel": "Description",
+  "checklists_template_edit_notFound": "Ce modèle n'existe plus.",
   "checklists_template_itemsHeader": "Éléments",
   "checklists_template_addItem": "Ajouter un élément",
   "sectionEditor_addSection": "Ajouter une section",

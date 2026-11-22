@@ -1363,6 +1363,7 @@
   "checklists_template_nameLabel": "Név",
   "checklists_template_nameRequired": "A név megadása kötelező",
   "checklists_template_descriptionLabel": "Leírás",
+  "checklists_template_edit_notFound": "Ez a sablon már nem létezik.",
   "checklists_template_itemsHeader": "Tételek",
   "checklists_template_addItem": "Tétel hozzáadása",
   "sectionEditor_addSection": "Szakasz hozzáadása",

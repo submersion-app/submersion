@@ -5135,6 +5135,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'Descripción';
 
   @override
+  String get checklists_template_edit_notFound =>
+      'Esta plantilla ya no existe.';
+
+  @override
   String get checklists_template_itemsHeader => 'Elementos';
 
   @override

@@ -4836,6 +4836,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_template_descriptionLabel => '描述';
 
   @override
+  String get checklists_template_edit_notFound => '此模板已不存在。';
+
+  @override
   String get checklists_template_itemsHeader => '事项';
 
   @override

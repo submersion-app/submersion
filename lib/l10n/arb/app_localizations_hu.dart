@@ -5110,6 +5110,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'Leírás';
 
   @override
+  String get checklists_template_edit_notFound =>
+      'Ez a sablon már nem létezik.';
+
+  @override
   String get checklists_template_itemsHeader => 'Tételek';
 
   @override

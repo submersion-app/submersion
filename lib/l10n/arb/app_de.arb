@@ -1389,6 +1389,7 @@
   "checklists_template_nameLabel": "Name",
   "checklists_template_nameRequired": "Name ist erforderlich",
   "checklists_template_descriptionLabel": "Beschreibung",
+  "checklists_template_edit_notFound": "Diese Vorlage existiert nicht mehr.",
   "checklists_template_itemsHeader": "Einträge",
   "checklists_template_addItem": "Eintrag hinzufügen",
   "sectionEditor_addSection": "Abschnitt hinzufügen",

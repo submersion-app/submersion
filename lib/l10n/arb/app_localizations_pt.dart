@@ -5133,6 +5133,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'Descrição';
 
   @override
+  String get checklists_template_edit_notFound => 'Este modelo já não existe.';
+
+  @override
   String get checklists_template_itemsHeader => 'Itens';
 
   @override

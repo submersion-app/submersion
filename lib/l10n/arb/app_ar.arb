@@ -1363,6 +1363,7 @@
   "checklists_template_nameLabel": "الاسم",
   "checklists_template_nameRequired": "الاسم مطلوب",
   "checklists_template_descriptionLabel": "الوصف",
+  "checklists_template_edit_notFound": "لم يعد هذا القالب موجودًا.",
   "checklists_template_itemsHeader": "العناصر",
   "checklists_template_addItem": "إضافة عنصر",
   "sectionEditor_addSection": "إضافة قسم",

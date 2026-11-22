@@ -5236,6 +5236,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'الوصف';
 
   @override
+  String get checklists_template_edit_notFound => 'لم يعد هذا القالب موجودًا.';
+
+  @override
   String get checklists_template_itemsHeader => 'العناصر';
 
   @override

@@ -7886,6 +7886,12 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get checklists_template_descriptionLabel;
 
+  /// No description provided for @checklists_template_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This template no longer exists.'**
+  String get checklists_template_edit_notFound;
+
   /// No description provided for @checklists_template_itemsHeader.
   ///
   /// In en, this message translates to:

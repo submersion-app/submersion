@@ -1363,6 +1363,7 @@
   "checklists_template_nameLabel": "שם",
   "checklists_template_nameRequired": "שם נדרש",
   "checklists_template_descriptionLabel": "תיאור",
+  "checklists_template_edit_notFound": "התבנית הזו כבר לא קיימת.",
   "checklists_template_itemsHeader": "פריטים",
   "checklists_template_addItem": "הוסף פריט",
   "sectionEditor_addSection": "הוספת קטע",

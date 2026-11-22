@@ -1363,6 +1363,7 @@
   "checklists_template_nameLabel": "Nombre",
   "checklists_template_nameRequired": "El nombre es obligatorio",
   "checklists_template_descriptionLabel": "Descripción",
+  "checklists_template_edit_notFound": "Esta plantilla ya no existe.",
   "checklists_template_itemsHeader": "Elementos",
   "checklists_template_addItem": "Agregar elemento",
   "sectionEditor_addSection": "Añadir sección",

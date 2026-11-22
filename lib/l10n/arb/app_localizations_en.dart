@@ -5053,6 +5053,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'Description';
 
   @override
+  String get checklists_template_edit_notFound =>
+      'This template no longer exists.';
+
+  @override
   String get checklists_template_itemsHeader => 'Items';
 
   @override
