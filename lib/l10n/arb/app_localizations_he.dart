@@ -28289,7 +28289,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'פעולה זו תסיר את כל ההצעות ואת התמונות החתוכות שלהן. מינים שתייגת לא יושפעו.';
+      'פעולה זו תסיר את כל ההצעות ואת התמונות החתוכות שלהן, בכל מכשיר שמסנכרן את היומן הזה. מינים שתייגת לא יושפעו.';
 
   @override
   String get settings_speciesId_credits => 'קרדיטים ורישיונות';

@@ -8343,7 +8343,7 @@
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Borrar sugerencias",
   "settings_speciesId_clearConfirmTitle": "¿Borrar todas las sugerencias?",
-  "settings_speciesId_clearConfirmBody": "Se eliminarán todas las sugerencias y sus recortes. Las especies que has etiquetado no se ven afectadas.",
+  "settings_speciesId_clearConfirmBody": "Se eliminarán todas las sugerencias y sus recortes en todos los dispositivos que sincronizan este cuaderno. Las especies que has etiquetado no se ven afectadas.",
   "settings_speciesId_credits": "Créditos y licencias",
   "settings_speciesId_unsupported": "La identificación de especies aún no está disponible en este dispositivo.",
   "settings_speciesId_notEligible": "Este dispositivo no tiene suficiente memoria para ejecutar el modelo.",

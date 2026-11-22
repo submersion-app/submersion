@@ -28987,7 +28987,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Isso remove todas as sugestões e seus recortes. As espécies que você marcou não são afetadas.';
+      'Isso remove todas as sugestões e seus recortes em todos os dispositivos que sincronizam este diário. As espécies que você marcou não são afetadas.';
 
   @override
   String get settings_speciesId_credits => 'Créditos e licenças';

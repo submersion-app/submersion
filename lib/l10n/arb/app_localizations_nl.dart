@@ -28823,7 +28823,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Hiermee worden alle suggesties en hun uitsneden verwijderd. Soorten die je hebt getagd blijven behouden.';
+      'Hiermee worden alle suggesties en hun uitsneden verwijderd, op elk apparaat dat dit logboek synchroniseert. Soorten die je hebt getagd blijven behouden.';
 
   @override
   String get settings_speciesId_credits => 'Vermeldingen en licenties';

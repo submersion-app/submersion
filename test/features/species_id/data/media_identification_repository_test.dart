@@ -321,8 +321,20 @@ void main() {
     expect(await repo.forMedia('m2'), hasLength(1));
   });
 
-  test('orphans are media ids with rows here but no media row', () async {
+  test('orphans are media ids with rows here whose media was deleted; rows '
+      'whose media has not arrived yet are not (issue #4876)', () async {
+    Future<void> tombstone(String mediaId) => db.customStatement(
+      'INSERT INTO deletion_log (id, entity_type, record_id, deleted_at) '
+      "VALUES ('t-$mediaId', 'media', '$mediaId', 1)",
+    );
     await addMedia('m-live');
+    await repo.storeRun(
+      run(mediaId: 'm-waiting'),
+      insert: [identification('w', mediaId: 'm-waiting')],
+      deleteIds: [],
+    );
+    await tombstone('m-gone');
+    await tombstone('m-gone-2');
     await repo.storeRun(
       run(mediaId: 'm-live'),
       insert: [identification('a', mediaId: 'm-live')],

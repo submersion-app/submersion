@@ -46099,7 +46099,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_clearConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'This removes every suggestion and its cropped image. Species you have tagged are not affected.'**
+  /// **'This removes every suggestion and its cropped image, on every device that syncs this logbook. Species you have tagged are not affected.'**
   String get settings_speciesId_clearConfirmBody;
 
   /// No description provided for @settings_speciesId_credits.

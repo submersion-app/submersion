@@ -8477,7 +8477,7 @@
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Vorschläge löschen",
   "settings_speciesId_clearConfirmTitle": "Alle Vorschläge löschen?",
-  "settings_speciesId_clearConfirmBody": "Dadurch werden alle Vorschläge und ihre Bildausschnitte entfernt. Von dir markierte Arten bleiben erhalten.",
+  "settings_speciesId_clearConfirmBody": "Dadurch werden alle Vorschläge und ihre Bildausschnitte entfernt, auf jedem Gerät, das dieses Logbuch synchronisiert. Von dir markierte Arten bleiben erhalten.",
   "settings_speciesId_credits": "Danksagungen und Lizenzen",
   "settings_speciesId_unsupported": "Die Arterkennung ist auf diesem Gerät noch nicht verfügbar.",
   "settings_speciesId_notEligible": "Dieses Gerät hat nicht genug Arbeitsspeicher für das Modell.",

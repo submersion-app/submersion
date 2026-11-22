@@ -28870,7 +28870,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Ez eltávolít minden javaslatot és a hozzájuk tartozó kivágott képeket. Az általad címkézett fajok megmaradnak.';
+      'Ez eltávolít minden javaslatot és a hozzájuk tartozó kivágott képeket minden eszközön, amely ezt a naplót szinkronizálja. Az általad címkézett fajok megmaradnak.';
 
   @override
   String get settings_speciesId_credits => 'Köszönetnyilvánítás és licencek';

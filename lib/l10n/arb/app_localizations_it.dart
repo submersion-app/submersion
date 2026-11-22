@@ -29019,7 +29019,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Verranno rimossi tutti i suggerimenti e i relativi ritagli. Le specie che hai taggato non vengono toccate.';
+      'Verranno rimossi tutti i suggerimenti e i relativi ritagli, su ogni dispositivo che sincronizza questo diario. Le specie che hai taggato non vengono toccate.';
 
   @override
   String get settings_speciesId_credits => 'Riconoscimenti e licenze';

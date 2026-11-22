@@ -8217,7 +8217,7 @@
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Effacer les suggestions",
   "settings_speciesId_clearConfirmTitle": "Effacer toutes les suggestions ?",
-  "settings_speciesId_clearConfirmBody": "Cela supprime toutes les suggestions et leurs images recadrées. Les espèces que vous avez identifiées ne sont pas touchées.",
+  "settings_speciesId_clearConfirmBody": "Cela supprime toutes les suggestions et leurs images recadrées, sur chaque appareil qui synchronise ce carnet. Les espèces que vous avez identifiées ne sont pas touchées.",
   "settings_speciesId_credits": "Crédits et licences",
   "settings_speciesId_unsupported": "L'identification des espèces n'est pas encore disponible sur cet appareil.",
   "settings_speciesId_notEligible": "Cet appareil n'a pas assez de mémoire pour exécuter le modèle.",

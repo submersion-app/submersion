@@ -28526,7 +28526,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'This removes every suggestion and its cropped image. Species you have tagged are not affected.';
+      'This removes every suggestion and its cropped image, on every device that syncs this logbook. Species you have tagged are not affected.';
 
   @override
   String get settings_speciesId_credits => 'Credits and licences';

@@ -8343,7 +8343,7 @@
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Limpar sugestões",
   "settings_speciesId_clearConfirmTitle": "Limpar todas as sugestões?",
-  "settings_speciesId_clearConfirmBody": "Isso remove todas as sugestões e seus recortes. As espécies que você marcou não são afetadas.",
+  "settings_speciesId_clearConfirmBody": "Isso remove todas as sugestões e seus recortes em todos os dispositivos que sincronizam este diário. As espécies que você marcou não são afetadas.",
   "settings_speciesId_credits": "Créditos e licenças",
   "settings_speciesId_unsupported": "A identificação de espécies ainda não está disponível neste dispositivo.",
   "settings_speciesId_notEligible": "Este dispositivo não tem memória suficiente para executar o modelo.",

@@ -8347,7 +8347,7 @@
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "ניקוי ההצעות",
   "settings_speciesId_clearConfirmTitle": "לנקות את כל ההצעות?",
-  "settings_speciesId_clearConfirmBody": "פעולה זו תסיר את כל ההצעות ואת התמונות החתוכות שלהן. מינים שתייגת לא יושפעו.",
+  "settings_speciesId_clearConfirmBody": "פעולה זו תסיר את כל ההצעות ואת התמונות החתוכות שלהן, בכל מכשיר שמסנכרן את היומן הזה. מינים שתייגת לא יושפעו.",
   "settings_speciesId_credits": "קרדיטים ורישיונות",
   "settings_speciesId_unsupported": "זיהוי מינים עדיין לא זמין במכשיר הזה.",
   "settings_speciesId_notEligible": "אין במכשיר הזה מספיק זיכרון להפעלת המודל.",

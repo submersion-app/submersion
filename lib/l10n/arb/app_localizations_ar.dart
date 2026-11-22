@@ -29292,7 +29292,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'سيؤدي هذا إلى إزالة كل الاقتراحات وصورها المقتطعة. لن تتأثر الأنواع التي وسمتها.';
+      'سيؤدي هذا إلى إزالة كل الاقتراحات وصورها المقتطعة على كل جهاز يزامن هذا السجل. لن تتأثر الأنواع التي وسمتها.';
 
   @override
   String get settings_speciesId_credits => 'الإشادات والتراخيص';

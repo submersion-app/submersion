@@ -27352,7 +27352,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      '这将移除所有建议及其裁剪图像。你已标记的物种不受影响。';
+      '这将在同步此日志的每台设备上移除所有建议及其裁剪图像。你已标记的物种不受影响。';
 
   @override
   String get settings_speciesId_credits => '致谢与许可';

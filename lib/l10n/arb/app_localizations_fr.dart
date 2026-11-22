@@ -29071,7 +29071,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Cela supprime toutes les suggestions et leurs images recadrées. Les espèces que vous avez identifiées ne sont pas touchées.';
+      'Cela supprime toutes les suggestions et leurs images recadrées, sur chaque appareil qui synchronise ce carnet. Les espèces que vous avez identifiées ne sont pas touchées.';
 
   @override
   String get settings_speciesId_credits => 'Crédits et licences';

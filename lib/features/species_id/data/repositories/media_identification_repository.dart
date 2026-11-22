@@ -426,21 +426,28 @@ class MediaIdentificationRepository {
 
   static const _slice = 500;
 
-  /// Media ids with rows here but no media row: deleted by sync, or by a
-  /// delete that was held for undo and never undone.
+  /// Media ids with rows here whose media row is gone because the media
+  /// was deleted (a tombstone says so): by sync, or by a delete that was
+  /// held for undo and never undone. Rows whose media has simply not
+  /// arrived yet are not orphans: results sync on their own, and may land
+  /// before the media they describe (issue #4876).
   Future<List<String>> orphanMediaIds() async {
     final db = _db;
+    const gone =
+        'NOT IN (SELECT id FROM media) AND media_id IN '
+        "(SELECT record_id FROM deletion_log WHERE entity_type = 'media')";
     final rows = await db
         .customSelect(
           'SELECT media_id FROM media_identification_runs '
-          'WHERE media_id NOT IN (SELECT id FROM media) '
+          'WHERE media_id $gone '
           'UNION '
           'SELECT media_id FROM media_identifications '
-          'WHERE media_id NOT IN (SELECT id FROM media)',
+          'WHERE media_id $gone',
           readsFrom: {
             db.mediaIdentificationRuns,
             db.mediaIdentifications,
             db.media,
+            db.deletionLog,
           },
         )
         .get();

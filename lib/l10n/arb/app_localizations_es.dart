@@ -29021,7 +29021,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Se eliminarán todas las sugerencias y sus recortes. Las especies que has etiquetado no se ven afectadas.';
+      'Se eliminarán todas las sugerencias y sus recortes en todos los dispositivos que sincronizan este cuaderno. Las especies que has etiquetado no se ven afectadas.';
 
   @override
   String get settings_speciesId_credits => 'Créditos y licencias';

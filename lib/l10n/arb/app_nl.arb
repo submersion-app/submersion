@@ -8343,7 +8343,7 @@
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Suggesties wissen",
   "settings_speciesId_clearConfirmTitle": "Alle suggesties wissen?",
-  "settings_speciesId_clearConfirmBody": "Hiermee worden alle suggesties en hun uitsneden verwijderd. Soorten die je hebt getagd blijven behouden.",
+  "settings_speciesId_clearConfirmBody": "Hiermee worden alle suggesties en hun uitsneden verwijderd, op elk apparaat dat dit logboek synchroniseert. Soorten die je hebt getagd blijven behouden.",
   "settings_speciesId_credits": "Vermeldingen en licenties",
   "settings_speciesId_unsupported": "Soortherkenning is nog niet beschikbaar op dit apparaat.",
   "settings_speciesId_notEligible": "Dit apparaat heeft niet genoeg geheugen voor het model.",

@@ -28947,7 +28947,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_clearConfirmBody =>
-      'Dadurch werden alle Vorschläge und ihre Bildausschnitte entfernt. Von dir markierte Arten bleiben erhalten.';
+      'Dadurch werden alle Vorschläge und ihre Bildausschnitte entfernt, auf jedem Gerät, das dieses Logbuch synchronisiert. Von dir markierte Arten bleiben erhalten.';
 
   @override
   String get settings_speciesId_credits => 'Danksagungen und Lizenzen';

@@ -16978,7 +16978,7 @@
   "@settings_speciesId_keptValue": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
   "settings_speciesId_clear": "Clear suggestions",
   "settings_speciesId_clearConfirmTitle": "Clear all suggestions?",
-  "settings_speciesId_clearConfirmBody": "This removes every suggestion and its cropped image. Species you have tagged are not affected.",
+  "settings_speciesId_clearConfirmBody": "This removes every suggestion and its cropped image, on every device that syncs this logbook. Species you have tagged are not affected.",
   "settings_speciesId_credits": "Credits and licences",
   "settings_speciesId_unsupported": "Species identification is not available on this device yet.",
   "settings_speciesId_notEligible": "This device does not have enough memory to run the model.",

@@ -1,11 +1,20 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:drift/native.dart';
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_restore.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
+import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 
 import '../../../helpers/test_database.dart';
@@ -163,5 +172,34 @@ void main() {
 
     expect(await pending('mediaIdentificationRuns'), {'m1'});
     expect(await pending('mediaIdentifications'), {'a'});
+  });
+
+  test('clearing every identification clears them on every device: runs, '
+      'rows and crops are tombstoned', () async {
+    final support = await Directory.systemTemp.createTemp('clear_all');
+    addTearDown(() => support.delete(recursive: true));
+    final local = LocalCacheDatabase(NativeDatabase.memory());
+    addTearDown(local.close);
+    final crops = IdentificationCropStore(
+      supportPath: () async => support.path,
+      table: IdentificationCropRepository(),
+    );
+    addTearDown(crops.dispose);
+    await repo.storeRun(
+      run(),
+      insert: [identification('a')],
+      deleteIds: const [],
+    );
+    await crops.write('m1', 'a', Uint8List.fromList([1, 2]), named: true);
+
+    await IdentificationCleanup(
+      identifications: repo,
+      embeddings: IdentificationEmbeddingRepository(database: local),
+      crops: crops,
+    ).clearAll();
+
+    expect(await tombstones('mediaIdentificationRuns'), {'m1'});
+    expect(await tombstones('mediaIdentifications'), {'a'});
+    expect(await tombstones('mediaIdentificationCrops'), {'a'});
   });
 }

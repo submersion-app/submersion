@@ -8217,7 +8217,7 @@
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Javaslatok törlése",
   "settings_speciesId_clearConfirmTitle": "Minden javaslatot törölsz?",
-  "settings_speciesId_clearConfirmBody": "Ez eltávolít minden javaslatot és a hozzájuk tartozó kivágott képeket. Az általad címkézett fajok megmaradnak.",
+  "settings_speciesId_clearConfirmBody": "Ez eltávolít minden javaslatot és a hozzájuk tartozó kivágott képeket minden eszközön, amely ezt a naplót szinkronizálja. Az általad címkézett fajok megmaradnak.",
   "settings_speciesId_credits": "Köszönetnyilvánítás és licencek",
   "settings_speciesId_unsupported": "A fajfelismerés ezen az eszközön még nem érhető el.",
   "settings_speciesId_notEligible": "Ezen az eszközön nincs elég memória a modell futtatásához.",

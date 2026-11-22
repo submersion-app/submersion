@@ -8343,7 +8343,7 @@
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "مسح الاقتراحات",
   "settings_speciesId_clearConfirmTitle": "مسح كل الاقتراحات؟",
-  "settings_speciesId_clearConfirmBody": "سيؤدي هذا إلى إزالة كل الاقتراحات وصورها المقتطعة. لن تتأثر الأنواع التي وسمتها.",
+  "settings_speciesId_clearConfirmBody": "سيؤدي هذا إلى إزالة كل الاقتراحات وصورها المقتطعة على كل جهاز يزامن هذا السجل. لن تتأثر الأنواع التي وسمتها.",
   "settings_speciesId_credits": "الإشادات والتراخيص",
   "settings_speciesId_unsupported": "التعرّف على الأنواع غير متاح على هذا الجهاز بعد.",
   "settings_speciesId_notEligible": "لا يحتوي هذا الجهاز على ذاكرة كافية لتشغيل النموذج.",
