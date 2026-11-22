@@ -190,6 +190,52 @@ void main() {
       },
     );
 
+    // The preview names the site a dive change brings, as apply writes it.
+    Future<void> divesAtSites() => db.customStatement(
+      'INSERT INTO dives (id, diver_id, site_id, dive_date_time, created_at, '
+      "updated_at) VALUES ('da', '$kDiverA', 'sa', $start, 1, 1), "
+      "('db', '$kDiverA', 'sb', $start, 1, 1)",
+    );
+
+    test('the preview shows an anchored route with no site taking the '
+        'dive\'s', () async {
+      await sites();
+      await divesAtSites();
+      await route('r1');
+      await (db.update(db.navTracks)..where((t) => t.id.equals('r1'))).write(
+        const NavTracksCompanion(
+          anchorLatitude: Value(1.0),
+          anchorLongitude: Value(2.0),
+        ),
+      );
+
+      final preview = await h.preview([
+        updateOp('nav_tracks', 'r1', {'dive_id': 'db'}),
+      ]);
+
+      final site = preview.items.single.fields['site_id']!;
+      expect([site.newValue, site.indirect], ['sb', true]);
+      await h.apply(preview);
+      expect((await place())[0], 'sb');
+    });
+
+    test('the preview shows a site taken from the old dive moving to the '
+        'new dive\'s', () async {
+      await sites();
+      await divesAtSites();
+      await route('r1', dive: 'da');
+      await placeOnSiteA(10.0, 20.0);
+
+      final preview = await h.preview([
+        updateOp('nav_tracks', 'r1', {'dive_id': 'db'}),
+      ]);
+
+      final site = preview.items.single.fields['site_id']!;
+      expect([site.newValue, site.indirect], ['sb', true]);
+      await h.apply(preview);
+      expect(await place(), ['sb', 30.0, 40.0]);
+    });
+
     test('an anchor placed by hand stays', () async {
       await sites();
       await route('r1');

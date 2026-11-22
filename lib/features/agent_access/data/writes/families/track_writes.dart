@@ -279,11 +279,18 @@ class NavTrackWrites extends WritableEntry {
       if (next != null) {
         final hasPrimary = await _hasPrimary(next, id);
         if ((!hasPrimary) != wasPrimary) fields['is_primary'] = !hasPrimary;
-        if (document['site_id'] == null &&
-            document['anchor_latitude'] == null &&
-            !v.containsKey('site_id')) {
-          final site = await _diveSite(next);
-          if (site != null) fields['site_id'] = site;
+        // The site linking brings, as the repository decides it: a route
+        // with no site takes the new dive's, and one on the site of the
+        // dive it leaves follows it to the new dive's (#4851).
+        final wasSite = document['site_id'] as String?;
+        if (!v.containsKey('site_id') && next != wasOn) {
+          final follows =
+              wasSite == null ||
+              (wasOn != null && wasSite == await _diveSite(wasOn));
+          if (follows) {
+            final site = await _diveSite(next);
+            if (site != wasSite) fields['site_id'] = site;
+          }
         }
       }
     }
