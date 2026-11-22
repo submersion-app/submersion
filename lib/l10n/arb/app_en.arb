@@ -3159,6 +3159,10 @@
   "checklists_template_nameLabel": "Name",
   "checklists_template_nameRequired": "Name is required",
   "checklists_template_descriptionLabel": "Description",
+  "checklists_template_edit_notFound": "This template no longer exists.",
+  "@checklists_template_edit_notFound": {
+    "description": "Message shown when a checklist template opened for editing has been deleted, as the editor opens or at Save."
+  },
   "checklists_template_itemsHeader": "Items",
   "checklists_template_addItem": "Add item",
   "sectionEditor_addSection": "Add section",
@@ -3206,6 +3210,10 @@
   "preDive_edit_strictOrderHelp": "Items must be completed top to bottom",
   "preDive_edit_addItem": "Add item",
   "preDive_edit_nameRequired": "Enter a name",
+  "preDive_edit_notFound": "This checklist no longer exists.",
+  "@preDive_edit_notFound": {
+    "description": "Message shown when a pre-dive checklist template opened for editing has been deleted, as the editor opens or at Save."
+  },
   "preDive_item_title": "Title",
   "preDive_item_section": "Section",
   "preDive_item_notes": "Notes",

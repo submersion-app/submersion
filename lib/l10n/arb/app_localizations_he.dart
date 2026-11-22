@@ -5017,6 +5017,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'תיאור';
 
   @override
+  String get checklists_template_edit_notFound => 'התבנית הזו כבר לא קיימת.';
+
+  @override
   String get checklists_template_itemsHeader => 'פריטים';
 
   @override
@@ -5107,6 +5110,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => 'הזן שם';
+
+  @override
+  String get preDive_edit_notFound => 'רשימת הבדיקה הזו כבר לא קיימת.';
 
   @override
   String get preDive_item_title => 'כותרת';

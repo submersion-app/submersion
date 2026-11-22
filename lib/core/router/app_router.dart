@@ -2213,11 +2213,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newChecklistTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const ChecklistTemplateEditPage(),
               ),
               GoRoute(
                 path: ':templateId/edit',
                 name: 'editChecklistTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => ChecklistTemplateEditPage(
                   templateId: state.pathParameters['templateId'],
                 ),
@@ -2234,11 +2236,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newPreDiveTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const PreDiveTemplateEditPage(),
               ),
               GoRoute(
                 path: ':templateId/edit',
                 name: 'editPreDiveTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => PreDiveTemplateEditPage(
                   templateId: state.pathParameters['templateId'],
                 ),

@@ -5101,6 +5101,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'Beschrijving';
 
   @override
+  String get checklists_template_edit_notFound =>
+      'Deze sjabloon bestaat niet meer.';
+
+  @override
   String get checklists_template_itemsHeader => 'Items';
 
   @override
@@ -5192,6 +5196,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => 'Voer een naam in';
+
+  @override
+  String get preDive_edit_notFound => 'Deze checklist bestaat niet meer.';
 
   @override
   String get preDive_item_title => 'Titel';

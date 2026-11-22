@@ -5133,6 +5133,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'Descrição';
 
   @override
+  String get checklists_template_edit_notFound => 'Este modelo já não existe.';
+
+  @override
   String get checklists_template_itemsHeader => 'Itens';
 
   @override
@@ -5226,6 +5229,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => 'Insira um nome';
+
+  @override
+  String get preDive_edit_notFound =>
+      'Esta lista de verificação já não existe.';
 
   @override
   String get preDive_item_title => 'Título';

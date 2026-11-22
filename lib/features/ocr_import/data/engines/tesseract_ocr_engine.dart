@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/ocr_import/domain/models/ocr_result.dart';
 import 'package:submersion/features/ocr_import/domain/services/ocr_engine.dart';
 
@@ -33,7 +34,7 @@ class TesseractOcrEngine implements OcrEngine {
     Directory? tmp;
     try {
       tmp = await Directory.systemTemp.createTemp('submersion_ocr');
-      final file = File('${tmp.path}/page.png');
+      final file = File(p.join(tmp.path, 'page.png'));
       await file.writeAsBytes(imageBytes);
       final result = await _run('tesseract', [file.path, 'stdout', 'tsv']);
       if (result.exitCode != 0) {
