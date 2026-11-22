@@ -440,8 +440,21 @@ class DatabaseMigrationService {
       DatabaseLocationService.databaseFilename,
     );
 
-    // Verify the target database exists
-    if (!await File(newPath).exists()) {
+    // Verify the target database exists. Bounded, since the share may have
+    // stopped answering since the folder was checked (issue #4834); a
+    // metadata query, not an open, as the file may be the live one under a
+    // second name.
+    final bool found;
+    try {
+      found = await _withTimeout(
+        File(newPath).exists(),
+        'Folder check',
+        timeout: _folderTimeout,
+      );
+    } on TimeoutException {
+      return MigrationResult.failure(_unanswered);
+    }
+    if (!found) {
       return MigrationResult.failure(
         'No database found at the selected location',
       );
