@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_b
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'dive_detail_page_unlock_harness.dart';
@@ -32,7 +33,7 @@ void main() {
 
   Finder pencil() => find.descendant(
     of: find.byType(DiveHeroHeader),
-    matching: find.byIcon(Icons.edit_outlined),
+    matching: find.byType(RecordPencilDisc),
   );
   testWidgets('locked: no pencil', (tester) async {
     await pumpPage(tester, stored: headed);

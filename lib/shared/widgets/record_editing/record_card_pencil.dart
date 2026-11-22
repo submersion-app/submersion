@@ -1,7 +1,38 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/record_pencil_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+
+/// The pencil that opens a card: a filled disc in the theme's
+/// [RecordPencilColors], the same on every card of every record page.
+///
+/// A plain pencil in the theme's own accent blended into the cards around
+/// it, so the disc is a hue no preset uses (issue #4527). It is no taller
+/// than a card title's line, so unlocking does not change a title row's
+/// height.
+class RecordPencilDisc extends StatelessWidget {
+  const RecordPencilDisc({super.key});
+
+  /// The disc's diameter.
+  static const double size = 24;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = RecordPencilColors.of(context);
+    return SizedBox.square(
+      dimension: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: colors.fill,
+          border: Border.all(color: colors.outline),
+        ),
+        child: Icon(Icons.edit, size: 16, color: colors.onFill),
+      ),
+    );
+  }
+}
 
 /// The pencil that opens a card, drawn the same wherever a card's title row
 /// is: in a [RecordCardHeader], or at the end of a title row the card draws
@@ -16,11 +47,7 @@ class RecordPencilIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: context.l10n.recordEdit_editCardTooltip(cardTitle),
-      child: Icon(
-        Icons.edit_outlined,
-        size: 18,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      child: const RecordPencilDisc(),
     );
   }
 }
@@ -63,8 +90,10 @@ class RecordCardPencil extends StatelessWidget {
           child: InkWell(
             onTap: frame.onOpen,
             customBorder: const CircleBorder(),
+            // One point of padding keeps the pencil and its ink to the
+            // 26 points the outlined pencil and its padding took before.
             child: Padding(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(1),
               child: RecordPencilIcon(cardTitle: cardTitle),
             ),
           ),

@@ -22,6 +22,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
 import '../../../../../../helpers/test_database.dart';
@@ -315,7 +316,7 @@ void main() {
       }
       expect(find.text(l.diveLog_detail_tagCount(2)), findsOneWidget);
       expect(find.text('Calm'), findsOneWidget);
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byType(RecordPencilDisc), findsNothing);
     });
   });
 }

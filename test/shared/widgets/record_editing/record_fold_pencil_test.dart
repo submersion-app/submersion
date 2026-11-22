@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 
 Widget _host({required bool isChanged, VoidCallback? onOpen}) => MaterialApp(
@@ -36,9 +37,17 @@ void main() {
     var opened = 0;
     await tester.pumpWidget(_host(isChanged: false, onOpen: () => opened++));
 
-    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.tap(find.byType(RecordPencilDisc));
 
     expect(opened, 1);
+  });
+
+  // The same disc as every other card's pencil, under one tooltip.
+  testWidgets('the pencil is the shared disc', (tester) async {
+    await tester.pumpWidget(_host(isChanged: false));
+
+    expect(find.byType(RecordPencilDisc), findsOneWidget);
+    expect(find.byType(Tooltip), findsOneWidget);
   });
 
   testWidgets('the pencil names the card it opens', (tester) async {

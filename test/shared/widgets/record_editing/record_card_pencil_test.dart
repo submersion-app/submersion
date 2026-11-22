@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/theme/record_pencil_colors.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -23,7 +24,11 @@ final _card = EditCard<String>(
 
 /// A card that draws its own title row, with the pencil at its end, the way
 /// the dive page's header block does (issue #4527, plan 4).
-Widget _host(RecordEditController<String>? controller, {bool inCard = false}) {
+Widget _host(
+  RecordEditController<String>? controller, {
+  bool inCard = false,
+  ThemeData? theme,
+}) {
   const titleRow = Row(
     children: [
       Expanded(child: Text('Blue Corner')),
@@ -34,6 +39,7 @@ Widget _host(RecordEditController<String>? controller, {bool inCard = false}) {
   // gathers its texts into one node for a screen reader.
   final Widget row = inCard ? const Card(child: titleRow) : titleRow;
   return MaterialApp(
+    theme: theme,
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -60,14 +66,14 @@ void main() {
   ) async {
     await tester.pumpWidget(_host(null));
 
-    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byType(RecordPencilDisc), findsNothing);
     expect(tester.getSize(find.byType(RecordCardPencil)), Size.zero);
   });
 
   testWidgets('locked it draws nothing and takes no room', (tester) async {
     await tester.pumpWidget(_host(_controller()));
 
-    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byType(RecordPencilDisc), findsNothing);
     expect(tester.getSize(find.byType(RecordCardPencil)), Size.zero);
   });
 
@@ -77,11 +83,42 @@ void main() {
     final controller = _controller()..unlock('Blue Corner');
     await tester.pumpWidget(_host(controller));
 
-    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.tap(find.byType(RecordPencilDisc));
     await tester.pump();
 
     expect(controller.openCardIds, {'header'});
     expect(find.text('editor'), findsOneWidget);
+  });
+
+  // A shade of the theme's blue blended into every card, so the pencil is
+  // the theme's pencil colours instead: a filled disc, ringed (issue #4527).
+  testWidgets('the pencil is a disc in the theme\'s pencil colours', (
+    tester,
+  ) async {
+    const custom = RecordPencilColors(
+      fill: Color(0xFF123456),
+      onFill: Color(0xFFABCDEF),
+      outline: Color(0xFF654321),
+    );
+    final controller = _controller()..unlock('Blue Corner');
+    await tester.pumpWidget(
+      _host(controller, theme: ThemeData(extensions: const [custom])),
+    );
+
+    final disc = find.byType(RecordPencilDisc);
+    expect(tester.getSize(disc), const Size.square(RecordPencilDisc.size));
+    final box = tester.widget<DecoratedBox>(
+      find.descendant(of: disc, matching: find.byType(DecoratedBox)),
+    );
+    final decoration = box.decoration as BoxDecoration;
+    expect(decoration.shape, BoxShape.circle);
+    expect(decoration.color, custom.fill);
+    expect(decoration.border, Border.all(color: custom.outline));
+    final glyph = tester.widget<Icon>(
+      find.descendant(of: disc, matching: find.byType(Icon)),
+    );
+    expect(glyph.icon, Icons.edit);
+    expect(glyph.color, custom.onFill);
   });
 
   testWidgets('with changes, the dot', (tester) async {
