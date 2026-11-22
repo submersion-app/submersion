@@ -16,9 +16,10 @@ const double _graphic = 3.0;
 Color _card(ThemeData theme) =>
     theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow;
 
-/// The pencil on an unlocked card is an electric lime disc rather than a
+/// The pencil on an unlocked card is an amber yellow disc rather than a
 /// shade of the theme's own blue, so it stands out from everything else on
-/// the page (issue #4527).
+/// the page, and the dot that marks unsaved changes wears it too
+/// (issue #4527).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -58,7 +59,7 @@ void main() {
       }
     });
 
-    test('the lime is the same in every preset', () {
+    test('the pencil is the same in every preset', () {
       for (final preset in AppThemeRegistry.presets) {
         for (final brightness in Brightness.values) {
           final theme = AppThemeRegistry.resolveTheme(preset, brightness);
@@ -73,7 +74,7 @@ void main() {
       }
     });
 
-    // A lime disc is bright but barely darker than a light card, so in
+    // A yellow disc is bright but barely darker than a light card, so in
     // light mode its ring is the edge a diver sees.
     test('in light mode the ring stands off every preset\'s card', () {
       for (final preset in AppThemeRegistry.presets) {
@@ -101,17 +102,32 @@ void main() {
       }
     });
 
-    test('no preset\'s primary is the lime, so the pencil is not its blue', () {
+    // Eric chose an amber yellow (issue #4527): a warm hue no preset's
+    // primary comes near, so the pencil cannot read as the page's accent.
+    test('the pencil is an amber yellow, far from every preset\'s primary', () {
+      double hue(Color c) => HSVColor.fromColor(c).hue;
+      for (final pencil in [
+        RecordPencilColors.light,
+        RecordPencilColors.dark,
+      ]) {
+        expect(hue(pencil.fill), inInclusiveRange(40, 50));
+      }
       for (final preset in AppThemeRegistry.presets) {
         for (final brightness in Brightness.values) {
-          final scheme = AppThemeRegistry.resolveTheme(
+          final primary = AppThemeRegistry.resolveTheme(
             preset,
             brightness,
-          ).colorScheme;
+          ).colorScheme.primary;
           final pencil = brightness == Brightness.light
               ? RecordPencilColors.light
               : RecordPencilColors.dark;
-          expect(scheme.primary, isNot(pencil.fill));
+          final apart = (hue(primary) - hue(pencil.fill)).abs();
+          expect(
+            // A grey primary has no hue to compare.
+            HSVColor.fromColor(primary).saturation < .2 || apart >= 60,
+            isTrue,
+            reason: '${preset.id} ${brightness.name}',
+          );
         }
       }
     });
