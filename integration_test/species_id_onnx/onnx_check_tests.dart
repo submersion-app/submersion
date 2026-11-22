@@ -127,7 +127,8 @@ void onnxCheckTests({
     final files = [...pack.detectorPaths, pack.classifierPath];
     note(
       'Pack ${pack.manifest.packVersion} downloaded and installed in '
-      '${run.downloadMs} ms: ${files.map(p.basename).join(', ')}',
+      '${run.downloadMs} ms over ${run.attempts} attempt(s): '
+      '${files.map(p.basename).join(', ')}',
     );
     for (final file in files) {
       expect(file, endsWith('.onnx'));

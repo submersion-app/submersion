@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
@@ -16,7 +17,14 @@ typedef PackRun = ({
   SpeciesPackState after,
   InstalledPack? installed,
   int downloadMs,
+  int attempts,
 });
+
+/// How many times the check taps Download in all. A download the network
+/// drops keeps what arrived, and the diver's Retry resumes it with a Range
+/// request, so a dropped connection on the runner is retried as a diver
+/// would retry it; any other failure is not.
+const downloadAttempts = 3;
 
 /// Downloads and installs the live pack exactly as the settings page's
 /// Download does: the app's own [SpeciesPackController] fetches the
@@ -72,14 +80,28 @@ Future<PackRun> installLivePack({
     await controller.refresh();
     final before = container.read(speciesPackControllerProvider);
     report('Before the download: ${describePackState(before)}');
-    final (_, ms) = await timed(controller.download);
-    final after = container.read(speciesPackControllerProvider);
-    report('After the download: ${describePackState(after)} ($ms ms)');
+    var downloadMs = 0;
+    var attempts = 0;
+    SpeciesPackState after;
+    do {
+      attempts++;
+      reported = -1;
+      final (_, ms) = await timed(controller.download);
+      downloadMs += ms;
+      after = container.read(speciesPackControllerProvider);
+      report(
+        'After download attempt $attempts: ${describePackState(after)} '
+        '($ms ms)',
+      );
+    } while (after is PackFailed &&
+        after.reason == PackDownloadFailure.network &&
+        attempts < downloadAttempts);
     return (
       before: before,
       after: after,
       installed: await store.installed(),
-      downloadMs: ms,
+      downloadMs: downloadMs,
+      attempts: attempts,
     );
   } finally {
     progress.close();
