@@ -563,14 +563,22 @@ void main() {
         );
 
         expect(
-          find.textContaining('already contained in the other'),
+          find.textContaining('imported again as its own dive'),
           findsOneWidget,
         );
-        expect(
-          find.text('Keep as one dive with both computers'),
-          findsOneWidget,
-        );
+        // No second computer joins the dive, so the button does not say so.
+        expect(find.text('Keep as one dive'), findsOneWidget);
+        expect(find.text('Keep as one dive with both computers'), findsNothing);
         expect(find.textContaining("can't be merged this way"), findsNothing);
+        // Only the whole dive can be the primary: the copy's radio is off, so
+        // the diver cannot pick it and lose the panel to an error.
+        RadioListTile<String> tile(String id) => tester.widget(
+          find.byWidgetPredicate(
+            (w) => w is RadioListTile<String> && w.value == id,
+          ),
+        );
+        expect(tile('a').enabled, isTrue);
+        expect(tile('b').enabled, isFalse);
       },
     );
 
@@ -578,7 +586,7 @@ void main() {
       await pumpCombineDialog(tester, dives: consolidatableDives());
 
       expect(
-        find.textContaining('already contained in the other'),
+        find.textContaining('imported again as its own dive'),
         findsNothing,
       );
     });

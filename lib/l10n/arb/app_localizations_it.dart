@@ -7556,6 +7556,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mantieni come un\'unica immersione con entrambi i computer';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate =>
+      'Mantieni come un\'unica immersione';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'Parte dell\'immersione principale è stata importata di nuovo come immersione a sé, dallo stesso computer subacqueo. Quella copia viene conservata solo come fonte dell\'immersione principale, quindi nulla viene aggiunto due volte.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'Impossibile unire le immersioni. Non è stato modificato nulla.';
 
@@ -7566,10 +7574,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Queste immersioni provengono dallo stesso computer subacqueo e non possono essere unite in questo modo.';
-
-  @override
-  String get diveLog_combine_duplicateHint =>
-      'Una di queste immersioni è già contenuta nell\'altra, registrata dallo stesso computer subacqueo. I suoi dati grezzi vengono conservati come fonte dell\'altra immersione, senza copiare nulla due volte.';
 
   @override
   String get diveLog_consolidate_noProfileFallback =>
@@ -7586,6 +7590,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'Immersione unita come computer aggiuntivo.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'Copia integrata nell\'immersione principale.';
 
   @override
   String get diveLog_consolidate_undoError =>

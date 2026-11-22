@@ -7573,6 +7573,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Conserver comme une seule plongée avec les deux ordinateurs';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate =>
+      'Conserver comme une seule plongée';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'Une partie de la plongée principale a été importée à nouveau comme plongée distincte, depuis le même ordinateur de plongée. Cette copie n\'est conservée que comme source de la plongée principale, rien n\'est donc ajouté en double.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'Impossible de fusionner les plongées. Rien n\'a été modifié.';
 
@@ -7583,10 +7591,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Ces plongées proviennent du même ordinateur de plongée et ne peuvent pas être fusionnées de cette façon.';
-
-  @override
-  String get diveLog_combine_duplicateHint =>
-      'L\'une de ces plongées est déjà contenue dans l\'autre, enregistrée par le même ordinateur. Ses données brutes sont conservées comme source de l\'autre plongée, sans rien copier en double.';
 
   @override
   String get diveLog_consolidate_noProfileFallback =>
@@ -7603,6 +7607,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'Plongée fusionnée en tant qu\'ordinateur supplémentaire.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'Copie intégrée à la plongée principale.';
 
   @override
   String get diveLog_consolidate_undoError =>

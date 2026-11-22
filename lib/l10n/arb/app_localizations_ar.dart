@@ -7685,6 +7685,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'الاحتفاظ بها كغوصة واحدة بجهازي كمبيوتر';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate => 'الاحتفاظ بها كغوصة واحدة';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'تم استيراد جزء من الغوصة الأساسية مرة أخرى كغوصة مستقلة من كمبيوتر الغوص نفسه. تُحفظ هذه النسخة كمصدر للغوصة الأساسية فقط، لذا لا يُضاف أي شيء مرتين.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'تعذّر دمج الغوصات. لم يتغيّر أي شيء.';
 
@@ -7695,10 +7702,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'هاتان الغوصتان من نفس كمبيوتر الغوص ولا يمكن دمجهما بهذه الطريقة.';
-
-  @override
-  String get diveLog_combine_duplicateHint =>
-      'إحدى هاتين الغطستين مضمّنة بالفعل في الأخرى، وقد سجّلها حاسوب الغوص نفسه. تُحفظ بياناتها الخام كمصدر للغطسة الأخرى، دون نسخ أي شيء مرتين.';
 
   @override
   String get diveLog_consolidate_noProfileFallback =>
@@ -7714,6 +7717,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'تم دمج الغوصة كجهاز كمبيوتر إضافي.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'تم دمج النسخة في الغوصة الأساسية.';
 
   @override
   String get diveLog_consolidate_undoError => 'تعذّر التراجع عن الدمج.';

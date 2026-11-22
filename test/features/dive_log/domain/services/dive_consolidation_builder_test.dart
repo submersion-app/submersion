@@ -277,6 +277,81 @@ void main() {
           ConsolidationInvalidReason.sameComputer,
         );
       });
+
+      test('a copy of the first half listed first still leaves the whole '
+          'dive as the default primary', () {
+        final whole = reefProfile();
+        final result = builder.classify([
+          makeDive(
+            'copy',
+            entry: t,
+            runtimeMin: 25,
+            serial: 'SAME',
+            profile: [
+              for (final p in whole)
+                if (p.timestamp <= 1500) p,
+            ],
+          ),
+          makeDive('whole', entry: t, serial: 'SAME', profile: whole),
+        ]);
+
+        expect(result, isA<ConsolidationReady>());
+        final ready = result as ConsolidationReady;
+        expect(ready.primary.id, 'whole');
+        expect(ready.duplicateIds, {'copy'});
+      });
+
+      test('two copies of the same stretch are still rejected', () {
+        final whole = reefProfile();
+        Dive copy(String id) => makeDive(
+          id,
+          entry: t.add(const Duration(seconds: 1300)),
+          runtimeMin: 25,
+          serial: 'SAME',
+          profile: secondHalf(whole, 1300),
+        );
+        final result = builder.classify([
+          makeDive('a', entry: t, serial: 'SAME', profile: whole),
+          copy('b'),
+          copy('c'),
+        ]);
+
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.sameComputer,
+        );
+      });
+
+      test('the copy\'s cylinder merges into the primary\'s although it '
+          'starts at the pressure the split left it at', () {
+        final whole = reefProfile();
+        DiveTank air(String id, double start) => DiveTank(
+          id: id,
+          gasMix: const GasMix(o2: 21, he: 0),
+          startPressure: start,
+          endPressure: 60,
+        );
+        final plan = builder.build([
+          makeDive(
+            'a',
+            entry: t,
+            serial: 'SAME',
+            profile: whole,
+            tanks: [air('ta', 200)],
+          ),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(seconds: 1300)),
+            runtimeMin: 25,
+            serial: 'SAME',
+            profile: secondHalf(whole, 1300),
+            tanks: [air('tb', 130)],
+          ),
+        ]);
+
+        expect(plan.duplicateIds, {'b'});
+        expect(plan.tankMerges, {'tb': 'ta'});
+      });
     });
 
     test('dive entirely after the other is not overlapping', () {

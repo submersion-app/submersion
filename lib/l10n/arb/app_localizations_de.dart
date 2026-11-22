@@ -7555,6 +7555,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Als ein Tauchgang mit beiden Computern behalten';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate =>
+      'Als ein Tauchgang behalten';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'Ein Teil des primären Tauchgangs wurde vom selben Tauchcomputer erneut als eigener Tauchgang importiert. Diese Kopie bleibt nur als Quelle des primären Tauchgangs erhalten, sodass nichts doppelt hinzugefügt wird.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'Die Tauchgänge konnten nicht zusammengeführt werden. Es wurde nichts geändert.';
 
@@ -7565,10 +7573,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'Diese Tauchgänge stammen vom selben Tauchcomputer und können auf diese Weise nicht zusammengeführt werden.';
-
-  @override
-  String get diveLog_combine_duplicateHint =>
-      'Einer dieser Tauchgänge ist bereits im anderen enthalten, aufgezeichnet vom selben Tauchcomputer. Seine Rohdaten bleiben als Quelle des anderen Tauchgangs erhalten, nichts wird doppelt kopiert.';
 
   @override
   String get diveLog_consolidate_noProfileFallback =>
@@ -7584,6 +7588,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_consolidate_snackbar =>
       'Tauchgang als zusätzlicher Computer zusammengeführt.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'Kopie in den primären Tauchgang übernommen.';
 
   @override
   String get diveLog_consolidate_undoError =>

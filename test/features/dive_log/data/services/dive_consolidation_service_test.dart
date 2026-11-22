@@ -177,6 +177,7 @@ void main() {
     required int timestamp,
     String eventType = 'gaschange',
     String? tankId,
+    String? computerId,
   }) async {
     await db
         .into(db.diveProfileEvents)
@@ -187,7 +188,7 @@ void main() {
             timestamp: timestamp,
             eventType: eventType,
             createdAt: 0,
-          ).copyWith(tankId: Value(tankId)),
+          ).copyWith(tankId: Value(tankId), computerId: Value(computerId)),
         );
   }
 
@@ -900,6 +901,7 @@ void main() {
       Future<void> seedSplitDive({
         List<domain.DiveTank> wholeTanks = const [],
         List<domain.DiveTank> halfTanks = const [],
+        bool halfHasSource = true,
       }) async {
         await seedDive(
           'whole',
@@ -929,12 +931,14 @@ void main() {
           tanks: halfTanks,
           profile: secondHalf,
         );
-        await seedDataSource(
-          'src-half',
-          diveId: 'half',
-          computerId: 'comp-x',
-          rawData: Uint8List.fromList([9, 9, 9]),
-        );
+        if (halfHasSource) {
+          await seedDataSource(
+            'src-half',
+            diveId: 'half',
+            computerId: 'comp-x',
+            rawData: Uint8List.fromList([9, 9, 9]),
+          );
+        }
       }
 
       test('folds in for its raw bytes, repeats nothing the target holds and '
@@ -1069,6 +1073,73 @@ void main() {
         expect(held.single.tankId, 'tk-w');
         // Placed on the target's clock: 200 s into the copy is 1500 s in.
         expect(held.single.samples.single.timestamp, 1500);
+      });
+
+      test('folds the copy\'s cylinder into the target\'s although it starts '
+          'at the pressure the split left it at', () async {
+        await seedSplitDive(
+          wholeTanks: [tank('tk-w', o2: 21, start: 200, end: 60)],
+          halfTanks: [tank('tk-h', o2: 21, start: 130, end: 60)],
+        );
+        await seedTankPressureSeries(
+          'tp-w',
+          diveId: 'whole',
+          tankId: 'tk-w',
+          timestamp: 1500,
+          pressure: 120,
+        );
+        await seedTankPressureSeries(
+          'tp-h',
+          diveId: 'half',
+          tankId: 'tk-h',
+          timestamp: 200,
+          pressure: 120,
+        );
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final tanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('whole'))).get();
+        expect(tanks.map((t) => t.id), ['tk-w']);
+        expect(await tankSeries.getSeriesForDive('whole'), hasLength(1));
+      });
+
+      test('repeats no event the target holds when only the target\'s copy '
+          'of it names no computer', () async {
+        await seedSplitDive();
+        // Logged before downloads stamped a computer on their events.
+        await seedEvent(
+          'ev-whole',
+          diveId: 'whole',
+          timestamp: 1500,
+          eventType: 'safetyStopStart',
+        );
+        await seedEvent(
+          'ev-half',
+          diveId: 'half',
+          timestamp: 200,
+          eventType: 'safetyStopStart',
+          computerId: 'comp-x',
+        );
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final events = await (db.select(
+          db.diveProfileEvents,
+        )..where((e) => e.diveId.equals('whole'))).get();
+        expect(events.map((e) => e.id), ['ev-whole']);
+      });
+
+      test('adds no source for a copy that has no source row', () async {
+        await seedSplitDive(halfHasSource: false);
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final sources = await (db.select(
+          db.diveDataSources,
+        )..where((r) => r.diveId.equals('whole'))).get();
+        expect(sources.map((r) => r.id), ['src-whole']);
       });
 
       test(

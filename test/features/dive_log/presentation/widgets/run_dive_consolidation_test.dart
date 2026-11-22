@@ -77,6 +77,18 @@ void main() {
       expect(snackBar.showCloseIcon, isTrue);
     });
 
+    testWidgets('a fold of same-computer copies only says the copy was '
+        'folded in, not that a computer was added', (tester) async {
+      await _pumpAndRun(
+        tester,
+        service: FakeDiveConsolidationService(),
+        onlyCopies: true,
+      );
+
+      expect(find.text('Copy folded into the primary dive.'), findsOneWidget);
+      expect(find.text('Dive merged as an additional computer.'), findsNothing);
+    });
+
     testWidgets('tapping Undo rolls back with the outcome snapshot, tells the '
         'caller to refresh again, and confirms', (tester) async {
       final service = FakeDiveConsolidationService();
@@ -251,14 +263,20 @@ Future<void> _pumpAndRun(
   required FakeDiveConsolidationService service,
   VoidCallback? onConsolidated,
   ConsolidationAlignment? alignment,
+  bool onlyCopies = false,
 }) async {
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
       child: Builder(
         builder: (context) => TextButton(
-          onPressed: () async =>
-              _run(context, service, onConsolidated, alignment: alignment),
+          onPressed: () async => _run(
+            context,
+            service,
+            onConsolidated,
+            alignment: alignment,
+            onlyCopies: onlyCopies,
+          ),
           child: const Text('Merge'),
         ),
       ),
@@ -311,6 +329,7 @@ Future<void> _run(
   FakeDiveConsolidationService service,
   VoidCallback? onConsolidated, {
   ConsolidationAlignment? alignment,
+  bool onlyCopies = false,
 }) {
   return runDiveConsolidation(
     context: context,
@@ -319,5 +338,6 @@ Future<void> _run(
     secondaryDiveIds: _secondaryDiveIds,
     onConsolidated: onConsolidated ?? () {},
     alignment: alignment,
+    onlyCopies: onlyCopies,
   );
 }

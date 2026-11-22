@@ -7395,6 +7395,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_consolidate_confirm => 'לשמור כצלילה אחת עם שני המחשבים';
 
   @override
+  String get diveLog_consolidate_confirmDuplicate => 'לשמור כצלילה אחת';
+
+  @override
+  String get diveLog_consolidate_duplicateHint =>
+      'חלק מהצלילה הראשית יובא שוב כצלילה נפרדת, מאותו מחשב צלילה. העותק נשמר רק כמקור של הצלילה הראשית, כך ששום דבר לא נוסף פעמיים.';
+
+  @override
   String get diveLog_consolidate_error_generic =>
       'לא ניתן היה למזג את הצלילות. שום דבר לא השתנה.';
 
@@ -7405,10 +7412,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_consolidate_error_sameComputer =>
       'הצלילות האלה מגיעות מאותו מחשב צלילה ולא ניתן למזג אותן בדרך זו.';
-
-  @override
-  String get diveLog_combine_duplicateHint =>
-      'אחת הצלילות כבר כלולה בשנייה, ונרשמה על ידי אותו מחשב צלילה. הנתונים הגולמיים שלה נשמרים כמקור של הצלילה האחרת, בלי להעתיק דבר פעמיים.';
 
   @override
   String get diveLog_consolidate_noProfileFallback =>
@@ -7423,6 +7426,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_consolidate_snackbar => 'הצלילה מוזגה כמחשב נוסף.';
+
+  @override
+  String get diveLog_consolidate_duplicateSnackbar =>
+      'העותק צורף לצלילה הראשית.';
 
   @override
   String get diveLog_consolidate_undoError => 'לא ניתן היה לבטל את המיזוג.';

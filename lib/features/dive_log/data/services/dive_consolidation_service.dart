@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/data/services/consolidation_copy_matcher.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_field_fill.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
@@ -65,31 +66,6 @@ class DiveConsolidationService {
   final _foldLinks = DiveFoldLinks();
 
   AppDatabase get _db => DatabaseService.instance.database;
-
-  /// How far apart, in seconds, two events of one type can sit and still be
-  /// the same event once an exact copy is placed on the target's clock.
-  static const int _duplicateEventToleranceSeconds = 2;
-
-  /// The target's own event that [secondaryEvent], shifted by [offset], repeats:
-  /// the same type, the same computer, within
-  /// [_duplicateEventToleranceSeconds]. Null when it is new to the target.
-  DiveProfileEvent? _matchingTargetEvent(
-    List<DiveProfileEvent> allEvents,
-    String targetDiveId,
-    DiveProfileEvent secondaryEvent,
-    int offset,
-  ) {
-    for (final e in allEvents) {
-      if (e.diveId != targetDiveId) continue;
-      if (e.eventType != secondaryEvent.eventType) continue;
-      if (e.computerId != secondaryEvent.computerId) continue;
-      if ((e.timestamp - (secondaryEvent.timestamp + offset)).abs() <=
-          _duplicateEventToleranceSeconds) {
-        return e;
-      }
-    }
-    return null;
-  }
 
   /// Folds [secondaryDiveIds] into [targetDiveId] as additional computer
   /// sources. Throws [ArgumentError] (with the ConsolidationInvalidReason in
@@ -339,6 +315,12 @@ class DiveConsolidationService {
           if (entry.key.$1 == targetDiveId) entry.key.$2: entry.value,
       };
       var targetDiverRoles = capturedDiverRoles[targetDiveId] ?? const [];
+      final copyMatcher = ConsolidationCopyMatcher(
+        targetDiveId: targetDiveId,
+        targetComputerId: targetRow.computerId,
+        eventRows: snapshot.eventRows,
+        gasSwitchRows: snapshot.gasSwitchRows,
+      );
 
       for (final secondary in plan.secondaries) {
         final secRow = snapshot.diveRows.firstWhere(
@@ -360,9 +342,13 @@ class DiveConsolidationService {
         // profile is not copied as a second computer's.
         final noReadings =
             secSources.isEmpty && (secRow.isPlanned || secRow.isDraft);
+        final isDuplicate = plan.duplicateIds.contains(secondary.id);
 
         if (noReadings) {
           // Nothing to attribute: its tanks keep no source.
+        } else if (isDuplicate && secSources.isEmpty) {
+          // A copy with no source row has no raw bytes to keep, and a source
+          // built from its dives row would only repeat the target's computer.
         } else if (secSources.isEmpty) {
           // Synthesize from the dives row -- same companion mergeDives
           // builds today (dive_repository_impl.dart:4616-4652), attributed
@@ -518,7 +504,6 @@ class DiveConsolidationService {
         // An exact copy of a stretch of the target adds no profile: the
         // target's own trace already holds those samples, and its raw bytes
         // travel on the source row copied above.
-        final isDuplicate = plan.duplicateIds.contains(secondary.id);
         for (final s in await _profileSeries.getSeriesForDive(secondary.id)) {
           if (s.samples.isEmpty || noReadings || isDuplicate) continue;
           await _profileSeries.insertSeries(
@@ -572,10 +557,9 @@ class DiveConsolidationService {
           (r) => r.diveId == secondary.id,
         )) {
           if (isDuplicate) {
-            final already = _matchingTargetEvent(
-              snapshot.eventRows,
-              targetDiveId,
+            final already = copyMatcher.matchEvent(
               row,
+              secRow.computerId,
               offset,
             );
             if (already != null) {
@@ -626,13 +610,7 @@ class DiveConsolidationService {
           final newTankId = tankIdMap[row.tankId];
           if (newTankId == null) continue;
           if (isDuplicate &&
-              snapshot.gasSwitchRows.any(
-                (g) =>
-                    g.diveId == targetDiveId &&
-                    g.tankId == newTankId &&
-                    (g.timestamp - (row.timestamp + offset)).abs() <=
-                        _duplicateEventToleranceSeconds,
-              )) {
+              copyMatcher.repeatsGasSwitch(row, newTankId, offset)) {
             continue;
           }
           final switchId = _uuid.v4();

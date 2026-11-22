@@ -11805,6 +11805,18 @@ abstract class AppLocalizations {
   /// **'Keep as one dive with both computers'**
   String get diveLog_consolidate_confirm;
 
+  /// No description provided for @diveLog_consolidate_confirmDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep as one dive'**
+  String get diveLog_consolidate_confirmDuplicate;
+
+  /// No description provided for @diveLog_consolidate_duplicateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of the primary dive was imported again as its own dive, from the same dive computer. That copy is kept only as a source of the primary dive, so nothing it repeats is added twice.'**
+  String get diveLog_consolidate_duplicateHint;
+
   /// No description provided for @diveLog_consolidate_error_generic.
   ///
   /// In en, this message translates to:
@@ -11822,12 +11834,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These dives are from the same dive computer and can\'t be merged this way.'**
   String get diveLog_consolidate_error_sameComputer;
-
-  /// No description provided for @diveLog_combine_duplicateHint.
-  ///
-  /// In en, this message translates to:
-  /// **'One of these dives is already contained in the other, recorded by the same dive computer. Its raw data is kept as a source of the other dive, and nothing is copied twice.'**
-  String get diveLog_combine_duplicateHint;
 
   /// No description provided for @diveLog_consolidate_noProfileFallback.
   ///
@@ -11852,6 +11858,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive merged as an additional computer.'**
   String get diveLog_consolidate_snackbar;
+
+  /// No description provided for @diveLog_consolidate_duplicateSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy folded into the primary dive.'**
+  String get diveLog_consolidate_duplicateSnackbar;
 
   /// No description provided for @diveLog_consolidate_undoError.
   ///

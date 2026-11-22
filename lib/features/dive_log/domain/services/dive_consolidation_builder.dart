@@ -255,8 +255,19 @@ class DiveConsolidationBuilder {
     // The primary's timeline is the one that survives, so the default is the
     // earliest dive that happened: a plan is a guess at those times, and the
     // no-fly clock runs from the end they give (issue #3924).
-    final fallback =
+    final earliest =
         sorted.where((d) => !d.isPlanned).firstOrNull ?? sorted.first;
+    // Two records that start together, a whole dive and a copy of its first
+    // stretch, default to the longer: only the copy can sit inside the other.
+    final fallback = sorted
+        .where(
+          (d) =>
+              d.isPlanned == earliest.isPlanned &&
+              d.effectiveEntryTime.isAtSameMomentAs(
+                earliest.effectiveEntryTime,
+              ),
+        )
+        .reduce((a, b) => _extent(b) > _extent(a) ? b : a);
     final primary = primaryDiveId == null
         ? fallback
         : sorted.firstWhere(
@@ -273,15 +284,21 @@ class DiveConsolidationBuilder {
     // stretch of the primary: a half the primary already contains, imported
     // again on its own. That folds in for its raw bytes and adds nothing else
     // (#1913's duplicates from before the import started recognising them).
+    // Two copies that overlap each other are the same stretch downloaded
+    // twice: the service compares each copy only with what the target held
+    // before the fold, so both would add whatever the target lacked.
     final duplicates = <String>{};
+    final duplicateDives = <Dive>[];
     for (final s in secondaries) {
       if (_sameComputer(primary, s)) {
-        if (!_isContainedDuplicate(primary, s)) {
+        if (!_isContainedDuplicate(primary, s) ||
+            duplicateDives.any((d) => _overlaps(d, s))) {
           return const ConsolidationInvalid(
             ConsolidationInvalidReason.sameComputer,
           );
         }
         duplicates.add(s.id);
+        duplicateDives.add(s);
       } else if (secondaries.any((o) => o.id != s.id && _sameComputer(o, s))) {
         return const ConsolidationInvalid(
           ConsolidationInvalidReason.sameComputer,
@@ -337,7 +354,14 @@ class DiveConsolidationBuilder {
     return a == b;
   }
 
-  bool _tankMatches(DiveTank primary, DiveTank secondary) {
+  /// [comparePressures] false pairs by gas alone: for a copy of a stretch of
+  /// the primary, whose cylinder starts at the pressure the split left it at,
+  /// not the fill the primary records.
+  bool _tankMatches(
+    DiveTank primary,
+    DiveTank secondary, {
+    bool comparePressures = true,
+  }) {
     final bySerial = _serialIdentity(primary, secondary);
     if (bySerial != null) return bySerial;
     // Without a serial, a suit inflation bottle is only ever the same
@@ -351,6 +375,7 @@ class DiveConsolidationBuilder {
     final heClose =
         (primary.gasMix.he - secondary.gasMix.he).abs() <= gasTolerancePct;
     if (!o2Close || !heClose) return false;
+    if (!comparePressures) return true;
     // Pressures rarely agree across computers (different logging cadence,
     // missing air-integration, etc.), so gas mix alone identifies the same
     // physical tank. Each pressure that IS reported on both sides must still
@@ -450,7 +475,11 @@ class DiveConsolidationBuilder {
         if (tankMerges.containsKey(tank.id)) continue;
         for (final pTank in primary.tanks) {
           if (claimedPrimaryTanks.contains(pTank.id)) continue;
-          if (_tankMatches(pTank, tank)) {
+          if (_tankMatches(
+            pTank,
+            tank,
+            comparePressures: !classification.duplicateIds.contains(s.id),
+          )) {
             tankMerges[tank.id] = pTank.id;
             claimedPrimaryTanks.add(pTank.id);
             break;
