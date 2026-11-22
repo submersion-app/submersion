@@ -530,6 +530,12 @@ class UddfExportBuilders {
             if (dive.gasSwitchesEdited) {
               builder.element('gasswitchesedited', nest: 'true');
             }
+            // The values the diver set by hand (issue #4909): without them
+            // a restored dive's next re-parse would overwrite those values.
+            final handSetFields = dive.handSetFields;
+            if (handSetFields != null && handSetFields.isNotEmpty) {
+              builder.element('handsetfields', nest: handSetFields);
+            }
             // The correction for the camera's clock (issue #4539): without
             // it a restored dive's media goes back to where the camera put
             // it.

@@ -2573,6 +2573,8 @@ class DiveRepository {
                 // A restored backup brings the diver-owned switch list
                 // flag with it (issue #32); an edit never rewrites it.
                 gasSwitchesEdited: Value(dive.gasSwitchesEdited),
+                // And the values the diver set by hand (issue #4909).
+                handSetFields: Value(dive.handSetFields),
                 // As is the media time shift (issue #4539).
                 mediaTimeOffsetSeconds: Value(dive.mediaTimeOffsetSeconds),
                 // CCR/SCR rebreather fields (v1.5)
@@ -5414,6 +5416,7 @@ class DiveRepository {
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
       gasSwitchesEdited: row.gasSwitchesEdited,
+      handSetFields: row.handSetFields,
       mediaTimeOffsetSeconds: row.mediaTimeOffsetSeconds,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
@@ -5897,6 +5900,7 @@ class DiveRepository {
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
       gasSwitchesEdited: row.gasSwitchesEdited,
+      handSetFields: row.handSetFields,
       mediaTimeOffsetSeconds: row.mediaTimeOffsetSeconds,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)

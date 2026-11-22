@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_import/data/services/restored_source_at
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -69,10 +70,11 @@ class DiveReimportResult {
 /// mode, O2 exposure, deco model and gradient factors, and the profile,
 /// events, gas switches and tank pressures this source owns. A value the
 /// fixed parse no longer reports is CLEARED rather than left to contradict
-/// the rest of the dive, and a hand correction to one of those computer
-/// values is overwritten with it. That is what a re-parse does, and replaying
-/// the file is the same operation: the fix is the point, and a summary half
-/// from the old parser is not a state the diver asked for.
+/// the rest of the dive. That is what a re-parse does, and replaying the
+/// file is the same operation: the fix is the point, and a summary half
+/// from the old parser is not a state the diver asked for. The exception is
+/// a value the diver set by hand (issue #4909): it stays, as a re-parse
+/// keeps it, unless the diver chose the file's value for it.
 ///
 /// `gas_switches`/`tank_pressure_series` both `ON DELETE CASCADE` off
 /// `dive_tanks.id` (#276) -- tank ids must be preserved by `tankOrder`,
@@ -99,10 +101,14 @@ class DiveReimportService {
   final TankPressureRepository _tankPressureRepository;
   final MissingComputerAttacher _missingComputers;
 
+  /// Values the diver set by hand stay, unless named in [replaceHandSet]
+  /// (issue #4909), the fields the diver chose the file's value for after
+  /// [previewHandSetChanges].
   Future<DiveReimportResult> applyReimport({
     required String diveId,
     required Map<String, dynamic> diveData,
     required DateTime now,
+    Set<HandSetField> replaceHandSet = const {},
   }) async {
     final diveRow = await (db.select(
       db.dives,
@@ -147,7 +153,12 @@ class DiveReimportService {
       // exactly this rule. A dive with no primary row has nobody claiming to
       // have authored the summary, so nothing overwrites it.
       if (primary != null || sourceRows.isEmpty) {
-        await _updateDiveRow(diveId: diveId, diveData: diveData, now: now);
+        await _updateDiveRow(
+          diveRow: diveRow,
+          diveData: diveData,
+          now: now,
+          replaceHandSet: replaceHandSet,
+        );
       }
 
       if (ownsEverything) {
@@ -324,7 +335,62 @@ class DiveReimportService {
   ///
   /// `diveDateTime` is the one column that cannot be cleared: it is NOT NULL,
   /// and a candidate without a clock never reaches here from the orchestrator.
+  ///
+  /// A value the diver set by hand stays unless its field is in
+  /// [replaceHandSet] (issue #4909).
   Future<void> _updateDiveRow({
+    required Dive diveRow,
+    required Map<String, dynamic> diveData,
+    required DateTime now,
+    required Set<HandSetField> replaceHandSet,
+  }) async {
+    final diveId = diveRow.id;
+    final guarded = keepHandSetFields(
+      await _diveRowCompanion(diveId: diveId, diveData: diveData, now: now),
+      diveRow,
+      replace: replaceHandSet,
+    );
+    await (db.update(
+      db.dives,
+    )..where((t) => t.id.equals(diveId))).write(guarded.companion);
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now.millisecondsSinceEpoch,
+    );
+  }
+
+  /// The values the diver set by hand on [diveId] that applying [diveData]
+  /// would replace, each with the file's value, in [HandSetField] order
+  /// (issue #4909). Writes nothing.
+  ///
+  /// Reads as [applyReimport] writes: the dive's values are written only
+  /// for a dive with a primary source or none at all.
+  Future<List<HandSetChange>> previewHandSetChanges({
+    required String diveId,
+    required Map<String, dynamic> diveData,
+  }) async {
+    final diveRow = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+    if (diveRow == null) return const [];
+    if (HandSetMarks.decode(diveRow.handSetFields).isEmpty) return const [];
+    final sourceRows = await (db.select(
+      db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    if (sourceRows.isNotEmpty && !sourceRows.any((r) => r.isPrimary)) {
+      return const [];
+    }
+    final companion = await _diveRowCompanion(
+      diveId: diveId,
+      diveData: diveData,
+      now: DateTime.now(),
+    );
+    return keepHandSetFields(companion, diveRow).kept;
+  }
+
+  /// The dive row values [diveData] gives [diveId] (see [_updateDiveRow]).
+  Future<DivesCompanion> _diveRowCompanion({
     required String diveId,
     required Map<String, dynamic> diveData,
     required DateTime now,
@@ -357,51 +423,42 @@ class DiveReimportService {
       diveData['computerTissue'],
     );
 
-    await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
-      DivesCompanion(
-        maxDepth: Value(editDepths?.maxDepth ?? maxDepth),
-        avgDepth: Value(
-          editDepths?.avgDepth ?? (avgDepth == 0.0 ? null : avgDepth),
-        ),
-        runtime: Value(runtime?.inSeconds),
-        diveDateTime: dateTime != null
-            ? Value(dateTime.millisecondsSinceEpoch)
-            : const Value.absent(),
-        entryTime: Value(entryTime?.millisecondsSinceEpoch),
-        exitTime: Value(exitTime?.millisecondsSinceEpoch),
-        bottomTime: Value(bottomTime),
-        waterTemp: waterTemp != null ? Value(waterTemp) : const Value.absent(),
-        diveMode: diveMode != null
-            ? Value(diveMode.code)
-            : const Value.absent(),
-        // NOT NULL: a parse without a start CNS puts back the default.
-        cnsStart: Value(_asDouble(diveData['cnsStart']) ?? 0),
-        cnsEnd: Value(_asDouble(diveData['cnsEnd'])),
-        otu: Value(_asDouble(diveData['otu'])),
-        decoAlgorithm: Value(decoAlgorithm),
-        decoConservatism: Value(decoConservatism),
-        computerTissueJson: Value(computerTissue?.encode()),
-        gradientFactorLow: Value(gfLow),
-        gradientFactorHigh: Value(gfHigh),
-        entryLatitude: entryLatitude != null
-            ? Value(entryLatitude)
-            : const Value.absent(),
-        entryLongitude: entryLongitude != null
-            ? Value(entryLongitude)
-            : const Value.absent(),
-        exitLatitude: exitLatitude != null
-            ? Value(exitLatitude)
-            : const Value.absent(),
-        exitLongitude: exitLongitude != null
-            ? Value(exitLongitude)
-            : const Value.absent(),
-        updatedAt: Value(now.millisecondsSinceEpoch),
+    return DivesCompanion(
+      maxDepth: Value(editDepths?.maxDepth ?? maxDepth),
+      avgDepth: Value(
+        editDepths?.avgDepth ?? (avgDepth == 0.0 ? null : avgDepth),
       ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'dives',
-      recordId: diveId,
-      localUpdatedAt: now.millisecondsSinceEpoch,
+      runtime: Value(runtime?.inSeconds),
+      diveDateTime: dateTime != null
+          ? Value(dateTime.millisecondsSinceEpoch)
+          : const Value.absent(),
+      entryTime: Value(entryTime?.millisecondsSinceEpoch),
+      exitTime: Value(exitTime?.millisecondsSinceEpoch),
+      bottomTime: Value(bottomTime),
+      waterTemp: waterTemp != null ? Value(waterTemp) : const Value.absent(),
+      diveMode: diveMode != null ? Value(diveMode.code) : const Value.absent(),
+      // NOT NULL: a parse without a start CNS puts back the default.
+      cnsStart: Value(_asDouble(diveData['cnsStart']) ?? 0),
+      cnsEnd: Value(_asDouble(diveData['cnsEnd'])),
+      otu: Value(_asDouble(diveData['otu'])),
+      decoAlgorithm: Value(decoAlgorithm),
+      decoConservatism: Value(decoConservatism),
+      computerTissueJson: Value(computerTissue?.encode()),
+      gradientFactorLow: Value(gfLow),
+      gradientFactorHigh: Value(gfHigh),
+      entryLatitude: entryLatitude != null
+          ? Value(entryLatitude)
+          : const Value.absent(),
+      entryLongitude: entryLongitude != null
+          ? Value(entryLongitude)
+          : const Value.absent(),
+      exitLatitude: exitLatitude != null
+          ? Value(exitLatitude)
+          : const Value.absent(),
+      exitLongitude: exitLongitude != null
+          ? Value(exitLongitude)
+          : const Value.absent(),
+      updatedAt: Value(now.millisecondsSinceEpoch),
     );
   }
 

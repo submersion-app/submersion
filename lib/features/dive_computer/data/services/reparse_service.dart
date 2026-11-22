@@ -8,6 +8,7 @@ import 'package:submersion/features/transmitters/data/services/transmitter_auto_
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/surface_pressure_limits.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
@@ -140,7 +141,13 @@ class ReparseService {
   ///
   /// Throws [EmptyParseException], writing nothing, when [parsed] carries no
   /// dive (see [isEmptyParse], issue #3368).
-  Future<({bool profilePreserved})> applyParsedUpdate({
+  ///
+  /// A value the diver set by hand stays, unless its field is in
+  /// [replaceHandSet] (issue #4909); [handSetKept] lists each kept value
+  /// this parse would have changed. Only a primary source writes the dive's
+  /// values, so only it keeps any.
+  Future<({bool profilePreserved, List<HandSetChange> handSetKept})>
+  applyParsedUpdate({
     required String diveId,
     required String sourceRowId,
     required pigeon.ParsedDive parsed,
@@ -150,6 +157,7 @@ class ReparseService {
     required String? libdivecomputerVersion,
     Uint8List? rawData,
     Uint8List? rawFingerprint,
+    Set<HandSetField> replaceHandSet = const {},
   }) async {
     // Before the transaction, so an empty parse leaves even the source row's
     // lastParsedAt and clock alone and nothing is staged for sync.
@@ -264,14 +272,16 @@ class ReparseService {
       //    a dive re-parsed before #3189 holds its recording live beside the
       //    edit, and the depths under an edit are read from what stays live.
       // ------------------------------------------------------------------
+      var handSetKept = const <HandSetChange>[];
       if (sourceRow.isPrimary) {
-        await _updateDiveRow(
-          diveId: diveId,
+        handSetKept = await _updateDiveRow(
+          diveRow: diveRow,
           parsed: parsed,
           now: now,
           vendor: descriptorVendor,
           beneathEdit: beneathEdit,
           surfacePressure: filledSurfacePressure,
+          replaceHandSet: replaceHandSet,
         );
       } else if (filledSurfacePressure != null) {
         await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
@@ -456,7 +466,7 @@ class ReparseService {
         await SafetyFindingsRepository.clearReviewForDive(db, _sync, diveId);
       }
 
-      return (profilePreserved: !ownsStrand);
+      return (profilePreserved: !ownsStrand, handSetKept: handSetKept);
     });
     // After commit, so an auto-sync publishes it. A non-primary re-parse
     // writes no series, whose repositories otherwise announce the change.
@@ -465,6 +475,46 @@ class ReparseService {
     // item and joins the dive, as a download's does (issue #3676).
     await registerTransmittersForDives([diveId]);
     return outcome;
+  }
+
+  /// The values the diver set by hand on [diveId] that applying [parsed]
+  /// from [sourceRowId] would replace, each with the parse's value, in
+  /// [HandSetField] order (issue #4909). Writes nothing.
+  ///
+  /// Reads as [applyParsedUpdate] writes: only a primary source writes the
+  /// dive's values, and a live profile edit gives the depths. A dive with
+  /// nothing marked, or an empty parse, has none.
+  Future<List<HandSetChange>> previewHandSetChanges({
+    required String diveId,
+    required String sourceRowId,
+    required pigeon.ParsedDive parsed,
+    required String? descriptorVendor,
+  }) async {
+    if (isEmptyParse(parsed)) return const [];
+    final diveRow = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingle();
+    if (HandSetMarks.decode(diveRow.handSetFields).isEmpty) return const [];
+    final sourceRows = await (db.select(
+      db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    final sourceRow = sourceRows.firstWhere((r) => r.id == sourceRowId);
+    if (!sourceRow.isPrimary) return const [];
+    final keptEdits = _keptEdits(
+      await _profileSeries.getIdentitiesForDive(diveId),
+      sourceRow.id,
+      sourceRow.computerId,
+      [for (final r in sourceRows) (id: r.id, computerId: r.computerId)],
+    );
+    final companion = await _diveRowCompanion(
+      diveRow: diveRow,
+      parsed: parsed,
+      now: DateTime.now(),
+      vendor: descriptorVendor,
+      beneathEdit: keptEdits.anyLive,
+      surfacePressure: null,
+    );
+    return keepHandSetFields(companion, diveRow).kept;
   }
 
   /// The ids of [table]'s rows on [diveId].
@@ -575,16 +625,23 @@ class ReparseService {
   /// of sources whose profile strand was deliberately left alone -- see
   /// [sourceOwnsProfileStrand]. Callers surface that count so a re-parse on
   /// a combined dive does not look like an unexplained no-op (#1164).
+  ///
+  /// Values the diver set by hand stay, unless named in [replaceHandSet]
+  /// (issue #4909), after [previewReparse].
   Future<({List<String> errors, int profilesPreserved})> reparseDive(
     String diveId, {
-    required Future<pigeon.ParsedDive> Function(
-      String vendor,
-      String product,
-      int model,
-      Uint8List rawData,
-    )
-    parseFn,
-  }) => ReparseBatchService(this).reparseSingleDive(diveId, parseFn: parseFn);
+    required RawDiveParseFn parseFn,
+    Set<HandSetField> replaceHandSet = const {},
+  }) => ReparseBatchService(
+    this,
+  ).reparseSingleDive(diveId, parseFn: parseFn, replaceHandSet: replaceHandSet);
+
+  /// The values the diver set by hand on [diveId] that [reparseDive] would
+  /// replace, each with the parse's value (issue #4909). Writes nothing.
+  Future<List<HandSetChange>> previewReparse(
+    String diveId, {
+    required RawDiveParseFn parseFn,
+  }) => ReparseBatchService(this).previewSingleDive(diveId, parseFn: parseFn);
 
   // ==========================================================================
   // Private helpers
@@ -674,30 +731,56 @@ class ReparseService {
     );
   }
 
+  /// Writes [_diveRowCompanion]'s values over [diveRow], keeping each value
+  /// the diver set by hand unless its field is in [replaceHandSet] (issue
+  /// #4909). Returns the kept values this parse would have changed.
+  Future<List<HandSetChange>> _updateDiveRow({
+    required Dive diveRow,
+    required pigeon.ParsedDive parsed,
+    required DateTime now,
+    required String? vendor,
+    required bool beneathEdit,
+    required double? surfacePressure,
+    required Set<HandSetField> replaceHandSet,
+  }) async {
+    final guarded = keepHandSetFields(
+      await _diveRowCompanion(
+        diveRow: diveRow,
+        parsed: parsed,
+        now: now,
+        vendor: vendor,
+        beneathEdit: beneathEdit,
+        surfacePressure: surfacePressure,
+      ),
+      diveRow,
+      replace: replaceHandSet,
+    );
+    await (db.update(
+      db.dives,
+    )..where((t) => t.id.equals(diveRow.id))).write(guarded.companion);
+    return guarded.kept;
+  }
+
+  /// The dive row values [parsed] gives [diveRow], as read before this
+  /// re-parse wrote anything to it.
+  ///
   /// [surfacePressure] is the value to fill, null to leave the stored one;
   /// the caller decides from the dive row it read (see applyParsedUpdate).
-  Future<void> _updateDiveRow({
-    required String diveId,
+  Future<DivesCompanion> _diveRowCompanion({
+    required Dive diveRow,
     required pigeon.ParsedDive parsed,
     required DateTime now,
     required String? vendor,
     required bool beneathEdit,
     required double? surfacePressure,
   }) async {
+    final diveId = diveRow.id;
     // A parse with no date leaves both start columns as stored, and the exit
     // follows the dive's effective start (entry time when set, as
     // Dive.effectiveEntryTime reads it), so the re-parse cannot move the dive
     // (#1640).
     final parsedStartMs = _parsedEntryTime(parsed)?.millisecondsSinceEpoch;
-    final int startMs;
-    if (parsedStartMs != null) {
-      startMs = parsedStartMs;
-    } else {
-      final stored = await (db.select(
-        db.dives,
-      )..where((t) => t.id.equals(diveId))).getSingle();
-      startMs = stored.entryTime ?? stored.diveDateTime;
-    }
+    final startMs = parsedStartMs ?? diveRow.entryTime ?? diveRow.diveDateTime;
     final exitTimeMs = startMs + (parsed.durationSeconds * 1000);
     final bottomTimeSeconds = _calculateBottomTimeFromSamples(
       parsed.samples,
@@ -724,58 +807,54 @@ class ReparseService {
       ),
     );
 
-    await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
-      DivesCompanion(
-        diluentO2: diluent != null ? Value(diluent.o2) : const Value.absent(),
-        diluentHe: diluent != null ? Value(diluent.he) : const Value.absent(),
-        maxDepth: beneathEdit
-            ? Value.absentIfNull(liveDepths?.maxDepth)
-            : Value(parsed.maxDepthMeters),
-        avgDepth: beneathEdit
-            ? Value.absentIfNull(liveDepths?.avgDepth)
-            : Value(
-                parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
-              ),
-        runtime: Value(parsed.durationSeconds),
-        diveDateTime: parsedStartMs != null
-            ? Value(parsedStartMs)
-            : const Value.absent(),
-        entryTime: parsedStartMs != null
-            ? Value(parsedStartMs)
-            : const Value.absent(),
-        exitTime: Value(exitTimeMs),
-        bottomTime: Value(bottomTimeSeconds ?? parsed.durationSeconds),
-        // Only overwrite the dive's water temp when this parse produced one,
-        // for the same reason as the GPS fields below: Value.absent() keeps a
-        // temperature stamped by hand or by another source, while the
-        // dive_data_sources row above still records the computer's own answer.
-        waterTemp: waterTemp != null ? Value(waterTemp) : const Value.absent(),
-        diveMode: Value(mapLibdcDiveModeCode(parsed.diveMode)),
-        cnsEnd: Value(_extractMaxCns(parsed.samples)),
-        otu: const Value.absent(), // OTU is not directly in ParsedDive
-        gradientFactorLow: Value(parsed.gfLow),
-        gradientFactorHigh: Value(parsed.gfHigh),
-        decoAlgorithm: Value(parsed.decoAlgorithm),
-        decoConservatism: Value(parsed.decoConservatism),
-        // Only overwrite dive GPS when the computer actually parsed a fix.
-        // Value.absent() preserves positions stamped from other sources
-        // (GPS track logs, manual entry); the dive_data_sources row above
-        // still records exactly what the computer provided.
-        entryLatitude: parsed.entryLatitude != null
-            ? Value(parsed.entryLatitude)
-            : const Value.absent(),
-        entryLongitude: parsed.entryLongitude != null
-            ? Value(parsed.entryLongitude)
-            : const Value.absent(),
-        exitLatitude: parsed.exitLatitude != null
-            ? Value(parsed.exitLatitude)
-            : const Value.absent(),
-        exitLongitude: parsed.exitLongitude != null
-            ? Value(parsed.exitLongitude)
-            : const Value.absent(),
-        surfacePressure: Value.absentIfNull(surfacePressure),
-        updatedAt: Value(now.millisecondsSinceEpoch),
-      ),
+    return DivesCompanion(
+      diluentO2: diluent != null ? Value(diluent.o2) : const Value.absent(),
+      diluentHe: diluent != null ? Value(diluent.he) : const Value.absent(),
+      maxDepth: beneathEdit
+          ? Value.absentIfNull(liveDepths?.maxDepth)
+          : Value(parsed.maxDepthMeters),
+      avgDepth: beneathEdit
+          ? Value.absentIfNull(liveDepths?.avgDepth)
+          : Value(parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null),
+      runtime: Value(parsed.durationSeconds),
+      diveDateTime: parsedStartMs != null
+          ? Value(parsedStartMs)
+          : const Value.absent(),
+      entryTime: parsedStartMs != null
+          ? Value(parsedStartMs)
+          : const Value.absent(),
+      exitTime: Value(exitTimeMs),
+      bottomTime: Value(bottomTimeSeconds ?? parsed.durationSeconds),
+      // Only overwrite the dive's water temp when this parse produced one,
+      // for the same reason as the GPS fields below: Value.absent() keeps a
+      // temperature stamped by hand or by another source, while the
+      // dive_data_sources row above still records the computer's own answer.
+      waterTemp: waterTemp != null ? Value(waterTemp) : const Value.absent(),
+      diveMode: Value(mapLibdcDiveModeCode(parsed.diveMode)),
+      cnsEnd: Value(_extractMaxCns(parsed.samples)),
+      otu: const Value.absent(), // OTU is not directly in ParsedDive
+      gradientFactorLow: Value(parsed.gfLow),
+      gradientFactorHigh: Value(parsed.gfHigh),
+      decoAlgorithm: Value(parsed.decoAlgorithm),
+      decoConservatism: Value(parsed.decoConservatism),
+      // Only overwrite dive GPS when the computer actually parsed a fix.
+      // Value.absent() preserves positions stamped from other sources
+      // (GPS track logs, manual entry); the dive_data_sources row above
+      // still records exactly what the computer provided.
+      entryLatitude: parsed.entryLatitude != null
+          ? Value(parsed.entryLatitude)
+          : const Value.absent(),
+      entryLongitude: parsed.entryLongitude != null
+          ? Value(parsed.entryLongitude)
+          : const Value.absent(),
+      exitLatitude: parsed.exitLatitude != null
+          ? Value(parsed.exitLatitude)
+          : const Value.absent(),
+      exitLongitude: parsed.exitLongitude != null
+          ? Value(parsed.exitLongitude)
+          : const Value.absent(),
+      surfacePressure: Value.absentIfNull(surfacePressure),
+      updatedAt: Value(now.millisecondsSinceEpoch),
     );
   }
 
