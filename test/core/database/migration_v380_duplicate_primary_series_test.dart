@@ -271,6 +271,28 @@ void main() {
       expect(await primaryFlags(db, 'dive'), {'own': true, 'stray': false});
     });
 
+    test('a computer with a source of its own on the dive is a second '
+        'recording, not a stray label', () async {
+      // A Combine points a pre-v154 series with no source at its segment's
+      // owner, so a consolidated segment's second computer can carry the
+      // first one's source.
+      await seedPair(db);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'dive-src-b',
+              diveId: 'dive',
+              computerId: const Value('comp-b'),
+              importedAt: DateTime.utc(2026, 11, 1),
+              createdAt: DateTime.utc(2026, 11, 1),
+            ),
+          );
+
+      expect(await demoteDuplicatePrimarySeries(db), 0);
+      expect((await primaryFlags(db, 'dive'))['dive-stray'], isTrue);
+    });
+
     test('series of different sources are never compared', () async {
       await insertDive(db, 'dive');
       await insertSource(db, 'src-a', 'dive', computerId: 'comp-a');

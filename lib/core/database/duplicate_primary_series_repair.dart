@@ -19,7 +19,11 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 /// computer is the source's (`IS`, so a file source's own series carries
 /// none). Another live series of that source which overlaps one of them in
 /// time is demoted, not deleted: it stays in the profile's history, its
-/// label untouched. One that overlaps none is a segment of its own, the shape
+/// label untouched. Only a label no source row of the dive names counts: a
+/// computer with a row of its own on the dive recorded those minutes itself,
+/// and a Combine re-points a pre-v154 series with no source at its segment's
+/// owner, so such a series of a second computer is not a duplicate. One that
+/// overlaps none is a segment of its own, the shape
 /// a merge of one computer's split dive writes, and stays live. A source is
 /// left alone when it has no own series, or two of them overlap (nothing
 /// tells which is right), or any of its live series is a manual edit, marked
@@ -125,6 +129,17 @@ Future<int> _repairDives(AppDatabase db, List<String>? ids) async {
       for (final r in rows)
         ?r.read<String?>('source_id'): r.read<String?>('source_computer_id'),
     };
+    final computersWithSource = <String>{
+      for (final r
+          in await db
+              .customSelect(
+                'SELECT computer_id FROM dive_data_sources '
+                'WHERE dive_id = ? AND computer_id IS NOT NULL',
+                variables: [Variable<String>(diveId)],
+              )
+              .get())
+        r.read<String>('computer_id'),
+    };
     final edits = ProfileSeriesRepository.liveEditIdsOf([
       for (final s in series) s.identity,
     ]);
@@ -143,6 +158,7 @@ Future<int> _repairDives(AppDatabase db, List<String>? ids) async {
       if (own.isEmpty || _anyOverlap(own)) continue;
       for (final s in live) {
         if (s.identity.computerId == computerId) continue;
+        if (computersWithSource.contains(s.identity.computerId)) continue;
         if (!own.any((o) => _overlaps(o, s))) continue;
         await db.customUpdate(
           'UPDATE dive_profile_series SET is_primary = 0 WHERE id = ?',
