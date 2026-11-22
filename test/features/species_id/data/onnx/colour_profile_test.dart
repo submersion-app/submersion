@@ -64,6 +64,66 @@ void main() {
       expectNear(converted(c, [64, 64, 64]), [89, 89, 89]);
     });
 
+    test('reads every parametric curve type as littleCMS does', () {
+      // Display P3's colorants with a curve of each `para` type but 3
+      // (Display P3's own, above); littleCMS's values.
+      for (final (type, params, want) in [
+        (
+          0,
+          [2.2],
+          [
+            [216, 92, 24],
+            [0, 164, 227],
+            [3, 1, 0],
+          ],
+        ),
+        (
+          1,
+          [2.2, 0.95, 0.05],
+          [
+            [219, 101, 41],
+            [0, 169, 228],
+            [16, 9, 6],
+          ],
+        ),
+        (
+          2,
+          [2.2, 0.95, 0.05, 0.02],
+          [
+            [221, 108, 58],
+            [0, 173, 231],
+            [44, 42, 41],
+          ],
+        ),
+        (
+          4,
+          [2.4, 0.947867, 0.052133, 0.077399, 0.04045, 0.002, 0.001],
+          [
+            [215, 93, 34],
+            [0, 163, 226],
+            [14, 8, 5],
+          ],
+        ),
+      ]) {
+        final icc = matrixProfile(
+          displayP3Colorants,
+          paraTag(params, type: type),
+        );
+        final c = srgbConversionOf(jpegWith(icc))!;
+        expectNear(converted(c, [200, 100, 50]), want[0]);
+        expectNear(converted(c, [30, 160, 220]), want[1]);
+        expectNear(converted(c, [10, 5, 2]), want[2]);
+      }
+    });
+
+    test('finds the profile past fill bytes and standalone markers', () {
+      // A standalone marker (TEM) and a fill byte before the APP2 segment.
+      final c = srgbConversionOf(
+        jpegWith(displayP3Profile(), beforeProfile: const [0xff, 0x01, 0xff]),
+      )!;
+      expectNear(converted(c, [200, 100, 50]), [215, 93, 31]);
+    });
+
     test('gives nothing for sRGB, which needs no conversion', () {
       final icc = matrixProfile(srgbColorants, paraTag(srgbCurveParams));
       expect(srgbConversionOf(jpegWith(icc)), isNull);

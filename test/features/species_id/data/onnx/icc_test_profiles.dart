@@ -46,9 +46,10 @@ Uint8List xyzTag(List<double> xyz) => Uint8List.fromList([
   for (final v in xyz) ..._s15(v),
 ]);
 
-/// A `para` curve of function type 3: `(a x + b)^g` from `d`, `c x` below.
-Uint8List paraTag(List<double> params) => Uint8List.fromList([
-  ..._sig('para'), 0, 0, 0, 0, 0, 3, 0, 0, //
+/// A `para` curve of function [type] (0 to 4; 3, the default, is
+/// `(a x + b)^g` from `d`, `c x` below), [params] in the ICC order.
+Uint8List paraTag(List<double> params, {int type = 3}) => Uint8List.fromList([
+  ..._sig('para'), 0, 0, 0, 0, 0, type, 0, 0, //
   for (final v in params) ..._s15(v),
 ]);
 
@@ -120,17 +121,21 @@ Uint8List displayP3Profile() =>
     matrixProfile(displayP3Colorants, paraTag(srgbCurveParams));
 
 /// A small JPEG of one colour, carrying [icc] split over [segments] APP2
-/// segments when given.
+/// segments when given, with [beforeProfile] (fill bytes or standalone
+/// markers) between the start of the image and the profile.
 Uint8List jpegWith(
   Uint8List? icc, {
   int segments = 1,
   List<int> rgb = const [200, 100, 50],
+  List<int> beforeProfile = const [],
 }) {
   final image = img.Image(width: 8, height: 8)
     ..clear(img.ColorRgb8(rgb[0], rgb[1], rgb[2]));
   final jpeg = img.encodeJpg(image, quality: 100);
   if (icc == null) return jpeg;
-  final out = BytesBuilder()..add(jpeg.sublist(0, 2));
+  final out = BytesBuilder()
+    ..add(jpeg.sublist(0, 2))
+    ..add(beforeProfile);
   final size = (icc.length / segments).ceil();
   for (var s = 0; s < segments; s++) {
     final chunk = icc.sublist(s * size, ((s + 1) * size).clamp(0, icc.length));
