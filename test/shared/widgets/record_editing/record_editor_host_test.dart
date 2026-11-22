@@ -47,6 +47,10 @@ class _Probe {
 
   /// While set, the fake record "loads" until it completes, then opens.
   Completer<void>? loadGate;
+
+  /// How the validated diver resolves the active diver's id: the app maps
+  /// an id whose diver is gone to the default diver.
+  String? Function(String? id)? resolveDiver;
 }
 
 /// An editor with no read page, as small as one can be: one text field
@@ -200,8 +204,9 @@ void main() {
           validatedCurrentDiverIdProvider.overrideWith((ref) async {
             probe.diverReadInScope.add(ChangeLogScope.currentOperationId);
             final current = ref.watch(currentDiverIdProvider);
+            final resolved = probe.resolveDiver?.call(current) ?? current;
             final gate = probe.diverGate;
-            return gate == null ? current : gate.future;
+            return gate == null ? resolved : gate.future;
           }),
         ],
         child: RecordEditShortcuts(
@@ -580,12 +585,19 @@ void main() {
     await pump(tester);
     await type(tester, 'changed');
     final gate = probe.diverGate = Completer<String?>();
+    // The diver is being worked out again, as after a divers-table
+    // change: Save waits for it.
+    container.invalidate(validatedCurrentDiverIdProvider);
     await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pump();
+    // The bar shows the save in progress meanwhile, so the page never
+    // settles until the diver is known: step the frames instead.
     final leaving = container.read(appExitGuardProvider).mayLeave();
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text('Discard'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     expect(await leaving, isTrue);
     gate.complete('a');
     await tester.pumpAndSettle();
@@ -599,6 +611,9 @@ void main() {
     await pump(tester);
     await type(tester, 'changed');
     final gate = probe.diverGate = Completer<String?>();
+    // The diver is being worked out again, as after a divers-table
+    // change: Save waits for it.
+    container.invalidate(validatedCurrentDiverIdProvider);
     await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pump();
     probe.valid = false;
@@ -620,6 +635,43 @@ void main() {
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
     await tester.pumpAndSettle();
     expect(find.byType(_FakeEditorPage), findsNothing);
+  });
+
+  testWidgets('a stale diver id repaired to the default diver keeps the '
+      'editor open', (tester) async {
+    // 'stale' names a diver deleted elsewhere: the editor writes under the
+    // default diver 'x' from the start, so the repair changes nothing.
+    probe.resolveDiver = (id) => id == 'stale' ? 'x' : id;
+    await pump(tester, diver: 'stale');
+    await tester.pumpAndSettle();
+    await type(tester, 'changed');
+    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('x');
+    await tester.pumpAndSettle();
+    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    await tapSave(tester);
+    expect(probe.writes, ['rec-1']);
+  });
+
+  testWidgets('while Save resolves the diver the bar shows it saving', (
+    tester,
+  ) async {
+    await pump(tester);
+    await type(tester, 'changed');
+    final gate = probe.diverGate = Completer<String?>();
+    // The diver is being worked out again, as after a divers-table
+    // change: Save waits for it.
+    container.invalidate(validatedCurrentDiverIdProvider);
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.pump();
+    final bar = tester.widget<RecordEditBar>(find.byType(RecordEditBar));
+    expect(bar.isSaving, isTrue);
+    final cancel = tester
+        .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+        .firstWhere((a) => a.label == 'Cancel');
+    expect(cancel.onPressed, isNull);
+    gate.complete('a');
+    await tester.pumpAndSettle();
+    expect(probe.writes, ['rec-1']);
   });
 
   testWidgets('a diver switch while the record loads closes the page '
