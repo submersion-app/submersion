@@ -67,6 +67,10 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// check is asked at Save, open or not.
   Iterable<EditCard<T>> get hostEditCards;
 
+  /// The cards whose opening or closing lays the page out afresh
+  /// ([RecordEditController.relayoutCardIds]). None by default.
+  Set<String> get hostRelayoutCardIds => const {};
+
   /// Told of each sitting as it starts, before any card opens, whichever
   /// way the page was unlocked. The container, not the page's `ref`: a held
   /// write can run after the page has gone.
@@ -200,6 +204,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
           if (card.isValid?.call(session) == false) card.id,
       ],
       onStart: (session) => onSittingStart(session, container),
+      relayoutCardIds: hostRelayoutCardIds,
     )..addListener(onEditChanged);
     _exitBlocker = RecordSittingExitBlocker<T>(
       controller: controller,

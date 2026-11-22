@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import 'trip_detail_page_unlock_harness.dart';
+import 'trip_page_drag_helpers.dart';
 
 /// The trip page edits in place behind the phase 3 switch (issue #4527):
 /// it opens locked, one sitting holds its cards across its tabs, and one
@@ -260,6 +262,174 @@ void main() {
     expect(editor.bottom, lessThan(tabs.top));
   });
 
+  // The open header editor and the tabs scroll as one page, the tabs below
+  // the editor: with the editor in its own window inside a half-page one, a
+  // drag stopped with the last fields under the tab row.
+  for (final (name, size, embedded) in [
+    ('a phone', const Size(402, 874), false),
+    ('a desktop window', const Size(1280, 800), false),
+    ('the master-detail pane', const Size(900, 800), true),
+  ]) {
+    testWidgets('on $name every field of the open header editor drags into '
+        'view, with the tab row below the card', (tester) async {
+      await pumpTripPage(tester, size: size, embedded: embedded);
+      await unlock(tester);
+      await openCard(tester, l.settings_conflict_ref_trip);
+
+      for (final key in [
+        'trip-edit-type',
+        'trip-edit-name',
+        'trip-edit-start',
+        'trip-edit-end',
+        'trip-edit-return-flight',
+        'trip-edit-location',
+        'trip-edit-resort',
+        'trip-edit-liveaboard-name',
+      ]) {
+        final field = find.byKey(Key(key), skipOffstage: false);
+        await dragPageUntilShown(
+          tester,
+          field,
+          bottom: size.height,
+          from: Offset(size.width / 2, size.height / 2),
+        );
+        expectFullyShown(tester, field, bottom: size.height);
+      }
+      final card = tester.getRect(
+        find.ancestor(
+          of: find.byKey(const Key('trip-edit-name'), skipOffstage: false),
+          matching: find.byType(RecordCardFrame<Trip>, skipOffstage: false),
+        ),
+      );
+      expect(
+        card.bottom,
+        lessThanOrEqualTo(
+          tester.getRect(find.byType(TabBar, skipOffstage: false)).top,
+        ),
+      );
+    });
+  }
+
+  // One linked scroll while the editor is open: a drag on the tab moves
+  // the page first and the tab after, and back down again (issue #4844).
+  for (final (name, size, embedded) in [
+    ('a phone', const Size(402, 874), false),
+    ('the master-detail pane', const Size(900, 800), true),
+  ]) {
+    testWidgets('on $name a drag on the open tab scrolls the page before '
+        'the tab, both ways', (tester) async {
+      await pumpTripPage(tester, size: size, embedded: embedded);
+      await unlock(tester);
+      await openCard(tester, l.settings_conflict_ref_trip);
+      final name = find.byKey(const Key('trip-edit-name'), skipOffstage: false);
+      Rect tabRow() => tester.getRect(find.byType(TabBar, skipOffstage: false));
+      // The Overview's own list: the first Scrollable under the TabBarView
+      // is the TabBarView's horizontal page view.
+      ScrollPosition overview() => tester
+          .state<ScrollableState>(
+            find
+                .descendant(
+                  of: find.byKey(
+                    const Key('trip-prepare-overview'),
+                    skipOffstage: false,
+                  ),
+                  matching: find.byType(Scrollable, skipOffstage: false),
+                )
+                .first,
+          )
+          .position;
+
+      // The tab row into sight, dragging on the editor's margin, clear of
+      // its text fields.
+      for (var i = 0; i < 20 && tabRow().bottom + 100 > size.height; i++) {
+        await tester.dragFrom(
+          Offset(4, size.height / 3),
+          const Offset(0, -100),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      // Up from the tab: the page moves, the Overview stays at its top.
+      final before = tabRow().top;
+      await tester.dragFrom(
+        Offset(size.width / 2, tabRow().bottom + 40),
+        const Offset(0, -60),
+      );
+      await tester.pumpAndSettle();
+      expect(tabRow().top, lessThan(before));
+      expect(overview().pixels, 0);
+
+      // On up until the tab row stops, the editor out of sight above it.
+      for (var i = 0; i < 20; i++) {
+        final top = tabRow().top;
+        await tester.dragFrom(
+          Offset(size.width / 2, tabRow().bottom + 40),
+          const Offset(0, -150),
+        );
+        await tester.pumpAndSettle();
+        if (tabRow().top == top) break;
+      }
+      expect(tester.getRect(name).bottom, lessThanOrEqualTo(tabRow().top));
+
+      // Down from the tab brings the editor back.
+      for (var i = 0; i < 20; i++) {
+        final rect = tester.getRect(name);
+        if (rect.top > 0 && rect.bottom <= tabRow().top) break;
+        await tester.dragFrom(
+          Offset(size.width / 2, tabRow().bottom + 40),
+          const Offset(0, 150),
+        );
+        await tester.pumpAndSettle();
+      }
+      expectFullyShown(tester, name, bottom: size.height);
+    });
+  }
+
+  // Opening the header editor lays the page out afresh, which would rebuild
+  // the Plan card and drop its unreadable text with the mark that stops
+  // Save (issue #4844).
+  testWidgets('the header editor does not open while the Plan card holds '
+      'text that is not a number, and the text stays', (tester) async {
+    await pumpTripPage(tester);
+    await unlock(tester);
+    await openCard(tester, l.trips_overview_plan);
+    final divesPerDay = find.byKey(const Key('trip-edit-dives-per-day'));
+    await tester.enterText(divesPerDay, '1.5');
+    await tester.pumpAndSettle();
+
+    await openCard(tester, l.settings_conflict_ref_trip);
+
+    expect(find.byKey(const Key('trip-edit-name')), findsNothing);
+    expect(
+      find.descendant(of: divesPerDay, matching: find.text('1.5')),
+      findsOneWidget,
+    );
+    expect(
+      RecordEditScope.maybeOf<Trip>(
+        tester.element(find.byType(RecordCardFrame<Trip>).first),
+      )!.invalidCardIds,
+      {TripCardId.plan.name},
+    );
+  });
+
+  testWidgets('an open Notes card keeps its text across the header editor '
+      'opening and closing', (tester) async {
+    await pumpTripPage(tester);
+    await unlock(tester);
+    await openCard(tester, notes);
+    await tester.enterText(find.byKey(const Key('trip-edit-notes')), 'Half');
+    await tester.pumpAndSettle();
+
+    await openCard(tester, l.settings_conflict_ref_trip);
+    expect(find.text('Half', skipOffstage: false), findsOneWidget);
+    await tester.tap(find.text(l.common_action_done).first);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('trip-edit-name')), findsNothing);
+    expect(find.byKey(const Key('trip-edit-notes')), findsOneWidget);
+    expect(find.text('Half'), findsOneWidget);
+  });
+
   for (final (kind, trip) in [
     ('to come', redSea),
     // A past trip's Overview has the story's day strip at its top.
@@ -272,7 +442,9 @@ void main() {
     ),
   ]) {
     testWidgets('on a phone with the keyboard up, the open header editor of '
-        'a trip $kind fits above the tab row', (tester) async {
+        'a trip $kind shows the focused field and scrolls to its last', (
+      tester,
+    ) async {
       await pumpTripPage(tester, trip: trip, size: const Size(402, 874));
       tester.view.padding = const FakeViewPadding(top: 62, bottom: 34);
       await tester.pumpAndSettle();
@@ -283,8 +455,20 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final tabs = tester.getRect(find.byType(TabBar));
-      expect(tabs.bottom, lessThanOrEqualTo(874 - 336));
+      const keyboardTop = 874.0 - 336;
+      final name = tester.getRect(find.byKey(const Key('trip-edit-name')));
+      expect(name.bottom, lessThanOrEqualTo(keyboardTop));
+      await dragPageUntilShown(
+        tester,
+        find.byKey(const Key('trip-edit-liveaboard-name'), skipOffstage: false),
+        bottom: keyboardTop,
+        from: const Offset(201, 300),
+      );
+      expectFullyShown(
+        tester,
+        find.byKey(const Key('trip-edit-liveaboard-name'), skipOffstage: false),
+        bottom: keyboardTop,
+      );
     });
   }
 

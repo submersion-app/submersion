@@ -114,6 +114,17 @@ mixin _TripDetailPageEditing
     controller.openCard(id.name);
   }
 
+  /// Opening or closing the header block's editor lays the page out
+  /// afresh ([TripPageBody]), building the cards below it again.
+  @override
+  Set<String> get hostRelayoutCardIds => {TripCardId.header.name};
+
+  /// Whether the header block's editor is open, which lays the page out
+  /// as one scroll (issue #4844).
+  bool get _headerEditorOpen =>
+      maybeEditController?.openCardIds.contains(TripCardId.header.name) ??
+      false;
+
   /// What the page hands its tabs: the trip as the cards show it, the trip
   /// the Overview lays itself out from, and the frames.
   TripCardSlots _slots(Trip shown, Trip stored) {
