@@ -269,6 +269,45 @@ void main() {
         expect(ring.value, 0.42);
       });
 
+      // The ring is drawn round the icon, never makes its button bigger, so
+      // the bar keeps its height while an analysis runs (issue #4870).
+      for (final editing in [false, true]) {
+        testWidgets('the ring leaves the button and the bar their size'
+            '${editing ? ' (unlocked)' : ''}', (tester) async {
+          Size measure() => tester.getSize(labelsKey);
+          Size bar() => tester.getSize(
+            find
+                .ancestor(of: labelsKey, matching: find.byType(Positioned))
+                .first,
+          );
+
+          await pumpFull(tester, 1280, labels: true, editing: editing);
+          final button = measure();
+          final band = bar();
+
+          await pumpFull(
+            tester,
+            1280,
+            labels: true,
+            editing: editing,
+            ring: const ToolbarRing(),
+          );
+          // Still 32 px across: 4 px out from the 24 px icon all round.
+          expect(
+            tester.getSize(
+              find.descendant(
+                of: labelsKey,
+                matching: find.byType(CircularProgressIndicator),
+              ),
+            ),
+            const Size.square(32),
+          );
+          expect(measure(), button);
+          expect(bar(), band);
+          expect(tester.takeException(), isNull);
+        }, variant: TargetPlatformVariant.all());
+      }
+
       testWidgets('no labels action without a callback', (tester) async {
         await pumpFull(tester, 1280);
         expect(labelsKey, findsNothing);
