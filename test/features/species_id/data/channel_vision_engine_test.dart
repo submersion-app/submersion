@@ -119,6 +119,8 @@ void main() {
       'embeddingSize': 3,
       'cropThumbnailSize': 320,
       'cropFit': 'padSquare',
+      'smallBoxPadding': 0.6,
+      'smallBoxSide': 256,
     });
   });
 
@@ -151,6 +153,9 @@ void main() {
     expect(sent!['mergeIoU'], 0.5);
     expect(sent!['maxBoxes'], 8);
     expect(sent!['cropPadding'], 0.10);
+    // A video moment's small box is cropped wider (issue #4882).
+    expect(sent!['smallBoxPadding'], 0.6);
+    expect(sent!['smallBoxSide'], 256);
   });
 
   test('a detector path for each detector is required', () {

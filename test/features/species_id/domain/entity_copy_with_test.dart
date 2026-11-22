@@ -432,6 +432,8 @@ void main() {
         embeddingSize: 3,
         cropThumbnailSize: 64,
         cropFit: CropFit.centreCrop,
+        smallBoxPadding: 0.7,
+        smallBoxSide: 128,
       );
       expect(
         models.copyWith(
@@ -446,6 +448,8 @@ void main() {
           embeddingSize: 3,
           cropThumbnailSize: 64,
           cropFit: CropFit.centreCrop,
+          smallBoxPadding: 0.7,
+          smallBoxSide: 128,
         ),
         changedModels,
       );

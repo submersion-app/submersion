@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
@@ -86,6 +87,16 @@ class VisionDetector extends Equatable {
   ];
 }
 
+/// A video moment's box shorter than this on its shorter side, in the
+/// frame's pixels, is cropped with [videoSmallBoxPadding] (issue #4882).
+const int videoSmallBoxSide = 256;
+
+/// The padding, as a share of the box on each side, of a small video box's
+/// crop: enough of a small fish's surroundings for the classifier to name
+/// it. Measured on three reef videos, it more than doubled the tracks
+/// suggested with no more wrong names than the pack's tighter padding.
+const double videoSmallBoxPadding = 0.6;
+
 /// The models and the numbers the native engine needs to run them: one or
 /// two detectors (issue #4691) and the classifier.
 class VisionModels extends Equatable {
@@ -101,7 +112,13 @@ class VisionModels extends Equatable {
     required this.embeddingSize,
     required this.cropThumbnailSize,
     this.cropFit = CropFit.padSquare,
-  });
+    this.smallBoxPadding = videoSmallBoxPadding,
+    this.smallBoxSide = videoSmallBoxSide,
+  }) : assert(
+         smallBoxPadding >= 0 && smallBoxPadding <= double.maxFinite,
+         'smallBoxPadding must be a finite number of 0 or more',
+       ),
+       assert(smallBoxSide >= 0, 'smallBoxSide must be 0 or more');
 
   /// [detectorPaths] holds one installed model per detector, in the
   /// manifest's order.
@@ -147,6 +164,27 @@ class VisionModels extends Equatable {
   final int cropThumbnailSize;
   final CropFit cropFit;
 
+  /// A video moment's crop padding when its box is small, or [cropPadding]
+  /// when that is larger ([momentPadding]).
+  final double smallBoxPadding;
+
+  /// Under this many pixels on its shorter side, a video moment's box is
+  /// small; 0 crops every moment at [cropPadding].
+  final int smallBoxSide;
+
+  /// The padding of a video moment's crop, for a box [boxWidth] by
+  /// [boxHeight] in the frame's pixels (issue #4882): [smallBoxPadding] for
+  /// a box under [smallBoxSide] on its shorter side, else [cropPadding].
+  /// A small box is never cropped tighter than [cropPadding], whatever a
+  /// pack sets it to. A photo's crop is always padded by [cropPadding], the
+  /// padding the naming bars were measured with, and so is a big fish in a
+  /// video: a box that already fills much of the frame gains only its
+  /// neighbours from more padding.
+  double momentPadding({required double boxWidth, required double boxHeight}) =>
+      math.min(boxWidth, boxHeight) < smallBoxSide
+      ? math.max(smallBoxPadding, cropPadding)
+      : cropPadding;
+
   Map<String, Object?> toChannel() => {
     'detectors': [for (final detector in detectors) detector.toChannel()],
     'mergeIoU': mergeIoU,
@@ -159,6 +197,8 @@ class VisionModels extends Equatable {
     'embeddingSize': embeddingSize,
     'cropThumbnailSize': cropThumbnailSize,
     'cropFit': cropFit.name,
+    'smallBoxPadding': smallBoxPadding,
+    'smallBoxSide': smallBoxSide,
   };
 
   VisionModels copyWith({
@@ -173,6 +213,8 @@ class VisionModels extends Equatable {
     int? embeddingSize,
     int? cropThumbnailSize,
     CropFit? cropFit,
+    double? smallBoxPadding,
+    int? smallBoxSide,
   }) => VisionModels(
     detectors: detectors ?? this.detectors,
     classifierPath: classifierPath ?? this.classifierPath,
@@ -185,6 +227,8 @@ class VisionModels extends Equatable {
     embeddingSize: embeddingSize ?? this.embeddingSize,
     cropThumbnailSize: cropThumbnailSize ?? this.cropThumbnailSize,
     cropFit: cropFit ?? this.cropFit,
+    smallBoxPadding: smallBoxPadding ?? this.smallBoxPadding,
+    smallBoxSide: smallBoxSide ?? this.smallBoxSide,
   );
 
   @override
@@ -200,6 +244,8 @@ class VisionModels extends Equatable {
     embeddingSize,
     cropThumbnailSize,
     cropFit,
+    smallBoxPadding,
+    smallBoxSide,
   ];
 }
 
