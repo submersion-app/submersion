@@ -38928,6 +38928,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_edit_notFound =>
+      'Diese Flaschenvorlage existiert nicht mehr.';
+
+  @override
   String tankPresets_edit_gasCapacity(Object capacity) {
     return '- Gaskapazität: $capacity cuft';
   }

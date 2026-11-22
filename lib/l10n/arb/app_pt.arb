@@ -9735,6 +9735,7 @@
   "tankPresets_edit_descriptionOptional": "Descrição (opcional)",
   "tankPresets_edit_errorLoading": "Erro ao carregar preset: {error}",
   "tankPresets_edit_errorSaving": "Erro ao salvar preset: {error}",
+  "tankPresets_edit_notFound": "Este preset de cilindro já não existe.",
   "tankPresets_edit_gasCapacity": "- Capacidade de gás: {capacity} cuft",
   "tankPresets_edit_material": "Material",
   "tankPresets_edit_name": "Nome",

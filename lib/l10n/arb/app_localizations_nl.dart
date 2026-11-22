@@ -38745,6 +38745,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_edit_notFound =>
+      'Deze flesinstelling bestaat niet meer.';
+
+  @override
   String tankPresets_edit_gasCapacity(Object capacity) {
     return '• Gascapaciteit: $capacity cuft';
   }

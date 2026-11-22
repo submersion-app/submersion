@@ -2182,11 +2182,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newTankPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const TankPresetEditPage(),
               ),
               GoRoute(
                 path: ':presetId/edit',
                 name: 'editTankPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => TankPresetEditPage(
                   presetId: state.pathParameters['presetId'],
                 ),
@@ -2203,11 +2205,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newWeightPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const WeightPresetEditorPage(),
               ),
               GoRoute(
                 path: ':presetId/edit',
                 name: 'editWeightPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => WeightPresetEditorPage(
                   presetId: state.pathParameters['presetId'],
                 ),

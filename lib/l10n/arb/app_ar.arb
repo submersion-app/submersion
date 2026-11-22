@@ -9735,6 +9735,7 @@
   "tankPresets_edit_descriptionOptional": "الوصف (اختياري)",
   "tankPresets_edit_errorLoading": "خطأ في تحميل الإعداد: {error}",
   "tankPresets_edit_errorSaving": "خطأ في حفظ الإعداد: {error}",
+  "tankPresets_edit_notFound": "لم يعد إعداد الأسطوانة هذا موجودًا.",
   "tankPresets_edit_gasCapacity": "سعة الغاز: {capacity} cuft •",
   "tankPresets_edit_material": "المادة",
   "tankPresets_edit_name": "الاسم",

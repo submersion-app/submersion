@@ -9609,6 +9609,7 @@
   "tankPresets_edit_descriptionOptional": "Leírás (opcionális)",
   "tankPresets_edit_errorLoading": "Hiba a sablon betöltésekor: {error}",
   "tankPresets_edit_errorSaving": "Hiba a sablon mentésekor: {error}",
+  "tankPresets_edit_notFound": "Ez a palacksablon már nem létezik.",
   "tankPresets_edit_gasCapacity": "- Gáz kapacitás: {capacity} cuft",
   "tankPresets_edit_material": "Anyag",
   "tankPresets_edit_name": "Név",
