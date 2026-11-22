@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -51,6 +53,7 @@ void main() {
     Future<bool> Function()? hasDevice,
     Locale locale = const Locale('en'),
     List<EquipmentItem> active = const [],
+    Future<List<EquipmentItem>> Function()? readActive,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 1600);
@@ -65,7 +68,9 @@ void main() {
           equipmentHasDeviceProvider(
             item.id,
           ).overrideWith((ref) => hasDevice?.call() ?? Future.value(false)),
-          activeEquipmentProvider.overrideWith((ref) async => active),
+          activeEquipmentProvider.overrideWith(
+            (ref) => readActive?.call() ?? Future.value(active),
+          ),
         ].cast(),
         child: MaterialApp(
           locale: locale,
@@ -124,6 +129,38 @@ void main() {
 
     expect(session.working.type, EquipmentType.o2Cell);
     expect(session.working.parentEquipmentId, isNull);
+  });
+
+  // Until the active gear is read the host cannot be checked, so a fitted
+  // item's type waits: a quick change must not keep a host the new type
+  // cannot be fitted to, which the save would write.
+  testWidgets("a fitted item's type waits for the active gear", (tester) async {
+    final active = Completer<List<EquipmentItem>>();
+    const cell = EquipmentItem(
+      id: 'g1',
+      name: 'Cell',
+      type: EquipmentType.battery,
+      parentEquipmentId: 'dc1',
+    );
+    await pumpEditor(tester, item: cell, readActive: () => active.future);
+
+    expect(typeDropdown(tester).onChanged, isNull);
+
+    active.complete(const [
+      EquipmentItem(id: 'dc1', name: 'Perdix', type: EquipmentType.computer),
+    ]);
+    await tester.pumpAndSettle();
+    expect(typeDropdown(tester).onChanged, isNotNull);
+  });
+
+  testWidgets('an item with no host picks its type while the active gear '
+      'loads', (tester) async {
+    await pumpEditor(
+      tester,
+      readActive: () => Completer<List<EquipmentItem>>().future,
+    );
+
+    expect(typeDropdown(tester).onChanged, isNotNull);
   });
 
   testWidgets("a tag chip's remove holds the tags without it", (tester) async {
