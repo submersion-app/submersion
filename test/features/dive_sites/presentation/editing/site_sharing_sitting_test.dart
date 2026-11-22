@@ -43,9 +43,18 @@ void main() {
   Future<EditSession<DiveSite>> loaded() async {
     final session = EditSession<DiveSite>(site);
     addTearDown(session.dispose);
-    await loadSiteSharing(session, container.read);
+    await loadSiteSharing(session, container.read, actingDiverId: 'me');
     return session;
   }
+
+  Future<void> save(EditSession<DiveSite> session) =>
+      SiteEditSaveService(SiteRepository()).save(
+        siteId: 's1',
+        apply: session.applyTo,
+        changedCardIds: session.changedCardIds,
+        alsoWrite: session.runHeldWrites,
+        alsoWriteIsAChange: session.hasHeldChanges,
+      );
 
   const withAna = ItemSharing(profileIds: {'ana'});
 
@@ -57,8 +66,8 @@ void main() {
 
     await loadSiteSharing(session, container.read);
 
-    expect(siteSharingLoaded(session), isNull);
-    expect(siteSharingUnread(session), isFalse);
+    expect(siteSharing.loaded(session), isNull);
+    expect(siteSharing.unread(session), isFalse);
   });
 
   // A new site (issue #4527, plan 6) has no row to read: its sharing is
@@ -72,10 +81,10 @@ void main() {
 
     await loadSiteSharing(session, container.read);
 
-    expect(siteSharingLoaded(session), const ItemSharing(everyone: true));
-    expect(siteSharingUnread(session), isFalse);
+    expect(siteSharing.loaded(session), const ItemSharing(everyone: true));
+    expect(siteSharing.unread(session), isFalse);
     expect(session.isDirty, isFalse);
-    setSiteSharing(session, ItemSharing.none, actingDiverId: 'me');
+    siteSharing.set(session, ItemSharing.none, actingDiverId: 'me');
     expect(session.changedCardIds, {siteHeaderCardId});
   });
 
@@ -83,11 +92,11 @@ void main() {
     'choosing other profiles holds the change and dots the header',
     () async {
       final session = await loaded();
-      expect(siteSharingInSitting(session), ItemSharing.none);
+      expect(siteSharing.inSitting(session), ItemSharing.none);
 
-      setSiteSharing(session, withAna, actingDiverId: 'me');
+      siteSharing.set(session, withAna, actingDiverId: 'me');
 
-      expect(siteSharingInSitting(session), withAna);
+      expect(siteSharing.inSitting(session), withAna);
       expect(session.changedCardIds, {siteHeaderCardId});
       expect(
         await ItemSharesRepository().sharingOf(SharedItemKind.site, 's1'),
@@ -98,16 +107,16 @@ void main() {
 
   test('choosing the loaded value releases it', () async {
     final session = await loaded();
-    setSiteSharing(session, withAna, actingDiverId: 'me');
+    siteSharing.set(session, withAna, actingDiverId: 'me');
 
-    setSiteSharing(session, ItemSharing.none, actingDiverId: 'me');
+    siteSharing.set(session, ItemSharing.none, actingDiverId: 'me');
 
     expect(session.isDirty, isFalse);
   });
 
   test('Save writes the sharing with the site', () async {
     final session = await loaded();
-    setSiteSharing(session, withAna, actingDiverId: 'me');
+    siteSharing.set(session, withAna, actingDiverId: 'me');
 
     await SiteEditSaveService(SiteRepository()).save(
       siteId: 's1',
@@ -123,10 +132,44 @@ void main() {
     );
   });
 
+  // A sync race can leave share rows beside the Everyone flag; the owner's
+  // next Save that changes something clears them, as a trip's does (plan
+  // 12, Question 4). Upkeep alone is no change: Cancel does not ask.
+  test('stray share rows beside Everyone are rewritten with the next Save '
+      'that changes something', () async {
+    final shares = ItemSharesRepository();
+    await shares.setSharing(
+      SharedItemKind.site,
+      's1',
+      withAna,
+      actingDiverId: 'me',
+    );
+    await db.customStatement(
+      "UPDATE dive_sites SET is_shared = 1 WHERE id = 's1'",
+    );
+    expect(await shares.storedProfileIds(SharedItemKind.site, 's1'), {'ana'});
+
+    final session = await loaded();
+    expect(siteSharing.inSitting(session), const ItemSharing(everyone: true));
+    expect(session.isDirty, isFalse);
+    // A Save with no change writes nothing, the upkeep included.
+    await save(session);
+    expect(await shares.storedProfileIds(SharedItemKind.site, 's1'), {'ana'});
+
+    session.set(siteNotesField, 'Choppy');
+    await save(session);
+
+    expect(await shares.storedProfileIds(SharedItemKind.site, 's1'), isEmpty);
+    expect(
+      await shares.sharingOf(SharedItemKind.site, 's1'),
+      const ItemSharing(everyone: true),
+    );
+  });
+
   test('a refused share fails the Save with the sharing message', () async {
     final session = await loaded();
     // Another profile may not share the owner's site.
-    setSiteSharing(session, withAna, actingDiverId: 'ana');
+    siteSharing.set(session, withAna, actingDiverId: 'ana');
     session.set(siteNotesField, 'Choppy');
 
     final error = await SiteEditSaveService(SiteRepository())

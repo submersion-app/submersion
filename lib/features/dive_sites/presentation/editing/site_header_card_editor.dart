@@ -82,7 +82,7 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor>
   @override
   Future<void> loadSitting(EditSession<DiveSite> session) => Future.wait([
     siteTypesList.load(session),
-    if (siteSharingLoaded(session) == null) loadSiteSharing(session, ref.read),
+    if (siteSharing.loaded(session) == null) loadSiteSharing(session, ref.read),
   ]);
 
   /// Holds what the diver chose for [pair]; says so when what it needed
@@ -114,10 +114,10 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor>
   Widget? _sharingField(EditSession<DiveSite> session) {
     final stored = session.stored;
     if (stored.isLibrarySite) return null;
-    final loaded = siteSharingLoaded(session);
-    final unread = siteSharingUnread(session);
+    final loaded = siteSharing.loaded(session);
+    final unread = siteSharing.unread(session);
     if (loaded == null && !unread) return null;
-    final current = siteSharingInSitting(session) ?? ItemSharing.none;
+    final current = siteSharing.inSitting(session) ?? ItemSharing.none;
     final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
     return ItemSharingField(
       kind: SharedItemKind.site,
@@ -128,7 +128,7 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor>
           : canDestroySharedItemOnceKnown(activeDiver, ownerId: stored.diverId),
       ownerId: stored.diverId ?? activeDiver.value,
       itemName: session.working.name,
-      onChanged: (next) => setSiteSharing(
+      onChanged: (next) => siteSharing.set(
         session,
         next,
         // The profile acting now, which the repository checks.
