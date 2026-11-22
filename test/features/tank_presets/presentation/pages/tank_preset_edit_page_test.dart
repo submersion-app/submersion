@@ -327,14 +327,20 @@ void main() {
       String? presetId,
       bool failLoad = false,
       bool settle = true,
+      bool metric = false,
+      bool onlyPage = false,
     }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final settings = MockSettingsNotifier();
-      await settings.setPressureUnit(PressureUnit.psi);
-      await settings.setVolumeUnit(VolumeUnit.cubicFeet);
+      if (!metric) {
+        await settings.setPressureUnit(PressureUnit.psi);
+        await settings.setVolumeUnit(VolumeUnit.cubicFeet);
+      }
       repo = _MockTankPresetRepository(preset: stored)..failLoad = failLoad;
       list = _MockTankPresetListNotifier([stored]);
+      // [onlyPage]: the editor with no page under it, the preset list
+      // reachable only by its address.
       final router = GoRouter(
         routes: [
           GoRoute(
@@ -347,6 +353,14 @@ void main() {
               ),
             ],
           ),
+          GoRoute(
+            path: '/tank-presets',
+            builder: (_, _) => const Scaffold(body: Text('preset list')),
+          ),
+          GoRoute(
+            path: '/only-edit',
+            builder: (_, _) => TankPresetEditPage(presetId: presetId),
+          ),
         ],
       );
       await tester.pumpWidget(
@@ -358,7 +372,7 @@ void main() {
               (ref) => MockCurrentDiverIdNotifier(),
             ),
             validatedCurrentDiverIdProvider.overrideWith(
-              (ref) async => 'diver-1',
+              (ref) async => ref.watch(currentDiverIdProvider) ?? 'diver-1',
             ),
             tankPresetRepositoryProvider.overrideWithValue(repo),
             tankPresetListNotifierProvider.overrideWith((ref) => list),
@@ -375,7 +389,11 @@ void main() {
       await container
           .read(currentDiverIdProvider.notifier)
           .setCurrentDiver('diver-1');
-      router.push('/edit');
+      if (onlyPage) {
+        router.go('/only-edit');
+      } else {
+        router.push('/edit');
+      }
       if (settle) await tester.pumpAndSettle();
     }
 
@@ -484,6 +502,42 @@ void main() {
       expect(saved.volumeLiters, closeTo(77.4 * 28.3168 / bar, 0.01));
     });
 
+    testWidgets('changing the pressure in litres keeps the stored volume', (
+      tester,
+    ) async {
+      await pumpEditor(tester, presetId: 'p1', metric: true);
+      await tester.enterText(find.widgetWithText(TextFormField, '207'), '232');
+      await tester.pumpAndSettle();
+      await tester.tap(saveAction());
+      await tester.pumpAndSettle();
+      final saved = repo.updated.single;
+      expect(saved.workingPressureBar, 232);
+      expect(saved.volumeLiters, 11.1);
+    });
+
+    testWidgets('a preset deleted elsewhere while edited is refused at Save, '
+        'saying so', (tester) async {
+      await pumpEditor(tester, presetId: 'p1');
+      repo.deleted = true;
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'AL80'),
+        'AL80 bailout',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(saveAction());
+      await tester.pumpAndSettle();
+      expect(repo.updated, isEmpty);
+      expect(find.text('This tank preset no longer exists.'), findsOneWidget);
+      expect(find.byType(TankPresetEditPage), findsOneWidget);
+    });
+
+    testWidgets('a preset that cannot open, with no page under it, goes to '
+        'the preset list', (tester) async {
+      await pumpEditor(tester, presetId: 'gone', onlyPage: true);
+      expect(find.text('This tank preset no longer exists.'), findsOneWidget);
+      expect(find.text('preset list'), findsOneWidget);
+    });
+
     testWidgets('a preset that no longer exists says so and leaves', (
       tester,
     ) async {
@@ -545,6 +599,9 @@ class _MockTankPresetRepository extends TankPresetRepository {
 
   bool failLoad = false;
 
+  /// Set once the preset has been deleted elsewhere: it reads as gone.
+  bool deleted = false;
+
   final created = <TankPresetEntity>[];
   final updated = <TankPresetEntity>[];
 
@@ -562,6 +619,7 @@ class _MockTankPresetRepository extends TankPresetRepository {
   @override
   Future<TankPresetEntity?> getPresetById(String id) async {
     if (failLoad) throw StateError('database closed');
+    if (deleted) return null;
     if (preset != null && preset!.id == id) {
       return preset;
     }

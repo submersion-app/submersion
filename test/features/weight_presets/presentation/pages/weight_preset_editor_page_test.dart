@@ -287,6 +287,21 @@ void main() {
     expect(find.byType(WeightPresetEditorPage), findsNothing);
   });
 
+  testWidgets('edit: a preset deleted elsewhere while edited is refused at '
+      'Save, saying so', (tester) async {
+    repo.loadReturns = _preset('p1', 'Drysuit');
+    await pump(tester, presetId: 'p1');
+    repo.loadReturns = null; // deleted by a sync meanwhile
+    await tester.enterText(find.byType(TextFormField).first, 'Drysuit 2');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(repo.updated, isEmpty);
+    expect(find.text('This weighting rig no longer exists.'), findsOneWidget);
+    expect(find.byType(WeightPresetEditorPage), findsOneWidget);
+  });
+
   testWidgets('edit: a preset that fails to load says so and leaves', (
     tester,
   ) async {

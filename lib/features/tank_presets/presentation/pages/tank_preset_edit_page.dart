@@ -14,6 +14,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 
 /// What the tank preset editor's form shows, as the diver sees it: the
 /// sitting's draft (issue #4527, phase 4). Text as shown, so a pressure in
@@ -143,7 +144,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
       ),
     );
-    Navigator.of(context).maybePop();
+    leaveEditor();
   }
 
   @override
@@ -426,6 +427,11 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         : volumeDisplay;
 
     if (widget.isEditing && existing != null) {
+      // Deleted elsewhere while it was edited (a sync from another device):
+      // an update would write nothing and still read as saved.
+      if (await repository.getPresetById(recordId) == null) {
+        throw RecordSittingRefusal((l10n) => l10n.tankPresets_edit_notFound);
+      }
       await repository.updatePreset(
         existing.copyWith(
           name: TankPresetEntity.generateSlug(displayName),

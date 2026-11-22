@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -17,6 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 
 /// Create or edit a weighting rig from Settings → Management → Weight Presets
 /// (issue #1663). Editing a preset never touches dives that already used it --
@@ -115,7 +115,7 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${context.l10n.common_label_error}: $e')),
       );
-      if (context.canPop()) context.pop();
+      leaveEditor();
       return;
     }
     if (!mounted) return;
@@ -129,7 +129,7 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.weightPresets_editor_notFound)),
       );
-      if (context.canPop()) context.pop();
+      leaveEditor();
       return;
     }
 
@@ -232,6 +232,13 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
     final name = _nameController.text.trim();
     final entries = _entries();
     if (widget.isEditing) {
+      // Deleted elsewhere while it was edited (a sync from another device):
+      // its weights would have no preset to belong to.
+      if (await repo.getPresetById(recordId) == null) {
+        throw RecordSittingRefusal(
+          (l10n) => l10n.weightPresets_editor_notFound,
+        );
+      }
       await repo.updatePreset(
         id: recordId,
         displayName: name,
