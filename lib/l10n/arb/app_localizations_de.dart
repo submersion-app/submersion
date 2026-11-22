@@ -66,7 +66,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'Tauchplätze, Meeresleben und Tauchgangsarten; eine Linie heißt, sie teilen Tauchgänge.';
+      'Tauchplätze, Arten und Tauchgangsarten; eine Linie heißt, sie teilen Tauchgänge.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -158,7 +158,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get connections_preset_gearRoad => 'Ausrüstung unterwegs';
 
   @override
-  String get connections_preset_life => 'Plätze nach Meeresleben';
+  String get connections_preset_life => 'Plätze nach Arten';
 
   @override
   String get connections_preset_reef => 'Riffleben';
@@ -15663,7 +15663,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get pdf_sectionTechnical => 'Technisch';
 
   @override
-  String get pdf_sectionMarineLife => 'Meereslebewesen';
+  String get pdf_sectionMarineLife => 'Arten';
 
   @override
   String get pdf_sectionNotes => 'Notizen';
@@ -43126,7 +43126,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'Buddy-Trennung';
 
   @override
-  String get incidentCategory_marineLife => 'Meereslebewesen';
+  String get incidentCategory_marineLife => 'Wasserlebewesen';
 
   @override
   String get incidentCategory_boatSurface => 'Boot / Oberfläche';
@@ -52354,7 +52354,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'Meereslebewesen';
+  String get diveLog_filter_sectionSpecies => 'Arten';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -55574,7 +55574,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zum Hinzufügen oder Verwerfen entsperren';
 
   @override
-  String get media_labels_action => 'Meereslebewesen-Beschriftungen';
+  String get media_labels_action => 'Arten-Beschriftungen';
 
   @override
   String get media_labels_names => 'Namen';

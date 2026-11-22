@@ -66,7 +66,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get connections_caption_reef =>
-      'Duikplekken, zeeleven en duiktypen; een lijn betekent gedeelde duiken.';
+      'Duikplekken, soorten en duiktypen; een lijn betekent gedeelde duiken.';
 
   @override
   String get connections_caption_gearRoad =>
@@ -158,7 +158,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_preset_gearRoad => 'Uitrusting onderweg';
 
   @override
-  String get connections_preset_life => 'Duikplekken naar zeeleven';
+  String get connections_preset_life => 'Duikplekken naar soorten';
 
   @override
   String get connections_preset_reef => 'Rifleven';
@@ -42931,7 +42931,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get incidentCategory_buddySeparation => 'Buddyscheiding';
 
   @override
-  String get incidentCategory_marineLife => 'Zeeleven';
+  String get incidentCategory_marineLife => 'Waterdieren';
 
   @override
   String get incidentCategory_boatSurface => 'Boot / oppervlak';
@@ -52134,7 +52134,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_filter_sectionSpecies => 'Zeeleven';
+  String get diveLog_filter_sectionSpecies => 'Soorten';
 
   @override
   String diveLog_filter_sectionVisibilityUnit(Object unit) {
@@ -55352,7 +55352,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ontgrendel om toe te voegen of te negeren';
 
   @override
-  String get media_labels_action => 'Labels voor zeeleven';
+  String get media_labels_action => 'Labels voor soorten';
 
   @override
   String get media_labels_names => 'Namen';
