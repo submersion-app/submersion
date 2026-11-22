@@ -50,10 +50,10 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
 
 /// Home's slim header: a + button at the leading edge for the quick actions
 /// (logging and planning a dive, the buddy swap and the emergency card), the
-/// status lights after it (tablet and up) then a divider, the diver switcher
-/// with more than one diver profile, and the logo (no wordmark) closing the
-/// bar, which opens About Submersion. Every control has at least a 44 by 44
-/// hit area.
+/// status lights after it (tablet and up) and a divider while there are
+/// lights to part, the diver switcher with more than one diver profile, and
+/// the logo (no wordmark) closing the bar, which opens About Submersion.
+/// Every control has at least a 44 by 44 hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
 

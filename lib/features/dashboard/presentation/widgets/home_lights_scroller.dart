@@ -55,10 +55,11 @@ class HomeLightsScrollerState extends State<HomeLightsScroller> {
   }
 
   bool _onNotification(Notification notification) {
+    // Only the row's own scroll view (depth 0), never one inside a light.
     switch (notification) {
-      case ScrollMetricsNotification(:final metrics):
+      case ScrollMetricsNotification(:final metrics, depth: 0):
         _update(metrics);
-      case ScrollNotification(:final metrics):
+      case ScrollNotification(:final metrics, depth: 0):
         _update(metrics);
     }
     return false;
