@@ -9926,6 +9926,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_step_units => 'الوحدات';
 
   @override
+  String get setup_speciesModel_title => 'التعرّف على الأنواع';
+
+  @override
+  String get setup_speciesModel_intro =>
+      'يقترح الأنواع الظاهرة في صور الغوص ومقاطع الفيديو الخاصة بك. يعمل على هذا الجهاز ولا يُرفع أي شيء.';
+
+  @override
+  String get setup_speciesModel_introPhotos =>
+      'يقترح الأنواع الظاهرة في صور الغوص الخاصة بك. يعمل على هذا الجهاز ولا يُرفع أي شيء.';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return 'التنزيل: $size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => 'يُنصح باستخدام Wi-Fi';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'قد يقوم Windows أيضًا بتنزيل محرك لبطاقة الرسومات أو وحدة NPU من Microsoft.';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      'جارٍ التنزيل. يمكنك متابعته في الإعدادات > التعرّف على الأنواع.';
+
+  @override
+  String get setup_speciesModel_installed => 'مثبّت على هذا الجهاز';
+
+  @override
+  String get setup_speciesModel_later =>
+      'تعذّر الوصول إلى التنزيل الآن. ستجده لاحقًا في الإعدادات > التعرّف على الأنواع.';
+
+  @override
+  String get setup_speciesModel_download => 'تنزيل';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       'يحتوي هذا الحساب على مكتبة Submersion لم يكتمل رفعها. دع جهازك الآخر ينهي المزامنة ثم أعد المحاولة.';
 

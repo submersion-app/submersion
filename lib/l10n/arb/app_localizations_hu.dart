@@ -9754,6 +9754,43 @@ class AppLocalizationsHu extends AppLocalizations {
   String get setup_step_units => 'Egységek';
 
   @override
+  String get setup_speciesModel_title => 'Fajfelismerés';
+
+  @override
+  String get setup_speciesModel_intro =>
+      'Javaslatot tesz a búvárfotóidon és -videóidon látható fajokra. Ezen az eszközön fut, semmi sem kerül feltöltésre.';
+
+  @override
+  String get setup_speciesModel_introPhotos =>
+      'Javaslatot tesz a búvárfotóidon látható fajokra. Ezen az eszközön fut, semmi sem kerül feltöltésre.';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return 'Letöltés: $size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => 'Wi-Fi ajánlott';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'A Windows a Microsofttól a videokártyádhoz vagy NPU-dhoz való motort is letölthet.';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      'Letöltés folyamatban. A Beállítások > Fajfelismerés alatt követheted.';
+
+  @override
+  String get setup_speciesModel_installed => 'Telepítve ezen az eszközön';
+
+  @override
+  String get setup_speciesModel_later =>
+      'A letöltés most nem érhető el. Később a Beállítások > Fajfelismerés alatt találod.';
+
+  @override
+  String get setup_speciesModel_download => 'Letöltés';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       'Ezen a fiókon egy Submersion-könyvtár található, amelynek feltöltése soha nem fejeződött be. Hagyja, hogy a másik eszköz befejezze a szinkronizálást, majd próbálja újra.';
 

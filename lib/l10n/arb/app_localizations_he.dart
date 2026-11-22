@@ -9562,6 +9562,43 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_step_units => 'יחידות';
 
   @override
+  String get setup_speciesModel_title => 'זיהוי מינים';
+
+  @override
+  String get setup_speciesModel_intro =>
+      'מציע את המינים בתמונות ובסרטוני הצלילה שלך. פועל במכשיר הזה, ושום דבר לא מועלה.';
+
+  @override
+  String get setup_speciesModel_introPhotos =>
+      'מציע את המינים בתמונות הצלילה שלך. פועל במכשיר הזה, ושום דבר לא מועלה.';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return 'הורדה: $size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => 'מומלץ להשתמש ב-Wi-Fi';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'ייתכן ש-Windows יוריד גם מנוע לכרטיס הגרפי או ל-NPU שלך מ-Microsoft.';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      'מתבצעת הורדה. אפשר לעקוב אחריה ב\'הגדרות > זיהוי מינים\'.';
+
+  @override
+  String get setup_speciesModel_installed => 'מותקן במכשיר הזה';
+
+  @override
+  String get setup_speciesModel_later =>
+      'אין גישה להורדה כרגע. אפשר למצוא אותה מאוחר יותר ב\'הגדרות > זיהוי מינים\'.';
+
+  @override
+  String get setup_speciesModel_download => 'הורדה';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       'בחשבון זה קיימת ספריית Submersion שהעלאתה מעולם לא הושלמה. אפשרו למכשיר האחר לסיים את הסנכרון ונסו שוב.';
 

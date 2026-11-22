@@ -9783,6 +9783,43 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setup_step_units => 'Unidades';
 
   @override
+  String get setup_speciesModel_title => 'Identificación de especies';
+
+  @override
+  String get setup_speciesModel_intro =>
+      'Sugiere las especies de tus fotos y vídeos de buceo. Funciona en este dispositivo y no se sube nada.';
+
+  @override
+  String get setup_speciesModel_introPhotos =>
+      'Sugiere las especies de tus fotos de buceo. Funciona en este dispositivo y no se sube nada.';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return 'Descarga: $size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => 'Se recomienda wifi';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'Windows también puede descargar de Microsoft un motor para tu tarjeta gráfica o NPU.';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      'Descargando. Puedes seguirlo en Configuración > Identificación de especies.';
+
+  @override
+  String get setup_speciesModel_installed => 'Instalado en este dispositivo';
+
+  @override
+  String get setup_speciesModel_later =>
+      'No se puede acceder a la descarga ahora. La encontrarás más tarde en Configuración > Identificación de especies.';
+
+  @override
+  String get setup_speciesModel_download => 'Descargar';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       'Esta cuenta contiene una biblioteca de Submersion cuya carga nunca se completó. Deja que tu otro dispositivo termine de sincronizar y vuelve a intentarlo.';
 

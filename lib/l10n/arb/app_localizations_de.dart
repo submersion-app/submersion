@@ -9772,6 +9772,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setup_step_units => 'Einheiten';
 
   @override
+  String get setup_speciesModel_title => 'Arterkennung';
+
+  @override
+  String get setup_speciesModel_intro =>
+      'Schlägt die Arten auf deinen Tauchfotos und -videos vor. Läuft auf diesem Gerät, es wird nichts hochgeladen.';
+
+  @override
+  String get setup_speciesModel_introPhotos =>
+      'Schlägt die Arten auf deinen Tauchfotos vor. Läuft auf diesem Gerät, es wird nichts hochgeladen.';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return 'Download: $size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => 'WLAN empfohlen';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'Windows lädt eventuell zusätzlich eine Engine für deine Grafikkarte oder NPU von Microsoft herunter.';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      'Wird heruntergeladen. Den Fortschritt siehst du unter Einstellungen > Arterkennung.';
+
+  @override
+  String get setup_speciesModel_installed => 'Auf diesem Gerät installiert';
+
+  @override
+  String get setup_speciesModel_later =>
+      'Der Download ist gerade nicht erreichbar. Du findest ihn später unter Einstellungen > Arterkennung.';
+
+  @override
+  String get setup_speciesModel_download => 'Herunterladen';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       'Auf diesem Konto liegt eine Submersion-Bibliothek, deren Upload nie abgeschlossen wurde. Lass dein anderes Gerät die Synchronisierung beenden und versuche es erneut.';
 
