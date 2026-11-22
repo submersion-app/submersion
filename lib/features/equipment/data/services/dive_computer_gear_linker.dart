@@ -69,7 +69,8 @@ class DiveComputerGearLinker {
   /// A dive the diver took the item off keeps it off while its
   /// `diveEquipment` tombstone is held. [removedKeys], when given, is that
   /// set of tombstoned `dive|item` keys read once by the caller, for a pass
-  /// long enough that a tombstone GC could run part way through it.
+  /// long enough that a tombstone GC could run part way through it; the
+  /// live tombstones are checked as well, for a removal made since.
   ///
   /// Only the item's own row is written, never its components: a part fitted
   /// to the computer today was not on a dive it recorded years ago, and
@@ -117,11 +118,12 @@ class DiveComputerGearLinker {
           if (!linkedSet.contains(id)) id,
       ];
       if (unlinked.isEmpty) continue;
-      final removed =
-          removedKeys ??
-          await _sync.deletedIds('diveEquipment', [
-            for (final id in unlinked) '$id|$itemId',
-          ]);
+      // The live tombstones too: a removal made after the caller's
+      // snapshot was read is not in it.
+      final live = await _sync.deletedIds('diveEquipment', [
+        for (final id in unlinked) '$id|$itemId',
+      ]);
+      final removed = removedKeys == null ? live : {...removedKeys, ...live};
       missing.addAll([
         for (final id in unlinked)
           if (!removed.contains('$id|$itemId')) id,

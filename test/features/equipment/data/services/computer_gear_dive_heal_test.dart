@@ -85,6 +85,9 @@ void main() {
     return {for (final r in rows) r.equipmentId};
   }
 
+  Future<String?> marker(String computerId) => AppSettingsRepository()
+      .getRawSetting(ComputerGearDiveHeal.doneKeyFor(computerId));
+
   Future<bool> isPending(String recordId) async =>
       (await (db.select(db.syncRecords)..where(
                 (r) =>
@@ -134,13 +137,13 @@ void main() {
     expect(await equipmentOn('bare-dive'), isEmpty);
   });
 
-  test('leaves a library with no computer unmarked, so a device joining '
+  test('marks nothing in a library with no computer, so a device joining '
       'a synced library still runs the pass once its data arrives', () async {
     expect(await ComputerGearDiveHeal().run(), 0);
-    expect(
-      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
-      isNull,
-    );
+    final markers = await (db.select(
+      db.settings,
+    )..where((t) => t.key.like('computer_gear_dives_linked%'))).get();
+    expect(markers, isEmpty);
 
     await insertItem('gear-1');
     await insertComputer('c1', equipmentId: 'gear-1');
@@ -188,31 +191,38 @@ void main() {
     },
   );
 
-  test('leaves a computer whose item a sync left dangling, and the library '
-      'unmarked so the pass runs again once it is repaired', () async {
-    await insertItem('gear-1');
-    await insertComputer('c1', equipmentId: 'gear-1');
-    await insertComputer('c2', equipmentId: 'ghost');
-    await insertDive('d1', computerId: 'c1');
-    await insertDive('d2', computerId: 'c2');
+  test(
+    'leaves a computer whose item a sync left dangling unmarked, so its '
+    'pass runs once it is repaired, and links the others meanwhile',
+    () async {
+      await insertItem('gear-1');
+      await insertComputer('c1', equipmentId: 'gear-1');
+      await insertComputer('c2', equipmentId: 'ghost');
+      await insertDive('d1', computerId: 'c1');
+      await insertDive('d2', computerId: 'c2');
 
-    expect(await ComputerGearDiveHeal().run(), 1);
-    expect(await equipmentOn('d1'), {'gear-1'});
-    expect(await equipmentOn('d2'), isEmpty);
-    expect(
-      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
-      isNull,
-    );
+      expect(await ComputerGearDiveHeal().run(), 1);
+      expect(await equipmentOn('d1'), {'gear-1'});
+      expect(await equipmentOn('d2'), isEmpty);
+      expect(await marker('c1'), 'true');
+      expect(await marker('c2'), isNull);
 
-    // The device gear heal gives c2 its item; the next launch links it.
-    await insertItem('ghost');
-    expect(await ComputerGearDiveHeal().run(), 1);
-    expect(await equipmentOn('d2'), {'ghost'});
-    expect(
-      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
-      'true',
-    );
-  });
+      // c1's pass is done: a link taken off later, its tombstone since
+      // collected, stays off however long c2 waits.
+      await db.customStatement(
+        "DELETE FROM dive_equipment WHERE dive_id = 'd1'",
+      );
+      expect(await ComputerGearDiveHeal().run(), 0);
+      expect(await equipmentOn('d1'), isEmpty);
+
+      // The device gear heal gives c2 its item; the next launch links it.
+      await insertItem('ghost');
+      expect(await ComputerGearDiveHeal().run(), 1);
+      expect(await equipmentOn('d2'), {'ghost'});
+      expect(await marker('c2'), 'true');
+      expect(await equipmentOn('d1'), isEmpty);
+    },
+  );
 
   test('never puts an item of another type on a computer\'s dives', () async {
     final t = DateTime.now().millisecondsSinceEpoch;
@@ -232,10 +242,7 @@ void main() {
 
     expect(await ComputerGearDiveHeal().run(), 0);
     expect(await equipmentOn('d1'), isEmpty);
-    expect(
-      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
-      isNull,
-    );
+    expect(await marker('c1'), isNull);
   });
 
   test('keeps to the removals it read at the start when a tombstone GC runs '
@@ -261,8 +268,30 @@ void main() {
     expect(await equipmentOn('d2'), isEmpty);
   });
 
-  test('stops, unmarked, when another library is opened part way, and '
-      'writes nothing into it', () async {
+  test('leaves off a link the diver removes while the pass runs', () async {
+    await insertItem('gear-1');
+    await insertItem('gear-2');
+    await insertComputer('c1', equipmentId: 'gear-1');
+    await insertComputer('c2', equipmentId: 'gear-2');
+    await insertDive('d1', computerId: 'c1');
+    await insertDive('d2', computerId: 'c2');
+
+    // After the pass's snapshot, before it reaches c2.
+    await ComputerGearDiveHeal(
+      linker: _BeforeFirstLink(
+        () => SyncRepository().logDeletion(
+          entityType: 'diveEquipment',
+          recordId: 'd2|gear-2',
+        ),
+      ),
+    ).run();
+
+    expect(await equipmentOn('d1'), {'gear-1'});
+    expect(await equipmentOn('d2'), isEmpty);
+  });
+
+  test('stops when another library is opened part way, and writes nothing '
+      'into it', () async {
     await insertItem('gear-1');
     await insertItem('gear-2');
     await insertComputer('c1', equipmentId: 'gear-1');
@@ -303,16 +332,20 @@ void main() {
       ),
     ).run();
 
-    for (final library in [db, other]) {
-      final marker = await (library.select(
+    // c1, in progress when the swap came, finishes in its own library; c2
+    // is left for that library's next launch.
+    Future<List<String>> markers(AppDatabase library) async => [
+      for (final r in await (library.select(
         library.settings,
-      )..where((t) => t.key.equals(ComputerGearDiveHeal.doneKey))).get();
-      expect(marker, isEmpty);
-    }
+      )..where((t) => t.key.like('computer_gear_dives_linked%'))).get())
+        r.key,
+    ];
+    expect(await markers(db), [ComputerGearDiveHeal.doneKeyFor('c1')]);
+    expect(await markers(other), isEmpty);
     expect(await other.select(other.diveEquipment).get(), isEmpty);
   });
 
-  test('runs once per library: a link removed afterwards stays removed, '
+  test('runs once per computer: a link removed afterwards stays removed, '
       'whatever became of its tombstone', () async {
     await insertItem('gear-1');
     await insertComputer('c1', equipmentId: 'gear-1');
@@ -320,10 +353,7 @@ void main() {
     await insertSource('d1', 'c1');
 
     expect(await ComputerGearDiveHeal().run(), 1);
-    expect(
-      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
-      'true',
-    );
+    expect(await marker('c1'), 'true');
     await db.customStatement('DELETE FROM dive_equipment');
 
     expect(await ComputerGearDiveHeal().run(), 0);
