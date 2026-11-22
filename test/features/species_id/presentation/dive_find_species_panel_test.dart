@@ -44,8 +44,14 @@ class _FixedRun extends DiveSpeciesRun {
 class _RecordingRun extends _FixedRun {
   final started = <String>[];
 
+  /// Whether each started run was a fresh one (issue #4825).
+  final fresh = <bool>[];
+
   @override
-  Future<void> start(String diveId) async => started.add(diveId);
+  Future<void> start(String diveId, {bool fresh = false}) async {
+    started.add(diveId);
+    this.fresh.add(fresh);
+  }
 }
 
 /// Find species on a dive, and the ways to Species to review (issue #4727).
@@ -238,9 +244,12 @@ void main() {
   });
 
   testWidgets('all checked with something to review, but auto-apply off: '
-      'a run would do nothing', (tester) async {
+      'a run would do nothing, so the dive can only be checked again', (
+    tester,
+  ) async {
     await pumpCard(tester, installed: pack, toReview: 2, checked: true);
-    expect(find.text('All photos checked'), findsOneWidget);
+    expect(find.text('Check again'), findsOneWidget);
+    expect(find.text('Find species in photos'), findsNothing);
   });
 
   testWidgets('all checked with something to review, but the pack is never '
@@ -264,12 +273,118 @@ void main() {
       checked: true,
       autoApply: true,
     );
-    expect(find.text('All photos checked'), findsOneWidget);
+    expect(find.text('Check again'), findsOneWidget);
   });
 
-  testWidgets('all checked and nothing to review', (tester) async {
-    await pumpCard(tester, installed: pack, checked: true);
-    expect(find.text('All photos checked'), findsOneWidget);
+  group('an up to date dive (issue #4825)', () {
+    final again = find.byKey(const ValueKey('dive_species_check_again'));
+    final confirm = find.byKey(
+      const ValueKey('dive_species_check_again_confirm'),
+    );
+    // In the photo library, with its original on this device.
+    final here = testMediaItem(
+      id: 'p1',
+      diveId: 'd1',
+    ).copyWith(platformAssetId: 'asset-1');
+
+    testWidgets('offers Check again, enabled', (tester) async {
+      await pumpCard(tester, installed: pack, checked: true);
+      expect(find.text('Check again'), findsOneWidget);
+      expect(tester.widget<OutlinedButton>(again).onPressed, isNotNull);
+      expect(find.byKey(const ValueKey('dive_species_find')), findsNothing);
+    });
+
+    testWidgets('asks first, saying dismissed suggestions come back', (
+      tester,
+    ) async {
+      final run = _RecordingRun();
+      await pumpCard(tester, installed: pack, checked: true, run: run);
+      await tester.tap(again);
+      await tester.pumpAndSettle();
+      expect(find.text('Check this dive again?'), findsOneWidget);
+      expect(
+        find.textContaining('Suggestions you dismissed come back.'),
+        findsOneWidget,
+      );
+      expect(run.started, isEmpty);
+    });
+
+    testWidgets('confirmed, it starts a fresh run', (tester) async {
+      final run = _RecordingRun();
+      await pumpCard(
+        tester,
+        installed: pack,
+        checked: true,
+        run: run,
+        media: [here],
+      );
+      await tester.tap(again);
+      await tester.pumpAndSettle();
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
+      expect(run.started, ['d1']);
+      expect(run.fresh, [true]);
+    });
+
+    testWidgets('cancelled, it starts nothing', (tester) async {
+      final run = _RecordingRun();
+      await pumpCard(tester, installed: pack, checked: true, run: run);
+      await tester.tap(again);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(run.started, isEmpty);
+    });
+
+    testWidgets('counts every item away from this device, checked or not, '
+        'before it starts', (tester) async {
+      final run = _RecordingRun();
+      // A path no test machine has: the photo is not on this device.
+      final away = testMediaItem(
+        id: 'p1',
+        diveId: 'd1',
+        originalFilename: 'check-again-not-on-this-device-4825.jpg',
+      );
+      await pumpCard(
+        tester,
+        installed: pack,
+        checked: true,
+        run: run,
+        media: [away],
+        upToDate: {'p1'},
+      );
+      await tester.tap(again);
+      await tester.pumpAndSettle();
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('dive_species_download')),
+        findsOneWidget,
+      );
+      expect(run.started, isEmpty);
+      await tester.tap(find.byKey(const ValueKey('dive_species_download')));
+      await tester.pumpAndSettle();
+      expect(run.fresh, [true]);
+    });
+  });
+
+  testWidgets('a dive not yet checked still offers Find species, and an '
+      'ordinary run', (tester) async {
+    final run = _RecordingRun();
+    await pumpCard(
+      tester,
+      installed: pack,
+      run: run,
+      media: [
+        testMediaItem(
+          id: 'p1',
+          diveId: 'd1',
+        ).copyWith(platformAssetId: 'asset-1'),
+      ],
+    );
+    await tester.tap(find.byKey(const ValueKey('dive_species_find')));
+    await tester.pumpAndSettle();
+    expect(run.fresh, [false]);
   });
 
   testWidgets('paused in the background offers Resume too', (tester) async {

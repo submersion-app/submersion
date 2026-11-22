@@ -87,24 +87,6 @@ void main() {
     expect(b1.map((c) => c.name), unorderedEquals(['Nitrox', 'Deep']));
   });
 
-  test('replaceBuddyCertifications inserts, updates, and tombstones', () async {
-    await makeBuddy('b1');
-    final keep = await repository.createCertification(
-      buddyCert('b1', name: 'Nitrox'),
-    );
-    final drop = await repository.createCertification(
-      buddyCert('b1', name: 'Old'),
-    );
-    await repository.replaceBuddyCertifications('b1', [
-      keep.copyWith(name: 'Nitrox (EANx)'), // update
-      buddyCert('b1', name: 'New'), // insert (empty id)
-      // 'drop' omitted -> delete + tombstone
-    ]);
-    final now = await repository.getCertificationsByBuddy('b1');
-    expect(now.map((c) => c.name), unorderedEquals(['Nitrox (EANx)', 'New']));
-    expect(now.any((c) => c.id == drop.id), isFalse);
-  });
-
   test('getExpiringCertifications hydrates buddyId (shared query-row '
       'mapper)', () async {
     await makeBuddy('b1');
@@ -125,21 +107,4 @@ void main() {
     expect(expiring.length, 1);
     expect(expiring.single.buddyId, 'b1');
   });
-
-  test(
-    'replaceBuddyCertifications skips unchanged certs (no updatedAt churn)',
-    () async {
-      await makeBuddy('b1');
-      await repository.createCertification(buddyCert('b1', name: 'Nitrox'));
-      final loaded = (await repository.getCertificationsByBuddy('b1')).single;
-
-      // Re-committing the same (unchanged) cert must not rewrite it -- saving a
-      // buddy with unrelated edits shouldn't churn every cert's updatedAt.
-      await repository.replaceBuddyCertifications('b1', [loaded]);
-
-      final after = (await repository.getCertificationsByBuddy('b1')).single;
-      expect(after.id, loaded.id);
-      expect(after.updatedAt, loaded.updatedAt);
-    },
-  );
 }

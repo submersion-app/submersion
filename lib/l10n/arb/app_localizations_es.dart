@@ -3412,9 +3412,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_action_sortTitle => 'Ordenar Compañeros';
 
   @override
-  String get buddies_action_update => 'Actualizar Compañero';
-
-  @override
   String buddies_action_viewAll(Object count) {
     return 'Ver Todos ($count)';
   }
@@ -3710,9 +3707,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_linkedProfile_notNow => 'Ahora no';
 
   @override
-  String get buddies_linkedProfile_openBuddy => 'Abrir compañero';
-
-  @override
   String get buddies_linkedProfile_pickerTitle => 'Vincular a un perfil';
 
   @override
@@ -3734,9 +3728,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Estos compañeros están vinculados a perfiles distintos. Fusiona primero los perfiles.';
 
   @override
-  String get buddies_message_added => 'Compañero agregado exitosamente';
-
-  @override
   String get buddies_message_contactImportUnavailable =>
       'La importación de contactos no está disponible en esta plataforma';
 
@@ -3750,11 +3741,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String buddies_message_errorImportingContact(Object error) {
     return 'Error al importar contacto: $error';
-  }
-
-  @override
-  String buddies_message_errorLoading(Object error) {
-    return 'Error al cargar compañero: $error';
   }
 
   @override
@@ -3777,9 +3763,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddies_message_preparingExport => 'Preparando exportación...';
-
-  @override
-  String get buddies_message_updated => 'Compañero actualizado exitosamente';
 
   @override
   String get buddies_picker_add => 'Agregar';
@@ -3915,9 +3898,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddies_title_add => 'Agregar Compañero';
-
-  @override
-  String get buddies_title_edit => 'Editar Compañero';
 
   @override
   String get buddies_title_singular => 'Compañero';
@@ -4490,21 +4470,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_edit_appBar_add => 'Agregar certificación';
 
   @override
-  String get certifications_edit_appBar_edit => 'Editar certificación';
-
-  @override
-  String get certifications_edit_button_add => 'Agregar certificación';
-
-  @override
-  String get certifications_edit_button_cancel => 'Cancelar';
-
-  @override
-  String get certifications_edit_button_save => 'Guardar';
-
-  @override
-  String get certifications_edit_button_update => 'Actualizar certificación';
-
-  @override
   String get certifications_edit_certification_notSpecified =>
       'No especificado';
 
@@ -4516,19 +4481,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get certifications_edit_datePicker_tapToSelect =>
       'Toca para seleccionar';
-
-  @override
-  String get certifications_edit_dialog_discard => 'Descartar';
-
-  @override
-  String get certifications_edit_dialog_discardContent =>
-      'Tienes cambios sin guardar. Estás seguro de que deseas salir?';
-
-  @override
-  String get certifications_edit_dialog_discardTitle => 'Descartar cambios?';
-
-  @override
-  String get certifications_edit_dialog_keepEditing => 'Seguir editando';
 
   @override
   String get certifications_edit_group_progression => 'Progresión';
@@ -4763,41 +4715,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_edit_photo_takePhoto => 'Tomar foto';
 
   @override
-  String get certifications_edit_sectionTitle_cardPhotos =>
-      'Fotos de la tarjeta';
-
-  @override
-  String get certifications_edit_sectionTitle_dates => 'Fechas';
-
-  @override
-  String get certifications_edit_sectionTitle_instructorInfo =>
-      'Información del instructor';
-
-  @override
-  String get certifications_edit_sectionTitle_notes => 'Notas';
-
-  @override
-  String get certifications_edit_snackBar_added =>
-      'Certificación agregada exitosamente';
-
-  @override
-  String certifications_edit_snackBar_errorLoading(Object error) {
-    return 'Error al cargar la certificación: $error';
-  }
-
-  @override
   String certifications_edit_snackBar_errorPhoto(Object error) {
     return 'Error al seleccionar la foto: $error';
   }
-
-  @override
-  String certifications_edit_snackBar_errorSaving(Object error) {
-    return 'Error al guardar la certificación: $error';
-  }
-
-  @override
-  String get certifications_edit_snackBar_updated =>
-      'Certificación actualizada correctamente';
 
   @override
   String get certifications_edit_validation_certificationOrTitleRequired =>
@@ -6004,9 +5924,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get courses_action_addRequirement => 'Agregar requisito';
 
   @override
-  String get courses_action_create => 'Crear Curso';
-
-  @override
   String get courses_action_deleteRequirement => 'Eliminar requisito';
 
   @override
@@ -6030,12 +5947,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get courses_action_retry => 'Reintentar';
-
-  @override
-  String get courses_action_saveChanges => 'Guardar Cambios';
-
-  @override
-  String get courses_action_saveSemantic => 'Guardar curso';
 
   @override
   String get courses_action_sort => 'Ordenar';
@@ -6146,11 +6057,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get courses_label_startDate => 'Fecha de Inicio';
-
-  @override
-  String courses_message_errorSaving(Object error) {
-    return 'Error al guardar curso: $error';
-  }
 
   @override
   String courses_message_exportFailed(Object error) {
@@ -6321,9 +6227,6 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$shown de $_temp0';
   }
-
-  @override
-  String get courses_title_edit => 'Editar Curso';
 
   @override
   String get courses_title_new => 'Nuevo Curso';
@@ -6939,16 +6842,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_action_clearRating => 'Limpiar';
 
   @override
-  String get diveCenters_action_gettingLocation => 'Obteniendo...';
-
-  @override
   String get diveCenters_action_import => 'Importar';
 
   @override
   String get diveCenters_action_importToMyCenters => 'Importar a Mis Centros';
-
-  @override
-  String get diveCenters_action_lookingUp => 'Buscando...';
 
   @override
   String get diveCenters_action_lookupFromAddress => 'Buscar desde Dirección';
@@ -7007,19 +6904,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_dialog_deleteTitle => 'Eliminar Centro de Buceo';
 
   @override
-  String get diveCenters_dialog_discard => 'Descartar';
-
-  @override
-  String get diveCenters_dialog_discardMessage =>
-      'Tienes cambios sin guardar. ¿Estás seguro de que deseas descartarlos?';
-
-  @override
-  String get diveCenters_dialog_discardTitle => '¿Descartar Cambios?';
-
-  @override
-  String get diveCenters_dialog_keepEditing => 'Seguir Editando';
-
-  @override
   String get diveCenters_empty_button => 'Agrega tu primer centro de buceo';
 
   @override
@@ -7061,11 +6945,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveCenters_error_notFound => 'Centro de buceo no encontrado';
-
-  @override
-  String diveCenters_error_saving(Object error) {
-    return 'Error al guardar centro de buceo: $error';
-  }
 
   @override
   String get diveCenters_error_unknown => 'Error desconocido';
@@ -7257,25 +7136,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_tag_closed => 'Cerrado';
 
   @override
-  String get diveCenters_section_address => 'Dirección';
-
-  @override
-  String get diveCenters_section_affiliations => 'Afiliaciones';
-
-  @override
-  String get diveCenters_section_basicInfo => 'Información Básica';
-
-  @override
   String get diveCenters_editCard_map => 'Mapa';
 
   @override
   String get diveCenters_section_contact => 'Contacto';
-
-  @override
-  String get diveCenters_section_contactInfo => 'Información de Contacto';
-
-  @override
-  String get diveCenters_section_gpsCoordinates => 'Coordenadas GPS';
 
   @override
   String get diveCenters_section_fillHours => 'Horario de llenado';
@@ -7307,25 +7171,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_section_notes => 'Notas';
 
   @override
-  String get diveCenters_snackbar_coordinatesFound =>
-      'Coordenadas encontradas desde dirección';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'Importado \"$name\"';
   }
-
-  @override
-  String get diveCenters_snackbar_locationCaptured => 'Ubicación capturada';
-
-  @override
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy) {
-    return 'Ubicación capturada (±${accuracy}m)';
-  }
-
-  @override
-  String get diveCenters_snackbar_locationSelectedFromMap =>
-      'Ubicación seleccionada del mapa';
 
   @override
   String get diveCenters_sort_title => 'Ordenar Centros de Buceo';
@@ -7382,9 +7230,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveCenters_title_add => 'Agregar Centro de Buceo';
-
-  @override
-  String get diveCenters_title_edit => 'Editar Centro de Buceo';
 
   @override
   String get diveCenters_title_import => 'Importar Centro de Buceo';
@@ -8780,6 +8625,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_annotation_noProfile =>
       'Esta inmersión no tiene perfil que señalar. Escribe la hora en su lugar.';
+
+  @override
+  String get diveLog_annotation_brokenLink =>
+      'El enlace de una anotación está roto aquí, así que guardar eliminaría la anotación. Arregla el enlace o bórralo entero para quitar la anotación.';
 
   @override
   String get diveLog_annotation_action_annotate => 'Anotar';
@@ -17052,16 +16901,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'Duplicar equipo';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'Editar equipo';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'Nuevo equipo';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'Guardar';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip => 'Guardar cambios del equipo';
 
   @override
   String get equipment_edit_brandLabel => 'Marca';
@@ -17080,50 +16920,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Desactivar todas las notificaciones para este artículo';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'Tienes cambios sin guardar. Estás seguro de que deseas salir?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'Descartar';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing => 'Seguir editando';
-
-  @override
-  String get equipment_edit_discardDialog_title => 'Descartar cambios?';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'Cancelar';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle => 'Editar equipo';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'Nuevo equipo';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'Guardar';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'Guardar cambios del equipo';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'Agregar nuevo equipo';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'Error: $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'Error';
-
-  @override
-  String get equipment_edit_loadingTitle => 'Cargando...';
-
-  @override
   String get equipment_edit_modelLabel => 'Modelo';
 
   @override
@@ -17136,27 +16932,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_edit_nameValidation => 'Por favor ingresa un nombre';
 
   @override
-  String get equipment_edit_notFoundMessage => 'Este equipo ya no existe.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'Equipo no encontrado';
-
-  @override
   String get equipment_edit_notesHint =>
       'Notas adicionales sobre este equipo...';
 
   @override
   String get equipment_edit_notesLabel => 'Notas';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'Anular la configuración global de notificaciones para este artículo';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'Notificaciones (opcional)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'Fecha de compra';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'Información de compra';
@@ -17181,14 +16961,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'Número de serie';
-
-  @override
-  String get equipment_edit_snackbar_added => 'Equipo agregado';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'Error al guardar el equipo: $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17657,16 +17429,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Un encabezado por lugar, solo en esta página';
 
   @override
-  String get equipment_edit_locationLabel => 'Ubicación';
-
-  @override
-  String get equipment_edit_locationNone => 'Sin definir';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'Guardado, pero no se pudo establecer su ubicación. Usa Mover en el elemento para establecerla.';
-
-  @override
   String get equipment_locations_title => 'Ubicaciones';
 
   @override
@@ -17765,13 +17527,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (copia)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'Duplicado, pero no se pudieron copiar algunos intervalos de mantenimiento, conjuntos o documentos.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'Equipo duplicado';
 
   @override
   String get equipment_menu_clone => 'Duplicar';
@@ -18380,9 +18135,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Agrega equipo primero antes de crear un conjunto.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'Editar conjunto';
-
-  @override
   String get equipment_setEdit_appBar_newTitle => 'Nuevo conjunto de equipo';
 
   @override
@@ -18401,12 +18153,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'Error';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'Cargando...';
-
-  @override
   String get equipment_setEdit_nameHint =>
       'p. ej., Configuración aguas cálidas';
 
@@ -18421,42 +18167,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay equipo disponible';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'Este conjunto de equipo ya no existe.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'Conjunto no encontrado';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit =>
-      'Guardar cambios del conjunto de equipo';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new =>
-      'Crear nuevo conjunto de equipo';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'Elige los artículos de equipo para incluir en este conjunto.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle => 'Seleccionar equipo';
-
-  @override
-  String get equipment_setEdit_snackbar_created => 'Conjunto de equipo creado';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned =>
-      'Conjunto de equipo duplicado';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'Error al guardar el conjunto de equipo: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated =>
-      'Conjunto de equipo actualizado';
 
   @override
   String get equipment_sets_appBar_title => 'Conjuntos de equipo';
@@ -19759,14 +19471,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get marineLife_speciesEdit_addTitle => 'Agregar especie';
 
   @override
-  String marineLife_speciesEdit_addedSnackbar(Object name) {
-    return 'Se agregó \"$name\"';
-  }
-
-  @override
-  String get marineLife_speciesEdit_backTooltip => 'Atrás';
-
-  @override
   String get marineLife_speciesEdit_categoryLabel => 'Categoría';
 
   @override
@@ -19774,55 +19478,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Por favor, introduce un nombre común';
 
   @override
-  String get marineLife_speciesEdit_commonNameHint => 'ej., Pez payaso común';
-
-  @override
   String get marineLife_speciesEdit_commonNameLabel => 'Nombre común';
-
-  @override
-  String get marineLife_speciesEdit_descriptionHint =>
-      'Breve descripción de la especie...';
 
   @override
   String get marineLife_speciesEdit_descriptionLabel => 'Descripción';
 
   @override
-  String get marineLife_speciesEdit_editTitle => 'Editar especie';
-
-  @override
-  String marineLife_speciesEdit_errorLoading(Object error) {
-    return 'Error al cargar especie: $error';
-  }
-
-  @override
-  String marineLife_speciesEdit_errorSaving(Object error) {
-    return 'Error al guardar especie: $error';
-  }
-
-  @override
-  String get marineLife_speciesEdit_notFoundMessage =>
-      'Esta especie ya no existe.';
-
-  @override
-  String get marineLife_speciesEdit_saveButton => 'Guardar';
-
-  @override
-  String get marineLife_speciesEdit_scientificNameHint =>
-      'ej., Amphiprion ocellaris';
-
-  @override
   String get marineLife_speciesEdit_scientificNameLabel => 'Nombre científico';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassHint => 'ej., Actinopterygii';
-
-  @override
   String get marineLife_speciesEdit_taxonomyClassLabel => 'Clase taxonómica';
-
-  @override
-  String marineLife_speciesEdit_updatedSnackbar(Object name) {
-    return 'Se actualizó \"$name\"';
-  }
 
   @override
   String get marineLife_speciesManage_allFilter => 'Todas';
@@ -21302,6 +20967,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'Buscar posición del video';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'Silenciar vídeo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Activar sonido del vídeo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volumen del vídeo';
 
   @override
   String get media_photoViewer_shareTooltip => 'Compartir foto';
@@ -24093,6 +23767,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_navCustomization_descriptionDesktop =>
       'Arrastra los elementos para reordenar la barra lateral. Inicio siempre permanece arriba.';
+
+  @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Se guarda solo en este dispositivo. Tus otros dispositivos mantienen su propio diseño.';
 
   @override
   String get settings_navCustomization_scopePhone => 'Teléfono';
@@ -28066,9 +27744,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documents_edit_newTitle => 'Nuevo documento';
 
   @override
-  String get documents_edit_editTitle => 'Editar documento';
-
-  @override
   String get documents_field_type => 'Tipo';
 
   @override
@@ -28180,14 +27855,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get documents_deleted => 'Documento eliminado';
-
-  @override
-  String get documents_saved => 'Documento guardado';
-
-  @override
-  String documents_error_save(String error) {
-    return 'No se pudo guardar el documento: $error';
-  }
 
   @override
   String documents_error_load(String error) {
@@ -29269,6 +28936,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String settings_speciesId_downloadConfirmBody(String size) {
     return 'Se descargarán $size y se guardarán en este dispositivo. Puedes eliminarlo cuando quieras.';
+  }
+
+  @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Se descargarán $size y se guardarán en este dispositivo. Windows también puede descargar de Microsoft un motor para tu tarjeta gráfica o NPU. Puedes eliminar el modelo cuando quieras.';
   }
 
   @override
@@ -35857,28 +35529,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_edit_appBar_add => 'Agregar viaje';
 
   @override
-  String get trips_edit_appBar_edit => 'Editar viaje';
-
-  @override
-  String get trips_edit_button_cancel => 'Cancelar';
-
-  @override
-  String get trips_edit_button_save => 'Guardar';
-
-  @override
-  String get trips_edit_dialog_discard => 'Descartar';
-
-  @override
-  String get trips_edit_dialog_discardContent =>
-      'Tienes cambios sin guardar. Estás seguro de que deseas salir?';
-
-  @override
-  String get trips_edit_dialog_discardTitle => 'Descartar cambios?';
-
-  @override
-  String get trips_edit_dialog_keepEditing => 'Seguir editando';
-
-  @override
   String trips_edit_durationDays(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -35944,32 +35594,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_edit_label_tripName => 'Nombre del viaje *';
-
-  @override
-  String get trips_edit_sectionTitle_dates => 'Fechas del viaje';
-
-  @override
-  String get trips_edit_sectionTitle_location => 'Ubicación';
-
-  @override
-  String get trips_edit_sectionTitle_notes => 'Notas';
-
-  @override
-  String get trips_edit_semanticLabel_save => 'Guardar viaje';
-
-  @override
-  String get trips_edit_snackBar_added => 'Viaje agregado correctamente';
-
-  @override
-  String get trips_edit_snackBar_errorLoading =>
-      'No se pudo cargar el viaje. Inténtalo de nuevo.';
-
-  @override
-  String get trips_edit_snackBar_errorSaving =>
-      'No se pudo guardar el viaje. Inténtalo de nuevo.';
-
-  @override
-  String get trips_edit_snackBar_updated => 'Viaje actualizado correctamente';
 
   @override
   String get trips_edit_validation_nameRequired =>
@@ -36273,9 +35897,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Inmersiones desde la costa durante uno o varios días';
 
   @override
-  String get trips_edit_sectionTitle_vessel => 'Detalles de la embarcación';
-
-  @override
   String get trips_edit_label_vesselName => 'Nombre de la embarcación *';
 
   @override
@@ -36298,9 +35919,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_edit_label_capacity => 'Capacidad de pasajeros';
-
-  @override
-  String get trips_edit_sectionTitle_planning => 'Planificación';
 
   @override
   String get trips_edit_label_diversSharing =>
@@ -36856,10 +36474,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_presetCustom => 'Personalizada';
-
-  @override
-  String get trips_edit_sectionTitle_embarkDisembark =>
-      'Embarque / Desembarque';
 
   @override
   String get trips_edit_label_embarkPort => 'Puerto de embarque';
@@ -41366,9 +40980,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'Peso corporal';
-
-  @override
-  String get equipment_edit_advanced_title => 'Avanzado';
 
   @override
   String get planner_gearWeights_accept => 'Usar como lastre planificado';
@@ -56294,6 +55905,65 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_species_unnamedFishLocked => 'Pez sin nombre';
 
   @override
+  String media_species_moreChips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count especies más',
+      one: '$count especie más',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_listLocked => 'Desbloquea para añadir o descartar';
+
+  @override
+  String get media_labels_action => 'Etiquetas de vida marina';
+
+  @override
+  String get media_labels_names => 'Nombres';
+
+  @override
+  String get media_labels_allLife => 'Toda la vida';
+
+  @override
+  String get media_labels_off => 'Desactivadas';
+
+  @override
+  String get media_labels_analyse => 'Analizar';
+
+  @override
+  String get media_labels_analyseAgain => 'Analizar de nuevo';
+
+  @override
+  String get media_labels_statusNoModel =>
+      'No hay modelo de especies instalado';
+
+  @override
+  String get media_labels_statusNotAnalysed => 'Aún sin analizar';
+
+  @override
+  String get media_labels_statusAnalysing => 'Analizando...';
+
+  @override
+  String media_labels_statusAnalysingPercent(String percent) {
+    return 'Analizando, $percent';
+  }
+
+  @override
+  String media_labels_statusFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count encontrados',
+      one: '$count encontrado',
+      zero: 'No se encontró nada',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get media_species_possibleMatches => 'Posibles coincidencias';
 
   @override
@@ -56429,7 +56099,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get speciesReview_resume => 'Reanudar';
 
   @override
-  String get speciesReview_allChecked => 'Todas las fotos revisadas';
+  String get speciesReview_checkAgain => 'Revisar de nuevo';
+
+  @override
+  String get speciesReview_checkAgainTitle =>
+      '¿Revisar esta inmersión de nuevo?';
+
+  @override
+  String get speciesReview_checkAgainBody =>
+      'Se analizan de nuevo todas las fotos y vídeos de esta inmersión. Tus etiquetas de especies se conservan. Las sugerencias que descartaste vuelven a aparecer.';
 
   @override
   String speciesReview_count(int count) {

@@ -36,7 +36,7 @@ class EquipmentItem extends Equatable {
   /// The media row chosen to represent this item in the equipment list and
   /// page header (issue #3355); null shows the type icon. May name a row
   /// this device does not have. Written only through the cover action, never
-  /// by the edit form's save.
+  /// by an item's save.
   final String? coverMediaId;
 
   /// Row creation time (null for entities built before persistence); used as

@@ -88,8 +88,6 @@ final reachedThrough = <String, String>{
       'BulkDiveEditService',
   'lib/features/buddies/data/repositories/buddy_repository.dart:removeBuddyFromDive':
       'BulkDiveEditService',
-  'lib/features/certifications/data/repositories/certification_repository.dart:replaceBuddyCertifications':
-      'createCertification',
   'lib/features/checklists/data/repositories/trip_checklist_repository.dart:clearItems':
       'deleteItem',
   'lib/features/checklists/data/repositories/trip_checklist_section_repository.dart:createSectionRow':
@@ -492,7 +490,6 @@ final covered = <String, String>{
     'createCertification',
     'updateCertification',
     'deleteCertification',
-    'replaceBuddyCertifications',
   ])
     '$certs/certification_repository.dart:$method': 'certifications',
   for (final (method, entity) in const [

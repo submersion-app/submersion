@@ -25,7 +25,7 @@ T? _or<T>(Object? value, T? kept) =>
 
 /// [e] with the given values, every other one kept. [EquipmentItem.copyWith]
 /// cannot clear most values, so the fields build the item whole, as the
-/// edit form's save does.
+/// old edit form's save did.
 EquipmentItem _with(
   EquipmentItem e, {
   String? name,
@@ -71,7 +71,7 @@ EquipmentItem _with(
   createdAt: e.createdAt,
 );
 
-/// A blank optional value is stored as none, as the form stores it.
+/// A blank optional value is stored as none, as the form stored it.
 String? _orNone(String? value) {
   final trimmed = value?.trim();
   return trimmed == null || trimmed.isEmpty ? null : trimmed;
@@ -111,7 +111,7 @@ final gearTypeField = EditField<EquipmentItem, EquipmentType>(
 
 /// The item's status. Setting it also sets whether the item is in the kit:
 /// retired, sold and wanted gear is out of it (#636, #2025). Read as the
-/// form shows it ([gearShownStatus]), so an untouched legacy row is not
+/// item page shows it ([gearShownStatus]), so an untouched legacy row is not
 /// written.
 final gearStatusField = EditField<EquipmentItem, EquipmentStatus>(
   id: 'status',
@@ -183,7 +183,7 @@ EditField<EquipmentItem, EquipmentAttribute?> gearAttributeField(String key) =>
     );
 
 /// The item's custom fields in their order, a colour on a type without one
-/// among them (#2520), as the form loads them.
+/// among them (#2520), as the form loaded them.
 final gearCustomFieldsField =
     EditField<EquipmentItem, List<EquipmentAttribute>>(
       id: 'customFields',
@@ -234,7 +234,7 @@ final gearCustomReminderField = EditField<EquipmentItem, GearCustomReminder>(
   id: 'customReminder',
   cardId: _serviceClocks,
   read: (e) => (enabled: e.customReminderEnabled, days: e.customReminderDays),
-  // Days are kept only while the item has its own, as the form saves them.
+  // Days are kept only while the item has its own, as the form saved them.
   write: (e, v) => _with(
     e,
     customReminderEnabled: v.enabled,
@@ -286,7 +286,7 @@ EquipmentStatus gearShownStatus(EquipmentItem item) =>
 /// The parent to keep once the type is [type]: [parentId] only when it
 /// names one of [candidates], the active items, whose type can hold [type].
 /// While [candidates] are still loading (null) the id is kept, as the form
-/// keeps it: a quick change must not drop a link never checked. A type that
+/// kept it: a quick change must not drop a link never checked. A type that
 /// is fitted to nothing keeps none.
 String? gearParentAfterType(
   EquipmentType type,
@@ -302,7 +302,7 @@ String? gearParentAfterType(
       : null;
 }
 
-/// The attributes the form would save for an item of [type]: the type's
+/// The attributes an item of [type] is saved with: the type's
 /// catalogue attributes with content, in catalogue order, then the custom
 /// fields de-duplicated by their trimmed key (the first wins, since the
 /// schema allows one per key) with their order re-packed.
@@ -329,7 +329,7 @@ List<EquipmentAttribute> gearAttributesToSave(
   ];
 }
 
-/// [merged], the sitting's item, as the form would save it, touching only
+/// [merged], the sitting's item, as the form would have saved it, touching only
 /// what the sitting changed: a new type keeps only its catalogue attributes
 /// (a colour on a type without one kept as a custom field), and edited
 /// custom fields are de-duplicated by key with their order re-packed
@@ -380,7 +380,7 @@ List<int> gearReminderDaysToggled(List<int> days, int day) {
   ]..sort();
 }
 
-/// The currency typed, or [fallback] when it is blank, as the form saves.
+/// The currency typed, or [fallback] when it is blank, as the form saved it.
 String gearCurrencyOrDefault(String typed, String fallback) {
   final code = typed.trim();
   return code.isEmpty ? fallback : code;

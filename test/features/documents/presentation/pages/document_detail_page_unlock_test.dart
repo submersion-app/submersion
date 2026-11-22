@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/documents/data/repositories/document_owner_options_repository.dart';
+import 'package:submersion/features/documents/presentation/providers/document_owner_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/editing/document_details_card_editor.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_fields.dart';
@@ -142,8 +145,83 @@ void main() {
         find.byKey(const Key('document-type')),
       );
       expect(type.onChanged, isNull);
+      // The owner shows, locked to its certification.
+      final owner = find.byKey(const ValueKey('document-owner-field'));
+      expect(owner, findsOneWidget);
+      expect(find.text(l.documents_owner_locked), findsOneWidget);
+      expect(
+        tester
+            .widget<InkWell>(
+              find.descendant(of: owner, matching: find.byType(InkWell)),
+            )
+            .onTap,
+        isNull,
+      );
     },
   );
+
+  testWidgets('a document refiled under a trip in Details saves that owner '
+      'and names it', (tester) async {
+    final harness = await pumpDocumentPage(
+      tester,
+      extraOverrides: [
+        documentOwnerOptionsProvider(DocumentOwnerKind.trip).overrideWith(
+          (ref) async => const [DocumentOwnerOption('t1', 'Bonaire')],
+        ),
+        documentOwnerLabelProvider.overrideWith(
+          (ref, owner) async => owner.id == 't1'
+              ? const DocumentOwnerOption('t1', 'Bonaire')
+              : null,
+        ),
+      ],
+    );
+    await unlock(tester);
+    await openDetails(tester);
+
+    final owner = find.byKey(const ValueKey('document-owner-field'));
+    await tester.ensureVisible(owner);
+    await tester.tap(owner);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('owner-kind-trip')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bonaire').last);
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: owner, matching: find.text('Bonaire')),
+      findsOneWidget,
+    );
+
+    await save(tester);
+
+    final call = harness.save.calls.single;
+    expect(
+      call.after.document.owner,
+      const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+    );
+    expect(call.cards, {'details'});
+  });
+
+  testWidgets('a tag typed into Details is saved with the sitting', (
+    tester,
+  ) async {
+    final harness = await pumpDocumentPage(tester);
+    await unlock(tester);
+    await openDetails(tester);
+
+    final input = find.descendant(
+      of: find.byType(TagInputWidget),
+      matching: find.byType(TextField),
+    );
+    await tester.ensureVisible(input);
+    await tester.enterText(input, 'Club');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    final call = harness.save.calls.single;
+    expect(call.after.tagIds, hasLength(1));
+    expect(call.cards, {'details'});
+  });
 
   testWidgets('tags that could not be read are shown read only', (
     tester,

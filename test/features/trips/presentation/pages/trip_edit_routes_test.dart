@@ -99,18 +99,32 @@ void main() {
     await pumpTripPage(tester, openUnlocked: true);
 
     expect(find.byType(RecordEditBar), findsOneWidget);
+    // At the top, with no card opened for it.
+    expect(find.byType(TripPlanCardEditor), findsNothing);
+    expect(
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .pixels,
+      0,
+    );
   });
 
   testWidgets('opened at section=planning, the Plan card is open and in '
       'view', (tester) async {
+    // A phone's height, where the Plan card starts below the fold.
+    const phone = Size(400, 700);
     await pumpTripPage(
       tester,
       openUnlocked: true,
       openSection: TripEditSection.planning,
+      size: phone,
     );
 
     expect(find.byType(TripPlanCardEditor), findsOneWidget);
-    expect(tester.getRect(find.byType(TripPlanCardEditor)).top, lessThan(1600));
+    final top = tester.getRect(find.byType(TripPlanCardEditor)).top;
+    expect(top, greaterThanOrEqualTo(0));
+    expect(top, lessThan(phone.height));
   });
 
   testWidgets('opened at a note day, that day is shown with its Day plan '

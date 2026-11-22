@@ -12,8 +12,8 @@ import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 
-/// Opens the online species lookup with [query] typed in, as the edit form
-/// does; a seam, so a page test can answer for it.
+/// Opens the online species lookup with [query] typed in, as the old edit
+/// form did; a seam, so a page test can answer for it.
 typedef SpeciesLookupLauncher =
     Future<SpeciesLookupOutcome?> Function(BuildContext context, String query);
 

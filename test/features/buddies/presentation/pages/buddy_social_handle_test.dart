@@ -5,13 +5,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
-import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -86,100 +84,5 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('@samdives'), findsOneWidget);
-  });
-
-  testWidgets('the edit page saves the social handle and has no card fields', (
-    tester,
-  ) async {
-    final repo = BuddyRepository();
-    final buddy = await repo.createBuddy(
-      Buddy(
-        id: '',
-        diverId: ownerId,
-        name: 'Sam',
-        cardDiveCount: 118,
-        createdAt: DateTime(2024),
-        updatedAt: DateTime(2024),
-      ),
-    );
-    String? savedId;
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
-          home: Scaffold(
-            body: BuddyEditPage(
-              buddyId: buddy.id,
-              embedded: true,
-              onSaved: (id) => savedId = id,
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.widgetWithText(TextFormField, 'Dives'), findsNothing);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Social handle'),
-      '@sam',
-    );
-    await tester.tap(find.text('Save'));
-    for (var i = 0; i < 30 && savedId == null; i++) {
-      await tester.pump(const Duration(milliseconds: 50));
-    }
-    final read = await tester.runAsync(() => repo.getBuddyById(buddy.id));
-    expect(read!.socialHandle, '@sam');
-    expect(read.cardDiveCount, 118);
-  });
-
-  testWidgets('editing only the social handle counts as an unsaved change', (
-    tester,
-  ) async {
-    final buddy = await BuddyRepository().createBuddy(
-      Buddy(
-        id: '',
-        diverId: ownerId,
-        name: 'Sam',
-        createdAt: DateTime(2024),
-        updatedAt: DateTime(2024),
-      ),
-    );
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
-          home: Scaffold(
-            body: BuddyEditPage(buddyId: buddy.id, embedded: true),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    bool canPop() => tester
-        .widget<PopScope<Object?>>(
-          find.byWidgetPredicate((w) => w is PopScope).first,
-        )
-        .canPop;
-    expect(canPop(), isTrue);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Social handle'),
-      '@sam',
-    );
-    await tester.pump();
-    expect(canPop(), isFalse);
   });
 }

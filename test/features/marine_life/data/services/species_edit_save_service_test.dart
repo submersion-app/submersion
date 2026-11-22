@@ -122,6 +122,18 @@ void main() {
     expect((await stored()).scientificName, isNull);
   });
 
+  test('clearing the taxonomy class and the description stores null', () async {
+    final session = EditSession(await stored())
+      ..set(speciesTaxonomyClassField, '')
+      ..set(speciesDescriptionField, '');
+
+    await save(session);
+
+    final after = await stored();
+    expect(after.taxonomyClass, isNull);
+    expect(after.description, isNull);
+  });
+
   test('unchanged returns null and writes nothing', () async {
     final result = await save(EditSession(await stored()));
 

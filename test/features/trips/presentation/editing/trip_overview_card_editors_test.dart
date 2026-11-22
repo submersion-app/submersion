@@ -55,6 +55,8 @@ void main() {
       await openCard(tester, plan);
       await tester.enterText(field('trip-edit-dives-per-day'), '3');
       await tester.enterText(field('trip-edit-expected-runtime'), '55');
+      await tester.enterText(field('trip-edit-expected-dives'), '12');
+      await tester.enterText(field('trip-edit-divers-sharing'), '3');
       await tester.pumpAndSettle();
 
       await save(tester);
@@ -63,6 +65,8 @@ void main() {
       expect(saved.cards, {'plan'});
       expect(saved.after.divesPerDayTarget, 3);
       expect(saved.after.expectedRuntimeMinutes, 55);
+      expect(saved.after.expectedDives, 12);
+      expect(saved.after.diversSharingCylinders, 3);
     });
 
     testWidgets('a fractional expected dive count refuses the Save', (
@@ -71,6 +75,8 @@ void main() {
       final harness = await pumpTripPage(tester);
       await unlock(tester);
       await openCard(tester, plan);
+      // A real change first, so Save is offered and must refuse.
+      await tester.enterText(field('trip-edit-dives-per-day'), '3');
       await tester.enterText(field('trip-edit-expected-dives'), '2.5');
       await tester.pumpAndSettle();
 
@@ -78,6 +84,7 @@ void main() {
 
       expect(harness.save.calls, isEmpty);
       expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(find.text(l.numberInput_invalidWholeNumber), findsOneWidget);
     });
 
     testWidgets('expected dives and runtime show on the Plan row when set', (
@@ -139,7 +146,14 @@ void main() {
     });
 
     testWidgets('vessel fields are shown for a liveaboard', (tester) async {
-      await pumpTripPage(tester, trip: liveaboard, vessel: mvBlue);
+      await pumpTripPage(
+        tester,
+        trip: liveaboard,
+        vessel: mvBlue.copyWith(
+          embarkPort: 'Port Ghalib',
+          disembarkPort: 'Hurghada',
+        ),
+      );
       await unlock(tester);
       await openCard(tester, vessel);
 
@@ -147,6 +161,8 @@ void main() {
           tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
       expect(text('trip-edit-vessel-name'), 'MV Blue');
       expect(text('trip-edit-vessel-operator'), 'Blue Waters');
+      expect(text('trip-edit-vessel-embark'), 'Port Ghalib');
+      expect(text('trip-edit-vessel-disembark'), 'Hurghada');
     });
 
     testWidgets('a vessel name and the plan in one sitting save as one entry', (

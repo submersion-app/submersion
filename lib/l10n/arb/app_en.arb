@@ -1969,7 +1969,6 @@
   "@buddies_gear_allReturned": {"description": "Action on the gear section: everything came back"},
   "buddies_action_sort": "Sort",
   "buddies_action_sortTitle": "Sort Buddies",
-  "buddies_action_update": "Update Buddy",
   "buddies_action_viewAll": "View All ({count})",
   "buddies_detail_error": "Error: {error}",
   "buddies_detail_noDivesTogether": "No dives together yet",
@@ -2148,7 +2147,6 @@
   "buddies_linkedProfile_chip": "Profile",
   "buddies_linkedProfile_link": "Link",
   "buddies_linkedProfile_notNow": "Not now",
-  "buddies_linkedProfile_openBuddy": "Open buddy",
   "buddies_linkedProfile_pickerTitle": "Link to a profile",
   "buddies_linkedProfile_refusedSelf": "A buddy cannot be linked to its own profile.",
   "buddies_linkedProfile_refusedTaken": "{buddyName} is already linked to this profile.",
@@ -2168,18 +2166,15 @@
     }
   },
   "buddies_merge_refusedDifferentLinks": "These buddies are linked to different profiles. Merge the profiles first.",
-  "buddies_message_added": "Buddy added successfully",
   "buddies_message_contactImportUnavailable": "Contact import is not available on this platform",
   "buddies_message_contactPermissionRequired": "Contact permission is required to import buddies",
   "buddies_message_deleted": "Buddy deleted",
   "buddies_message_errorImportingContact": "Error importing contact: {error}",
-  "buddies_message_errorLoading": "Error loading buddy: {error}",
   "buddies_message_errorSaving": "Error saving buddy: {error}",
   "buddies_message_exportFailed": "Export failed: {error}",
   "buddies_message_noDivesFound": "No dives found to export",
   "buddies_message_noDivesToShare": "No dives to share with this buddy",
   "buddies_message_preparingExport": "Preparing export...",
-  "buddies_message_updated": "Buddy updated successfully",
   "buddies_picker_add": "Add",
   "buddies_picker_addCustomRole": "Add custom role...",
   "buddies_picker_addNew": "Add New Buddy",
@@ -2237,7 +2232,6 @@
     }
   },
   "buddies_title_add": "Add Buddy",
-  "buddies_title_edit": "Edit Buddy",
   "buddies_title_singular": "Buddy",
   "buddies_validation_emailInvalid": "Please enter a valid email",
   "buddies_validation_nameRequired": "Please enter a name",
@@ -2277,13 +2271,6 @@
     }
   },
   "@buddies_message_errorImportingContact": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@buddies_message_errorLoading": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -2772,18 +2759,9 @@
   "certifications_ecard_statusBadge_expired": "EXPIRED",
   "certifications_ecard_statusBadge_expiring": "EXPIRING",
   "certifications_edit_appBar_add": "Add Certification",
-  "certifications_edit_appBar_edit": "Edit Certification",
-  "certifications_edit_button_add": "Add Certification",
-  "certifications_edit_button_cancel": "Cancel",
-  "certifications_edit_button_save": "Save",
-  "certifications_edit_button_update": "Update Certification",
   "certifications_edit_certification_notSpecified": "Not specified",
   "certifications_edit_datePicker_clearTooltip": "Clear {label}",
   "certifications_edit_datePicker_tapToSelect": "Tap to select",
-  "certifications_edit_dialog_discard": "Discard",
-  "certifications_edit_dialog_discardContent": "You have unsaved changes. Are you sure you want to leave?",
-  "certifications_edit_dialog_discardTitle": "Discard Changes?",
-  "certifications_edit_dialog_keepEditing": "Keep Editing",
   "certifications_edit_group_progression": "Progression",
   "certifications_edit_group_specialties": "Specialties",
   "certifications_edit_group_tdiOpenCircuit": "Open Circuit",
@@ -2853,15 +2831,7 @@
   "certifications_edit_photo_chooseFromGallery": "Choose from Gallery",
   "certifications_edit_photo_removeTooltip": "Remove {label} photo",
   "certifications_edit_photo_takePhoto": "Take Photo",
-  "certifications_edit_sectionTitle_cardPhotos": "Card Photos",
-  "certifications_edit_sectionTitle_dates": "Dates",
-  "certifications_edit_sectionTitle_instructorInfo": "Instructor Information",
-  "certifications_edit_sectionTitle_notes": "Notes",
-  "certifications_edit_snackBar_added": "Certification added successfully",
-  "certifications_edit_snackBar_errorLoading": "Error loading certification: {error}",
   "certifications_edit_snackBar_errorPhoto": "Error picking photo: {error}",
-  "certifications_edit_snackBar_errorSaving": "Error saving certification: {error}",
-  "certifications_edit_snackBar_updated": "Certification updated successfully",
   "certifications_edit_validation_certificationOrTitleRequired": "Choose a certification or enter a title",
   "certifications_list_button_retry": "Retry",
   "certifications_list_empty_button": "Add Your First Certification",
@@ -3031,21 +3001,7 @@
       }
     }
   },
-  "@certifications_edit_snackBar_errorLoading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@certifications_edit_snackBar_errorPhoto": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@certifications_edit_snackBar_errorSaving": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -3673,7 +3629,6 @@
   "courses_action_add": "Add Course",
   "courses_action_addFromTemplate": "Add from template",
   "courses_action_addRequirement": "Add requirement",
-  "courses_action_create": "Create Course",
   "courses_action_deleteRequirement": "Delete requirement",
   "courses_action_editRequirement": "Edit requirement",
   "courses_action_exportTrainingLog": "Export Training Log",
@@ -3682,8 +3637,6 @@
   "courses_action_unlinkDive": "Unlink dive",
   "courses_action_moreOptions": "More options",
   "courses_action_retry": "Retry",
-  "courses_action_saveChanges": "Save Changes",
-  "courses_action_saveSemantic": "Save course",
   "courses_action_sort": "Sort",
   "courses_action_sortTitle": "Sort Courses",
   "courses_card_instructor": "Instructor: {name}",
@@ -3720,7 +3673,6 @@
   "courses_label_location": "Location",
   "courses_label_name": "Name",
   "courses_label_startDate": "Start Date",
-  "courses_message_errorSaving": "Error saving course: {error}",
   "courses_message_exportFailed": "Failed to export training log: {error}",
   "courses_picker_active": "Active",
   "courses_picker_createCourse": "Create Course",
@@ -3804,7 +3756,6 @@
       }
     }
   },
-  "courses_title_edit": "Edit Course",
   "courses_title_new": "New Course",
   "courses_title_singular": "Course",
   "courses_validation_nameRequired": "Please enter a course name",
@@ -3830,13 +3781,6 @@
     }
   },
   "@courses_error_generic": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@courses_message_errorSaving": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -4314,10 +4258,8 @@
   "diveCenters_accessibility_viewSavedCenter": "View saved dive center {name}",
   "diveCenters_action_addCenter": "Add Center",
   "diveCenters_action_clearRating": "Clear",
-  "diveCenters_action_gettingLocation": "Getting...",
   "diveCenters_action_import": "Import",
   "diveCenters_action_importToMyCenters": "Import to My Centers",
-  "diveCenters_action_lookingUp": "Looking up...",
   "diveCenters_action_lookupFromAddress": "Lookup from Address",
   "diveCenters_action_pickFromMap": "Pick from Map",
   "diveCenters_action_retry": "Retry",
@@ -4330,10 +4272,6 @@
   "diveCenters_dialog_deleteDivesKept": "{count, plural, =1{1 dive will be left without a dive center.} other{{count} dives will be left without a dive center.}}",
   "diveCenters_dialog_deleteMessage": "Are you sure you want to delete \"{name}\"?",
   "diveCenters_dialog_deleteTitle": "Delete Dive Center",
-  "diveCenters_dialog_discard": "Discard",
-  "diveCenters_dialog_discardMessage": "You have unsaved changes. Are you sure you want to discard them?",
-  "diveCenters_dialog_discardTitle": "Discard Changes?",
-  "diveCenters_dialog_keepEditing": "Keep Editing",
   "diveCenters_empty_button": "Add Your First Dive Center",
   "diveCenters_empty_subtitle": "Add your favorite dive shops and operators",
   "diveCenters_empty_title": "No dive centers yet",
@@ -4345,7 +4283,6 @@
   "diveCenters_error_locationUnavailable": "Unable to get location. Location services may not be available.",
   "diveCenters_error_noAddressForLookup": "Please enter an address to look up coordinates",
   "diveCenters_error_notFound": "Dive center not found",
-  "diveCenters_error_saving": "Error saving dive center: {error}",
   "diveCenters_error_unknown": "Unknown error",
   "diveCenters_field_city": "City",
   "diveCenters_field_country": "Country",
@@ -4405,16 +4342,11 @@
   "diveCenters_picker_nearYourLocation": "Near your location",
   "@diveCenters_picker_nearYourLocation": {"description": "Dive center picker section header: centers near where the device is now, for a new dive with no site or GPS"},
   "diveCenters_tag_closed": "Closed",
-  "diveCenters_section_address": "Address",
-  "diveCenters_section_affiliations": "Affiliations",
-  "diveCenters_section_basicInfo": "Basic Information",
   "diveCenters_editCard_map": "Map",
   "@diveCenters_editCard_map": {
     "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
   },
   "diveCenters_section_contact": "Contact",
-  "diveCenters_section_contactInfo": "Contact Information",
-  "diveCenters_section_gpsCoordinates": "GPS Coordinates",
   "diveCenters_section_fillHours": "Fill hours",
   "diveCenters_fillHours_caption": "When the station fills cylinders. The trip fill forecast uses the closing time.",
   "diveCenters_fillHours_opens": "Opens",
@@ -4424,11 +4356,7 @@
   "diveCenters_fillHours_errorBoth": "Set both times, or neither.",
   "diveCenters_fillHours_errorOrder": "Closing time must be after opening time.",
   "diveCenters_section_notes": "Notes",
-  "diveCenters_snackbar_coordinatesFound": "Coordinates found from address",
   "diveCenters_snackbar_imported": "Imported \"{name}\"",
-  "diveCenters_snackbar_locationCaptured": "Location captured",
-  "diveCenters_snackbar_locationCapturedWithAccuracy": "Location captured (±{accuracy}m)",
-  "diveCenters_snackbar_locationSelectedFromMap": "Location selected from map",
   "diveCenters_sort_title": "Sort Dive Centers",
   "diveCenters_summary_countries": "Countries",
   "diveCenters_summary_highestRating": "Highest Rating",
@@ -4461,7 +4389,6 @@
     }
   },
   "diveCenters_title_add": "Add Dive Center",
-  "diveCenters_title_edit": "Edit Dive Center",
   "diveCenters_title_import": "Import Dive Center",
   "diveCenters_tooltip_addNew": "Add a new dive center",
   "diveCenters_tooltip_clearSearch": "Clear search",
@@ -4531,13 +4458,6 @@
       }
     }
   },
-  "@diveCenters_error_saving": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@diveCenters_import_fromDatabase": {
     "placeholders": {
       "count": {
@@ -4576,13 +4496,6 @@
   "@diveCenters_snackbar_imported": {
     "placeholders": {
       "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveCenters_snackbar_locationCapturedWithAccuracy": {
-    "placeholders": {
-      "accuracy": {
         "type": "Object"
       }
     }
@@ -5264,6 +5177,10 @@
   "diveLog_annotation_noProfile": "This dive has no profile to point at. Type the time instead.",
   "@diveLog_annotation_noProfile": {
     "description": "Shown on the annotation sheet in place of the small profile when the dive has no profile samples"
+  },
+  "diveLog_annotation_brokenLink": "An annotation's link here is broken, so saving would delete the annotation. Mend the link, or delete all of it to remove the annotation.",
+  "@diveLog_annotation_brokenLink": {
+    "description": "Error under the Notes editor when the diver has broken the markup of an annotation link, which Save would read as the annotation removed; Save is held until it is fixed"
   },
   "diveLog_annotation_action_annotate": "Annotate",
   "@diveLog_annotation_action_annotate": {
@@ -10364,39 +10281,18 @@
   "equipment_detail_wasInstalledInLabel": "Was installed in",
   "equipment_edit_appBar_cloneTitle": "Clone Equipment",
   "@equipment_edit_appBar_cloneTitle": {"description": "Title of the equipment form when it is pre-filled to clone an existing item"},
-  "equipment_edit_appBar_editTitle": "Edit Equipment",
   "equipment_edit_appBar_newTitle": "New Equipment",
-  "equipment_edit_appBar_saveButton": "Save",
-  "equipment_edit_appBar_saveTooltip": "Save equipment changes",
   "equipment_edit_brandLabel": "Brand",
   "equipment_edit_clearDate": "Clear Date",
   "equipment_edit_currencyLabel": "Currency",
   "equipment_edit_disableReminders": "Disable Reminders",
   "equipment_edit_disableRemindersSubtitle": "Turn off all notifications for this item",
-  "equipment_edit_discardDialog_content": "You have unsaved changes. Are you sure you want to leave?",
-  "equipment_edit_discardDialog_discard": "Discard",
-  "equipment_edit_discardDialog_keepEditing": "Keep Editing",
-  "equipment_edit_discardDialog_title": "Discard Changes?",
-  "equipment_edit_embeddedHeader_cancelButton": "Cancel",
-  "equipment_edit_embeddedHeader_editTitle": "Edit Equipment",
-  "equipment_edit_embeddedHeader_newTitle": "New Equipment",
-  "equipment_edit_embeddedHeader_saveButton": "Save",
-  "equipment_edit_embeddedHeader_saveTooltip_edit": "Save equipment changes",
-  "equipment_edit_embeddedHeader_saveTooltip_new": "Add new equipment",
-  "equipment_edit_errorMessage": "Error: {error}",
-  "equipment_edit_errorTitle": "Error",
-  "equipment_edit_loadingTitle": "Loading...",
   "equipment_edit_modelLabel": "Model",
   "equipment_edit_nameHint": "e.g., My Primary Regulator",
   "equipment_edit_nameLabel": "Name *",
   "equipment_edit_nameValidation": "Please enter a name",
-  "equipment_edit_notFoundMessage": "This equipment item no longer exists.",
-  "equipment_edit_notFoundTitle": "Equipment Not Found",
   "equipment_edit_notesHint": "Additional notes about this equipment...",
   "equipment_edit_notesLabel": "Notes",
-  "equipment_edit_notificationsSubtitle": "Override global notification settings for this item",
-  "equipment_edit_notificationsTitle": "Notifications (Optional)",
-  "equipment_edit_purchaseDateLabel": "Purchase Date",
   "equipment_edit_purchaseInfoTitle": "Purchase Information",
   "equipment_edit_purchasePriceLabel": "Purchase Price",
   "equipment_edit_expectedPriceLabel": "Expected Price",
@@ -10404,8 +10300,6 @@
   "equipment_edit_reminderDays": "{days} days",
   "equipment_edit_selectDate": "Select Date",
   "equipment_edit_serialNumberLabel": "Serial Number",
-  "equipment_edit_snackbar_added": "Equipment added",
-  "equipment_edit_snackbar_error": "Error saving equipment: {error}",
   "equipment_edit_snackbar_hiddenByView": "Saved, but the current list view hides it",
   "equipment_edit_snackbar_showAction": "Show",
   "equipment_edit_snackbar_updated": "Equipment updated",
@@ -10623,12 +10517,6 @@
   "@equipment_arrange_groupByLocation": {"description": "Switch on the Equipment page's sort sheet grouping the list under one heading per place"},
   "equipment_arrange_groupByLocationSubtitle": "One heading per place, on this page only",
   "@equipment_arrange_groupByLocationSubtitle": {"description": "Subtitle of the group by location switch"},
-  "equipment_edit_locationLabel": "Location",
-  "@equipment_edit_locationLabel": {"description": "Label of the optional place picker on the new equipment form"},
-  "equipment_edit_locationNone": "Not set",
-  "@equipment_edit_locationNone": {"description": "Shown in the new equipment form's location picker when none is chosen"},
-  "equipment_edit_locationFailed": "Saved, but its location could not be set. Use Move on the item to set it.",
-  "@equipment_edit_locationFailed": {"description": "Shown after a new item saved but its chosen first location failed to save"},
   "equipment_locations_title": "Locations",
   "@equipment_locations_title": {"description": "Title of the page listing places where gear is kept"},
   "equipment_locations_empty": "No places yet. Add one to start tracking where your gear is.",
@@ -10685,10 +10573,6 @@
   "equipment_list_sortTooltip": "Sort",
   "equipment_clone_nameCopy": "{name} (copy)",
   "@equipment_clone_nameCopy": {"description": "Name a cloned equipment item starts with; name is the original item's name", "placeholders": {"name": {"type": "String"}}},
-  "equipment_clone_partialCopy": "Cloned, but some service clocks, sets or documents could not be copied.",
-  "@equipment_clone_partialCopy": {"description": "Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed"},
-  "equipment_clone_snackbar_cloned": "Equipment cloned",
-  "@equipment_clone_snackbar_cloned": {"description": "Shown after a cloned equipment item is saved"},
   "equipment_menu_clone": "Clone",
   "@equipment_menu_clone": {"description": "Equipment detail menu action that opens a new item pre-filled from this one"},
   "equipment_menu_delete": "Delete",
@@ -10953,30 +10837,17 @@
   "equipment_setDetail_notFoundTitle": "Set Not Found",
   "equipment_setDetail_snackbar_deleted": "Equipment set deleted",
   "equipment_setEdit_addEquipmentFirst": "Add equipment first before creating a set.",
-  "equipment_setEdit_appBar_editTitle": "Edit Set",
   "equipment_setEdit_appBar_newTitle": "New Equipment Set",
   "equipment_setEdit_appBar_cloneTitle": "Clone Equipment Set",
   "@equipment_setEdit_appBar_cloneTitle": {"description": "Title of the equipment set form when it is pre-filled to clone an existing set"},
   "equipment_setEdit_descriptionHint": "Optional description...",
   "equipment_setEdit_descriptionLabel": "Description",
   "equipment_setEdit_errorMessage": "Error: {error}",
-  "equipment_setEdit_errorTitle": "Error",
-  "equipment_setEdit_loadingTitle": "Loading...",
   "equipment_setEdit_nameHint": "e.g., Warm Water Setup",
   "equipment_setEdit_nameLabel": "Set Name *",
   "equipment_setEdit_nameValidation": "Please enter a name",
   "equipment_setEdit_noEquipmentAvailable": "No equipment available",
-  "equipment_setEdit_notFoundMessage": "This equipment set no longer exists.",
-  "equipment_setEdit_notFoundTitle": "Set Not Found",
-  "equipment_setEdit_saveTooltip_edit": "Save equipment set changes",
-  "equipment_setEdit_saveTooltip_new": "Create new equipment set",
   "equipment_setEdit_selectEquipmentSubtitle": "Choose the equipment items to include in this set.",
-  "equipment_setEdit_selectEquipmentTitle": "Select Equipment",
-  "equipment_setEdit_snackbar_created": "Equipment set created",
-  "equipment_setEdit_snackbar_cloned": "Equipment set cloned",
-  "@equipment_setEdit_snackbar_cloned": {"description": "Shown after a cloned equipment set is saved"},
-  "equipment_setEdit_snackbar_error": "Error saving equipment set: {error}",
-  "equipment_setEdit_snackbar_updated": "Equipment set updated",
   "equipment_sets_appBar_title": "Equipment Sets",
   "equipment_sets_emptyState_createFirstButton": "Create Your First Set",
   "equipment_sets_emptyState_description": "Create equipment sets to quickly add commonly used combinations of equipment to your dives.",
@@ -11109,23 +10980,9 @@
       }
     }
   },
-  "@equipment_edit_errorMessage": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@equipment_edit_reminderDays": {
     "placeholders": {
       "days": {
-        "type": "Object"
-      }
-    }
-  },
-  "@equipment_edit_snackbar_error": {
-    "placeholders": {
-      "error": {
         "type": "Object"
       }
     }
@@ -11186,13 +11043,6 @@
     }
   },
   "@equipment_setEdit_errorMessage": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@equipment_setEdit_snackbar_error": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -11957,24 +11807,12 @@
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesEdit_addTitle": "Add Species",
-  "marineLife_speciesEdit_addedSnackbar": "Added \"{name}\"",
-  "marineLife_speciesEdit_backTooltip": "Back",
   "marineLife_speciesEdit_categoryLabel": "Category",
   "marineLife_speciesEdit_commonNameError": "Please enter a common name",
-  "marineLife_speciesEdit_commonNameHint": "e.g., Ocellaris Clownfish",
   "marineLife_speciesEdit_commonNameLabel": "Common Name",
-  "marineLife_speciesEdit_descriptionHint": "Brief description of the species...",
   "marineLife_speciesEdit_descriptionLabel": "Description",
-  "marineLife_speciesEdit_editTitle": "Edit Species",
-  "marineLife_speciesEdit_errorLoading": "Error loading species: {error}",
-  "marineLife_speciesEdit_errorSaving": "Error saving species: {error}",
-  "marineLife_speciesEdit_notFoundMessage": "This species no longer exists.",
-  "marineLife_speciesEdit_saveButton": "Save",
-  "marineLife_speciesEdit_scientificNameHint": "e.g., Amphiprion ocellaris",
   "marineLife_speciesEdit_scientificNameLabel": "Scientific Name",
-  "marineLife_speciesEdit_taxonomyClassHint": "e.g., Actinopterygii",
   "marineLife_speciesEdit_taxonomyClassLabel": "Taxonomy Class",
-  "marineLife_speciesEdit_updatedSnackbar": "Updated \"{name}\"",
   "marineLife_speciesManage_allFilter": "All",
   "marineLife_speciesManage_appBarTitle": "Species",
   "marineLife_speciesManage_backTooltip": "Back",
@@ -12371,34 +12209,6 @@
   "@marineLife_speciesDetail_taxonomyClassLabel": {
     "placeholders": {
       "className": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_addedSnackbar": {
-    "placeholders": {
-      "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_errorLoading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_errorSaving": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@marineLife_speciesEdit_updatedSnackbar": {
-    "placeholders": {
-      "name": {
         "type": "Object"
       }
     }
@@ -12887,6 +12697,9 @@
   "media_photoViewer_playPauseVideoLabel": "Play or pause video",
   "media_photoViewer_previousTooltip": "Previous media",
   "media_photoViewer_seekVideoLabel": "Seek video position",
+  "media_photoViewer_muteVideoLabel": "Mute video",
+  "media_photoViewer_unmuteVideoLabel": "Unmute video",
+  "media_photoViewer_videoVolumeLabel": "Video volume",
   "media_photoViewer_shareTooltip": "Share photo",
   "media_photoViewer_toggleOverlayLabel": "Toggle photo overlay",
   "media_photoViewer_videoFileNotFound": "Video file not found",
@@ -15297,6 +15110,10 @@
   "@settings_navCustomization_descriptionDesktop": {
     "description": "Help text shown when arranging the wide-screen navigation rail."
   },
+  "settings_navCustomization_deviceOnlyNote": "Saved on this device only. Your other devices keep their own layout.",
+  "@settings_navCustomization_deviceOnlyNote": {
+    "description": "Note on the navigation layout page, shown on both the phone and desktop tabs: the layout is a per-device setting that does not sync to the user's other devices (#2947, #4454)."
+  },
   "settings_navCustomization_scopePhone": "Phone",
   "@settings_navCustomization_scopePhone": {
     "description": "Segmented-button label for editing the phone navigation order."
@@ -16722,7 +16539,6 @@
   "documents_section_title": "Documents",
   "documents_section_empty": "No documents attached",
   "documents_edit_newTitle": "New document",
-  "documents_edit_editTitle": "Edit document",
   "documents_field_type": "Type",
   "documents_field_title": "Title",
   "documents_field_issuer": "Issued by",
@@ -16789,15 +16605,6 @@
   "documents_delete_title": "Delete document?",
   "documents_delete_content": "This deletes the document and all its pages on every synced device.",
   "documents_deleted": "Document deleted",
-  "documents_saved": "Document saved",
-  "documents_error_save": "Couldn't save the document: {error}",
-  "@documents_error_save": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "documents_error_load": "Couldn't load documents: {error}",
   "@documents_error_load": {
     "placeholders": {
@@ -17233,6 +17040,8 @@
   "settings_speciesId_downloadConfirmTitle": "Download the model?",
   "settings_speciesId_downloadConfirmBody": "This downloads {size} and keeps it on this device. You can remove it at any time.",
   "@settings_speciesId_downloadConfirmBody": {"placeholders": {"size": {"type": "String"}}},
+  "settings_speciesId_downloadConfirmBodyHardware": "This downloads {size} and keeps it on this device. Windows may also download an engine for your graphics card or NPU from Microsoft. You can remove the model at any time.",
+  "@settings_speciesId_downloadConfirmBodyHardware": {"placeholders": {"size": {"type": "String"}}},
   "settings_speciesId_downloadFailed": "The download did not finish. Try again to continue where it stopped.",
   "settings_speciesId_downloadNoSpace": "There is not enough free space on this device.",
   "settings_speciesId_needsAppUpdate": "This model needs a newer version of Submersion.",
@@ -20925,13 +20734,6 @@
   "trips_diveScan_title": "Add Dives to Trip",
   "trips_diveScan_unknownSite": "Unknown Site",
   "trips_edit_appBar_add": "Add Trip",
-  "trips_edit_appBar_edit": "Edit Trip",
-  "trips_edit_button_cancel": "Cancel",
-  "trips_edit_button_save": "Save",
-  "trips_edit_dialog_discard": "Discard",
-  "trips_edit_dialog_discardContent": "You have unsaved changes. Are you sure you want to leave?",
-  "trips_edit_dialog_discardTitle": "Discard Changes?",
-  "trips_edit_dialog_keepEditing": "Keep Editing",
   "trips_edit_durationDays": "{days, plural, =1{{days} day} other{{days} days}}",
   "trips_edit_hint_liveaboardName": "e.g., MY Blue Force One",
   "trips_edit_hint_location": "e.g., Egypt, Red Sea",
@@ -20954,14 +20756,6 @@
   "trips_edit_returnFlightNotSet": "Not set",
   "trips_edit_label_startDate": "Start Date",
   "trips_edit_label_tripName": "Trip Name *",
-  "trips_edit_sectionTitle_dates": "Trip Dates",
-  "trips_edit_sectionTitle_location": "Location",
-  "trips_edit_sectionTitle_notes": "Notes",
-  "trips_edit_semanticLabel_save": "Save trip",
-  "trips_edit_snackBar_added": "Trip added successfully",
-  "trips_edit_snackBar_errorLoading": "Couldn't load the trip. Try again.",
-  "trips_edit_snackBar_errorSaving": "Couldn't save the trip. Try again.",
-  "trips_edit_snackBar_updated": "Trip updated successfully",
   "trips_edit_validation_nameRequired": "Please enter a trip name",
   "trips_gallery_appBar_title": "Trip Photos",
   "trips_gallery_diveSection_photoCount": "{count, plural, =1{photo} other{photos}}",
@@ -21084,7 +20878,6 @@
   "trips_type_description_liveaboard": "Living aboard a dive boat, with vessel and itinerary details",
   "trips_type_description_resort": "A stay at a dive resort",
   "trips_type_description_shore": "Shore dives over one or more days",
-  "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_label_vesselName": "Vessel Name *",
   "trips_edit_hint_vesselName": "e.g. Ocean Explorer",
   "trips_edit_label_operatorName": "Operator / Charter",
@@ -21093,7 +20886,6 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_hint_cabinType": "e.g. Deluxe Double",
   "trips_edit_label_capacity": "Passenger Capacity",
-  "trips_edit_sectionTitle_planning": "Planning",
   "trips_edit_label_diversSharing": "Divers sharing cylinders",
   "trips_edit_hint_diversSharing": "Including you. Blank means 1.",
   "trips_edit_label_divesPerDay": "Dives per day",
@@ -21514,7 +21306,6 @@
     }
   },
   "trips_cylinders_edit_presetCustom": "Custom",
-  "trips_edit_sectionTitle_embarkDisembark": "Embark / Disembark",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_hint_embarkPort": "e.g. Hurghada Marina",
   "trips_edit_label_disembarkPort": "Disembark Port",
@@ -25366,7 +25157,6 @@
   "diveLog_edit_weightFeedback_under": "Underweighted",
   "diverProfile_bodyWeight_empty": "Not recorded",
   "diverProfile_bodyWeight_title": "Body Weight",
-  "equipment_edit_advanced_title": "Advanced",
   "planner_gearWeights_accept": "Use as planned weight",
   "planner_gearWeights_addGear": "Add gear",
   "planner_gearWeights_empty": "Add gear to predict your weighting",
@@ -33700,6 +33490,22 @@
   "@media_species_scanProgress": {"placeholders": {"percent": {"type": "String"}}},
   "media_species_unnamedFish": "Unnamed fish, tap to name",
   "media_species_unnamedFishLocked": "Unnamed fish",
+  "media_species_moreChips": "{count, plural, =1{{count} more species} other{{count} more species}}",
+  "@media_species_moreChips": {"description": "Screen reader label of the chip that counts the species left off the viewer's one line (issue #4825); the chip itself reads +N.", "placeholders": {"count": {"type": "int"}}},
+  "media_species_listLocked": "Unlock to add or dismiss",
+  "media_labels_action": "Marine life labels",
+  "media_labels_names": "Names",
+  "media_labels_allLife": "All life",
+  "media_labels_off": "Off",
+  "media_labels_analyse": "Analyse",
+  "media_labels_analyseAgain": "Analyse again",
+  "media_labels_statusNoModel": "No species model installed",
+  "media_labels_statusNotAnalysed": "Not analysed yet",
+  "media_labels_statusAnalysing": "Analysing...",
+  "media_labels_statusAnalysingPercent": "Analysing, {percent}",
+  "@media_labels_statusAnalysingPercent": {"placeholders": {"percent": {"type": "String"}}},
+  "media_labels_statusFound": "{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}",
+  "@media_labels_statusFound": {"placeholders": {"count": {"type": "int"}}},
   "media_species_possibleMatches": "Possible matches",
   "media_species_cropUnavailable": "Image not on this device",
   "media_species_taggedOnPhoto": "Tagged on this photo",
@@ -33743,7 +33549,9 @@
   "speciesReview_waiting": "Waiting for another dive's search",
   "speciesReview_pausedHot": "Paused: device too warm",
   "speciesReview_resume": "Resume",
-  "speciesReview_allChecked": "All photos checked",
+  "speciesReview_checkAgain": "Check again",
+  "speciesReview_checkAgainTitle": "Check this dive again?",
+  "speciesReview_checkAgainBody": "Every photo and video on this dive is analysed again. Your species tags stay. Suggestions you dismissed come back.",
   "speciesReview_count": "{count, plural, =1{1 species to review} other{{count} species to review}}",
   "@speciesReview_count": {"placeholders": {"count": {"type": "int"}}},
   "speciesReview_downloadBody": "{count, plural, =1{1 photo or video isn't on this device. Finding species will download it.} other{{count} photos and videos aren't on this device. Finding species will download them.}}",

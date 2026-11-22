@@ -58,6 +58,14 @@ void main() {
         '${s.candidate.candidate.scientificName}:${s.identificationIds.join(',')}',
     ];
 
+    test('a detection the diver dismissed and a re-analysis brought back '
+        'is never applied (issue #4825)', () {
+      final reopened = sure.copyWith(decidedAt: fixtureT0);
+      expect(reopened.reopened, isTrue);
+      expect(species([reopened]), isEmpty);
+      expect(species([sure]), hasLength(1));
+    });
+
     test('a confident, undecided crop is applied', () {
       expect(species([sure]), ['Scarus vetula:a']);
     });

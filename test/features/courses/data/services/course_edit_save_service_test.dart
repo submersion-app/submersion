@@ -270,6 +270,22 @@ void main() {
       expect(ops.single['label'], 'record_edit:courses:n1:details,status');
     });
 
+    test('the instructor picked on a new course is written', () async {
+      await service.create(
+        course: fresh().copyWith(
+          instructorId: 'b2',
+          instructorName: 'Alex',
+          instructorNumber: '9',
+        ),
+        changedCardIds: const ['status', 'instructor'],
+      );
+
+      final created = await stored('n1');
+      expect(created.instructorId, 'b2');
+      expect(created.instructorName, 'Alex');
+      expect(created.instructorNumber, '9');
+    });
+
     test('held writes run after the row, in the same entry', () async {
       domain.Course? seen;
       await service.create(

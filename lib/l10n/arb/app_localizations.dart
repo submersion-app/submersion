@@ -5248,12 +5248,6 @@ abstract class AppLocalizations {
   /// **'Sort Buddies'**
   String get buddies_action_sortTitle;
 
-  /// No description provided for @buddies_action_update.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Buddy'**
-  String get buddies_action_update;
-
   /// No description provided for @buddies_action_viewAll.
   ///
   /// In en, this message translates to:
@@ -5638,12 +5632,6 @@ abstract class AppLocalizations {
   /// **'Not now'**
   String get buddies_linkedProfile_notNow;
 
-  /// No description provided for @buddies_linkedProfile_openBuddy.
-  ///
-  /// In en, this message translates to:
-  /// **'Open buddy'**
-  String get buddies_linkedProfile_openBuddy;
-
   /// No description provided for @buddies_linkedProfile_pickerTitle.
   ///
   /// In en, this message translates to:
@@ -5674,12 +5662,6 @@ abstract class AppLocalizations {
   /// **'These buddies are linked to different profiles. Merge the profiles first.'**
   String get buddies_merge_refusedDifferentLinks;
 
-  /// No description provided for @buddies_message_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Buddy added successfully'**
-  String get buddies_message_added;
-
   /// No description provided for @buddies_message_contactImportUnavailable.
   ///
   /// In en, this message translates to:
@@ -5703,12 +5685,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error importing contact: {error}'**
   String buddies_message_errorImportingContact(Object error);
-
-  /// No description provided for @buddies_message_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading buddy: {error}'**
-  String buddies_message_errorLoading(Object error);
 
   /// No description provided for @buddies_message_errorSaving.
   ///
@@ -5739,12 +5715,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preparing export...'**
   String get buddies_message_preparingExport;
-
-  /// No description provided for @buddies_message_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Buddy updated successfully'**
-  String get buddies_message_updated;
 
   /// No description provided for @buddies_picker_add.
   ///
@@ -5973,12 +5943,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Buddy'**
   String get buddies_title_add;
-
-  /// No description provided for @buddies_title_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Buddy'**
-  String get buddies_title_edit;
 
   /// No description provided for @buddies_title_singular.
   ///
@@ -6857,36 +6821,6 @@ abstract class AppLocalizations {
   /// **'Add Certification'**
   String get certifications_edit_appBar_add;
 
-  /// No description provided for @certifications_edit_appBar_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Certification'**
-  String get certifications_edit_appBar_edit;
-
-  /// No description provided for @certifications_edit_button_add.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Certification'**
-  String get certifications_edit_button_add;
-
-  /// No description provided for @certifications_edit_button_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get certifications_edit_button_cancel;
-
-  /// No description provided for @certifications_edit_button_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get certifications_edit_button_save;
-
-  /// No description provided for @certifications_edit_button_update.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Certification'**
-  String get certifications_edit_button_update;
-
   /// No description provided for @certifications_edit_certification_notSpecified.
   ///
   /// In en, this message translates to:
@@ -6904,30 +6838,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to select'**
   String get certifications_edit_datePicker_tapToSelect;
-
-  /// No description provided for @certifications_edit_dialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get certifications_edit_dialog_discard;
-
-  /// No description provided for @certifications_edit_dialog_discardContent.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to leave?'**
-  String get certifications_edit_dialog_discardContent;
-
-  /// No description provided for @certifications_edit_dialog_discardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get certifications_edit_dialog_discardTitle;
-
-  /// No description provided for @certifications_edit_dialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get certifications_edit_dialog_keepEditing;
 
   /// No description provided for @certifications_edit_group_progression.
   ///
@@ -7295,59 +7205,11 @@ abstract class AppLocalizations {
   /// **'Take Photo'**
   String get certifications_edit_photo_takePhoto;
 
-  /// No description provided for @certifications_edit_sectionTitle_cardPhotos.
-  ///
-  /// In en, this message translates to:
-  /// **'Card Photos'**
-  String get certifications_edit_sectionTitle_cardPhotos;
-
-  /// No description provided for @certifications_edit_sectionTitle_dates.
-  ///
-  /// In en, this message translates to:
-  /// **'Dates'**
-  String get certifications_edit_sectionTitle_dates;
-
-  /// No description provided for @certifications_edit_sectionTitle_instructorInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Instructor Information'**
-  String get certifications_edit_sectionTitle_instructorInfo;
-
-  /// No description provided for @certifications_edit_sectionTitle_notes.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get certifications_edit_sectionTitle_notes;
-
-  /// No description provided for @certifications_edit_snackBar_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification added successfully'**
-  String get certifications_edit_snackBar_added;
-
-  /// No description provided for @certifications_edit_snackBar_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading certification: {error}'**
-  String certifications_edit_snackBar_errorLoading(Object error);
-
   /// No description provided for @certifications_edit_snackBar_errorPhoto.
   ///
   /// In en, this message translates to:
   /// **'Error picking photo: {error}'**
   String certifications_edit_snackBar_errorPhoto(Object error);
-
-  /// No description provided for @certifications_edit_snackBar_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving certification: {error}'**
-  String certifications_edit_snackBar_errorSaving(Object error);
-
-  /// No description provided for @certifications_edit_snackBar_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification updated successfully'**
-  String get certifications_edit_snackBar_updated;
 
   /// No description provided for @certifications_edit_validation_certificationOrTitleRequired.
   ///
@@ -9366,12 +9228,6 @@ abstract class AppLocalizations {
   /// **'Add requirement'**
   String get courses_action_addRequirement;
 
-  /// No description provided for @courses_action_create.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Course'**
-  String get courses_action_create;
-
   /// No description provided for @courses_action_deleteRequirement.
   ///
   /// In en, this message translates to:
@@ -9419,18 +9275,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get courses_action_retry;
-
-  /// No description provided for @courses_action_saveChanges.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get courses_action_saveChanges;
-
-  /// No description provided for @courses_action_saveSemantic.
-  ///
-  /// In en, this message translates to:
-  /// **'Save course'**
-  String get courses_action_saveSemantic;
 
   /// No description provided for @courses_action_sort.
   ///
@@ -9629,12 +9473,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Date'**
   String get courses_label_startDate;
-
-  /// No description provided for @courses_message_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving course: {error}'**
-  String courses_message_errorSaving(Object error);
 
   /// No description provided for @courses_message_exportFailed.
   ///
@@ -9893,12 +9731,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{shown} of {total, plural, =1{{total} course} other{{total} courses}}'**
   String courses_list_countFiltered(int shown, int total);
-
-  /// No description provided for @courses_title_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Course'**
-  String get courses_title_edit;
 
   /// No description provided for @courses_title_new.
   ///
@@ -10853,12 +10685,6 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get diveCenters_action_clearRating;
 
-  /// No description provided for @diveCenters_action_gettingLocation.
-  ///
-  /// In en, this message translates to:
-  /// **'Getting...'**
-  String get diveCenters_action_gettingLocation;
-
   /// No description provided for @diveCenters_action_import.
   ///
   /// In en, this message translates to:
@@ -10870,12 +10696,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import to My Centers'**
   String get diveCenters_action_importToMyCenters;
-
-  /// No description provided for @diveCenters_action_lookingUp.
-  ///
-  /// In en, this message translates to:
-  /// **'Looking up...'**
-  String get diveCenters_action_lookingUp;
 
   /// No description provided for @diveCenters_action_lookupFromAddress.
   ///
@@ -10949,30 +10769,6 @@ abstract class AppLocalizations {
   /// **'Delete Dive Center'**
   String get diveCenters_dialog_deleteTitle;
 
-  /// No description provided for @diveCenters_dialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get diveCenters_dialog_discard;
-
-  /// No description provided for @diveCenters_dialog_discardMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to discard them?'**
-  String get diveCenters_dialog_discardMessage;
-
-  /// No description provided for @diveCenters_dialog_discardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get diveCenters_dialog_discardTitle;
-
-  /// No description provided for @diveCenters_dialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get diveCenters_dialog_keepEditing;
-
   /// No description provided for @diveCenters_empty_button.
   ///
   /// In en, this message translates to:
@@ -11038,12 +10834,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive center not found'**
   String get diveCenters_error_notFound;
-
-  /// No description provided for @diveCenters_error_saving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving dive center: {error}'**
-  String diveCenters_error_saving(Object error);
 
   /// No description provided for @diveCenters_error_unknown.
   ///
@@ -11369,24 +11159,6 @@ abstract class AppLocalizations {
   /// **'Closed'**
   String get diveCenters_tag_closed;
 
-  /// No description provided for @diveCenters_section_address.
-  ///
-  /// In en, this message translates to:
-  /// **'Address'**
-  String get diveCenters_section_address;
-
-  /// No description provided for @diveCenters_section_affiliations.
-  ///
-  /// In en, this message translates to:
-  /// **'Affiliations'**
-  String get diveCenters_section_affiliations;
-
-  /// No description provided for @diveCenters_section_basicInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Basic Information'**
-  String get diveCenters_section_basicInfo;
-
   /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
   ///
   /// In en, this message translates to:
@@ -11398,18 +11170,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contact'**
   String get diveCenters_section_contact;
-
-  /// No description provided for @diveCenters_section_contactInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Contact Information'**
-  String get diveCenters_section_contactInfo;
-
-  /// No description provided for @diveCenters_section_gpsCoordinates.
-  ///
-  /// In en, this message translates to:
-  /// **'GPS Coordinates'**
-  String get diveCenters_section_gpsCoordinates;
 
   /// No description provided for @diveCenters_section_fillHours.
   ///
@@ -11465,35 +11225,11 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get diveCenters_section_notes;
 
-  /// No description provided for @diveCenters_snackbar_coordinatesFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Coordinates found from address'**
-  String get diveCenters_snackbar_coordinatesFound;
-
   /// No description provided for @diveCenters_snackbar_imported.
   ///
   /// In en, this message translates to:
   /// **'Imported \"{name}\"'**
   String diveCenters_snackbar_imported(Object name);
-
-  /// No description provided for @diveCenters_snackbar_locationCaptured.
-  ///
-  /// In en, this message translates to:
-  /// **'Location captured'**
-  String get diveCenters_snackbar_locationCaptured;
-
-  /// No description provided for @diveCenters_snackbar_locationCapturedWithAccuracy.
-  ///
-  /// In en, this message translates to:
-  /// **'Location captured (±{accuracy}m)'**
-  String diveCenters_snackbar_locationCapturedWithAccuracy(Object accuracy);
-
-  /// No description provided for @diveCenters_snackbar_locationSelectedFromMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Location selected from map'**
-  String get diveCenters_snackbar_locationSelectedFromMap;
 
   /// No description provided for @diveCenters_sort_title.
   ///
@@ -11572,12 +11308,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Dive Center'**
   String get diveCenters_title_add;
-
-  /// No description provided for @diveCenters_title_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Dive Center'**
-  String get diveCenters_title_edit;
 
   /// No description provided for @diveCenters_title_import.
   ///
@@ -13787,6 +13517,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This dive has no profile to point at. Type the time instead.'**
   String get diveLog_annotation_noProfile;
+
+  /// Error under the Notes editor when the diver has broken the markup of an annotation link, which Save would read as the annotation removed; Save is held until it is fixed
+  ///
+  /// In en, this message translates to:
+  /// **'An annotation\'s link here is broken, so saving would delete the annotation. Mend the link, or delete all of it to remove the annotation.'**
+  String get diveLog_annotation_brokenLink;
 
   /// Primary button of the annotation sheet when the words were selected in the notes
   ///
@@ -27197,29 +26933,11 @@ abstract class AppLocalizations {
   /// **'Clone Equipment'**
   String get equipment_edit_appBar_cloneTitle;
 
-  /// No description provided for @equipment_edit_appBar_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Equipment'**
-  String get equipment_edit_appBar_editTitle;
-
   /// No description provided for @equipment_edit_appBar_newTitle.
   ///
   /// In en, this message translates to:
   /// **'New Equipment'**
   String get equipment_edit_appBar_newTitle;
-
-  /// No description provided for @equipment_edit_appBar_saveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get equipment_edit_appBar_saveButton;
-
-  /// No description provided for @equipment_edit_appBar_saveTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment changes'**
-  String get equipment_edit_appBar_saveTooltip;
 
   /// No description provided for @equipment_edit_brandLabel.
   ///
@@ -27251,84 +26969,6 @@ abstract class AppLocalizations {
   /// **'Turn off all notifications for this item'**
   String get equipment_edit_disableRemindersSubtitle;
 
-  /// No description provided for @equipment_edit_discardDialog_content.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to leave?'**
-  String get equipment_edit_discardDialog_content;
-
-  /// No description provided for @equipment_edit_discardDialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get equipment_edit_discardDialog_discard;
-
-  /// No description provided for @equipment_edit_discardDialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get equipment_edit_discardDialog_keepEditing;
-
-  /// No description provided for @equipment_edit_discardDialog_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get equipment_edit_discardDialog_title;
-
-  /// No description provided for @equipment_edit_embeddedHeader_cancelButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get equipment_edit_embeddedHeader_cancelButton;
-
-  /// No description provided for @equipment_edit_embeddedHeader_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Equipment'**
-  String get equipment_edit_embeddedHeader_editTitle;
-
-  /// No description provided for @equipment_edit_embeddedHeader_newTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'New Equipment'**
-  String get equipment_edit_embeddedHeader_newTitle;
-
-  /// No description provided for @equipment_edit_embeddedHeader_saveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get equipment_edit_embeddedHeader_saveButton;
-
-  /// No description provided for @equipment_edit_embeddedHeader_saveTooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment changes'**
-  String get equipment_edit_embeddedHeader_saveTooltip_edit;
-
-  /// No description provided for @equipment_edit_embeddedHeader_saveTooltip_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Add new equipment'**
-  String get equipment_edit_embeddedHeader_saveTooltip_new;
-
-  /// No description provided for @equipment_edit_errorMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Error: {error}'**
-  String equipment_edit_errorMessage(Object error);
-
-  /// No description provided for @equipment_edit_errorTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Error'**
-  String get equipment_edit_errorTitle;
-
-  /// No description provided for @equipment_edit_loadingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading...'**
-  String get equipment_edit_loadingTitle;
-
   /// No description provided for @equipment_edit_modelLabel.
   ///
   /// In en, this message translates to:
@@ -27353,18 +26993,6 @@ abstract class AppLocalizations {
   /// **'Please enter a name'**
   String get equipment_edit_nameValidation;
 
-  /// No description provided for @equipment_edit_notFoundMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'This equipment item no longer exists.'**
-  String get equipment_edit_notFoundMessage;
-
-  /// No description provided for @equipment_edit_notFoundTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment Not Found'**
-  String get equipment_edit_notFoundTitle;
-
   /// No description provided for @equipment_edit_notesHint.
   ///
   /// In en, this message translates to:
@@ -27376,24 +27004,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get equipment_edit_notesLabel;
-
-  /// No description provided for @equipment_edit_notificationsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Override global notification settings for this item'**
-  String get equipment_edit_notificationsSubtitle;
-
-  /// No description provided for @equipment_edit_notificationsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Notifications (Optional)'**
-  String get equipment_edit_notificationsTitle;
-
-  /// No description provided for @equipment_edit_purchaseDateLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Purchase Date'**
-  String get equipment_edit_purchaseDateLabel;
 
   /// No description provided for @equipment_edit_purchaseInfoTitle.
   ///
@@ -27436,18 +27046,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Serial Number'**
   String get equipment_edit_serialNumberLabel;
-
-  /// No description provided for @equipment_edit_snackbar_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment added'**
-  String get equipment_edit_snackbar_added;
-
-  /// No description provided for @equipment_edit_snackbar_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving equipment: {error}'**
-  String equipment_edit_snackbar_error(Object error);
 
   /// Snackbar after saving equipment that the list's current filter hides, e.g. a Wanted item under the default view
   ///
@@ -28133,24 +27731,6 @@ abstract class AppLocalizations {
   /// **'One heading per place, on this page only'**
   String get equipment_arrange_groupByLocationSubtitle;
 
-  /// Label of the optional place picker on the new equipment form
-  ///
-  /// In en, this message translates to:
-  /// **'Location'**
-  String get equipment_edit_locationLabel;
-
-  /// Shown in the new equipment form's location picker when none is chosen
-  ///
-  /// In en, this message translates to:
-  /// **'Not set'**
-  String get equipment_edit_locationNone;
-
-  /// Shown after a new item saved but its chosen first location failed to save
-  ///
-  /// In en, this message translates to:
-  /// **'Saved, but its location could not be set. Use Move on the item to set it.'**
-  String get equipment_edit_locationFailed;
-
   /// Title of the page listing places where gear is kept
   ///
   /// In en, this message translates to:
@@ -28330,18 +27910,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} (copy)'**
   String equipment_clone_nameCopy(String name);
-
-  /// Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed
-  ///
-  /// In en, this message translates to:
-  /// **'Cloned, but some service clocks, sets or documents could not be copied.'**
-  String get equipment_clone_partialCopy;
-
-  /// Shown after a cloned equipment item is saved
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment cloned'**
-  String get equipment_clone_snackbar_cloned;
 
   /// Equipment detail menu action that opens a new item pre-filled from this one
   ///
@@ -29276,12 +28844,6 @@ abstract class AppLocalizations {
   /// **'Add equipment first before creating a set.'**
   String get equipment_setEdit_addEquipmentFirst;
 
-  /// No description provided for @equipment_setEdit_appBar_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Set'**
-  String get equipment_setEdit_appBar_editTitle;
-
   /// No description provided for @equipment_setEdit_appBar_newTitle.
   ///
   /// In en, this message translates to:
@@ -29312,18 +28874,6 @@ abstract class AppLocalizations {
   /// **'Error: {error}'**
   String equipment_setEdit_errorMessage(Object error);
 
-  /// No description provided for @equipment_setEdit_errorTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Error'**
-  String get equipment_setEdit_errorTitle;
-
-  /// No description provided for @equipment_setEdit_loadingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading...'**
-  String get equipment_setEdit_loadingTitle;
-
   /// No description provided for @equipment_setEdit_nameHint.
   ///
   /// In en, this message translates to:
@@ -29348,65 +28898,11 @@ abstract class AppLocalizations {
   /// **'No equipment available'**
   String get equipment_setEdit_noEquipmentAvailable;
 
-  /// No description provided for @equipment_setEdit_notFoundMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'This equipment set no longer exists.'**
-  String get equipment_setEdit_notFoundMessage;
-
-  /// No description provided for @equipment_setEdit_notFoundTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Set Not Found'**
-  String get equipment_setEdit_notFoundTitle;
-
-  /// No description provided for @equipment_setEdit_saveTooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment set changes'**
-  String get equipment_setEdit_saveTooltip_edit;
-
-  /// No description provided for @equipment_setEdit_saveTooltip_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Create new equipment set'**
-  String get equipment_setEdit_saveTooltip_new;
-
   /// No description provided for @equipment_setEdit_selectEquipmentSubtitle.
   ///
   /// In en, this message translates to:
   /// **'Choose the equipment items to include in this set.'**
   String get equipment_setEdit_selectEquipmentSubtitle;
-
-  /// No description provided for @equipment_setEdit_selectEquipmentTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Select Equipment'**
-  String get equipment_setEdit_selectEquipmentTitle;
-
-  /// No description provided for @equipment_setEdit_snackbar_created.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment set created'**
-  String get equipment_setEdit_snackbar_created;
-
-  /// Shown after a cloned equipment set is saved
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment set cloned'**
-  String get equipment_setEdit_snackbar_cloned;
-
-  /// No description provided for @equipment_setEdit_snackbar_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving equipment set: {error}'**
-  String equipment_setEdit_snackbar_error(Object error);
-
-  /// No description provided for @equipment_setEdit_snackbar_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment set updated'**
-  String get equipment_setEdit_snackbar_updated;
 
   /// No description provided for @equipment_sets_appBar_title.
   ///
@@ -31530,18 +31026,6 @@ abstract class AppLocalizations {
   /// **'Add Species'**
   String get marineLife_speciesEdit_addTitle;
 
-  /// No description provided for @marineLife_speciesEdit_addedSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Added \"{name}\"'**
-  String marineLife_speciesEdit_addedSnackbar(Object name);
-
-  /// No description provided for @marineLife_speciesEdit_backTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get marineLife_speciesEdit_backTooltip;
-
   /// No description provided for @marineLife_speciesEdit_categoryLabel.
   ///
   /// In en, this message translates to:
@@ -31554,23 +31038,11 @@ abstract class AppLocalizations {
   /// **'Please enter a common name'**
   String get marineLife_speciesEdit_commonNameError;
 
-  /// No description provided for @marineLife_speciesEdit_commonNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Ocellaris Clownfish'**
-  String get marineLife_speciesEdit_commonNameHint;
-
   /// No description provided for @marineLife_speciesEdit_commonNameLabel.
   ///
   /// In en, this message translates to:
   /// **'Common Name'**
   String get marineLife_speciesEdit_commonNameLabel;
-
-  /// No description provided for @marineLife_speciesEdit_descriptionHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Brief description of the species...'**
-  String get marineLife_speciesEdit_descriptionHint;
 
   /// No description provided for @marineLife_speciesEdit_descriptionLabel.
   ///
@@ -31578,65 +31050,17 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get marineLife_speciesEdit_descriptionLabel;
 
-  /// No description provided for @marineLife_speciesEdit_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Species'**
-  String get marineLife_speciesEdit_editTitle;
-
-  /// No description provided for @marineLife_speciesEdit_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading species: {error}'**
-  String marineLife_speciesEdit_errorLoading(Object error);
-
-  /// No description provided for @marineLife_speciesEdit_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving species: {error}'**
-  String marineLife_speciesEdit_errorSaving(Object error);
-
-  /// No description provided for @marineLife_speciesEdit_notFoundMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'This species no longer exists.'**
-  String get marineLife_speciesEdit_notFoundMessage;
-
-  /// No description provided for @marineLife_speciesEdit_saveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get marineLife_speciesEdit_saveButton;
-
-  /// No description provided for @marineLife_speciesEdit_scientificNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Amphiprion ocellaris'**
-  String get marineLife_speciesEdit_scientificNameHint;
-
   /// No description provided for @marineLife_speciesEdit_scientificNameLabel.
   ///
   /// In en, this message translates to:
   /// **'Scientific Name'**
   String get marineLife_speciesEdit_scientificNameLabel;
 
-  /// No description provided for @marineLife_speciesEdit_taxonomyClassHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Actinopterygii'**
-  String get marineLife_speciesEdit_taxonomyClassHint;
-
   /// No description provided for @marineLife_speciesEdit_taxonomyClassLabel.
   ///
   /// In en, this message translates to:
   /// **'Taxonomy Class'**
   String get marineLife_speciesEdit_taxonomyClassLabel;
-
-  /// No description provided for @marineLife_speciesEdit_updatedSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Updated \"{name}\"'**
-  String marineLife_speciesEdit_updatedSnackbar(Object name);
 
   /// No description provided for @marineLife_speciesManage_allFilter.
   ///
@@ -33630,6 +33054,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Seek video position'**
   String get media_photoViewer_seekVideoLabel;
+
+  /// No description provided for @media_photoViewer_muteVideoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute video'**
+  String get media_photoViewer_muteVideoLabel;
+
+  /// No description provided for @media_photoViewer_unmuteVideoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute video'**
+  String get media_photoViewer_unmuteVideoLabel;
+
+  /// No description provided for @media_photoViewer_videoVolumeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Video volume'**
+  String get media_photoViewer_videoVolumeLabel;
 
   /// No description provided for @media_photoViewer_shareTooltip.
   ///
@@ -38058,6 +37500,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drag items to reorder the sidebar. Home always stays at the top.'**
   String get settings_navCustomization_descriptionDesktop;
+
+  /// Note on the navigation layout page, shown on both the phone and desktop tabs: the layout is a per-device setting that does not sync to the user's other devices (#2947, #4454).
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device only. Your other devices keep their own layout.'**
+  String get settings_navCustomization_deviceOnlyNote;
 
   /// Segmented-button label for editing the phone navigation order.
   ///
@@ -44554,12 +44002,6 @@ abstract class AppLocalizations {
   /// **'New document'**
   String get documents_edit_newTitle;
 
-  /// No description provided for @documents_edit_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit document'**
-  String get documents_edit_editTitle;
-
   /// No description provided for @documents_field_type.
   ///
   /// In en, this message translates to:
@@ -44751,18 +44193,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Document deleted'**
   String get documents_deleted;
-
-  /// No description provided for @documents_saved.
-  ///
-  /// In en, this message translates to:
-  /// **'Document saved'**
-  String get documents_saved;
-
-  /// No description provided for @documents_error_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t save the document: {error}'**
-  String documents_error_save(String error);
 
   /// No description provided for @documents_error_load.
   ///
@@ -46569,6 +45999,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This downloads {size} and keeps it on this device. You can remove it at any time.'**
   String settings_speciesId_downloadConfirmBody(String size);
+
+  /// No description provided for @settings_speciesId_downloadConfirmBodyHardware.
+  ///
+  /// In en, this message translates to:
+  /// **'This downloads {size} and keeps it on this device. Windows may also download an engine for your graphics card or NPU from Microsoft. You can remove the model at any time.'**
+  String settings_speciesId_downloadConfirmBodyHardware(String size);
 
   /// No description provided for @settings_speciesId_downloadFailed.
   ///
@@ -56550,48 +55986,6 @@ abstract class AppLocalizations {
   /// **'Add Trip'**
   String get trips_edit_appBar_add;
 
-  /// No description provided for @trips_edit_appBar_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Trip'**
-  String get trips_edit_appBar_edit;
-
-  /// No description provided for @trips_edit_button_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get trips_edit_button_cancel;
-
-  /// No description provided for @trips_edit_button_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get trips_edit_button_save;
-
-  /// No description provided for @trips_edit_dialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get trips_edit_dialog_discard;
-
-  /// No description provided for @trips_edit_dialog_discardContent.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to leave?'**
-  String get trips_edit_dialog_discardContent;
-
-  /// No description provided for @trips_edit_dialog_discardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get trips_edit_dialog_discardTitle;
-
-  /// No description provided for @trips_edit_dialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get trips_edit_dialog_keepEditing;
-
   /// No description provided for @trips_edit_durationDays.
   ///
   /// In en, this message translates to:
@@ -56705,54 +56099,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trip Name *'**
   String get trips_edit_label_tripName;
-
-  /// No description provided for @trips_edit_sectionTitle_dates.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip Dates'**
-  String get trips_edit_sectionTitle_dates;
-
-  /// No description provided for @trips_edit_sectionTitle_location.
-  ///
-  /// In en, this message translates to:
-  /// **'Location'**
-  String get trips_edit_sectionTitle_location;
-
-  /// No description provided for @trips_edit_sectionTitle_notes.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get trips_edit_sectionTitle_notes;
-
-  /// No description provided for @trips_edit_semanticLabel_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save trip'**
-  String get trips_edit_semanticLabel_save;
-
-  /// No description provided for @trips_edit_snackBar_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip added successfully'**
-  String get trips_edit_snackBar_added;
-
-  /// No description provided for @trips_edit_snackBar_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t load the trip. Try again.'**
-  String get trips_edit_snackBar_errorLoading;
-
-  /// No description provided for @trips_edit_snackBar_errorSaving.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t save the trip. Try again.'**
-  String get trips_edit_snackBar_errorSaving;
-
-  /// No description provided for @trips_edit_snackBar_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip updated successfully'**
-  String get trips_edit_snackBar_updated;
 
   /// No description provided for @trips_edit_validation_nameRequired.
   ///
@@ -57192,12 +56538,6 @@ abstract class AppLocalizations {
   /// **'Shore dives over one or more days'**
   String get trips_type_description_shore;
 
-  /// No description provided for @trips_edit_sectionTitle_vessel.
-  ///
-  /// In en, this message translates to:
-  /// **'Vessel Details'**
-  String get trips_edit_sectionTitle_vessel;
-
   /// No description provided for @trips_edit_label_vesselName.
   ///
   /// In en, this message translates to:
@@ -57245,12 +56585,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passenger Capacity'**
   String get trips_edit_label_capacity;
-
-  /// No description provided for @trips_edit_sectionTitle_planning.
-  ///
-  /// In en, this message translates to:
-  /// **'Planning'**
-  String get trips_edit_sectionTitle_planning;
 
   /// No description provided for @trips_edit_label_diversSharing.
   ///
@@ -58027,12 +57361,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Custom'**
   String get trips_cylinders_edit_presetCustom;
-
-  /// No description provided for @trips_edit_sectionTitle_embarkDisembark.
-  ///
-  /// In en, this message translates to:
-  /// **'Embark / Disembark'**
-  String get trips_edit_sectionTitle_embarkDisembark;
 
   /// No description provided for @trips_edit_label_embarkPort.
   ///
@@ -64505,12 +63833,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Body Weight'**
   String get diverProfile_bodyWeight_title;
-
-  /// No description provided for @equipment_edit_advanced_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Advanced'**
-  String get equipment_edit_advanced_title;
 
   /// No description provided for @planner_gearWeights_accept.
   ///
@@ -88235,6 +87557,84 @@ abstract class AppLocalizations {
   /// **'Unnamed fish'**
   String get media_species_unnamedFishLocked;
 
+  /// Screen reader label of the chip that counts the species left off the viewer's one line (issue #4825); the chip itself reads +N.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} more species} other{{count} more species}}'**
+  String media_species_moreChips(int count);
+
+  /// No description provided for @media_species_listLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to add or dismiss'**
+  String get media_species_listLocked;
+
+  /// No description provided for @media_labels_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine life labels'**
+  String get media_labels_action;
+
+  /// No description provided for @media_labels_names.
+  ///
+  /// In en, this message translates to:
+  /// **'Names'**
+  String get media_labels_names;
+
+  /// No description provided for @media_labels_allLife.
+  ///
+  /// In en, this message translates to:
+  /// **'All life'**
+  String get media_labels_allLife;
+
+  /// No description provided for @media_labels_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get media_labels_off;
+
+  /// No description provided for @media_labels_analyse.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyse'**
+  String get media_labels_analyse;
+
+  /// No description provided for @media_labels_analyseAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyse again'**
+  String get media_labels_analyseAgain;
+
+  /// No description provided for @media_labels_statusNoModel.
+  ///
+  /// In en, this message translates to:
+  /// **'No species model installed'**
+  String get media_labels_statusNoModel;
+
+  /// No description provided for @media_labels_statusNotAnalysed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not analysed yet'**
+  String get media_labels_statusNotAnalysed;
+
+  /// No description provided for @media_labels_statusAnalysing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing...'**
+  String get media_labels_statusAnalysing;
+
+  /// No description provided for @media_labels_statusAnalysingPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing, {percent}'**
+  String media_labels_statusAnalysingPercent(String percent);
+
+  /// No description provided for @media_labels_statusFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}'**
+  String media_labels_statusFound(int count);
+
   /// No description provided for @media_species_possibleMatches.
   ///
   /// In en, this message translates to:
@@ -88439,11 +87839,23 @@ abstract class AppLocalizations {
   /// **'Resume'**
   String get speciesReview_resume;
 
-  /// No description provided for @speciesReview_allChecked.
+  /// No description provided for @speciesReview_checkAgain.
   ///
   /// In en, this message translates to:
-  /// **'All photos checked'**
-  String get speciesReview_allChecked;
+  /// **'Check again'**
+  String get speciesReview_checkAgain;
+
+  /// No description provided for @speciesReview_checkAgainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check this dive again?'**
+  String get speciesReview_checkAgainTitle;
+
+  /// No description provided for @speciesReview_checkAgainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive is analysed again. Your species tags stay. Suggestions you dismissed come back.'**
+  String get speciesReview_checkAgainBody;
 
   /// No description provided for @speciesReview_count.
   ///

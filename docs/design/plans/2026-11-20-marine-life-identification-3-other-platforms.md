@@ -481,7 +481,7 @@ Do not start until Task B1 has answered how Windows ML is reached.
 - Produces:
   - `abstract interface class HardwareEngineSource { Future<bool> offersEngineToFetch(); Future<bool> fetchEngine(); }` (in `vision_engine.dart`; `OnnxVisionEngine` implements it, `FakeEngine` does not)
   - `abstract interface class HardwareEngines { Future<bool> offersEngineToFetch(); Future<bool> fetchEngine(); Future<List<ProviderLibrary>> readyProviderLibraries(); }` with `WindowsMlEngines` (the catalogue, from the main isolate) and `NoHardwareEngines`
-  - `OnnxVisionEngine` gains `HardwareEngines? hardware`; on Windows it spawns the worker with `devices: [OrtDevice.preferGpu, OrtDevice.directMl, OrtDevice.cpu]` and `providerLibraries: await hardware.readyProviderLibraries()`, elsewhere with the processor only.
+  - `OnnxVisionEngine` gains `HardwareEngines? hardware`; on Windows it spawns the worker with `devices: [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu]` and `providerLibraries: await hardware.readyProviderLibraries()`, elsewhere with the processor only. *(Amended after B1: `OrtDevice.preferGpu` became `OrtDevice.hardware`, an explicit attach of the devices `chooseHardwareDevices` picks, never Windows' software renderer; the catalogue is declared by hand in `winml_native.dart` rather than generated from the package's header, which may not be redistributed.)*
 
 - [ ] **Step 1: Write the failing tests**
   - A fake catalogue with one ready and one not-present provider: `readyProviderLibraries` lists only the ready one; `offersEngineToFetch` is true; `fetchEngine` makes it ready.
@@ -652,6 +652,7 @@ Do not start until Task B1 has answered how Windows ML is reached.
 
 - [ ] **Step 1:** Run spec section 7's checks on a Windows PC with a GPU (which engine ran, the vendor engine fetched in the Download, the fall back when the GPU engine is made to fail), on Windows 10 (DirectML and the processor), and on a Linux PC (photos only).
 - [ ] **Step 2:** Where a Windows GPU PC was used, run the 100-photo comparison on it and record its agreement in the findings, for information.
+- [ ] **Step 3 (added after B14's review):** on the Windows GPU PC, with debug mode on: download the pack, then quit and relaunch, and confirm from the log ("Marine life models open on hardware: ...") that the vendor engine is still the one that runs after the relaunch; confirm the engine list was read (Windows ML's `WinMLEpInfo` field order and its enumeration callback's thread have never run with an engine listed); confirm preparing an installed engine (`WinMLEpEnsureReady`) works on the worker's thread with no COM set up and downloads nothing, and that listing the engines makes no network request; on a PC with two vendor engines or two GPUs, note which one was chosen; confirm the engine's name in Windows ML's catalogue is the name its devices report to ONNX Runtime (the hardware session allows only catalogue names), and that Windows ML's catalogue takes two calls at once from different threads (an engine download while a worker lists the engines).
 
 ### Task D4: Publish (the maintainer's go)
 

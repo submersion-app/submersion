@@ -108,7 +108,7 @@ int _editingFractionDigits(AttributeDimension dimension, double metricValue) =>
     };
 
 /// [metric] for [def] as typed in [unit]: the figure [formatAttributeValue]
-/// shows and the edit form seeds, with no unit symbol (issue #4534).
+/// shows and the Details editor seeds, with no unit symbol (issue #4534).
 String formatAttributeNumberIn(
   EquipmentAttributeDef def,
   AttributeUnit unit,

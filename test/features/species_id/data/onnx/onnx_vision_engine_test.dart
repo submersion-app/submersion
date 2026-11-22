@@ -43,10 +43,11 @@ class FakeWorker implements OnnxWorkerHandle {
   );
 
   @override
-  Future<void> load(VisionModels models) async {
+  Future<String?> load(VisionModels models) async {
     _alive();
     calls.add('load');
     loaded = models;
+    return 'cpu';
   }
 
   @override

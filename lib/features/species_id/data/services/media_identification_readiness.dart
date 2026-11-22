@@ -7,16 +7,24 @@ extension Readiness on MediaIdentificationService {
   /// their crops on this device, and a video scanned to its end. A Find
   /// species run finds nothing to do on these, so the dive's card says all
   /// checked only when processing agrees.
+  ///
+  /// [read] is the items' runs and rows as the caller has read them already
+  /// ([MediaIdentificationRepository.forMediaIdsWithRuns]), so they are not
+  /// read twice; without it they are read here.
   Future<Set<String>> upToDate(
     List<MediaItem> items, {
     required SpeciesPackManifest manifest,
     required GeoPoint? Function(MediaItem item) locationOf,
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )?
+    read,
   }) async {
     final ids = [for (final m in items) m.id];
-    final (runs, stored) = await _identifications.forMediaIdsWithRuns(
-      ids,
-      withPaths: false,
-    );
+    final (runs, stored) =
+        read ??
+        await _identifications.forMediaIdsWithRuns(ids, withPaths: false);
     final current = <String>{};
     for (final item in items) {
       final run = runs[item.id];

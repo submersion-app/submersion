@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -133,6 +134,24 @@ void main() {
         reason: 'the viewer must reuse its controller, not leak and replace',
       );
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('each page keeps its own zoom when the list shifts under it '
+      '(issue #4825)', (tester) async {
+    await tester.runAsync(() async {
+      final container = await pump(tester);
+      // PhotoView keeps its state by page: the page on screen must keep the
+      // controller its state listens to, whatever photo it now shows.
+      final before = tester
+          .widget<PhotoView>(find.byType(PhotoView).first)
+          .controller;
+      expect(before, isNotNull);
+      await replaceGallery(tester, container, [all[1], all[2], all[0]]);
+      final after = tester
+          .widget<PhotoView>(find.byType(PhotoView).first)
+          .controller;
+      expect(after, same(before));
     });
   });
 }

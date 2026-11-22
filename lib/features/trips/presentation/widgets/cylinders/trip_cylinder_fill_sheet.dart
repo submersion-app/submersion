@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -222,9 +223,12 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
     if (picked != null && mounted) setState(() => _when = picked);
   }
 
+  /// What the centre picker pops for its new-centre action.
+  static const _createNewCenter = '__create_new_center__';
+
   Future<void> _pickCenter(List<DiveCenter> centers) async {
     final current = centers.where((c) => c.id == _centerId).firstOrNull;
-    await showModalBottomSheet<void>(
+    final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -240,12 +244,17 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
             Navigator.of(sheetContext).pop();
             setState(() => _centerId = center.id);
           },
-          // Creating a center is the dive editor's flow; here the picker
-          // only chooses among existing ones.
-          onCreateNewCenter: () => Navigator.of(sheetContext).pop(),
+          onCreateNewCenter: () =>
+              Navigator.of(sheetContext).pop(_createNewCenter),
         ),
       ),
     );
+    if (result != _createNewCenter || !mounted) return;
+    // The new-centre page opens over this sheet and pops the id of the
+    // centre it creates, which becomes the fill's, as in the dive's picker
+    // (issue #4810). Leaving it without saving keeps the centre as it was.
+    final centerId = await context.push<String>('/dive-centers/new');
+    if (centerId != null && mounted) setState(() => _centerId = centerId);
   }
 
   Future<void> _save() async {

@@ -14,7 +14,7 @@ final Map<EquipmentSetCardId, EditCard<EquipmentSet>> equipmentSetEditCards = {
     title: (context) =>
         EquipmentSetCardId.header.localizedDisplayName(context.l10n),
     isEmpty: (_) => false,
-    // A name, as the form's validator has it, trimmed.
+    // A name, as the form's validator had it, trimmed.
     isValid: (session) => setNameValid(session.working.name),
     editorBuilder: (context, session) =>
         EquipmentSetHeaderEditor(session: session),
