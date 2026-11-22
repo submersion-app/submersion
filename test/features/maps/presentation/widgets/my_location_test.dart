@@ -59,6 +59,7 @@ void main() {
     WidgetTester tester,
     _FakeLocation location, {
     bool isPhone = true,
+    bool askHost = false,
   }) async {
     final located = <LatLng>[];
     await tester.pumpWidget(
@@ -67,7 +68,10 @@ void main() {
         overrides: [locationServiceProvider.overrideWithValue(location)],
         child: Column(
           children: [
-            MyLocationButton(onLocated: located.add, isPhone: isPhone),
+            MyLocationButton(
+              onLocated: located.add,
+              isPhone: askHost ? null : isPhone,
+            ),
             const Expanded(
               child: FlutterMap(
                 options: MapOptions(
@@ -209,5 +213,23 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Settings'), findsNothing);
+  });
+
+  testWidgets('left to the host, a desktop test run gets the desktop message', (
+    tester,
+  ) async {
+    // Tests run on a desktop host (Linux in CI, macOS locally), so the
+    // button's own platform check must pick the desktop wording.
+    await pumpMap(tester, _FakeLocation(fix: false), askHost: true);
+
+    await tester.tap(find.byTooltip('Show my location'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Unable to get location. Location services may not be available.',
+      ),
+      findsOneWidget,
+    );
   });
 }
