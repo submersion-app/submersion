@@ -17,6 +17,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.d
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_source_file_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_source_metadata_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';

@@ -59525,6 +59525,38 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String navTrack_match_confirmTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Vincular $count tracks submarinos?',
+      one: '¿Vincular $count track submarino?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_match_confirmBody =>
+      'Cada uno de estos tracks coincide en el tiempo con exactamente una inmersión.';
+
+  @override
+  String get navTrack_match_confirmLink => 'Vincular';
+
+  @override
+  String get navTrack_match_notNow => 'Ahora no';
+
+  @override
+  String navTrack_match_linkedResult(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tracks submarinos vinculados',
+      one: '$count track submarino vinculado',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get navTrack_seascape_trackTitle => 'Paisaje submarino del track';
 
   @override

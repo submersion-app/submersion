@@ -35610,6 +35610,36 @@
       }
     }
   },
+  "navTrack_match_confirmTitle": "{count, plural, one{Link {count} underwater track?} other{Link {count} underwater tracks?}}",
+  "@navTrack_match_confirmTitle": {
+    "description": "Title of the dialog the Tracks page's Match opens to link unlinked underwater tracks to the one dive each overlaps in time",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "navTrack_match_confirmBody": "Each of these tracks overlaps exactly one dive in time.",
+  "@navTrack_match_confirmBody": {
+    "description": "Body of the Match dialog: why these tracks are proposed"
+  },
+  "navTrack_match_confirmLink": "Link",
+  "@navTrack_match_confirmLink": {
+    "description": "Match dialog button that links every listed underwater track to its dive"
+  },
+  "navTrack_match_notNow": "Not now",
+  "@navTrack_match_notNow": {
+    "description": "Match dialog button that closes it and links nothing"
+  },
+  "navTrack_match_linkedResult": "{count, plural, one{{count} underwater track linked} other{{count} underwater tracks linked}}",
+  "@navTrack_match_linkedResult": {
+    "description": "Snackbar after Match linked underwater tracks to their dives",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "navTrack_seascape_trackTitle": "Track seascape",
   "navTrack_seascape_trackNoScene": "This track has no usable seascape.",
   "navTrack_handoff_recognized": "Seacraft ENC navigation log recognised",

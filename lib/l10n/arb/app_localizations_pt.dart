@@ -59464,6 +59464,38 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String navTrack_match_confirmTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vincular $count trilhas subaquáticas?',
+      one: 'Vincular $count trilha subaquática?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_match_confirmBody =>
+      'Cada uma destas trilhas coincide no tempo com exatamente um mergulho.';
+
+  @override
+  String get navTrack_match_confirmLink => 'Vincular';
+
+  @override
+  String get navTrack_match_notNow => 'Agora não';
+
+  @override
+  String navTrack_match_linkedResult(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trilhas subaquáticas vinculadas',
+      one: '$count trilha subaquática vinculada',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get navTrack_seascape_trackTitle => 'Paisagem subaquática da trilha';
 
   @override

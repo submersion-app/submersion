@@ -55770,6 +55770,35 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String navTrack_match_confirmTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '关联 $count 条水下轨迹？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_match_confirmBody => '这些轨迹在时间上各自只与一次潜水重叠。';
+
+  @override
+  String get navTrack_match_confirmLink => '关联';
+
+  @override
+  String get navTrack_match_notNow => '暂不';
+
+  @override
+  String navTrack_match_linkedResult(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已关联 $count 条水下轨迹',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get navTrack_seascape_trackTitle => '轨迹的海景';
 
   @override

@@ -59605,6 +59605,38 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String navTrack_match_confirmTitle(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lier $count traces sous-marines ?',
+      one: 'Lier $count trace sous-marine ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_match_confirmBody =>
+      'Chacune de ces traces coïncide dans le temps avec exactement une plongée.';
+
+  @override
+  String get navTrack_match_confirmLink => 'Lier';
+
+  @override
+  String get navTrack_match_notNow => 'Plus tard';
+
+  @override
+  String navTrack_match_linkedResult(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count traces sous-marines liées',
+      one: '$count trace sous-marine liée',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get navTrack_seascape_trackTitle => 'Paysage sous-marin de la trace';
 
   @override

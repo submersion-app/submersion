@@ -4,8 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/tracks/application/tracks_match_controller.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Reports a Match press. Positioned dives get the "Review site matches"
-/// action, which hands their ids to the site review.
+/// Reports a Match press: the dives positioned and the underwater tracks
+/// linked. Positioned dives get the "Review site matches" action, which
+/// hands their ids to the site review.
+///
+/// When the diver was offered tracks to link (#4851) and nothing came of
+/// the press, nothing is shown: the dialog they just answered said it all.
 void showTracksMatchOutcome({
   required ScaffoldMessengerState messenger,
   required AppLocalizations l10n,
@@ -13,11 +17,19 @@ void showTracksMatchOutcome({
   required TracksMatchOutcome outcome,
 }) {
   final positioned = outcome.positionedDiveIds;
-  final message = outcome.failed
-      ? l10n.common_error_tryAgain
-      : positioned.isEmpty
-      ? l10n.gpsLogger_matchResultNone
-      : l10n.gpsLogger_matchResult(positioned.length);
+  final linked = outcome.linkedTrackCount;
+  final String message;
+  if (outcome.failed) {
+    message = l10n.common_error_tryAgain;
+  } else if (positioned.isEmpty && linked == 0) {
+    if (outcome.linkProposals.isNotEmpty) return;
+    message = l10n.gpsLogger_matchResultNone;
+  } else {
+    message = [
+      if (positioned.isNotEmpty) l10n.gpsLogger_matchResult(positioned.length),
+      if (linked > 0) l10n.navTrack_match_linkedResult(linked),
+    ].join(' · ');
+  }
   messenger
     ..clearSnackBars()
     ..showSnackBar(

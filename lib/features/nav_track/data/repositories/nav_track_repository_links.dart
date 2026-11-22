@@ -27,9 +27,9 @@ mixin _NavTrackRouteLinks {
   /// dive)"). Deliberately the opposite direction from Decision 2 in the same
   /// spec, which forbids a route ever writing INTO the dive's entry/exit
   /// coordinates automatically -- this only ever reads the dive's EXISTING
-  /// site/location into the route, and only when the route has neither a
-  /// site nor an anchor of its own yet, so a route the diver already
-  /// positioned is never overwritten.
+  /// site/location into the route. A route with no site takes the dive's,
+  /// even when it already has an anchor (#4851), and an anchor the diver
+  /// placed is never overwritten (see [_siteAndAnchorToInherit]).
   /// Returns true when [routeId] was actually linked. False (not an
   /// exception) means the row was gone or already linked when this write
   /// landed, for example deleted or linked by hand after a caller read it
@@ -41,6 +41,16 @@ mixin _NavTrackRouteLinks {
     String routeId,
     String diveId, {
     required domain.NavTrackLinkMode linkMode,
+  }) => _linkTo(routeId, diveId, linkMode: linkMode);
+
+  /// [link], where [previousDiveSiteId] is the site of the dive the route
+  /// was just moved off ([relink]): a route still on that site took it from
+  /// that dive, so it takes the new dive's instead.
+  Future<bool> _linkTo(
+    String routeId,
+    String diveId, {
+    required domain.NavTrackLinkMode linkMode,
+    String? previousDiveSiteId,
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -51,7 +61,11 @@ mixin _NavTrackRouteLinks {
       final route = await getById(routeId, includePoints: false);
       final inherited = route == null
           ? null
-          : await _siteAndAnchorToInherit(route, diveId);
+          : await _siteAndAnchorToInherit(
+              route,
+              diveId,
+              previousDiveSiteId: previousDiveSiteId,
+            );
       // The route belongs to whoever logged the dive, so a buddy's route
       // linked to my dive becomes mine and an ownerless one gains an owner.
       final diveOwner =
@@ -72,12 +86,12 @@ mixin _NavTrackRouteLinks {
               siteId: inherited == null
                   ? const Value.absent()
                   : Value(inherited.siteId),
-              anchorLatitude: inherited?.anchor == null
+              anchorLatitude: inherited == null || !inherited.writeAnchor
                   ? const Value.absent()
-                  : Value(inherited!.anchor!.latitude),
-              anchorLongitude: inherited?.anchor == null
+                  : Value(inherited.anchor?.latitude),
+              anchorLongitude: inherited == null || !inherited.writeAnchor
                   ? const Value.absent()
-                  : Value(inherited!.anchor!.longitude),
+                  : Value(inherited.anchor?.longitude),
               updatedAt: Value(now),
             ),
           );
@@ -106,32 +120,76 @@ mixin _NavTrackRouteLinks {
     required String toDiveId,
     required domain.NavTrackLinkMode linkMode,
   }) async {
+    // Read before the unlink: the old dive's site is what tells a site the
+    // route took from it apart from one the diver chose (#4851).
+    final previousDiveSiteId = await _siteIdOfDive(fromDiveId);
     await unlink(routeId, onlyFromDiveId: fromDiveId);
-    return link(routeId, toDiveId, linkMode: linkMode);
+    return _linkTo(
+      routeId,
+      toDiveId,
+      linkMode: linkMode,
+      previousDiveSiteId: previousDiveSiteId,
+    );
   }
 
-  /// The dive's existing site/location to write into [route] as part of
-  /// linking it to [diveId], or null when there is nothing to inherit or
-  /// [route] already has a site or an anchor of its own (never overwritten).
-  Future<({String? siteId, GeoPoint? anchor})?> _siteAndAnchorToInherit(
+  Future<String?> _siteIdOfDive(String diveId) =>
+      (_db.selectOnly(_db.dives)
+            ..addColumns([_db.dives.siteId])
+            ..where(_db.dives.id.equals(diveId)))
+          .map((row) => row.read(_db.dives.siteId))
+          .getSingleOrNull();
+
+  /// What linking [route] to [diveId] writes into its site and anchor, or
+  /// null when the route keeps both as they are.
+  ///
+  /// The route takes the dive's site when it has none, or when its site is
+  /// [previousDiveSiteId], the one it took from the dive it was moved off
+  /// (#4851). A site the diver chose stays, and so does everything else.
+  /// When the site changes, the anchor follows the new site's pin
+  /// ([navTrackAnchorChangeForSite]), falling back to the dive's entry fix
+  /// when the dive has no pinned site; an anchor the diver placed by hand
+  /// is never moved.
+  Future<({String? siteId, bool writeAnchor, GeoPoint? anchor})?>
+  _siteAndAnchorToInherit(
     domain.NavTrack route,
-    String diveId,
-  ) async {
-    if (route.siteId != null || route.anchor != null) return null;
+    String diveId, {
+    String? previousDiveSiteId,
+  }) async {
+    final ownSiteId = route.siteId;
+    final siteFollowsDive =
+        ownSiteId == null || ownSiteId == previousDiveSiteId;
+    if (!siteFollowsDive) return null;
     final diveRow = await (_db.select(
       _db.dives,
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
     if (diveRow == null) return null;
-    if (diveRow.siteId != null) {
-      final site = await _siteRepository.getSiteById(diveRow.siteId!);
-      return (siteId: diveRow.siteId, anchor: site?.location);
-    }
+    final newSiteId = diveRow.siteId;
+    final newSiteLocation = newSiteId == null
+        ? null
+        : (await _siteRepository.getSiteById(newSiteId))?.location;
+    final oldSiteLocation = ownSiteId == null
+        ? null
+        : (await _siteRepository.getSiteById(ownSiteId))?.location;
+    final change = navTrackAnchorChangeForSite(
+      route.anchor,
+      oldSiteLocation,
+      newSiteLocation,
+    );
+    var anchor = change.anchor;
     final entryLat = diveRow.entryLatitude;
     final entryLon = diveRow.entryLongitude;
-    if (entryLat != null && entryLon != null) {
-      return (siteId: null, anchor: GeoPoint(entryLat, entryLon));
+    if (change.write &&
+        anchor == null &&
+        entryLat != null &&
+        entryLon != null) {
+      anchor = GeoPoint(entryLat, entryLon);
     }
-    return null;
+    return (
+      siteId: newSiteId,
+      // Nothing to write when the anchor stays unset.
+      writeAnchor: change.write && anchor != route.anchor,
+      anchor: anchor,
+    );
   }
 
   /// Unlinks [routeId] from whatever dive it was linked to. The recording
