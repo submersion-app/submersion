@@ -49,7 +49,7 @@ void main() {
         overrides: [
           ...overrides,
           mediaIdentificationServiceProvider.overrideWithValue(service),
-          labelModeProvider.overrideWith(
+          labelModeNotifierProvider.overrideWith(
             (ref) => LabelModeNotifier.unstored(mode),
           ),
           mediaAnalysisStatusProvider(AnalysisTarget(shown, null)).overrideWith(
@@ -129,7 +129,7 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.text('labels')),
     );
-    expect(container.read(labelModeProvider), LabelMode.off);
+    expect(container.read(labelModeNotifierProvider), LabelMode.off);
   });
 
   testWidgets('an item fully analysed offers Analyse again, and asks for '
@@ -200,7 +200,7 @@ void main() {
       await tester.pump();
       await tester.tap(entry('all_life'));
       await tester.pumpAndSettle();
-      expect(container.read(labelModeProvider), LabelMode.allLife);
+      expect(container.read(labelModeNotifierProvider), LabelMode.allLife);
     });
 
     testWidgets('Analyse again is still asked for', (tester) async {
@@ -284,6 +284,50 @@ void main() {
         ),
         isFalse,
       );
+    });
+
+    testWidgets('keeps the status read, and is not rebuilt as it reloads', (
+      tester,
+    ) async {
+      final item = testMediaItem(id: 'p1');
+      final status = mediaAnalysisStatusProvider(AnalysisTarget(item, null));
+      final overrides = await getBaseOverrides();
+      var builds = 0;
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            mediaIdentificationServiceProvider.overrideWithValue(service),
+            status.overrideWith(
+              (ref) async => (state: MediaAnalysisState.analysed, found: 0),
+            ),
+            mediaIdentificationBusyProvider(
+              item.id,
+            ).overrideWith((ref) => Stream.value(false)),
+            mediaIdentificationProgressProvider(
+              item.id,
+            ).overrideWith((ref) => Stream.value(null)),
+          ],
+          child: Consumer(
+            key: const ValueKey('labels_action_host'),
+            builder: (context, ref, _) {
+              builds++;
+              marineLifeLabelsAction(ref, item, null);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byKey(const ValueKey('labels_action_host'))),
+      );
+      expect(container.read(status).value?.state, MediaAnalysisState.analysed);
+      final before = builds;
+      container.invalidate(status);
+      await tester.pumpAndSettle();
+      expect(container.exists(status), isTrue);
+      expect(builds, before);
     });
 
     testWidgets('is offered on a Lightroom-linked photo', (tester) async {

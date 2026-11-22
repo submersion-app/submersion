@@ -613,6 +613,31 @@ void main() {
     await finishBar(tester, controller);
   });
 
+  testWidgets('the analysed stretches are not made again as the playhead '
+      'glides (issue #4825)', (tester) async {
+    useBarPlatform();
+    final controller = await readyController();
+    await controller.play();
+    await tester.pumpWidget(
+      barApp(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+    await tester.pump();
+    double played() => tester
+        .widget<FractionallySizedBox>(find.byType(FractionallySizedBox))
+        .widthFactor!;
+    final before = tester.widget(find.byType(VideoAnalysedStretches));
+    final playedBefore = played();
+    // Frames with no report from the player: only the glide moves on.
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(played(), greaterThan(playedBefore));
+    expect(
+      identical(tester.widget(find.byType(VideoAnalysedStretches)), before),
+      isTrue,
+    );
+    await finishBar(tester, controller);
+  });
+
   // Issue #4817: the mute button and volume slider ride on the bar.
   testWidgets('the bar shows the volume control when given audio', (
     tester,

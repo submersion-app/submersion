@@ -67,7 +67,7 @@ class PhotoIdentificationLayer extends ConsumerWidget {
     if (!marineLifeIdEnabled || size == null || size.isEmpty) {
       return const SizedBox.shrink();
     }
-    final mode = ref.watch(labelModeProvider);
+    final mode = ref.watch(labelModeNotifierProvider);
     if (mode == LabelMode.off) return const SizedBox.shrink();
     final session = sitting;
     if (session == null || session.isDisposed) {

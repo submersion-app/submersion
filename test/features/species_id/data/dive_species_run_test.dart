@@ -341,12 +341,25 @@ void main() {
       expect(applied, isEmpty);
     });
 
-    test('an item refused in the background is asked again where it '
+    test('a video refused in the background is asked again where it '
         'stopped', () async {
-      outcomes['p2'] = [RunItemOutcome.notForeground];
+      outcomes['v1'] = [RunItemOutcome.notForeground];
       await run.start('d1', fresh: true);
       expect(askedFresh, ['p1', 'p2', 'v1']);
-      expect(asked, ['p2']);
+      expect(asked, ['v1']);
+    });
+
+    test('a photo refused for heat or the background is asked afresh '
+        'again: nothing of it was stored', () async {
+      outcomes['p1'] = [RunItemOutcome.tooHot];
+      outcomes['p2'] = [RunItemOutcome.notForeground];
+      final finished = run.start('d1', fresh: true);
+      await pumpEventQueue();
+      run.resume('d1');
+      await finished;
+      expect(askedFresh, ['p1', 'p1', 'p2', 'p2', 'v1']);
+      expect(asked, isEmpty);
+      expect(applied, isEmpty);
     });
 
     test('does not make the dive\'s next run fresh', () async {

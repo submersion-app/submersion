@@ -141,7 +141,7 @@ void main() {
           speciesTaggingServiceProvider.overrideWithValue(tagging),
           suggestionAcceptorProvider.overrideWithValue(FakeAcceptor()),
           identificationCropFileProvider.overrideWith((ref, key) async => null),
-          labelModeProvider.overrideWith(
+          labelModeNotifierProvider.overrideWith(
             (ref) => LabelModeNotifier.unstored(mode),
           ),
         ],

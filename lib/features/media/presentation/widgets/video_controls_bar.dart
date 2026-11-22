@@ -354,6 +354,13 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final width = constraints.maxWidth;
+                    // Analysed for marine life (#4825). Made once here, not
+                    // on each tick of the playhead below: the same widget
+                    // handed back is not built again.
+                    final analysed = VideoAnalysedStretches(
+                      mediaId: widget.mediaId,
+                      width: width,
+                    );
                     // A slider to assistive tech, stepping by a few seconds,
                     // since a screen reader cannot tap a point or drag.
                     return Semantics(
@@ -427,11 +434,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                                         borderRadius: BorderRadius.circular(2),
                                       ),
                                     ),
-                                    // Analysed for marine life (#4825)
-                                    VideoAnalysedStretches(
-                                      mediaId: widget.mediaId,
-                                      width: width,
-                                    ),
+                                    analysed,
                                     // Progress track
                                     FractionallySizedBox(
                                       widthFactor: progress,

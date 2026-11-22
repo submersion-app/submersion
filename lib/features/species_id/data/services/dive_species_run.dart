@@ -189,8 +189,10 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     );
     _set(s);
     final looked = <RunAppliedItem>[];
-    // A fresh run asks each item afresh once: one refused for heat or the
-    // background is asked again where it stopped, not from the start.
+    // A fresh run asks each video afresh once: its fresh start is stored
+    // before it is scanned, so one refused for heat or the background is
+    // asked again where it stopped. A photo stores nothing until its
+    // analysis is in hand, so one refused is asked afresh again.
     final askedFresh = <String>{};
     // Deleted before the first item, or another logbook opened while its
     // media were read: nothing is looked at.
@@ -205,7 +207,10 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
       if (stoppedFor != _Stop.none) break;
       final item = items[index];
       _currentItem = item.id;
-      final ask = fresh && askedFresh.add(item.id) ? _requestFresh : _request;
+      final askFresh =
+          fresh &&
+          (item.mediaType == MediaType.photo || askedFresh.add(item.id));
+      final ask = askFresh ? _requestFresh : _request;
       final outcome = await ask(
         item,
         mediaLocation(

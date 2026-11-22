@@ -632,12 +632,13 @@ Issue #4825, spec
   `PhotoIdentificationLayer`, mounted inside the photo's `PhotoView` child,
   feeds it `photoLabels`. A photo's labels are laid out at the zoomed size
   and scaled back down, so they keep their size on screen; the zoom comes
-  from a `PhotoViewController` the gallery keeps per media id while a page
-  shows it. The viewer's tap layer lies over the photo, so a photo's labels
+  from a `PhotoViewController` the gallery keeps per page index, as
+  `PhotoView` keeps its own state, while that page shows. The viewer's tap
+  layer lies over the photo, so a photo's labels
   mark their taps (`LabelTap`) and the tap layer asks
   `identificationLabelTap` first.
 - **Modes.** `LabelMode` (`names`, `allLife`, `off`) is a device preference,
-  `species_id_label_mode`, read through `labelModeProvider`. `labelKind`
+  `species_id_label_mode`, read through `labelModeNotifierProvider`. `labelKind`
   holds the rules: All life dots every stored detection that has no pill;
   Names keeps the guarded dot (open-score floor, and on video the one-second
   minimum while paused). A photo's tag fills the pill only on a detection
@@ -648,16 +649,18 @@ Issue #4825, spec
   hand: `request(byHand: true)`, which ignores identify-on-open and carries
   on a part-scanned video) or, once the item is up to date, Analyse again
   (`request(fresh: true)`). The dive card's Check again is a fresh run
-  (`DiveSpeciesRun.start(fresh: true)`, `requestFromRun(fresh: true)`).
-  A Lightroom-linked video gets no labels action: only its poster is on the
+  (`DiveSpeciesRun.start(fresh: true)`, `requestFromRun(fresh: true)`); a
+  photo refused for heat or the background is asked fresh again, a video
+  carries on where it stopped. A Lightroom-linked video gets no labels action: only its poster is on the
   device. The menu's status line says what was found on any item looked
   at, even in part ("Nothing found" included); "Not analysed yet" is only
   for one never looked at.
 - **A fresh request** analyses the photo or scans the video from 0
   whatever the refresh rules say, and reopens the item's dismissals
-  (`reopenDismissed`: undecided, `decidedAt` kept, so `reopened` is true):
-  a photo's once its new analysis is in hand, so one whose analysis fails
-  keeps them, and a video's once its file opens. A reopened row is carried through later analyses like a
+  (`reopenDismissed`: undecided, with `decidedAt` set to the time of the
+  reopen, so `reopened` is true): a photo's once its new analysis is in
+  hand, so one whose analysis fails keeps them, and a video's once its file
+  opens. A reopened row is carried through later analyses like a
   decision, and `identificationsToApply` never takes it; nothing is
   auto-applied after a fresh request at all. The fresh flag is consumed when
   the fresh start is stored, so a job put back in the queue resumes.

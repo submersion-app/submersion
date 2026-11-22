@@ -30,10 +30,15 @@ marineLifeLabelsAction(WidgetRef ref, MediaItem item, GeoPoint? location) {
           (item.mediaType == MediaType.video &&
               item.sourceType != MediaSourceType.serviceConnector &&
               visionVideoRuns(defaultTargetPlatform)));
-  final on = ref.watch(labelModeProvider) != LabelMode.off;
+  final on = ref.watch(labelModeNotifierProvider) != LabelMode.off;
   if (!applies) return (onPressed: null, on: on, ring: null);
   // Kept read while the toolbar shows, so the menu opens on what is known.
-  ref.watch(mediaAnalysisStatusProvider(AnalysisTarget(item, location)));
+  // Listened to, not watched: the toolbar shows none of it, and it reloads
+  // on every write to the logbook's identifications.
+  ref.listen(
+    mediaAnalysisStatusProvider(AnalysisTarget(item, location)),
+    (_, _) {},
+  );
   final busy = ref.watch(mediaIdentificationBusyProvider(item.id)).value;
   final progress = ref
       .watch(mediaIdentificationProgressProvider(item.id))
@@ -96,11 +101,11 @@ Future<void> showMarineLifeLabelsMenu(
     busy: ref.read(mediaIdentificationBusyProvider(item.id)).value ?? false,
     progress: ref.read(mediaIdentificationProgressProvider(item.id)).value,
   );
-  final mode = ref.read(labelModeProvider);
+  final mode = ref.read(labelModeNotifierProvider);
   // Held now: the toolbar (and the ref with it) can go while the menu is
   // open, when the controls hide or the page moves on, and the pick must
   // still count.
-  final modes = ref.read(labelModeProvider.notifier);
+  final modes = ref.read(labelModeNotifierProvider.notifier);
   final service = ref.read(mediaIdentificationServiceProvider);
   CheckedPopupMenuItem<_Pick> modeItem(
     String key,

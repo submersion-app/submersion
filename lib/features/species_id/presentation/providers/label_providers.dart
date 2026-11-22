@@ -46,9 +46,10 @@ class LabelModeNotifier extends StateNotifier<LabelMode>
 
 /// Names, with no storage behind it; `rootProviderOverrides` gives it the
 /// stored preference.
-final labelModeProvider = StateNotifierProvider<LabelModeNotifier, LabelMode>(
-  (ref) => LabelModeNotifier.unstored(LabelMode.names),
-);
+final labelModeNotifierProvider =
+    StateNotifierProvider<LabelModeNotifier, LabelMode>(
+      (ref) => LabelModeNotifier.unstored(LabelMode.names),
+    );
 
 /// The animals found on a photo, for the labels over it (issue #4825), as
 /// the naming level in force reads them. Empty when the feature is off.
@@ -146,6 +147,8 @@ final mediaAnalysisStatusProvider = FutureProvider.autoDispose
             [item],
             manifest: installed.manifest,
             locationOf: (_) => target.location,
+            // Read once, above.
+            read: (runs, stored),
           );
       return (
         state: current.contains(item.id)

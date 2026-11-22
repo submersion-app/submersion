@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
-import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
+import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
@@ -128,7 +128,9 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(MediaViewerPage)),
     );
-    await container.read(labelModeProvider.notifier).setMode(LabelMode.off);
+    await container
+        .read(labelModeNotifierProvider.notifier)
+        .setMode(LabelMode.off);
     await settleViewer(tester);
     expect(pill, findsNothing);
     expect(dot, findsNothing);

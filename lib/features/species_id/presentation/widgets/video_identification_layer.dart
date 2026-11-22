@@ -57,7 +57,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!marineLifeIdEnabled) return const SizedBox.shrink();
-    final mode = ref.watch(labelModeProvider);
+    final mode = ref.watch(labelModeNotifierProvider);
     if (mode == LabelMode.off) return const SizedBox.shrink();
     final session = sitting;
     if (session == null || session.isDisposed) {

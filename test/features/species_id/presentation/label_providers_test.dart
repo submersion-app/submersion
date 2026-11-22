@@ -106,7 +106,7 @@ void main() {
 
   group('the labels mode', () {
     test('is names until one is chosen, and is stored when changed', () async {
-      expect(container.read(labelModeProvider), LabelMode.names);
+      expect(container.read(labelModeNotifierProvider), LabelMode.names);
 
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();

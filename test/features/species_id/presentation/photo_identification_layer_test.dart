@@ -134,7 +134,7 @@ void main() {
           mediaIdentificationServiceProvider.overrideWithValue(service),
           speciesTaggingServiceProvider.overrideWithValue(_Tagging()),
           suggestionAcceptorProvider.overrideWithValue(FakeAcceptor()),
-          labelModeProvider.overrideWith(
+          labelModeNotifierProvider.overrideWith(
             (ref) => LabelModeNotifier.unstored(mode),
           ),
         ],
