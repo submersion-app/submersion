@@ -24,9 +24,16 @@ List<TextInputFormatter> numberInputFormatters() {
     ...symbols.DECIMAL_SEP.split(''),
     ...symbols.GROUP_SEP.split(''),
     ...symbols.MINUS_SIGN.split(''),
+    // Full-width forms a Japanese or Chinese IME types; parseUserDecimal
+    // folds them to ASCII (#4833).
+    '\uFF0E', '\uFF0C', '\uFF0D',
   };
   final escaped = allowed.map((c) => r'\]^-['.contains(c) ? '\\$c' : c);
-  return [FilteringTextInputFormatter.allow(RegExp('[0-9${escaped.join()}]'))];
+  return [
+    FilteringTextInputFormatter.allow(
+      RegExp('[0-9\uFF10-\uFF19${escaped.join()}]'),
+    ),
+  ];
 }
 
 /// A numeric text field that shows why its text cannot be read, as the diver

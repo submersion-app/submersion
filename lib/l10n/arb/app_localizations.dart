@@ -13,6 +13,7 @@ import 'app_localizations_fr.dart';
 import 'app_localizations_he.dart';
 import 'app_localizations_hu.dart';
 import 'app_localizations_it.dart';
+import 'app_localizations_ja.dart';
 import 'app_localizations_nl.dart';
 import 'app_localizations_pt.dart';
 import 'app_localizations_zh.dart';
@@ -111,6 +112,7 @@ abstract class AppLocalizations {
     Locale('he'),
     Locale('hu'),
     Locale('it'),
+    Locale('ja'),
     Locale('nl'),
     Locale('pt'),
     Locale('zh'),
@@ -28886,17 +28888,17 @@ abstract class AppLocalizations {
   /// **'at'**
   String get formatter_connector_at;
 
-  /// Connector word for date ranges with no end, e.g. 'From Jan 15'
+  /// A date range with no end, e.g. 'From Jan 15'. The language puts the date where its word order needs it.
   ///
   /// In en, this message translates to:
-  /// **'From'**
-  String get formatter_connector_from;
+  /// **'From {date}'**
+  String formatter_dateRange_from(String date);
 
-  /// Connector word for date ranges with no start, e.g. 'Until Jan 20'
+  /// A date range with no start, e.g. 'Until Jan 20'. The language puts the date where its word order needs it.
   ///
   /// In en, this message translates to:
-  /// **'Until'**
-  String get formatter_connector_until;
+  /// **'Until {date}'**
+  String formatter_dateRange_until(String date);
 
   /// No description provided for @gas_air_description.
   ///
@@ -103418,6 +103420,7 @@ class _AppLocalizationsDelegate
     'he',
     'hu',
     'it',
+    'ja',
     'nl',
     'pt',
     'zh',
@@ -103446,6 +103449,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsHu();
     case 'it':
       return AppLocalizationsIt();
+    case 'ja':
+      return AppLocalizationsJa();
     case 'nl':
       return AppLocalizationsNl();
     case 'pt':

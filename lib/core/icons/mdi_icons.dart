@@ -61,6 +61,7 @@ abstract final class MdiIcons {
   static const IconData tshirtCrew = IconData(0xf0a7b, fontFamily: fontFamily);
 
   static const IconData fish = IconData(0xf023a, fontFamily: fontFamily);
+  static const IconData fishOff = IconData(0xf13f3, fontFamily: fontFamily);
   static const IconData turtle = IconData(0xf0cd7, fontFamily: fontFamily);
   static const IconData shark = IconData(0xf18ba, fontFamily: fontFamily);
   static const IconData jellyfish = IconData(0xf0f01, fontFamily: fontFamily);

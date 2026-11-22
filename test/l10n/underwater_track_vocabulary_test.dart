@@ -98,6 +98,7 @@ void main() {
       'nl',
       'pt',
       'zh',
+      'ja',
     ]) {
       final arb = _arb(locale);
       for (final MapEntry(key: old, value: renamedTo) in renamed.entries) {

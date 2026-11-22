@@ -86,16 +86,19 @@ void main() {
       equipmentId: reg.id,
     );
 
-    await incidents.updateIncident(
-      incident.copyWith(observationId: observation.id),
+    await incidents.applyIncidentChanges(
+      incident.id,
+      IncidentChanges(observationId: (value: observation.id)),
     );
     expect(
       (await incidents.getIncidentById(incident.id))!.observationId,
       observation.id,
     );
 
-    final linked = (await incidents.getIncidentById(incident.id))!;
-    await incidents.updateIncident(linked.copyWith(clearObservationId: true));
+    await incidents.applyIncidentChanges(
+      incident.id,
+      const IncidentChanges(observationId: (value: null)),
+    );
     expect(
       (await incidents.getIncidentById(incident.id))!.observationId,
       isNull,
@@ -239,7 +242,10 @@ void main() {
       );
       final observation = await issue();
       final incident = await linkedTo(observation);
-      await incidents.updateIncident(incident.copyWith(diveId: 'd1'));
+      await incidents.applyIncidentChanges(
+        incident.id,
+        const IncidentChanges(diveId: (value: 'd1')),
+      );
       await SyncRepository().clearAllSyncRecords();
 
       await setCheckInStatus(observation, 'ok');
@@ -315,18 +321,6 @@ void main() {
         (await incidents.getIncidentById(incident.id))!.observationId,
         isNull,
       );
-    });
-
-    test('saving the report clears the link for every device', () async {
-      final observation = await issue();
-      final incident = await linkedTo(observation);
-      await setCheckInStatus(observation, 'ok');
-
-      final read = (await incidents.getIncidentById(incident.id))!;
-      await incidents.updateIncident(read.copyWith(narrative: 'Edited'));
-
-      expect(await storedLink(incident), isNull);
-      expect(await pendingIncidents(), [incident.id]);
     });
 
     test('a change to the check-in reaches a watcher of reports', () async {

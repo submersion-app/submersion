@@ -52,11 +52,21 @@ class _DeleteDiverDialogState extends State<DeleteDiverDialog> {
       widget.diverName,
     );
     // Re-evaluate in case locale changed while user had typed text.
-    final confirmed = _controller.text.trim() == _confirmationText;
+    final confirmed = _matchesConfirmation(_controller.text);
     if (confirmed != _isConfirmed) {
       setState(() => _isConfirmed = confirmed);
     }
   }
+
+  /// Whether [typed] is the confirmation phrase. Whitespace is compared
+  /// loosely: a Japanese or Chinese IME in full-width mode types the space
+  /// as U+3000 (#4833), which Dart's `\s` matches, and a doubled or edge
+  /// space is a slip, not a different answer.
+  bool _matchesConfirmation(String typed) =>
+      _normalizeSpaces(typed) == _normalizeSpaces(_confirmationText);
+
+  static String _normalizeSpaces(String text) =>
+      text.replaceAll(RegExp(r'\s+'), ' ').trim();
 
   @override
   void initState() {
@@ -71,7 +81,7 @@ class _DeleteDiverDialogState extends State<DeleteDiverDialog> {
   }
 
   void _onTextChanged() {
-    final confirmed = _controller.text.trim() == _confirmationText;
+    final confirmed = _matchesConfirmation(_controller.text);
     if (confirmed != _isConfirmed) {
       setState(() => _isConfirmed = confirmed);
     }

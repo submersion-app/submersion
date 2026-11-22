@@ -51,6 +51,7 @@ void main() {
     'ar': ['البحرية'],
     'he': ['ימי'],
     'zh': ['海洋生物'],
+    'ja': ['海洋生物'],
   };
 
   test('the English species surfaces use the Species term', () {

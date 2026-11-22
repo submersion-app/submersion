@@ -10990,16 +10990,26 @@
     }
   },
   "formatter_connector_at": "at",
-  "formatter_connector_from": "From",
-  "formatter_connector_until": "Until",
+  "formatter_dateRange_from": "From {date}",
+  "formatter_dateRange_until": "Until {date}",
   "@formatter_connector_at": {
     "description": "Connector word between date and time, e.g. 'Jan 15 at 2:30 PM'"
   },
-  "@formatter_connector_from": {
-    "description": "Connector word for date ranges with no end, e.g. 'From Jan 15'"
+  "@formatter_dateRange_from": {
+    "description": "A date range with no end, e.g. 'From Jan 15'. The language puts the date where its word order needs it.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
-  "@formatter_connector_until": {
-    "description": "Connector word for date ranges with no start, e.g. 'Until Jan 20'"
+  "@formatter_dateRange_until": {
+    "description": "A date range with no start, e.g. 'Until Jan 20'. The language puts the date where its word order needs it.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "gas_air_description": "Standard air (21% O2)",
   "gas_air_displayName": "Air",

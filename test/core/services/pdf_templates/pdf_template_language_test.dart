@@ -154,7 +154,7 @@ void main() {
     );
     tearDown(() => PdfFonts.debugScriptFontLoader = null);
 
-    for (final code in ['ar', 'he', 'zh']) {
+    for (final code in ['ar', 'he', 'zh', 'ja']) {
       for (final builder in <PdfTemplateBuilder>[
         PdfTemplateSimple(),
         PdfTemplateDetailed(),

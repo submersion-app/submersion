@@ -19,6 +19,7 @@ void main() {
     'nl': 'media',
     'pt': 'mídia',
     'zh': '媒体',
+    'ja': 'メディア',
   };
 
   /// The word, or stem, each locale uses for documents.
@@ -33,6 +34,7 @@ void main() {
     'nl': 'document',
     'pt': 'documento',
     'zh': '文档',
+    'ja': 'ドキュメント',
   };
 
   List<String> mediaStrings(AppLocalizations l) => [
@@ -97,6 +99,7 @@ void main() {
       'nl': 'uitrust',
       'pt': 'equipament',
       'zh': '装备',
+      'ja': '器材',
     };
     for (final MapEntry(key: code, value: word) in equipmentWord.entries) {
       final l = lookupAppLocalizations(Locale(code));
