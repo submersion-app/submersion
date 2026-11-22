@@ -146,6 +146,7 @@ Future<SiteUnlockHarness> pumpSitePage(
   VoidCallback? onClose,
   Size size = const Size(600, 1400),
   String? initialLocation,
+  List<RouteBase> extraRoutes = const [],
   List<Override> extra = const [],
 }) async {
   tester.view.devicePixelRatio = 1.0;
@@ -190,6 +191,8 @@ Future<SiteUnlockHarness> pumpSitePage(
               },
               routes: [GoRoute(path: 'edit', redirect: siteEditRedirect)],
             ),
+            // Pages the site page opens, for a test that follows it there.
+            ...extraRoutes,
           ],
         );
   if (router != null) addTearDown(router.dispose);
