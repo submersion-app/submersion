@@ -284,5 +284,7 @@ not a limit for the app):
   (`com.apple.developer.kernel.increased-memory-limit`) was not tried; the
   app does not have it.
 
-Until a 6 GB phone is measured, the 6 GB floor (`minimumMemoryBytes` in
-`SubmersionVisionPlugin.swift`) stays as it is.
+Until a 6 GB iPhone is measured, iPhones and iPads keep the 8 GB floor
+(`MemoryFloor.minimumMemoryBytes` in `MemoryReading.swift`, 6.5 GiB as
+reported). The Pixel 6a run says nothing about them, since it ran the ONNX
+engine, not Core ML.
