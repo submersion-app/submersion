@@ -43344,9 +43344,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'O que ajudaria da próxima vez (opcional)';
 
   @override
-  String get incidentEdit_save => 'Salvar';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Relatos de quase acidentes sincronizam entre seus dispositivos e entram nos backups, mas nunca em exportações ou páginas compartilhadas do logbook.';
 

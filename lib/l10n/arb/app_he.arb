@@ -12753,7 +12753,6 @@
   "incidentEdit_narrative_required": "תאר מה קרה",
   "incidentEdit_contributingFactors": "מה תרם (אופציונלי)",
   "incidentEdit_lessonsLearned": "מה יעזור בפעם הבאה (אופציונלי)",
-  "incidentEdit_save": "שמור",
   "incidentEdit_privacyNote": "דוחות כמעט-תאונה מסתנכרנים בין המכשירים שלך ונכללים בגיבויים, אך לעולם לא בייצוא או בדפי יומן משותפים.",
   "incidentEdit_equipment": "ציוד מעורב",
   "incidentEdit_equipment_none": "ללא",

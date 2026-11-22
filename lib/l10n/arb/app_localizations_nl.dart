@@ -43093,9 +43093,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Wat de volgende keer zou helpen (optioneel)';
 
   @override
-  String get incidentEdit_save => 'Opslaan';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Bijna-ongevalrapporten synchroniseren tussen je apparaten en zitten in je back-ups, maar nooit in exports of gedeelde logboekpagina\'s.';
 

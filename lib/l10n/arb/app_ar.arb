@@ -12753,7 +12753,6 @@
   "incidentEdit_narrative_required": "صف ما حدث",
   "incidentEdit_contributingFactors": "ما الذي ساهم (اختياري)",
   "incidentEdit_lessonsLearned": "ما الذي سيساعد المرة القادمة (اختياري)",
-  "incidentEdit_save": "حفظ",
   "incidentEdit_privacyNote": "تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.",
   "incidentEdit_equipment": "المعدات المعنية",
   "incidentEdit_equipment_none": "لا شيء",

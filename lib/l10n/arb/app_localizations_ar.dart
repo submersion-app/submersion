@@ -43923,9 +43923,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'ما الذي سيساعد المرة القادمة (اختياري)';
 
   @override
-  String get incidentEdit_save => 'حفظ';
-
-  @override
   String get incidentEdit_privacyNote =>
       'تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.';
 

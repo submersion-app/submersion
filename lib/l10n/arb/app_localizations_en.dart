@@ -42662,9 +42662,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'What would help next time (optional)';
 
   @override
-  String get incidentEdit_save => 'Save';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.';
 

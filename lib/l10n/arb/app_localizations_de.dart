@@ -43288,9 +43288,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Was beim nächsten Mal helfen würde (optional)';
 
   @override
-  String get incidentEdit_save => 'Speichern';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Beinahe-Unfall-Berichte synchronisieren sich zwischen deinen Geräten und sind in Backups enthalten, aber niemals in Exporten oder geteilten Logbuchseiten.';
 

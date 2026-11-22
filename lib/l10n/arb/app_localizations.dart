@@ -68122,12 +68122,6 @@ abstract class AppLocalizations {
   /// **'What would help next time (optional)'**
   String get incidentEdit_lessonsLearned;
 
-  /// No description provided for @incidentEdit_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get incidentEdit_save;
-
   /// No description provided for @incidentEdit_privacyNote.
   ///
   /// In en, this message translates to:

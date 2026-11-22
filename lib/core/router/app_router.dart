@@ -1491,6 +1491,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'incidentNew',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => IncidentEditPage(
                   diveId: state.uri.queryParameters['diveId'],
                   observationId: state.uri.queryParameters['observationId'],
@@ -1499,6 +1500,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':incidentId',
                 name: 'incidentEdit',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => IncidentEditPage(
                   incidentId: state.pathParameters['incidentId'],
                 ),

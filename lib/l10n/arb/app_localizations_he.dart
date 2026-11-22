@@ -42328,9 +42328,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get incidentEdit_lessonsLearned => 'מה יעזור בפעם הבאה (אופציונלי)';
 
   @override
-  String get incidentEdit_save => 'שמור';
-
-  @override
   String get incidentEdit_privacyNote =>
       'דוחות כמעט-תאונה מסתנכרנים בין המכשירים שלך ונכללים בגיבויים, אך לעולם לא בייצוא או בדפי יומן משותפים.';
 

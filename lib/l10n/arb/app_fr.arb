@@ -12753,7 +12753,6 @@
   "incidentEdit_narrative_required": "Décrivez ce qui s'est passé",
   "incidentEdit_contributingFactors": "Facteurs contributifs (facultatif)",
   "incidentEdit_lessonsLearned": "Ce qui aiderait la prochaine fois (facultatif)",
-  "incidentEdit_save": "Enregistrer",
   "incidentEdit_privacyNote": "Les rapports de presque-accidents se synchronisent entre vos appareils et figurent dans vos sauvegardes, mais jamais dans les exports ni les pages de carnet partagées.",
   "incidentEdit_equipment": "Équipement impliqué",
   "incidentEdit_equipment_none": "Aucun",

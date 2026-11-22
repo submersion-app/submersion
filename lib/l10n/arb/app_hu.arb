@@ -12753,7 +12753,6 @@
   "incidentEdit_narrative_required": "Írja le, mi történt",
   "incidentEdit_contributingFactors": "Mi játszott közre (opcionális)",
   "incidentEdit_lessonsLearned": "Mi segítene legközelebb (opcionális)",
-  "incidentEdit_save": "Mentés",
   "incidentEdit_privacyNote": "A kvázibaleset-jelentések szinkronizálódnak az eszközeid között és a mentésekben is szerepelnek, de exportokba vagy megosztott naplóoldalakra soha nem kerülnek.",
   "incidentEdit_equipment": "Érintett felszerelés",
   "incidentEdit_equipment_none": "Nincs",

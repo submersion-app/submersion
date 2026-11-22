@@ -12753,7 +12753,6 @@
   "incidentEdit_narrative_required": "Descrivi cosa è successo",
   "incidentEdit_contributingFactors": "Cosa ha contribuito (facoltativo)",
   "incidentEdit_lessonsLearned": "Cosa aiuterebbe la prossima volta (facoltativo)",
-  "incidentEdit_save": "Salva",
   "incidentEdit_privacyNote": "I rapporti di quasi incidente si sincronizzano tra i tuoi dispositivi e sono inclusi nei backup, ma mai nelle esportazioni o nelle pagine condivise del logbook.",
   "incidentEdit_equipment": "Attrezzatura coinvolta",
   "incidentEdit_equipment_none": "Nessuna",
