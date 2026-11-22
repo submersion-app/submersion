@@ -897,12 +897,16 @@ void main() {
           domain.DiveProfilePoint(timestamp: t - 1300, depth: point(t).depth),
       ];
 
-      Future<void> seedSplitDive() async {
+      Future<void> seedSplitDive({
+        List<domain.DiveTank> wholeTanks = const [],
+        List<domain.DiveTank> halfTanks = const [],
+      }) async {
         await seedDive(
           'whole',
           entry: DateTime.utc(2026, 4, 10, 19, 52),
           runtimeMin: 48,
           computerId: 'comp-x',
+          tanks: wholeTanks,
           profile: whole,
         );
         await seedDataSource(
@@ -922,6 +926,7 @@ void main() {
           ).add(const Duration(seconds: 1300)),
           runtimeMin: 26,
           computerId: 'comp-x',
+          tanks: halfTanks,
           profile: secondHalf,
         );
         await seedDataSource(
@@ -1012,6 +1017,103 @@ void main() {
         )..where((r) => r.diveId.equals('half'))).get();
         expect(restored.single.rawData, [9, 9, 9]);
       });
+
+      test('repeats no pressure the target\'s cylinder already has', () async {
+        // The same cylinder on both entries (same gas, pressures within the
+        // dedupe tolerance), so the copy's cylinder folds into the target's.
+        await seedSplitDive(
+          wholeTanks: [tank('tk-w', o2: 21, start: 200, end: 60, order: 0)],
+          halfTanks: [tank('tk-h', o2: 21, start: 200, end: 60, order: 0)],
+        );
+        await seedTankPressureSeries(
+          'tp-w',
+          diveId: 'whole',
+          tankId: 'tk-w',
+          timestamp: 1500,
+          pressure: 120,
+        );
+        await seedTankPressureSeries(
+          'tp-h',
+          diveId: 'half',
+          tankId: 'tk-h',
+          timestamp: 200,
+          pressure: 120,
+        );
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final held = await tankSeries.getSeriesForDive('whole');
+        expect(held, hasLength(1));
+        expect(held.single.tankId, 'tk-w');
+        expect(held.single.samples.single.timestamp, 1500);
+      });
+
+      test('carries the copy\'s pressures to a cylinder the target has none '
+          'for', () async {
+        await seedSplitDive(
+          wholeTanks: [tank('tk-w', o2: 21, start: 200, end: 60, order: 0)],
+          halfTanks: [tank('tk-h', o2: 21, start: 200, end: 60, order: 0)],
+        );
+        await seedTankPressureSeries(
+          'tp-h',
+          diveId: 'half',
+          tankId: 'tk-h',
+          timestamp: 200,
+          pressure: 120,
+        );
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final held = await tankSeries.getSeriesForDive('whole');
+        expect(held, hasLength(1));
+        expect(held.single.tankId, 'tk-w');
+        // Placed on the target's clock: 200 s into the copy is 1500 s in.
+        expect(held.single.samples.single.timestamp, 1500);
+      });
+
+      test(
+        'repeats no gas switch the target holds and keeps one it lacks',
+        () async {
+          await seedSplitDive(
+            wholeTanks: [tank('tk-w', o2: 21, start: 200, end: 60, order: 0)],
+            halfTanks: [tank('tk-h', o2: 21, start: 200, end: 60, order: 0)],
+          );
+          await seedGasSwitch(
+            'sw-w',
+            diveId: 'whole',
+            tankId: 'tk-w',
+            timestamp: 1500,
+          );
+          // The same switch as the target's, two seconds off on the copy's
+          // clock, and one the target never logged.
+          await seedGasSwitch(
+            'sw-h-same',
+            diveId: 'half',
+            tankId: 'tk-h',
+            timestamp: 198,
+          );
+          await seedGasSwitch(
+            'sw-h-new',
+            diveId: 'half',
+            tankId: 'tk-h',
+            timestamp: 400,
+          );
+
+          await service.apply(
+            targetDiveId: 'whole',
+            secondaryDiveIds: ['half'],
+          );
+
+          final switches = await (db.select(
+            db.gasSwitches,
+          )..where((g) => g.diveId.equals('whole'))).get();
+          expect(switches.map((g) => g.timestamp).toList()..sort(), [
+            1500,
+            1700,
+          ]);
+          expect(switches.every((g) => g.tankId == 'tk-w'), isTrue);
+        },
+      );
 
       test(
         'is still refused when its depths differ from the target\'s',
