@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_sync_marks.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
@@ -28,18 +29,28 @@ typedef StoreRunWrite = ({
 });
 
 /// What the marine life model found on each piece of media, and the diver's
-/// decisions on it (issue #4668). Never synced: the rows are this device's,
-/// and the app derives them; the diver's own record is the species tags.
+/// decisions on it (issue #4668). Synced since v381 (issue #4876): every
+/// write is published through [IdentificationSyncMarks].
 class MediaIdentificationRepository {
   /// [database] fixes the logbook; otherwise [currentDatabase] (by default
   /// [DatabaseService]'s) is asked on every call. Both together are
   /// refused in every build, since one would silently win.
+  ///
+  /// [marks] publishes writes to sync. By default only the app's own
+  /// logbook publishes: a repository given a database of its own (a test)
+  /// marks nothing unless it is handed marks.
   MediaIdentificationRepository({
     AppDatabase? database,
     AppDatabase Function()? currentDatabase,
+    IdentificationSyncMarks? marks,
   }) : _currentDatabase = database != null
            ? (() => database)
-           : (currentDatabase ?? _openLogbook) {
+           : (currentDatabase ?? _openLogbook),
+       _marks =
+           marks ??
+           (database == null && currentDatabase == null
+               ? IdentificationSyncMarks()
+               : null) {
     if (database != null && currentDatabase != null) {
       throw ArgumentError(
         'Give a fixed database or a way to find one, not both',
@@ -48,6 +59,7 @@ class MediaIdentificationRepository {
   }
 
   final AppDatabase Function() _currentDatabase;
+  final IdentificationSyncMarks? _marks;
 
   static AppDatabase _openLogbook() => DatabaseService.instance.database;
 
@@ -159,9 +171,12 @@ class MediaIdentificationRepository {
     MediaIdentificationRun run, {
     required List<MediaIdentification> insert,
     required List<String> deleteIds,
-  }) => _transaction(
-    (db) => _write(db, run, insert: insert, deleteIds: deleteIds),
-  );
+  }) async {
+    await _transaction(
+      (db) => _write(db, run, insert: insert, deleteIds: deleteIds),
+    );
+    await _publishStored(run.mediaId, insert: insert, deleteIds: deleteIds);
+  }
 
   /// [storeRun], with what to write worked out by [build] from the rows of
   /// [mediaId] as they are stored, read in the same transaction when
@@ -174,18 +189,46 @@ class MediaIdentificationRepository {
     required bool read,
     required Future<StoreRunWrite?> Function(List<MediaIdentification>? current)
     build,
-  }) => _transaction((db) async {
-    final current = read ? await forMedia(mediaId) : null;
-    final write = await build(current);
+  }) async {
+    final write = await _transaction((db) async {
+      final current = read ? await forMedia(mediaId) : null;
+      final write = await build(current);
+      if (write == null) return null;
+      await _write(
+        db,
+        write.run,
+        insert: write.insert,
+        deleteIds: write.deleteIds,
+      );
+      return write;
+    });
     if (write == null) return false;
-    await _write(
-      db,
-      write.run,
+    await _publishStored(
+      write.run.mediaId,
       insert: write.insert,
       deleteIds: write.deleteIds,
     );
     return true;
-  });
+  }
+
+  /// Publishes a stored run: the run, the rows written (with the decisions
+  /// they carry under the decision clock) and tombstones for the rows
+  /// deleted.
+  Future<void> _publishStored(
+    String mediaId, {
+    required List<MediaIdentification> insert,
+    required List<String> deleteIds,
+  }) async {
+    final marks = _marks;
+    if (marks == null) return;
+    await marks.runsWritten([mediaId]);
+    await marks.rowsWritten([for (final i in insert) i.id]);
+    await marks.decisionsWritten([
+      for (final i in insert)
+        if (i.saidByDiver) i.id,
+    ]);
+    await marks.deleted(rowIds: deleteIds);
+  }
 
   Future<void> _write(
     AppDatabase db,
@@ -214,21 +257,26 @@ class MediaIdentificationRepository {
   /// same rows since (issue #4675), and those columns stay as stored. Only
   /// rows still stored are written: a decision that lands after the rows
   /// were cleared or replaced must not bring them back.
-  Future<void> updateDecisions(List<MediaIdentification> changed) =>
-      _transaction((db) async {
-        for (final identification in changed) {
-          final row = _toCompanion(identification);
-          await _writeOver(
-            db,
-            identification.id,
-            MediaIdentificationsCompanion(
-              decision: row.decision,
-              decidedSpeciesId: row.decidedSpeciesId,
-              decidedAt: row.decidedAt,
-            ),
-          );
-        }
-      });
+  Future<void> updateDecisions(List<MediaIdentification> changed) async {
+    final written = await _transaction((db) async {
+      final written = <String>[];
+      for (final identification in changed) {
+        final row = _toCompanion(identification);
+        final count = await _writeOver(
+          db,
+          identification.id,
+          MediaIdentificationsCompanion(
+            decision: row.decision,
+            decidedSpeciesId: row.decidedSpeciesId,
+            decidedAt: row.decidedAt,
+          ),
+        );
+        if (count > 0) written.add(identification.id);
+      }
+      return written;
+    });
+    await _marks?.decisionsWritten(written);
+  }
 
   /// Writes what naming found for [changed] (scores, candidates and label
   /// flags) and [run], moved on to the pack and place they were named for,
@@ -238,26 +286,39 @@ class MediaIdentificationRepository {
   Future<void> updateNames(
     List<MediaIdentification> changed, {
     required MediaIdentificationRun run,
-  }) => _transaction((db) async {
-    for (final identification in changed) {
-      final row = _toCompanion(identification);
-      await _writeOver(
-        db,
-        identification.id,
-        MediaIdentificationsCompanion(
-          openScore: row.openScore,
-          candidatesJson: row.candidatesJson,
-          locationLimited: row.locationLimited,
-          suggestable: row.suggestable,
-          confident: row.confident,
-          specific: row.specific,
-        ),
-      );
-    }
-    await db.update(db.mediaIdentificationRuns).replace(_runToCompanion(run));
-  });
+  }) async {
+    final written = await _transaction((db) async {
+      final written = <String>[];
+      for (final identification in changed) {
+        final row = _toCompanion(identification);
+        final count = await _writeOver(
+          db,
+          identification.id,
+          MediaIdentificationsCompanion(
+            openScore: row.openScore,
+            candidatesJson: row.candidatesJson,
+            locationLimited: row.locationLimited,
+            suggestable: row.suggestable,
+            confident: row.confident,
+            specific: row.specific,
+          ),
+        );
+        if (count > 0) written.add(identification.id);
+      }
+      // Only the columns the run sets: its clock, and a maker, run id or
+      // bars it does not know, stay as stored.
+      final runs =
+          await (db.update(db.mediaIdentificationRuns)
+                ..where((r) => r.mediaId.equals(run.mediaId)))
+              .write(_runToCompanion(run));
+      return (rows: written, run: runs > 0);
+    });
+    await _marks?.rowsWritten(written.rows);
+    if (written.run) await _marks?.runsWritten([run.mediaId]);
+  }
 
-  Future<void> _writeOver(
+  /// Returns how many rows it wrote: none when the row is gone.
+  Future<int> _writeOver(
     AppDatabase db,
     String id,
     MediaIdentificationsCompanion columns,
@@ -268,25 +329,36 @@ class MediaIdentificationRepository {
   /// Records that the diver gave [identificationId] the species
   /// [speciesId] from the frame (issue #4675). Writes nothing when the row
   /// is gone: a claim must not bring back a cleared identification.
-  Future<void> claim(String identificationId, String speciesId) {
+  Future<void> claim(String identificationId, String speciesId) async {
     final db = _db;
-    return (db.update(
-      db.mediaIdentifications,
-    )..where((r) => r.id.equals(identificationId))).write(
-      MediaIdentificationsCompanion(claimedSpeciesId: Value(speciesId)),
-    );
+    final count =
+        await (db.update(
+          db.mediaIdentifications,
+        )..where((r) => r.id.equals(identificationId))).write(
+          MediaIdentificationsCompanion(claimedSpeciesId: Value(speciesId)),
+        );
+    if (count > 0) await _marks?.decisionsWritten([identificationId]);
   }
 
   /// Removes the runs and identifications of [mediaIds]; returns the ids of
   /// the identifications removed, for their crops and embeddings.
   Future<List<String>> deleteForMedia(List<String> mediaIds) async {
     if (mediaIds.isEmpty) return const [];
-    return _transaction((db) async {
+    final (:ids, :runs) = await _transaction((db) async {
       final ids = <String>[];
+      final runs = <String>[];
       // In slices: a sweep after a large sync deletion can name more media
       // than SQLite takes in one statement.
       for (final slice in mediaIds.slices(_slice)) {
         ids.addAll(await _idsWhere(db, (r) => r.mediaId.isIn(slice)));
+        final table = db.mediaIdentificationRuns;
+        runs.addAll(
+          await (db.selectOnly(table)
+                ..addColumns([table.mediaId])
+                ..where(table.mediaId.isIn(slice)))
+              .map((r) => r.read(table.mediaId)!)
+              .get(),
+        );
         await (db.delete(
           db.mediaIdentifications,
         )..where((r) => r.mediaId.isIn(slice))).go();
@@ -294,8 +366,10 @@ class MediaIdentificationRepository {
           db.mediaIdentificationRuns,
         )..where((r) => r.mediaId.isIn(slice))).go();
       }
-      return ids;
+      return (ids: ids, runs: runs);
     });
+    await _marks?.deleted(runMediaIds: runs, rowIds: ids);
+    return ids;
   }
 
   static const _slice = 500;
