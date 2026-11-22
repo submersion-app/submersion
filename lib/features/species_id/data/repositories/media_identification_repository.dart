@@ -18,6 +18,7 @@ import 'package:submersion/features/species_id/domain/services/scanned_ranges_co
 import 'package:submersion/features/species_id/domain/services/track_path_codec.dart';
 
 part 'media_identification_rows.dart';
+part 'media_identification_tombstones.dart';
 
 /// The logbook a transaction of [MediaIdentificationRepository] runs on,
 /// and whether that transaction has ended.
