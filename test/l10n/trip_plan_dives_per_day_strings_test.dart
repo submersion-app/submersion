@@ -23,6 +23,7 @@ void main() {
     'nl': ('1 duik/dag', '3 duiken/dag'),
     'pt': ('1 mergulho/dia', '3 mergulhos/dia'),
     'zh': ('每天 1 次潜水', '每天 3 次潜水'),
+    'ja': ('1日1本', '1日3本'),
   };
 
   test('every shipped locale is covered', () {
