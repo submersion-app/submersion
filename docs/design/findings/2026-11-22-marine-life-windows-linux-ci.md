@@ -119,5 +119,6 @@ These still need a real machine, and the maintainer has none to hand:
 - **A desktop Linux PC** with a display and a GPU driver. The runner ran
   under `xvfb`.
 - **Speed on a diver's PC.** The runners' 4 shared processors are slower
-  than most desktops, so the times above are a floor for a modest machine,
-  not a measure of what divers will see.
+  than most desktops, so the times above are an upper bound: a modest
+  machine should take about this long and a faster one less. They are not
+  a measure of what divers will see.
