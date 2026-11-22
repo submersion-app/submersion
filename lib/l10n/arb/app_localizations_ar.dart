@@ -14062,6 +14062,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_nameLabel => 'الاسم *';
 
   @override
+  String get divers_edit_notFound => 'لم يعد هذا الغواص موجودًا.';
+
+  @override
   String get divers_edit_notesLabel => 'ملاحظات';
 
   @override
@@ -18440,10 +18443,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formatter_connector_at => 'عند';
 
   @override
-  String get formatter_connector_from => 'من';
+  String formatter_dateRange_from(String date) {
+    return 'من $date';
+  }
 
   @override
-  String get formatter_connector_until => 'حتى';
+  String formatter_dateRange_until(String date) {
+    return 'حتى $date';
+  }
 
   @override
   String get gas_air_description => 'هواء قياسي (21% O2)';
@@ -20363,24 +20370,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String media_siteAttachment_groupHeading(String category, int count) {
     return '$category ($count)';
-  }
-
-  @override
-  String get media_siteAttachment_moreOptions => 'خيارات إضافية';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count صفحة',
-      many: '$count صفحة',
-      few: '$count صفحات',
-      two: '$count صفحتان',
-      one: '$count صفحة',
-      zero: '$count صفحة',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -26344,6 +26333,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'تبديلات الغاز معدّلة يدويًا';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'قيم معدّلة يدويًا';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -40554,6 +40546,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'غطسات احتفظت بقيم عيّنتها يدويًا: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'الغطسات التي فشلت';
 
   @override
@@ -40579,6 +40576,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'غطسات محددة بلا بيانات أولية (سيتم تخطيها): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'يتم الاحتفاظ بالقيم التي عيّنتها يدويًا.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40748,6 +40749,40 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'إعادة المزامنة من الملف الأصلي';
+
+  @override
+  String get handSetReview_reparseTitle => 'إعادة تحليل هذه الغطسة؟';
+
+  @override
+  String get handSetReview_resyncTitle => 'إعادة مزامنة هذه الغطسة؟';
+
+  @override
+  String get handSetReview_message =>
+      'لقد عيّنت هذه القيم يدويًا، والقراءة الجديدة مختلفة. احتفظ بقيمك أو استبدل كل واحدة منها.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'قيمتك: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'الحاسوب: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'الملف: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'احتفظ';
+
+  @override
+  String get handSetReview_replace => 'استبدل';
+
+  @override
+  String get handSetReview_resyncAction => 'إعادة المزامنة';
 
   @override
   String get diveLog_detail_resyncSuccess => 'تم تحديث الغطسة من الملف الأصلي';
@@ -41532,6 +41567,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'حذف الإدخال';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'حذف هذا القياس؟';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return 'سيُحذف القياس $weight بتاريخ $date. لا يمكن التراجع عن ذلك.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'الطول (سم)';
@@ -43927,9 +43970,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get incidentEdit_lessonsLearned =>
       'ما الذي سيساعد المرة القادمة (اختياري)';
-
-  @override
-  String get incidentEdit_save => 'حفظ';
 
   @override
   String get incidentEdit_privacyNote =>
@@ -61987,6 +62027,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rules_edit_noActions => 'أضف إجراءً واحدًا على الأقل.';
 
   @override
+  String get rules_edit_notFound => 'لم تعد هذه القاعدة موجودة.';
+
+  @override
   String get rules_picker_search => 'البحث في الإجراءات';
 
   @override
@@ -66679,6 +66722,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'الآن';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'العام الماضي $value';
   }
@@ -66715,6 +66761,71 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'رحلات الغوص الأخيرة';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings رحلة',
+      many: '$outings رحلة',
+      few: '$outings رحلات',
+      two: 'رحلتان',
+      one: 'رحلة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة',
+      many: '$dives غطسة',
+      few: '$dives غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth كحد أقصى';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty => 'ستظهر رحلاتك هنا بمجرد تسجيل غطسة';
+
+  @override
+  String get dashboard_outings_unnamed => 'غطسات';
 
   @override
   String get dashboard_panel_divesPerMonth => 'الغطسات شهريًا';
@@ -66933,6 +67044,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'تقويم النشاط';
+
+  @override
+  String get settings_homePanels_recentOutings => 'رحلات الغوص الأخيرة';
 
   @override
   String get settings_homeKeyNumbers_description =>

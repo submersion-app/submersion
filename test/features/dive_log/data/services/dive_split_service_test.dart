@@ -298,6 +298,70 @@ void main() {
     );
   });
 
+  // Values the diver set by hand (issue #4909): a mark follows its value.
+  group('hand-set marks', () {
+    Future<String?> marksOf(String diveId) async => (await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingle()).handSetFields;
+
+    Future<void> markedDive() async {
+      await insertDive('dive-1', computerId: 'dc-a');
+      await db.customStatement(
+        "UPDATE dives SET water_temp = 26, hand_set_fields = "
+        "'[\"maxDepth\",\"waterTemp\"]' WHERE id = 'dive-1'",
+      );
+      await insertSource(
+        'src-a',
+        'dive-1',
+        'dc-a',
+        isPrimary: true,
+        maxDepth: 21.7,
+        createdAt: DateTime.utc(2026, 1, 1),
+      );
+      await insertSource(
+        'src-b',
+        'dive-1',
+        'dc-b',
+        isPrimary: false,
+        maxDepth: 18.3,
+        createdAt: DateTime.utc(2026, 1, 2),
+      );
+      await insertProfileSeriesRow(
+        'dive-1',
+        'dc-a',
+        isPrimary: true,
+        depth: 21.7,
+      );
+      await insertProfileSeriesRow(
+        'dive-1',
+        'dc-b',
+        isPrimary: false,
+        depth: 18.3,
+      );
+    }
+
+    test('the split dive keeps the marks of the values it took', () async {
+      await markedDive();
+
+      final newDiveId = await service.split(
+        diveId: 'dive-1',
+        sourceId: 'src-b',
+      );
+
+      // Its depth is its own computer's; its temperature the diver's.
+      expect(await marksOf(newDiveId), '["waterTemp"]');
+      expect(await marksOf('dive-1'), '["maxDepth","waterTemp"]');
+    });
+
+    test('a value refreshed from the next source loses its mark', () async {
+      await markedDive();
+
+      await service.split(diveId: 'dive-1', sourceId: 'src-a');
+
+      expect(await marksOf('dive-1'), '["waterTemp"]');
+    });
+  });
+
   test('splitting the primary promotes the remaining source', () async {
     await insertDive('dive-1', computerId: 'dc-a');
     await insertSource(

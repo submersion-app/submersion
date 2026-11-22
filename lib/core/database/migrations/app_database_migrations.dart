@@ -81,6 +81,7 @@ part 'helpers/deco_status_migrations.dart';
 part 'helpers/derived_metrics_migrations.dart';
 part 'helpers/dive_computer_auto_download_migrations.dart';
 part 'helpers/dive_computer_connection_migrations.dart';
+part 'helpers/dive_hand_set_fields_migrations.dart';
 part 'helpers/dive_health_migrations.dart';
 part 'helpers/dive_media_time_offset_migrations.dart';
 part 'helpers/dive_migrations.dart';

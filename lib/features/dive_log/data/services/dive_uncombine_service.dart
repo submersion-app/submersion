@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/data/services/merge_gap_fill.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
@@ -435,6 +436,9 @@ class DiveUncombineService {
       recordId: newDiveId,
       localUpdatedAt: now,
     );
+    // The copy brought every hand-set mark; only those whose value it kept
+    // stay the diver's (issue #4909).
+    await carryHandSetMarks(_db, newDiveId, [diveRow]);
 
     // 2. Provenance rows, copied onto the restored dive. Every row in a
     // segment overlaps the others in time -- that is what put them in one
@@ -785,6 +789,9 @@ class DiveUncombineService {
     await (_db.update(
       _db.dives,
     )..where((t) => t.id.equals(diveId))).write(update);
+    // A value refreshed from the kept segment is no longer the one the diver
+    // set, so its mark goes (issue #4909).
+    await carryHandSetMarks(_db, diveId, [diveRow]);
     await _sync.markRecordPending(
       entityType: 'dives',
       recordId: diveId,

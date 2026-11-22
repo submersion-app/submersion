@@ -138,8 +138,8 @@ int? readLabelPhrase(
 
 /// Whether a bare [word] only joins a sentence together. English always
 /// counts, since the date grammar reads it; the [language] adds its own.
-/// Hungarian, Arabic, Hebrew and Chinese attach these to the word they qualify
-/// or write no space, so they list none.
+/// Hungarian, Arabic, Hebrew, Chinese and Japanese attach these to the word
+/// they qualify or write no space, so they list none.
 bool isFillerWord(String word, String? language) {
   final lower = word.toLowerCase();
   return _englishFillers.contains(lower) ||

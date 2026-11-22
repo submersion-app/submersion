@@ -126,6 +126,16 @@ void main() {
       expect(filter('1\u202F250,5'), '1\u202F250,5');
     });
 
+    // parseUserDecimal folds these, so the filter must let them through
+    // (#4833): a Japanese IME in full-width mode types them.
+    test('keeps full-width digits, separators and minus', () {
+      Intl.defaultLocale = 'ja';
+      expect(
+        filter('\uff0d\uff11\uff0c\uff12\uff13\uff14\uff0e\uff15'),
+        '\uff0d\uff11\uff0c\uff12\uff13\uff14\uff0e\uff15',
+      );
+    });
+
     test('keeps the locale minus sign, direction mark included', () {
       Intl.defaultLocale = 'he';
       expect(filter('\u200E-5'), '\u200E-5');

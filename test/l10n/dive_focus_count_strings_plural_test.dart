@@ -84,6 +84,7 @@ void main() {
         'Apenas 3 mergulhos têm este valor, por isso são todos mostrados',
       ),
       'zh': ('只有 1 次潜水有此数值，因此显示这一次', '只有 3 次潜水有此数值，因此全部显示'),
+      'ja': ('この値を持つダイブは1本だけなので、そのダイブを表示しています', 'この値を持つダイブは3本だけなので、すべて表示しています'),
     },
   );
 
@@ -103,6 +104,7 @@ void main() {
       'nl': ('1 van 1 duik', '2 van 3 duiken'),
       'pt': ('1 de 1 mergulho', '2 de 3 mergulhos'),
       'zh': ('1 次中的 1 次', '3 次中的 2 次'),
+      'ja': ('1本中1本', '3本中2本'),
     },
   );
 
@@ -154,6 +156,7 @@ void main() {
         '2 de 3 mergulhos. Média G, contra O em todos os seus mergulhos.',
       ),
       'zh': ('1 次潜水中的 1 次。平均 G，全部潜水为 O。', '3 次潜水中的 2 次。平均 G，全部潜水为 O。'),
+      'ja': ('1本中、1本。平均はG（全ダイブの平均はO）。', '3本中、2本。平均はG（全ダイブの平均はO）。'),
     },
   );
 
@@ -173,6 +176,7 @@ void main() {
       'nl': ('Toon de 1 duik', 'Toon alle 6 duiken'),
       'pt': ('Mostrar o mergulho', 'Mostrar todos os 6 mergulhos'),
       'zh': ('显示这 1 次潜水', '显示全部 6 次潜水'),
+      'ja': ('1本のダイブを表示', '全6本のダイブを表示'),
     },
   );
 
@@ -216,6 +220,7 @@ void main() {
         'e mais 3 na comparação completa',
       ),
       'zh': ('完整对比中还有 1 项', '完整对比中还有 3 项'),
+      'ja': ('ほか1件は詳細比較に表示', 'ほか3件は詳細比較に表示'),
     },
   );
 
@@ -235,6 +240,7 @@ void main() {
       'nl': ('Toon 1 factor meer', 'Toon 4 factoren meer'),
       'pt': ('Mostrar mais 1 fator', 'Mostrar mais 4 fatores'),
       'zh': ('显示另外 1 项因素', '显示另外 4 项因素'),
+      'ja': ('さらに1件の要因を表示', 'さらに4件の要因を表示'),
     },
   );
 

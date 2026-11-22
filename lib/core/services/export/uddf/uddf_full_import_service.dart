@@ -1692,6 +1692,13 @@ class UddfFullImportService {
       if (gasSwitchesEdited?.toLowerCase() == 'true') {
         diveData['gasSwitchesEdited'] = true;
       }
+      final handSetFields = UddfImportParsers.getElementText(
+        afterElement,
+        'handsetfields',
+      );
+      if (handSetFields != null && handSetFields.isNotEmpty) {
+        diveData['handSetFields'] = handSetFields;
+      }
       final mediaTimeOffset = int.tryParse(
         UddfImportParsers.getElementText(afterElement, 'mediatimeoffset') ?? '',
       );

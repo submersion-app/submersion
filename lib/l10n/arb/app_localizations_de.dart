@@ -13855,6 +13855,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divers_edit_nameLabel => 'Name *';
 
   @override
+  String get divers_edit_notFound => 'Diesen Taucher gibt es nicht mehr.';
+
+  @override
   String get divers_edit_notesLabel => 'Notizen';
 
   @override
@@ -18141,10 +18144,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get formatter_connector_at => 'um';
 
   @override
-  String get formatter_connector_from => 'Von';
+  String formatter_dateRange_from(String date) {
+    return 'Von $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Bis';
+  String formatter_dateRange_until(String date) {
+    return 'Bis $date';
+  }
 
   @override
   String get gas_air_description => 'Standardluft (21% O2)';
@@ -20039,20 +20046,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String media_siteAttachment_groupHeading(String category, int count) {
     return '$category ($count)';
-  }
-
-  @override
-  String get media_siteAttachment_moreOptions => 'Weitere Optionen';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Seiten',
-      one: '$count Seite',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -25964,6 +25957,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gaswechsel von Hand bearbeitet';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'Von Hand gesetzte Werte';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -39952,6 +39948,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Tauchgänge mit behaltenen, von Hand gesetzten Werten: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Fehlgeschlagene Tauchgänge';
 
   @override
@@ -39977,6 +39978,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Ausgewählte Tauchgänge ohne Rohdaten (übersprungen): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Von Hand gesetzte Werte bleiben erhalten.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40142,6 +40147,41 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Erneut aus Originaldatei synchronisieren';
+
+  @override
+  String get handSetReview_reparseTitle => 'Diesen Tauchgang neu auswerten?';
+
+  @override
+  String get handSetReview_resyncTitle =>
+      'Diesen Tauchgang erneut synchronisieren?';
+
+  @override
+  String get handSetReview_message =>
+      'Diese Werte hast du von Hand gesetzt, und die neue Auswertung weicht ab. Behalte deine Werte oder ersetze jeden einzeln.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Deiner: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Computer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Datei: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Behalten';
+
+  @override
+  String get handSetReview_replace => 'Ersetzen';
+
+  @override
+  String get handSetReview_resyncAction => 'Synchronisieren';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -40869,6 +40909,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Eintrag löschen';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Diese Messung löschen?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight vom $date wird gelöscht. Das lässt sich nicht rückgängig machen.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Größe (cm)';
@@ -43293,9 +43341,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get incidentEdit_lessonsLearned =>
       'Was beim nächsten Mal helfen würde (optional)';
-
-  @override
-  String get incidentEdit_save => 'Speichern';
 
   @override
   String get incidentEdit_privacyNote =>
@@ -61037,6 +61082,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rules_edit_noActions => 'Füge mindestens eine Aktion hinzu.';
 
   @override
+  String get rules_edit_notFound => 'Diese Regel existiert nicht mehr.';
+
+  @override
   String get rules_picker_search => 'Aktionen suchen';
 
   @override
@@ -65590,6 +65638,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'jetzt';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Letztes Jahr $value';
   }
@@ -65620,6 +65671,60 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Letzte Tauchausflüge';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings Ausflüge',
+      one: '1 Ausflug',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth max.';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Arten',
+      one: '1 Art',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Ausflüge erscheinen hier, sobald ein Tauchgang erfasst ist';
+
+  @override
+  String get dashboard_outings_unnamed => 'Tauchgänge';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Tauchgänge pro Monat';
@@ -65829,6 +65934,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Aktivitätskalender';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Letzte Tauchausflüge';
 
   @override
   String get settings_homeKeyNumbers_description =>

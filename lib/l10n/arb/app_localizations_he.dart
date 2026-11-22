@@ -13560,6 +13560,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_nameLabel => 'שם *';
 
   @override
+  String get divers_edit_notFound => 'הצולל הזה כבר לא קיים.';
+
+  @override
   String get divers_edit_notesLabel => 'הערות';
 
   @override
@@ -17784,10 +17787,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get formatter_connector_at => 'ב';
 
   @override
-  String get formatter_connector_from => 'מ';
+  String formatter_dateRange_from(String date) {
+    return 'מ $date';
+  }
 
   @override
-  String get formatter_connector_until => 'עד';
+  String formatter_dateRange_until(String date) {
+    return 'עד $date';
+  }
 
   @override
   String get gas_air_description => 'אוויר סטנדרטי (21% O2)';
@@ -19631,20 +19638,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String media_siteAttachment_groupHeading(String category, int count) {
     return '$category ($count)';
-  }
-
-  @override
-  String get media_siteAttachment_moreOptions => 'אפשרויות נוספות';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count עמודים',
-      one: '$count עמוד',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -25397,6 +25390,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'החלפות גז נערכו ידנית';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'ערכים שהוגדרו ידנית';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds => 'הסטת זמן המדיה';
@@ -39068,6 +39064,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'צלילות ששמרו על ערכים שהגדרת ידנית: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'צלילות שנכשלו';
 
   @override
@@ -39093,6 +39094,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'צלילות נבחרות ללא נתונים גולמיים (ידולגו): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept => 'ערכים שהגדרת ידנית נשמרים.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -39255,6 +39259,40 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'סנכרן מחדש מהקובץ המקורי';
+
+  @override
+  String get handSetReview_reparseTitle => 'לנתח מחדש את הצלילה הזו?';
+
+  @override
+  String get handSetReview_resyncTitle => 'לסנכרן מחדש את הצלילה הזו?';
+
+  @override
+  String get handSetReview_message =>
+      'הגדרת את הערכים האלה ידנית, והקריאה החדשה שונה. שמור את שלך או החלף כל אחד מהם.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'שלך: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'מחשב: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'קובץ: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'שמור';
+
+  @override
+  String get handSetReview_replace => 'החלף';
+
+  @override
+  String get handSetReview_resyncAction => 'סנכרן מחדש';
 
   @override
   String get diveLog_detail_resyncSuccess => 'הצלילה עודכנה מהקובץ המקורי';
@@ -39957,6 +39995,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'מחק רשומה';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'למחוק את המדידה הזו?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight מתאריך $date יימחק. אי אפשר לבטל את הפעולה.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'גובה (ס״מ)';
@@ -42332,9 +42378,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get incidentEdit_lessonsLearned => 'מה יעזור בפעם הבאה (אופציונלי)';
-
-  @override
-  String get incidentEdit_save => 'שמור';
 
   @override
   String get incidentEdit_privacyNote =>
@@ -59897,6 +59940,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get rules_edit_noActions => 'הוסף לפחות פעולה אחת.';
 
   @override
+  String get rules_edit_notFound => 'הכלל הזה כבר לא קיים.';
+
+  @override
   String get rules_picker_search => 'חיפוש פעולות';
 
   @override
@@ -64389,6 +64435,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'עכשיו';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'שנה שעברה $value';
   }
@@ -64419,6 +64468,60 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'יציאות אחרונות';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings יציאות',
+      one: 'יציאה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth מקס׳';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים',
+      one: 'מין אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'היציאות שלך יופיעו כאן לאחר שתתעד צלילה';
+
+  @override
+  String get dashboard_outings_unnamed => 'צלילות';
 
   @override
   String get dashboard_panel_divesPerMonth => 'צלילות לחודש';
@@ -64625,6 +64728,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'לוח פעילות';
+
+  @override
+  String get settings_homePanels_recentOutings => 'יציאות אחרונות';
 
   @override
   String get settings_homeKeyNumbers_description =>

@@ -14,6 +14,7 @@ void main() {
     bool excludedFromStats = false,
     bool excludedFromGasStats = false,
     bool gasSwitchesEdited = false,
+    String? handSetFields,
   }) => Dive(
     id: 'dive-exclusion',
     diveNumber: 1,
@@ -23,6 +24,7 @@ void main() {
     excludedFromStats: excludedFromStats,
     excludedFromGasStats: excludedFromGasStats,
     gasSwitchesEdited: gasSwitchesEdited,
+    handSetFields: handSetFields,
   );
 
   String exportOne(Dive dive) {
@@ -86,6 +88,42 @@ void main() {
 
     expect(result.dives.single['gasSwitchesEdited'], isTrue);
     expect(result.dives.single['excludedFromStats'], isNull);
+  });
+
+  // The values the diver set by hand (issue #4909) ride the same block: a
+  // restored backup that lost them would let the next re-parse overwrite
+  // those values.
+  test('a dive with nothing set by hand writes no handsetfields', () {
+    final xml = exportOne(makeDive());
+    expect(XmlDocument.parse(xml).findAllElements('handsetfields'), isEmpty);
+  });
+
+  test('values set by hand write and read back as handsetfields', () async {
+    final xml = exportOne(makeDive(handSetFields: '["waterTemp"]'));
+    expect(
+      XmlDocument.parse(xml).findAllElements('handsetfields').single.innerText,
+      '["waterTemp"]',
+    );
+
+    const backup = '''
+<uddf version="3.2.0">
+  <generator><name>Submersion</name></generator>
+  <profiledata><repetitiongroup><dive id="d1">
+    <informationbeforedive>
+      <datetime>2026-03-28T10:00:00</datetime>
+      <divenumber>1</divenumber>
+    </informationbeforedive>
+    <informationafterdive>
+      <greatestdepth>25</greatestdepth>
+      <diveduration>2700</diveduration>
+      <handsetfields>["bottomTime","waterTemp"]</handsetfields>
+    </informationafterdive>
+  </dive></repetitiongroup></profiledata>
+</uddf>''';
+
+    final result = await UddfFullImportService().importAllDataFromUddf(backup);
+
+    expect(result.dives.single['handSetFields'], '["bottomTime","waterTemp"]');
   });
 
   test('an included dive writes neither exclusion element', () {

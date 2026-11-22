@@ -22,6 +22,7 @@ class TripCardSlots {
     required this.showsWhileEmpty,
     required this.openCard,
     required this.unlockAt,
+    required this.isOpen,
   });
 
   /// The trip the cards show: the sitting's while unlocked.
@@ -57,6 +58,9 @@ class TripCardSlots {
   /// the cards a tab edits in place, with no frame: a locked tab's Scan
   /// unlocks, then scans into the sitting.
   final EditSession<Trip>? Function(TripCardId id) unlockAt;
+
+  /// Whether the card [id]'s editor is open. None is while locked.
+  final bool Function(TripCardId id) isOpen;
 
   bool get isUnlocked => session != null;
 }

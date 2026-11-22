@@ -553,7 +553,7 @@ void main() {
     });
   });
 
-  // Issue #1039: categories, large cards and the new bulk actions.
+  // Issue #1039: categories and the new bulk actions.
   group('categories', () {
     testWidgets('categorized attachments render under headings', (
       tester,
@@ -682,7 +682,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The large card offers no Edit details menu.
+    // A large attachment is a tile too, with no menu of its own.
+    expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
     expect(find.byTooltip('More options'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('enter_selection')));

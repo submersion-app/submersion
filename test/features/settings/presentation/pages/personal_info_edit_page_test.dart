@@ -1,207 +1,151 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/app/app_exit_guard.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, DiversCompanion;
 import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
-import '../../../../helpers/mock_providers.dart';
-
-class _CapturingNotifier extends StateNotifier<AsyncValue<List<Diver>>>
-    implements DiverListNotifier {
-  _CapturingNotifier(List<Diver> divers) : super(AsyncValue.data(divers));
-
-  Diver? updated;
-  Diver? added;
-
-  @override
-  Future<Diver> addDiver(Diver diver) async {
-    added = diver;
-    return diver;
-  }
-
-  @override
-  Future<void> updateDiver(Diver diver) async => updated = diver;
-
-  @override
-  Future<void> refresh() async {}
-
-  @override
-  Future<DeleteDiverResult> deleteDiver(String id) async =>
-      const DeleteDiverResult(reassignedTripsCount: 0, reassignedSitesCount: 0);
-
-  @override
-  Future<void> setAsDefault(String id) async {}
-}
+import '../../../../helpers/test_database.dart';
+import 'diver_profile_harness.dart';
 
 void main() {
-  final now = DateTime.now();
+  late AppDatabase db;
 
-  Diver makeDiver({String name = 'Alice Alpha', String? email, String? phone}) {
-    return Diver(
-      id: 'diver-1',
-      name: name,
-      email: email,
-      phone: phone,
-      createdAt: now,
-      updatedAt: now,
+  setUp(() async {
+    db = await setUpTestDatabase();
+  });
+  tearDown(tearDownTestDatabase);
+
+  Future<void> pump(WidgetTester tester, Diver diver) async {
+    await seedDiver(diver);
+    await pumpProfilePage(
+      tester,
+      path: 'personal',
+      page: const PersonalInfoEditPage(),
     );
   }
 
-  Future<_CapturingNotifier> pump(
-    WidgetTester tester,
-    Diver diver, {
-    bool isNewDiver = false,
-    AppExitGuard? exitGuard,
-  }) async {
-    tester.view.physicalSize = const Size(800, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  Diver makeDiver({String? email, String? phone}) =>
+      profileDiver(email: email).copyWith(phone: phone);
 
-    final notifier = _CapturingNotifier([diver]);
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          ...overrides,
-          if (exitGuard != null)
-            appExitGuardProvider.overrideWithValue(exitGuard),
-          currentDiverProvider.overrideWith((_) async => diver),
-          diverListNotifierProvider.overrideWith((_) => notifier),
-        ],
-        child: MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: PersonalInfoEditPage(isNewDiver: isNewDiver),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    return notifier;
-  }
+  Future<Diver> saved() async => (await storedDiver('diver-1'))!;
 
   testWidgets('populates the fields from the existing diver', (tester) async {
-    final notifier = await pump(
+    await pump(
       tester,
       makeDiver(email: 'alice@example.com', phone: '555-0100'),
     );
 
-    expect(find.widgetWithText(AppBar, 'Personal Info'), findsOneWidget);
+    expect(find.text('Personal Info'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
     expect(find.text('Alice Alpha'), findsOneWidget);
     expect(find.text('alice@example.com'), findsOneWidget);
     expect(find.text('555-0100'), findsOneWidget);
-    expect(notifier.updated, isNull);
+    expect(await sittings(db), isEmpty);
   });
 
   testWidgets('saving persists the edited name, email and phone', (
     tester,
   ) async {
-    final notifier = await pump(tester, makeDiver());
+    await pump(tester, makeDiver());
 
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Name *'),
-      '  Bruna Bravo  ',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Email'),
-      'bruna@example.com',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Phone'),
-      '555-0199',
-    );
+    await typeInto(tester, 'Name *', '  Bruna Bravo  ');
+    await typeInto(tester, 'Email', 'bruna@example.com');
+    await typeInto(tester, 'Phone', '555-0199');
+    await tapBar(tester, 'Save');
 
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(notifier.updated, isNotNull);
-    expect(notifier.updated!.id, 'diver-1');
-    expect(notifier.updated!.name, 'Bruna Bravo');
-    expect(notifier.updated!.email, 'bruna@example.com');
-    expect(notifier.updated!.phone, '555-0199');
+    final diver = await saved();
+    expect(diver.name, 'Bruna Bravo');
+    expect(diver.email, 'bruna@example.com');
+    expect(diver.phone, '555-0199');
+    expect(find.text('Hub'), findsOneWidget);
   });
 
   testWidgets('saving persists the social handle (#3728)', (tester) async {
-    final notifier = await pump(
-      tester,
-      makeDiver().copyWith(socialHandle: '@old'),
-    );
+    await pump(tester, makeDiver().copyWith(socialHandle: '@old'));
     expect(find.text('@old'), findsOneWidget);
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Social handle'),
-      '  @jordan  ',
-    );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    expect(notifier.updated!.socialHandle, '@jordan');
+
+    await typeInto(tester, 'Social handle', '  @jordan  ');
+    await tapBar(tester, 'Save');
+
+    expect((await saved()).socialHandle, '@jordan');
   });
 
   testWidgets('clearing an optional field persists null', (tester) async {
-    final notifier = await pump(
+    await pump(
       tester,
       makeDiver(email: 'alice@example.com', phone: '555-0100'),
     );
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), '');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+    await typeInto(tester, 'Email', '');
+    await tapBar(tester, 'Save');
 
-    expect(notifier.updated, isNotNull);
-    expect(notifier.updated!.email, isNull);
-    expect(notifier.updated!.phone, '555-0100');
+    final diver = await saved();
+    expect(diver.email, isNull);
+    expect(diver.phone, '555-0100');
   });
 
-  testWidgets('an empty name blocks the save', (tester) async {
-    final notifier = await pump(tester, makeDiver());
+  testWidgets('an empty name keeps the page open and writes nothing', (
+    tester,
+  ) async {
+    await pump(tester, makeDiver());
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'Name *'), '   ');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+    await typeInto(tester, 'Name *', '   ');
+    await tapBar(tester, 'Save');
 
-    expect(notifier.updated, isNull);
     expect(find.text('Name is required'), findsOneWidget);
+    expect(find.byType(PersonalInfoEditPage), findsOneWidget);
+    expect((await saved()).name, 'Alice Alpha');
+    expect(await sittings(db), isEmpty);
   });
 
   testWidgets('a malformed email blocks the save', (tester) async {
-    final notifier = await pump(tester, makeDiver());
+    await pump(tester, makeDiver());
 
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Email'),
-      'not-an-email',
-    );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+    await typeInto(tester, 'Email', 'not-an-email');
+    await tapBar(tester, 'Save');
 
-    expect(notifier.updated, isNull);
     expect(find.text('Enter a valid email'), findsOneWidget);
+    expect((await saved()).email, isNull);
   });
 
-  testWidgets('new-diver mode creates a diver instead of updating one', (
+  testWidgets('the bar is the tinted Cancel and Save bar, with no back arrow', (
     tester,
   ) async {
-    final notifier = await pump(tester, makeDiver(), isNewDiver: true);
+    await pump(tester, makeDiver());
 
-    expect(find.widgetWithText(AppBar, 'Create Diver'), findsOneWidget);
-    expect(find.text('Save'), findsOneWidget);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.byType(BackButton), findsNothing);
+  });
 
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Name *'),
-      'Carlos Charlie',
+  testWidgets('an untouched page with no sex set has Save disabled', (
+    tester,
+  ) async {
+    await pump(tester, makeDiver(email: 'alice@example.com'));
+
+    expect(barAction(tester, 'Save').onPressed, isNull);
+    await back(tester);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('Hub'), findsOneWidget);
+  });
+
+  testWidgets('a name changed in storage meanwhile survives an email Save', (
+    tester,
+  ) async {
+    await pump(tester, makeDiver());
+    await (db.update(db.divers)..where((t) => t.id.equals('diver-1'))).write(
+      const DiversCompanion(name: Value('Alice Synced')),
     );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
 
-    expect(notifier.added, isNotNull);
-    expect(notifier.added!.name, 'Carlos Charlie');
-    expect(notifier.added!.id, isNotEmpty);
-    expect(notifier.updated, isNull);
+    await typeInto(tester, 'Email', 'alice@example.com');
+    await tapBar(tester, 'Save');
+
+    final diver = await saved();
+    expect(diver.name, 'Alice Synced');
+    expect(diver.email, 'alice@example.com');
   });
 
   group('sex and birth year (issue #4525)', () {
@@ -212,10 +156,8 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    Finder birthYear() => find.widgetWithText(TextFormField, 'Birth year');
-
     testWidgets('both save to the diver', (tester) async {
-      final notifier = await pump(tester, makeDiver());
+      await pump(tester, makeDiver());
       expect(
         find.text(
           'Used only to estimate body composition for weight '
@@ -225,115 +167,71 @@ void main() {
       );
 
       await pickSex(tester, 'Female');
-      await tester.enterText(birthYear(), '1984');
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
+      await typeInto(tester, 'Birth year', '1984');
+      await tapBar(tester, 'Save');
 
-      expect(notifier.updated!.sex, DiverSex.female);
-      expect(notifier.updated!.birthYear, 1984);
+      final diver = await saved();
+      expect(diver.sex, DiverSex.female);
+      expect(diver.birthYear, 1984);
     });
 
     testWidgets('the fields show what the diver has', (tester) async {
-      final notifier = await pump(
+      await pump(
         tester,
         makeDiver().copyWith(sex: DiverSex.male, birthYear: 1980),
       );
       expect(find.text('Male'), findsOneWidget);
       expect(find.text('1980'), findsOneWidget);
 
-      // Saved untouched, they stay as they were.
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-      expect(notifier.updated!.sex, DiverSex.male);
-      expect(notifier.updated!.birthYear, 1980);
+      // Saved with only the name changed, they stay as they were.
+      await typeInto(tester, 'Name *', 'Alice Beta');
+      await tapBar(tester, 'Save');
+      final diver = await saved();
+      expect(diver.sex, DiverSex.male);
+      expect(diver.birthYear, 1980);
+    });
+
+    testWidgets('picking a sex is a change; picking it back is not', (
+      tester,
+    ) async {
+      await pump(tester, makeDiver());
+
+      await pickSex(tester, 'Female');
+      expect(barAction(tester, 'Save').onPressed, isNotNull);
+      await pickSex(tester, 'Not set');
+      expect(barAction(tester, 'Save').onPressed, isNull);
     });
 
     testWidgets('clearing both saves nulls', (tester) async {
-      final notifier = await pump(
+      await pump(
         tester,
         makeDiver().copyWith(sex: DiverSex.male, birthYear: 1980),
       );
 
       await pickSex(tester, 'Not set');
-      await tester.enterText(birthYear(), '');
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
+      await typeInto(tester, 'Birth year', '');
+      await tapBar(tester, 'Save');
 
-      expect(notifier.updated, isNotNull);
-      expect(notifier.updated!.sex, isNull);
-      expect(notifier.updated!.birthYear, isNull);
+      final diver = await saved();
+      expect(diver.sex, isNull);
+      expect(diver.birthYear, isNull);
     });
 
     testWidgets('a birth year outside 1900 to this year is rejected', (
       tester,
     ) async {
-      final notifier = await pump(tester, makeDiver());
+      await pump(tester, makeDiver());
       final thisYear = DateTime.now().year;
 
       for (final bad in ['${thisYear + 1}', '1899']) {
-        await tester.enterText(birthYear(), bad);
-        await tester.tap(find.text('Save'));
-        await tester.pumpAndSettle();
+        await typeInto(tester, 'Birth year', bad);
+        await tapBar(tester, 'Save');
         expect(
           find.text('Enter a year from 1900 to $thisYear'),
           findsOneWidget,
         );
       }
-      expect(notifier.updated, isNull);
+      expect((await saved()).birthYear, isNull);
     });
-
-    testWidgets('a new diver is created with them', (tester) async {
-      final notifier = await pump(tester, makeDiver(), isNewDiver: true);
-
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Name *'),
-        'Carlos Charlie',
-      );
-      await pickSex(tester, 'Male');
-      await tester.enterText(birthYear(), '1990');
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(notifier.added!.sex, DiverSex.male);
-      expect(notifier.added!.birthYear, 1990);
-    });
-  });
-
-  // A page underneath may hold unsaved work, which a switch would drop (#3422).
-  testWidgets('a new diver waits on the page underneath before taking over', (
-    tester,
-  ) async {
-    final guard =
-        AppExitGuard(
-          retryExit: () async {},
-          preventWindowClose: (_) async {},
-          revealWindow: () async {},
-        )..hold(
-          AppExitBlocker(
-            hasUnsavedWork: () => true,
-            confirmLeaving: () async => false,
-          ),
-        );
-    final notifier = await pump(
-      tester,
-      makeDiver(),
-      isNewDiver: true,
-      exitGuard: guard,
-    );
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Name *'),
-      'Carlos Charlie',
-    );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(notifier.added, isNotNull);
-    expect(
-      ProviderScope.containerOf(
-        tester.element(find.byType(PersonalInfoEditPage)),
-      ).read(currentDiverIdProvider),
-      isNull,
-    );
   });
 }

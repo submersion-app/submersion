@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
+import 'package:submersion/features/safety/domain/entities/incident_changes.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -85,16 +86,19 @@ void main() {
       equipmentId: reg.id,
     );
 
-    await incidents.updateIncident(
-      incident.copyWith(observationId: observation.id),
+    await incidents.applyIncidentChanges(
+      incident.id,
+      IncidentChanges(observationId: (value: observation.id)),
     );
     expect(
       (await incidents.getIncidentById(incident.id))!.observationId,
       observation.id,
     );
 
-    final linked = (await incidents.getIncidentById(incident.id))!;
-    await incidents.updateIncident(linked.copyWith(clearObservationId: true));
+    await incidents.applyIncidentChanges(
+      incident.id,
+      const IncidentChanges(observationId: (value: null)),
+    );
     expect(
       (await incidents.getIncidentById(incident.id))!.observationId,
       isNull,
@@ -238,7 +242,10 @@ void main() {
       );
       final observation = await issue();
       final incident = await linkedTo(observation);
-      await incidents.updateIncident(incident.copyWith(diveId: 'd1'));
+      await incidents.applyIncidentChanges(
+        incident.id,
+        const IncidentChanges(diveId: (value: 'd1')),
+      );
       await SyncRepository().clearAllSyncRecords();
 
       await setCheckInStatus(observation, 'ok');
@@ -252,6 +259,26 @@ void main() {
         expect(read.id, incident.id);
         expect(read.observationId, isNull);
       }
+    });
+
+    test('an edit that leaves the link alone keeps it in the row', () async {
+      // The editor's Save writes only what changed (issue #4527, phase 4):
+      // writing back the report as read would erase a link its peers keep.
+      final observation = await issue();
+      final incident = await linkedTo(observation);
+      await setCheckInStatus(observation, 'ok');
+
+      final wrote = await incidents.applyIncidentChanges(
+        incident.id,
+        const IncidentChanges(severity: IncidentSeverity.serious),
+      );
+
+      expect(wrote, isTrue);
+      expect(await storedLink(incident), observation.id);
+      expect(
+        (await incidents.getIncidentById(incident.id))!.severity,
+        IncidentSeverity.serious,
+      );
     });
 
     test('keeps the row, and reads as linked again with the issue', () async {
@@ -294,18 +321,6 @@ void main() {
         (await incidents.getIncidentById(incident.id))!.observationId,
         isNull,
       );
-    });
-
-    test('saving the report clears the link for every device', () async {
-      final observation = await issue();
-      final incident = await linkedTo(observation);
-      await setCheckInStatus(observation, 'ok');
-
-      final read = (await incidents.getIncidentById(incident.id))!;
-      await incidents.updateIncident(read.copyWith(narrative: 'Edited'));
-
-      expect(await storedLink(incident), isNull);
-      expect(await pendingIncidents(), [incident.id]);
     });
 
     test('a change to the check-in reaches a watcher of reports', () async {

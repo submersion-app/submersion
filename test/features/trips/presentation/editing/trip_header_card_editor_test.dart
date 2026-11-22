@@ -14,8 +14,10 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_field.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
@@ -567,6 +569,89 @@ void main() {
     );
 
     expect(find.byKey(const Key('trip-header-rows')), findsNothing);
+  });
+
+  // The trip-wide details sit with the rest of the trip summary, not above
+  // the tab row on every tab (issue #4927).
+  group('where the details sit', () {
+    final resort = redSea.copyWith(
+      resortName: 'Oasis',
+      tripType: TripType.resort,
+    );
+    final line = find.byKey(const Key('trip-header-rows'));
+
+    testWidgets('before departure, on the prepare page under the hero', (
+      tester,
+    ) async {
+      await pumpTripPage(tester, trip: resort);
+
+      expect(
+        find.descendant(of: find.byType(TripPrepareOverview), matching: line),
+        findsOneWidget,
+      );
+      expect(
+        tester.getRect(line).top,
+        greaterThanOrEqualTo(tester.getRect(find.byType(TripStoryHero)).bottom),
+      );
+      expect(
+        tester.getRect(line).top,
+        greaterThanOrEqualTo(tester.getRect(find.byType(TabBar)).bottom),
+      );
+    });
+
+    testWidgets("from the first day, on the story's Trip page", (tester) async {
+      await pumpTripPage(
+        tester,
+        trip: resort.copyWith(
+          startDate: DateTime(2024, 6, 1),
+          endDate: DateTime(2024, 6, 8),
+        ),
+      );
+
+      expect(
+        find.descendant(of: find.byType(TripStoryTripPage), matching: line),
+        findsOneWidget,
+      );
+      expect(
+        tester.getRect(line).top,
+        greaterThanOrEqualTo(tester.getRect(find.byType(TabBar)).bottom),
+      );
+    });
+
+    testWidgets('on one compact line, each value read with its label', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpTripPage(tester, trip: resort);
+
+      expect(
+        tester.getCenter(find.text('Hurghada')).dy,
+        tester.getCenter(find.text('Oasis')).dy,
+      );
+      expect(
+        tester.getCenter(find.text(l.trips_type_resort)).dy,
+        tester.getCenter(find.text('Oasis')).dy,
+      );
+      expect(
+        find.bySemanticsLabel('${l.trips_edit_label_location}: Hurghada'),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel('${l.trips_edit_label_resortName}: Oasis'),
+        findsOneWidget,
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('not on the other tabs', (tester) async {
+      await pumpTripPage(tester, trip: resort);
+
+      await tester.tap(find.widgetWithText(Tab, l.trips_detail_tab_gear));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hurghada'), findsNothing);
+      expect(line, findsNothing);
+    });
   });
 
   testWidgets('the sharing field appears when its read lands after the '

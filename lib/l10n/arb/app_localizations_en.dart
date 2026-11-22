@@ -13648,6 +13648,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divers_edit_nameLabel => 'Name *';
 
   @override
+  String get divers_edit_notFound => 'This diver no longer exists.';
+
+  @override
   String get divers_edit_notesLabel => 'Notes';
 
   @override
@@ -17902,10 +17905,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formatter_connector_at => 'at';
 
   @override
-  String get formatter_connector_from => 'From';
+  String formatter_dateRange_from(String date) {
+    return 'From $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Until';
+  String formatter_dateRange_until(String date) {
+    return 'Until $date';
+  }
 
   @override
   String get gas_air_description => 'Standard air (21% O2)';
@@ -19768,20 +19775,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String media_siteAttachment_groupHeading(String category, int count) {
     return '$category ($count)';
-  }
-
-  @override
-  String get media_siteAttachment_moreOptions => 'More options';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count pages',
-      one: '$count page',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -25599,6 +25592,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gas switches edited by hand';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'Values set by hand';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -39371,6 +39367,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Dives that kept values you set by hand: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Failed dives';
 
   @override
@@ -39396,6 +39397,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Selected dives without raw data (skipped): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Values you set by hand are kept.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -39557,6 +39562,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Resync from original file';
+
+  @override
+  String get handSetReview_reparseTitle => 'Re-parse this dive?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Resync this dive?';
+
+  @override
+  String get handSetReview_message =>
+      'You set these values by hand, and the new reading differs. Keep yours or replace each one.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Yours: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Computer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'File: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Keep';
+
+  @override
+  String get handSetReview_replace => 'Replace';
+
+  @override
+  String get handSetReview_resyncAction => 'Resync';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -40276,6 +40315,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Delete entry';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Delete this measurement?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight on $date will be deleted. This cannot be undone.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Height (cm)';
@@ -42667,9 +42714,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get incidentEdit_lessonsLearned =>
       'What would help next time (optional)';
-
-  @override
-  String get incidentEdit_save => 'Save';
 
   @override
   String get incidentEdit_privacyNote =>
@@ -60223,6 +60267,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rules_edit_noActions => 'Add at least one action.';
 
   @override
+  String get rules_edit_notFound => 'This rule no longer exists.';
+
+  @override
   String get rules_picker_search => 'Search actions';
 
   @override
@@ -64724,6 +64771,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'now';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Last year $value';
   }
@@ -64754,6 +64804,60 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Recent outings';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings outings',
+      one: '1 outing',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives',
+      one: '1 dive',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth max';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count species',
+      one: '1 species',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Your outings will show here once you log a dive';
+
+  @override
+  String get dashboard_outings_unnamed => 'Dives';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Dives per month';
@@ -64960,6 +65064,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Activity calendar';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Recent outings';
 
   @override
   String get settings_homeKeyNumbers_description =>

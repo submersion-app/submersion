@@ -43,6 +43,25 @@ void main() {
     expect(result.text, '1,23');
   });
 
+  // A Japanese or Chinese IME in full-width mode types these (#4833).
+  test('counts full-width separators like ASCII ones', () {
+    final ok = formatter.formatEditUpdate(
+      value('\uff11\uff12\uff0e'),
+      value('\uff11\uff12\uff0e\uff15'),
+    );
+    expect(ok.text, '\uff11\uff12\uff0e\uff15');
+    final comma = formatter.formatEditUpdate(
+      value('\uff11'),
+      value('\uff11\uff0c\uff12\uff13'),
+    );
+    expect(comma.text, '\uff11\uff0c\uff12\uff13');
+    final third = formatter.formatEditUpdate(
+      value('\uff11\uff0e\uff12\uff13'),
+      value('\uff11\uff0e\uff12\uff13\uff14'),
+    );
+    expect(third.text, '\uff11\uff0e\uff12\uff13');
+  });
+
   test('a custom digit budget is honoured (e.g. psi pressure)', () {
     const psiFormatter = BlenderDecimalDigitsFormatter(maxIntDigits: 4);
     final result = psiFormatter.formatEditUpdate(value('344'), value('3442'));

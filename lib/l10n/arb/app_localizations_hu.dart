@@ -13826,6 +13826,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_nameLabel => 'Név *';
 
   @override
+  String get divers_edit_notFound => 'Ez a búvár már nem létezik.';
+
+  @override
   String get divers_edit_notesLabel => 'Megjegyzések';
 
   @override
@@ -18102,10 +18105,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get formatter_connector_at => '–';
 
   @override
-  String get formatter_connector_from => 'Ettől';
+  String formatter_dateRange_from(String date) {
+    return 'Ettől $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Eddig';
+  String formatter_dateRange_until(String date) {
+    return 'Eddig $date';
+  }
 
   @override
   String get gas_air_description => 'Standard levegő (21% O2)';
@@ -19996,20 +20003,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String media_siteAttachment_groupHeading(String category, int count) {
     return '$category ($count)';
-  }
-
-  @override
-  String get media_siteAttachment_moreOptions => 'További lehetőségek';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count oldal',
-      one: '$count oldal',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -25909,6 +25902,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gázváltások kézzel szerkesztve';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'Kézzel megadott értékek';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -39822,6 +39818,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Merülések, amelyek megtartották a kézzel megadott értékeket: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Sikertelen merülések';
 
   @override
@@ -39848,6 +39849,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Kijelölt merülések nyers adat nélkül (kihagyva): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'A kézzel megadott értékek megmaradnak.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40011,6 +40016,40 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Újraszinkronizálás az eredeti fájlból';
+
+  @override
+  String get handSetReview_reparseTitle => 'Újraelemzed ezt a merülést?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Újraszinkronizálod ezt a merülést?';
+
+  @override
+  String get handSetReview_message =>
+      'Ezeket az értékeket kézzel adtad meg, és az új leolvasás eltér. Tartsd meg a sajátodat, vagy cseréld le egyenként.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Sajátod: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Komputer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Fájl: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Megtart';
+
+  @override
+  String get handSetReview_replace => 'Csere';
+
+  @override
+  String get handSetReview_resyncAction => 'Újraszinkronizálás';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -40719,6 +40758,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Bejegyzés törlése';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Törlöd ezt a mérést?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return 'A(z) $date napi $weight mérés törlődik. Ez nem vonható vissza.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Magasság (cm)';
@@ -43138,9 +43185,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get incidentEdit_lessonsLearned =>
       'Mi segítene legközelebb (opcionális)';
-
-  @override
-  String get incidentEdit_save => 'Mentés';
 
   @override
   String get incidentEdit_privacyNote =>
@@ -60840,6 +60884,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get rules_edit_noActions => 'Adj hozzá legalább egy műveletet.';
 
   @override
+  String get rules_edit_notFound => 'Ez a szabály már nem létezik.';
+
+  @override
   String get rules_picker_search => 'Műveletek keresése';
 
   @override
@@ -65357,6 +65404,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'most';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Tavaly $value';
   }
@@ -65387,6 +65437,60 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Legutóbbi merülőtúrák';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings túra',
+      one: '1 túra',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return 'max. $depth';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count faj',
+      one: '1 faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'A túráid itt jelennek meg, amint rögzítesz egy merülést';
+
+  @override
+  String get dashboard_outings_unnamed => 'Merülések';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Merülések havonta';
@@ -65596,6 +65700,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Aktivitásnaptár';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Legutóbbi merülőtúrák';
 
   @override
   String get settings_homeKeyNumbers_description =>

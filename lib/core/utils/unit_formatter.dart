@@ -824,7 +824,8 @@ class UnitFormatter {
 
   /// Format date range for display
   /// Example: "Jan 15 - Jan 20, 2024"
-  /// Pass [l10n] to localize the "Until"/"From" connector words.
+  /// Pass [l10n] to localize an open end ("From Jan 15", "Jan 15から"); the
+  /// language decides where the date sits in it (#4833).
   String formatDateRange(
     DateTime? start,
     DateTime? end, {
@@ -832,12 +833,12 @@ class UnitFormatter {
   }) {
     if (start == null && end == null) return '--';
     if (start == null) {
-      final connector = l10n?.formatter_connector_until ?? 'Until';
-      return '$connector ${formatDate(end)}';
+      final date = formatDate(end);
+      return l10n?.formatter_dateRange_until(date) ?? 'Until $date';
     }
     if (end == null) {
-      final connector = l10n?.formatter_connector_from ?? 'From';
-      return '$connector ${formatDate(start)}';
+      final date = formatDate(start);
+      return l10n?.formatter_dateRange_from(date) ?? 'From $date';
     }
 
     // Same year - abbreviate start date

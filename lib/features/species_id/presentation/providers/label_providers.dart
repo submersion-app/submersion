@@ -152,9 +152,14 @@ final mediaAnalysisStatusProvider = FutureProvider.autoDispose
         final elsewhere =
             run != null &&
             (!marineLifeIdEnabled || (me != null && !run.madeOn(me)));
+        // A video the other device left part way is not done (issue #4926).
+        final partway =
+            item.mediaType == MediaType.video && !(run?.scanComplete ?? false);
         return (
           state: elsewhere
-              ? MediaAnalysisState.foundNoModel
+              ? (partway
+                    ? MediaAnalysisState.partFoundNoModel
+                    : MediaAnalysisState.foundNoModel)
               // Where no model can ever be installed, an item with no results
               // is simply not analysed.
               : !marineLifeIdEnabled

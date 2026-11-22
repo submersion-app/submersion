@@ -13,6 +13,7 @@ import 'app_localizations_fr.dart';
 import 'app_localizations_he.dart';
 import 'app_localizations_hu.dart';
 import 'app_localizations_it.dart';
+import 'app_localizations_ja.dart';
 import 'app_localizations_nl.dart';
 import 'app_localizations_pt.dart';
 import 'app_localizations_zh.dart';
@@ -111,6 +112,7 @@ abstract class AppLocalizations {
     Locale('he'),
     Locale('hu'),
     Locale('it'),
+    Locale('ja'),
     Locale('nl'),
     Locale('pt'),
     Locale('zh'),
@@ -21872,6 +21874,12 @@ abstract class AppLocalizations {
   /// **'Name *'**
   String get divers_edit_nameLabel;
 
+  /// No description provided for @divers_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This diver no longer exists.'**
+  String get divers_edit_notFound;
+
   /// No description provided for @divers_edit_notesLabel.
   ///
   /// In en, this message translates to:
@@ -28880,17 +28888,17 @@ abstract class AppLocalizations {
   /// **'at'**
   String get formatter_connector_at;
 
-  /// Connector word for date ranges with no end, e.g. 'From Jan 15'
+  /// A date range with no end, e.g. 'From Jan 15'. The language puts the date where its word order needs it.
   ///
   /// In en, this message translates to:
-  /// **'From'**
-  String get formatter_connector_from;
+  /// **'From {date}'**
+  String formatter_dateRange_from(String date);
 
-  /// Connector word for date ranges with no start, e.g. 'Until Jan 20'
+  /// A date range with no start, e.g. 'Until Jan 20'. The language puts the date where its word order needs it.
   ///
   /// In en, this message translates to:
-  /// **'Until'**
-  String get formatter_connector_until;
+  /// **'Until {date}'**
+  String formatter_dateRange_until(String date);
 
   /// No description provided for @gas_air_description.
   ///
@@ -31835,18 +31843,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{category} ({count})'**
   String media_siteAttachment_groupHeading(String category, int count);
-
-  /// No description provided for @media_siteAttachment_moreOptions.
-  ///
-  /// In en, this message translates to:
-  /// **'More options'**
-  String get media_siteAttachment_moreOptions;
-
-  /// Page count badge on a large PDF card
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{{count} page} other{{count} pages}}'**
-  String media_siteAttachment_pageCount(int count);
 
   /// Edit details save failure
   ///
@@ -40971,6 +40967,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas switches edited by hand'**
   String get settings_conflict_field_gasSwitchesEdited;
+
+  /// Sync conflict field: the dive values the diver set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Values set by hand'**
+  String get settings_conflict_field_handSetFields;
 
   /// No description provided for @settings_conflict_field_mediaTimeOffsetSeconds.
   ///
@@ -62647,6 +62649,12 @@ abstract class AppLocalizations {
   /// **'Combined dives that kept their profile: {count}'**
   String reparseBatch_resultProfilesPreserved(int count);
 
+  /// Bulk re-parse: dives that kept values the diver set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives that kept values you set by hand: {count}'**
+  String reparseBatch_resultHandSetKept(int count);
+
   /// Bulk re-parse (issue #224)
   ///
   /// In en, this message translates to:
@@ -62688,6 +62696,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Selected dives without raw data (skipped): {count}'**
   String reparseBatch_confirmSkipped(int count);
+
+  /// Bulk re-parse confirmation: values set by hand are kept (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Values you set by hand are kept.'**
+  String get reparseBatch_confirmHandSetKept;
 
   /// Bulk re-parse (issue #224)
   ///
@@ -62919,6 +62933,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resync from original file'**
   String get diveLog_detail_menu_resyncImportedFile;
+
+  /// Re-parse of one dive: title of the dialog listing values set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse this dive?'**
+  String get handSetReview_reparseTitle;
+
+  /// Resync of one dive: title of the dialog listing values set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Resync this dive?'**
+  String get handSetReview_resyncTitle;
+
+  /// Dialog listing values the diver set by hand that a re-parse or resync would change (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'You set these values by hand, and the new reading differs. Keep yours or replace each one.'**
+  String get handSetReview_message;
+
+  /// The diver's own value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Yours: {value}'**
+  String handSetReview_yours(String value);
+
+  /// The dive computer's value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Computer: {value}'**
+  String handSetReview_fromComputer(String value);
+
+  /// The imported file's value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'File: {value}'**
+  String handSetReview_fromFile(String value);
+
+  /// Keep the diver's value (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get handSetReview_keep;
+
+  /// Replace the diver's value with the new reading (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get handSetReview_replace;
+
+  /// Button that runs a resync after the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Resync'**
+  String get handSetReview_resyncAction;
 
   /// Snackbar shown after a successful resync
   ///
@@ -63809,6 +63877,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete entry'**
   String get bodyWeight_deleteTooltip;
+
+  /// No description provided for @bodyWeight_deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this measurement?'**
+  String get bodyWeight_deleteConfirmTitle;
+
+  /// Body of the question asked before a body-weight entry is deleted. {weight} is the weight in the diver's units, such as 176.4 lbs; {date} is the date it was measured.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} on {date} will be deleted. This cannot be undone.'**
+  String bodyWeight_deleteConfirmBody(String weight, String date);
 
   /// No description provided for @bodyWeight_heightLabel.
   ///
@@ -68133,12 +68213,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What would help next time (optional)'**
   String get incidentEdit_lessonsLearned;
-
-  /// No description provided for @incidentEdit_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get incidentEdit_save;
 
   /// No description provided for @incidentEdit_privacyNote.
   ///
@@ -96287,6 +96361,12 @@ abstract class AppLocalizations {
   /// **'Add at least one action.'**
   String get rules_edit_noActions;
 
+  /// Shown when Save finds the rule was deleted while it was being edited
+  ///
+  /// In en, this message translates to:
+  /// **'This rule no longer exists.'**
+  String get rules_edit_notFound;
+
   /// Search field hint of the action picker
   ///
   /// In en, this message translates to:
@@ -102918,6 +102998,12 @@ abstract class AppLocalizations {
   /// **'{change} vs previous 10'**
   String dashboard_key_vsPrevious(String change);
 
+  /// No description provided for @dashboard_key_now.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get dashboard_key_now;
+
   /// No description provided for @dashboard_key_lastYear.
   ///
   /// In en, this message translates to:
@@ -102941,6 +103027,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{dives, plural, =1{1 dive} other{{dives} dives}} · {days, plural, =1{1 day} other{{days} days}}'**
   String dashboard_panel_activitySummary(int dives, int days);
+
+  /// No description provided for @dashboard_panel_recentOutings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent outings'**
+  String get dashboard_panel_recentOutings;
+
+  /// No description provided for @dashboard_outings_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{outings, plural, =1{1 outing} other{{outings} outings}} · {dives, plural, =1{1 dive} other{{dives} dives}}'**
+  String dashboard_outings_summary(int outings, int dives);
+
+  /// No description provided for @dashboard_outings_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String dashboard_outings_dives(int count);
+
+  /// No description provided for @dashboard_outings_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'{depth} max'**
+  String dashboard_outings_maxDepth(String depth);
+
+  /// No description provided for @dashboard_outings_species.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species} other{{count} species}}'**
+  String dashboard_outings_species(int count);
+
+  /// No description provided for @dashboard_outings_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your outings will show here once you log a dive'**
+  String get dashboard_outings_empty;
+
+  /// No description provided for @dashboard_outings_unnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get dashboard_outings_unnamed;
 
   /// No description provided for @dashboard_panel_divesPerMonth.
   ///
@@ -103260,6 +103388,12 @@ abstract class AppLocalizations {
   /// **'Activity calendar'**
   String get settings_homePanels_activityCalendar;
 
+  /// No description provided for @settings_homePanels_recentOutings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent outings'**
+  String get settings_homePanels_recentOutings;
+
   /// No description provided for @settings_homeKeyNumbers_description.
   ///
   /// In en, this message translates to:
@@ -103286,6 +103420,7 @@ class _AppLocalizationsDelegate
     'he',
     'hu',
     'it',
+    'ja',
     'nl',
     'pt',
     'zh',
@@ -103314,6 +103449,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsHu();
     case 'it':
       return AppLocalizationsIt();
+    case 'ja':
+      return AppLocalizationsJa();
     case 'nl':
       return AppLocalizationsNl();
     case 'pt':

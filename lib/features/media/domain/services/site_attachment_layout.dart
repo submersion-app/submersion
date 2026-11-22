@@ -12,7 +12,8 @@ class SiteAttachmentGroup {
   /// Null for the uncategorized group.
   final SiteAttachmentCategory? category;
 
-  /// Full-width items, in capture order.
+  /// Large items, in capture order: each spans two rows of the tiles at the
+  /// start of the group (issue #4786).
   final List<MediaItem> large;
 
   /// Grid items, in capture order.

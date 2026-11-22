@@ -8514,6 +8514,7 @@
   "divers_edit_medicationsLabel": "Medications",
   "divers_edit_nameError": "Name is required",
   "divers_edit_nameLabel": "Name *",
+  "divers_edit_notFound": "This diver no longer exists.",
   "divers_edit_notesLabel": "Notes",
   "divers_edit_phoneLabel": "Phone",
   "divers_edit_primaryContactTitle": "Primary Contact",
@@ -10989,16 +10990,26 @@
     }
   },
   "formatter_connector_at": "at",
-  "formatter_connector_from": "From",
-  "formatter_connector_until": "Until",
+  "formatter_dateRange_from": "From {date}",
+  "formatter_dateRange_until": "Until {date}",
   "@formatter_connector_at": {
     "description": "Connector word between date and time, e.g. 'Jan 15 at 2:30 PM'"
   },
-  "@formatter_connector_from": {
-    "description": "Connector word for date ranges with no end, e.g. 'From Jan 15'"
+  "@formatter_dateRange_from": {
+    "description": "A date range with no end, e.g. 'From Jan 15'. The language puts the date where its word order needs it.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
-  "@formatter_connector_until": {
-    "description": "Connector word for date ranges with no start, e.g. 'Until Jan 20'"
+  "@formatter_dateRange_until": {
+    "description": "A date range with no start, e.g. 'Until Jan 20'. The language puts the date where its word order needs it.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "gas_air_description": "Standard air (21% O2)",
   "gas_air_displayName": "Air",
@@ -12207,9 +12218,6 @@
   "media_siteAttachment_editDetails": "Edit details",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "@media_siteAttachment_groupHeading": {"description": "Site media group heading", "placeholders": {"category": {"type": "String"}, "count": {"type": "int"}}},
-  "media_siteAttachment_moreOptions": "More options",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} page} other{{count} pages}}",
-  "@media_siteAttachment_pageCount": {"description": "Page count badge on a large PDF card", "placeholders": {"count": {"type": "int"}}},
   "media_siteAttachment_saveError": "Couldn't save: {error}",
   "@media_siteAttachment_saveError": {"description": "Edit details save failure", "placeholders": {"error": {"type": "Object"}}},
   "media_siteAttachment_setCategory": "Set category",
@@ -15934,6 +15942,8 @@
   "settings_conflict_field_evidence": "Evidence",
   "settings_conflict_field_evidenceFingerprint": "Evidence fingerprint",
   "settings_conflict_field_gasSwitchesEdited": "Gas switches edited by hand",
+  "settings_conflict_field_handSetFields": "Values set by hand",
+  "@settings_conflict_field_handSetFields": {"description": "Sync conflict field: the dive values the diver set by hand (issue #4909)"},
   "settings_conflict_field_mediaTimeOffsetSeconds": "Media time shift",
   "settings_conflict_field_excludedFromGasStats": "Left out of gas statistics",
   "settings_conflict_field_excludedFromStats": "Left out of statistics",
@@ -24161,6 +24171,8 @@
   "@reparseBatch_resultSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_resultProfilesPreserved": "Combined dives that kept their profile: {count}",
   "@reparseBatch_resultProfilesPreserved": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultHandSetKept": "Dives that kept values you set by hand: {count}",
+  "@reparseBatch_resultHandSetKept": {"description": "Bulk re-parse: dives that kept values the diver set by hand (issue #4909)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_failedListHeader": "Failed dives",
   "@reparseBatch_failedListHeader": {"description": "Bulk re-parse (issue #224)"},
   "reparseBatch_failedDiveTitle": "Dive #{number}",
@@ -24175,6 +24187,8 @@
   "@reparseBatch_confirmMessage": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_confirmSkipped": "Selected dives without raw data (skipped): {count}",
   "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_confirmHandSetKept": "Values you set by hand are kept.",
+  "@reparseBatch_confirmHandSetKept": {"description": "Bulk re-parse confirmation: values set by hand are kept (issue #4909)"},
   "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
   "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
   "diveLog_selection_tooltip_fetchConditions": "Fetch Conditions",
@@ -24302,6 +24316,24 @@
   "@diveLog_detail_menu_resyncImportedFile": {
     "description": "Menu item to re-parse a file-imported dive from its originally stored file"
   },
+  "handSetReview_reparseTitle": "Re-parse this dive?",
+  "@handSetReview_reparseTitle": {"description": "Re-parse of one dive: title of the dialog listing values set by hand (issue #4909)"},
+  "handSetReview_resyncTitle": "Resync this dive?",
+  "@handSetReview_resyncTitle": {"description": "Resync of one dive: title of the dialog listing values set by hand (issue #4909)"},
+  "handSetReview_message": "You set these values by hand, and the new reading differs. Keep yours or replace each one.",
+  "@handSetReview_message": {"description": "Dialog listing values the diver set by hand that a re-parse or resync would change (issue #4909)"},
+  "handSetReview_yours": "Yours: {value}",
+  "@handSetReview_yours": {"description": "The diver's own value in the hand-set values dialog (issue #4909)", "placeholders": {"value": {"type": "String"}}},
+  "handSetReview_fromComputer": "Computer: {value}",
+  "@handSetReview_fromComputer": {"description": "The dive computer's value in the hand-set values dialog (issue #4909)", "placeholders": {"value": {"type": "String"}}},
+  "handSetReview_fromFile": "File: {value}",
+  "@handSetReview_fromFile": {"description": "The imported file's value in the hand-set values dialog (issue #4909)", "placeholders": {"value": {"type": "String"}}},
+  "handSetReview_keep": "Keep",
+  "@handSetReview_keep": {"description": "Keep the diver's value (issue #4909)"},
+  "handSetReview_replace": "Replace",
+  "@handSetReview_replace": {"description": "Replace the diver's value with the new reading (issue #4909)"},
+  "handSetReview_resyncAction": "Resync",
+  "@handSetReview_resyncAction": {"description": "Button that runs a resync after the hand-set values dialog (issue #4909)"},
   "diveLog_detail_resyncSuccess": "Dive updated from the original file",
   "@diveLog_detail_resyncSuccess": {
     "description": "Snackbar shown after a successful resync"
@@ -25057,6 +25089,9 @@
   "bodyWeight_addEntry": "Add measurement",
   "bodyWeight_dateLabel": "Date",
   "bodyWeight_deleteTooltip": "Delete entry",
+  "bodyWeight_deleteConfirmTitle": "Delete this measurement?",
+  "bodyWeight_deleteConfirmBody": "{weight} on {date} will be deleted. This cannot be undone.",
+  "@bodyWeight_deleteConfirmBody": {"description": "Body of the question asked before a body-weight entry is deleted. {weight} is the weight in the diver's units, such as 176.4 lbs; {date} is the date it was measured.", "placeholders": {"weight": {"type": "String"}, "date": {"type": "String"}}},
   "bodyWeight_heightLabel": "Height (cm)",
   "bodyWeight_heightFeetLabel": "Height (ft)",
   "bodyWeight_heightInchesLabel": "Inches",
@@ -26406,7 +26441,6 @@
   "incidentEdit_narrative_required": "Describe what happened",
   "incidentEdit_contributingFactors": "What contributed (optional)",
   "incidentEdit_lessonsLearned": "What would help next time (optional)",
-  "incidentEdit_save": "Save",
   "incidentEdit_privacyNote": "Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.",
   "incidentEdit_equipment": "Equipment involved",
   "incidentEdit_equipment_none": "None",
@@ -36554,6 +36588,8 @@
   "@rules_edit_addAction": {"description": "Button that adds an action to a rule"},
   "rules_edit_noActions": "Add at least one action.",
   "@rules_edit_noActions": {"description": "Shown when a rule has no actions yet"},
+  "rules_edit_notFound": "This rule no longer exists.",
+  "@rules_edit_notFound": {"description": "Shown when Save finds the rule was deleted while it was being edited"},
   "rules_picker_search": "Search actions",
   "@rules_picker_search": {"description": "Search field hint of the action picker"},
   "rules_picker_set": "Set {field}",
@@ -38215,6 +38251,7 @@
   "@dashboard_key_daysUnit": {"placeholders": {"count": {"type": "int"}}},
   "dashboard_key_vsPrevious": "{change} vs previous 10",
   "@dashboard_key_vsPrevious": {"placeholders": {"change": {"type": "String"}}},
+  "dashboard_key_now": "now",
   "dashboard_key_lastYear": "Last year {value}",
   "@dashboard_key_lastYear": {"placeholders": {"value": {"type": "String"}}},
   "dashboard_key_tripChecklist": "checklist {done}/{total} · {name}",
@@ -38223,6 +38260,17 @@
   "@dashboard_panel_activity": {"placeholders": {"months": {"type": "int"}}},
   "dashboard_panel_activitySummary": "{dives, plural, =1{1 dive} other{{dives} dives}} · {days, plural, =1{1 day} other{{days} days}}",
   "@dashboard_panel_activitySummary": {"placeholders": {"dives": {"type": "int"}, "days": {"type": "int"}}},
+  "dashboard_panel_recentOutings": "Recent outings",
+  "dashboard_outings_summary": "{outings, plural, =1{1 outing} other{{outings} outings}} · {dives, plural, =1{1 dive} other{{dives} dives}}",
+  "@dashboard_outings_summary": {"placeholders": {"outings": {"type": "int"}, "dives": {"type": "int"}}},
+  "dashboard_outings_dives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@dashboard_outings_dives": {"placeholders": {"count": {"type": "int"}}},
+  "dashboard_outings_maxDepth": "{depth} max",
+  "@dashboard_outings_maxDepth": {"placeholders": {"depth": {"type": "String"}}},
+  "dashboard_outings_species": "{count, plural, =1{1 species} other{{count} species}}",
+  "@dashboard_outings_species": {"placeholders": {"count": {"type": "int"}}},
+  "dashboard_outings_empty": "Your outings will show here once you log a dive",
+  "dashboard_outings_unnamed": "Dives",
   "dashboard_panel_divesPerMonth": "Dives per month",
   "dashboard_panel_sacTrend": "SAC trend",
   "dashboard_panel_rmvTrend": "RMV trend",
@@ -38286,5 +38334,6 @@
   "settings_homePanels_keyNumbersCount": "{shown} of {total}",
   "@settings_homePanels_keyNumbersCount": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}},
   "settings_homePanels_activityCalendar": "Activity calendar",
+  "settings_homePanels_recentOutings": "Recent outings",
   "settings_homeKeyNumbers_description": "Choose the numbers shown at the top of Home. A number with nothing to show yet is left out."
 }

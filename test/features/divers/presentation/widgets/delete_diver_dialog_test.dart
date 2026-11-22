@@ -124,6 +124,38 @@ void main() {
       expect(deleteButton.onPressed, isNotNull);
     });
 
+    // A Japanese IME in full-width mode types the space as U+3000 (#4833).
+    testWidgets('a full-width space confirms like an ASCII space', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('ja'),
+          child: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () =>
+                    DeleteDiverDialog.show(context, diverName: 'Alice'),
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), '削除\u3000Alice');
+      await tester.pump();
+
+      final deleteButton = tester.widget<FilledButton>(
+        find.byType(FilledButton),
+      );
+      expect(deleteButton.onPressed, isNotNull);
+    });
+
     testWidgets('cancel button closes dialog and returns false', (
       tester,
     ) async {

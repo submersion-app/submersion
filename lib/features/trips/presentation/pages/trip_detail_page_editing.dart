@@ -14,12 +14,12 @@ mixin _TripDetailPageEditing
   /// Which page of the Overview's story shows.
   ValueNotifier<TripStorySelection?> get storySelection;
 
-  /// The cards only the story's Trip page draws, of those the Overview has.
-  static const _onStoryTripPage = {
-    TripCardId.vessel,
-    TripCardId.plan,
-    TripCardId.documents,
-  };
+  /// The cards only the story's Trip page draws, of those the Overview has:
+  /// all of its cards but Notes, which a day page draws too, as its Day
+  /// plan.
+  static final _onStoryTripPage = tripStoryTripPageCards.difference({
+    TripCardId.notes,
+  });
 
   /// Shows the story's Trip page, where [id] is drawn, when the story is on
   /// a day: a card asked to show itself there (a Save refused for it, one
@@ -114,17 +114,6 @@ mixin _TripDetailPageEditing
     controller.openCard(id.name);
   }
 
-  /// Opening or closing the header block's editor lays the page out
-  /// afresh ([TripPageBody]), building the cards below it again.
-  @override
-  Set<String> get hostRelayoutCardIds => {TripCardId.header.name};
-
-  /// Whether the header block's editor is open, which lays the page out
-  /// as one scroll (issue #4844).
-  bool get _headerEditorOpen =>
-      maybeEditController?.openCardIds.contains(TripCardId.header.name) ??
-      false;
-
   /// What the page hands its tabs: the trip as the cards show it, the trip
   /// the Overview lays itself out from, and the frames.
   TripCardSlots _slots(Trip shown, Trip stored) {
@@ -152,6 +141,8 @@ mixin _TripDetailPageEditing
         );
       },
       showsWhileEmpty: _showsWhileEmpty,
+      isOpen: (id) =>
+          maybeEditController?.openCardIds.contains(id.name) ?? false,
       openCard: (id) => _openCard(id, shown),
       unlockAt: (id) {
         final controller = editController;

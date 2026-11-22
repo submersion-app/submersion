@@ -185,6 +185,8 @@ const Map<String, String> consolidationUnfilledColumns = {
   'site_suggestion_dismissed_at':
       "the diver's answer to the target's own "
       'site suggestion',
+  'hand_set_fields':
+      "marks the target's own hand-set values, which are the ones that stand",
   'media_time_offset_seconds':
       'stands while the target owns media, which is placed by it; otherwise '
       'the first dive that owns media brings its own, since its media moves '

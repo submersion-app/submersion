@@ -186,4 +186,119 @@ void main() {
     expect(back.condition, depthOver(30));
     expect(back.actions, const [AppendDiveNotesAction('deep')]);
   });
+
+  group('the editor\'s writes (issue #4527, phase 4)', () {
+    Future<RuleRow> row(String id) =>
+        (db.select(db.rules)..where((t) => t.id.equals(id))).getSingle();
+
+    test('create writes the rule under the id it is given', () async {
+      final id = await repo.create(
+        id: 'given-id',
+        diverId: 'me',
+        subject: RuleSubject.dives,
+        name: 'Deep',
+        triggers: const {RuleTrigger.afterImport},
+        condition: null,
+        actions: const [kAddDeepType],
+      );
+      expect(id, 'given-id');
+      expect((await row('given-id')).name, 'Deep');
+    });
+
+    test('patch writes only the parts it is given', () async {
+      final id = await make('Deep', condition: depthOver(18));
+      await repo.setEnabled(id, false);
+      final before = await row(id);
+      final wrote = await repo.patch(id, (
+        name: '  Deeper ',
+        triggers: null,
+        condition: null,
+        actions: null,
+      ));
+      expect(wrote, isTrue);
+      final after = await row(id);
+      expect(after.name, 'Deeper');
+      expect(after.enabled, isFalse);
+      expect(after.triggers, before.triggers);
+      expect(after.conditionJson, before.conditionJson);
+      expect(after.actionsJson, before.actionsJson);
+    });
+
+    test('patch writes each part it is given', () async {
+      final id = await make('Deep', condition: depthOver(18));
+      await repo.patch(id, (
+        name: null,
+        triggers: const {RuleTrigger.afterManualCreate},
+        condition: (node: depthOver(30)),
+        actions: const [AppendDiveNotesAction('deep')],
+      ));
+      final back = (await repo.getById(id, names: names))!;
+      expect(back.name, 'Deep');
+      expect(back.triggers, {RuleTrigger.afterManualCreate});
+      expect(back.condition, depthOver(30));
+      expect(back.actions, const [AppendDiveNotesAction('deep')]);
+    });
+
+    test('patch keeps a trigger a newer version added', () async {
+      final id = await make('Deep');
+      await db.customStatement(
+        "UPDATE rules SET triggers = 'afterImport,someFutureTrigger' "
+        "WHERE id = '$id'",
+      );
+      await repo.patch(id, (
+        name: null,
+        triggers: const {RuleTrigger.afterManualCreate},
+        condition: null,
+        actions: null,
+      ));
+      expect((await row(id)).triggers, 'afterManualCreate,someFutureTrigger');
+    });
+
+    test('patch can clear the condition', () async {
+      final id = await make('Deep', condition: depthOver(18));
+      await repo.patch(id, (
+        name: null,
+        triggers: null,
+        condition: (node: null),
+        actions: null,
+      ));
+      expect((await row(id)).conditionJson, encodeRuleCondition(null));
+    });
+
+    test('a write to a rule that is gone stamps nothing for sync', () async {
+      final id = await make('Deep');
+      await repo.delete(id);
+      await db.delete(db.syncRecords).go();
+
+      await repo.setEnabled(id, false);
+      final wrote = await repo.patch(id, (
+        name: 'Back again',
+        triggers: null,
+        condition: null,
+        actions: null,
+      ));
+
+      expect(wrote, isFalse);
+      final pending = await (db.select(
+        db.syncRecords,
+      )..where((t) => t.recordId.equals(id))).get();
+      expect(pending, isEmpty);
+    });
+
+    test('patch of a rule that is gone writes nothing and says so', () async {
+      final id = await make('Deep');
+      await repo.delete(id);
+      final wrote = await repo.patch(id, (
+        name: 'Back again',
+        triggers: null,
+        condition: null,
+        actions: null,
+      ));
+      expect(wrote, isFalse);
+      final rows = await (db.select(
+        db.rules,
+      )..where((t) => t.id.equals(id))).get();
+      expect(rows, isEmpty);
+    });
+  });
 }

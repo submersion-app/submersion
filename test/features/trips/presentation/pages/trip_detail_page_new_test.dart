@@ -12,6 +12,7 @@ import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
@@ -550,17 +551,28 @@ void main() {
     ),
   );
 
-  // The header editor at its full height, the Overview below it, one page
-  // that scrolls, as on a stored trip's page (issue #4844).
+  // The header editor sits on the prepare page, under the hero, and
+  // scrolls with it (issue #4927).
   for (final (name, size, embedded) in [
     ('a phone', const Size(402, 874), false),
     ('a desktop window', const Size(1280, 800), false),
     ('the master-detail pane', const Size(900, 800), true),
   ]) {
     testWidgets('on $name every field of the header editor drags into view, '
-        'with the Overview below the card', (tester) async {
+        'on the prepare page under the hero', (tester) async {
       await pumpNewTripPage(tester, size: size, embedded: embedded);
       expect(tester.takeException(), isNull);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('trip-prepare-overview')),
+          matching: nameField(),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        headerCard(tester).top,
+        greaterThanOrEqualTo(tester.getRect(find.byType(TripStoryHero)).bottom),
+      );
 
       for (final key in headerFields) {
         final field = find.byKey(Key(key), skipOffstage: false);
@@ -572,19 +584,6 @@ void main() {
         );
         expectFullyShown(tester, field, bottom: size.height);
       }
-      expect(
-        headerCard(tester).bottom,
-        lessThanOrEqualTo(
-          tester
-              .getRect(
-                find.byKey(
-                  const Key('trip-prepare-overview'),
-                  skipOffstage: false,
-                ),
-              )
-              .top,
-        ),
-      );
     });
   }
 
@@ -610,56 +609,5 @@ void main() {
       from: const Offset(201, 300),
     );
     expectFullyShown(tester, last, bottom: keyboardTop);
-  });
-
-  testWidgets('on a phone a drag on the Overview scrolls the page before '
-      'the Overview, both ways', (tester) async {
-    const size = Size(402, 874);
-    await pumpNewTripPage(tester, size: size);
-    final name = find.byKey(const Key('trip-edit-name'), skipOffstage: false);
-    final overview = find.byKey(
-      const Key('trip-prepare-overview'),
-      skipOffstage: false,
-    );
-    Rect overviewRect() => tester.getRect(overview);
-    ScrollPosition overviewList() => tester
-        .state<ScrollableState>(
-          find
-              .descendant(
-                of: overview,
-                matching: find.byType(Scrollable, skipOffstage: false),
-              )
-              .first,
-        )
-        .position;
-
-    // The Overview into sight, dragging on the editor's margin, clear of
-    // its text fields.
-    for (var i = 0; i < 20 && overviewRect().top + 140 > size.height; i++) {
-      await tester.dragFrom(Offset(4, size.height / 3), const Offset(0, -100));
-      await tester.pumpAndSettle();
-    }
-
-    // Up from the Overview: the page moves, the Overview stays at its top.
-    final before = overviewRect().top;
-    await tester.dragFrom(
-      Offset(size.width / 2, overviewRect().top + 40),
-      const Offset(0, -60),
-    );
-    await tester.pumpAndSettle();
-    expect(overviewRect().top, lessThan(before));
-    expect(overviewList().pixels, 0);
-
-    // Down from the Overview brings the editor back.
-    for (var i = 0; i < 20; i++) {
-      final rect = tester.getRect(name);
-      if (rect.top > 0 && rect.bottom <= overviewRect().top) break;
-      await tester.dragFrom(
-        Offset(size.width / 2, overviewRect().top + 40),
-        const Offset(0, 150),
-      );
-      await tester.pumpAndSettle();
-    }
-    expectFullyShown(tester, name, bottom: size.height);
   });
 }

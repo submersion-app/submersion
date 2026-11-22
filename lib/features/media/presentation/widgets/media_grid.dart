@@ -75,8 +75,20 @@ class MediaThumbnailTile extends StatelessWidget {
   final Size targetSize;
 
   /// Called with the thumbnail's decoded size, which is how a justified
-  /// layout learns a photo's displayed shape (issue #4738).
+  /// layout learns a photo's displayed shape (issue #4738). Never called for
+  /// a [large] photo, which draws its original: shapes are learned from
+  /// thumbnails only.
   final ValueChanged<Size>? onImageSize;
+
+  /// A site attachment shown Large (issue #4786): drawn from its original,
+  /// not the grid thumbnail, so a map's fine print stays sharp, and whole,
+  /// letterboxed where its shape is past the tile clamp. A video still
+  /// draws its poster, and a document its rendered page, which only the
+  /// thumbnail path makes.
+  final bool large;
+
+  /// Whether this tile draws the thumbnail rather than the original.
+  bool get _drawsThumbnail => !large || item.isVideo || item.isDocument;
 
   const MediaThumbnailTile({
     super.key,
@@ -87,6 +99,7 @@ class MediaThumbnailTile extends StatelessWidget {
     required this.semanticsLabel,
     this.targetSize = const Size(200, 200),
     this.onImageSize,
+    this.large = false,
   });
 
   @override
@@ -107,10 +120,10 @@ class MediaThumbnailTile extends StatelessWidget {
             // can produce bytes.
             MediaItemView(
               item: item,
-              thumbnail: true,
+              thumbnail: _drawsThumbnail,
               targetSize: targetSize,
-              fit: BoxFit.cover,
-              onImageSize: onImageSize,
+              fit: large ? BoxFit.contain : BoxFit.cover,
+              onImageSize: _drawsThumbnail ? onImageSize : null,
             ),
 
             // Dimming overlay for unselected items in selection mode

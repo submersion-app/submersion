@@ -68,6 +68,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
 
 /// A `dive_profile_series` row [DiveComputerRepository.findComputerDivesContainingTime]
@@ -2463,11 +2464,17 @@ class DiveComputerRepository {
           cnsEnd: exposure(cnsEnd),
           otu: exposure(otu),
         );
+        // A deco setting the diver set by hand stays, as a re-parse keeps it
+        // (issue #4909).
+        final stored = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingle();
+        final guarded = keepHandSetFields(diveUpdate, stored).companion;
         // One write: the companion's columns, plus the surface pressure as
         // an expression, since a fill reads the stored value in SQL.
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           RawValuesInsertable({
-            ...diveUpdate.toColumns(false),
+            ...guarded.toColumns(false),
             _db.dives.surfacePressure.name: ?surfacePressureWrite,
           }),
         );

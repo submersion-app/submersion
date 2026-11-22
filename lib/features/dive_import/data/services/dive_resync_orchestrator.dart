@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_import/data/services/dive_reimport_serv
 import 'package:submersion/features/dive_import/data/services/stored_source_dive_finder.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
@@ -50,13 +51,21 @@ class DiveResyncOrchestrator {
        parserFor = parserFor ?? parserForFormat,
        _writer = writer ?? DiveReimportService(db: db);
 
-  Future<DiveResyncOutcome> resync(String diveId) async {
+  StoredSourceDiveFinder get _finder => StoredSourceDiveFinder(
+    db: db,
+    importedFiles: importedFiles,
+    parserFor: parserFor,
+  );
+
+  /// Values the diver set by hand stay, unless named in [replaceHandSet]
+  /// (issue #4909): the fields the diver chose the file's value for after
+  /// [previewHandSetChanges].
+  Future<DiveResyncOutcome> resync(
+    String diveId, {
+    Iterable<HandSetChange> replaceHandSet = const [],
+  }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.diveComputerDownload);
-    final lookup = await StoredSourceDiveFinder(
-      db: db,
-      importedFiles: importedFiles,
-      parserFor: parserFor,
-    ).find(diveId);
+    final lookup = await _finder.find(diveId);
     final best = lookup.parsedDive;
     if (best == null) return DiveResyncOutcome.failure(lookup.failure);
 
@@ -64,10 +73,22 @@ class DiveResyncOrchestrator {
       diveId: diveId,
       diveData: best,
       now: DateTime.now(),
+      replaceHandSet: replaceHandSet,
     );
     if (!result.updated) {
       return DiveResyncOutcome.failure(result.skippedReason);
     }
     return DiveResyncOutcome.success(profilePreserved: result.profilePreserved);
+  }
+
+  /// The values the diver set by hand that [resync] would replace, each with
+  /// the file's value (issue #4909). Reads the file as [resync] does and
+  /// writes nothing. None when the file or the dive in it cannot be found:
+  /// the resync itself then says why.
+  Future<List<HandSetChange>> previewHandSetChanges(String diveId) async {
+    if (!await hasHandSetMarks(db, diveId)) return const [];
+    final best = (await _finder.find(diveId)).parsedDive;
+    if (best == null) return const [];
+    return _writer.previewHandSetChanges(diveId: diveId, diveData: best);
   }
 }

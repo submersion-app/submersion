@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
@@ -8,6 +7,7 @@ import 'package:submersion/features/dashboard/presentation/home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_light_chip.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_lights_scroller.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_status_lights_wrap.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_status_lights.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
@@ -40,28 +40,6 @@ HomeStatusLight _retryLight(BuildContext context, WidgetRef ref) =>
       onTap: () => ref.invalidate(dashboardGaugesProvider),
     );
 
-/// A horizontal run of lights that a mouse can drag as well as a finger:
-/// on desktop the lights can run past the end of the bar, and Material
-/// drag-scrolls a horizontal list with a mouse only when told to.
-Widget _lightsScroller(BuildContext context, List<Widget> children) =>
-    ScrollConfiguration(
-      behavior: ScrollConfiguration.of(
-        context,
-      ).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (final c in children)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 6),
-                child: c,
-              ),
-          ],
-        ),
-      ),
-    );
-
 void _logDive(BuildContext context) => showAddDiveBottomSheet(
   context: context,
   // Push, not go: sub-pages stay poppable so Back returns to Home (#647).
@@ -72,9 +50,10 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
 
 /// Home's slim header: a + button at the leading edge for the quick actions
 /// (logging and planning a dive, the buddy swap and the emergency card), the
-/// status lights after it (tablet and up), the diver switcher with more than
-/// one diver profile, and the logo (no wordmark) closing the bar, which
-/// opens About Submersion. Every control has at least a 44 by 44 hit area.
+/// status lights after it (tablet and up) and a divider while there are
+/// lights to part, the diver switcher with more than one diver profile, and
+/// the logo (no wordmark) closing the bar, which opens About Submersion.
+/// Every control has at least a 44 by 44 hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
 
@@ -89,24 +68,32 @@ class HomeHeaderBar extends ConsumerWidget {
 
   static const Key quickActionsKey = ValueKey('home-header-quick-actions');
 
+  static const Key dividerKey = ValueKey('home-header-divider');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final phone = homeWidthTierOf(context) == HomeWidthTier.phone;
     final gaugesAsync = ref.watch(dashboardGaugesProvider);
     final lights = _watchLights(context, ref);
+    final retry = gaugesAsync.hasError && lights == null;
+    // The divider parts lights from the diver, so it shows only with a light
+    // (or the retry pill) in the row.
+    final divided = !phone && (retry || (lights?.isNotEmpty ?? false));
 
     Widget lightsRow() {
-      if (gaugesAsync.hasError && lights == null) {
+      if (retry) {
         return Align(
           alignment: AlignmentDirectional.centerStart,
           child: HomeLightChip(_retryLight(context, ref), dense: true),
         );
       }
       if (lights == null) return const SizedBox.shrink();
-      return _lightsScroller(context, [
-        for (final light in lights) HomeLightChip(light, dense: true),
-      ]);
+      return HomeLightsScroller(
+        children: [
+          for (final light in lights) HomeLightChip(light, dense: true),
+        ],
+      );
     }
 
     return Material(
@@ -129,6 +116,22 @@ class HomeHeaderBar extends ConsumerWidget {
             // The lights take the room up to the switcher. On a phone they
             // sit in the strip below instead.
             Expanded(child: phone ? const SizedBox() : lightsRow()),
+            // A rule with space each side parts the lights from the diver
+            // and the logo, so the last pill never runs into the switcher
+            // (issue #4920).
+            if (divided)
+              Padding(
+                key: dividerKey,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: SizedBox(
+                  height: 24,
+                  child: VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: theme.colorScheme.outlineVariant,
+                  ),
+                ),
+              ),
             // The diver's name shows above phone width: with the actions in
             // the + menu there is room for it, capped and ellipsized.
             _DiverSwitcher(showName: !phone),
@@ -362,7 +365,7 @@ class HomeStatusStrip extends ConsumerWidget {
           bottom: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
       ),
-      child: _lightsScroller(context, children),
+      child: HomeLightsScroller(children: children),
     );
   }
 

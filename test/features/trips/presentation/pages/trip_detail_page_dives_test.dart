@@ -8,7 +8,6 @@ import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
-import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import 'trip_detail_page_unlock_harness.dart';
@@ -108,7 +107,7 @@ void main() {
     await showDives(tester);
     await scan(tester);
     RecordEditScope.maybeOf<Trip>(
-      tester.element(find.byType(RecordCardFrame<Trip>).first),
+      tester.element(find.byType(TabBar)),
     )!.session!.set(tripDatesField, (
       start: DateTime(2030, 5, 30),
       end: DateTime(2030, 6, 8),

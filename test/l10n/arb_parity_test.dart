@@ -28,8 +28,8 @@ void main() {
           .toList()
         ..sort((a, b) => a.path.compareTo(b.path));
 
-  test('all ten non-English locales are present', () {
-    expect(locales.length, 10);
+  test('all eleven non-English locales are present', () {
+    expect(locales.length, 11);
   });
 
   test('every locale defines every English key', () {

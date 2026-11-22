@@ -13,6 +13,7 @@ const _abbreviation =
     'Gas, tank, mode or measurement abbreviation divers use untranslated';
 const _exampleAddress = 'Example address shown in a hint';
 const _technology = 'Technology or file format name';
+const _citation = 'Title of a cited source, kept as it is published';
 const _s3Field =
     'S3 credential field named as the provider\'s console names it';
 const _dutchItem = 'Dutch uses "item" as a loanword throughout app_nl.arb';
@@ -195,7 +196,6 @@ const Map<String, String> keptEnglishValues = {
   'maps_offline_regionInfo@pt': _loanword,
   'media_map_placeItemCount@nl': _dutchItem,
   'media_photoPicker_files_itemCount@nl': _dutchItem,
-  'media_siteAttachment_pageCount@fr': _sameWord,
   'media_timeInDive_fieldHint': _units,
   'navShortcut_cnsOtu': _abbreviation,
   'navTrack_list_durationHours@de': _units,
@@ -275,4 +275,23 @@ const Map<String, String> keptEnglishValues = {
   'equipment_photos_checkInCaption@de': _loanword,
   'equipment_photos_checkInCaption@nl': _loanword,
   'media_gearGallery_count@fr': _sameWord,
+  // Japanese (#4833): Japanese technical divers use the GF and MOD
+  // abbreviations as written, and course and format names stay as published.
+  'diveLog_bulkExport_uddfDescription@ja': _technology,
+  'diveLog_export_uddfDescription@ja': _technology,
+  'transfer_export_uddfSubtitle@ja': _technology,
+  'divePlanner_label_gfHigh@ja': _abbreviation,
+  'divePlanner_label_gfLow@ja': _abbreviation,
+  'enum_diveField_gradientFactorHigh@ja': _abbreviation,
+  'enum_diveField_gradientFactorLow@ja': _abbreviation,
+  'rules_field_gradientFactorHigh@ja': _abbreviation,
+  'rules_field_gradientFactorLow@ja': _abbreviation,
+  'settings_decompression_dialog_gfHigh@ja': _abbreviation,
+  'settings_decompression_dialog_gfLow@ja': _abbreviation,
+  'settings_decompression_ccrDialog_diluentMod@ja': _abbreviation,
+  'enum_certificationLevel_cmas3StarDiverAssistantInstructor@ja': _course,
+  'enum_certificationLevel_cmas4StarDiverAssistantInstructor@ja': _course,
+  'settings_dataSources_appleHealth_title@ja': _brand,
+  'settings_decompression_cnsMethodSourceShearwater@ja': _citation,
+  'settings_decompression_cnsMethodSourceTheoreticalDiver@ja': _citation,
 };

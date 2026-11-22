@@ -13164,6 +13164,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_nameLabel => '名称 *';
 
   @override
+  String get divers_edit_notFound => '该潜水员已不存在。';
+
+  @override
   String get divers_edit_notesLabel => '备注';
 
   @override
@@ -17283,10 +17286,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get formatter_connector_at => '于';
 
   @override
-  String get formatter_connector_from => '从';
+  String formatter_dateRange_from(String date) {
+    return '从 $date';
+  }
 
   @override
-  String get formatter_connector_until => '至';
+  String formatter_dateRange_until(String date) {
+    return '至 $date';
+  }
 
   @override
   String get gas_air_description => '标准空气 (21% O2)';
@@ -19070,19 +19077,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String media_siteAttachment_groupHeading(String category, int count) {
     return '$category（$count）';
-  }
-
-  @override
-  String get media_siteAttachment_moreOptions => '更多选项';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 页',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -24578,6 +24572,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_gasSwitchesEdited => '气体切换已手动编辑';
+
+  @override
+  String get settings_conflict_field_handSetFields => '手动设置的数值';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds => '媒体时间平移';
@@ -37646,6 +37643,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return '保留了手动设置数值的潜水:$count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => '失败的潜水';
 
   @override
@@ -37671,6 +37673,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return '所选潜水中没有原始数据的(将跳过):$count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept => '你手动设置的数值会被保留。';
 
   @override
   String get reparseBatch_noneWithRawData => '所选潜水均没有可重新解析的原始数据。';
@@ -37822,6 +37827,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_resyncImportedFile => '从原始文件重新同步';
+
+  @override
+  String get handSetReview_reparseTitle => '重新解析这次潜水?';
+
+  @override
+  String get handSetReview_resyncTitle => '重新同步这次潜水?';
+
+  @override
+  String get handSetReview_message => '这些数值是你手动设置的,新读取的数值与之不同。保留你的数值,或逐个替换。';
+
+  @override
+  String handSetReview_yours(String value) {
+    return '你的:$value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return '电脑:$value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return '文件:$value';
+  }
+
+  @override
+  String get handSetReview_keep => '保留';
+
+  @override
+  String get handSetReview_replace => '替换';
+
+  @override
+  String get handSetReview_resyncAction => '重新同步';
 
   @override
   String get diveLog_detail_resyncSuccess => '潜水记录已根据原始文件更新';
@@ -38474,6 +38512,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => '删除条目';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => '删除此测量记录？';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$date 的 $weight 将被删除。此操作无法撤销。';
+  }
 
   @override
   String get bodyWeight_heightLabel => '身高（厘米）';
@@ -40806,9 +40852,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get incidentEdit_lessonsLearned => '下次怎样会更好(可选)';
-
-  @override
-  String get incidentEdit_save => '保存';
 
   @override
   String get incidentEdit_privacyNote =>
@@ -57420,6 +57463,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_edit_noActions => '请至少添加一个操作。';
 
   @override
+  String get rules_edit_notFound => '此规则已不存在。';
+
+  @override
   String get rules_picker_search => '搜索操作';
 
   @override
@@ -61633,6 +61679,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => '现在';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return '去年 $value';
   }
@@ -61651,6 +61700,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String dashboard_panel_activitySummary(int dives, int days) {
     return '$dives 次潜水 · $days 天';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => '近期潜水行程';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    return '$outings 次行程 · $dives 次潜水';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    return '$count 次潜水';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '最深 $depth';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    return '$count 个物种';
+  }
+
+  @override
+  String get dashboard_outings_empty => '记录潜水后，你的行程会显示在这里';
+
+  @override
+  String get dashboard_outings_unnamed => '潜水';
 
   @override
   String get dashboard_panel_divesPerMonth => '每月潜水';
@@ -61838,6 +61916,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => '活动日历';
+
+  @override
+  String get settings_homePanels_recentOutings => '近期潜水行程';
 
   @override
   String get settings_homeKeyNumbers_description =>

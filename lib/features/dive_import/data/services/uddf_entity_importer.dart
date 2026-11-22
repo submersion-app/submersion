@@ -58,6 +58,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
@@ -3116,6 +3117,10 @@ class UddfEntityImporter {
       final excludedFromGasStats =
           diveData['excludedFromGasStats'] as bool? ?? false;
       final gasSwitchesEdited = diveData['gasSwitchesEdited'] as bool? ?? false;
+      // Read and written again, so damaged text marks nothing (issue #4909).
+      final handSetFields = HandSetMarks.encode(
+        HandSetMarks.decode(diveData['handSetFields'] as String?),
+      );
       final mediaTimeOffsetSeconds =
           diveData['mediaTimeOffsetSeconds'] as int? ?? 0;
 
@@ -3233,6 +3238,7 @@ class UddfEntityImporter {
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
         gasSwitchesEdited: gasSwitchesEdited,
+        handSetFields: handSetFields,
         mediaTimeOffsetSeconds: mediaTimeOffsetSeconds,
         courseIds: linkedCourseIds,
         setpointLow: asDoubleOrNull(diveData['setpointLow']),

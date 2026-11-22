@@ -13770,6 +13770,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_edit_nameLabel => 'Naam *';
 
   @override
+  String get divers_edit_notFound => 'Deze duiker bestaat niet meer.';
+
+  @override
   String get divers_edit_notesLabel => 'Notities';
 
   @override
@@ -18052,10 +18055,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get formatter_connector_at => 'om';
 
   @override
-  String get formatter_connector_from => 'Van';
+  String formatter_dateRange_from(String date) {
+    return 'Van $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Tot';
+  String formatter_dateRange_until(String date) {
+    return 'Tot $date';
+  }
 
   @override
   String get gas_air_description => 'Standaard lucht (21% O2)';
@@ -19941,20 +19948,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String media_siteAttachment_groupHeading(String category, int count) {
     return '$category ($count)';
-  }
-
-  @override
-  String get media_siteAttachment_moreOptions => 'Meer opties';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count pagina\'s',
-      one: '$count pagina',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -25851,6 +25844,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gaswissels handmatig bewerkt';
+
+  @override
+  String get settings_conflict_field_handSetFields =>
+      'Handmatig ingestelde waarden';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -39767,6 +39764,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Duiken die handmatig ingestelde waarden behielden: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Mislukte duiken';
 
   @override
@@ -39793,6 +39795,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Geselecteerde duiken zonder ruwe data (overgeslagen): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Handmatig ingestelde waarden blijven behouden.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -39957,6 +39963,40 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Opnieuw synchroniseren vanuit origineel bestand';
+
+  @override
+  String get handSetReview_reparseTitle => 'Deze duik opnieuw verwerken?';
+
+  @override
+  String get handSetReview_resyncTitle => 'Deze duik opnieuw synchroniseren?';
+
+  @override
+  String get handSetReview_message =>
+      'Je hebt deze waarden handmatig ingesteld en de nieuwe uitlezing wijkt af. Behoud de jouwe of vervang ze per stuk.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Jouw waarde: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Computer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Bestand: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Behouden';
+
+  @override
+  String get handSetReview_replace => 'Vervangen';
+
+  @override
+  String get handSetReview_resyncAction => 'Opnieuw synchroniseren';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -40684,6 +40724,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Item verwijderen';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Deze meting verwijderen?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight van $date wordt verwijderd. Dit kan niet ongedaan worden gemaakt.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Lengte (cm)';
@@ -43098,9 +43146,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get incidentEdit_lessonsLearned =>
       'Wat de volgende keer zou helpen (optioneel)';
-
-  @override
-  String get incidentEdit_save => 'Opslaan';
 
   @override
   String get incidentEdit_privacyNote =>
@@ -60787,6 +60832,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get rules_edit_noActions => 'Voeg minstens één actie toe.';
 
   @override
+  String get rules_edit_notFound => 'Deze regel bestaat niet meer.';
+
+  @override
   String get rules_picker_search => 'Acties zoeken';
 
   @override
@@ -65330,6 +65378,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'nu';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Vorig jaar $value';
   }
@@ -65360,6 +65411,60 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Recente duikuitjes';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings uitjes',
+      one: '1 uitje',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken',
+      one: '1 duik',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth max';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count soorten',
+      one: '1 soort',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Je uitjes verschijnen hier zodra je een duik logt';
+
+  @override
+  String get dashboard_outings_unnamed => 'Duiken';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Duiken per maand';
@@ -65568,6 +65673,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Activiteitenkalender';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Recente duikuitjes';
 
   @override
   String get settings_homeKeyNumbers_description =>

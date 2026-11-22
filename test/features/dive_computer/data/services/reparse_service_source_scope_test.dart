@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
@@ -123,16 +124,17 @@ void main() {
     events: [],
   );
 
-  Future<({bool profilePreserved})> reparse(String sourceRowId) =>
-      service.applyParsedUpdate(
-        diveId: 'dive-1',
-        sourceRowId: sourceRowId,
-        parsed: parsedDive(),
-        descriptorVendor: 'Shearwater',
-        descriptorProduct: 'Perdix',
-        descriptorModel: 42,
-        libdivecomputerVersion: '0.8.0',
-      );
+  Future<({bool profilePreserved, List<HandSetChange> handSetKept})> reparse(
+    String sourceRowId,
+  ) => service.applyParsedUpdate(
+    diveId: 'dive-1',
+    sourceRowId: sourceRowId,
+    parsed: parsedDive(),
+    descriptorVendor: 'Shearwater',
+    descriptorProduct: 'Perdix',
+    descriptorModel: 42,
+    libdivecomputerVersion: '0.8.0',
+  );
 
   Future<Map<String, ({String? sourceId, bool isPrimary})>> seriesById() async {
     final rows = await profileSeries.getIdentitiesForDive('dive-1');
