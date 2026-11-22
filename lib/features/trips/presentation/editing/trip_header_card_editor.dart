@@ -182,7 +182,16 @@ class _HeaderItem extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 4),
-          Flexible(child: Text(value, style: theme.textTheme.bodyMedium)),
+          // Two lines at most: the line stays compact, and the whole value
+          // is in the label and the editor.
+          Flexible(
+            child: Text(
+              value,
+              style: theme.textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

@@ -60,7 +60,7 @@ class TripPrepareOverview extends StatelessWidget {
         // with, on one line under the hero, and the header block's editor
         // (issue #4927).
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: framed(TripCardId.header, TripHeaderRows(trip: trip)),
         ),
         TripOverviewSummaryCard(
