@@ -36,6 +36,25 @@ void main() {
       }
     });
 
+    // A Japanese or Chinese IME in full-width mode types these (#4833).
+    test('reads full-width digits and separators', () {
+      Intl.defaultLocale = 'ja';
+      expect(parseUserDecimal('\uff11\uff12\uff0e\uff15'), 12.5);
+      expect(parseUserDecimal('\uff11\uff0c\uff12\uff15\uff10'), 1250);
+      expect(parseUserDecimal('\uff0d\uff12\uff0e\uff15'), -2.5);
+      expect(parseUserDecimal('\u3000\uff18\u3000'), 8);
+    });
+
+    test('folds full-width input under a comma locale too', () {
+      Intl.defaultLocale = 'fr';
+      expect(parseUserDecimal('\uff11\uff12\uff0c\uff15'), 12.5);
+    });
+
+    test('the smart parser folds full-width input before correcting', () {
+      Intl.defaultLocale = 'fr';
+      expect(smartParseUserDecimal('\uff11\uff12\uff0e\uff15'), 12.5);
+    });
+
     test('ignores surrounding whitespace', () {
       Intl.defaultLocale = 'fr';
       expect(parseUserDecimal('  12,50  '), 12.5);

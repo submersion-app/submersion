@@ -24,6 +24,26 @@ import 'package:submersion/core/utils/locale_number_symbols.dart';
 /// render with a seeding one: the two differ on trailing zeros, which is
 /// information in a rendered reading and noise in an editable field.
 
+/// [text] with full-width digits, separators, signs and the ideographic
+/// space turned into their ASCII forms. A Japanese or Chinese IME in
+/// full-width mode types `１２．５` for 12.5 (#4833); the forms are the same
+/// number, so reading them changes nothing for anyone else.
+String _foldFullWidth(String text) {
+  final buffer = StringBuffer();
+  for (final rune in text.runes) {
+    buffer.writeCharCode(switch (rune) {
+      >= 0xFF10 && <= 0xFF19 => rune - 0xFF10 + 0x30,
+      0xFF0E => 0x2E, // ．
+      0xFF0C => 0x2C, // ，
+      0xFF0B => 0x2B, // ＋
+      0xFF0D => 0x2D, // －
+      0x3000 => 0x20, // ideographic space
+      _ => rune,
+    });
+  }
+  return buffer.toString();
+}
+
 /// The number [text] represents in the active locale, or null when [text] is
 /// blank or cannot be read as a finite number.
 ///
@@ -31,7 +51,7 @@ import 'package:submersion/core/utils/locale_number_symbols.dart';
 /// "no value", while unreadable text means the diver typed something that needs
 /// correcting, and silently storing null there is data loss.
 double? parseUserDecimal(String text) {
-  final trimmed = text.trim();
+  final trimmed = _foldFullWidth(text).trim();
   if (trimmed.isEmpty) return null;
   if (!_groupingIsWellFormed(trimmed)) return null;
   try {
@@ -60,7 +80,7 @@ double? parseUserDecimal(String text) {
 double? smartParseUserDecimal(String text) {
   final direct = parseUserDecimal(text);
   if (direct != null) return direct;
-  final trimmed = text.trim();
+  final trimmed = _foldFullWidth(text).trim();
   if (trimmed.isEmpty) return null;
 
   final symbols = localeNumberFormat().symbols;
