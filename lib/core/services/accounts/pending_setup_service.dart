@@ -223,8 +223,7 @@ class PendingSetupService {
     return [
       for (final s in subs)
         if (synologyNeedsPassword(s.lastError) &&
-            SynologyShareLink.tryParseShareLink(Uri.parse(s.manifestUrl)) !=
-                null &&
+            SynologyShareLink.tryParseShareUrl(s.manifestUrl) != null &&
             !_isDismissed('subscription_password_${s.id}'))
           PendingSetupItem(
             kind: SetupItemKind.subscriptionPassword,

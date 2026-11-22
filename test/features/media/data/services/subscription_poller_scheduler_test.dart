@@ -98,6 +98,30 @@ void main() {
     });
   });
 
+  test('unreadable intervals keep the cycle going at the default cadence', () {
+    fakeAsync((async) {
+      var calls = 0;
+      final scheduler = SubscriptionPollerScheduler.forTest(
+        pollAllDue: (now) async {
+          calls++;
+          return 0;
+        },
+        activePollIntervals: () async => throw StateError('no database'),
+      );
+
+      scheduler.startAfterWarmup();
+      async.elapse(const Duration(seconds: 31));
+      expect(calls, 1);
+      // The default cadence is an hour.
+      async.elapse(const Duration(hours: 1, seconds: 1));
+      expect(calls, 2);
+
+      scheduler.dispose();
+      async.elapse(const Duration(hours: 2));
+      expect(calls, 2);
+    });
+  });
+
   test('a failing launch poll still schedules the next cycle', () {
     fakeAsync((async) {
       var calls = 0;

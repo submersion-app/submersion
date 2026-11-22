@@ -279,8 +279,7 @@ class _SubscriptionTile extends ConsumerWidget {
     required bool polled,
   }) {
     // Feeds that are no share never want one; skip the read.
-    if (SynologyShareLink.tryParseShareLink(Uri.parse(sub.manifestUrl)) ==
-        null) {
+    if (SynologyShareLink.tryParseShareUrl(sub.manifestUrl) == null) {
       return Future.value(polled);
     }
     return resolveSharePassword(

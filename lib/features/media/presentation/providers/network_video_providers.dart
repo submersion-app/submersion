@@ -61,7 +61,10 @@ bool hasPlayableOriginal(MediaItem item) {
   final raw = item.url;
   if (!isNetworkVideo(item) || raw == null) return false;
   final uri = Uri.tryParse(raw);
-  return uri != null && SynologyShareLink.isStream(uri);
+  // A share without downloads refuses the original, so none is offered.
+  return uri != null &&
+      SynologyShareLink.isStream(uri) &&
+      SynologyShareLink.originalFor(uri) != null;
 }
 
 /// The URL [item] plays from: its own, or the original when the diver chose

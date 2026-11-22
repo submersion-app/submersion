@@ -83,7 +83,7 @@ final savedHostAlbumNamesProvider = FutureProvider<Map<String, String>>((
     return {
       for (final s in subs)
         if (s.displayName != null && s.displayName!.isNotEmpty)
-          if (SynologyShareLink.tryParseShareLink(Uri.parse(s.manifestUrl))
+          if (SynologyShareLink.tryParseShareUrl(s.manifestUrl)
               case final link?)
             NetworkCredentialsService.synologyShareKey(link): s.displayName!,
     };

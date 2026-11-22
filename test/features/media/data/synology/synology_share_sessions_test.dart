@@ -131,6 +131,36 @@ void main() {
     expect(share.logins, 2);
   });
 
+  test('a login with another password is not handed a running one', () async {
+    share.holdLogin = Completer<void>();
+    final empty = sessions.sessionFor(_link, '');
+    final right = sessions.sessionFor(_link, 'secret');
+    share.holdLogin!.complete();
+    await expectLater(empty, throwsA(anything));
+    expect(await right, isNotEmpty);
+    expect(share.logins, 2);
+  });
+
+  test('an error that is no refused password stays unexpected', () async {
+    final gone = SynologyShareSessions(
+      client: MockClient(
+        (_) async => http.Response(
+          '{"success":false,"error":{"code":2004}}',
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
+      ),
+    );
+    await expectLater(
+      gone.sessionFor(_link, 'secret'),
+      throwsA(
+        isA<SynologyShareException>()
+            .having((e) => e.kind, 'kind', SynologyShareErrorKind.unexpected)
+            .having((e) => e.code, 'code', 2004),
+      ),
+    );
+  });
+
   test('a changed password logs in again', () async {
     await sessions.sessionFor(_link, 'secret');
     await expectLater(sessions.sessionFor(_link, 'other'), throwsA(anything));

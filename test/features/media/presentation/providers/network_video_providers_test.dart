@@ -51,6 +51,17 @@ void main() {
       hasPlayableOriginal(_item(url: 'https://example.com/a.mp4')),
       isFalse,
     );
+    // A share without downloads would refuse the original.
+    expect(
+      hasPlayableOriginal(
+        _item(
+          url: _link
+              .streamUri(id: 7, cacheKey: '7_1', downloadsAllowed: false)
+              .toString(),
+        ),
+      ),
+      isFalse,
+    );
   });
 
   test('the original replaces the conversion when chosen', () {

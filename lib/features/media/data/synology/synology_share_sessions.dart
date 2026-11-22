@@ -6,6 +6,10 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/synology/synology_api.dart';
 import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 
+/// Login error codes a share answers a refused password with: 101 for a
+/// wrong password, 1001 ("wrong protect passwd") for a missing one.
+const Set<int> kSynologyPasswordRefusedCodes = {101, 1001};
+
 /// Sessions for Synology Photos shares, one per share, shared by every
 /// caller in the process.
 ///
@@ -98,14 +102,18 @@ class SynologyShareSessions {
     'X-SYNO-SHARING': link.code,
   });
 
+  /// One running login per share AND password: a caller with a different
+  /// password (the one the user just saved, while thumbnails still try an
+  /// open share's empty one) must not be handed the other login's result.
   Future<_Session> _login(SynologyShareLink link, String password) {
-    final running = _logins[link.key];
+    final key = '${link.key}\u0000$password';
+    final running = _logins[key];
     if (running != null) return running;
     late final Future<_Session> login;
     login = _doLogin(link, password).whenComplete(() {
-      if (identical(_logins[link.key], login)) _logins.remove(link.key);
+      if (identical(_logins[key], login)) _logins.remove(key);
     });
-    _logins[link.key] = login;
+    _logins[key] = login;
     return login;
   }
 
@@ -132,13 +140,21 @@ class SynologyShareSessions {
     try {
       data = decodeSynologyEnvelope(response);
     } on SynologyShareException catch (e) {
-      // The share answered with an error code: for a login that means the
-      // password (or the share code) was not accepted.
-      if (e.code != null) {
+      // Only the codes Synology answers a refused password with mean that;
+      // any other (a deleted or expired share) asking for a password again
+      // could never help, so it stays an unexpected error with its code.
+      if (kSynologyPasswordRefusedCodes.contains(e.code)) {
         _refused[link.key] = (password: password, at: _now());
         throw SynologyShareException(
           SynologyShareErrorKind.wrongPassword,
           'The share did not accept the password',
+          code: e.code,
+        );
+      }
+      if (e.code != null) {
+        throw SynologyShareException(
+          SynologyShareErrorKind.unexpected,
+          'The share refused the login (error ${e.code})',
           code: e.code,
         );
       }

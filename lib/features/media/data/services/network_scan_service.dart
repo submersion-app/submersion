@@ -203,8 +203,9 @@ class NetworkScanService {
       await _persistResult(row, verdict);
       return verdict == _ScanVerdict.reachable;
     } catch (e, st) {
+      // The host, never the URL: a shared album's URL carries its code.
       _log.warning(
-        'Scan failed for media ${row.id} (${row.url}): $e',
+        'Scan failed for media ${row.id} (${uri.host}): $e',
         stackTrace: st,
       );
       try {

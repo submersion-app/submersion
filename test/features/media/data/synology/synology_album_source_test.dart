@@ -210,10 +210,24 @@ void main() {
                   ).fetch(_link))
                   as ManifestFetchSuccess)
               .parsed;
-      expect(
-        SynologyShareLink.isStream(Uri.parse(parsed.entries.single.url)),
-        isTrue,
-      );
+      final url = Uri.parse(parsed.entries.single.url);
+      expect(SynologyShareLink.isStream(url), isTrue);
+      // A conversion the item lists, never a missing high one.
+      expect(url.queryParameters['quality'], 'orig_h264');
+      // And no original to offer: the share would refuse it.
+      expect(SynologyShareLink.originalFor(url), isNull);
+    });
+
+    test('a view-only video with nothing converted is skipped', () async {
+      final bare = _photo(8, type: 'video', time: 8, cacheKey: '8_1');
+      final parsed =
+          ((await _source(
+                    _FakeAlbum([_photo(1), bare], privacyType: 'public-view'),
+                  ).fetch(_link))
+                  as ManifestFetchSuccess)
+              .parsed;
+      expect(parsed.entries.map((e) => e.mediaType), ['photo']);
+      expect(parsed.warnings.single, contains('no conversion'));
     });
   });
 

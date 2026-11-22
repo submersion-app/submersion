@@ -46,9 +46,29 @@ class NetworkVideoCache {
     // The callback must return nothing: whenComplete waits for a Future it
     // returns, and Map.remove would return this very future, which then
     // waits on itself forever.
-    return _downloads[key] ??= _fetch(url, key).whenComplete(() {
-      _downloads.remove(key);
-    });
+    return _downloads[key] ??=
+        _guarded(() => _fetch(url, key), 'Video download', url).whenComplete(
+          () {
+            _downloads.remove(key);
+          },
+        );
+  }
+
+  /// [body], with any failure (the cache directory unavailable, a file the
+  /// OS refuses) logged and answered as null, as [fileFor] and
+  /// [motionClipFor] promise: their callers resolve media and must fall
+  /// through to "not found", not fail.
+  Future<String?> _guarded(
+    Future<String?> Function() body,
+    String what,
+    Uri url,
+  ) async {
+    try {
+      return await body();
+    } catch (e, st) {
+      _log.warning('$what failed for ${url.host}: $e', stackTrace: st);
+      return null;
+    }
   }
 
   /// Whether the photo at [url] is a motion photo, from its first
@@ -105,9 +125,14 @@ class NetworkVideoCache {
   /// the downloaded videos. Null when there is none or it could not be read.
   Future<String?> motionClipFor(Uri url) {
     final key = 'motion-${sha1.convert(utf8.encode(url.toString()))}';
-    return _downloads[key] ??= _cutMotionClip(url, key).whenComplete(() {
-      _downloads.remove(key);
-    });
+    return _downloads[key] ??=
+        _guarded(
+          () => _cutMotionClip(url, key),
+          'Motion photo download',
+          url,
+        ).whenComplete(() {
+          _downloads.remove(key);
+        });
   }
 
   Future<String?> _cutMotionClip(Uri url, String key) async {
@@ -197,7 +222,9 @@ class NetworkVideoCache {
       return target.path;
     } catch (e, st) {
       _log.warning('Video download failed for ${url.host}: $e', stackTrace: st);
-      if (await part.exists()) await part.delete();
+      try {
+        if (await part.exists()) await part.delete();
+      } catch (_) {}
       return null;
     }
   }

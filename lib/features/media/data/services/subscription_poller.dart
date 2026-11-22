@@ -204,8 +204,7 @@ class SubscriptionPoller {
     final name = sub.displayName;
     if (name != null && name.isNotEmpty) return;
     if (title == null || title.trim().isEmpty) return;
-    if (SynologyShareLink.tryParseShareLink(Uri.parse(sub.manifestUrl)) ==
-        null) {
+    if (SynologyShareLink.tryParseShareUrl(sub.manifestUrl) == null) {
       return;
     }
     await subscriptions.updateUrlAndDisplayName(

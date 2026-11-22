@@ -84,6 +84,16 @@ void main() {
     expect(await videos.list().toList(), isEmpty);
   });
 
+  test('an unavailable cache directory answers null, never throws', () async {
+    final c = NetworkVideoCache(
+      client: MockClient((_) async => video(10)),
+      directory: () async => throw const FileSystemException('no cache'),
+      headersFor: (_) async => null,
+    );
+    expect(await c.fileFor(url), isNull);
+    expect(await c.motionClipFor(url), isNull);
+  });
+
   test('a failed transfer leaves nothing behind', () async {
     final c = cache((_) async => throw http.ClientException('down'));
     expect(await c.fileFor(url), isNull);

@@ -34,9 +34,7 @@ Future<bool> resolveSharePassword(
   while (context.mounted) {
     final sub = await repo.getById(subscriptionId);
     if (sub == null) break;
-    final share = SynologyShareLink.tryParseShareLink(
-      Uri.parse(sub.manifestUrl),
-    );
+    final share = SynologyShareLink.tryParseShareUrl(sub.manifestUrl);
     final error = sub.lastError;
     if (share == null ||
         !(ask || synologyNeedsPassword(error)) ||

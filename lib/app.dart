@@ -246,10 +246,16 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// Polls manifest subscriptions (photo feeds, shared albums) on their own:
   /// once 30 seconds after launch, then at a cadence derived from their
   /// intervals, each one only when it is due. Without this a subscription
-  /// was only ever polled by Poll now. The scheduler is kept for the
-  /// session; its provider cancels the timers when the scope goes.
+  /// was only ever polled by Poll now. Listened to, not read once: when the
+  /// provider is rebuilt (its dependencies changed), the old scheduler is
+  /// disposed and the new one is started here. The provider cancels the
+  /// timers when the scope goes.
   void _startSubscriptionPolling() {
-    unawaited(ref.read(subscriptionPollerSchedulerProvider).startAfterWarmup());
+    ref.listenManual(
+      subscriptionPollerSchedulerProvider,
+      (_, scheduler) => unawaited(scheduler.startAfterWarmup()),
+      fireImmediately: true,
+    );
   }
 
   /// Apple Watch dives imported without the wizard (issue #637).

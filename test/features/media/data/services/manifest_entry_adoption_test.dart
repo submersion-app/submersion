@@ -53,6 +53,18 @@ void main() {
         ),
       );
 
+  /// The tombstone deleting a subscription logs.
+  Future<void> tombstone(String subscriptionId) => db
+      .into(db.deletionLog)
+      .insert(
+        DeletionLogCompanion.insert(
+          id: 'del-$subscriptionId',
+          entityType: 'mediaSubscriptions',
+          recordId: subscriptionId,
+          deletedAt: 1,
+        ),
+      );
+
   group('canonicalManifestUrl', () {
     test('reduces a share link to origin and code', () {
       const plain = 'https://nas.example.com:5001/mo/sharing/code1';
@@ -106,8 +118,9 @@ void main() {
   });
 
   group('planManifestAdoption', () {
-    test('takes over rows of a deleted or missing subscription', () async {
+    test('takes over rows of a deleted subscription or of none', () async {
       await insertRow('gone', 'https://h/a.jpg', subscriptionId: 'deleted');
+      await tombstone('deleted');
       await insertRow('none', 'https://h/b.jpg');
       final plan = await planManifestAdoption(mediaRepo, [
         _entry('ka', 'https://h/a.jpg'),
@@ -117,6 +130,17 @@ void main() {
       expect(plan.adoptable.keys.toSet(), {'gone', 'none'});
       expect(plan.adoptable['gone']!.entry.entryKey, 'ka');
       expect(plan.fresh.map((e) => e.entryKey), ['kc']);
+    });
+
+    test('leaves rows of a subscription not synced here yet alone', () async {
+      // Absent locally, but no tombstone: another device's subscription
+      // whose row has not arrived yet.
+      await insertRow('peer', 'https://h/a.jpg', subscriptionId: 'unsynced');
+      final plan = await planManifestAdoption(mediaRepo, [
+        _entry('ka', 'https://h/a.jpg'),
+      ]);
+      expect(plan.adoptable, isEmpty);
+      expect(plan.fresh, hasLength(1));
     });
 
     test('leaves rows of a live subscription alone', () async {
@@ -173,6 +197,7 @@ void main() {
         format: ManifestFormat.json,
       );
       await insertRow('gone', 'https://h/a.jpg', subscriptionId: 'deleted');
+      await tombstone('deleted');
       await mediaRepo.markOrphaned('gone', true);
       final plan = await planManifestAdoption(mediaRepo, [
         _entry('ka', 'https://h/a.jpg'),

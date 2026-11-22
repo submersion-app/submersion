@@ -9,6 +9,33 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/network_video_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// [MotionPhotoLayer] filling a Stack, for the viewer's photo on screen.
+/// Keyed per photo, so paging away stops a clip. It belongs above the tap
+/// target that toggles the viewer's controls, which would otherwise take
+/// the button's taps; the button shows with the controls ([showButton]).
+class MotionPhotoOverlay extends StatelessWidget {
+  const MotionPhotoOverlay({
+    super.key,
+    required this.item,
+    required this.enabled,
+    required this.showButton,
+  });
+
+  final MediaItem item;
+  final bool enabled;
+  final bool showButton;
+
+  @override
+  Widget build(BuildContext context) => Positioned.fill(
+    child: MotionPhotoLayer(
+      key: ValueKey('motion-${item.id}'),
+      item: item,
+      enabled: enabled,
+      showButton: showButton,
+    ),
+  );
+}
+
 /// Over a photo in the viewer: for a network photo that is a motion photo,
 /// a "Play motion" button that plays the appended clip once, silent, over
 /// the still and then goes back to it.

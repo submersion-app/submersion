@@ -304,26 +304,36 @@ SynologyMappedEntries synologyEntriesFrom(
     }
   }
 
+  final urls = <_Photo, Uri>{};
+  for (final photo in photos) {
+    final url = _urlFor(photo, link, downloadsAllowed);
+    if (url == null) {
+      warnings.add('video ${photo.id}: no conversion to play and no downloads');
+    } else {
+      urls[photo] = url;
+    }
+  }
   final entries = [
     for (final photo in photos)
-      ManifestEntry(
-        entryKey: keyOf[photo]!,
-        url: _urlFor(photo, link, downloadsAllowed).toString(),
-        // Synology stores the capture time as local wall clock seconds read
-        // as UTC: the same convention as MediaItem.takenAt.
-        takenAt: DateTime.fromMillisecondsSinceEpoch(
-          photo.time * 1000,
-          isUtc: true,
+      if (urls[photo] case final url?)
+        ManifestEntry(
+          entryKey: keyOf[photo]!,
+          url: url.toString(),
+          // Synology stores the capture time as local wall clock seconds read
+          // as UTC: the same convention as MediaItem.takenAt.
+          takenAt: DateTime.fromMillisecondsSinceEpoch(
+            photo.time * 1000,
+            isUtc: true,
+          ),
+          width: photo.width,
+          height: photo.height,
+          durationSeconds: photo.kind == _ItemKind.video
+              ? photo.durationSeconds
+              : null,
+          mediaType: photo.kind == _ItemKind.video ? 'video' : 'photo',
+          metadataComplete: true,
+          filename: photo.filename,
         ),
-        width: photo.width,
-        height: photo.height,
-        durationSeconds: photo.kind == _ItemKind.video
-            ? photo.durationSeconds
-            : null,
-        mediaType: photo.kind == _ItemKind.video ? 'video' : 'photo',
-        metadataComplete: true,
-        filename: photo.filename,
-      ),
   ];
   return (entries: entries, warnings: warnings);
 }
@@ -335,14 +345,36 @@ SynologyMappedEntries synologyEntriesFrom(
 ///   still and the motion clip together, which no viewer here shows);
 /// - a video: Synology's 720p conversion when it has one, much smaller than
 ///   the original and what a phone plays without stalling, else the
-///   original file. The original stays one tap away ([SynologyShareLink
-///   .originalFor]).
-Uri _urlFor(_Photo item, SynologyShareLink link, bool downloadsAllowed) {
+///   original file, else (a share without downloads) another conversion it
+///   lists. Never a conversion it does not list. The original stays one tap
+///   away ([SynologyShareLink.originalFor]) where the share allows it.
+///
+/// Null for a video with nothing to play here: no conversion listed and no
+/// downloads allowed.
+Uri? _urlFor(_Photo item, SynologyShareLink link, bool downloadsAllowed) {
   switch (item.kind) {
     case _ItemKind.video:
-      return item.hasHighConversion || !downloadsAllowed
-          ? link.streamUri(id: item.id, cacheKey: item.cacheKey)
-          : link.originalUri(id: item.id, cacheKey: item.cacheKey);
+      if (item.conversions.contains('high')) {
+        return link.streamUri(
+          id: item.id,
+          cacheKey: item.cacheKey,
+          downloadsAllowed: downloadsAllowed,
+        );
+      }
+      if (downloadsAllowed) {
+        return link.originalUri(id: item.id, cacheKey: item.cacheKey);
+      }
+      for (final quality in const ['medium', 'low', 'orig_h264']) {
+        if (item.conversions.contains(quality)) {
+          return link.streamUri(
+            id: item.id,
+            cacheKey: item.cacheKey,
+            quality: quality,
+            downloadsAllowed: false,
+          );
+        }
+      }
+      return null;
     case _ItemKind.live:
       return link.thumbnailUri(
         id: item.id,
@@ -386,7 +418,7 @@ class _Photo {
     this.width,
     this.height,
     this.durationSeconds,
-    this.hasHighConversion = false,
+    this.conversions = const {},
   });
 
   final _ItemKind kind;
@@ -401,8 +433,9 @@ class _Photo {
   /// A video's length, from `video_meta.duration` (milliseconds).
   final int? durationSeconds;
 
-  /// Synology lists a `high` (720p) conversion for this video.
-  final bool hasHighConversion;
+  /// The qualities of the conversions Synology lists for this video
+  /// (`high` is its 720p rendition).
+  final Set<String> conversions;
 
   String get baseKey => 't$time-s$filesize';
 
@@ -427,12 +460,13 @@ class _Photo {
 
     final meta = additional['video_meta'];
     final durationMs = meta is Map<String, Object?> ? meta['duration'] : null;
-    final conversions = additional['video_convert'];
-    final hasHigh =
-        conversions is List<Object?> &&
-        conversions.any(
-          (c) => c is Map<String, Object?> && c['quality'] == 'high',
-        );
+    final converted = additional['video_convert'];
+    final conversions = <String>{
+      if (converted is List<Object?>)
+        for (final c in converted)
+          if (c is Map<String, Object?> && c['quality'] is String)
+            c['quality']! as String,
+    };
 
     return _Photo(
       kind: kind,
@@ -446,7 +480,7 @@ class _Photo {
       durationSeconds: durationMs is num && durationMs > 0
           ? (durationMs / 1000).round()
           : null,
-      hasHighConversion: hasHigh,
+      conversions: conversions,
     );
   }
 }

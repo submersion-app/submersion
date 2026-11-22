@@ -861,8 +861,9 @@ class MediaRepository {
     }
   }
 
-  /// Manifest rows at one of [urls] whose subscription is gone: deleted, or
-  /// never set. Keyed by URL; where several rows share one, the oldest wins.
+  /// Manifest rows at one of [urls] whose subscription is gone: deleted (a
+  /// tombstone says so), or never set. Keyed by URL; where several rows
+  /// share one, the oldest wins.
   ///
   /// Deleting a subscription keeps its rows on purpose (their dive links,
   /// notes and edits are the user's), so subscribing to the same feed again
@@ -875,8 +876,15 @@ class MediaRepository {
     final found = <String, domain.MediaItem>{};
     if (wanted.isEmpty) return found;
     try {
+      // Deleted, not merely absent: a row whose subscription has not synced
+      // to this device yet is still owned, and taking it over would move it
+      // away from that subscription on its own device too. The tombstone a
+      // delete logs is the proof.
       final liveSubscriptions = _db.selectOnly(_db.mediaSubscriptions)
         ..addColumns([_db.mediaSubscriptions.id]);
+      final deletedSubscriptions = _db.selectOnly(_db.deletionLog)
+        ..addColumns([_db.deletionLog.recordId])
+        ..where(_db.deletionLog.entityType.equals('mediaSubscriptions'));
       const chunkSize = 500;
       for (var i = 0; i < wanted.length; i += chunkSize) {
         final chunk = wanted.sublist(
@@ -889,7 +897,8 @@ class MediaRepository {
                 t.sourceType.equals('manifestEntry') &
                 t.url.isIn(chunk) &
                 (t.subscriptionId.isNull() |
-                    t.subscriptionId.isNotInQuery(liveSubscriptions)),
+                    (t.subscriptionId.isInQuery(deletedSubscriptions) &
+                        t.subscriptionId.isNotInQuery(liveSubscriptions))),
           )
           ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
         for (final row in await query.get()) {

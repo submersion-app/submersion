@@ -45,6 +45,13 @@ class SynologyShareLink {
   Uri get shareUri => origin.replace(path: '$pathPrefix/mo/sharing/$code');
 
   /// A share link pasted by the user, or null when [uri] is not one.
+  /// [tryParseShareLink] for a stored URL string; null for one that does not
+  /// even parse (a malformed row synced from elsewhere).
+  static SynologyShareLink? tryParseShareUrl(String raw) {
+    final uri = Uri.tryParse(raw);
+    return uri == null ? null : tryParseShareLink(uri);
+  }
+
   static SynologyShareLink? tryParseShareLink(Uri uri) {
     if (!_isHttpsWithHost(uri)) return null;
     final match = _sharePath.firstMatch(uri.path);
@@ -117,10 +124,14 @@ class SynologyShareLink {
   /// lists in `video_convert` (`high` is Synology's 720p rendition). Plain
   /// MP4 that honours Range. Carries `cache_key` for [thumbnailFor], like
   /// [originalUri].
+  ///
+  /// [downloadsAllowed] false marks the URL (`dl=0`, ignored by the API) so
+  /// [originalFor] offers no original the share would refuse.
   Uri streamUri({
     required int id,
     required String cacheKey,
     String quality = 'high',
+    bool downloadsAllowed = true,
   }) => apiUri.replace(
     queryParameters: {
       'api': 'SYNO.Foto.Streaming',
@@ -131,6 +142,7 @@ class SynologyShareLink {
       'passphrase': code,
       '_sharing_id': code,
       'cache_key': cacheKey,
+      if (!downloadsAllowed) 'dl': '0',
     },
   );
 
@@ -142,10 +154,10 @@ class SynologyShareLink {
 
   /// The original file of the item a stored URL points at, for playing a
   /// video in full quality instead of its conversion; null when [stored] is
-  /// no share URL.
+  /// no share URL, or one of a share that allows no downloads.
   static Uri? originalFor(Uri stored) {
     final link = tryParseApiUri(stored);
-    if (link == null) return null;
+    if (link == null || stored.queryParameters['dl'] == '0') return null;
     final id = int.tryParse(stored.queryParameters['id'] ?? '');
     final cacheKey = stored.queryParameters['cache_key'];
     if (id == null || cacheKey == null || cacheKey.isEmpty) return null;
