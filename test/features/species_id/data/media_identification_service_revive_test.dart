@@ -48,6 +48,7 @@ void main() {
   late FakeEngine engine;
   late MediaIdentificationService service;
   var ids = 0;
+  var onOpen = true;
 
   setUp(() async {
     library = AppDatabase(
@@ -58,6 +59,7 @@ void main() {
     identifications = _ReadHookRepository(library);
     engine = FakeEngine();
     ids = 0;
+    onOpen = true;
     service = MediaIdentificationService(
       engine: engine,
       loadPack: () async => pack(),
@@ -70,7 +72,8 @@ void main() {
           <T>(Future<T> Function(String path) read) =>
               read('/videos/${item.id}.mp4'),
       taggedSpecies: (_) async => const [],
-      enabled: () => true,
+      enabled: () => onOpen,
+      runEnabled: () => true,
       databaseGeneration: () => 0,
       now: () => DateTime.utc(2026, 11, 22),
       newId: () => 'id-${ids++}',
@@ -129,6 +132,27 @@ void main() {
     final first = service.request(video());
     await waitUntil(() async => engine.detectCalls.length == 1);
     expect(service.cancelPending('v1'), isTrue);
+    Future<void>? analyse;
+    identifications.onRead = () {
+      analyse = service.request(video(), byHand: true);
+    };
+    engine.videoGate!.complete();
+    engine.videoGate = null;
+    await first;
+    await waitUntil(() async => analyse != null);
+    await analyse;
+    await waitUntil(() async => !service.isBusy('v1'));
+    expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+  });
+
+  test('Analyse by hand joining a scan begun on opening carries it on '
+      'after identify on opening is switched off', () async {
+    oneFish();
+    engine.videoGate = Completer<void>();
+    final first = service.request(video());
+    await waitUntil(() async => engine.detectCalls.length == 1);
+    expect(service.cancelPending('v1'), isTrue);
+    onOpen = false;
     Future<void>? analyse;
     identifications.onRead = () {
       analyse = service.request(video(), byHand: true);

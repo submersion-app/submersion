@@ -17,15 +17,19 @@ import '../../media/presentation/support/media_widget_harness.dart';
 import '../data/identification_fixtures.dart';
 import 'species_id_fakes.dart';
 
-/// What the store holds for the item once the Analyse has finished.
+/// What the store holds for the item: [before] as the Analyse starts,
+/// [run] and [rows] once it has finished.
 class _StoredRepository extends MediaIdentificationRepository {
   _StoredRepository({required this.run, required this.rows});
 
+  MediaIdentificationRun? before;
   MediaIdentificationRun? run;
   List<MediaIdentification> rows;
+  var _reads = 0;
 
   @override
-  Future<MediaIdentificationRun?> runFor(String mediaId) async => run;
+  Future<MediaIdentificationRun?> runFor(String mediaId) async =>
+      _reads++ == 0 ? before : run;
 
   @override
   Future<List<MediaIdentification>> forMedia(String mediaId) async => rows;
@@ -193,6 +197,23 @@ void main() {
     stored.run = null;
     await analyse(tester);
     expect(notice(), findsNothing);
+  });
+
+  testWidgets('an Analyse that stored nothing new (it failed, or was '
+      'skipped) says nothing of the earlier analysis', (tester) async {
+    stored.before = stored.run;
+    await analyse(tester, state: MediaAnalysisState.analysed);
+    expect(notice(), findsNothing);
+  });
+
+  testWidgets('an item analysed before says what this Analyse found', (
+    tester,
+  ) async {
+    stored
+      ..before = _run('m1')
+      ..run = _run('m1').copyWith(packVersion: '2026.12.1');
+    await analyse(tester, state: MediaAnalysisState.analysed);
+    expect(find.text('1 found, none named'), findsOneWidget);
   });
 
   testWidgets('an item no longer on screen says nothing', (tester) async {

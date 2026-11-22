@@ -13,6 +13,7 @@ import 'package:submersion/features/media/presentation/widgets/media_viewer_tool
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/labels_menu_model.dart';
 import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
@@ -193,6 +194,8 @@ Future<void> showMarineLifeLabelsMenu(
     case _Pick.off:
       await modes.setMode(LabelMode.off);
     case _Pick.analyse:
+      // Read as the request starts: an analysis stores long after.
+      final before = tell.runOf(item);
       unawaited(
         service
             .request(
@@ -201,7 +204,7 @@ Future<void> showMarineLifeLabelsMenu(
               byHand: true,
               fresh: model.action == AnalyseAction.analyseAgain,
             )
-            .then((_) => tell(item)),
+            .then((_) async => tell(item, before: await before)),
       );
   }
 }
@@ -228,8 +231,23 @@ class _AnalysedTeller {
   final LabelModeNotifier modes;
   final bool Function() showing;
 
+  /// What is stored for [item] now, or null (none, or not read).
+  Future<MediaIdentificationRun?> runOf(MediaItem item) async {
+    try {
+      return await repository.runFor(item.id);
+    } on Object {
+      return null;
+    }
+  }
+
   /// Never throws: a notice that cannot be worked out is left unsaid.
-  Future<void> call(MediaItem item) async {
+  /// Said only when the Analyse changed what is stored since [before]:
+  /// one that failed or was skipped leaves an earlier analysis, which is
+  /// not this tap's to report.
+  Future<void> call(
+    MediaItem item, {
+    required MediaIdentificationRun? before,
+  }) async {
     final messenger = this.messenger;
     if (messenger == null || !showing()) return;
     try {
@@ -237,6 +255,7 @@ class _AnalysedTeller {
       // Never analysed (dropped, or unreadable), or a video left part way:
       // nothing to say of it.
       if (run == null ||
+          run == before ||
           (item.mediaType == MediaType.video && !run.scanComplete)) {
         return;
       }

@@ -139,8 +139,9 @@ class _Job {
   final Future<VideoFileReader?> Function(MediaItem)? resolveVideo;
 
   /// Asked for by the diver from the labels menu (issue #4825): it runs
-  /// whether or not media are identified on opening.
-  final bool byHand;
+  /// whether or not media are identified on opening. A by-hand request
+  /// that joins it running sets it (issue #4872).
+  bool byHand;
 
   /// Still to start over from the beginning: until its fresh start is
   /// stored ([freshStarted]), after which a job put back carries on.

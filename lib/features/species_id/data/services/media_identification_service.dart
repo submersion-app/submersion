@@ -199,6 +199,9 @@ class MediaIdentificationService {
       // Back on a video whose scan was told to stop: it carries on, in a
       // fresh pass if it has already stopped (issue #4872).
       running.cancelled = false;
+      // Asked by hand, it runs whether or not media are identified on
+      // opening, revived or not.
+      if (byHand || fresh) running.byHand = true;
       return running.done.future;
     }
     final queued = _waiting.remove(item.id);
