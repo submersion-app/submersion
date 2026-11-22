@@ -1045,12 +1045,16 @@ Future<List<Override>> getBaseOverrides({
     ),
     // The app root starts the manifest subscription poller; a widget test
     // must not reach a feed, the keychain or the database through it.
-    subscriptionPollerSchedulerProvider.overrideWithValue(
-      SubscriptionPollerScheduler.forTest(
+    // Disposed with the scope like the real provider, so the warm-up timer
+    // the app root starts never outlives the test's widget tree.
+    subscriptionPollerSchedulerProvider.overrideWith((ref) {
+      final scheduler = SubscriptionPollerScheduler.forTest(
         pollAllDue: (_) async => 0,
         activePollIntervals: () async => const [],
-      ),
-    ),
+      );
+      ref.onDispose(scheduler.dispose);
+      return scheduler;
+    }),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // Settings > Data health (#3390, #3394) reads live sync, backup, library
     // and media state plus the database file; pages under test get a quiet,
