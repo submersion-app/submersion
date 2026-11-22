@@ -28736,6 +28736,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataHealth_media_transfersPaused => 'Photo transfers are paused';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'Photo subscription $name needs its password';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Photo subscription $name could not be updated';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -51296,6 +51306,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Password missing on this device';
+
+  @override
   String get media_credentials_deleteBody =>
       'Removes the saved credentials. Items linked through this host will start showing \"Sign in required\" until you re-add them.';
 
@@ -61501,6 +61515,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Sign in';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'The photo album $name needs its password on this device.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => 'Enter password';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Reconnect';

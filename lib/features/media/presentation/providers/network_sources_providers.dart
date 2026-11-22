@@ -68,6 +68,22 @@ final savedHostsProvider = FutureProvider<List<NetworkCredentialHost>>(
   (ref) => ref.watch(networkCredentialsServiceProvider).list(),
 );
 
+/// Whether this device holds the secret of the saved host row named by the
+/// argument; see [NetworkCredentialsService.hasSecret]. Recomputed with the
+/// saved hosts, so saving a password clears the mark. A keychain that cannot
+/// be read is not reported as missing.
+final savedHostHasSecretProvider = FutureProvider.autoDispose
+    .family<bool, String>((ref, hostname) async {
+      ref.watch(savedHostsProvider);
+      try {
+        return await ref
+            .watch(networkCredentialsServiceProvider)
+            .hasSecret(hostname);
+      } on Object {
+        return true;
+      }
+    });
+
 /// Manifest subscriptions displayed in the Manifest subscriptions card.
 /// Surfaces every active subscription regardless of `nextPollAt`.
 final manifestSubscriptionsProvider =

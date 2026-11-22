@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media/data/services/local_files_diagnostics_service.dart';
 import 'package:submersion/features/media/data/services/media_verification_sweep.dart';
@@ -63,8 +65,15 @@ void _useTallSurface(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Widget _wrap() => const ProviderScope(
-  child: MaterialApp(
+/// The Network sources row marks itself from the media health; a fixed
+/// healthy value keeps these tests off the stores, keychain and database.
+final _quietHealth = mediaHealthProvider.overrideWithValue(
+  pickHealth(DataFeature.media, const []),
+);
+
+Widget _wrap() => ProviderScope(
+  overrides: [_quietHealth],
+  child: const MaterialApp(
     locale: Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -73,7 +82,7 @@ Widget _wrap() => const ProviderScope(
 );
 
 Widget _wrapWith(List<Object> overrides) => ProviderScope(
-  overrides: overrides.cast(),
+  overrides: [_quietHealth, ...overrides.cast()],
   child: const MaterialApp(
     locale: Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,

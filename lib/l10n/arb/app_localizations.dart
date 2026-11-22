@@ -46360,6 +46360,18 @@ abstract class AppLocalizations {
   /// **'Photo transfers are paused'**
   String get dataHealth_media_transfersPaused;
 
+  /// Settings > Data health: a photo subscription (shared album) cannot be read on this device until its password is entered
+  ///
+  /// In en, this message translates to:
+  /// **'Photo subscription {name} needs its password'**
+  String dataHealth_media_subscriptionPassword(String name);
+
+  /// Settings > Data health: the last poll of a photo subscription (shared album, photo feed) failed
+  ///
+  /// In en, this message translates to:
+  /// **'Photo subscription {name} could not be updated'**
+  String dataHealth_media_subscriptionFailing(String name);
+
   /// No description provided for @dataHealth_facts_dives.
   ///
   /// In en, this message translates to:
@@ -82239,6 +82251,12 @@ abstract class AppLocalizations {
   /// **'Auth: {authType}'**
   String media_credentials_authLabel(String authType);
 
+  /// Saved hosts list: the row exists (for example from a backup) but this device holds no password for it
+  ///
+  /// In en, this message translates to:
+  /// **'Password missing on this device'**
+  String get media_credentials_secretMissing;
+
   /// Network Sources: delete saved host confirmation body
   ///
   /// In en, this message translates to:
@@ -97896,6 +97914,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in'**
   String get settings_setUpDevice_item_signInAction;
+
+  /// Set up this device card: a synced photo subscription (shared album) needs its password, which never syncs
+  ///
+  /// In en, this message translates to:
+  /// **'The photo album {name} needs its password on this device.'**
+  String settings_setUpDevice_item_subscriptionPassword(String name);
+
+  /// No description provided for @settings_setUpDevice_item_enterPasswordAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password'**
+  String get settings_setUpDevice_item_enterPasswordAction;
 
   /// Button on a card item that opens Photos and videos to reconnect
   ///

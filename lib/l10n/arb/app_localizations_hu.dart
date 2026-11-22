@@ -29080,6 +29080,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataHealth_media_transfersPaused => 'A fotóátvitel szünetel';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'A(z) $name fotóelőfizetéshez jelszó szükséges';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'A(z) $name fotóelőfizetést nem sikerült frissíteni';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -51786,6 +51796,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'A jelszó hiányzik ezen az eszközön';
+
+  @override
   String get media_credentials_deleteBody =>
       'Törli a mentett hitelesítő adatokat. Az ezen a kiszolgálón keresztül csatolt elemeknél a „Bejelentkezés szükséges” felirat jelenik meg, amíg újra hozzá nem adja őket.';
 
@@ -62127,6 +62141,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Bejelentkezés';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'A(z) $name fotóalbumhoz jelszó szükséges ezen az eszközön.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => 'Jelszó megadása';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Újracsatlakozás';

@@ -283,6 +283,32 @@ cannot read missing, on every device. So:
   "Polled", and the media library shows a banner while an active
   subscription's last poll failed, with a button to the network sources.
 
+### 10. Passwords on another device, setup and data health
+
+Subscriptions and their rows sync; share passwords never do (keychain
+only), and the saved hosts table is excluded from sync. A device that gets a
+protected album by sync, or by restoring a backup elsewhere, has to enter
+its password once. That device is told so in the places that already report
+unfinished setup:
+
+- **Set up this device:** `PendingSetupService` lists a
+  `subscriptionPassword` item for every active share subscription whose last
+  poll on this device wanted a password (none saved, or refused). Only the
+  poll can tell, because an open share needs none; the launch poll gives the
+  answer shortly after a new device starts. The item's action runs the same
+  password flow as Poll now (`resolveSharePassword`): ask, save for the share,
+  poll again. Dismissable per device like the other items; the list
+  recomputes when a poll records its outcome.
+- **Data health:** `evaluateMediaHealth` counts active subscriptions as the
+  feature being in use, and reports `mediaSubscriptionNeedsPassword` or
+  `mediaSubscriptionFailing` (attention) for the first such subscription,
+  so Settings > Data and the Network sources rows carry the mark. Every
+  failing subscription is reported, not only missing passwords, so a
+  changed feed format does not go unnoticed. Subscriptions are named by
+  display name or host, never by URL.
+- **Saved hosts:** a row whose secret this device's keychain lacks (a
+  restored backup) is marked "Password missing on this device".
+
 ## Security
 
 - The share code alone does not open a password-protected share; the password

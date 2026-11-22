@@ -28497,6 +28497,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataHealth_media_transfersPaused => 'העברות התמונות מושהות';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'מינוי התמונות $name צריך את הסיסמה שלו';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'לא ניתן היה לעדכן את מינוי התמונות $name';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -50941,6 +50951,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing => 'הסיסמה חסרה במכשיר הזה';
+
+  @override
   String get media_credentials_deleteBody =>
       'מסיר את פרטי ההתחברות השמורים. פריטים המקושרים דרך מארח זה יציגו \"נדרשת כניסה\" עד שתוסיף אותם מחדש.';
 
@@ -61188,6 +61201,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'התחברות';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'אלבום התמונות $name צריך את הסיסמה שלו במכשיר הזה.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => 'הזנת סיסמה';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'חיבור מחדש';

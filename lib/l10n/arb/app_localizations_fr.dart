@@ -29283,6 +29283,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les transferts de photos sont en pause';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'L\'abonnement photo $name a besoin de son mot de passe';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'L\'abonnement photo $name n\'a pas pu être mis à jour';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52176,6 +52186,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Mot de passe manquant sur cet appareil';
+
+  @override
   String get media_credentials_deleteBody =>
       'Supprime les identifiants enregistrés. Les éléments liés via cet hôte afficheront « Connectez-vous pour voir » jusqu’à ce que vous les rajoutiez.';
 
@@ -62599,6 +62613,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Se connecter';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'L\'album photo $name a besoin de son mot de passe sur cet appareil.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Saisir le mot de passe';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Reconnecter';

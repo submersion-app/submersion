@@ -22,7 +22,8 @@
 // - `lastUsedAt` is stored as `int?` epoch millis (not `DateTime`); the
 //   relative formatter takes the int and converts internally.
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
@@ -91,10 +92,30 @@ class _HostTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A row without its secret here (a restored backup, a new device) looks
+    // saved but authenticates nothing.
+    final missing =
+        ref.watch(savedHostHasSecretProvider(host.hostname)).valueOrNull ==
+        false;
+    final colors = Theme.of(context).colorScheme;
     return ListTile(
-      leading: const Icon(Icons.lock_outline),
+      leading: missing
+          ? Icon(Icons.key_off_outlined, color: colors.error)
+          : const Icon(Icons.lock_outline),
       title: Text(host.hostname),
-      subtitle: Text(_subtitle(context.l10n)),
+      subtitle: missing
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_subtitle(context.l10n)),
+                Text(
+                  context.l10n.media_credentials_secretMissing,
+                  key: const Key('savedHostSecretMissing'),
+                  style: TextStyle(color: colors.error),
+                ),
+              ],
+            )
+          : Text(_subtitle(context.l10n)),
       trailing: PopupMenuButton<_HostAction>(
         tooltip: context.l10n.common_action_more,
         onSelected: (action) => _handle(context, ref, action),

@@ -29159,6 +29159,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fotoübertragungen sind pausiert';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'Foto-Abo $name braucht sein Passwort';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Foto-Abo $name konnte nicht aktualisiert werden';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -51956,6 +51966,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Passwort fehlt auf diesem Gerät';
+
+  @override
   String get media_credentials_deleteBody =>
       'Entfernt die gespeicherten Zugangsdaten. Über diesen Host verknüpfte Elemente zeigen „Zum Anzeigen anmelden“, bis du sie erneut hinzufügst.';
 
@@ -62345,6 +62359,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Anmelden';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'Das Fotoalbum $name braucht auf diesem Gerät sein Passwort.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Passwort eingeben';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Neu verbinden';

@@ -29517,6 +29517,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'عمليات نقل الصور متوقفة مؤقتًا';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'اشتراك الصور $name يحتاج إلى كلمة المرور';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'تعذّر تحديث اشتراك الصور $name';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52758,6 +52768,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'كلمة المرور مفقودة على هذا الجهاز';
+
+  @override
   String get media_credentials_deleteBody =>
       'يزيل بيانات الاعتماد المحفوظة. ستعرض العناصر المرتبطة عبر هذا المضيف عبارة \"يتطلب تسجيل الدخول\" إلى أن تعيد إضافتها.';
 
@@ -63408,6 +63422,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'تسجيل الدخول';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'يحتاج ألبوم الصور $name إلى كلمة المرور على هذا الجهاز.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'أدخل كلمة المرور';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'إعادة الاتصال';

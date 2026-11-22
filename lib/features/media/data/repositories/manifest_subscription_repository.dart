@@ -73,6 +73,18 @@ class ManifestSubscription extends Equatable {
   ];
 }
 
+/// How a subscription is named where it is reported (health, setup): its
+/// display name, else the feed's host. Never the whole URL, which for a
+/// shared album carries the share code.
+extension ManifestSubscriptionLabel on ManifestSubscription {
+  String get label {
+    final name = displayName;
+    if (name != null && name.isNotEmpty) return name;
+    final host = Uri.tryParse(manifestUrl)?.host;
+    return host == null || host.isEmpty ? manifestUrl : host;
+  }
+}
+
 class ManifestSubscriptionRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();

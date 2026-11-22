@@ -12,6 +12,9 @@ import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/features/media/data/parsers/manifest_format.dart';
+import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 
 import '../../../helpers/test_database.dart';
@@ -380,5 +383,95 @@ void main() {
     final item = (await svc.compute()).single;
     expect(item.kind, SetupItemKind.accountSignIn);
     expect(item.dismissed, isTrue);
+  });
+
+  group('photo subscription passwords', () {
+    late ManifestSubscriptionRepository subs;
+    setUp(() => subs = ManifestSubscriptionRepository());
+
+    Future<ManifestSubscription> subscribe(
+      String url, {
+      String? error,
+      String? name,
+    }) async {
+      final sub = await subs.createSubscription(
+        manifestUrl: url,
+        format: ManifestFormat.json,
+        displayName: name,
+      );
+      if (error != null) {
+        await subs.recordPollFailure(
+          sub.id,
+          pollIntervalSeconds: 86400,
+          error: error,
+          now: DateTime.utc(2026, 1, 1),
+        );
+      }
+      return sub;
+    }
+
+    test('a share whose poll wanted a password yields an item', () async {
+      final sub = await subscribe(
+        'https://nas.example.com:5001/mo/sharing/code1',
+        error: kSynologyPasswordMissingMessage,
+      );
+      final items = (await service().compute())
+          .where((i) => i.kind == SetupItemKind.subscriptionPassword)
+          .toList();
+      expect(items, hasLength(1));
+      expect(items.single.subscriptionId, sub.id);
+      // The host, never the link: it carries the share code.
+      expect(items.single.label, 'nas.example.com');
+      expect(items.single.route, '/settings/media-sources/network-sources');
+    });
+
+    test('a refused password counts too, under the display name', () async {
+      await subscribe(
+        'https://nas.example.com:5001/mo/sharing/code1',
+        error: kSynologyPasswordRejectedMessage,
+        name: 'Dives',
+      );
+      final items = await service().compute();
+      expect(
+        items
+            .where((i) => i.kind == SetupItemKind.subscriptionPassword)
+            .single
+            .label,
+        'Dives',
+      );
+    });
+
+    test('an open share, another error or a feed yields none', () async {
+      await subscribe('https://nas.example.com:5001/mo/sharing/open1');
+      await subscribe(
+        'https://nas.example.com:5001/mo/sharing/code2',
+        error: 'Album format not recognised',
+      );
+      await subscribe(
+        'https://feed.example.com/m.json',
+        error: kSynologyPasswordMissingMessage,
+      );
+      final items = await service().compute();
+      expect(
+        items.where((i) => i.kind == SetupItemKind.subscriptionPassword),
+        isEmpty,
+      );
+    });
+
+    test('a dismissed item stays dismissed', () async {
+      final sub = await subscribe(
+        'https://nas.example.com:5001/mo/sharing/code1',
+        error: kSynologyPasswordMissingMessage,
+      );
+      await PendingSetupService.dismissKey(
+        prefs,
+        'subscription_password_${sub.id}',
+      );
+      final items = await service().compute();
+      expect(
+        items.where((i) => i.kind == SetupItemKind.subscriptionPassword),
+        isEmpty,
+      );
+    });
   });
 }

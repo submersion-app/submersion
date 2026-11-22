@@ -27548,6 +27548,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataHealth_media_transfersPaused => '照片传输已暂停';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return '照片订阅 $name 需要密码';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return '照片订阅 $name 无法更新';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -48897,6 +48907,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing => '此设备上缺少密码';
+
+  @override
   String get media_credentials_deleteBody =>
       '将删除已保存的凭据。通过此主机关联的项目会显示“需要登录”，直到您重新添加凭据。';
 
@@ -58649,6 +58662,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => '登录';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return '照片相册 $name 在此设备上需要密码。';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => '输入密码';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => '重新连接';

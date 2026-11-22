@@ -29035,6 +29035,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Fotooverdrachten zijn gepauzeerd';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'Foto-abonnement $name heeft zijn wachtwoord nodig';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Foto-abonnement $name kon niet worden bijgewerkt';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -51739,6 +51749,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Wachtwoord ontbreekt op dit apparaat';
+
+  @override
   String get media_credentials_deleteBody =>
       'Verwijdert de opgeslagen inloggegevens. Items die via deze host zijn gekoppeld, tonen ‘Log in om te bekijken’ totdat je ze opnieuw toevoegt.';
 
@@ -62093,6 +62107,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Inloggen';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'Het fotoalbum $name heeft op dit apparaat zijn wachtwoord nodig.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Wachtwoord invoeren';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Opnieuw verbinden';

@@ -12,7 +12,10 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/media_store/presentation/providers/media_sweep_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_quality_settings.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/data_health/media_health.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/media_cache_settings_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
@@ -85,7 +88,15 @@ class _PhotosAdvancedSectionState extends ConsumerState<PhotosAdvancedSection> {
         ],
         ListTile(
           leading: const Icon(Icons.lan_outlined),
-          title: Text(l10n.settings_photosMedia_networkSources_title),
+          title: HealthMarkedTitle(
+            title: Text(l10n.settings_photosMedia_networkSources_title),
+            feature: DataFeature.media,
+            reasons: const {
+              HealthReason.mediaSubscriptionNeedsPassword,
+              HealthReason.mediaSubscriptionFailing,
+            },
+            subjectId: mediaSetupSubscriptions,
+          ),
           subtitle: Text(l10n.settings_photosMedia_networkSources_subtitle),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushSettingsPage(

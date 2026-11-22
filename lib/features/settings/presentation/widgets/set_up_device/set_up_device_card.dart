@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/presentation/widgets/share_password_flow.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_store_reconnect_sheet.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
@@ -109,6 +110,7 @@ class SetUpDeviceCard extends ConsumerWidget {
                 onChooseAccount: () => _open(context, item.route),
               ),
               onDismiss: (item) => _dismiss(context, item),
+              onEnterPassword: (item) => _enterPassword(context, ref, item),
             ),
         ],
       ),
@@ -175,6 +177,24 @@ class SetUpDeviceCard extends ConsumerWidget {
     } finally {
       subscription.close();
     }
+  }
+
+  /// Asks for the shared album's password and polls it again, the same way
+  /// the subscription's own Poll now does; the item goes once a poll gets
+  /// past the password. A subscription that is gone opens its page.
+  Future<void> _enterPassword(
+    BuildContext context,
+    WidgetRef ref,
+    PendingSetupItem item,
+  ) async {
+    final id = item.subscriptionId;
+    if (id == null) {
+      _open(context, item.route);
+      return;
+    }
+    final container = ProviderScope.containerOf(context, listen: false);
+    await resolveSharePassword(context, ref, subscriptionId: id);
+    container.invalidate(pendingSetupItemsProvider);
   }
 
   /// Records the dismissal, then refreshes every card through the

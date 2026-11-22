@@ -29198,6 +29198,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'As transferências de fotos estão pausadas';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'A assinatura de fotos $name precisa da senha';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Não foi possível atualizar a assinatura de fotos $name';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52048,6 +52058,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Senha em falta neste dispositivo';
+
+  @override
   String get media_credentials_deleteBody =>
       'Remove as credenciais salvas. Os itens vinculados por meio deste host passarão a exibir \"Requer login\" até que você os adicione novamente.';
 
@@ -62449,6 +62463,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Iniciar sessão';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'O álbum de fotos $name precisa da senha neste dispositivo.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Introduzir senha';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Voltar a ligar';

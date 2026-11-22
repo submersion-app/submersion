@@ -35,14 +35,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
-import 'package:submersion/features/media/data/services/network_credentials_service.dart';
-import 'package:submersion/features/media/data/synology/synology_album_source.dart';
 import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
-import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
-import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
+import 'package:submersion/features/media/presentation/widgets/share_password_flow.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -265,33 +262,18 @@ class _SubscriptionTile extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref, {
     required bool polled,
-  }) async {
-    final share = SynologyShareLink.tryParseShareLink(
-      Uri.parse(sub.manifestUrl),
-    );
-    if (share == null) return polled;
-    final repo = ref.read(manifestSubscriptionRepositoryProvider);
-    final credentials = ref.read(networkCredentialsServiceProvider);
-    final poller = ref.read(subscriptionPollerProvider);
-    while (context.mounted) {
-      final error = (await repo.getById(sub.id))?.lastError;
-      if (!synologyNeedsPassword(error) || !context.mounted) break;
-      final password = await showSynologyPasswordDialog(
-        context,
-        shareLabel: sub.displayName ?? sub.manifestUrl,
-        rejected: error == kSynologyPasswordRejectedMessage,
-      );
-      if (password == null) break;
-      await credentials.save(
-        hostname: NetworkCredentialsService.synologyShareKey(share),
-        authType: kSynologyShareAuthType,
-        password: password,
-        // TODO(media): l10n
-        displayName: 'Synology Photos share',
-      );
-      polled = await poller.pollNow(sub.id, clock.now().toUtc());
+  }) {
+    // Feeds that are no share never want one; skip the read.
+    if (SynologyShareLink.tryParseShareLink(Uri.parse(sub.manifestUrl)) ==
+        null) {
+      return Future.value(polled);
     }
-    return polled;
+    return resolveSharePassword(
+      context,
+      ref,
+      subscriptionId: sub.id,
+      polled: polled,
+    );
   }
 
   Future<void> _confirmAndDelete(BuildContext context, WidgetRef ref) async {

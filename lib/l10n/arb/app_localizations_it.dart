@@ -29230,6 +29230,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'I trasferimenti delle foto sono in pausa';
 
   @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'L\'abbonamento foto $name richiede la sua password';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Impossibile aggiornare l\'abbonamento foto $name';
+  }
+
+  @override
   String dataHealth_facts_dives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52081,6 +52091,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Password mancante su questo dispositivo';
+
+  @override
   String get media_credentials_deleteBody =>
       'Rimuove le credenziali salvate. Gli elementi collegati tramite questo host mostreranno «Accedi per visualizzare» finché non li aggiungi di nuovo.';
 
@@ -62478,6 +62492,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Accedi';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'L\'album foto $name richiede la sua password su questo dispositivo.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Inserisci password';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Ricollega';

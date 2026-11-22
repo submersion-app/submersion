@@ -326,6 +326,19 @@ class NetworkCredentialsService {
     await _repo.delete(id);
   }
 
+  /// Whether this device's keychain holds a usable secret for the saved
+  /// host row [hostname]. The rows live in the database, the secrets only
+  /// in the keychain, so a database restored from a backup or brought to a
+  /// new device lists rows whose secret is not here. Reads without marking
+  /// the row used.
+  Future<bool> hasSecret(String hostname) async {
+    if (_secretCache.containsKey(hostname)) {
+      return _secretCache[hostname] != null;
+    }
+    final raw = await _storage.read(key: _keyPrefix + hostname);
+    return raw != null && _decodeSecret(raw) != null;
+  }
+
   /// Returns all stored credential-host rows. Used by the Settings page
   /// (Phase 3c) to render the credentials list.
   Future<List<NetworkCredentialHost>> list() => _repo.list();

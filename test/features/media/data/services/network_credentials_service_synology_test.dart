@@ -118,6 +118,20 @@ void main() {
     expect(await service.synologySharePassword(share2), isNull);
   });
 
+  test('hasSecret tells a saved row from one whose secret is gone', () async {
+    final key = NetworkCredentialsService.synologyShareKey(share1);
+    expect(await service.hasSecret(key), isFalse);
+    await saveShare(share1, 'secret');
+    expect(await service.hasSecret(key), isTrue);
+    // A row restored without its keychain entry.
+    keychain.values.clear();
+    final fresh = NetworkCredentialsService(
+      repository: repo,
+      storage: keychain,
+    );
+    expect(await fresh.hasSecret(key), isFalse);
+  });
+
   test('two shares on one NAS keep their own passwords', () async {
     await saveShare(share1, 'secret');
     await saveShare(share2, 'other');

@@ -45,6 +45,13 @@ class _FakeCredentialsService implements NetworkCredentialsService {
   @override
   Future<List<NetworkCredentialHost>> list() async => hosts;
 
+  /// Hosts whose secret this device lacks (a restored backup).
+  final Set<String> withoutSecret = <String>{};
+
+  @override
+  Future<bool> hasSecret(String hostname) async =>
+      !withoutSecret.contains(hostname);
+
   @override
   Future<void> delete(String id) async {
     deletedIds.add(id);
@@ -128,6 +135,19 @@ void main() {
 
     expect(find.text('photos.example.com'), findsOneWidget);
     expect(find.text('private.example.com'), findsOneWidget);
+  });
+
+  testWidgets('marks a host whose password this device lacks', (tester) async {
+    final creds = _FakeCredentialsService([
+      _h('1', 'photos.example.com'),
+      _h('2', 'restored.example.com'),
+    ])..withoutSecret.add('restored.example.com');
+    await tester.pumpWidget(_wrap(const CredentialsHostCard(), creds: creds));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('savedHostSecretMissing')), findsOneWidget);
+    expect(find.text('Password missing on this device'), findsOneWidget);
+    expect(find.byIcon(Icons.key_off_outlined), findsOneWidget);
   });
 
   testWidgets('renders empty-state ListTile when no hosts saved', (
