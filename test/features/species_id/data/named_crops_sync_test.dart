@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
@@ -152,6 +153,23 @@ void main() {
       expect(await table.bytesFor('m1-d'), jpeg);
       expect(await fileExists('m1', 'm1-u'), isTrue);
       expect(await backfill.run(), 0);
+    });
+
+    test('publishes a synced crop whose mark was lost, as no sync backfill '
+        'covers crops', () async {
+      // Written with no marks: as when marking failed after the write.
+      await IdentificationCropRepository(
+        database: DatabaseService.instance.database,
+      ).put('lost', 'm9', jpeg);
+      expect(await pendingCrops(), isEmpty);
+
+      await NamedCropBackfill(
+        identifications: identifications,
+        crops: store,
+        deviceId: () async => null,
+      ).run();
+
+      expect(await pendingCrops(), {'lost'});
     });
 
     test('leaves runs another device made', () async {

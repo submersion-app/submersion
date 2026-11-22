@@ -47,6 +47,9 @@ class NamedCropBackfill {
           ]);
         }
       }
+      // A crop whose mark failed after its write would otherwise never
+      // sync: no backfill of unstamped rows covers crops.
+      await _crops.republishUnstamped();
       return moved;
     } on Object catch (e) {
       _log.debug('Could not move named crops into the logbook', error: e);

@@ -18,10 +18,45 @@ extension _RunOrigin on MediaIdentificationService {
   /// every run did before results synced.
   Future<bool> _madeHere(MediaIdentificationRun? run) async {
     if (run == null || run.analysedBy == null) return true;
-    final me = await _deviceId();
-    return me == null || run.madeOn(me);
+    return _madeBy(run, await _deviceId());
+  }
+
+  /// The rows of [mediaId], [stored] under [run], that a refresh works from
+  /// (issue #4876). On the device that made [run], leftovers of a run that
+  /// lost a sync race, which the labels and readiness never count
+  /// ([visibleRows]), are deleted now with their crops and embeddings: the
+  /// next write here, rather than an analysis again for crops this device
+  /// never had. Elsewhere every row is kept, so an analysis here replaces
+  /// them all.
+  Future<List<MediaIdentification>> _withoutLeftovers(
+    String mediaId,
+    MediaIdentificationRun? run,
+    List<MediaIdentification> stored, {
+    required bool madeHere,
+    required int generation,
+  }) async {
+    if (!madeHere) return stored;
+    final visible = visibleRows(run, stored);
+    if (visible.length == stored.length) return stored;
+    if (_databaseGeneration() != generation) return stored;
+    final shown = {for (final i in visible) i.id};
+    final gone = await _identifications.deleteLeftovers(mediaId, [
+      for (final i in stored)
+        if (!shown.contains(i.id)) i.id,
+    ]);
+    await _embeddings.delete(gone);
+    await _crops.delete(mediaId, gone);
+    return [
+      for (final i in stored)
+        if (!gone.contains(i.id)) i,
+    ];
   }
 }
+
+/// Whether [run] was made on the device whose sync id is [me]: with no id
+/// to go by, it counts as this device's.
+bool _madeBy(MediaIdentificationRun run, String? me) =>
+    me == null || run.madeOn(me);
 
 /// This device's sync id, or null when it cannot be read (no logbook open,
 /// or a test with none): what a run records as its maker (issue #4876).

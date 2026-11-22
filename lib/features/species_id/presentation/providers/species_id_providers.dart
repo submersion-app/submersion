@@ -200,6 +200,9 @@ final namingLevelNotifierProvider =
 final levelInForceProvider = Provider<LevelInForce?>((ref) {
   final chosen = ref.watch(namingLevelNotifierProvider);
   if (chosen == NamingLevel.surer) return null;
+  // Where no model can run there is no pack to read, and a browser has no
+  // files to read one from: a run's own bars name its rows (issue #4876).
+  if (!marineLifeIdEnabled) return null;
   final pack = ref.watch(installedSpeciesPackProvider).value;
   return levelInForce(pack?.manifest, chosen);
 });
@@ -220,8 +223,9 @@ Future<LevelInForce?> awaitLevelInForce(
 }) async {
   final chosen = container.read(namingLevelNotifierProvider);
   // Surer is in force on any pack and reads as the stored flags, so there
-  // is nothing to wait for.
-  if (chosen == NamingLevel.surer) return null;
+  // is nothing to wait for; nor is there where no model can run (issue
+  // #4876), which has no pack to read.
+  if (chosen == NamingLevel.surer || !marineLifeIdEnabled) return null;
   final current = container.read(installedSpeciesPackProvider);
   // A failed read may still hold the pack it was to replace, which may be
   // another version or carry other levels: it is not taken.
@@ -508,11 +512,16 @@ final identificationCropProvider = FutureProvider.autoDispose
       (String mediaId, String identificationId)
     >((ref, key) async {
       final store = ref.watch(identificationCropStoreProvider);
+      final table = ref.watch(identificationCropRepositoryProvider);
       ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
-      ref.invalidateSelfWhen(
-        ref.watch(identificationCropRepositoryProvider).watchChanges(),
-      );
-      return store.read(key.$1, key.$2);
+      final crop = await store.read(key.$1, key.$2);
+      // A synced crop is written once, so only one still to come is waited
+      // for: a sync bringing other crops must not read this one again and
+      // have its picture decoded and drawn anew.
+      if (crop == null && ref.mounted) {
+        ref.invalidateSelfWhen(table.watchChanges());
+      }
+      return crop;
     });
 
 /// How many identifications the open logbook keeps.

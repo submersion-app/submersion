@@ -127,6 +127,60 @@ MediaIdentificationsCompanion _toCompanion(MediaIdentification i) =>
       runId: Value.absentIfNull(i.runId),
     );
 
+/// The ids among [insert] whose decision fields this write changes (issue
+/// #4876): a new row carrying something the diver said, or a stored one
+/// whose decision, decided species or time, or claim differs. Only these
+/// move the decision clock: a row written again as it was (a video chunk
+/// continuing a decided track) must not outrank a decision made on another
+/// device meanwhile. Read before the write, in its transaction.
+Future<List<String>> _decisionsChanged(
+  AppDatabase db,
+  List<MediaIdentification> insert,
+) async {
+  if (insert.isEmpty) return const [];
+  final table = db.mediaIdentifications;
+  final stored =
+      <
+        String,
+        ({String decision, String? decided, int? at, String? claimed})
+      >{};
+  final ids = [for (final i in insert) i.id];
+  for (final slice in ids.slices(MediaIdentificationRepository._slice)) {
+    final rows =
+        await (db.selectOnly(table)
+              ..addColumns([
+                table.id,
+                table.decision,
+                table.decidedSpeciesId,
+                table.decidedAt,
+                table.claimedSpeciesId,
+              ])
+              ..where(table.id.isIn(slice)))
+            .get();
+    for (final r in rows) {
+      stored[r.read(table.id)!] = (
+        decision: r.read(table.decision)!,
+        decided: r.read(table.decidedSpeciesId),
+        at: r.read(table.decidedAt),
+        claimed: r.read(table.claimedSpeciesId),
+      );
+    }
+  }
+  bool changed(MediaIdentification i) {
+    final before = stored[i.id];
+    if (before == null) return i.saidByDiver;
+    return before.decision != i.decision.name ||
+        before.decided != i.decidedSpeciesId ||
+        before.at != i.decidedAt?.millisecondsSinceEpoch ||
+        before.claimed != i.claimedSpeciesId;
+  }
+
+  return [
+    for (final i in insert)
+      if (changed(i)) i.id,
+  ];
+}
+
 /// A path that cannot be read keeps its row with no path, which draws no
 /// label: the rest of what was found stays usable.
 List<TrackSample> _decodePath(MediaIdentificationRow row) {

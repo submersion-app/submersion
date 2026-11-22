@@ -148,6 +148,32 @@ void main() {
     expect(visibleRows(stored, tracks), hasLength(2));
   });
 
+  test('on the device that made the run, a leftover of a run that lost a '
+      'sync race goes when the photo opens, with no analysis again', () async {
+    await service.request(photo('m1'));
+    final analyses = engine.analysed.length;
+    // The laptop analysed the same photo before syncing; its rows arrive
+    // and are hidden under this device's run.
+    await identifications.storeRun(
+      (await identifications.runFor('m1'))!,
+      insert: [
+        identification(
+          'laptop-row',
+          mediaId: 'm1',
+        ).copyWith(runId: () => 'laptop-run'),
+      ],
+      deleteIds: const [],
+    );
+
+    await service.request(photo('m1'));
+
+    expect(engine.analysed, hasLength(analyses));
+    expect((await identifications.runFor('m1'))!.runId, 'run-0');
+    expect([
+      for (final i in await identifications.forMedia('m1')) i.id,
+    ], isNot(contains('laptop-row')));
+  });
+
   group('a run another device made (Review Focus 1)', () {
     Future<void> storeElsewhere(String mediaId, {int? scannedMs}) =>
         identifications.storeRun(

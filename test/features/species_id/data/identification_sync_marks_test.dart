@@ -71,6 +71,42 @@ void main() {
     expect((await clocks('b'))['decision_hlc'], isNotNull);
   });
 
+  test('a row stored again with its decision unchanged keeps its decision '
+      'clock; a changed or cleared decision moves it', () async {
+    final accepted = identification(
+      'a',
+      decision: IdentificationDecision.accepted,
+    );
+    final kept = identification('k', decision: IdentificationDecision.accepted);
+    final cleared = identification(
+      'c',
+    ).copyWith(claimedSpeciesId: () => 'sp-claimed');
+    await repo.storeRun(
+      run(),
+      insert: [accepted, kept, cleared],
+      deleteIds: const [],
+    );
+    final before = {
+      for (final id in ['a', 'k', 'c']) id: (await clocks(id))['decision_hlc'],
+    };
+
+    // A video chunk writes the tracks it continues again, decisions as
+    // stored: only what the diver actually changed may win on a peer.
+    await repo.storeRun(
+      run(),
+      insert: [
+        accepted.copyWith(decision: IdentificationDecision.rejected),
+        kept.copyWith(openScore: 0.5),
+        cleared.copyWith(claimedSpeciesId: () => null),
+      ],
+      deleteIds: const [],
+    );
+
+    expect((await clocks('k'))['decision_hlc'], before['k']);
+    expect((await clocks('a'))['decision_hlc'], isNot(before['a']));
+    expect((await clocks('c'))['decision_hlc'], isNot(before['c']));
+  });
+
   test('rows a re-analysis deletes are tombstoned', () async {
     await repo.storeRun(
       run(),
@@ -143,6 +179,25 @@ void main() {
     },
   );
 
+  test(
+    'a leftover of a run that lost a sync race is deleted with a '
+    'tombstone; one the diver has said something on meanwhile stays',
+    () async {
+      await repo.storeRun(
+        run(),
+        insert: [
+          identification('left'),
+          identification('decided', decision: IdentificationDecision.rejected),
+        ],
+        deleteIds: const [],
+      );
+
+      expect(await repo.deleteLeftovers('m1', ['left', 'decided']), ['left']);
+      expect([for (final i in await repo.forMedia('m1')) i.id], ['decided']);
+      expect(await tombstones('mediaIdentifications'), {'left'});
+    },
+  );
+
   test('deleting the results of media tombstones runs and rows', () async {
     await repo.storeRun(
       run(),
@@ -173,6 +228,46 @@ void main() {
     expect(await pending('mediaIdentificationRuns'), {'m1'});
     expect(await pending('mediaIdentifications'), {'a'});
   });
+
+  test(
+    'the launch sweep removes the results of deleted media here only, '
+    'with no tombstones: an undo elsewhere must still bring them back',
+    () async {
+      final support = await Directory.systemTemp.createTemp('sweep');
+      addTearDown(() => support.delete(recursive: true));
+      final local = LocalCacheDatabase(NativeDatabase.memory());
+      addTearDown(local.close);
+      final crops = IdentificationCropStore(
+        supportPath: () async => support.path,
+        table: IdentificationCropRepository(),
+      );
+      addTearDown(crops.dispose);
+      await repo.storeRun(
+        run().copyWith(analysedBy: () => 'laptop'),
+        insert: [
+          identification('a', decision: IdentificationDecision.accepted),
+        ],
+        deleteIds: const [],
+      );
+      await crops.write('m1', 'a', Uint8List.fromList([1, 2]), named: true);
+      // The laptop's delete reached this phone while it could still be undone.
+      await sync.logDeletions(entityType: 'media', recordIds: ['m1']);
+
+      final swept = await IdentificationCleanup(
+        identifications: repo,
+        embeddings: IdentificationEmbeddingRepository(database: local),
+        crops: crops,
+        deviceId: () async => 'phone',
+      ).sweepOrphans();
+
+      expect(swept, 1);
+      expect(await repo.runFor('m1'), isNull);
+      expect(await crops.read('m1', 'a'), isNull);
+      expect(await tombstones('mediaIdentificationRuns'), isEmpty);
+      expect(await tombstones('mediaIdentifications'), isEmpty);
+      expect(await tombstones('mediaIdentificationCrops'), isEmpty);
+    },
+  );
 
   test('clearing every identification clears them on every device: runs, '
       'rows and crops are tombstoned', () async {

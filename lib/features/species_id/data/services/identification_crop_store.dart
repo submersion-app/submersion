@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 
 /// The cropped image of each animal the marine life model found, kept on
@@ -39,6 +40,7 @@ class IdentificationCropStore {
   /// The synced crops, or null where only files are kept (a test).
   final IdentificationCropRepository? _table;
   final _changes = StreamController<String>.broadcast();
+  static final _log = LoggerService.forClass(IdentificationCropStore);
 
   /// Marks a photo's folder once the photo has been analysed on this
   /// device. A dot name, so it can never be an identification's crop.
@@ -136,12 +138,18 @@ class IdentificationCropStore {
         await file.delete();
         moved++;
       }
-    } on Object {
+    } on Object catch (e) {
       // Left as files: the backfill at the next launch tries again.
+      _log.debug('Could not move named crops of $mediaId to sync', error: e);
     }
     if (moved > 0) _changed(mediaId);
     return moved;
   }
+
+  /// Publishes the synced crops whose mark was lost (issue #4876). Returns
+  /// how many.
+  Future<int> republishUnstamped() async =>
+      await _table?.republishUnstamped() ?? 0;
 
   /// Whether every one of [identificationIds] has a crop here, a file or a
   /// synced one.
@@ -172,8 +180,10 @@ class IdentificationCropStore {
     ];
   }
 
-  Future<void> deleteMedia(List<String> mediaIds) async {
-    await _table?.deleteForMedia(mediaIds);
+  /// Removes every crop of [mediaIds]: the files, and the synced ones,
+  /// tombstoned unless not [publish] (issue #4876).
+  Future<void> deleteMedia(List<String> mediaIds, {bool publish = true}) async {
+    await _table?.deleteForMedia(mediaIds, publish: publish);
     if (!_files) {
       mediaIds.forEach(_changed);
       return;

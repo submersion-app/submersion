@@ -26,11 +26,15 @@ extension Readiness on MediaIdentificationService {
         read ??
         await _identifications.forMediaIdsWithRuns(ids, withPaths: false);
     final current = <String>{};
+    // Read once for every item, and only when some run names its maker.
+    final me = runs.values.any((r) => r.analysedBy != null)
+        ? await _deviceId()
+        : null;
     for (final item in items) {
       final run = runs[item.id];
       if (run == null) continue;
       final cell = _regionCell(manifest, locationOf(item));
-      final madeHere = await _madeHere(run);
+      final madeHere = run.analysedBy == null || _madeBy(run, me);
       final crops = await _cropsPresent(_crops, item.id, [
         for (final i in visibleRows(
           run,

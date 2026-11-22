@@ -158,6 +158,34 @@ void main() {
     },
   );
 
+  test('a leftover of a run that lost a sync race is hidden, so it is not '
+      'applied (issue #4876)', () async {
+    await insertTestSpecies(
+      id: 'sp_queen_parrotfish',
+      name: 'Queen Parrotfish',
+    );
+    await identifications.storeRun(
+      run(
+        mediaId: 'p1',
+      ).copyWith(analysedBy: () => 'laptop', runId: () => 'r-laptop'),
+      insert: [
+        identification(
+          'i-mac',
+          mediaId: 'p1',
+        ).copyWith(confident: true, runId: () => 'r-mac'),
+      ],
+      deleteIds: const [],
+    );
+
+    expect(
+      await applier(
+        deviceId: 'laptop',
+      ).applyInScope('p1', isVideo: false, generation: 0),
+      0,
+    );
+    expect(await tags.findTag('p1', 'sp_queen_parrotfish'), isNull);
+  });
+
   test('reconciles through the service, which follows the naming level, '
       'and only when it tagged something', () async {
     await insertTestSpecies(

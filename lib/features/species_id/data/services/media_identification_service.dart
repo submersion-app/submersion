@@ -501,7 +501,14 @@ class MediaIdentificationService {
       final cell = _regionCell(manifest, job.location);
 
       final run = await _identifications.runFor(item.id);
-      final stored = await _identifications.forMedia(item.id);
+      final madeHere = await _madeHere(run);
+      final stored = await _withoutLeftovers(
+        item.id,
+        run,
+        await _identifications.forMedia(item.id),
+        madeHere: madeHere,
+        generation: generation,
+      );
       // A video's fish kept unnamed at a stop have no crop or embedding
       // yet: the resumed scan names them.
       final named = [
@@ -527,7 +534,6 @@ class MediaIdentificationService {
             ], classifierId: manifest.classifier.embeddingId);
       final embeddingsPresent =
           namesCurrent || storedEmbeddings.length == undecided.length;
-      final madeHere = await _madeHere(run);
       var putBack = false;
       if (video) {
         putBack = await _refreshVideo(

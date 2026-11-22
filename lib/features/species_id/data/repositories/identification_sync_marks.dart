@@ -7,8 +7,10 @@ import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 /// under their own clock, and tombstones what was deleted.
 ///
 /// Called after the write commits, as the other media repositories do.
-/// Never throws: a write that landed stays landed, and whatever did not get
-/// marked is picked up by the next sync's backfill of unstamped rows.
+/// Never throws: a write that landed stays landed. A run or identification
+/// that never got a clock is picked up by the next sync's backfill of
+/// unstamped rows, and a crop by the named-crop backfill at launch
+/// (`IdentificationCropStore.republishUnstamped`).
 class IdentificationSyncMarks {
   IdentificationSyncMarks({SyncRepository? sync, DateTime Function()? now})
     : _sync = sync ?? SyncRepository(),

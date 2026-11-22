@@ -83,9 +83,28 @@ class IdentificationCropRepository {
     await _marks?.cropsWritten([identificationId]);
   }
 
+  /// Publishes the crops here that never got a clock: one whose mark failed
+  /// after its write. No sync backfill covers crops, which have no time to
+  /// order them by, so this runs at launch instead. Returns how many.
+  Future<int> republishUnstamped() async {
+    final db = _db;
+    final table = db.mediaIdentificationCrops;
+    final ids =
+        await (db.selectOnly(table)
+              ..addColumns([table.id])
+              ..where(table.hlc.isNull()))
+            .map((r) => r.read(table.id)!)
+            .get();
+    await _marks?.cropsWritten(ids);
+    return ids.length;
+  }
+
   /// Removes the crops of [identificationIds] that are here, tombstoned so
-  /// peers drop them too.
-  Future<void> deleteIds(List<String> identificationIds) async {
+  /// peers drop them too unless not [publish].
+  Future<void> deleteIds(
+    List<String> identificationIds, {
+    bool publish = true,
+  }) async {
     final present = (await presentAmong(identificationIds)).toList();
     if (present.isEmpty) return;
     final db = _db;
@@ -94,11 +113,14 @@ class IdentificationCropRepository {
         db.mediaIdentificationCrops,
       )..where((c) => c.id.isIn(slice))).go();
     }
-    await _marks?.deleted(cropIds: present);
+    if (publish) await _marks?.deleted(cropIds: present);
   }
 
-  /// Removes every crop of [mediaIds], tombstoned.
-  Future<void> deleteForMedia(List<String> mediaIds) async {
+  /// Removes every crop of [mediaIds], tombstoned unless not [publish].
+  Future<void> deleteForMedia(
+    List<String> mediaIds, {
+    bool publish = true,
+  }) async {
     if (mediaIds.isEmpty) return;
     final db = _db;
     final table = db.mediaIdentificationCrops;
@@ -112,6 +134,6 @@ class IdentificationCropRepository {
             .get(),
       );
     }
-    await deleteIds(ids);
+    await deleteIds(ids, publish: publish);
   }
 }

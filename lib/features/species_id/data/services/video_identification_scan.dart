@@ -115,7 +115,16 @@ class VideoIdentificationScan {
        _width = resumeFrom?.imageWidth ?? 0,
        _height = resumeFrom?.imageHeight ?? 0,
        _detectionCount = resumeFrom?.detectionCount ?? 0,
+       _runId = resumeFrom?.runId,
+       _analysedBy = resumeFrom?.analysedBy,
        _carry = [...carry];
+
+  /// The run this scan continues and the device that made it (issue
+  /// #4876), written on every chunk: a run another device stored meanwhile
+  /// must not take over this scan's rows, so the last device to write wins
+  /// the video, as it does a photo.
+  final String? _runId;
+  final String? _analysedBy;
 
   /// Video per chunk once the scan is under way.
   final int chunkMs;
@@ -630,6 +639,8 @@ class VideoIdentificationScan {
           scannedMs: ranges.prefixEndMs,
           videoDurationMs: duration,
           scannedRanges: ranges,
+          analysedBy: _analysedBy,
+          runId: _runId,
           namingBars: NamingBars.fromNaming(manifest.naming),
         );
         return (run: run, insert: inserted, deleteIds: deleted);

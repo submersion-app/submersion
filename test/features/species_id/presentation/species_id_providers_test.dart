@@ -212,6 +212,35 @@ void main() {
       expect((crop! as CropBytes).bytes, [0xFF, 0xD8, 9]);
     });
 
+    test('a crop already shown is not read again when other crops sync in, '
+        'so its picture is not drawn again (issue #4876)', () async {
+      const key = ('m1', 'i3');
+      final table = IdentificationCropRepository(database: db);
+      await table.put('i3', 'm1', Uint8List.fromList([0xFF, 0xD8, 3]));
+      var builds = 0;
+      final sub = withCrops.listen(identificationCropProvider(key), (_, next) {
+        if (next.hasValue) builds++;
+      }, fireImmediately: true);
+      addTearDown(sub.close);
+      final shown = await withCrops.read(
+        identificationCropProvider(key).future,
+      );
+      await pumpEventQueue();
+      final before = builds;
+
+      await table.put('other', 'm2', Uint8List.fromList([0xFF, 0xD8, 4]));
+      await pumpEventQueue();
+
+      expect(builds, before);
+      expect(
+        identical(
+          await withCrops.read(identificationCropProvider(key).future),
+          shown,
+        ),
+        isTrue,
+      );
+    });
+
     test('the crops size follows the files, not only the rows', () async {
       await crops.write('m1', 'i1', Uint8List.fromList([1, 2, 3, 4]));
       final sub = withCrops.listen(identificationCropBytesProvider, (_, _) {});
@@ -394,6 +423,10 @@ void main() {
   });
 
   group('the naming level (issue #4721)', () {
+    // A pack is read only where the models run; the file's tearDown puts
+    // the flag back.
+    setUp(() => marineLifeIdEnabled = true);
+
     // The fixture pack names at 0.50 with a location; Eager at 0.3.
     InstalledPack levelledPack() => InstalledPack(
       manifest: SpeciesPackManifest.parse(
@@ -592,6 +625,29 @@ void main() {
       final notifier = NamingLevelNotifier(prefs);
       expect(notifier.state, NamingLevel.surer);
       expect(notifier.picked, isTrue);
+    });
+
+    test('where no model can run, no pack is ever read: a run\'s own bars '
+        'name its rows (issue #4876)', () async {
+      marineLifeIdEnabled = false;
+      var reads = 0;
+      final c = ProviderContainer(
+        overrides: [
+          installedSpeciesPackProvider.overrideWith((ref) async {
+            reads++;
+            return levelledPack();
+          }),
+          namingLevelNotifierProvider.overrideWith(
+            (ref) =>
+                NamingLevelNotifier.unstored(NamingLevel.eager, picked: true),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      expect(c.read(levelInForceProvider), isNull);
+      expect(await awaitLevelInForce(c), isNull);
+      await pumpEventQueue();
+      expect(reads, 0);
     });
 
     test('Surer is no level and never reads the pack', () async {

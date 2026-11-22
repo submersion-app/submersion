@@ -174,10 +174,15 @@ class MediaIdentificationRepository {
     required List<MediaIdentification> insert,
     required List<String> deleteIds,
   }) async {
-    await _transaction(
+    final decided = await _transaction(
       (db) => _write(db, run, insert: insert, deleteIds: deleteIds),
     );
-    await _publishStored(run.mediaId, insert: insert, deleteIds: deleteIds);
+    await _publishStored(
+      run.mediaId,
+      insert: insert,
+      deleteIds: deleteIds,
+      decided: decided,
+    );
   }
 
   /// [storeRun], with what to write worked out by [build] from the rows of
@@ -192,52 +197,55 @@ class MediaIdentificationRepository {
     required Future<StoreRunWrite?> Function(List<MediaIdentification>? current)
     build,
   }) async {
-    final write = await _transaction((db) async {
+    final stored = await _transaction((db) async {
       final current = read ? await forMedia(mediaId) : null;
       final write = await build(current);
       if (write == null) return null;
-      await _write(
+      final decided = await _write(
         db,
         write.run,
         insert: write.insert,
         deleteIds: write.deleteIds,
       );
-      return write;
+      return (write: write, decided: decided);
     });
-    if (write == null) return false;
+    if (stored == null) return false;
+    final (:write, :decided) = stored;
     await _publishStored(
       write.run.mediaId,
       insert: write.insert,
       deleteIds: write.deleteIds,
+      decided: decided,
     );
     return true;
   }
 
-  /// Publishes a stored run: the run, the rows written (with the decisions
-  /// they carry under the decision clock) and tombstones for the rows
-  /// deleted.
+  /// Publishes a stored run: the run, the rows written, the rows whose
+  /// decisions it changed ([decided]) under the decision clock, and
+  /// tombstones for the rows deleted.
   Future<void> _publishStored(
     String mediaId, {
     required List<MediaIdentification> insert,
     required List<String> deleteIds,
+    required List<String> decided,
   }) async {
     final marks = _marks;
     if (marks == null) return;
     await marks.runsWritten([mediaId]);
     await marks.rowsWritten([for (final i in insert) i.id]);
-    await marks.decisionsWritten([
-      for (final i in insert)
-        if (i.saidByDiver) i.id,
-    ]);
+    await marks.decisionsWritten(decided);
     await marks.deleted(rowIds: deleteIds);
   }
 
-  Future<void> _write(
+  /// Returns the ids of the rows whose decision fields it changed
+  /// ([_decisionsChanged]).
+  Future<List<String>> _write(
     AppDatabase db,
     MediaIdentificationRun run, {
     required List<MediaIdentification> insert,
     required List<String> deleteIds,
   }) async {
+    final decided = await _decisionsChanged(db, insert);
     // A write that does not name its run id (a later chunk of a video scan)
     // continues the stored run's, and its rows join it (issue #4876).
     final runId =
@@ -265,6 +273,7 @@ class MediaIdentificationRepository {
             ),
           );
     }
+    return decided;
   }
 
   /// Writes the decisions on [changed] (the decision, its species and
@@ -392,9 +401,48 @@ class MediaIdentificationRepository {
     return written.length;
   }
 
+  /// Deletes [ids], leftovers of a run that lost a sync race on [mediaId]
+  /// (issue #4876), with tombstones. Only rows nobody has said anything on
+  /// go: one a decision or claim synced into since is shown again, so it
+  /// stays. Returns the ids deleted, for their crops and embeddings.
+  Future<List<String>> deleteLeftovers(String mediaId, List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final deleted = await _transaction((db) async {
+      final table = db.mediaIdentifications;
+      final gone = <String>[];
+      for (final slice in ids.slices(_slice)) {
+        final unsaid =
+            await (db.selectOnly(table)
+                  ..addColumns([table.id])
+                  ..where(
+                    table.mediaId.equals(mediaId) &
+                        table.id.isIn(slice) &
+                        table.decision.equals(
+                          IdentificationDecision.undecided.name,
+                        ) &
+                        table.claimedSpeciesId.isNull() &
+                        table.decidedAt.isNull(),
+                  ))
+                .map((r) => r.read(table.id)!)
+                .get();
+        if (unsaid.isEmpty) continue;
+        await (db.delete(table)..where((r) => r.id.isIn(unsaid))).go();
+        gone.addAll(unsaid);
+      }
+      return gone;
+    });
+    await _marks?.deleted(rowIds: deleted);
+    return deleted;
+  }
+
   /// Removes the runs and identifications of [mediaIds]; returns the ids of
-  /// the identifications removed, for their crops and embeddings.
-  Future<List<String>> deleteForMedia(List<String> mediaIds) async {
+  /// the identifications removed, for their crops and embeddings. They are
+  /// tombstoned unless not [publish] (issue #4876): a sweep acting on a
+  /// media tombstone removes this device's copies only.
+  Future<List<String>> deleteForMedia(
+    List<String> mediaIds, {
+    bool publish = true,
+  }) async {
     if (mediaIds.isEmpty) return const [];
     final (:ids, :runs) = await _transaction((db) async {
       final ids = <String>[];
@@ -420,7 +468,7 @@ class MediaIdentificationRepository {
       }
       return (ids: ids, runs: runs);
     });
-    await _marks?.deleted(runMediaIds: runs, rowIds: ids);
+    if (publish) await _marks?.deleted(runMediaIds: runs, rowIds: ids);
     return ids;
   }
 

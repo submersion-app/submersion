@@ -8,6 +8,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/domain/entities/dive_species_run_state.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
+import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
 /// Tags the species the app is confident of on a media item, with no tap
 /// (issue #4727). Each tag is marked unconfirmed and, by the diver's
@@ -109,7 +110,9 @@ class AutoApplier {
     final me = await _deviceId();
     if (run != null && me != null && !run.madeOn(me)) return const [];
     return identificationsToApply(
-      await _identifications.forMedia(mediaId),
+      // As the labels show them: a leftover of a run that lost a sync race
+      // is hidden, so it never tags (issue #4876).
+      visibleRows(run, await _identifications.forMedia(mediaId)),
       await _identifications.taggedSpecies(mediaId),
       isVideo: isVideo,
       scanComplete: run?.scanComplete ?? false,
