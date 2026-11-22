@@ -540,19 +540,29 @@ List<Widget> toolbarActionButtons(
     ),
 ];
 
-/// [icon] inside [ring], when there is one.
+/// How far [_withRing]'s ring reaches past each side of the icon, into the
+/// button's padding.
+const double _ringOverhang = 4;
+
+/// [icon] inside [ring], when there is one. The icon alone sizes the
+/// button: the ring is painted out into the padding round it, so the
+/// button, and the bar it sits in, keep their size while work runs
+/// (issue #4870).
 Widget _withRing(Widget icon, ToolbarRing? ring) {
   if (ring == null) return icon;
-  return SizedBox.square(
-    dimension: 32,
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        Positioned.fill(
-          child: CircularProgressIndicator(strokeWidth: 2, value: ring.value),
-        ),
-        icon,
-      ],
-    ),
+  return Stack(
+    alignment: Alignment.center,
+    clipBehavior: Clip.none,
+    children: [
+      // Under the icon, as before; the icon still sizes the stack.
+      Positioned(
+        left: -_ringOverhang,
+        top: -_ringOverhang,
+        right: -_ringOverhang,
+        bottom: -_ringOverhang,
+        child: CircularProgressIndicator(strokeWidth: 2, value: ring.value),
+      ),
+      icon,
+    ],
   );
 }

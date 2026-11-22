@@ -6143,75 +6143,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_activeCourses_title => 'Courses in progress';
 
   @override
-  String get dashboard_greeting_afternoon => 'Good afternoon';
-
-  @override
-  String get dashboard_greeting_evening => 'Good evening';
-
-  @override
-  String get dashboard_greeting_morning => 'Good morning';
-
-  @override
-  String dashboard_greeting_withName(Object greeting, Object name) {
-    return '$greeting, $name!';
-  }
-
-  @override
-  String dashboard_greeting_withoutName(Object greeting) {
-    return '$greeting!';
-  }
-
-  @override
-  String get dashboard_hero_divesLoggedOne => '1 dive logged';
-
-  @override
-  String dashboard_hero_divesLoggedOther(Object count) {
-    return '$count dives logged';
-  }
-
-  @override
-  String get dashboard_hero_divesTotalOne => '1 dive';
-
-  @override
-  String dashboard_hero_divesTotalOther(Object count) {
-    return '$count dives';
-  }
-
-  @override
-  String get dashboard_hero_error => 'Ready to explore the depths?';
-
-  @override
-  String dashboard_hero_hoursUnderwater(Object hours) {
-    return '$hours hours underwater';
-  }
-
-  @override
-  String get dashboard_hero_loading => 'Loading your dive stats...';
-
-  @override
-  String dashboard_hero_minutesUnderwater(Object minutes) {
-    return '$minutes minutes underwater';
-  }
-
-  @override
-  String get dashboard_hero_noDives => 'Ready to log your first dive?';
-
-  @override
-  String get dashboard_hero_diverFallbackName => 'Diver';
-
-  @override
-  String get dashboard_hero_statDives => 'dives';
-
-  @override
-  String get dashboard_hero_statHours => 'hours';
-
-  @override
-  String get dashboard_hero_statSites => 'sites';
-
-  @override
-  String get dashboard_hero_statCountries => 'countries';
-
-  @override
   String get dashboard_gauges_addGear => 'Add gear';
 
   @override
@@ -6304,13 +6235,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_homeChips_sectionTitle => 'Status chips';
 
   @override
-  String get settings_homeCards_sectionTitle => 'Home cards';
-
-  @override
-  String get settings_homeCards_description =>
-      'Choose which cards appear on the Home tab and drag to reorder them.';
-
-  @override
   String get settings_homeCards_autoHides => 'Hides automatically when empty';
 
   @override
@@ -6320,54 +6244,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_homeCards_resetDialog_title => 'Reset Home layout?';
 
   @override
-  String get settings_homeCards_resetDialog_message =>
-      'This restores the default card order and shows all cards again.';
-
-  @override
   String get settings_homeCards_resetDialog_cancel => 'Cancel';
 
   @override
   String get settings_homeCards_resetDialog_confirm => 'Reset';
 
   @override
-  String get settings_homeCards_card_hero => 'Welcome header';
-
-  @override
-  String get settings_homeCards_card_gaugeStrip => 'Status chips';
-
-  @override
-  String get settings_homeCards_card_preDive => 'Checklists';
-
-  @override
-  String get settings_homeCards_card_recentDives => 'Recent dives';
-
-  @override
-  String get settings_homeCards_card_quickActions => 'Quick actions';
-
-  @override
-  String get settings_homeCards_card_milestones => 'Milestones';
-
-  @override
-  String get settings_homeCards_card_photoRibbon => 'Recent media';
-
-  @override
-  String get settings_homeCards_card_onThisDay => 'On this day';
-
-  @override
-  String get settings_homeCards_card_yearInReview => 'Year in review';
-
-  @override
-  String get settings_homeCards_card_activeCourses => 'Course progress';
-
-  @override
-  String get settings_homeCards_card_recentSitesMap => 'Recent sites map';
-
-  @override
   String get settings_homeCards_card_waitingForDownload =>
       'Waiting for download';
 
   @override
-  String get dashboard_allHidden_message => 'All Home cards are hidden.';
+  String get dashboard_allHidden_message => 'No panels to show.';
 
   @override
   String get dashboard_allHidden_customize => 'Customize Home';
@@ -6493,42 +6380,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_recentSites_title => 'Recent sites';
 
   @override
-  String get dashboard_yearInReview_title => 'This year';
-
-  @override
-  String dashboard_yearInReview_divesVs(int count, int previous) {
-    return '$count dives (vs $previous last year)';
-  }
-
-  @override
-  String dashboard_yearInReview_hours(String hours) {
-    return '$hours hours underwater';
-  }
-
-  @override
-  String dashboard_yearInReview_maxDepth(String depth) {
-    return 'Deepest: $depth';
-  }
-
-  @override
   String get dashboard_onThisDay_title => 'On this day';
 
   @override
   String dashboard_onThisDay_entry(String year, String site) {
     return '$year - $site';
-  }
-
-  @override
-  String get dashboard_milestones_title => 'Milestones';
-
-  @override
-  String dashboard_milestones_nextDive(int remaining, int milestone) {
-    return '$remaining dives to #$milestone';
-  }
-
-  @override
-  String dashboard_milestones_certYears(String name, int years, String month) {
-    return '$name: $years years in $month';
   }
 
   @override
@@ -6538,19 +6394,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_quickActions_planDive => 'Plan Dive';
 
   @override
-  String get dashboard_quickActions_sectionTitle => 'Quick Actions';
-
-  @override
-  String get dashboard_quickActions_insights => 'Insights';
-
-  @override
   String get dashboard_recentDives_empty => 'No dives logged yet';
-
-  @override
-  String get dashboard_recentDives_errorLoading => 'Failed to load dives';
-
-  @override
-  String get dashboard_recentDives_latestProfileTitle => 'Latest dive profile';
 
   @override
   String get dashboard_recentDives_noProfileData =>
@@ -6559,28 +6403,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboard_recentDives_profileLoadError =>
       'Couldn\'t load the dive profile';
-
-  @override
-  String get dashboard_recentDives_logFirst => 'Log Your First Dive';
-
-  @override
-  String get dashboard_recentDives_sectionTitle => 'Recent Dives';
-
-  @override
-  String get dashboard_recentDives_viewAll => 'View All';
-
-  @override
-  String get dashboard_recentDives_viewAllTooltip => 'View all dives';
-
-  @override
-  String get dashboard_semantics_errorLoadingRecentDives =>
-      'Error: Failed to load recent dives';
-
-  @override
-  String get dashboard_semantics_greetingBanner => 'Dashboard greeting banner';
-
-  @override
-  String get dashboard_waitingForDownload_download => 'Download now';
 
   @override
   String dashboard_waitingForDownload_title(int count) {
@@ -64608,4 +64430,319 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diverProfile_bodyEstimate_note =>
       'Used only to estimate body composition for weight prediction.';
+
+  @override
+  String get dashboard_header_quickActions => 'Quick actions';
+
+  @override
+  String get dashboard_header_allClear => 'All clear';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count all clear';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => 'Status';
+
+  @override
+  String get dashboard_panel_loadError => 'Couldn\'t load this';
+
+  @override
+  String get dashboard_key_dives => 'Dives';
+
+  @override
+  String get dashboard_key_timeUnder => 'Time under';
+
+  @override
+  String get dashboard_key_lastDive => 'Last dive';
+
+  @override
+  String get dashboard_key_avgSac => 'Avg SAC';
+
+  @override
+  String get dashboard_key_avgRmv => 'Avg RMV';
+
+  @override
+  String get dashboard_key_deepestThisYear => 'Deepest this year';
+
+  @override
+  String get dashboard_key_nextTrip => 'Next trip';
+
+  @override
+  String get dashboard_key_avgDepth => 'Avg depth';
+
+  @override
+  String get dashboard_key_species => 'Species';
+
+  @override
+  String dashboard_key_countThisYear(int count) {
+    return '+$count this year';
+  }
+
+  @override
+  String dashboard_key_hoursThisYear(String hours) {
+    return '+$hours h this year';
+  }
+
+  @override
+  String get dashboard_key_hoursUnit => 'h';
+
+  @override
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'days',
+      one: 'day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_key_vsPrevious(String change) {
+    return '$change vs previous 10';
+  }
+
+  @override
+  String dashboard_key_lastYear(String value) {
+    return 'Last year $value';
+  }
+
+  @override
+  String dashboard_key_tripChecklist(String name, int done, int total) {
+    return 'checklist $done/$total · $name';
+  }
+
+  @override
+  String dashboard_panel_activity(int months) {
+    return 'Activity, $months months';
+  }
+
+  @override
+  String dashboard_panel_activitySummary(int dives, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives',
+      one: '1 dive',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get dashboard_panel_divesPerMonth => 'Dives per month';
+
+  @override
+  String get dashboard_panel_sacTrend => 'SAC trend';
+
+  @override
+  String get dashboard_panel_rmvTrend => 'RMV trend';
+
+  @override
+  String dashboard_panel_lastDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'last $count dives',
+      one: 'last dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_noSac => 'No dives with gas data yet';
+
+  @override
+  String get dashboard_panel_depthMix => 'Depth mix';
+
+  @override
+  String get dashboard_panel_noDives => 'No dives yet';
+
+  @override
+  String get dashboard_panel_gasMix => 'Gas mix';
+
+  @override
+  String get dashboard_panel_diveTypes => 'Dive types';
+
+  @override
+  String get dashboard_panel_topSites => 'Top sites';
+
+  @override
+  String get dashboard_panel_topBuddies => 'Top buddies';
+
+  @override
+  String get dashboard_panel_noBuddies => 'No buddies logged yet';
+
+  @override
+  String get dashboard_panel_gearService => 'Gear service';
+
+  @override
+  String get dashboard_panel_noGear => 'Add gear to track its service';
+
+  @override
+  String get dashboard_panel_overdue => 'Overdue';
+
+  @override
+  String dashboard_panel_daysLeft(int days) {
+    return '$days d';
+  }
+
+  @override
+  String dashboard_panel_divesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_panel_hoursLeft(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String get dashboard_panel_comingDue => 'Coming due';
+
+  @override
+  String get dashboard_panel_nothingDue => 'Nothing due in the next year';
+
+  @override
+  String dashboard_panel_inDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'in $days days',
+      one: 'tomorrow',
+      zero: 'today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_tripChecklist => 'Trip checklist';
+
+  @override
+  String get dashboard_panel_latestProfile => 'Latest profile';
+
+  @override
+  String get dashboard_panel_latestVsAverage => 'Latest dive vs average';
+
+  @override
+  String dashboard_panel_vsAverage(String value, String average) {
+    return '$value · avg $average';
+  }
+
+  @override
+  String get dashboard_panel_maxDepth => 'Max depth';
+
+  @override
+  String get dashboard_panel_runtime => 'Runtime';
+
+  @override
+  String get dashboard_panel_sac => 'SAC';
+
+  @override
+  String get dashboard_panel_rmv => 'RMV';
+
+  @override
+  String get dashboard_panel_recentDives => 'Recent dives';
+
+  @override
+  String get dashboard_panel_colSite => 'Site';
+
+  @override
+  String get dashboard_panel_colDate => 'Date';
+
+  @override
+  String get dashboard_panel_colDepth => 'Depth';
+
+  @override
+  String get dashboard_panel_colTime => 'Time';
+
+  @override
+  String get dashboard_panel_speciesSeen => 'Species seen lately';
+
+  @override
+  String dashboard_panel_speciesTotal(int count) {
+    return '$count total';
+  }
+
+  @override
+  String dashboard_panel_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_firstDive => 'Log or import your first dive';
+
+  @override
+  String get dashboard_panel_import => 'Import';
+
+  @override
+  String get settings_homeLayout_sectionTitle => 'Layout';
+
+  @override
+  String get settings_homeLayout_description =>
+      'Pick a starting layout, then show, hide or drag panels below. Your changes make it Custom.';
+
+  @override
+  String get settings_homeLayout_balanced => 'Balanced';
+
+  @override
+  String get settings_homeLayout_ready => 'Ready';
+
+  @override
+  String get settings_homeLayout_trends => 'Trends';
+
+  @override
+  String get settings_homeLayout_logbook => 'Logbook';
+
+  @override
+  String get settings_homeLayout_replaceTitle => 'Replace your layout?';
+
+  @override
+  String settings_homeLayout_replaceMessage(String preset) {
+    return 'Your own arrangement of panels will be replaced by the $preset layout.';
+  }
+
+  @override
+  String get settings_homeLayout_replace => 'Replace';
+
+  @override
+  String get settings_homePanels_sectionTitle => 'Panels';
+
+  @override
+  String get settings_homePanels_resetMessage =>
+      'This returns Home to the Balanced layout.';
+
+  @override
+  String get settings_homePanels_keyNumbers => 'Key numbers';
+
+  @override
+  String settings_homePanels_keyNumbersCount(int shown, int total) {
+    return '$shown of $total';
+  }
+
+  @override
+  String get settings_homePanels_activityCalendar => 'Activity calendar';
+
+  @override
+  String get settings_homeKeyNumbers_description =>
+      'Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.';
 }

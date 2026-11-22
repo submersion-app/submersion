@@ -1,28 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Opens [SubmersionAboutDialog] the way Flutter's showAboutDialog opens its
-/// own: on the root navigator, dismissible by tapping outside.
-Future<void> showSubmersionAboutDialog({
-  required BuildContext context,
-  required String applicationName,
-  required String applicationVersion,
-  required Widget applicationIcon,
-  String? builtOn,
-  List<Widget> children = const [],
-}) {
-  return showDialog<void>(
-    context: context,
-    useRootNavigator: true,
-    builder: (_) => SubmersionAboutDialog(
-      applicationName: applicationName,
-      applicationVersion: applicationVersion,
-      applicationIcon: applicationIcon,
-      builtOn: builtOn,
-      children: children,
-    ),
-  );
-}
-
 /// The "About Submersion" dialog: Flutter's AboutDialog layout, with the
 /// build date directly under the version (issue #4365).
 ///

@@ -1706,7 +1706,7 @@ void main() {
   // The GaugeStrip widget test navigates through a stub router, so a chip
   // pointing at a path that does not exist in the real app would still pass
   // there. These assert the destinations resolve against the real config.
-  group('home gauge-strip chip destinations resolve', () {
+  group('home status light and header destinations resolve', () {
     const destinations = <String>[
       '/equipment',
       '/equipment/new',
@@ -1730,6 +1730,20 @@ void main() {
       '/settings/backup',
       '/settings/cloud-sync',
       '/dives/quality',
+      // Home header actions and its More menu (issue #4824).
+      '/dives/new',
+      '/planning/dive-planner',
+      '/settings/diver-profile/emergency-card',
+      '/buddies/swap',
+      '/trips/t1',
+      // Home panel destinations (issue #4824).
+      '/insights',
+      '/sites',
+      '/buddies',
+      '/species',
+      '/certifications/c1',
+      '/transfer/import-wizard',
+      '/settings/appearance/home/key-numbers',
     ];
 
     for (final destination in destinations) {

@@ -5907,75 +5907,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_activeCourses_title => '进行中的课程';
 
   @override
-  String get dashboard_greeting_afternoon => '下午好';
-
-  @override
-  String get dashboard_greeting_evening => '晚上好';
-
-  @override
-  String get dashboard_greeting_morning => '上午好';
-
-  @override
-  String dashboard_greeting_withName(Object greeting, Object name) {
-    return '$greeting, $name!';
-  }
-
-  @override
-  String dashboard_greeting_withoutName(Object greeting) {
-    return '$greeting!';
-  }
-
-  @override
-  String get dashboard_hero_divesLoggedOne => '已记录 1 次潜水';
-
-  @override
-  String dashboard_hero_divesLoggedOther(Object count) {
-    return '已记录 $count 次潜水';
-  }
-
-  @override
-  String get dashboard_hero_divesTotalOne => '1 次潜水';
-
-  @override
-  String dashboard_hero_divesTotalOther(Object count) {
-    return '$count 次潜水';
-  }
-
-  @override
-  String get dashboard_hero_error => '准备好探索深海了吗？';
-
-  @override
-  String dashboard_hero_hoursUnderwater(Object hours) {
-    return '水下 $hours 小时';
-  }
-
-  @override
-  String get dashboard_hero_loading => '正在加载您的潜水统计...';
-
-  @override
-  String dashboard_hero_minutesUnderwater(Object minutes) {
-    return '水下 $minutes 分钟';
-  }
-
-  @override
-  String get dashboard_hero_noDives => '准备好记录您的第一次潜水了吗？';
-
-  @override
-  String get dashboard_hero_diverFallbackName => '潜水员';
-
-  @override
-  String get dashboard_hero_statDives => '潜水';
-
-  @override
-  String get dashboard_hero_statHours => '小时';
-
-  @override
-  String get dashboard_hero_statSites => '潜点';
-
-  @override
-  String get dashboard_hero_statCountries => '国家';
-
-  @override
   String get dashboard_gauges_addGear => '添加装备';
 
   @override
@@ -6064,12 +5995,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeChips_sectionTitle => '状态标签';
 
   @override
-  String get settings_homeCards_sectionTitle => '主页卡片';
-
-  @override
-  String get settings_homeCards_description => '选择主页显示哪些卡片，并拖动以重新排序。';
-
-  @override
   String get settings_homeCards_autoHides => '为空时自动隐藏';
 
   @override
@@ -6079,52 +6004,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeCards_resetDialog_title => '重置主页布局？';
 
   @override
-  String get settings_homeCards_resetDialog_message => '将恢复默认卡片顺序并重新显示所有卡片。';
-
-  @override
   String get settings_homeCards_resetDialog_cancel => '取消';
 
   @override
   String get settings_homeCards_resetDialog_confirm => '重置';
 
   @override
-  String get settings_homeCards_card_hero => '欢迎页眉';
-
-  @override
-  String get settings_homeCards_card_gaugeStrip => '状态标签';
-
-  @override
-  String get settings_homeCards_card_preDive => '检查清单';
-
-  @override
-  String get settings_homeCards_card_recentDives => '最近潜水';
-
-  @override
-  String get settings_homeCards_card_quickActions => '快捷操作';
-
-  @override
-  String get settings_homeCards_card_milestones => '里程碑';
-
-  @override
-  String get settings_homeCards_card_photoRibbon => '最近媒体';
-
-  @override
-  String get settings_homeCards_card_onThisDay => '历史上的今天';
-
-  @override
-  String get settings_homeCards_card_yearInReview => '年度回顾';
-
-  @override
-  String get settings_homeCards_card_activeCourses => '课程进度';
-
-  @override
-  String get settings_homeCards_card_recentSitesMap => '最近潜点地图';
-
-  @override
   String get settings_homeCards_card_waitingForDownload => '等待下载';
 
   @override
-  String get dashboard_allHidden_message => '所有主页卡片均已隐藏。';
+  String get dashboard_allHidden_message => '没有可显示的面板。';
 
   @override
   String get dashboard_allHidden_customize => '自定义主页';
@@ -6250,42 +6139,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_recentSites_title => '最近潜点';
 
   @override
-  String get dashboard_yearInReview_title => '今年';
-
-  @override
-  String dashboard_yearInReview_divesVs(int count, int previous) {
-    return '$count 次潜水(去年 $previous 次)';
-  }
-
-  @override
-  String dashboard_yearInReview_hours(String hours) {
-    return '水下 $hours 小时';
-  }
-
-  @override
-  String dashboard_yearInReview_maxDepth(String depth) {
-    return '最深:$depth';
-  }
-
-  @override
   String get dashboard_onThisDay_title => '历史上的今天';
 
   @override
   String dashboard_onThisDay_entry(String year, String site) {
     return '$year - $site';
-  }
-
-  @override
-  String get dashboard_milestones_title => '里程碑';
-
-  @override
-  String dashboard_milestones_nextDive(int remaining, int milestone) {
-    return '还有 $remaining 次即达第 $milestone 潜';
-  }
-
-  @override
-  String dashboard_milestones_certYears(String name, int years, String month) {
-    return '$name:$month满 $years 年';
   }
 
   @override
@@ -6295,46 +6153,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_quickActions_planDive => '计划潜水';
 
   @override
-  String get dashboard_quickActions_sectionTitle => '快捷操作';
-
-  @override
-  String get dashboard_quickActions_insights => '洞察';
-
-  @override
   String get dashboard_recentDives_empty => '尚未记录潜水';
-
-  @override
-  String get dashboard_recentDives_errorLoading => '加载潜水记录失败';
-
-  @override
-  String get dashboard_recentDives_latestProfileTitle => '最近潜水剖面';
 
   @override
   String get dashboard_recentDives_noProfileData => '此次潜水没有剖面数据';
 
   @override
   String get dashboard_recentDives_profileLoadError => '无法加载潜水剖面';
-
-  @override
-  String get dashboard_recentDives_logFirst => '记录您的第一次潜水';
-
-  @override
-  String get dashboard_recentDives_sectionTitle => '最近的潜水';
-
-  @override
-  String get dashboard_recentDives_viewAll => '查看全部';
-
-  @override
-  String get dashboard_recentDives_viewAllTooltip => '查看全部潜水记录';
-
-  @override
-  String get dashboard_semantics_errorLoadingRecentDives => '错误：加载最近潜水记录失败';
-
-  @override
-  String get dashboard_semantics_greetingBanner => '仪表盘问候横幅';
-
-  @override
-  String get dashboard_waitingForDownload_download => '立即下载';
 
   @override
   String dashboard_waitingForDownload_title(int count) {
@@ -61536,4 +61361,287 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diverProfile_bodyEstimate_note => '仅用于估算身体成分以预测配重。';
+
+  @override
+  String get dashboard_header_quickActions => '快捷操作';
+
+  @override
+  String get dashboard_header_allClear => '一切正常';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count 项正常';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => '状态';
+
+  @override
+  String get dashboard_panel_loadError => '无法加载';
+
+  @override
+  String get dashboard_key_dives => '潜水次数';
+
+  @override
+  String get dashboard_key_timeUnder => '水下时间';
+
+  @override
+  String get dashboard_key_lastDive => '上次潜水';
+
+  @override
+  String get dashboard_key_avgSac => '平均 SAC';
+
+  @override
+  String get dashboard_key_avgRmv => '平均 RMV';
+
+  @override
+  String get dashboard_key_deepestThisYear => '今年最深';
+
+  @override
+  String get dashboard_key_nextTrip => '下次旅行';
+
+  @override
+  String get dashboard_key_avgDepth => '平均深度';
+
+  @override
+  String get dashboard_key_species => '物种';
+
+  @override
+  String dashboard_key_countThisYear(int count) {
+    return '今年 +$count';
+  }
+
+  @override
+  String dashboard_key_hoursThisYear(String hours) {
+    return '今年 +$hours 小时';
+  }
+
+  @override
+  String get dashboard_key_hoursUnit => '小时';
+
+  @override
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_key_vsPrevious(String change) {
+    return '较前 10 次 $change';
+  }
+
+  @override
+  String dashboard_key_lastYear(String value) {
+    return '去年 $value';
+  }
+
+  @override
+  String dashboard_key_tripChecklist(String name, int done, int total) {
+    return '清单 $done/$total · $name';
+  }
+
+  @override
+  String dashboard_panel_activity(int months) {
+    return '活动，$months 个月';
+  }
+
+  @override
+  String dashboard_panel_activitySummary(int dives, int days) {
+    return '$dives 次潜水 · $days 天';
+  }
+
+  @override
+  String get dashboard_panel_divesPerMonth => '每月潜水';
+
+  @override
+  String get dashboard_panel_sacTrend => 'SAC 趋势';
+
+  @override
+  String get dashboard_panel_rmvTrend => 'RMV 趋势';
+
+  @override
+  String dashboard_panel_lastDives(int count) {
+    return '最近 $count 次潜水';
+  }
+
+  @override
+  String get dashboard_panel_noSac => '还没有带气体数据的潜水';
+
+  @override
+  String get dashboard_panel_depthMix => '深度分布';
+
+  @override
+  String get dashboard_panel_noDives => '还没有潜水';
+
+  @override
+  String get dashboard_panel_gasMix => '气体混合';
+
+  @override
+  String get dashboard_panel_diveTypes => '潜水类型';
+
+  @override
+  String get dashboard_panel_topSites => '常去潜点';
+
+  @override
+  String get dashboard_panel_topBuddies => '常伴潜伴';
+
+  @override
+  String get dashboard_panel_noBuddies => '还没有记录潜伴';
+
+  @override
+  String get dashboard_panel_gearService => '装备保养';
+
+  @override
+  String get dashboard_panel_noGear => '添加装备以跟踪其保养';
+
+  @override
+  String get dashboard_panel_overdue => '已逾期';
+
+  @override
+  String dashboard_panel_daysLeft(int days) {
+    return '$days 天';
+  }
+
+  @override
+  String dashboard_panel_divesLeft(int count) {
+    return '$count 次潜水';
+  }
+
+  @override
+  String dashboard_panel_hoursLeft(int hours) {
+    return '$hours 小时';
+  }
+
+  @override
+  String get dashboard_panel_comingDue => '即将到期';
+
+  @override
+  String get dashboard_panel_nothingDue => '未来一年内没有到期事项';
+
+  @override
+  String dashboard_panel_inDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days 天后',
+      one: '明天',
+      zero: '今天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_tripChecklist => '旅行清单';
+
+  @override
+  String get dashboard_panel_latestProfile => '最新剖面';
+
+  @override
+  String get dashboard_panel_latestVsAverage => '上次潜水与平均值';
+
+  @override
+  String dashboard_panel_vsAverage(String value, String average) {
+    return '$value · 平均 $average';
+  }
+
+  @override
+  String get dashboard_panel_maxDepth => '最大深度';
+
+  @override
+  String get dashboard_panel_runtime => '时长';
+
+  @override
+  String get dashboard_panel_sac => 'SAC';
+
+  @override
+  String get dashboard_panel_rmv => 'RMV';
+
+  @override
+  String get dashboard_panel_recentDives => '最近潜水';
+
+  @override
+  String get dashboard_panel_colSite => '潜点';
+
+  @override
+  String get dashboard_panel_colDate => '日期';
+
+  @override
+  String get dashboard_panel_colDepth => '深度';
+
+  @override
+  String get dashboard_panel_colTime => '时间';
+
+  @override
+  String get dashboard_panel_speciesSeen => '最近见到的物种';
+
+  @override
+  String dashboard_panel_speciesTotal(int count) {
+    return '共 $count 种';
+  }
+
+  @override
+  String dashboard_panel_onDives(int count) {
+    return '$count 次潜水';
+  }
+
+  @override
+  String get dashboard_panel_firstDive => '记录或导入你的第一次潜水';
+
+  @override
+  String get dashboard_panel_import => '导入';
+
+  @override
+  String get settings_homeLayout_sectionTitle => '布局';
+
+  @override
+  String get settings_homeLayout_description =>
+      '选择一个初始布局，然后在下方显示、隐藏或拖动面板。你的更改会使其成为自定义布局。';
+
+  @override
+  String get settings_homeLayout_balanced => '均衡';
+
+  @override
+  String get settings_homeLayout_ready => '就绪';
+
+  @override
+  String get settings_homeLayout_trends => '趋势';
+
+  @override
+  String get settings_homeLayout_logbook => '日志';
+
+  @override
+  String get settings_homeLayout_replaceTitle => '替换你的布局？';
+
+  @override
+  String settings_homeLayout_replaceMessage(String preset) {
+    return '你自己的面板排列将被 $preset 布局替换。';
+  }
+
+  @override
+  String get settings_homeLayout_replace => '替换';
+
+  @override
+  String get settings_homePanels_sectionTitle => '面板';
+
+  @override
+  String get settings_homePanels_resetMessage => '这会将首页恢复为均衡布局。';
+
+  @override
+  String get settings_homePanels_keyNumbers => '关键数字';
+
+  @override
+  String settings_homePanels_keyNumbersCount(int shown, int total) {
+    return '$shown/$total';
+  }
+
+  @override
+  String get settings_homePanels_activityCalendar => '活动日历';
+
+  @override
+  String get settings_homeKeyNumbers_description =>
+      '选择首页顶部显示的数字。尚无内容可显示的数字会被省略。';
 }

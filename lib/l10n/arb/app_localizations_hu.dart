@@ -6224,75 +6224,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_activeCourses_title => 'Folyamatban lévő tanfolyamok';
 
   @override
-  String get dashboard_greeting_afternoon => 'Jó délutánt';
-
-  @override
-  String get dashboard_greeting_evening => 'Jó estét';
-
-  @override
-  String get dashboard_greeting_morning => 'Jó reggelt';
-
-  @override
-  String dashboard_greeting_withName(Object greeting, Object name) {
-    return '$greeting, $name!';
-  }
-
-  @override
-  String dashboard_greeting_withoutName(Object greeting) {
-    return '$greeting!';
-  }
-
-  @override
-  String get dashboard_hero_divesLoggedOne => '1 merülés rögzítve';
-
-  @override
-  String dashboard_hero_divesLoggedOther(Object count) {
-    return '$count merülés rögzítve';
-  }
-
-  @override
-  String get dashboard_hero_divesTotalOne => '1 merülés';
-
-  @override
-  String dashboard_hero_divesTotalOther(Object count) {
-    return '$count merülés';
-  }
-
-  @override
-  String get dashboard_hero_error => 'Kész felfedezni a mélységet?';
-
-  @override
-  String dashboard_hero_hoursUnderwater(Object hours) {
-    return '$hours óra víz alatt';
-  }
-
-  @override
-  String get dashboard_hero_loading => 'Merülési statisztikák betöltése...';
-
-  @override
-  String dashboard_hero_minutesUnderwater(Object minutes) {
-    return '$minutes perc víz alatt';
-  }
-
-  @override
-  String get dashboard_hero_noDives => 'Kész rögzíteni az első merülését?';
-
-  @override
-  String get dashboard_hero_diverFallbackName => 'Búvár';
-
-  @override
-  String get dashboard_hero_statDives => 'merülés';
-
-  @override
-  String get dashboard_hero_statHours => 'óra';
-
-  @override
-  String get dashboard_hero_statSites => 'helyszín';
-
-  @override
-  String get dashboard_hero_statCountries => 'ország';
-
-  @override
   String get dashboard_gauges_addGear => 'Felszerelés hozzáadása';
 
   @override
@@ -6383,13 +6314,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeChips_sectionTitle => 'Állapotjelzők';
 
   @override
-  String get settings_homeCards_sectionTitle => 'Kezdőlap kártyái';
-
-  @override
-  String get settings_homeCards_description =>
-      'Válaszd ki, mely kártyák jelenjenek meg a Kezdőlapon, és húzással rendezd át őket.';
-
-  @override
   String get settings_homeCards_autoHides =>
       'Automatikusan elrejtőzik, ha üres';
 
@@ -6402,55 +6326,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Visszaállítod a Kezdőlap elrendezését?';
 
   @override
-  String get settings_homeCards_resetDialog_message =>
-      'Visszaállítja a kártyák alapértelmezett sorrendjét, és újra megjeleníti mindet.';
-
-  @override
   String get settings_homeCards_resetDialog_cancel => 'Mégse';
 
   @override
   String get settings_homeCards_resetDialog_confirm => 'Visszaállítás';
 
   @override
-  String get settings_homeCards_card_hero => 'Üdvözlő fejléc';
-
-  @override
-  String get settings_homeCards_card_gaugeStrip => 'Állapotjelzők';
-
-  @override
-  String get settings_homeCards_card_preDive => 'Ellenőrzőlisták';
-
-  @override
-  String get settings_homeCards_card_recentDives => 'Legutóbbi merülések';
-
-  @override
-  String get settings_homeCards_card_quickActions => 'Gyorsműveletek';
-
-  @override
-  String get settings_homeCards_card_milestones => 'Mérföldkövek';
-
-  @override
-  String get settings_homeCards_card_photoRibbon => 'Legutóbbi médiaelemek';
-
-  @override
-  String get settings_homeCards_card_onThisDay => 'Ezen a napon';
-
-  @override
-  String get settings_homeCards_card_yearInReview => 'Éves visszatekintés';
-
-  @override
-  String get settings_homeCards_card_activeCourses => 'Tanfolyam előrehaladása';
-
-  @override
-  String get settings_homeCards_card_recentSitesMap =>
-      'Legutóbbi merülőhelyek térképe';
-
-  @override
   String get settings_homeCards_card_waitingForDownload => 'Letöltésre vár';
 
   @override
-  String get dashboard_allHidden_message =>
-      'Minden kezdőlapi kártya el van rejtve.';
+  String get dashboard_allHidden_message => 'Nincs megjeleníthető panel.';
 
   @override
   String get dashboard_allHidden_customize => 'Kezdőlap testreszabása';
@@ -6577,42 +6462,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_recentSites_title => 'Legutóbbi helyszínek';
 
   @override
-  String get dashboard_yearInReview_title => 'Idén';
-
-  @override
-  String dashboard_yearInReview_divesVs(int count, int previous) {
-    return '$count merülés (tavaly: $previous)';
-  }
-
-  @override
-  String dashboard_yearInReview_hours(String hours) {
-    return '$hours óra a víz alatt';
-  }
-
-  @override
-  String dashboard_yearInReview_maxDepth(String depth) {
-    return 'Legmélyebb: $depth';
-  }
-
-  @override
   String get dashboard_onThisDay_title => 'Ezen a napon';
 
   @override
   String dashboard_onThisDay_entry(String year, String site) {
     return '$year - $site';
-  }
-
-  @override
-  String get dashboard_milestones_title => 'Mérföldkövek';
-
-  @override
-  String dashboard_milestones_nextDive(int remaining, int milestone) {
-    return 'Még $remaining merülés a(z) $milestone. eléréséig';
-  }
-
-  @override
-  String dashboard_milestones_certYears(String name, int years, String month) {
-    return '$name: $years év $month hónapban';
   }
 
   @override
@@ -6622,21 +6476,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_quickActions_planDive => 'Merülés tervezése';
 
   @override
-  String get dashboard_quickActions_sectionTitle => 'Gyors műveletek';
-
-  @override
-  String get dashboard_quickActions_insights => 'Elemzések';
-
-  @override
   String get dashboard_recentDives_empty => 'Még nincs rögzített merülés';
-
-  @override
-  String get dashboard_recentDives_errorLoading =>
-      'Nem sikerült betölteni a merüléseket';
-
-  @override
-  String get dashboard_recentDives_latestProfileTitle =>
-      'Legutóbbi merülési profil';
 
   @override
   String get dashboard_recentDives_noProfileData =>
@@ -6645,30 +6485,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dashboard_recentDives_profileLoadError =>
       'A merülési profil betöltése sikertelen';
-
-  @override
-  String get dashboard_recentDives_logFirst => 'Rögzítse az első merülését';
-
-  @override
-  String get dashboard_recentDives_sectionTitle => 'Legutóbbi merülések';
-
-  @override
-  String get dashboard_recentDives_viewAll => 'Összes megtekintése';
-
-  @override
-  String get dashboard_recentDives_viewAllTooltip =>
-      'Összes merülés megtekintése';
-
-  @override
-  String get dashboard_semantics_errorLoadingRecentDives =>
-      'Hiba: Nem sikerült betölteni a legutóbbi merüléseket';
-
-  @override
-  String get dashboard_semantics_greetingBanner =>
-      'Irányítópult üdvözlő banner';
-
-  @override
-  String get dashboard_waitingForDownload_download => 'Letöltés most';
 
   @override
   String dashboard_waitingForDownload_title(int count) {
@@ -65250,4 +65066,321 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diverProfile_bodyEstimate_note =>
       'Csak a testösszetétel becslésére szolgál az ólomszükséglet előrejelzéséhez.';
+
+  @override
+  String get dashboard_header_quickActions => 'Gyors műveletek';
+
+  @override
+  String get dashboard_header_allClear => 'Minden rendben';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count rendben';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => 'Állapot';
+
+  @override
+  String get dashboard_panel_loadError => 'Nem sikerült betölteni';
+
+  @override
+  String get dashboard_key_dives => 'Merülések';
+
+  @override
+  String get dashboard_key_timeUnder => 'Víz alatt töltött idő';
+
+  @override
+  String get dashboard_key_lastDive => 'Utolsó merülés';
+
+  @override
+  String get dashboard_key_avgSac => 'Átl. SAC';
+
+  @override
+  String get dashboard_key_avgRmv => 'Átl. RMV';
+
+  @override
+  String get dashboard_key_deepestThisYear => 'Legmélyebb idén';
+
+  @override
+  String get dashboard_key_nextTrip => 'Következő út';
+
+  @override
+  String get dashboard_key_avgDepth => 'Átl. mélység';
+
+  @override
+  String get dashboard_key_species => 'Fajok';
+
+  @override
+  String dashboard_key_countThisYear(int count) {
+    return '+$count idén';
+  }
+
+  @override
+  String dashboard_key_hoursThisYear(String hours) {
+    return '+$hours ó idén';
+  }
+
+  @override
+  String get dashboard_key_hoursUnit => 'ó';
+
+  @override
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'nap',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_key_vsPrevious(String change) {
+    return '$change az előző 10-hez képest';
+  }
+
+  @override
+  String dashboard_key_lastYear(String value) {
+    return 'Tavaly $value';
+  }
+
+  @override
+  String dashboard_key_tripChecklist(String name, int done, int total) {
+    return 'lista $done/$total · $name';
+  }
+
+  @override
+  String dashboard_panel_activity(int months) {
+    return 'Aktivitás, $months hónap';
+  }
+
+  @override
+  String dashboard_panel_activitySummary(int dives, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés',
+      one: '1 merülés',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days nap',
+      one: '1 nap',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get dashboard_panel_divesPerMonth => 'Merülések havonta';
+
+  @override
+  String get dashboard_panel_sacTrend => 'SAC alakulása';
+
+  @override
+  String get dashboard_panel_rmvTrend => 'RMV alakulása';
+
+  @override
+  String dashboard_panel_lastDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'utolsó $count merülés',
+      one: 'utolsó merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_noSac => 'Még nincs merülés gázadatokkal';
+
+  @override
+  String get dashboard_panel_depthMix => 'Mélységeloszlás';
+
+  @override
+  String get dashboard_panel_noDives => 'Még nincs merülés';
+
+  @override
+  String get dashboard_panel_gasMix => 'Gázkeverékek';
+
+  @override
+  String get dashboard_panel_diveTypes => 'Merüléstípusok';
+
+  @override
+  String get dashboard_panel_topSites => 'Kedvenc helyek';
+
+  @override
+  String get dashboard_panel_topBuddies => 'Kedvenc társak';
+
+  @override
+  String get dashboard_panel_noBuddies => 'Még nincs rögzített társ';
+
+  @override
+  String get dashboard_panel_gearService => 'Felszerelés karbantartása';
+
+  @override
+  String get dashboard_panel_noGear =>
+      'Adj hozzá felszerelést a karbantartás követéséhez';
+
+  @override
+  String get dashboard_panel_overdue => 'Lejárt';
+
+  @override
+  String dashboard_panel_daysLeft(int days) {
+    return '$days n';
+  }
+
+  @override
+  String dashboard_panel_divesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_panel_hoursLeft(int hours) {
+    return '$hours ó';
+  }
+
+  @override
+  String get dashboard_panel_comingDue => 'Hamarosan esedékes';
+
+  @override
+  String get dashboard_panel_nothingDue =>
+      'A következő évben semmi sem esedékes';
+
+  @override
+  String dashboard_panel_inDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days nap múlva',
+      one: 'holnap',
+      zero: 'ma',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_tripChecklist => 'Úti ellenőrzőlista';
+
+  @override
+  String get dashboard_panel_latestProfile => 'Legutóbbi profil';
+
+  @override
+  String get dashboard_panel_latestVsAverage => 'Utolsó merülés és átlag';
+
+  @override
+  String dashboard_panel_vsAverage(String value, String average) {
+    return '$value · átl. $average';
+  }
+
+  @override
+  String get dashboard_panel_maxDepth => 'Max. mélység';
+
+  @override
+  String get dashboard_panel_runtime => 'Időtartam';
+
+  @override
+  String get dashboard_panel_sac => 'SAC';
+
+  @override
+  String get dashboard_panel_rmv => 'RMV';
+
+  @override
+  String get dashboard_panel_recentDives => 'Legutóbbi merülések';
+
+  @override
+  String get dashboard_panel_colSite => 'Hely';
+
+  @override
+  String get dashboard_panel_colDate => 'Dátum';
+
+  @override
+  String get dashboard_panel_colDepth => 'Mélység';
+
+  @override
+  String get dashboard_panel_colTime => 'Idő';
+
+  @override
+  String get dashboard_panel_speciesSeen => 'Mostanában látott fajok';
+
+  @override
+  String dashboard_panel_speciesTotal(int count) {
+    return 'összesen $count';
+  }
+
+  @override
+  String dashboard_panel_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_firstDive =>
+      'Rögzítsd vagy importáld az első merülésed';
+
+  @override
+  String get dashboard_panel_import => 'Importálás';
+
+  @override
+  String get settings_homeLayout_sectionTitle => 'Elrendezés';
+
+  @override
+  String get settings_homeLayout_description =>
+      'Válassz kiinduló elrendezést, majd jelenítsd meg, rejtsd el vagy húzd át a lenti paneleket. A változtatásaid egyénivé teszik.';
+
+  @override
+  String get settings_homeLayout_balanced => 'Kiegyensúlyozott';
+
+  @override
+  String get settings_homeLayout_ready => 'Felkészülés';
+
+  @override
+  String get settings_homeLayout_trends => 'Trendek';
+
+  @override
+  String get settings_homeLayout_logbook => 'Napló';
+
+  @override
+  String get settings_homeLayout_replaceTitle => 'Lecseréled az elrendezést?';
+
+  @override
+  String settings_homeLayout_replaceMessage(String preset) {
+    return 'A panelek saját elrendezését a(z) $preset elrendezés váltja fel.';
+  }
+
+  @override
+  String get settings_homeLayout_replace => 'Csere';
+
+  @override
+  String get settings_homePanels_sectionTitle => 'Panelek';
+
+  @override
+  String get settings_homePanels_resetMessage =>
+      'Ez visszaállítja a Kezdőlapot a Kiegyensúlyozott elrendezésre.';
+
+  @override
+  String get settings_homePanels_keyNumbers => 'Fő számok';
+
+  @override
+  String settings_homePanels_keyNumbersCount(int shown, int total) {
+    return '$shown / $total';
+  }
+
+  @override
+  String get settings_homePanels_activityCalendar => 'Aktivitásnaptár';
+
+  @override
+  String get settings_homeKeyNumbers_description =>
+      'Válaszd ki a Kezdőlap tetején látható számokat. Az a szám, amelyhez még nincs adat, kimarad.';
 }

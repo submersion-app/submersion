@@ -6240,77 +6240,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dashboard_activeCourses_title => 'Cursos em andamento';
 
   @override
-  String get dashboard_greeting_afternoon => 'Boa tarde';
-
-  @override
-  String get dashboard_greeting_evening => 'Boa noite';
-
-  @override
-  String get dashboard_greeting_morning => 'Bom dia';
-
-  @override
-  String dashboard_greeting_withName(Object greeting, Object name) {
-    return '$greeting, $name!';
-  }
-
-  @override
-  String dashboard_greeting_withoutName(Object greeting) {
-    return '$greeting!';
-  }
-
-  @override
-  String get dashboard_hero_divesLoggedOne => '1 mergulho registrado';
-
-  @override
-  String dashboard_hero_divesLoggedOther(Object count) {
-    return '$count mergulhos registrados';
-  }
-
-  @override
-  String get dashboard_hero_divesTotalOne => '1 mergulho';
-
-  @override
-  String dashboard_hero_divesTotalOther(Object count) {
-    return '$count mergulhos';
-  }
-
-  @override
-  String get dashboard_hero_error => 'Pronto para explorar as profundezas?';
-
-  @override
-  String dashboard_hero_hoursUnderwater(Object hours) {
-    return '$hours horas submerso';
-  }
-
-  @override
-  String get dashboard_hero_loading =>
-      'Carregando suas estatísticas de mergulho...';
-
-  @override
-  String dashboard_hero_minutesUnderwater(Object minutes) {
-    return '$minutes minutos submerso';
-  }
-
-  @override
-  String get dashboard_hero_noDives =>
-      'Pronto para registrar seu primeiro mergulho?';
-
-  @override
-  String get dashboard_hero_diverFallbackName => 'Mergulhador';
-
-  @override
-  String get dashboard_hero_statDives => 'mergulhos';
-
-  @override
-  String get dashboard_hero_statHours => 'horas';
-
-  @override
-  String get dashboard_hero_statSites => 'locais';
-
-  @override
-  String get dashboard_hero_statCountries => 'países';
-
-  @override
   String get dashboard_gauges_addGear => 'Adicionar equipamento';
 
   @override
@@ -6403,13 +6332,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_homeChips_sectionTitle => 'Chips de estado';
 
   @override
-  String get settings_homeCards_sectionTitle => 'Cartões do Início';
-
-  @override
-  String get settings_homeCards_description =>
-      'Escolha que cartões aparecem no separador Início e arraste-os para reordenar.';
-
-  @override
   String get settings_homeCards_autoHides =>
       'Oculta-se automaticamente quando vazio';
 
@@ -6421,56 +6343,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Repor o esquema do Início?';
 
   @override
-  String get settings_homeCards_resetDialog_message =>
-      'Repõe a ordem predefinida dos cartões e volta a mostrá-los todos.';
-
-  @override
   String get settings_homeCards_resetDialog_cancel => 'Cancelar';
 
   @override
   String get settings_homeCards_resetDialog_confirm => 'Repor';
 
   @override
-  String get settings_homeCards_card_hero => 'Cabeçalho de boas-vindas';
-
-  @override
-  String get settings_homeCards_card_gaugeStrip => 'Chips de estado';
-
-  @override
-  String get settings_homeCards_card_preDive => 'Listas de verificação';
-
-  @override
-  String get settings_homeCards_card_recentDives => 'Mergulhos recentes';
-
-  @override
-  String get settings_homeCards_card_quickActions => 'Ações rápidas';
-
-  @override
-  String get settings_homeCards_card_milestones => 'Marcos';
-
-  @override
-  String get settings_homeCards_card_photoRibbon => 'Mídia recente';
-
-  @override
-  String get settings_homeCards_card_onThisDay => 'Neste dia';
-
-  @override
-  String get settings_homeCards_card_yearInReview => 'Retrospetiva do ano';
-
-  @override
-  String get settings_homeCards_card_activeCourses => 'Progresso do curso';
-
-  @override
-  String get settings_homeCards_card_recentSitesMap =>
-      'Mapa de locais recentes';
-
-  @override
   String get settings_homeCards_card_waitingForDownload =>
       'Aguardando download';
 
   @override
-  String get dashboard_allHidden_message =>
-      'Todos os cartões do Início estão ocultos.';
+  String get dashboard_allHidden_message => 'Nenhum painel para mostrar.';
 
   @override
   String get dashboard_allHidden_customize => 'Personalizar Início';
@@ -6599,42 +6482,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dashboard_recentSites_title => 'Locais recentes';
 
   @override
-  String get dashboard_yearInReview_title => 'Este ano';
-
-  @override
-  String dashboard_yearInReview_divesVs(int count, int previous) {
-    return '$count mergulhos (vs $previous no ano passado)';
-  }
-
-  @override
-  String dashboard_yearInReview_hours(String hours) {
-    return '$hours horas debaixo de água';
-  }
-
-  @override
-  String dashboard_yearInReview_maxDepth(String depth) {
-    return 'Máxima: $depth';
-  }
-
-  @override
   String get dashboard_onThisDay_title => 'Neste dia';
 
   @override
   String dashboard_onThisDay_entry(String year, String site) {
     return '$year - $site';
-  }
-
-  @override
-  String get dashboard_milestones_title => 'Marcos';
-
-  @override
-  String dashboard_milestones_nextDive(int remaining, int milestone) {
-    return '$remaining mergulhos para o n.º $milestone';
-  }
-
-  @override
-  String dashboard_milestones_certYears(String name, int years, String month) {
-    return '$name: $years anos em $month';
   }
 
   @override
@@ -6644,21 +6496,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dashboard_quickActions_planDive => 'Planejar Mergulho';
 
   @override
-  String get dashboard_quickActions_sectionTitle => 'Ações Rápidas';
-
-  @override
-  String get dashboard_quickActions_insights => 'Análises';
-
-  @override
   String get dashboard_recentDives_empty => 'Nenhum mergulho registrado ainda';
-
-  @override
-  String get dashboard_recentDives_errorLoading =>
-      'Falha ao carregar mergulhos';
-
-  @override
-  String get dashboard_recentDives_latestProfileTitle =>
-      'Perfil do último mergulho';
 
   @override
   String get dashboard_recentDives_noProfileData =>
@@ -6667,29 +6505,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dashboard_recentDives_profileLoadError =>
       'Não foi possível carregar o perfil do mergulho';
-
-  @override
-  String get dashboard_recentDives_logFirst => 'Registre Seu Primeiro Mergulho';
-
-  @override
-  String get dashboard_recentDives_sectionTitle => 'Mergulhos Recentes';
-
-  @override
-  String get dashboard_recentDives_viewAll => 'Ver Todos';
-
-  @override
-  String get dashboard_recentDives_viewAllTooltip => 'Ver todos os mergulhos';
-
-  @override
-  String get dashboard_semantics_errorLoadingRecentDives =>
-      'Erro: Falha ao carregar mergulhos recentes';
-
-  @override
-  String get dashboard_semantics_greetingBanner =>
-      'Banner de saudação do painel';
-
-  @override
-  String get dashboard_waitingForDownload_download => 'Baixar agora';
 
   @override
   String dashboard_waitingForDownload_title(int count) {
@@ -65592,4 +65407,321 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diverProfile_bodyEstimate_note =>
       'Usado apenas para estimar a composição corporal na previsão de lastro.';
+
+  @override
+  String get dashboard_header_quickActions => 'Ações rápidas';
+
+  @override
+  String get dashboard_header_allClear => 'Tudo certo';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count em ordem';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => 'Estado';
+
+  @override
+  String get dashboard_panel_loadError => 'Não foi possível carregar';
+
+  @override
+  String get dashboard_key_dives => 'Mergulhos';
+
+  @override
+  String get dashboard_key_timeUnder => 'Tempo submerso';
+
+  @override
+  String get dashboard_key_lastDive => 'Último mergulho';
+
+  @override
+  String get dashboard_key_avgSac => 'SAC médio';
+
+  @override
+  String get dashboard_key_avgRmv => 'RMV médio';
+
+  @override
+  String get dashboard_key_deepestThisYear => 'Mais fundo este ano';
+
+  @override
+  String get dashboard_key_nextTrip => 'Próxima viagem';
+
+  @override
+  String get dashboard_key_avgDepth => 'Prof. média';
+
+  @override
+  String get dashboard_key_species => 'Espécies';
+
+  @override
+  String dashboard_key_countThisYear(int count) {
+    return '+$count este ano';
+  }
+
+  @override
+  String dashboard_key_hoursThisYear(String hours) {
+    return '+$hours h este ano';
+  }
+
+  @override
+  String get dashboard_key_hoursUnit => 'h';
+
+  @override
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'dias',
+      one: 'dia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_key_vsPrevious(String change) {
+    return '$change vs os 10 anteriores';
+  }
+
+  @override
+  String dashboard_key_lastYear(String value) {
+    return 'Ano passado $value';
+  }
+
+  @override
+  String dashboard_key_tripChecklist(String name, int done, int total) {
+    return 'lista $done/$total · $name';
+  }
+
+  @override
+  String dashboard_panel_activity(int months) {
+    return 'Atividade, $months meses';
+  }
+
+  @override
+  String dashboard_panel_activitySummary(int dives, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos',
+      one: '$dives mergulho',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days dias',
+      one: '$days dia',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get dashboard_panel_divesPerMonth => 'Mergulhos por mês';
+
+  @override
+  String get dashboard_panel_sacTrend => 'Tendência de SAC';
+
+  @override
+  String get dashboard_panel_rmvTrend => 'Tendência de RMV';
+
+  @override
+  String dashboard_panel_lastDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'últimos $count mergulhos',
+      one: 'último mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_noSac => 'Ainda não há mergulhos com dados de gás';
+
+  @override
+  String get dashboard_panel_depthMix => 'Distribuição de profundidade';
+
+  @override
+  String get dashboard_panel_noDives => 'Ainda não há mergulhos';
+
+  @override
+  String get dashboard_panel_gasMix => 'Misturas';
+
+  @override
+  String get dashboard_panel_diveTypes => 'Tipos de mergulho';
+
+  @override
+  String get dashboard_panel_topSites => 'Locais principais';
+
+  @override
+  String get dashboard_panel_topBuddies => 'Duplas principais';
+
+  @override
+  String get dashboard_panel_noBuddies => 'Ainda não há duplas registradas';
+
+  @override
+  String get dashboard_panel_gearService => 'Manutenção do equipamento';
+
+  @override
+  String get dashboard_panel_noGear =>
+      'Adicione equipamento para acompanhar a manutenção';
+
+  @override
+  String get dashboard_panel_overdue => 'Atrasado';
+
+  @override
+  String dashboard_panel_daysLeft(int days) {
+    return '$days d';
+  }
+
+  @override
+  String dashboard_panel_divesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_panel_hoursLeft(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String get dashboard_panel_comingDue => 'Próximos vencimentos';
+
+  @override
+  String get dashboard_panel_nothingDue => 'Nada vence no próximo ano';
+
+  @override
+  String dashboard_panel_inDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'em $days dias',
+      one: 'amanhã',
+      zero: 'hoje',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_tripChecklist => 'Lista da viagem';
+
+  @override
+  String get dashboard_panel_latestProfile => 'Último perfil';
+
+  @override
+  String get dashboard_panel_latestVsAverage => 'Último mergulho vs média';
+
+  @override
+  String dashboard_panel_vsAverage(String value, String average) {
+    return '$value · média $average';
+  }
+
+  @override
+  String get dashboard_panel_maxDepth => 'Prof. máx.';
+
+  @override
+  String get dashboard_panel_runtime => 'Duração';
+
+  @override
+  String get dashboard_panel_sac => 'SAC';
+
+  @override
+  String get dashboard_panel_rmv => 'RMV';
+
+  @override
+  String get dashboard_panel_recentDives => 'Mergulhos recentes';
+
+  @override
+  String get dashboard_panel_colSite => 'Local';
+
+  @override
+  String get dashboard_panel_colDate => 'Data';
+
+  @override
+  String get dashboard_panel_colDepth => 'Prof.';
+
+  @override
+  String get dashboard_panel_colTime => 'Tempo';
+
+  @override
+  String get dashboard_panel_speciesSeen => 'Espécies vistas recentemente';
+
+  @override
+  String dashboard_panel_speciesTotal(int count) {
+    return '$count no total';
+  }
+
+  @override
+  String dashboard_panel_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_firstDive =>
+      'Registre ou importe seu primeiro mergulho';
+
+  @override
+  String get dashboard_panel_import => 'Importar';
+
+  @override
+  String get settings_homeLayout_sectionTitle => 'Layout';
+
+  @override
+  String get settings_homeLayout_description =>
+      'Escolha um layout inicial e depois mostre, oculte ou arraste os painéis abaixo. Suas alterações o tornam personalizado.';
+
+  @override
+  String get settings_homeLayout_balanced => 'Equilibrado';
+
+  @override
+  String get settings_homeLayout_ready => 'Pronto';
+
+  @override
+  String get settings_homeLayout_trends => 'Tendências';
+
+  @override
+  String get settings_homeLayout_logbook => 'Diário';
+
+  @override
+  String get settings_homeLayout_replaceTitle => 'Substituir seu layout?';
+
+  @override
+  String settings_homeLayout_replaceMessage(String preset) {
+    return 'Sua própria disposição dos painéis será substituída pelo layout $preset.';
+  }
+
+  @override
+  String get settings_homeLayout_replace => 'Substituir';
+
+  @override
+  String get settings_homePanels_sectionTitle => 'Painéis';
+
+  @override
+  String get settings_homePanels_resetMessage =>
+      'Isto devolve o Início ao layout Equilibrado.';
+
+  @override
+  String get settings_homePanels_keyNumbers => 'Números principais';
+
+  @override
+  String settings_homePanels_keyNumbersCount(int shown, int total) {
+    return '$shown de $total';
+  }
+
+  @override
+  String get settings_homePanels_activityCalendar => 'Calendário de atividade';
+
+  @override
+  String get settings_homeKeyNumbers_description =>
+      'Escolha os números exibidos no topo do Início. Um número que ainda não tem nada a mostrar é omitido.';
 }

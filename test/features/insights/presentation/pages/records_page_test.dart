@@ -361,25 +361,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
-  Future<void> setHomeCardEnabled(String cardId, bool enabled) async {
-    final hidden = {...state.hiddenHomeCards};
-    if (enabled) {
-      hidden.remove(cardId);
-    } else {
-      hidden.add(cardId);
-    }
-    state = state.copyWith(hiddenHomeCards: hidden);
-  }
+  Future<void> setHomePanelLayout({
+    required List<String> order,
+    required Set<String> hidden,
+  }) async =>
+      state = state.copyWith(homePanelOrder: order, hiddenHomePanels: hidden);
 
   @override
-  Future<void> setHomeCardOrder(List<String> order) async =>
-      state = state.copyWith(homeCardOrder: order);
-
-  @override
-  Future<void> resetHomeCards() async => state = state.copyWith(
-    homeCardOrder: const <String>[],
-    hiddenHomeCards: const <String>{},
-  );
+  Future<void> setHiddenHomeKeyNumbers(Set<String> hidden) async =>
+      state = state.copyWith(hiddenHomeKeyNumbers: hidden);
 
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {

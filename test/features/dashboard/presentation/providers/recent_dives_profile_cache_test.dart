@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -16,22 +14,16 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-const _point = [DiveProfilePoint(timestamp: 0, depth: 10)];
-
-/// Serves the recent dives from the real database and holds the profile
-/// batch open until [release] completes.
+/// Serves the recent dives from the real database and counts profile
+/// batch reads.
 ///
 /// [DiveRepository]'s only public constructor is a factory, so this delegates
 /// rather than extends, forwarding the methods the provider calls.
-class _GatedProfileRepository implements DiveRepository {
-  _GatedProfileRepository(this._inner);
+class _CountingRepository implements DiveRepository {
+  _CountingRepository(this._inner);
 
   final DiveRepository _inner;
-  final Completer<void> started = Completer<void>();
-  final Completer<void> release = Completer<void>();
-
-  /// Dives the batch leaves out, as it does a dive with an unreadable series.
-  final Set<String> leftOut = {};
+  int profileBatches = 0;
 
   @override
   Stream<void> watchDivesChangesWithBuddyLinks() =>
@@ -60,12 +52,8 @@ class _GatedProfileRepository implements DiveRepository {
     List<String> diveIds, {
     int maxSamples = 120,
   }) async {
-    started.complete();
-    await release.future;
-    return {
-      for (final id in diveIds)
-        if (!leftOut.contains(id)) id: _point,
-    };
+    profileBatches++;
+    return const {};
   }
 
   @override
@@ -80,12 +68,13 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  test('recent dives keep the dive list\'s profiles that land while their '
-      'own batch runs (#3506)', () async {
+  // Home's recent dives are a table with no mini charts (issue #4824), so
+  // loading them must not decode any profile; the dive list loads its own.
+  test('recent dives read no profiles', () async {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
     );
-    final repo = _GatedProfileRepository(DiveRepository());
+    final repo = _CountingRepository(DiveRepository());
     final container = ProviderContainer(
       overrides: [
         currentDiverIdProvider.overrideWith(
@@ -96,77 +85,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final recent = container.read(recentDivesProvider.future);
-    await repo.started.future;
-    // A dive list page's profiles land while the dashboard's batch runs.
-    container.read(batchProfileCacheProvider.notifier).state = {
-      ...container.read(batchProfileCacheProvider),
-      'listed-dive': _point,
-    };
-    repo.release.complete();
-    await recent;
+    final recent = await container.read(recentDivesProvider.future);
 
-    expect(
-      container.read(batchProfileCacheProvider).keys.toSet(),
-      {'d1', 'listed-dive'},
-      reason:
-          'the dashboard must merge into the cache as it is now, not write '
-          'back the snapshot it read before awaiting',
-    );
-  });
-
-  group('a recent dive already in the cache (#4112)', () {
-    Future<(_GatedProfileRepository, ProviderContainer)> setUpRecent(
-      List<DiveProfilePoint> cached,
-    ) async {
-      await DiveRepository().createDive(
-        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
-      );
-      final repo = _GatedProfileRepository(DiveRepository())
-        ..release.complete();
-      final container = ProviderContainer(
-        overrides: [
-          currentDiverIdProvider.overrideWith(
-            (ref) => MockCurrentDiverIdNotifier(),
-          ),
-          diveRepositoryProvider.overrideWithValue(repo),
-        ],
-      );
-      addTearDown(container.dispose);
-      container.read(batchProfileCacheProvider.notifier).state = {'d1': cached};
-      return (repo, container);
-    }
-
-    test('is asked again when cached without samples, so a profile it has '
-        'gained since replaces the estimate', () async {
-      final (repo, container) = await setUpRecent(const []);
-
-      await container.read(recentDivesProvider.future);
-
-      expect(repo.started.isCompleted, isTrue);
-      expect(container.read(batchProfileCacheProvider)['d1'], _point);
-    });
-
-    test('loses an empty entry when the batch leaves it out', () async {
-      final (repo, container) = await setUpRecent(const []);
-      repo.leftOut.add('d1');
-
-      await container.read(recentDivesProvider.future);
-
-      expect(
-        container.read(batchProfileCacheProvider).containsKey('d1'),
-        isFalse,
-      );
-    });
-
-    test('is not asked again when cached with samples', () async {
-      const recorded = [DiveProfilePoint(timestamp: 0, depth: 20)];
-      final (repo, container) = await setUpRecent(recorded);
-
-      await container.read(recentDivesProvider.future);
-
-      expect(repo.started.isCompleted, isFalse);
-      expect(container.read(batchProfileCacheProvider)['d1'], recorded);
-    });
+    expect(recent.map((d) => d.id), ['d1']);
+    expect(repo.profileBatches, 0);
   });
 }

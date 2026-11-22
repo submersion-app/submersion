@@ -18,16 +18,14 @@ import 'package:submersion/features/dive_log/domain/services/profile_sample_dedu
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_live_edits.dart';
 
-/// The identity columns of one `dive_profile_series` row, read without its
-/// blob by [ProfileSeriesRepository.getIdentitiesForDive].
-typedef ProfileSeriesIdentity = ({
-  String id,
-  String? computerId,
-  String? sourceId,
-  bool isPrimary,
-  bool? isEdit,
-});
+// The identity of one `dive_profile_series` row (read without its blob by
+// [ProfileSeriesRepository.getIdentitiesForDive]) and the rule naming the
+// live edits among them live in the domain, so code below the database
+// layer can use them without importing this repository.
+export 'package:submersion/features/dive_log/domain/services/profile_live_edits.dart'
+    show ProfileSeriesIdentity;
 
 /// Every read and write of `dive_profile_series`. The only production code
 /// that encodes or decodes profile samples, apart from the migration packer.
@@ -739,24 +737,8 @@ class ProfileSeriesRepository {
 
   /// [liveEditIds] over [series] already read by [getIdentitiesForDive], for
   /// a caller that needs the identities as well (a re-parse, issue #4367).
-  static Set<String> liveEditIdsOf(List<ProfileSeriesIdentity> series) {
-    // A marked edit demoted beneath says the live series is the original
-    // the diver re-activated over it, not an edit (issue #4386).
-    bool editByShape(ProfileSeriesIdentity live) =>
-        live.computerId == null &&
-        series.any(
-          (s) =>
-              !s.isPrimary &&
-              s.isEdit != true &&
-              (live.sourceId == null ||
-                  s.sourceId == null ||
-                  s.sourceId == live.sourceId),
-        );
-    return {
-      for (final live in series)
-        if (live.isPrimary && (live.isEdit ?? editByShape(live))) live.id,
-    };
-  }
+  static Set<String> liveEditIdsOf(List<ProfileSeriesIdentity> series) =>
+      profileLiveEditIds(series);
 
   /// The unmarked live series of [series] that have no computer and stand
   /// beside another live series of their source that has none either and is
