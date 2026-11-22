@@ -75,7 +75,9 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage>
     _name.addListener(() => _change(() {}));
     final id = widget.ruleId;
     if (id == null) {
-      openEditor();
+      // From the blank rule: the form's defaults are that rule, so it opens
+      // unchanged.
+      openEditor(from: blankRuleDraft);
       return;
     }
     // Read once: the editor fills itself from the first value and ignores
@@ -162,6 +164,7 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage>
     triggers: {..._triggers},
     condition: _condition,
     conditionValid: _conditionValid,
+    replacesBrokenCondition: _original?.problem != null && _conditionTouched,
     actions: [..._actions],
   );
 
