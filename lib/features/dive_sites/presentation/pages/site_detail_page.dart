@@ -794,9 +794,21 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     WidgetRef ref,
     DiveSite site,
   ) async {
-    final membership = await ref.read(
-      currentMembershipProvider(site.sharedLibraryId!).future,
-    );
+    // The prefix only prefills the connect form: a membership that cannot
+    // be read opens it empty rather than not at all.
+    SharedLibraryMembership? membership;
+    try {
+      membership = await ref.read(
+        currentMembershipProvider(site.sharedLibraryId!).future,
+      );
+    } catch (e, stack) {
+      _editLog.warning(
+        'Could not read the library membership for Connect',
+        error: e,
+        stackTrace: stack,
+      );
+      membership = null;
+    }
     final prefix = membership?.prefixHint ?? '';
     if (!context.mounted) return;
     context.push(
