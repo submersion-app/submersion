@@ -29,10 +29,12 @@ import 'package:submersion/features/dive_log/data/services/data_source_strand.da
 /// Combine stamped, or the v184 rung, or this one, leaves its dive out, so a
 /// second run finds nothing to do.
 ///
-/// A dive with one row whose runtime is that row's own recording is a lone
-/// download, not a combine, and is left out ([loneDownloadSpansDive], issue
-/// #4847): stamping it refused its re-parse for good. A download combined
-/// with a hand-logged dive also carries one row, but the dive outlasts it.
+/// A dive with one row whose runtime is that row's own recording, and whose
+/// samples sit on that row's own clock, is a lone download, not a combine,
+/// and is left out ([isLoneDownload], issue #4847): stamping it refused its
+/// re-parse for good. A download combined with a hand-logged dive also
+/// carries one row, but the dive outlasts it, or the download's samples sit
+/// later on the combined timeline.
 ///
 /// Slots are numbered per display strand ([dataSourceStrandKeysById]), the
 /// way an Uncombine numbers a segment's rows, so the dive shows the same

@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 /// demoted series' `updated_at` goes up by one, which moves the stamp the
 /// device-local caches key on (`diveSourceStampSql`) without moving the HLC
 /// sync exports by.
+///
 /// `is_primary` is deliberately not declared in `changeLogRewrittenColumns`:
 /// it is never null, so declaring it would refuse restoring every series
 /// deleted before v380. [diveIds] limits it to the dives a payload touched;

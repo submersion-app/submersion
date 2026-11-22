@@ -36,6 +36,7 @@ void main() {
     String diveId, {
     bool isPrimary = false,
     int? mergeSourceSlot,
+    String? computerId,
     int? duration,
     DateTime? entryTime,
     DateTime? exitTime,
@@ -48,6 +49,7 @@ void main() {
           diveId: diveId,
           isPrimary: Value(isPrimary),
           mergeSourceSlot: Value(mergeSourceSlot),
+          computerId: Value(computerId),
           duration: Value(duration),
           entryTime: Value(entryTime),
           exitTime: Value(exitTime),
@@ -63,12 +65,14 @@ void main() {
             ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
           .get();
 
-  /// A series [sourceId] owns, from [start] to [end] seconds.
+  /// A series [sourceId] owns, from [start] to [end] seconds; with no
+  /// source, one [computerId] owns by the pre-v154 convention.
   Future<void> insertSeries(
     AppDatabase db,
     String id,
     String diveId,
-    String sourceId, {
+    String? sourceId, {
+    String? computerId,
     required int start,
     required int end,
   }) => db
@@ -78,6 +82,7 @@ void main() {
           id: id,
           diveId: diveId,
           sourceId: Value(sourceId),
+          computerId: Value(computerId),
           sampleCount: 2,
           startTimestamp: start,
           endTimestamp: end,
@@ -289,6 +294,61 @@ void main() {
 
       expect(await repairLoneDownloadSources(db), 0);
       expect((await rowOf(db, 'download')).isPrimary, isFalse);
+    });
+
+    test(
+      'a series that belongs to the row by its computer counts too',
+      () async {
+        // Written before v154, a series names its computer and no source; it
+        // still belongs to the row of that computer.
+        await db
+            .into(db.diveComputers)
+            .insert(
+              DiveComputersCompanion.insert(
+                id: 'comp-a',
+                name: 'Computer A',
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+        await insertDive(db, 'kept', runtime: 3000);
+        await insertSource(
+          db,
+          'download',
+          'kept',
+          mergeSourceSlot: 0,
+          computerId: 'comp-a',
+          duration: 3000,
+        );
+        await insertSeries(
+          db,
+          'legacy',
+          'kept',
+          null,
+          computerId: 'comp-a',
+          start: 2400,
+          end: 5400,
+        );
+        // A hand-logged stretch's samples carry neither, and are not the row's.
+        await insertSeries(db, 'hand', 'kept', null, start: 0, end: 1800);
+
+        expect(await repairLoneDownloadSources(db), 0);
+      },
+    );
+
+    test("a hand-logged stretch is never read as a file row's own", () async {
+      await insertDive(db, 'lone', runtime: 3000);
+      await insertSource(
+        db,
+        'file',
+        'lone',
+        mergeSourceSlot: 0,
+        duration: 3000,
+      );
+      await insertSeries(db, 'own', 'lone', 'file', start: 2400, end: 5400);
+      await insertSeries(db, 'hand', 'lone', null, start: 0, end: 1800);
+
+      expect(await repairLoneDownloadSources(db), 0);
     });
 
     test('a dive it cannot measure is left alone', () async {
