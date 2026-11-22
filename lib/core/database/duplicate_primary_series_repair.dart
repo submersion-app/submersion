@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/table_columns.dart';
-import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_live_edits.dart';
 
 /// Demotes a live profile series that duplicates its source's own over the
 /// same minutes under another computer's label (v380, issue #4847), and
@@ -34,7 +34,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 /// carry the first one's source. A source is left alone when it has no own
 /// series, or two of them overlap (nothing tells which is right), or any of
 /// its live series is a manual edit, marked or by shape
-/// ([ProfileSeriesRepository.liveEditIdsOf]): an edit is the diver's choice
+/// ([profileLiveEditIds]): an edit is the diver's choice
 /// of samples.
 ///
 /// Runs again after an inbound sync apply, as the v356 stamp does; the sync
@@ -151,9 +151,7 @@ Future<int> _repairDives(AppDatabase db, List<String>? ids) async {
               .get())
         r.read<String>('computer_id'),
     };
-    final edits = ProfileSeriesRepository.liveEditIdsOf([
-      for (final s in series) s.identity,
-    ]);
+    final edits = profileLiveEditIds([for (final s in series) s.identity]);
 
     for (final MapEntry(key: sourceId, value: computerId)
         in sourceComputer.entries) {
