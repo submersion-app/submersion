@@ -28,9 +28,9 @@ void main() {
     platform: defaultTargetPlatform,
     define: (description, body, {timeout}) =>
         testWidgets(description, (_) => body(), timeout: timeout),
-    // The engine as the app builds it, with its platforms on whatever the
-    // build's MARINE_LIFE_ID_ONNX define says, so the check runs before
-    // they are turned on for divers.
+    // The engine as the app builds it, but with its platforms always on,
+    // whatever the build's MARINE_LIFE_ID_ONNX define says, so the check
+    // still runs in a build that turns them off.
     makeEngine: (workers) =>
         OnnxVisionEngine(onnxPlatforms: true, spawnWorker: workers.spawner()),
   );
