@@ -26209,6 +26209,156 @@ class AppLocalizationsNl extends AppLocalizations {
       'Soort toegevoegd door de app';
 
   @override
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion =>
+      'Versie van het modelpakket';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId =>
+      'Detector';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId =>
+      'Benoemingsmodel';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell =>
+      'Regiocel';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt =>
+      'Geanalyseerd';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth =>
+      'Breedte van de geanalyseerde afbeelding';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight =>
+      'Hoogte van de geanalyseerde afbeelding';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount =>
+      'Gevonden dieren';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs =>
+      'Video gescand tot';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs =>
+      'Videolengte';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges =>
+      'Gescande videofragmenten';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy =>
+      'Geanalyseerd op apparaat';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_runId => 'Analyse';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars =>
+      'Benoemingsdrempels';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxX =>
+      'Linkerrand van het kader';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxY =>
+      'Bovenrand van het kader';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxWidth =>
+      'Breedte van het kader';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxHeight =>
+      'Hoogte van het kader';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth =>
+      'Breedte van het kader in pixels';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight =>
+      'Hoogte van het kader in pixels';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_detectorScore =>
+      'Detectorscore';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_openScore =>
+      'Gelijkenisscore';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_candidatesJson =>
+      'Mogelijke soorten';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_locationLimited =>
+      'Beperkt tot soorten in de buurt';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_suggestable =>
+      'Voorgesteld';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decision =>
+      'Beslissing';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId =>
+      'Gekozen soort';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedAt =>
+      'Beslist';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId =>
+      'Soort benoemd vanaf de afbeelding';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_startMs =>
+      'Eerst gezien';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_endMs =>
+      'Laatst gezien';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_bestMs =>
+      'Beste moment';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_trackPath =>
+      'Pad door de video';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_confident =>
+      'Zekere overeenkomst';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_specific =>
+      'Lijkt op iets specifieks';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_runId => 'Analyse';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decisionHlc =>
+      'Beslissingsklok';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg =>
+      'Uitsnede';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Vervaldatum van de medische keuring';
 

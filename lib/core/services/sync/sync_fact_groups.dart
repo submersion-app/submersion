@@ -108,9 +108,30 @@ abstract final class SyncFactGroups {
     nullClockIsUnset: true,
   );
 
+  /// The diver's decision on one of the marine life model's identifications
+  /// (issue #4876): accepted or dismissed, the species decided, when, and a
+  /// species named from the frame. A machine rewrite (a rename, a video
+  /// chunk) stamps only the row clock, so a peer's newer scores never take a
+  /// decision made here, and a decision never takes a peer's newer scores.
+  /// Null is unset, as for list arrangements: a row the peer renamed but
+  /// never decided must not borrow its newer row clock and undo a decision.
+  static const SyncFactGroup identificationDecision = SyncFactGroup(
+    name: 'decision',
+    clockKey: 'decisionHlc',
+    clockColumn: 'decision_hlc',
+    columns: {
+      'decision': 'decision',
+      'decidedSpeciesId': 'decided_species_id',
+      'decidedAt': 'decided_at',
+      'claimedSpeciesId': 'claimed_species_id',
+    },
+    nullClockIsUnset: true,
+  );
+
   static const Map<String, List<SyncFactGroup>> byEntity = {
     'media': [mediaUpload, mediaVerification],
     'diverSettings': [diverSettingsListArrangement],
+    'mediaIdentifications': [identificationDecision],
   };
 
   static List<SyncFactGroup> of(String entityType) =>
@@ -121,6 +142,7 @@ abstract final class SyncFactGroups {
   static const Map<String, ({String table, String pk})> tables = {
     'media': (table: 'media', pk: 'id'),
     'diverSettings': (table: 'diver_settings', pk: 'id'),
+    'mediaIdentifications': (table: 'media_identifications', pk: 'id'),
   };
 }
 

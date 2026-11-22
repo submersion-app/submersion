@@ -26380,6 +26380,155 @@ class AppLocalizationsIt extends AppLocalizations {
       'Specie aggiunta dall\'app';
 
   @override
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion =>
+      'Versione del pacchetto modelli';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId =>
+      'Rilevatore';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId =>
+      'Modello di denominazione';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell =>
+      'Cella della regione';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt =>
+      'Analizzato';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth =>
+      'Larghezza dell\'immagine analizzata';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight =>
+      'Altezza dell\'immagine analizzata';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount =>
+      'Animali trovati';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs =>
+      'Video analizzato fino a';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs =>
+      'Durata del video';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges =>
+      'Tratti di video analizzati';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy =>
+      'Analizzato sul dispositivo';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_runId => 'Analisi';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars =>
+      'Soglie di denominazione';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxX =>
+      'Bordo sinistro del riquadro';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxY =>
+      'Bordo superiore del riquadro';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxWidth =>
+      'Larghezza del riquadro';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxHeight =>
+      'Altezza del riquadro';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth =>
+      'Larghezza del riquadro in pixel';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight =>
+      'Altezza del riquadro in pixel';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_detectorScore =>
+      'Punteggio del rilevatore';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_openScore =>
+      'Punteggio di somiglianza';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_candidatesJson =>
+      'Specie possibili';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_locationLimited =>
+      'Limitato alle specie vicine';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_suggestable =>
+      'Suggerito';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decision =>
+      'Decisione';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId =>
+      'Specie scelta';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedAt => 'Deciso';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId =>
+      'Specie indicata dall\'immagine';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_startMs =>
+      'Visto per la prima volta';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_endMs =>
+      'Visto per l\'ultima volta';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_bestMs =>
+      'Momento migliore';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_trackPath =>
+      'Percorso nel video';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_confident =>
+      'Corrispondenza sicura';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_specific =>
+      'Sembra qualcosa di preciso';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_runId => 'Analisi';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decisionHlc =>
+      'Orologio della decisione';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg =>
+      'Ritaglio';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Scadenza del certificato medico';
 

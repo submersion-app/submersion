@@ -180,6 +180,13 @@ class SyncRepository {
     'mediaEnrichment': (table: 'media_enrichment', pk: 'id'),
     'mediaSpecies': (table: 'media_species', pk: 'id'),
     'mediaPeople': (table: 'media_people', pk: 'id'),
+    // Marine life results (v381, issue #4876). A run is one per media.
+    'mediaIdentificationRuns': (
+      table: 'media_identification_runs',
+      pk: 'media_id',
+    ),
+    'mediaIdentifications': (table: 'media_identifications', pk: 'id'),
+    'mediaIdentificationCrops': (table: 'media_identification_crops', pk: 'id'),
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
     'qualityFindings': (table: 'quality_findings', pk: 'id'),
@@ -962,6 +969,22 @@ class SyncRepository {
       timestamp: 'created_at',
       filter: null,
     ),
+    // Marine life results, which gained the column in v381 (issue #4876):
+    // every run and identification from before then publishes here. A run
+    // is first stamped with this device as its maker (_stampRunMakers).
+    // Crops have no timestamp; each is written, and marked, after v381.
+    (
+      entityType: 'mediaIdentificationRuns',
+      table: 'media_identification_runs',
+      timestamp: 'analysed_at',
+      filter: null,
+    ),
+    (
+      entityType: 'mediaIdentifications',
+      table: 'media_identifications',
+      timestamp: 'created_at',
+      filter: null,
+    ),
     // The packed sample series (schema v182) and the stored logbook files
     // (v208, issue #478). A row can reach these tables unstamped two ways:
     // the v182 pack runs on a device that had no clock to advance yet, and
@@ -1093,10 +1116,14 @@ class SyncRepository {
     target,
   ) async {
     final filter = target.filter == null ? '' : ' AND ${target.filter}';
+    // The record id is the table's key: `id` for most, `media_id` for a
+    // marine life run (issue #4876).
+    final pk = hlcTargets[target.entityType]?.pk ?? 'id';
+    if (target.table == 'media_identification_runs') await _stampRunMakers();
     final rows = await _db
         .customSelect(
-          'SELECT id, "${target.timestamp}" AS ts FROM "${target.table}" '
-          'WHERE hlc IS NULL$filter',
+          'SELECT "$pk" AS record_id, "${target.timestamp}" AS ts '
+          'FROM "${target.table}" WHERE hlc IS NULL$filter',
         )
         .get();
     if (rows.isEmpty) return;
@@ -1108,11 +1135,25 @@ class SyncRepository {
       for (final row in rows) {
         await markRecordPending(
           entityType: target.entityType,
-          recordId: row.read<String>('id'),
+          recordId: row.read<String>('record_id'),
           localUpdatedAt: row.read<int>('ts'),
         );
       }
     });
+  }
+
+  /// A marine life run from before v381 was made on the device that holds
+  /// it, since nothing synced then. It is given this device's id before it
+  /// first publishes, so no device ever receives a run without its maker
+  /// and mistakes another device's work for its own (issue #4876).
+  Future<void> _stampRunMakers() async {
+    await _db.customUpdate(
+      'UPDATE media_identification_runs SET analysed_by = ? '
+      'WHERE analysed_by IS NULL',
+      variables: [Variable.withString(await getDeviceId())],
+      updates: {_db.mediaIdentificationRuns},
+      updateKind: UpdateKind.update,
+    );
   }
 
   /// Stamp a fresh Hybrid Logical Clock onto the just-written entity row, if

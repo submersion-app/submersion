@@ -25739,6 +25739,152 @@ class AppLocalizationsHe extends AppLocalizations {
       'מין שנוסף על ידי האפליקציה';
 
   @override
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion =>
+      'גרסת חבילת המודלים';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId =>
+      'גלאי';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId =>
+      'מודל הזיהוי';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell =>
+      'תא אזור';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt =>
+      'נותח';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth =>
+      'רוחב התמונה שנותחה';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight =>
+      'גובה התמונה שנותחה';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount =>
+      'בעלי חיים שנמצאו';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs =>
+      'הסרטון נסרק עד';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs =>
+      'אורך הסרטון';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges =>
+      'קטעי סרטון שנסרקו';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy =>
+      'נותח במכשיר';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_runId => 'ניתוח';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars =>
+      'ספי זיהוי';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxX =>
+      'קצה שמאלי של המסגרת';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxY =>
+      'קצה עליון של המסגרת';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxWidth =>
+      'רוחב המסגרת';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxHeight =>
+      'גובה המסגרת';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth =>
+      'רוחב המסגרת בפיקסלים';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight =>
+      'גובה המסגרת בפיקסלים';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_detectorScore =>
+      'ציון הגלאי';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_openScore =>
+      'ציון דמיון';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_candidatesJson =>
+      'מינים אפשריים';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_locationLimited =>
+      'מוגבל למינים בסביבה';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_suggestable => 'מוצע';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decision => 'החלטה';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId =>
+      'המין שנבחר';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedAt => 'הוחלט';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId =>
+      'המין שזוהה מהתמונה';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_startMs =>
+      'נראה לראשונה';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_endMs =>
+      'נראה לאחרונה';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_bestMs =>
+      'הרגע הטוב ביותר';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_trackPath =>
+      'מסלול לאורך הסרטון';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_confident =>
+      'התאמה בטוחה';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_specific =>
+      'נראה כמו משהו מסוים';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_runId => 'ניתוח';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decisionHlc =>
+      'שעון ההחלטה';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'חיתוך';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'תפוגת האישור הרפואי';
 

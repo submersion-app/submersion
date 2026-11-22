@@ -19,7 +19,7 @@ Future<List<String>> _columns(AppDatabase db, String table) async => [
 
 const _runColumns = ['hlc', 'analysed_by', 'run_id', 'naming_bars'];
 const _identificationColumns = ['hlc', 'run_id', 'decision_hlc'];
-const _cropColumns = ['identification_id', 'media_id', 'jpeg', 'hlc'];
+const _cropColumns = ['id', 'media_id', 'jpeg', 'hlc'];
 
 /// Both tables as v380 left them, two runs, three identifications.
 NativeDatabase _at380() => NativeDatabase.memory(setup: _seed380);

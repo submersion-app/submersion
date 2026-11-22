@@ -41632,6 +41632,234 @@ abstract class AppLocalizations {
   /// **'Species added by the app'**
   String get settings_conflict_field_mediaSpecies_createdSpecies;
 
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_packVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Model pack version'**
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_detectorId.
+  ///
+  /// In en, this message translates to:
+  /// **'Detector'**
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_classifierId.
+  ///
+  /// In en, this message translates to:
+  /// **'Naming model'**
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_locationCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Region cell'**
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_analysedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysed'**
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_imageWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysed image width'**
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_imageHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysed image height'**
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_detectionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Animals found'**
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_scannedMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Video scanned up to'**
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_videoDurationMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Video length'**
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_scannedRanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Stretches of video scanned'**
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_analysedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysed on device'**
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_runId.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis'**
+  String get settings_conflict_field_mediaIdentificationRuns_runId;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationRuns_namingBars.
+  ///
+  /// In en, this message translates to:
+  /// **'Naming bars'**
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_boxX.
+  ///
+  /// In en, this message translates to:
+  /// **'Box left edge'**
+  String get settings_conflict_field_mediaIdentifications_boxX;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_boxY.
+  ///
+  /// In en, this message translates to:
+  /// **'Box top edge'**
+  String get settings_conflict_field_mediaIdentifications_boxY;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_boxWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Box width'**
+  String get settings_conflict_field_mediaIdentifications_boxWidth;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_boxHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Box height'**
+  String get settings_conflict_field_mediaIdentifications_boxHeight;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_boxPixelWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Box width in pixels'**
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_boxPixelHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Box height in pixels'**
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_detectorScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Detector score'**
+  String get settings_conflict_field_mediaIdentifications_detectorScore;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_openScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Likeness score'**
+  String get settings_conflict_field_mediaIdentifications_openScore;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_candidatesJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Possible species'**
+  String get settings_conflict_field_mediaIdentifications_candidatesJson;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_locationLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited to species nearby'**
+  String get settings_conflict_field_mediaIdentifications_locationLimited;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_suggestable.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get settings_conflict_field_mediaIdentifications_suggestable;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_decision.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision'**
+  String get settings_conflict_field_mediaIdentifications_decision;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_decidedSpeciesId.
+  ///
+  /// In en, this message translates to:
+  /// **'Species decided'**
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_decidedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Decided'**
+  String get settings_conflict_field_mediaIdentifications_decidedAt;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_claimedSpeciesId.
+  ///
+  /// In en, this message translates to:
+  /// **'Species named from the picture'**
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_startMs.
+  ///
+  /// In en, this message translates to:
+  /// **'First seen'**
+  String get settings_conflict_field_mediaIdentifications_startMs;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_endMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen'**
+  String get settings_conflict_field_mediaIdentifications_endMs;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_bestMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Best moment'**
+  String get settings_conflict_field_mediaIdentifications_bestMs;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_trackPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Path through the video'**
+  String get settings_conflict_field_mediaIdentifications_trackPath;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_confident.
+  ///
+  /// In en, this message translates to:
+  /// **'Confident match'**
+  String get settings_conflict_field_mediaIdentifications_confident;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_specific.
+  ///
+  /// In en, this message translates to:
+  /// **'Looks like something in particular'**
+  String get settings_conflict_field_mediaIdentifications_specific;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_runId.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis'**
+  String get settings_conflict_field_mediaIdentifications_runId;
+
+  /// No description provided for @settings_conflict_field_mediaIdentifications_decisionHlc.
+  ///
+  /// In en, this message translates to:
+  /// **'Decision clock'**
+  String get settings_conflict_field_mediaIdentifications_decisionHlc;
+
+  /// No description provided for @settings_conflict_field_mediaIdentificationCrops_jpeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop'**
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg;
+
   /// No description provided for @settings_conflict_field_medicalClearanceExpiryDate.
   ///
   /// In en, this message translates to:

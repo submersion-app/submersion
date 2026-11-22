@@ -25945,6 +25945,155 @@ class AppLocalizationsEn extends AppLocalizations {
       'Species added by the app';
 
   @override
+  String get settings_conflict_field_mediaIdentificationRuns_packVersion =>
+      'Model pack version';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectorId =>
+      'Detector';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_classifierId =>
+      'Naming model';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_locationCell =>
+      'Region cell';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedAt =>
+      'Analysed';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageWidth =>
+      'Analysed image width';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_imageHeight =>
+      'Analysed image height';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_detectionCount =>
+      'Animals found';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedMs =>
+      'Video scanned up to';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_videoDurationMs =>
+      'Video length';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_scannedRanges =>
+      'Stretches of video scanned';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_analysedBy =>
+      'Analysed on device';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_runId =>
+      'Analysis';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationRuns_namingBars =>
+      'Naming bars';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxX =>
+      'Box left edge';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxY =>
+      'Box top edge';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxWidth =>
+      'Box width';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxHeight =>
+      'Box height';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelWidth =>
+      'Box width in pixels';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_boxPixelHeight =>
+      'Box height in pixels';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_detectorScore =>
+      'Detector score';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_openScore =>
+      'Likeness score';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_candidatesJson =>
+      'Possible species';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_locationLimited =>
+      'Limited to species nearby';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_suggestable =>
+      'Suggested';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decision =>
+      'Decision';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedSpeciesId =>
+      'Species decided';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decidedAt =>
+      'Decided';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_claimedSpeciesId =>
+      'Species named from the picture';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_startMs =>
+      'First seen';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_endMs => 'Last seen';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_bestMs =>
+      'Best moment';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_trackPath =>
+      'Path through the video';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_confident =>
+      'Confident match';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_specific =>
+      'Looks like something in particular';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_runId => 'Analysis';
+
+  @override
+  String get settings_conflict_field_mediaIdentifications_decisionHlc =>
+      'Decision clock';
+
+  @override
+  String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Crop';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Medical clearance expiry';
 

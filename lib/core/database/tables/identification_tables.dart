@@ -180,7 +180,9 @@ class MediaIdentifications extends Table {
 /// either order, and an undo puts media back.
 @DataClassName('MediaIdentificationCropRow')
 class MediaIdentificationCrops extends Table {
-  TextColumn get identificationId => text()();
+  /// The identification's id: one crop per identification. Named `id` so
+  /// the sync pagers, which key by `id`, stream the crops by size.
+  TextColumn get id => text()();
   TextColumn get mediaId => text()();
 
   /// The crop as JPEG.
@@ -190,5 +192,5 @@ class MediaIdentificationCrops extends Table {
   TextColumn get hlc => text().nullable()();
 
   @override
-  Set<Column> get primaryKey => {identificationId};
+  Set<Column> get primaryKey => {id};
 }

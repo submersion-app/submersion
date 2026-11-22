@@ -235,8 +235,11 @@ last-writer-wins under its own clock, independent of the row clock.
   on the peer too, and a stale machine row that loses on the row clock can
   still carry a newer decision. The newer decision wins whichever device
   wrote the row last.
-- A row from before this change has no group clock; it falls back to the
-  row clock, as media's facts do (`nullClockIsUnset: false`).
+- A null group clock means "never decided under a clock"
+  (`nullClockIsUnset: true`, as the list arrangements do): a row a peer
+  renamed but never decided must not borrow its newer row clock and undo a
+  decision made here. Rows from before this change existed on one device
+  only, so nothing they hold is overridden by it.
 - `carryDecisions` moving a decision onto a fresh row (new id) during a
   re-analysis stamps the group clock on the fresh row, so the carried
   decision syncs with it.
@@ -267,7 +270,7 @@ levels, as JSON **(proposed format)**.
 ### 4. Crops of named identifications sync
 
 New synced table `media_identification_crops` **(proposed name)**:
-`identification_id` (pk), `media_id`, `jpeg` (BLOB), `hlc`. Clock-guarded,
+`id` (pk, the identification's id, so the sync pagers that key by `id` stream crops by size), `media_id`, `jpeg` (BLOB), `hlc`. Clock-guarded,
 parent `media`, no FK to media (same undo reasoning as the other two
 tables), no FK to the identification (rows may arrive in either order).
 

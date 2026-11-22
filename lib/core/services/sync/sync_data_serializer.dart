@@ -416,6 +416,13 @@ class SyncData {
 
   /// People tagged on photos and videos (v326, issue #1745).
   final List<Map<String, dynamic>> mediaPeople;
+
+  /// Marine life results (v381, issue #4876): a run per analysed media, the
+  /// animals it found with the diver's decisions, and the crops of named
+  /// ones.
+  final List<Map<String, dynamic>> mediaIdentificationRuns;
+  final List<Map<String, dynamic>> mediaIdentifications;
+  final List<Map<String, dynamic>> mediaIdentificationCrops;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
   final List<Map<String, dynamic>> viewConfigs;
@@ -557,6 +564,9 @@ class SyncData {
     this.librarySiteNotes = const [],
     this.mediaSpecies = const [],
     this.mediaPeople = const [],
+    this.mediaIdentificationRuns = const [],
+    this.mediaIdentifications = const [],
+    this.mediaIdentificationCrops = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
     this.viewConfigs = const [],
@@ -697,6 +707,9 @@ class SyncData {
     'librarySiteNotes': librarySiteNotes,
     'mediaSpecies': mediaSpecies,
     'mediaPeople': mediaPeople,
+    'mediaIdentificationRuns': mediaIdentificationRuns,
+    'mediaIdentifications': mediaIdentifications,
+    'mediaIdentificationCrops': mediaIdentificationCrops,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
     'viewConfigs': viewConfigs,
@@ -856,6 +869,9 @@ class SyncData {
       librarySiteNotes: _parseList(json['librarySiteNotes']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       mediaPeople: _parseList(json['mediaPeople']),
+      mediaIdentificationRuns: _parseList(json['mediaIdentificationRuns']),
+      mediaIdentifications: _parseList(json['mediaIdentifications']),
+      mediaIdentificationCrops: _parseList(json['mediaIdentificationCrops']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
       viewConfigs: _parseList(json['viewConfigs']),
@@ -1610,6 +1626,26 @@ class SyncDataSerializer {
     ),
     (key: 'mediaSpecies', table: _db.mediaSpecies, blob: false, full: null),
     (key: 'mediaPeople', table: _db.mediaPeople, blob: false, full: null),
+    (
+      // PK is media_id, not id, so the keyset pager can't stream it; a run
+      // is small (its scanned stretches at most), one per analysed media.
+      key: 'mediaIdentificationRuns',
+      table: null,
+      blob: false,
+      full: () => _exportMediaIdentificationRuns(null),
+    ),
+    (
+      key: 'mediaIdentifications',
+      table: _db.mediaIdentifications,
+      blob: true,
+      full: null,
+    ),
+    (
+      key: 'mediaIdentificationCrops',
+      table: _db.mediaIdentificationCrops,
+      blob: true,
+      full: null,
+    ),
     (key: 'siteFeatures', table: _db.siteFeatures, blob: false, full: null),
     (key: 'csvPresets', table: _db.csvPresets, blob: false, full: null),
     (key: 'viewConfigs', table: _db.viewConfigs, blob: false, full: null),
@@ -2100,6 +2136,9 @@ class SyncDataSerializer {
     'mediaEnrichment',
     'mediaSpecies',
     'mediaPeople',
+    'mediaIdentificationRuns',
+    'mediaIdentifications',
+    'mediaIdentificationCrops',
     'mediaStores',
     'species',
     'importedFiles',
@@ -3226,6 +3265,18 @@ class SyncDataSerializer {
         'mediaPeople',
         () => _exportMediaPeople(hlcSince),
       ),
+      mediaIdentificationRuns: await _safeExport(
+        'mediaIdentificationRuns',
+        () => _exportMediaIdentificationRuns(hlcSince),
+      ),
+      mediaIdentifications: await _safeExport(
+        'mediaIdentifications',
+        () => _exportMediaIdentifications(hlcSince),
+      ),
+      mediaIdentificationCrops: await _safeExport(
+        'mediaIdentificationCrops',
+        () => _exportMediaIdentificationCrops(hlcSince),
+      ),
       siteFeatures: await _safeExport(
         'siteFeatures',
         () => _exportSiteFeatures(hlcSince),
@@ -4212,6 +4263,21 @@ class SyncDataSerializer {
           _db.mediaPeople,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'mediaIdentificationRuns':
+        final row = await (_db.select(
+          _db.mediaIdentificationRuns,
+        )..where((t) => t.mediaId.equals(recordId))).getSingleOrNull();
+        return row?.toJson(serializer: _syncBlobSerializer);
+      case 'mediaIdentifications':
+        final row = await (_db.select(
+          _db.mediaIdentifications,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson(serializer: _syncBlobSerializer);
+      case 'mediaIdentificationCrops':
+        final row = await (_db.select(
+          _db.mediaIdentificationCrops,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson(serializer: _syncBlobSerializer);
       case 'siteFeatures':
         final row = await (_db.select(
           _db.siteFeatures,
@@ -4369,6 +4435,28 @@ class SyncDataSerializer {
           _db.mediaPeople,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'mediaIdentificationRuns':
+        final rows = await (_db.select(
+          _db.mediaIdentificationRuns,
+        )..where((t) => t.mediaId.isIn(idList))).get();
+        return {
+          for (final r in rows)
+            r.mediaId: r.toJson(serializer: _syncBlobSerializer),
+        };
+      case 'mediaIdentifications':
+        final rows = await (_db.select(
+          _db.mediaIdentifications,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
+      case 'mediaIdentificationCrops':
+        final rows = await (_db.select(
+          _db.mediaIdentificationCrops,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
       case 'species':
         final rows = await (_db.select(
           _db.species,
@@ -6555,6 +6643,36 @@ class SyncDataSerializer {
               MediaPeopleData.fromJson(_withTimestampDefaults(data)),
             );
         return;
+      case 'mediaIdentificationRuns':
+        await _db
+            .into(_db.mediaIdentificationRuns)
+            .insertOnConflictUpdate(
+              MediaIdentificationRunRow.fromJson(
+                data,
+                serializer: _syncBlobSerializer,
+              ),
+            );
+        return;
+      case 'mediaIdentifications':
+        await _db
+            .into(_db.mediaIdentifications)
+            .insertOnConflictUpdate(
+              MediaIdentificationRow.fromJson(
+                data,
+                serializer: _syncBlobSerializer,
+              ),
+            );
+        return;
+      case 'mediaIdentificationCrops':
+        await _db
+            .into(_db.mediaIdentificationCrops)
+            .insertOnConflictUpdate(
+              MediaIdentificationCropRow.fromJson(
+                data,
+                serializer: _syncBlobSerializer,
+              ),
+            );
+        return;
       case 'siteFeatures':
         await _db
             .into(_db.siteFeatures)
@@ -8350,6 +8468,39 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'mediaIdentificationRuns':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(_db.mediaIdentificationRuns, [
+            for (final r in records)
+              MediaIdentificationRunRow.fromJson(
+                r,
+                serializer: _syncBlobSerializer,
+              ),
+          ]),
+        );
+        return;
+      case 'mediaIdentifications':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(_db.mediaIdentifications, [
+            for (final r in records)
+              MediaIdentificationRow.fromJson(
+                r,
+                serializer: _syncBlobSerializer,
+              ),
+          ]),
+        );
+        return;
+      case 'mediaIdentificationCrops':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(_db.mediaIdentificationCrops, [
+            for (final r in records)
+              MediaIdentificationCropRow.fromJson(
+                r,
+                serializer: _syncBlobSerializer,
+              ),
+          ]),
+        );
+        return;
       case 'siteFeatures':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -8770,6 +8921,18 @@ class SyncDataSerializer {
         return plain(_db.mediaSpecies, _db.mediaSpecies.id);
       case 'mediaPeople':
         return plain(_db.mediaPeople, _db.mediaPeople.id);
+      case 'mediaIdentificationRuns':
+        return plain(
+          _db.mediaIdentificationRuns,
+          _db.mediaIdentificationRuns.mediaId,
+        );
+      case 'mediaIdentifications':
+        return plain(_db.mediaIdentifications, _db.mediaIdentifications.id);
+      case 'mediaIdentificationCrops':
+        return plain(
+          _db.mediaIdentificationCrops,
+          _db.mediaIdentificationCrops.id,
+        );
       case 'siteFeatures':
         return plain(_db.siteFeatures, _db.siteFeatures.id);
       case 'csvPresets':
@@ -9313,6 +9476,12 @@ class SyncDataSerializer {
         return _db.mediaSpecies;
       case 'mediaPeople':
         return _db.mediaPeople;
+      case 'mediaIdentificationRuns':
+        return _db.mediaIdentificationRuns;
+      case 'mediaIdentifications':
+        return _db.mediaIdentifications;
+      case 'mediaIdentificationCrops':
+        return _db.mediaIdentificationCrops;
       case 'siteFeatures':
         return _db.siteFeatures;
       case 'csvPresets':
@@ -10067,6 +10236,21 @@ class SyncDataSerializer {
       case 'mediaPeople':
         await (_db.delete(
           _db.mediaPeople,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'mediaIdentificationRuns':
+        await (_db.delete(
+          _db.mediaIdentificationRuns,
+        )..where((t) => t.mediaId.equals(recordId))).go();
+        return;
+      case 'mediaIdentifications':
+        await (_db.delete(
+          _db.mediaIdentifications,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'mediaIdentificationCrops':
+        await (_db.delete(
+          _db.mediaIdentificationCrops,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'siteFeatures':
@@ -12088,6 +12272,48 @@ class SyncDataSerializer {
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Marine life runs (v381, issue #4876), on their own clock.
+  Future<List<Map<String, dynamic>>> _exportMediaIdentificationRuns(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaIdentificationRuns);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+  }
+
+  /// Marine life identifications: due when the row clock or the decision
+  /// clock has moved past the watermark, since a decision stamps only its
+  /// own clock (SyncFactGroups.identificationDecision).
+  Future<List<Map<String, dynamic>>> _exportMediaIdentifications(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaIdentifications);
+    if (hlcSince != null) {
+      query.where(
+        (t) =>
+            t.hlc.isBiggerThanValue(hlcSince) |
+            t.decisionHlc.isBiggerThanValue(hlcSince),
+      );
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+  }
+
+  /// The crops of named identifications, written once each.
+  Future<List<Map<String, dynamic>>> _exportMediaIdentificationCrops(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaIdentificationCrops);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportCsvPresets(String? hlcSince) async {

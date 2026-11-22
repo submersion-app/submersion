@@ -14,8 +14,8 @@
 
 - Schema version 381 for every change in this plan (one rung); `minimumCompatibleSchemaVersion` = 381.
 - New columns are nullable (or defaulted); no column is dropped, renamed or retyped.
-- Entity types: `mediaIdentificationRuns` (table `media_identification_runs`, pk `media_id`), `mediaIdentifications` (table `media_identifications`, pk `id`), `mediaIdentificationCrops` (table `media_identification_crops`, pk `identification_id`).
-- Fact group: `identificationDecision`, clock key `decisionHlc`, clock column `decision_hlc`, columns `decision`, `decidedSpeciesId`, `decidedAt`, `claimedSpeciesId`, `nullClockIsUnset: false`.
+- Entity types: `mediaIdentificationRuns` (table `media_identification_runs`, pk `media_id`), `mediaIdentifications` (table `media_identifications`, pk `id`), `mediaIdentificationCrops` (table `media_identification_crops`, pk `id`, holding the identification's id, so the sync pagers that key by `id` stream crops by size).
+- Fact group: `identificationDecision`, clock key `decisionHlc`, clock column `decision_hlc`, columns `decision`, `decidedSpeciesId`, `decidedAt`, `claimedSpeciesId`, `nullClockIsUnset: true` (a renamed but never-decided row must not borrow its newer row clock and undo a decision).
 - "Named" = `specific || suggestable || decision != undecided || claimedSpeciesId != null`.
 - No FK from any of the three tables to `media` or to each other (undo keeps decisions).
 - Change-log class `excluded` for all three tables.
@@ -46,7 +46,7 @@
 - Test: `test/core/database/migration_v381_identification_sync_test.dart`
 
 **Interfaces:**
-- Produces columns: runs `hlc TEXT`, `analysed_by TEXT`, `run_id TEXT`, `naming_bars TEXT`; identifications `hlc TEXT`, `run_id TEXT`, `decision_hlc TEXT`; table `media_identification_crops(identification_id TEXT PK, media_id TEXT NOT NULL, jpeg BLOB NOT NULL, hlc TEXT)` with index on `media_id`.
+- Produces columns: runs `hlc TEXT`, `analysed_by TEXT`, `run_id TEXT`, `naming_bars TEXT`; identifications `hlc TEXT`, `run_id TEXT`, `decision_hlc TEXT`; table `media_identification_crops(id TEXT PK, media_id TEXT NOT NULL, jpeg BLOB NOT NULL, hlc TEXT)` with index on `media_id`.
 - Drift getters: `MediaIdentificationRuns.hlc/analysedBy/runId/namingBars`, `MediaIdentifications.hlc/runId/decisionHlc`, `MediaIdentificationCrops` (`@DataClassName('MediaIdentificationCropRow')`).
 
 - [ ] **Step 1: Write the failing migration test** `migration_v381_identification_sync_test.dart`: a v380 database with two runs and three identifications migrates to 381; every new column exists; the crops table exists; each run has a non-null `run_id` and its identifications carry that same `run_id`; two runs get different ids; `analysed_by`, `naming_bars`, `hlc` and `decision_hlc` stay null; running the helper twice changes nothing. Follow the setup of `test/core/database/migration_v378_*` (nearest precedent).
@@ -82,7 +82,7 @@
 - Modify: `lib/core/data/repositories/sync_repository.dart` (`hlcTargets` x3; `_hlcBackfillTargets` x3; generalise `_backfillTable` to select the target's pk; before backfilling runs, `UPDATE media_identification_runs SET analysed_by = ? WHERE analysed_by IS NULL` with `getDeviceId()`)
 - Modify: `lib/core/services/sync/sync_data_serializer.dart` (all ten arm sites listed in the spec section 1 for each entity; runs use `_baseTables` `table: null, full: () => _exportMediaIdentificationRuns(null)`; identifications and crops `blob: true`; `_syncBlobSerializer` at every BLOB point; `clockGuardedEntities` += 3; `clockGuardedClearTables`/`clockGuardedClearKeys` for runs `scannedRanges`)
 - Modify: `lib/core/services/sync/sync_service.dart` (`mergeOrder` after `mediaSpecies`, runs then identifications then crops; `entityHasUpdatedAt` false x3; `parentRefs` `mediaId` to `media`, not nullable, x3)
-- Modify: `lib/core/services/sync/sync_record_overlay.dart` (`syncRecordId`: runs return `mediaId`, crops `identificationId`)
+- Modify: `lib/core/services/sync/sync_record_overlay.dart` (`syncRecordId`: runs return `mediaId`)
 - Modify: `lib/core/services/sync/conflict_reference.dart` (`decidedSpeciesId`, `claimedSpeciesId` to species)
 - Modify: conflict field catalogue (`lib/features/settings/presentation/conflicts/catalogue/media_library_fields.dart` or a new `species_id_fields.dart` beside it) and `lib/l10n/arb/app_en.arb` labels, then `flutter gen-l10n`
 - Test: `test/core/services/sync/identification_sync_round_trip_test.dart` (new), plus the guard tests in spec section 1 (`sync_hlc_target_registration_test`, `sync_parent_refs_completeness_test`, `media_clock_guard_test`, `sync_base_streaming_parity_test`, `base_publish_streaming_parity_test`, `sync_data_serializer_batch_coverage_test`, `sync_hlc_backfill_test`, `conflict_field_catalogue_coverage_test`, and the fact-group table pin test that compares `SyncFactGroups.tables` with `hlcTargets`)
@@ -106,7 +106,7 @@
 - Test: `test/features/species_id/data/repositories/identification_sync_marks_test.dart`, extend `media_identification_repository_test.dart`
 
 **Interfaces:**
-- Produces: `class IdentificationSyncMarks { IdentificationSyncMarks({SyncRepository? sync}); Future<void> runsWritten(List<String> mediaIds); Future<void> rowsWritten(List<String> ids); Future<void> decisionsWritten(List<String> ids); Future<void> cropsWritten(List<String> identificationIds); Future<void> deleted({List<String> runMediaIds, List<String> rowIds, List<String> cropIds}); }`. `decisionsWritten` uses `markRecordPending(..., alsoStamp: [SyncFactGroups.identificationDecision])` per row; the others `markRecordsPending`; `deleted` uses `logDeletions` per entity type.
+- Produces: `class IdentificationSyncMarks { IdentificationSyncMarks({SyncRepository? sync}); Future<void> runsWritten(List<String> mediaIds); Future<void> rowsWritten(List<String> ids); Future<void> decisionsWritten(List<String> ids); Future<void> cropsWritten(List<String> identificationIds); Future<void> deleted({List<String> runMediaIds, List<String> rowIds, List<String> cropIds}); }`. `decisionsWritten` uses `markFactsPending(..., group: SyncFactGroups.identificationDecision)` per row (the group clock only, never the row clock); the others `markRecordsPending`; `deleted` uses `logDeletions` per entity type.
 - `MediaIdentificationRepository` gains an optional constructor `IdentificationSyncMarks? marks` and calls: `storeRun`/`storeRunAfterReading` → `runsWritten`, `rowsWritten(insert ids)`, `deleted(rowIds: deleteIds)`, plus `decisionsWritten` for inserted rows that carry a decision or claim (a carried decision); `updateDecisions` and `claim` → `decisionsWritten`; `updateNames` → `rowsWritten` + `runsWritten`; `deleteForMedia` → `deleted` for runs, rows and their crops.
 
 - [ ] **Step 1: Failing tests**: each repository write leaves the right `sync_records` pending rows and `hlc` stamped; `updateDecisions` and `claim` stamp `decision_hlc` and leave a machine-only write's `decision_hlc` unchanged; `deleteForMedia` writes deletion-log entries for runs (record id = media id), rows and crops; an undo restore re-marks the restored media's identification rows.

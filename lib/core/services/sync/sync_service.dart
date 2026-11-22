@@ -2106,6 +2106,23 @@ class SyncService {
           // After media, buddies and divers (v326, issue #1745). Edited rows,
           // but clock-guarded like media: a moved box never raises a card.
           (type: 'mediaPeople', records: data.mediaPeople, hasUpdatedAt: false),
+          // Marine life results, after media (v381, issue #4876): a run
+          // before its identifications, those before their crops.
+          (
+            type: 'mediaIdentificationRuns',
+            records: data.mediaIdentificationRuns,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'mediaIdentifications',
+            records: data.mediaIdentifications,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'mediaIdentificationCrops',
+            records: data.mediaIdentificationCrops,
+            hasUpdatedAt: false,
+          ),
           (
             type: 'siteFeatures',
             records: data.siteFeatures,
@@ -3192,6 +3209,9 @@ class SyncService {
     'equipmentLocationMoves': false,
     'mediaSpecies': false,
     'mediaPeople': false,
+    'mediaIdentificationRuns': false,
+    'mediaIdentifications': false,
+    'mediaIdentificationCrops': false,
     'siteFeatures': true,
     'csvPresets': true,
     'viewConfigs': true,
@@ -3683,6 +3703,17 @@ class SyncService {
     'mediaPeople': [
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'buddyId', parent: 'buddies', nullable: true),
+    ],
+    // Marine life results (v381, issue #4876). No foreign key (an undo puts
+    // media back), so only a media tombstone here drops them.
+    'mediaIdentificationRuns': [
+      (field: 'mediaId', parent: 'media', nullable: false),
+    ],
+    'mediaIdentifications': [
+      (field: 'mediaId', parent: 'media', nullable: false),
+    ],
+    'mediaIdentificationCrops': [
+      (field: 'mediaId', parent: 'media', nullable: false),
     ],
     'siteFeatures': [(field: 'siteId', parent: 'diveSites', nullable: false)],
     'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
