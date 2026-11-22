@@ -24,6 +24,17 @@ import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dar
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
+/// A count to bump, so the active gear, which watches it, reloads as it
+/// does when the active diver changes.
+class _Tick extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state++;
+}
+
+final _reloadTick = NotifierProvider<_Tick, int>(_Tick.new);
+
 /// The gear item's header block edited in place (issue #4527, phase 3,
 /// plan 6): its name, type, tags and the purchase of wishlist gear.
 void main() {
@@ -53,7 +64,7 @@ void main() {
     Future<bool> Function()? hasDevice,
     Locale locale = const Locale('en'),
     List<EquipmentItem> active = const [],
-    Future<List<EquipmentItem>> Function()? readActive,
+    Future<List<EquipmentItem>> Function(Ref ref)? readActive,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 1600);
@@ -69,7 +80,7 @@ void main() {
             item.id,
           ).overrideWith((ref) => hasDevice?.call() ?? Future.value(false)),
           activeEquipmentProvider.overrideWith(
-            (ref) => readActive?.call() ?? Future.value(active),
+            (ref) => readActive?.call(ref) ?? Future.value(active),
           ),
         ].cast(),
         child: MaterialApp(
@@ -142,7 +153,7 @@ void main() {
       type: EquipmentType.battery,
       parentEquipmentId: 'dc1',
     );
-    await pumpEditor(tester, item: cell, readActive: () => active.future);
+    await pumpEditor(tester, item: cell, readActive: (_) => active.future);
 
     expect(typeDropdown(tester).onChanged, isNull);
 
@@ -153,11 +164,50 @@ void main() {
     expect(typeDropdown(tester).onChanged, isNotNull);
   });
 
+  // A reload the active gear's own dependencies start (the active diver
+  // changing) keeps the old list, but a type picked then could not check
+  // the host against it, so the type waits again until the reload answers.
+  testWidgets("a fitted item's type waits while the active gear reloads", (
+    tester,
+  ) async {
+    final reloaded = Completer<List<EquipmentItem>>();
+    var reads = 0;
+    await pumpEditor(
+      tester,
+      item: const EquipmentItem(
+        id: 'g1',
+        name: 'Cell',
+        type: EquipmentType.battery,
+        parentEquipmentId: 'dc1',
+      ),
+      readActive: (ref) {
+        ref.watch(_reloadTick);
+        return reads++ == 0
+            ? Future.value(const [
+                EquipmentItem(
+                  id: 'dc1',
+                  name: 'Perdix',
+                  type: EquipmentType.computer,
+                ),
+              ])
+            : reloaded.future;
+      },
+    );
+    expect(typeDropdown(tester).onChanged, isNotNull);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(GearItemHeaderEditor)),
+    ).read(_reloadTick.notifier).bump();
+    await tester.pump();
+
+    expect(typeDropdown(tester).onChanged, isNull);
+  });
+
   testWidgets('an item with no host picks its type while the active gear '
       'loads', (tester) async {
     await pumpEditor(
       tester,
-      readActive: () => Completer<List<EquipmentItem>>().future,
+      readActive: (_) => Completer<List<EquipmentItem>>().future,
     );
 
     expect(typeDropdown(tester).onChanged, isNotNull);

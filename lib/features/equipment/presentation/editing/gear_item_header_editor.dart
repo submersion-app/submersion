@@ -135,9 +135,12 @@ class _GearItemHeaderEditorState extends ConsumerState<GearItemHeaderEditor> {
         final name = _session.valueOf(gearNameField);
         // A host is checked against the active gear: until that is read, a
         // new type could keep a host it cannot be fitted to, and the save
-        // would write it, so a fitted item's type waits for it.
+        // would write it, so a fitted item's type waits for it. Read as
+        // [_pickType] reads it, so a reload the gear's own dependencies
+        // start (the active diver changing) waits too.
         final hostUnchecked =
-            _session.valueOf(gearParentField) != null && !candidates.hasValue;
+            _session.valueOf(gearParentField) != null &&
+            candidates.valueOrNull == null;
         final tags = gearItemTagsList.current(_session);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
