@@ -1994,6 +1994,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'emergency',
                     name: 'editEmergencyContacts',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) =>
                         const EmergencyContactsEditPage(),
                   ),
@@ -2031,11 +2032,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'notes',
                     name: 'editNotes',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const NotesEditPage(),
                   ),
                   GoRoute(
                     path: 'prior',
                     name: 'editPriorExperience',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) =>
                         const PriorExperienceEditPage(),
                   ),

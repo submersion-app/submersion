@@ -5,8 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/emergency_contacts_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/prior_experience_edit_page.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'diver_profile_harness.dart';
@@ -163,6 +166,58 @@ void main() {
 
       expect(find.text('Hub'), findsOneWidget);
       expect((await storedDiver('a'))!.email, isNull);
+    });
+  }
+
+  // Every profile page, changed and then left by a switch that asks
+  // nothing: the hub shows, and diver 'a' is as seeded.
+  final pages = <String, (Widget, Future<void> Function(WidgetTester))>{
+    'personal': (
+      const PersonalInfoEditPage(),
+      (t) => typeInto(t, 'Email', 'alice@example.com'),
+    ),
+    'medical': (
+      const MedicalInfoEditPage(),
+      (t) => typeInto(t, 'Allergies', 'Latex'),
+    ),
+    'emergency': (
+      const EmergencyContactsEditPage(),
+      (t) async {
+        await t.enterText(
+          find.widgetWithText(TextFormField, 'Contact Name').first,
+          'Bruna',
+        );
+        await t.pump();
+      },
+    ),
+    'notes': (
+      const NotesEditPage(),
+      (t) async {
+        await t.enterText(find.byType(TextField), 'New note');
+        await t.pump();
+      },
+    ),
+    'prior': (
+      const PriorExperienceEditPage(),
+      (t) => typeInto(t, 'Prior dives', '12'),
+    ),
+  };
+  for (final MapEntry(key: path, value: (page, change)) in pages.entries) {
+    testWidgets('$path closes on a switch and writes nothing', (tester) async {
+      await pumpProfilePage(tester, path: path, page: page, activeDiverId: 'a');
+      await change(tester);
+
+      await switchWithoutAsking(tester, 'b');
+
+      expect(find.text('Hub'), findsOneWidget);
+      expect(
+        await storedDiver('a'),
+        alice.copyWith(
+          createdAt: (await storedDiver('a'))!.createdAt,
+          updatedAt: (await storedDiver('a'))!.updatedAt,
+        ),
+      );
+      expect(await sittings(db), isEmpty);
     });
   }
 }
