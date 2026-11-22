@@ -130,6 +130,28 @@ Future<bool> hasHandSetMarks(AppDatabase db, String diveId) async {
   return HandSetMarks.decode(row?.read(db.dives.handSetFields)).isNotEmpty;
 }
 
+/// Clears the marks of [fields] on [diveId], after a write that replaced
+/// their values with ones the diver did not set (a download filling a
+/// planned dive). Other marks, a newer peer's included, stay. Call it
+/// inside that write's transaction.
+Future<void> clearHandSetMarks(
+  AppDatabase db,
+  String diveId,
+  Set<HandSetField> fields,
+) async {
+  final row =
+      await (db.selectOnly(db.dives)
+            ..addColumns([db.dives.handSetFields])
+            ..where(db.dives.id.equals(diveId)))
+          .getSingleOrNull();
+  final keys = HandSetMarks.decode(row?.read(db.dives.handSetFields));
+  final remaining = keys.difference({for (final field in fields) field.name});
+  if (remaining.length == keys.length) return;
+  await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
+    DivesCompanion(handSetFields: Value(HandSetMarks.encode(remaining))),
+  );
+}
+
 /// The fields whose columns differ between [before] and [after].
 Set<HandSetField> changedHandSetFields(Dive before, Dive after) => {
   for (final field in HandSetField.values)
@@ -178,33 +200,33 @@ class HandSetChange {
       if (change.field.valueIn(stored) == change.storedValue) change.field,
   };
 
+  // In HandSetField order, the marked fields this write leaves as stored.
+  final keeping = [
+    for (final field in HandSetField.values)
+      if (marked.contains(field) && !replacing.contains(field)) field,
+  ];
   final written = stored.copyWithCompanion(parse);
-  var companion = parse;
-  final kept = <HandSetChange>[];
-  final cleared = <String>{};
-  for (final field in HandSetField.values) {
-    if (!marked.contains(field)) continue;
-    if (replacing.contains(field)) {
-      cleared.add(field.name);
-      continue;
-    }
-    final storedValue = field.valueIn(stored);
-    final parsedValue = field.valueIn(written);
-    if (storedValue != parsedValue) {
-      kept.add(
+  final kept = [
+    for (final field in keeping)
+      if (field.valueIn(stored) != field.valueIn(written))
         HandSetChange(
           field: field,
-          storedValue: storedValue,
-          parsedValue: parsedValue,
+          storedValue: field.valueIn(stored),
+          parsedValue: field.valueIn(written),
         ),
-      );
-    }
-    companion = field.leaveOut(companion);
-  }
-  companion = _exitFollowsKeptTimes(companion, stored, marked, replacing);
-  if (cleared.isNotEmpty) {
-    companion = companion.copyWith(
-      handSetFields: Value(HandSetMarks.encode(keys.difference(cleared))),
+  ];
+  final left = keeping.fold(parse, (c, field) => field.leaveOut(c));
+  final companion = _exitFollowsKeptTimes(left, stored, marked, replacing);
+  final remaining = keys.difference({
+    for (final field in replacing)
+      if (marked.contains(field)) field.name,
+  });
+  if (remaining.length != keys.length) {
+    return (
+      companion: companion.copyWith(
+        handSetFields: Value(HandSetMarks.encode(remaining)),
+      ),
+      kept: List.unmodifiable(kept),
     );
   }
   return (companion: companion, kept: List.unmodifiable(kept));

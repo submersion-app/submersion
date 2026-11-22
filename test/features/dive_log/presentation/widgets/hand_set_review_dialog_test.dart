@@ -44,6 +44,32 @@ void main() {
     expect(pair.stored, isNot(pair.parsed));
   });
 
+  test('times that read alike show their seconds', () {
+    final stored = DateTime.utc(2026, 3, 1, 9, 30, 0);
+    final parsed = DateTime.utc(2026, 3, 1, 9, 30, 20);
+    final start = handSetValueTexts(
+      HandSetChange(
+        field: HandSetField.entryTime,
+        storedValue: (stored.millisecondsSinceEpoch, 0),
+        parsedValue: (parsed.millisecondsSinceEpoch, 0),
+      ),
+      metric,
+      l10n,
+    );
+    expect(start.stored, isNot(start.parsed));
+    expect(start.parsed, contains(metric.formatTimeWithSeconds(parsed)));
+    final exit = handSetValueTexts(
+      HandSetChange(
+        field: HandSetField.exitTime,
+        storedValue: stored.millisecondsSinceEpoch,
+        parsedValue: parsed.millisecondsSinceEpoch,
+      ),
+      metric,
+      l10n,
+    );
+    expect(exit.parsed, metric.formatTimeWithSeconds(parsed));
+  });
+
   test('values that read apart keep the usual decimals', () {
     final pair = handSetValueTexts(
       const HandSetChange(

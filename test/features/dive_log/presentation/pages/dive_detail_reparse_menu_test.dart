@@ -35,9 +35,13 @@ class _FakeReparseService extends ReparseService {
     this.gate,
     this.failure,
     this.handSetChanges = const [],
+    this.previewGate,
   });
 
   final ({List<String> errors, int profilesPreserved}) result;
+
+  /// Holds the preview open until completed.
+  final Completer<void>? previewGate;
 
   /// What the preview reports the re-parse would replace (issue #4909).
   final List<HandSetChange> handSetChanges;
@@ -56,7 +60,10 @@ class _FakeReparseService extends ReparseService {
   Future<List<HandSetChange>> previewReparse(
     String diveId, {
     required RawDiveParseFn parseFn,
-  }) async => handSetChanges;
+  }) async {
+    await previewGate?.future;
+    return handSetChanges;
+  }
 
   @override
   Future<({List<String> errors, int profilesPreserved})> reparseDive(
@@ -92,6 +99,7 @@ void main() {
     Completer<void>? gate,
     Object? failure,
     List<HandSetChange> handSetChanges = const [],
+    Completer<void>? previewGate,
   }) async {
     final dive = createTestDiveWithBottomTime();
     final overrides = await getBaseOverrides();
@@ -101,6 +109,7 @@ void main() {
       gate: gate,
       failure: failure,
       handSetChanges: handSetChanges,
+      previewGate: previewGate,
     );
     diveReads = 0;
 
@@ -218,6 +227,28 @@ void main() {
       expect(find.textContaining('Yours: 26'), findsOneWidget);
       expect(find.textContaining('Computer: 22'), findsOneWidget);
       expect(service.reparsedDiveIds, isEmpty);
+    });
+
+    testWidgets('leaving during the preview re-parses, keeping them', (
+      tester,
+    ) async {
+      final previewGate = Completer<void>();
+      final service = await pumpDetail(
+        tester,
+        result: (errors: <String>[], profilesPreserved: 0),
+        handSetChanges: [waterTemp],
+        previewGate: previewGate,
+      );
+
+      await tapReparse(tester);
+      router.go('/elsewhere');
+      await tester.pumpAndSettle();
+      previewGate.complete();
+      await tester.pump();
+      await tester.pump();
+
+      expect(service.replacedFields, [<HandSetField>{}]);
+      expect(find.text('Re-parse this dive?'), findsNothing);
     });
 
     testWidgets('cancelling re-parses nothing', (tester) async {

@@ -174,7 +174,8 @@ String handSetFieldLabel(
 }
 
 /// [value], in [HandSetField.valueIn]'s shape, as the diver reads it, in
-/// their units; [precise] gives a depth or temperature two decimals.
+/// their units; [precise] gives a depth or temperature two decimals and a
+/// time its seconds.
 String handSetValueText(
   HandSetField field,
   Object? value,
@@ -196,8 +197,15 @@ String handSetValueText(
       _minutesSeconds(seconds),
     // The start: the entry time, or the dive's date when it has none.
     (HandSetField.entryTime, (final int? entry, final int date)) =>
-      units.formatDateTime(instant(entry ?? date), l10n: l10n),
-    (HandSetField.exitTime, final int ms) => units.formatTime(instant(ms)),
+      precise
+          ? '${units.formatDate(instant(entry ?? date))} '
+                '${l10n.formatter_connector_at} '
+                '${units.formatTimeWithSeconds(instant(entry ?? date))}'
+          : units.formatDateTime(instant(entry ?? date), l10n: l10n),
+    (HandSetField.exitTime, final int ms) =>
+      precise
+          ? units.formatTimeWithSeconds(instant(ms))
+          : units.formatTime(instant(ms)),
     (HandSetField.diveMode, final String code) => switch (DiveMode.fromCode(
       code,
     )) {
