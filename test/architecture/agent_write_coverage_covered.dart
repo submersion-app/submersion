@@ -6,8 +6,8 @@ part of 'agent_write_coverage_test.dart';
 /// checks each call is still made, so a writer that stops calling it, or
 /// calls another, fails here.
 final reachedThrough = <String, String>{
-  'lib/features/safety/data/repositories/incident_repository.dart:applyIncidentChanges':
-      'updateIncident',
+  'lib/features/safety/data/repositories/incident_repository.dart:updateIncident':
+      'applyIncidentChanges',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateFields':
       'BulkDiveEditService',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkSetSite':
@@ -644,8 +644,9 @@ final covered = <String, String>{
     'deleteIncident',
   ])
     '$safety/incident_repository.dart:$method': 'incidents',
-  // The near-miss editor's Save (issue #4527, phase 4): the same edit the
-  // writer makes through updateIncident, written column by column.
+  // The near-miss editor's Save (issue #4527, phase 4) and the writer's
+  // update (#4924): only the columns a change names, so a check-in link a
+  // read gives as none is never written back.
   '$safety/incident_repository.dart:applyIncidentChanges': 'incidents',
   // An item's delete takes it off its incidents.
   '$safety/incident_repository.dart:unlinkFromDeletedEquipment': 'equipment',

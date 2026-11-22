@@ -90,6 +90,87 @@ void main() {
     }
   });
 
+  // Issue #4924: a read gives a check-in link that does not stand just now
+  // as none, and an update that wrote that read back erased the stored link.
+  group('a check-in link that does not stand', () {
+    late String checkIn;
+    late String report;
+
+    Future<Incident> stored() => (db.select(
+      db.incidents,
+    )..where((t) => t.id.equals(report))).getSingle();
+
+    setUp(() async {
+      checkIn = await make('equipment_observations', {
+        'equipment_id': 'reg',
+        'status': 'issue',
+      });
+      report = await make('incidents', {
+        'narrative': 'Free flow',
+        'occurred_time': '2024-03-14T09:40:00Z',
+        'equipment_id': 'reg',
+        'observation_id': checkIn,
+      });
+      // The check-in goes OK as a peer below v338 saves it: the link stops
+      // standing, and stays stored so it can stand again.
+      await (db.update(db.equipmentObservations)
+            ..where((t) => t.id.equals(checkIn)))
+          .write(const EquipmentObservationsCompanion(status: Value('ok')));
+    });
+
+    test('stays stored through an update that leaves it out', () async {
+      await h.run([
+        updateOp('incidents', report, {'severity': 'moderate'}),
+      ]);
+
+      final row = await stored();
+      expect([row.severity, row.observationId], ['moderate', checkIn]);
+    });
+
+    test(
+      'stands again with its check-in, then clears when named as none',
+      () async {
+        await h.run([
+          updateOp('incidents', report, {'severity': 'moderate'}),
+        ]);
+        await (db.update(
+          db.equipmentObservations,
+        )..where((t) => t.id.equals(checkIn))).write(
+          const EquipmentObservationsCompanion(status: Value('issue')),
+        );
+        expect((await h.one('incidents', report))!['observation_id'], checkIn);
+
+        await h.run([
+          updateOp('incidents', report, {'observation_id': null}),
+        ]);
+
+        expect((await stored()).observationId, isNull);
+      },
+    );
+
+    test('goes with a move to another item, as in the editor', () async {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'bcd',
+              name: 'BCD',
+              type: 'bcd',
+              createdAt: kSeedTime,
+              updatedAt: kSeedTime,
+              diverId: const Value(kDiverA),
+            ),
+          );
+
+      await h.run([
+        updateOp('incidents', report, {'equipment_id': 'bcd'}),
+      ]);
+
+      final row = await stored();
+      expect([row.equipmentId, row.observationId], ['bcd', null]);
+    });
+  });
+
   test('a chamber is added and deleted; a built-in is refused', () async {
     final id = await make('emergency_chambers', {
       'name': ' Hyperbaric Centre ',
