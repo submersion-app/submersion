@@ -19153,6 +19153,7 @@
   "dashboard_key_hoursUnit": "ש'",
   "dashboard_key_daysUnit": "{count, plural, =1{יום} other{ימים}}",
   "dashboard_key_vsPrevious": "{change} לעומת 10 הקודמות",
+  "dashboard_key_now": "עכשיו",
   "dashboard_key_lastYear": "שנה שעברה {value}",
   "dashboard_key_tripChecklist": "רשימה {done}/{total} · {name}",
   "dashboard_panel_activity": "פעילות, {months} חודשים",

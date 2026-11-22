@@ -65425,6 +65425,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'jetzt';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Letztes Jahr $value';
   }

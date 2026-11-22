@@ -64231,6 +64231,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'עכשיו';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'שנה שעברה $value';
   }

@@ -19153,6 +19153,7 @@
   "dashboard_key_hoursUnit": "س",
   "dashboard_key_daysUnit": "{count, plural, =0{يوم} =1{يوم} two{يومان} few{أيام} many{يومًا} other{يوم}}",
   "dashboard_key_vsPrevious": "{change} مقارنة بالعشر السابقة",
+  "dashboard_key_now": "الآن",
   "dashboard_key_lastYear": "العام الماضي {value}",
   "dashboard_key_tripChecklist": "القائمة {done}/{total} · {name}",
   "dashboard_panel_activity": "النشاط، {months} أشهر",

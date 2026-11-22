@@ -65563,6 +65563,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'ora';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'L\'anno scorso $value';
   }

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -48,6 +49,12 @@ class KeyNumbersPanel extends ConsumerWidget {
     return enabled.where(numbers.has).length;
   }
 
+  /// Whether the first tile takes a row of its own as a headline: on a
+  /// phone, where tiles pair up, an odd count would otherwise leave the last
+  /// tile alone on a half-empty row.
+  static bool headlineFirst(HomeWidthTier tier, int tileCount) =>
+      tier == HomeWidthTier.phone && tileCount.isOdd;
+
   /// The panel's height for [tileCount] tiles at [tier]: a short row per
   /// line of tiles.
   static double heightFor(
@@ -57,7 +64,9 @@ class KeyNumbersPanel extends ConsumerWidget {
   ) {
     final count = tileCount < 1 ? 1 : tileCount;
     final perRow = tilesPerRow(tier, count);
-    final rows = (count + perRow - 1) ~/ perRow;
+    final rows = headlineFirst(tier, count)
+        ? 1 + (count - 1) ~/ perRow
+        : (count + perRow - 1) ~/ perRow;
     return rows * homeRowHeight(HomePanelHeight.short, context) +
         (rows - 1) * _gap;
   }
@@ -71,7 +80,7 @@ class KeyNumbersPanel extends ConsumerWidget {
     final enabled = enabledTiles(hidden);
     final tier = homeWidthTierOf(context);
 
-    final List<Widget> tiles;
+    final List<_Tile> tiles;
     final n = numbers.value;
     if (n == null) {
       tiles = [
@@ -87,27 +96,52 @@ class KeyNumbersPanel extends ConsumerWidget {
           ),
       ];
     } else {
-      tiles = [
+      final shown = [
         for (final t in HomeKeyNumber.values)
-          if (enabled.contains(t) && n.has(t)) _tileFor(context, ref, t, n),
+          if (enabled.contains(t) && n.has(t)) t,
+      ];
+      final headline = headlineFirst(tier, shown.length);
+      tiles = [
+        for (var i = 0; i < shown.length; i++)
+          headline && i == 0
+              ? _tileFor(context, ref, shown[i], n).headlined(
+                  // The dives line is the last twelve months; say where it
+                  // starts. Other series carry no dates.
+                  lineStart: shown[i] == HomeKeyNumber.dives
+                      ? ref
+                            .watch(unitFormatterProvider)
+                            .formatMonthYear(
+                              DateTime(
+                                clock.now().year,
+                                clock.now().month - 11,
+                              ),
+                            )
+                      : null,
+                )
+              : _tileFor(context, ref, shown[i], n),
       ];
     }
     if (tiles.isEmpty) return const SizedBox.shrink();
 
     final perRow = tilesPerRow(tier, tiles.length);
     final rowHeight = homeRowHeight(HomePanelHeight.short, context);
+    final rows = <List<Widget>>[
+      if (tiles.first.headline) [tiles.first],
+      for (var i = tiles.first.headline ? 1 : 0; i < tiles.length; i += perRow)
+        tiles.sublist(i, math.min(i + perRow, tiles.length)),
+    ];
     return Column(
       children: [
-        for (var i = 0; i < tiles.length; i += perRow) ...[
-          if (i > 0) const SizedBox(height: _gap),
+        for (var r = 0; r < rows.length; r++) ...[
+          if (r > 0) const SizedBox(height: _gap),
           SizedBox(
             height: rowHeight,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (var j = i; j < i + perRow && j < tiles.length; j++) ...[
-                  if (j > i) const SizedBox(width: _gap),
-                  Expanded(child: tiles[j]),
+                for (var j = 0; j < rows[r].length; j++) ...[
+                  if (j > 0) const SizedBox(width: _gap),
+                  Expanded(child: rows[r][j]),
                 ],
               ],
             ),
@@ -117,7 +151,7 @@ class KeyNumbersPanel extends ConsumerWidget {
     );
   }
 
-  Widget _tileFor(
+  _Tile _tileFor(
     BuildContext context,
     WidgetRef ref,
     HomeKeyNumber tile,
@@ -313,6 +347,12 @@ class _Tile extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget? child;
 
+  /// A full-row tile: a larger value, with the trend line beside it.
+  final bool headline;
+
+  /// Where a headline's trend line starts, shown under it with "now".
+  final String? lineStart;
+
   const _Tile({
     required this.title,
     required this.value,
@@ -323,7 +363,22 @@ class _Tile extends StatelessWidget {
     this.onTap,
     this.child,
     this.highlight = false,
+    this.headline = false,
+    this.lineStart,
   });
+
+  _Tile headlined({String? lineStart}) => _Tile(
+    title: title,
+    value: value,
+    unit: unit,
+    semantics: semantics,
+    comparison: comparison,
+    series: series,
+    onTap: onTap,
+    highlight: highlight,
+    headline: true,
+    lineStart: lineStart,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -347,11 +402,15 @@ class _Tile extends StatelessWidget {
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            height: 1.1,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
+          style:
+              (headline
+                      ? theme.textTheme.headlineSmall
+                      : theme.textTheme.titleLarge)
+                  ?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    height: 1.1,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
         ),
         if (comparison != null)
           Text(
@@ -375,7 +434,49 @@ class _Tile extends StatelessWidget {
       fit: hasLine ? HomePanelFit.fill : HomePanelFit.clip,
       child:
           child ??
-          (hasLine
+          (hasLine && headline
+              ? CustomMultiChildLayout(
+                  delegate: _TextBesideLine(),
+                  children: [
+                    LayoutId(id: _TextBesideLine.text, child: text),
+                    LayoutId(
+                      id: _TextBesideLine.line,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: HomeSparkline(series!)),
+                          if (lineStart != null)
+                            DefaultTextStyle.merge(
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: muted,
+                              ),
+                              maxLines: 1,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      lineStart!,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      context.l10n.dashboard_key_now,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : hasLine
               ? CustomMultiChildLayout(
                   delegate: _TextThenLine(),
                   children: [
@@ -389,6 +490,37 @@ class _Tile extends StatelessWidget {
               : text),
     );
   }
+}
+
+/// Lays a headline's text out at its own size on the left, at most half the
+/// width, and gives its trend line the rest of the row beside it. The line is
+/// not shown when less than [minWidth] is left.
+class _TextBesideLine extends MultiChildLayoutDelegate {
+  static const text = 'text';
+  static const line = 'line';
+  static const double gap = 14;
+  static const double minWidth = 40;
+
+  @override
+  void performLayout(Size size) {
+    final textSize = layoutChild(
+      text,
+      BoxConstraints(maxWidth: size.width / 2),
+    );
+    positionChild(text, Offset(0, math.max(0, size.height - textSize.height)));
+    final left = textSize.width + gap;
+    final width = size.width - left;
+    layoutChild(
+      line,
+      BoxConstraints.tight(
+        width >= minWidth ? Size(width, size.height) : Size.zero,
+      ),
+    );
+    positionChild(line, Offset(left, 0));
+  }
+
+  @override
+  bool shouldRelayout(_TextBesideLine oldDelegate) => false;
 }
 
 /// Lays a tile's text out at its own height, then gives the trend line the

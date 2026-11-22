@@ -19153,6 +19153,7 @@
   "dashboard_key_hoursUnit": "u",
   "dashboard_key_daysUnit": "{count, plural, =1{dag} other{dagen}}",
   "dashboard_key_vsPrevious": "{change} t.o.v. vorige 10",
+  "dashboard_key_now": "nu",
   "dashboard_key_lastYear": "Vorig jaar {value}",
   "dashboard_key_tripChecklist": "checklist {done}/{total} · {name}",
   "dashboard_panel_activity": "Activiteit, {months} maanden",

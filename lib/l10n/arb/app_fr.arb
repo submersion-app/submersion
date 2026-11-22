@@ -19153,6 +19153,7 @@
   "dashboard_key_hoursUnit": "h",
   "dashboard_key_daysUnit": "{count, plural, =1{jour} other{jours}}",
   "dashboard_key_vsPrevious": "{change} vs les 10 précédentes",
+  "dashboard_key_now": "maintenant",
   "dashboard_key_lastYear": "L'an dernier {value}",
   "dashboard_key_tripChecklist": "liste {done}/{total} · {name}",
   "dashboard_panel_activity": "Activité, {months} mois",

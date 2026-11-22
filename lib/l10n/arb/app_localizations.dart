@@ -102666,6 +102666,12 @@ abstract class AppLocalizations {
   /// **'{change} vs previous 10'**
   String dashboard_key_vsPrevious(String change);
 
+  /// No description provided for @dashboard_key_now.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get dashboard_key_now;
+
   /// No description provided for @dashboard_key_lastYear.
   ///
   /// In en, this message translates to:

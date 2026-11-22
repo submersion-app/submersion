@@ -65195,6 +65195,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'most';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Tavaly $value';
   }

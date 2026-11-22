@@ -19153,6 +19153,7 @@
   "dashboard_key_hoursUnit": "ó",
   "dashboard_key_daysUnit": "{count, plural, other{nap}}",
   "dashboard_key_vsPrevious": "{change} az előző 10-hez képest",
+  "dashboard_key_now": "most",
   "dashboard_key_lastYear": "Tavaly {value}",
   "dashboard_key_tripChecklist": "lista {done}/{total} · {name}",
   "dashboard_panel_activity": "Aktivitás, {months} hónap",

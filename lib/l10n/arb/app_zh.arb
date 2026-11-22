@@ -19153,6 +19153,7 @@
   "dashboard_key_hoursUnit": "小时",
   "dashboard_key_daysUnit": "{count, plural, other{天}}",
   "dashboard_key_vsPrevious": "较前 10 次 {change}",
+  "dashboard_key_now": "现在",
   "dashboard_key_lastYear": "去年 {value}",
   "dashboard_key_tripChecklist": "清单 {done}/{total} · {name}",
   "dashboard_panel_activity": "活动，{months} 个月",

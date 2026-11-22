@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dashboard/presentation/home_layout.dart';
+import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/panels/key_numbers_panel.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
@@ -473,5 +475,104 @@ void main() {
         });
       }
     }
+  });
+
+  test('the headline is phone-only and odd-only', () {
+    expect(KeyNumbersPanel.headlineFirst(HomeWidthTier.phone, 5), isTrue);
+    expect(KeyNumbersPanel.headlineFirst(HomeWidthTier.phone, 3), isTrue);
+    expect(KeyNumbersPanel.headlineFirst(HomeWidthTier.phone, 1), isTrue);
+    expect(KeyNumbersPanel.headlineFirst(HomeWidthTier.phone, 4), isFalse);
+    expect(KeyNumbersPanel.headlineFirst(HomeWidthTier.tablet, 5), isFalse);
+    expect(KeyNumbersPanel.headlineFirst(HomeWidthTier.desktop, 5), isFalse);
+  });
+
+  group('five tiles on a phone', () {
+    const five = AppSettings(
+      hiddenHomeKeyNumbers: {'deepestThisYear', 'avgDepth', 'nextTrip'},
+    );
+
+    testWidgets('a headline row, then two pairs', (tester) async {
+      await _pump(tester, width: 390, settings: five);
+      final panel = tester.getRect(find.byType(KeyNumbersPanel));
+      final dives = tester.getRect(
+        find.ancestor(of: find.text('DIVES'), matching: find.byType(HomePanel)),
+      );
+      expect(dives.width, closeTo(panel.width, 1));
+      for (final pair in [
+        ['TIME UNDER', 'LAST DIVE'],
+        ['AVG RMV', 'SPECIES'],
+      ]) {
+        final a = tester.getRect(
+          find.ancestor(
+            of: find.text(pair[0]),
+            matching: find.byType(HomePanel),
+          ),
+        );
+        final b = tester.getRect(
+          find.ancestor(
+            of: find.text(pair[1]),
+            matching: find.byType(HomePanel),
+          ),
+        );
+        expect(a.top, b.top);
+        expect(a.width, lessThan(panel.width / 2));
+      }
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the panel is three short rows tall', (tester) async {
+      await _pump(tester, width: 390, settings: five);
+      final context = tester.element(find.byType(KeyNumbersPanel));
+      final short = homeRowHeight(HomePanelHeight.short, context);
+      expect(
+        KeyNumbersPanel.heightFor(context, HomeWidthTier.phone, 5),
+        3 * short + 2 * 8,
+      );
+      expect(
+        KeyNumbersPanel.heightFor(context, HomeWidthTier.phone, 4),
+        2 * short + 8,
+      );
+    });
+
+    testWidgets('the headline marks the series start and now', (tester) async {
+      await _pump(tester, width: 390, settings: five);
+      final now = DateTime.now();
+      final start = const UnitFormatter(
+        AppSettings(),
+      ).formatMonthYear(DateTime(now.year, now.month - 11));
+      expect(find.text(start), findsOneWidget);
+      expect(find.text('now'), findsOneWidget);
+    });
+
+    testWidgets('no overflow at text scale 1.6', (tester) async {
+      await _pump(tester, width: 390, settings: five, textScale: 1.6);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('four tiles on a phone keep two pairs', (tester) async {
+    await _pump(
+      tester,
+      width: 390,
+      settings: const AppSettings(
+        hiddenHomeKeyNumbers: {
+          'deepestThisYear',
+          'avgDepth',
+          'nextTrip',
+          'species',
+        },
+      ),
+    );
+    final dives = tester.getRect(
+      find.ancestor(of: find.text('DIVES'), matching: find.byType(HomePanel)),
+    );
+    final time = tester.getRect(
+      find.ancestor(
+        of: find.text('TIME UNDER'),
+        matching: find.byType(HomePanel),
+      ),
+    );
+    expect(dives.top, time.top);
+    expect(find.text('now'), findsNothing);
   });
 }
