@@ -670,6 +670,23 @@ void main() {
       expect(find.text("You're all set"), findsOneWidget);
     });
 
+    testWidgets('an offer that fails leaves the step out', (tester) async {
+      await pumpStubbed(
+        tester,
+        SetupWizardMode.firstRun,
+        extra: [
+          speciesModelOfferProvider.overrideWith(
+            (ref) async => throw StateError('engine gone'),
+          ),
+          speciesPackControllerProvider.overrideWith(_StepPackController.new),
+        ],
+      );
+      await toPhotos(tester);
+      await tapStub(tester, 'stub next');
+      expect(find.byType(SpeciesModelStep), findsNothing);
+      expect(find.text("You're all set"), findsOneWidget);
+    });
+
     testWidgets('Back on the species step returns to Photos', (tester) async {
       await pumpStubbed(
         tester,

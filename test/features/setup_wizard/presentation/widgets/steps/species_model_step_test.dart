@@ -21,6 +21,7 @@ class _RecordingPackController extends SpeciesPackController {
     this.fetchesEngine = false,
     this.refreshDone,
     this.engineAnswer,
+    this.engineThrows = false,
   });
   final SpeciesPackState _fixed;
   final bool fetchesEngine;
@@ -31,6 +32,9 @@ class _RecordingPackController extends SpeciesPackController {
   /// When given, the hardware engine question waits on it, as the Windows
   /// ML catalogue would.
   final Future<bool>? engineAnswer;
+
+  /// The engine question fails, as an unreachable catalogue would.
+  final bool engineThrows;
   var refreshes = 0;
   var downloads = 0;
 
@@ -50,8 +54,10 @@ class _RecordingPackController extends SpeciesPackController {
   }
 
   @override
-  Future<bool> downloadFetchesHardwareEngine() async =>
-      await engineAnswer ?? fetchesEngine;
+  Future<bool> downloadFetchesHardwareEngine() async {
+    if (engineThrows) throw StateError('catalogue unreachable');
+    return await engineAnswer ?? fetchesEngine;
+  }
 }
 
 /// The species model step of the setup wizard (issue #4881).
@@ -74,12 +80,14 @@ void main() {
     bool fetchesEngine = false,
     Future<void>? refreshDone,
     Future<bool>? engineAnswer,
+    bool engineThrows = false,
   }) async {
     controller = _RecordingPackController(
       state,
       fetchesEngine: fetchesEngine,
       refreshDone: refreshDone,
       engineAnswer: engineAnswer,
+      engineThrows: engineThrows,
     );
     nexts = 0;
     final overrides = <Override>[
@@ -303,6 +311,16 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.text(l10n.setup_speciesModel_hardware), findsOneWidget);
+    expect(tester.widget<FilledButton>(download).onPressed, isNotNull);
+  });
+
+  testWidgets('a failed engine question counts as no engine', (tester) async {
+    await pumpStep(
+      tester,
+      const PackNotInstalled(bytes: bytes, resumable: false),
+      engineThrows: true,
+    );
+    expect(find.text(l10n.setup_speciesModel_hardware), findsNothing);
     expect(tester.widget<FilledButton>(download).onPressed, isNotNull);
   });
 
