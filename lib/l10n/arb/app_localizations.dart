@@ -26076,6 +26076,12 @@ abstract class AppLocalizations {
   /// **'Cylinder configurations'**
   String get cylinderConfigs_title;
 
+  /// No description provided for @cylinderConfigs_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This configuration no longer exists.'**
+  String get cylinderConfigs_edit_notFound;
+
   /// No description provided for @cylinderConfigs_empty.
   ///
   /// In en, this message translates to:
@@ -91717,6 +91723,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit transmitter'**
   String get transmitters_edit_title;
+
+  /// No description provided for @transmitters_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This transmitter key no longer exists.'**
+  String get transmitters_edit_notFound;
 
   /// No description provided for @transmitters_new_title.
   ///

@@ -16063,6 +16063,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cylinderConfigs_title => 'Cylinder configurations';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'This configuration no longer exists.';
+
+  @override
   String get cylinderConfigs_empty => 'No configurations yet';
 
   @override
@@ -57614,6 +57618,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transmitters_edit_title => 'Edit transmitter';
+
+  @override
+  String get transmitters_edit_notFound =>
+      'This transmitter key no longer exists.';
 
   @override
   String get transmitters_new_title => 'New transmitter';

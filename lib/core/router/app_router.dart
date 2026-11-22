@@ -191,7 +191,7 @@ import 'package:submersion/features/tank_presets/presentation/pages/tank_presets
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
-import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_routes.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_item_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
@@ -846,6 +846,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newCylinderConfig',
+                    // An editor with no read page (issue #4527, phase 4).
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => CylinderConfigEditPage(
                       equipmentId: state.uri.queryParameters['equipmentId'],
                     ),
@@ -853,6 +855,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':configId',
                     name: 'cylinderConfigEdit',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => CylinderConfigEditPage(
                       configId: state.pathParameters['configId'],
                     ),
@@ -901,25 +904,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       scannedTag: scannedTagFrom(state.extra),
                     ),
                   ),
-                  // A Transmitter item's setup (issue #3676): add a key, or
-                  // edit one; role and cylinder go onto every key.
-                  GoRoute(
-                    path: 'transmitter',
-                    name: 'transmitterSetup',
-                    builder: (context, state) => TransmitterEditPage(
-                      equipmentId: state.pathParameters['equipmentId']!,
-                    ),
-                    routes: [
-                      GoRoute(
-                        path: ':transmitterId',
-                        name: 'transmitterKeyEdit',
-                        builder: (context, state) => TransmitterEditPage(
-                          equipmentId: state.pathParameters['equipmentId']!,
-                          transmitterId: state.pathParameters['transmitterId'],
-                        ),
-                      ),
-                    ],
-                  ),
+                  ...transmitterEditRoutes(),
                   // Any other gear's tag page (issue #2652).
                   GoRoute(
                     path: 'gear-passport',

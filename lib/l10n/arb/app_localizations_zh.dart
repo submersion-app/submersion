@@ -15539,6 +15539,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_title => '气瓶配置';
 
   @override
+  String get cylinderConfigs_edit_notFound => '此配置已不存在。';
+
+  @override
   String get cylinderConfigs_empty => '尚无配置';
 
   @override
@@ -54880,6 +54883,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transmitters_edit_title => '编辑发射器';
+
+  @override
+  String get transmitters_edit_notFound => '此发射器标识已不存在。';
 
   @override
   String get transmitters_new_title => '新发射器';

@@ -16197,6 +16197,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get cylinderConfigs_title => 'Flesconfiguraties';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Deze configuratie bestaat niet meer.';
+
+  @override
   String get cylinderConfigs_empty => 'Nog geen configuraties';
 
   @override
@@ -58160,6 +58164,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transmitters_edit_title => 'Zender bewerken';
+
+  @override
+  String get transmitters_edit_notFound =>
+      'Deze zendersleutel bestaat niet meer.';
 
   @override
   String get transmitters_new_title => 'Nieuwe zender';

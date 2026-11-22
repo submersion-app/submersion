@@ -16250,6 +16250,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get cylinderConfigs_title => 'Palackkonfigurációk';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Ez a konfiguráció már nem létezik.';
+
+  @override
   String get cylinderConfigs_empty => 'Még nincs konfiguráció';
 
   @override
@@ -58211,6 +58215,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transmitters_edit_title => 'Jeladó szerkesztése';
+
+  @override
+  String get transmitters_edit_notFound => 'Ez a jeladókulcs már nem létezik.';
 
   @override
   String get transmitters_new_title => 'Új jeladó';

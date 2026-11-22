@@ -16517,6 +16517,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_title => 'إعدادات الأسطوانات';
 
   @override
+  String get cylinderConfigs_edit_notFound => 'لم يعد هذا الإعداد موجودًا.';
+
+  @override
   String get cylinderConfigs_empty => 'لا توجد إعدادات بعد';
 
   @override
@@ -59345,6 +59348,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transmitters_edit_title => 'تعديل جهاز الإرسال';
+
+  @override
+  String get transmitters_edit_notFound =>
+      'لم يعد مفتاح جهاز الإرسال هذا موجودًا.';
 
   @override
   String get transmitters_new_title => 'جهاز إرسال جديد';

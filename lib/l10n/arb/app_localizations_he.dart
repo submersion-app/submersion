@@ -15966,6 +15966,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_title => 'תצורות בלונים';
 
   @override
+  String get cylinderConfigs_edit_notFound => 'התצורה הזו כבר לא קיימת.';
+
+  @override
   String get cylinderConfigs_empty => 'אין עדיין תצורות';
 
   @override
@@ -57294,6 +57297,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transmitters_edit_title => 'עריכת משדר';
+
+  @override
+  String get transmitters_edit_notFound => 'מפתח המשדר הזה כבר לא קיים.';
 
   @override
   String get transmitters_new_title => 'משדר חדש';

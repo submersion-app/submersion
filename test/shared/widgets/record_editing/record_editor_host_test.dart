@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:drift/drift.dart' show Variable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,151 +9,25 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
-import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 
 import '../../../helpers/mock_providers.dart';
+import 'record_editor_host_harness.dart';
 import '../../../helpers/test_database.dart';
 
-/// What the fake editor was asked to do, and how it should answer.
-class _Probe {
-  final writes = <String>[];
-  final operationLabels = <String?>[];
-  int afterSaved = 0;
-  bool valid = true;
-  bool failWrite = false;
-  bool failAfterSaved = false;
-
-  /// The diver the write was handed ([RecordEditorHost.editorDiverId]).
-  final diversSeen = <String?>[];
-
-  /// The change log operation in force each time the validated diver was
-  /// read: null outside any sitting's transaction.
-  final diverReadInScope = <String?>[];
-
-  /// Runs inside the write, before it answers.
-  Future<void> Function()? duringWrite;
-
-  /// While set, the validated diver waits for it: a Save resolving the
-  /// diver is held there.
-  Completer<String?>? diverGate;
-
-  /// While set, the fake record "loads" until it completes, then opens.
-  Completer<void>? loadGate;
-
-  /// How the validated diver resolves the active diver's id: the app maps
-  /// an id whose diver is gone to the default diver.
-  String? Function(String? id)? resolveDiver;
-
-  /// While set, working out the diver fails (the database read throws).
-  bool diverFails = false;
-}
-
-/// An editor with no read page, as small as one can be: one text field
-/// whose text is the draft.
-class _FakeEditorPage extends ConsumerStatefulWidget {
-  const _FakeEditorPage({
-    required this.probe,
-    this.storedId = 'rec-1',
-    this.leaveLocation,
-  });
-
-  final _Probe probe;
-  final String? storedId;
-  final String? leaveLocation;
-
-  @override
-  ConsumerState<_FakeEditorPage> createState() => _FakeEditorState();
-}
-
-class _FakeEditorState extends ConsumerState<_FakeEditorPage>
-    with RecordEditorHost<_FakeEditorPage, String> {
-  late final TextEditingController text;
-
-  @override
-  void initState() {
-    super.initState();
-    text = TextEditingController(text: widget.storedId == null ? '' : 'stored')
-      ..addListener(editorChanged);
-    final loading = widget.probe.loadGate;
-    if (loading != null) {
-      loading.future.then((_) => openEditor());
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) => openEditor());
-    }
-  }
-
-  @override
-  void dispose() {
-    disposeEditor();
-    text.dispose();
-    super.dispose();
-  }
-
-  @override
-  String get editorTable => 'fake';
-
-  @override
-  String? get editorLeaveLocation => widget.leaveLocation;
-
-  @override
-  String? get editorStoredId => widget.storedId;
-
-  @override
-  String editorTitle(BuildContext context) => 'Fake editor';
-
-  @override
-  String readEditorDraft() => text.text;
-
-  @override
-  bool validateEditor() => widget.probe.valid;
-
-  @override
-  Future<void> writeEditor(String recordId) async {
-    final probe = widget.probe;
-    probe.diversSeen.add(editorDiverId);
-    await probe.duringWrite?.call();
-    if (probe.failWrite) throw StateError('write refused');
-    probe.writes.add(recordId);
-    final operationId = ChangeLogScope.currentOperationId;
-    final row = operationId == null
-        ? null
-        : await DatabaseService.instance.database
-              .customSelect(
-                'SELECT label FROM change_log_operations WHERE id = ?',
-                variables: [Variable(operationId)],
-              )
-              .getSingleOrNull();
-    probe.operationLabels.add(row?.read<String?>('label'));
-  }
-
-  @override
-  void afterEditorSaved(ScaffoldMessengerState messenger) {
-    widget.probe.afterSaved++;
-    if (widget.probe.failAfterSaved) throw StateError('refresh failed');
-  }
-
-  @override
-  Widget build(BuildContext context) => editorScaffold(
-    context,
-    body: TextField(key: const ValueKey('field'), controller: text),
-  );
-}
-
 void main() {
-  late _Probe probe;
+  late EditorProbe probe;
   late GoRouter router;
   late ProviderContainer container;
 
   setUp(() async {
     await setUpTestDatabase();
-    probe = _Probe();
+    probe = EditorProbe();
   });
   tearDown(() async => tearDownTestDatabase());
 
@@ -162,7 +35,7 @@ void main() {
   /// navigator, as the app's preset routes are, so a dialog opens above
   /// it in the root one; [onExit] gives the editor's route the app's leave
   /// check, as the app's routes have.
-  Future<_FakeEditorState> pump(
+  Future<FakeEditorState> pump(
     WidgetTester tester, {
     String? storedId = 'rec-1',
     bool shell = false,
@@ -177,7 +50,7 @@ void main() {
         GoRoute(
           path: 'edit',
           onExit: onExit ? confirmLeaveRecordSitting : null,
-          builder: (_, _) => _FakeEditorPage(probe: probe, storedId: storedId),
+          builder: (_, _) => FakeEditorPage(probe: probe, storedId: storedId),
         ),
       ],
     );
@@ -240,7 +113,7 @@ void main() {
     await beforeEdit?.call();
     router.push(shell ? '/list/edit' : '/edit');
     await tester.pumpAndSettle();
-    return tester.state<_FakeEditorState>(find.byType(_FakeEditorPage));
+    return tester.state<FakeEditorState>(find.byType(FakeEditorPage));
   }
 
   AppBarTextAction saveButton(WidgetTester tester) => tester
@@ -284,7 +157,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('list'), findsOneWidget);
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
   });
 
   testWidgets('Cancel with a change asks; Keep editing keeps the text', (
@@ -297,7 +170,7 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
     await tester.tap(find.text('Keep editing'));
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.byType(FakeEditorPage), findsOneWidget);
     expect(find.text('changed'), findsOneWidget);
   });
 
@@ -312,7 +185,7 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
     await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
     expect(probe.writes, isEmpty);
   });
@@ -329,7 +202,7 @@ void main() {
     expect(label?.table, 'fake');
     expect(label?.id, 'rec-1');
     expect(label?.cardIds, isEmpty);
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
   });
 
@@ -348,7 +221,7 @@ void main() {
     probe.valid = false;
     await tapSave(tester);
     expect(probe.writes, isEmpty);
-    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.byType(FakeEditorPage), findsOneWidget);
   });
 
   testWidgets('a write that throws stays with the text and says it failed', (
@@ -358,11 +231,11 @@ void main() {
     await type(tester, 'changed');
     probe.failWrite = true;
     await tapSave(tester);
-    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.byType(FakeEditorPage), findsOneWidget);
     expect(find.text('changed'), findsOneWidget);
     expect(saveButton(tester).onPressed, isNotNull);
     final l10n = AppLocalizations.of(
-      tester.element(find.byType(_FakeEditorPage)),
+      tester.element(find.byType(FakeEditorPage)),
     );
     expect(find.text(l10n.recordEdit_saveFailed), findsOneWidget);
   });
@@ -396,7 +269,7 @@ void main() {
     await pump(tester);
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
   });
 
@@ -407,7 +280,7 @@ void main() {
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
     expect(probe.writes, isEmpty);
   });
@@ -417,7 +290,7 @@ void main() {
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, _) => _FakeEditorPage(probe: probe),
+          builder: (_, _) => FakeEditorPage(probe: probe),
         ),
       ],
     );
@@ -441,7 +314,7 @@ void main() {
     await tapSave(tester);
     expect(tester.takeException(), isNull);
     expect(probe.writes, ['rec-1']);
-    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.byType(FakeEditorPage), findsOneWidget);
   });
 
   testWidgets('the diver is read before the write, outside its transaction', (
@@ -465,7 +338,7 @@ void main() {
       ..duringWrite = () =>
           container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
     await tapSave(tester);
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
   });
 
@@ -475,7 +348,7 @@ void main() {
     probe.failAfterSaved = true;
     await tapSave(tester);
     expect(probe.writes, ['rec-1']);
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
   });
 
@@ -487,7 +360,7 @@ void main() {
         GoRoute(
           path: '/',
           builder: (_, _) =>
-              _FakeEditorPage(probe: probe, leaveLocation: '/list'),
+              FakeEditorPage(probe: probe, leaveLocation: '/list'),
         ),
         GoRoute(
           path: '/list',
@@ -532,7 +405,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
   });
 
@@ -581,7 +454,7 @@ void main() {
     await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
     expect(await leaving, isTrue);
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
     expect(probe.writes, isEmpty);
   });
@@ -608,7 +481,7 @@ void main() {
     gate.complete('a');
     await tester.pumpAndSettle();
     expect(probe.writes, isEmpty);
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
   });
 
@@ -626,7 +499,7 @@ void main() {
     gate.complete('a');
     await tester.pumpAndSettle();
     expect(probe.writes, isEmpty);
-    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.byType(FakeEditorPage), findsOneWidget);
   });
 
   testWidgets('a diver id repaired from none to a diver keeps the editor '
@@ -635,12 +508,12 @@ void main() {
     await type(tester, 'changed');
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('a');
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.byType(FakeEditorPage), findsOneWidget);
     expect(find.text('changed'), findsOneWidget);
     // That diver is now the editor's: switching away from it closes it.
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
   });
 
   testWidgets('a stale diver id repaired to the default diver keeps the '
@@ -653,7 +526,7 @@ void main() {
     await type(tester, 'changed');
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('x');
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.byType(FakeEditorPage), findsOneWidget);
     await tapSave(tester);
     expect(probe.writes, ['rec-1']);
   });
@@ -691,10 +564,10 @@ void main() {
     await tapSave(tester);
     expect(tester.takeException(), isNull);
     expect(probe.writes, isEmpty);
-    expect(find.byType(_FakeEditorPage), findsOneWidget);
+    expect(find.byType(FakeEditorPage), findsOneWidget);
     expect(find.text('changed'), findsOneWidget);
     final l10n = AppLocalizations.of(
-      tester.element(find.byType(_FakeEditorPage)),
+      tester.element(find.byType(FakeEditorPage)),
     );
     expect(find.text(l10n.recordEdit_saveFailed), findsOneWidget);
   });
@@ -748,7 +621,7 @@ void main() {
     await container.read(currentDiverIdProvider.notifier).setCurrentDiver('b');
     gate.complete('b');
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(probe.writes, isEmpty);
   });
 
@@ -760,7 +633,7 @@ void main() {
     await tester.pumpAndSettle();
     loading.complete();
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
   });
 
@@ -777,7 +650,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
-    expect(find.byType(_FakeEditorPage), findsNothing);
+    expect(find.byType(FakeEditorPage), findsNothing);
     expect(find.text('list'), findsOneWidget);
   });
 }

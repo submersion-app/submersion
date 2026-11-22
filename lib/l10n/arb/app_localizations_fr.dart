@@ -16335,6 +16335,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cylinderConfigs_title => 'Configurations de bouteilles';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Cette configuration n\'existe plus.';
+
+  @override
   String get cylinderConfigs_empty => 'Aucune configuration';
 
   @override
@@ -58648,6 +58652,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transmitters_edit_title => 'Modifier l\'émetteur';
+
+  @override
+  String get transmitters_edit_notFound =>
+      'Cette clé d\'émetteur n\'existe plus.';
 
   @override
   String get transmitters_new_title => 'Nouvel émetteur';

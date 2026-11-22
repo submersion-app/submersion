@@ -103,6 +103,9 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
+    // Save is enabled by a change: a cylinder, with no name yet.
+    await tester.tap(find.text('Add cylinder'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -209,6 +212,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).first, 'JJ air dil');
+    // Save enables on the next frame.
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -318,6 +323,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).first, 'First ever');
+    // Save enables on the next frame.
+    await tester.pump();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -344,6 +351,8 @@ void main() {
       expect(find.text('Generic gas plan'), findsNothing);
 
       await tester.enterText(find.byType(TextFormField).first, 'OC deco');
+      // Save enables on the next frame.
+      await tester.pump();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 

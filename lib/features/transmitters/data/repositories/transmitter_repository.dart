@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
@@ -355,13 +356,20 @@ class TransmitterRepository {
     return saved;
   }
 
-  Future<void> delete(String id) async {
-    // Read before the row goes: its dives are rescanned by its key.
-    final previous = await getById(id);
-    await _deleteRow(id);
-    SyncEventBus.notifyLocalChange();
-    if (previous != null) await _rescanAffectedDives([previous]);
-  }
+  /// Removes the key [id], as a deletion of its own in History, as a record
+  /// page's Delete is (issue #4527, phase 4); inside an operation already
+  /// running (the item's own delete), part of that one.
+  Future<void> delete(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () async {
+      // Read before the row goes: its dives are rescanned by its key.
+      final previous = await getById(id);
+      await _deleteRow(id);
+      SyncEventBus.notifyLocalChange();
+      if (previous != null) await _rescanAffectedDives([previous]);
+    },
+  );
 
   /// Queues a rescan of the dives matched by every entry that names
   /// [equipmentId] as its transmitter gear item, after that item's own
