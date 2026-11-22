@@ -219,23 +219,31 @@ A diver's decision must never be reverted by a machine write that raced it
 (the laptop renaming or rescanning while the phone accepts). Whole-row
 newest-wins would let the laptop's later copy, carrying the old decision,
 overwrite the accept. So `mediaIdentifications` gets a **decision-aware
-merge** in its upsert arms:
+merge**, built on the sync layer's existing **fact groups**
+(`lib/core/services/sync/sync_fact_groups.dart`, which media already uses
+for its upload and verification facts): a set of columns that merges
+last-writer-wins under its own clock, independent of the row clock.
 
-- The decision fields are `decision`, `decidedSpeciesId`, `decidedAt` and
-  `claimedSpeciesId`, plus a new nullable `claimed_at` (epoch ms) so a claim
-  has a time to compare.
-- When an incoming row wins on `hlc`, its machine fields apply as today, but
-  the decision fields come from whichever side has the later decision time
-  (`decidedAt`, or `claimed_at` for a claim). A tie or two nulls takes the
-  incoming side.
-- When the local decision fields win against a newer incoming row, the
-  merged row is marked pending with a fresh `hlc`, so the combined row
-  reaches every device and they converge.
-- An undo of a decision is itself a decision with a later time (today's
-  undo already stamps `decidedAt`; the builder confirms and stamps where it
-  does not), so it wins as a newer decision should.
+- A new fact group `identificationDecision` on `mediaIdentifications`, with
+  its own clock column `decision_hlc`, holds `decision`,
+  `decidedSpeciesId`, `decidedAt` and `claimedSpeciesId`.
+- Every decision or claim write (accept, dismiss, undo, reopen, a name from
+  the frame, its withdrawal) stamps that group clock. Machine writes
+  (analysis, rename, a video chunk) stamp only the row clock.
+- The merge already resolves each group by its own clock and writes it with
+  explicit values (`writeFactGroup`), so a cleared decision or claim lands
+  on the peer too, and a stale machine row that loses on the row clock can
+  still carry a newer decision. The newer decision wins whichever device
+  wrote the row last.
+- A row from before this change has no group clock; it falls back to the
+  row clock, as media's facts do (`nullClockIsUnset: false`).
 - `carryDecisions` moving a decision onto a fresh row (new id) during a
-  re-analysis keeps the decision times it carries.
+  re-analysis stamps the group clock on the fresh row, so the carried
+  decision syncs with it.
+
+This replaces comparing decision times by wall clock, and with it the need
+for a `claimed_at` column **(proposed: the builder found the fact group fits
+exactly)**.
 
 ### 3b. The pack's naming bars travel with the run (decided)
 
@@ -339,10 +347,10 @@ partial scans as today, and each chunk's rows sync as they are written.
 
 ### 8. Schema and older devices
 
-One rung **(proposed: v381)**: `hlc` on both existing tables; `analysed_by`,
-`run_id` and `naming_bars` on runs; `run_id` and `claimed_at` on
-identifications (with `run_id` filled for existing rows, section 2); and the
-new crops table. Each gets a backstop in `before_open_table_backstops.dart`.
+One rung **(proposed: v381)**: `hlc`, `analysed_by`, `run_id` and
+`naming_bars` on runs; `hlc`, `run_id` and `decision_hlc` on identifications
+(with `run_id` filled for existing rows, section 2); and the new crops
+table. Each gets a backstop in `before_open_table_backstops.dart`.
 
 **The compatibility floor rises to 381 (decided).** Without it, a device on
 an older version reads past the changesets that carry the existing results
@@ -375,7 +383,7 @@ TDD throughout. At least:
   several chunks shows every track (one `run_id` across chunks).
 - Decision merge: an accept on one side and a later machine rewrite on the
   other converge to the accept on both; a later undo beats an earlier
-  accept; a claim races the same way.
+  accept; a claim races the same way; a cleared claim reaches the peer.
 - Naming bars: a device with no pack shows the Eager pills from the run's
   stored bars, matching the analysing device; a run without bars falls back
   to the stored flags.
