@@ -792,13 +792,28 @@ Figures are in MiB (1,048,576 bytes), as in the findings.
   (`os_proc_available_memory()`). On a phone, 0 means none is left or the
   app is over its limit. macOS, the iOS Simulator and an iPhone build
   running on a Mac have no such limit, so their lines leave it out.
+- **Available on the device:** Android, Windows and Linux have no per-app
+  limit either, but report how much memory the whole device has available,
+  so their lines say "available on the device" where an iPhone says "left".
+  On Android this is the system's available memory
+  (`ActivityManager.MemoryInfo.availMem`, which counts caches it can still
+  free); on Linux `MemAvailable` of `/proc/meminfo`; on Windows
+  `ullAvailPhys`. It is not how much more the app may use: Android's low
+  memory killer can stop the app well before it reaches 0. A line from a
+  Pixel 6a:
+
+  ```text
+  Memory after pass 1 (0:00 to 0:02): 467 MiB available on the device, footprint 1851 MiB (peak 2595 MiB)
+  ```
 - **Footprint:** the memory iOS compares with that limit, and its highest
   point since the app started. A peak set while the app started up hides a
   smaller one during a scan; the footprint on each line still shows the
   trend.
 - **Left at the peak:** how close the app came to the limit at that peak,
   worked out against the limit as it is now (iOS can change it). With
-  nothing left the limit is unknown, so the line leaves this out.
+  nothing left the limit is unknown, so the line leaves this out. Android,
+  Windows and Linux have no per-app limit to measure it against, so their
+  lines leave it out too.
 - **Neural Engine:** the models' memory on the Neural Engine, split into
   what counts toward the footprint and what the system keeps out of it.
   An iPhone counts it; a Mac keeps it out. The not-counted peak needs iOS
