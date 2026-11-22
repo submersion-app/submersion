@@ -284,4 +284,26 @@ void main() {
     expect(row.updatedAt, 1);
     expect(row.allergies, 'Latex');
   });
+
+  testWidgets('a diver that fails to load shows why and opens no sitting', (
+    tester,
+  ) async {
+    await seedDiver(profileDiver());
+    await pumpProfilePage(
+      tester,
+      path: 'medical',
+      page: const MedicalInfoEditPage(),
+      overrides: [
+        currentDiverProvider.overrideWith(
+          (ref) async => throw StateError('divers unreadable'),
+        ),
+      ],
+    );
+
+    expect(find.textContaining('divers unreadable'), findsOneWidget);
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.byType(BackButton), findsOneWidget);
+    await back(tester);
+    expect(find.text('Hub'), findsOneWidget);
+  });
 }
