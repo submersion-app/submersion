@@ -538,6 +538,29 @@ void main() {
       expect(find.text('preset list'), findsOneWidget);
     });
 
+    testWidgets('a rename keeps what a sync changed meanwhile in fields the '
+        'diver left alone', (tester) async {
+      await pumpEditor(tester, presetId: 'p1');
+      repo.latest = stored.copyWith(
+        description: 'Synced from the boat',
+        material: TankMaterial.steel,
+        sortOrder: 7,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'AL80'),
+        'AL80 bailout',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(saveAction());
+      await tester.pumpAndSettle();
+      final saved = repo.updated.single;
+      expect(saved.displayName, 'AL80 bailout');
+      expect(saved.description, 'Synced from the boat');
+      expect(saved.material, TankMaterial.steel);
+      expect(saved.sortOrder, 7);
+      expect(saved.volumeLiters, 11.1);
+    });
+
     testWidgets('a preset that no longer exists says so and leaves', (
       tester,
     ) async {
@@ -602,6 +625,10 @@ class _MockTankPresetRepository extends TankPresetRepository {
   /// Set once the preset has been deleted elsewhere: it reads as gone.
   bool deleted = false;
 
+  /// The preset as stored now, once something else changed it after the
+  /// page loaded (a sync from another device).
+  TankPresetEntity? latest;
+
   final created = <TankPresetEntity>[];
   final updated = <TankPresetEntity>[];
 
@@ -620,6 +647,8 @@ class _MockTankPresetRepository extends TankPresetRepository {
   Future<TankPresetEntity?> getPresetById(String id) async {
     if (failLoad) throw StateError('database closed');
     if (deleted) return null;
+    final now = latest;
+    if (now != null && now.id == id) return now;
     if (preset != null && preset!.id == id) {
       return preset;
     }

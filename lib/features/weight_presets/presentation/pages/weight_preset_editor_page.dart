@@ -62,7 +62,18 @@ class _Row {
 
   /// The entry's optional name (issue #956).
   final TextEditingController label;
-  _Row(this.type, this.amount, this.label);
+
+  /// The stored amount the row was loaded with, and the text it was shown
+  /// as: while the text is unchanged the stored amount is kept, since the
+  /// text is rounded for display (three decimals of a pound).
+  final double? loadedKg;
+  final String? loadedText;
+
+  _Row(this.type, this.amount, this.label, {this.loadedKg, this.loadedText});
+
+  /// The stored amount while the diver has not changed the row's amount.
+  double? get untouchedKg =>
+      loadedKg != null && amount.text == loadedText ? loadedKg : null;
 
   void dispose() {
     amount.dispose();
@@ -79,12 +90,18 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
   bool _loading = false;
 
   /// A row whose fields tell the sitting of each change.
-  _Row _newRow(WeightType type, {String amount = '', String label = ''}) =>
-      _Row(
-        type,
-        TextEditingController(text: amount)..addListener(editorChanged),
-        TextEditingController(text: label)..addListener(editorChanged),
-      );
+  _Row _newRow(
+    WeightType type, {
+    String amount = '',
+    String label = '',
+    double? loadedKg,
+  }) => _Row(
+    type,
+    TextEditingController(text: amount)..addListener(editorChanged),
+    TextEditingController(text: label)..addListener(editorChanged),
+    loadedKg: loadedKg,
+    loadedText: loadedKg == null ? null : amount,
+  );
 
   @override
   void initState() {
@@ -148,6 +165,7 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
               e.weightType,
               amount: formatRoundedForInput(units.convertWeight(e.amountKg), 3),
               label: e.label,
+              loadedKg: e.amountKg,
             ),
           ),
         );
@@ -182,7 +200,9 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
         if (_amount(r) case final amount when amount > 0)
           (
             weightType: r.type,
-            amountKg: units.weightToKg(amount),
+            // A row whose amount the diver left alone keeps its stored
+            // kilograms: converting the rounded text back would change it.
+            amountKg: r.untouchedKg ?? units.weightToKg(amount),
             notes: '',
             label: r.label.text,
           ),

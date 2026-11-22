@@ -403,8 +403,15 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
     // A stored preset keeps the values whose text the diver left alone: the
     // text is rounded for display (whole psi, cuft from a rated capacity),
     // and converting it back would change a preset that was only renamed.
+    // What it keeps is the preset as stored now, not as it was when the
+    // page opened: a value changed meanwhile (a sync from another device)
+    // in a field the diver did not touch is not written back over.
     final existing = _existingPreset;
-    final start = existing == null ? null : editorStartDraft;
+    final editing = widget.isEditing && existing != null;
+    final start = editing ? editorStartDraft : null;
+    final material = _material;
+    final nameText = _displayNameController.text;
+    final descriptionText = _descriptionController.text;
     final inCuft = settings.volumeUnit == VolumeUnit.cubicFeet;
     final pressureChanged =
         start == null || _workingPressureController.text != start.pressure;
@@ -415,31 +422,41 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         _volumeController.text != start.volume ||
         (inCuft && pressureChanged);
 
+    TankPresetEntity? stored;
+    if (editing) {
+      stored = await repository.getPresetById(recordId);
+      // Deleted elsewhere while it was edited (a sync from another device):
+      // an update would write nothing and still read as saved.
+      if (stored == null) {
+        throw RecordSittingRefusal((l10n) => l10n.tankPresets_edit_notFound);
+      }
+    }
+
     // Convert to storage units (metric)
-    final workingPressureBar = pressureChanged || existing == null
+    final workingPressureBar = pressureChanged || stored == null
         ? units.pressureToBar(pressureDisplay)
-        : existing.workingPressureBar;
-    final volumeLiters = !volumeChanged && existing != null
-        ? existing.volumeLiters
+        : stored.workingPressureBar;
+    final volumeLiters = !volumeChanged && stored != null
+        ? stored.volumeLiters
         : inCuft
         // liters = (cuft * 28.3168) / pressure_bar
         ? (volumeDisplay * 28.3168) / workingPressureBar
         : volumeDisplay;
 
-    if (widget.isEditing && existing != null) {
-      // Deleted elsewhere while it was edited (a sync from another device):
-      // an update would write nothing and still read as saved.
-      if (await repository.getPresetById(recordId) == null) {
-        throw RecordSittingRefusal((l10n) => l10n.tankPresets_edit_notFound);
-      }
+    if (stored != null && start != null) {
+      final nameChanged = nameText != start.name;
       await repository.updatePreset(
-        existing.copyWith(
-          name: TankPresetEntity.generateSlug(displayName),
-          displayName: displayName,
+        stored.copyWith(
+          name: nameChanged
+              ? TankPresetEntity.generateSlug(displayName)
+              : stored.name,
+          displayName: nameChanged ? displayName : stored.displayName,
           volumeLiters: volumeLiters,
           workingPressureBar: workingPressureBar,
-          material: _material,
-          description: description,
+          material: material != start.material ? material : stored.material,
+          description: descriptionText != start.description
+              ? description
+              : stored.description,
           updatedAt: DateTime.now(),
         ),
       );

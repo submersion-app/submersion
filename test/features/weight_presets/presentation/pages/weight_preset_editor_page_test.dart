@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
@@ -145,8 +146,11 @@ void main() {
     String? presetId,
     WeightPresetRepository? repository,
     String diverId = 'diver-1',
+    bool pounds = false,
   }) async {
-    final base = await getBaseOverrides();
+    final settings = MockSettingsNotifier();
+    if (pounds) await settings.setWeightUnit(WeightUnit.pounds);
+    final base = await getBaseOverrides(settingsNotifier: settings);
     final router = GoRouter(
       initialLocation: '/',
       routes: [
@@ -300,6 +304,31 @@ void main() {
     expect(repo.updated, isEmpty);
     expect(find.text('This weighting rig no longer exists.'), findsOneWidget);
     expect(find.byType(WeightPresetEditorPage), findsOneWidget);
+  });
+
+  testWidgets('edit: renaming a preset in pounds keeps its stored weights', (
+    tester,
+  ) async {
+    repo.loadReturns = _preset(
+      'p1',
+      'Drysuit',
+      entries: const [
+        WeightPresetEntry(
+          id: 'p1-e0',
+          presetId: 'p1',
+          weightType: WeightType.belt,
+          amountKg: 1.0,
+        ),
+      ],
+    );
+    await pump(tester, presetId: 'p1', pounds: true);
+    expect(find.widgetWithText(TextFormField, '2.205'), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField).first, 'Drysuit 2');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(repo.updated.single.entries.single.amountKg, 1.0);
   });
 
   testWidgets('edit: a preset that fails to load says so and leaves', (
