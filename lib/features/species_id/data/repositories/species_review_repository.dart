@@ -98,15 +98,17 @@ class SpeciesReviewRepository {
         await _media.getMediaByIds(wanted.toList());
     final ids = [for (final m in items) m.id];
 
-    // At a looser level the rows are named again by their run's pack, so
-    // both are read in one snapshot (issue #4721). No track paths: the
-    // review reads names, scores and decisions only.
-    final (runs, found) = loose
-        ? await _identifications.forMediaIdsWithRuns(ids, withPaths: false)
-        : (
-            const <String, MediaIdentificationRun>{},
-            await _identifications.forMediaIds(ids, withPaths: false),
-          );
+    // The runs and rows are read in one snapshot: at a looser level the
+    // rows are named again by their run's pack (issue #4721), and the rows
+    // shown are the run's own (issue #4876). No track paths: the review
+    // reads names, scores and decisions only.
+    final (runs, stored) = await _identifications.forMediaIdsWithRuns(
+      ids,
+      withPaths: false,
+    );
+    final found = {
+      for (final e in stored.entries) e.key: visibleRows(runs[e.key], e.value),
+    };
     final tagged = open.isEmpty
         ? const <String, List<TaggedSpecies>>{}
         : await _identifications.taggedSpeciesFor([
@@ -130,7 +132,7 @@ class SpeciesReviewRepository {
         suggestionsByMedia[id] = groupSuggestions(
           applyNamingLevel(
             rows,
-            level: level,
+            level: loose ? level : null,
             namedWithPack: runs[id]?.packVersion,
           ),
           tagged[id] ?? const [],

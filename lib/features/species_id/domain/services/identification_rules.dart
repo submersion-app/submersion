@@ -396,3 +396,20 @@ MediaIdentification? _matchFor(
   }
   return null;
 }
+
+/// [rows] as shown (issue #4876): a run's own rows, and every row the diver
+/// said something on. An undecided, unclaimed row from another run is a
+/// leftover of a run that lost a sync race (two devices analysed the same
+/// media before syncing), and is hidden until the next analysis here
+/// deletes it. With no run, or a run from before run ids, every row shows.
+List<MediaIdentification> visibleRows(
+  MediaIdentificationRun? run,
+  List<MediaIdentification> rows,
+) {
+  final runId = run?.runId;
+  if (runId == null) return rows;
+  return [
+    for (final i in rows)
+      if (i.runId == null || i.runId == runId || i.saidByDiver) i,
+  ];
+}

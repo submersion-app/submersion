@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -71,6 +72,8 @@ class MediaIdentificationService {
     int firstVideoChunkMs = 2000,
     Future<void> Function(MediaItem item, int generation)? onItemSettled,
     Future<LevelInForce?> Function()? namingLevel,
+    Future<String?> Function()? deviceId,
+    String Function()? newRunId,
   }) : _engine = engine,
        _loadPack = loadPack,
        _identifications = identifications,
@@ -90,7 +93,9 @@ class MediaIdentificationService {
        _memoryReadout = memoryReadout,
        _firstVideoChunkMs = firstVideoChunkMs,
        _onItemSettled = onItemSettled ?? ((_, _) async {}),
-       _namingLevel = namingLevel ?? (() async => null);
+       _namingLevel = namingLevel ?? (() async => null),
+       _deviceId = deviceId ?? _syncDeviceId,
+       _newRunId = newRunId ?? const Uuid().v4;
 
   final VisionEngine _engine;
   final Future<LoadedPack?> Function() _loadPack;
@@ -133,6 +138,23 @@ class MediaIdentificationService {
   /// The naming level the diver chose, as the installed pack names at it,
   /// or null for the pack's own bars (issue #4721).
   final Future<LevelInForce?> Function() _namingLevel;
+
+  /// This device's sync id, which a run records as its maker (issue #4876),
+  /// or null when it cannot be read: the run then counts as this device's
+  /// and is stamped before it first publishes.
+  final Future<String?> Function() _deviceId;
+
+  /// A run id, minted when an analysis of a media starts (issue #4876).
+  final String Function() _newRunId;
+
+  static Future<String?> _syncDeviceId() async {
+    try {
+      return await SyncRepository().getDeviceId();
+    } on Object {
+      return null;
+    }
+  }
+
   final _log = LoggerService.forClass(MediaIdentificationService);
 
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
@@ -669,6 +691,8 @@ class MediaIdentificationService {
         imageWidth: analysis.imageWidth,
         imageHeight: analysis.imageHeight,
         detectionCount: carried.keep.length + carried.insert.length,
+        analysedBy: await _deviceId(),
+        runId: _newRunId(),
       ),
       insert: carried.insert,
       deleteIds: carried.deleteIds,
@@ -783,20 +807,19 @@ class MediaIdentificationService {
   }
 }
 
-/// [mediaId]'s identifications as [level] would suggest them, when the
-/// pack in force named them (issue #4721). The run and rows are read in
-/// one snapshot, so the pack the run names is the pack the rows were
-/// named with: a rename landing in between cannot pair them wrongly.
+/// [mediaId]'s identifications as shown ([visibleRows]) and as [level]
+/// would suggest them, when the pack in force named them (issue #4721).
+/// The run and rows are read in one snapshot, so the pack the run names is
+/// the pack the rows were named with: a rename landing in between cannot
+/// pair them wrongly.
 Future<List<MediaIdentification>> identificationsAtLevel(
   MediaIdentificationRepository repository,
   String mediaId,
   LevelInForce? level,
 ) async {
-  // Surer is the pack's own bars, so its rows read as stored: no run to
-  // read and nothing to work out again.
-  if (level == null || level.level == NamingLevel.surer) {
-    return repository.forMedia(mediaId);
-  }
-  final (run, rows) = await repository.forMediaWithRun(mediaId);
+  final (run, stored) = await repository.forMediaWithRun(mediaId);
+  final rows = visibleRows(run, stored);
+  // Surer is the pack's own bars, so its rows read as stored.
+  if (level == null || level.level == NamingLevel.surer) return rows;
   return applyNamingLevel(rows, level: level, namedWithPack: run?.packVersion);
 }

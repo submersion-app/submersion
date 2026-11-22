@@ -101,6 +101,10 @@ extension _VideoScanning on MediaIdentificationService {
           scannedMs: 0,
           // Known already: the analysed stretches show from the start.
           videoDurationMs: run?.videoDurationMs,
+          // A scan from the start is a new run here (issue #4876); its
+          // later chunks keep this id.
+          analysedBy: await _deviceId(),
+          runId: _newRunId(),
         );
         if (_databaseGeneration() != generation) return false;
         await _identifications.storeRun(

@@ -236,6 +236,14 @@ class MediaIdentificationRepository {
     required List<MediaIdentification> insert,
     required List<String> deleteIds,
   }) async {
+    // A write that does not name its run id (a later chunk of a video scan)
+    // continues the stored run's, and its rows join it (issue #4876).
+    final runId =
+        run.runId ??
+        (await (db.select(
+              db.mediaIdentificationRuns,
+            )..where((r) => r.mediaId.equals(run.mediaId))).getSingleOrNull())
+            ?.runId;
     await db
         .into(db.mediaIdentificationRuns)
         .insertOnConflictUpdate(_runToCompanion(run));
@@ -247,7 +255,13 @@ class MediaIdentificationRepository {
     for (final identification in insert) {
       await db
           .into(db.mediaIdentifications)
-          .insertOnConflictUpdate(_toCompanion(identification));
+          .insertOnConflictUpdate(
+            _toCompanion(
+              identification.runId != null || runId == null
+                  ? identification
+                  : identification.copyWith(runId: () => runId),
+            ),
+          );
     }
   }
 

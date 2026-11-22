@@ -291,8 +291,8 @@ void main() {
     expect(suggested(loose), suggested(stored) + 1);
   });
 
-  test('a looser level reads each media\'s run and rows in one snapshot '
-      '(issue #4721), and no track paths', () async {
+  test('each media\'s run and rows are read in one snapshot (issues #4721, '
+      '#4876), and no track paths', () async {
     final spy = _SpyIdentifications();
     final spied = SpeciesReviewRepository(
       tags: tags,
@@ -319,9 +319,11 @@ void main() {
     // none of them decodes track paths.
     expect(spy.reads, ['snapshot', 'runs', 'rows']);
 
+    // The pack's own level reads the snapshot too: the rows shown are
+    // each run's own (issue #4876).
     spy.reads.clear();
     await spied.load(const DiveReviewScope('d1'), withSuggestions: true);
-    expect(spy.reads, ['rows']);
+    expect(spy.reads, ['snapshot', 'runs', 'rows']);
   });
 
   test('a dive is headed by its own name before its site\'s', () async {

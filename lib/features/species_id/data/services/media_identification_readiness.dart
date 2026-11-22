@@ -31,7 +31,10 @@ extension Readiness on MediaIdentificationService {
       if (run == null) continue;
       final cell = _regionCell(manifest, locationOf(item));
       final crops = await _cropsPresent(_crops, item.id, [
-        for (final i in stored[item.id] ?? const <MediaIdentification>[])
+        for (final i in visibleRows(
+          run,
+          stored[item.id] ?? const <MediaIdentification>[],
+        ))
           if (!i.isPending) i,
       ]);
       // Embeddings only choose between naming again and looking again,
