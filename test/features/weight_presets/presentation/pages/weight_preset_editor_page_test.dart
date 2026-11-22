@@ -382,6 +382,45 @@ void main() {
     },
   );
 
+  testWidgets('edit: changing one weight keeps another synced meanwhile', (
+    tester,
+  ) async {
+    WeightPreset preset({required double trimKg, String trimLabel = ''}) =>
+        _preset(
+          'p1',
+          'Drysuit',
+          entries: [
+            const WeightPresetEntry(
+              id: 'e0',
+              presetId: 'p1',
+              weightType: WeightType.belt,
+              amountKg: 3.0,
+            ),
+            WeightPresetEntry(
+              id: 'e1',
+              presetId: 'p1',
+              weightType: WeightType.trimWeights,
+              amountKg: trimKg,
+              label: trimLabel,
+            ),
+          ],
+        );
+    repo.loadReturns = preset(trimKg: 1.0);
+    await pump(tester, presetId: 'p1');
+    // The phone syncs a heavier trim weight, with a name, while the page
+    // is open.
+    repo.loadReturns = preset(trimKg: 1.5, trimLabel: 'Pockets');
+    await tester.enterText(_amountField().first, '4');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = repo.updated.single.entries;
+    expect(saved.first.amountKg, closeTo(4.0, 1e-6));
+    expect(saved.last.amountKg, 1.5);
+    expect(saved.last.label, 'Pockets');
+  });
+
   testWidgets('edit: a preset that fails to load says so and leaves', (
     tester,
   ) async {

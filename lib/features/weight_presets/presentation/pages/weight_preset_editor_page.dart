@@ -63,17 +63,37 @@ class _Row {
   /// The entry's optional name (issue #956).
   final TextEditingController label;
 
-  /// The stored amount the row was loaded with, and the text it was shown
-  /// as: while the text is unchanged the stored amount is kept, since the
-  /// text is rounded for display (three decimals of a pound).
-  final double? loadedKg;
+  /// The stored entry the row was loaded from, and the amount text it was
+  /// shown as; null for a row the diver added. A field the diver left alone
+  /// is written as that entry is stored at Save, never as it was loaded
+  /// (a sync may have changed it since) and never from its display text
+  /// (rounded to three decimals of a pound).
+  final WeightPresetEntry? loaded;
   final String? loadedText;
 
-  _Row(this.type, this.amount, this.label, {this.loadedKg, this.loadedText});
+  _Row(this.type, this.amount, this.label, {this.loaded, this.loadedText});
 
-  /// The stored amount while the diver has not changed the row's amount.
-  double? get untouchedKg =>
-      loadedKg != null && amount.text == loadedText ? loadedKg : null;
+  /// The row as it would be stored, its untouched fields taken from
+  /// [stored], the entry as stored now (the loaded entry when it is gone).
+  /// [convertedKg] is the amount shown, in kilograms.
+  WeightEntryDraft draft({
+    required double convertedKg,
+    WeightPresetEntry? stored,
+  }) {
+    final origin = loaded;
+    final base = stored ?? origin;
+    final amountUntouched = origin != null && amount.text == loadedText;
+    return (
+      weightType: origin != null && type == origin.weightType && base != null
+          ? base.weightType
+          : type,
+      amountKg: amountUntouched && base != null ? base.amountKg : convertedKg,
+      notes: '',
+      label: origin != null && label.text == origin.label && base != null
+          ? base.label
+          : label.text,
+    );
+  }
 
   void dispose() {
     amount.dispose();
@@ -94,13 +114,13 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
     WeightType type, {
     String amount = '',
     String label = '',
-    double? loadedKg,
+    WeightPresetEntry? loaded,
   }) => _Row(
     type,
     TextEditingController(text: amount)..addListener(editorChanged),
     TextEditingController(text: label)..addListener(editorChanged),
-    loadedKg: loadedKg,
-    loadedText: loadedKg == null ? null : amount,
+    loaded: loaded,
+    loadedText: loaded == null ? null : amount,
   );
 
   @override
@@ -165,7 +185,7 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
               e.weightType,
               amount: formatRoundedForInput(units.convertWeight(e.amountKg), 3),
               label: e.label,
-              loadedKg: e.amountKg,
+              loaded: e,
             ),
           ),
         );
@@ -193,18 +213,19 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
   /// The rows as they would be stored: a blank or zero row is left out,
   /// as before. validateEditor() has already stopped unreadable text, which
   /// used to drop its row silently (#1900).
-  List<WeightEntryDraft> _entries() {
+  ///
+  /// [stored] is the preset's entries as stored now, by id: a field of a
+  /// loaded row the diver left alone is written as stored there.
+  List<WeightEntryDraft> _entries({
+    Map<String, WeightPresetEntry> stored = const {},
+  }) {
     final units = UnitFormatter(ref.read(settingsProvider));
     return [
       for (final r in _rows)
         if (_amount(r) case final amount when amount > 0)
-          (
-            weightType: r.type,
-            // A row whose amount the diver left alone keeps its stored
-            // kilograms: converting the rounded text back would change it.
-            amountKg: r.untouchedKg ?? units.weightToKg(amount),
-            notes: '',
-            label: r.label.text,
+          r.draft(
+            convertedKg: units.weightToKg(amount),
+            stored: stored[r.loaded?.id],
           ),
     ];
   }
@@ -250,7 +271,6 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
   Future<void> writeEditor(String recordId) async {
     final repo = ref.read(weightPresetRepositoryProvider);
     final name = _nameController.text.trim();
-    final entries = _entries();
     final start = editorStartDraft;
     final draft = readEditorDraft();
     if (widget.isEditing) {
@@ -274,7 +294,9 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
       await repo.updatePreset(
         id: recordId,
         displayName: nameChanged ? name : stored.displayName,
-        entries: entries,
+        // The page takes no input while Save writes, so the rows read now
+        // are the rows the diver saved.
+        entries: _entries(stored: {for (final e in stored.entries) e.id: e}),
       );
       return;
     }
@@ -286,7 +308,7 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
       id: recordId,
       diverId: diverId,
       displayName: name,
-      entries: entries,
+      entries: _entries(),
     );
   }
 
