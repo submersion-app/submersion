@@ -32,8 +32,10 @@ abstract final class SyncCoordinator {
   /// read once, so a merge in the meantime may have added rows it lacks.
   static bool Function() quietGuard() {
     final startedAt = _started;
+    final generation = _generation;
     final quietNow = !busy;
-    return () => quietNow && !busy && _started == startedAt;
+    return () =>
+        quietNow && !busy && _generation == generation && _started == startedAt;
   }
 
   /// Marks the zone of the turn running now, for [join].

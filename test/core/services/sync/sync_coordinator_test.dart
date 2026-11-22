@@ -169,6 +169,35 @@ void main() {
       await running;
       expect(SyncCoordinator.busy, isFalse);
     });
+
+    test(
+      'a turn queued behind it does not count against the next either',
+      () async {
+        final stale = Completer<void>();
+        final leftover = SyncCoordinator.run(() => stale.future);
+        final queued = SyncCoordinator.run(() async {});
+        SyncCoordinator.reset();
+
+        final hold = Completer<void>();
+        final running = SyncCoordinator.run(() => hold.future);
+        stale.complete();
+        await Future.wait([leftover, queued]);
+
+        expect(SyncCoordinator.busy, isTrue);
+        hold.complete();
+        await running;
+        expect(SyncCoordinator.busy, isFalse);
+      },
+    );
+
+    test('a quietGuard taken before it stays false after it', () async {
+      final guard = SyncCoordinator.quietGuard();
+      await SyncCoordinator.run(() async {});
+      SyncCoordinator.reset();
+      // The next test starts as many syncs as had started when the guard
+      // was taken, none of them still running.
+      expect(guard(), isFalse, reason: 'a reset is not a quiet period');
+    });
   });
 
   test('an idle queue does not wait on the zone of its last turn', () async {

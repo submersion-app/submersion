@@ -79,6 +79,19 @@ void main() {
     );
   }
 
+  /// Waits for every sync turn the test started to end, so none runs on into
+  /// the next test's database (issue #4900). A sync holds its turn through
+  /// the notifier's post-sync pauses, about four seconds for a sync and its
+  /// follow-up, so the bound leaves room for a loaded runner.
+  Future<void> waitForSyncToFinish() async {
+    final waited = Stopwatch()..start();
+    while (SyncCoordinator.busy &&
+        waited.elapsed < const Duration(seconds: 20)) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    expect(SyncCoordinator.busy, isFalse, reason: 'a sync turn never ended');
+  }
+
   Future<void> seedLocalDive(String id) async {
     await DiveRepository().createDive(createTestDiveWithBottomTime(id: id));
   }
@@ -390,13 +403,8 @@ void main() {
         reason: 'the replace wrote the marker',
       );
 
-      // The intent clears before the launch sync's turn ends. Let the turn
-      // finish here, so it does not run on into the next test's database
-      // (issue #4900).
-      for (var i = 0; i < 250 && SyncCoordinator.busy; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-      }
-      expect(SyncCoordinator.busy, isFalse);
+      // The intent clears before the launch sync's turn ends.
+      await waitForSyncToFinish();
     });
 
     test('stays dormant when no cloud provider is configured', () async {
@@ -456,6 +464,7 @@ void main() {
       expect(LibraryEpochStore(prefs).pendingReplace, isNull);
       final state = container.read(syncStateProvider);
       expect(state.replaceAwaitingAdoption, isFalse);
+      await waitForSyncToFinish();
     });
   });
 }
