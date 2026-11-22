@@ -217,7 +217,12 @@ class DiveComputerMergeRepository {
 
       await _db.transaction(() async {
         affectedDives = await _affectedDiveIds(duplicates);
-        final duplicateDives = affectedDives.toList(growable: false);
+        // Read before the gear links move: the move tombstones every link it
+        // re-keys, and those are not removals the diver made.
+        final duplicateDives = await _withoutRemovedTwins(
+          affectedDives,
+          duplicateTwinIds,
+        );
 
         await _repointDiveOwnedTables(duplicates, survivorId, now);
         await _repointQualityFindings(duplicates, survivorId, now);
@@ -289,6 +294,28 @@ class DiveComputerMergeRepository {
   // ---------------------------------------------------------------------------
   // Steps
   // ---------------------------------------------------------------------------
+
+  /// [diveIds] less those the diver took a duplicate's item off: the
+  /// survivor's item is the same physical computer, so it stays off them
+  /// too (issue #4846).
+  Future<List<String>> _withoutRemovedTwins(
+    Set<String> diveIds,
+    Set<String> twinIds,
+  ) async {
+    if (twinIds.isEmpty) return diveIds.toList(growable: false);
+    final keys = [
+      for (final diveId in diveIds)
+        for (final twinId in twinIds) '$diveId|$twinId',
+    ];
+    final removed = <String>{};
+    for (final chunk in seriesIdChunks(keys)) {
+      removed.addAll(await _syncRepository.deletedIds('diveEquipment', chunk));
+    }
+    return [
+      for (final diveId in diveIds)
+        if (!twinIds.any((t) => removed.contains('$diveId|$t'))) diveId,
+    ];
+  }
 
   /// Every dive that references one of [computerIds] through any table.
   Future<Set<String>> _affectedDiveIds(List<String> computerIds) async {

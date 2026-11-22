@@ -294,6 +294,36 @@ void main() {
       expect(await isPending('diveEquipment', '$diveId|gear-1'), isTrue);
     });
 
+    test('leaves the item off a dive the diver took the duplicate\'s item '
+        'off', () async {
+      await insertItem('gear-1');
+      await insertItem('gear-dup');
+      await insertComputer(id: 'survivor', equipmentId: 'gear-1');
+      await insertComputer(id: 'duplicate', equipmentId: 'gear-dup');
+      final removed = await insertDive(computerId: 'duplicate');
+      await insertSource(diveId: removed, computerId: 'duplicate');
+      await SyncRepository().logDeletion(
+        entityType: 'diveEquipment',
+        recordId: '$removed|gear-dup',
+      );
+      // Its link moves with the merge, which tombstones the old key; that
+      // is not a removal by the diver.
+      final moved = await insertDive(computerId: 'duplicate');
+      await insertSource(diveId: moved, computerId: 'duplicate');
+      await db.customStatement(
+        'INSERT INTO dive_equipment (dive_id, equipment_id) VALUES (?, ?)',
+        [moved, 'gear-dup'],
+      );
+
+      await DiveComputerMergeRepository().mergeComputers(
+        survivorId: 'survivor',
+        duplicateIds: ['duplicate'],
+      );
+
+      expect(await equipmentOn(removed), isEmpty);
+      expect(await equipmentOn(moved), {'gear-1'});
+    });
+
     test('leaves the survivor\'s own dives as they are', () async {
       await insertItem('gear-1');
       await insertComputer(id: 'survivor', equipmentId: 'gear-1');

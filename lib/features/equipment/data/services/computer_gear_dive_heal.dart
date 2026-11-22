@@ -43,15 +43,17 @@ class ComputerGearDiveHeal {
   /// Runs the pass unless this library has had it, and returns how many
   /// dive links it added. Never throws: a failure leaves the marker unset,
   /// so the next launch tries again.
+  ///
+  /// A library with no computer that has an item is left unmarked: a device
+  /// joining a synced library starts empty, and a marker written then would
+  /// reach every peer and stop their pass before any of them had run it.
   Future<int> run() async {
     if (DatabaseService.instance.databaseOrNull == null) return 0;
     try {
-      if (await _settings.getRawSetting(doneKey) == 'true') return 0;
-      final linked = await ChangeLogScope.automatic(
-        _db,
-        label: ChangeLogLabels.qualityRepair,
-        body: _linkAll,
-      );
+      if (await _isDone()) return 0;
+      final computers = await _computersWithItems();
+      if (computers.isEmpty) return 0;
+      final linked = await _linkAll(computers);
       await _settings.setRawSetting(doneKey, 'true');
       if (linked > 0) {
         _db.notifyUpdates({
@@ -71,21 +73,38 @@ class ComputerGearDiveHeal {
     }
   }
 
-  Future<int> _linkAll() async {
-    final computers =
-        await (_db.selectOnly(_db.diveComputers)
-              ..addColumns([_db.diveComputers.id])
-              ..where(_db.diveComputers.equipmentId.isNotNull()))
-            .map((r) => r.read(_db.diveComputers.id)!)
-            .get();
+  /// Whether the marker is set. Read directly rather than through
+  /// [AppSettingsRepository.getRawSetting], which turns a failed read into
+  /// "unset": here that would run the pass a second time and put back links
+  /// the diver removed. A failed read throws, and [run] skips this launch.
+  Future<bool> _isDone() async {
+    final row = await (_db.select(
+      _db.settings,
+    )..where((t) => t.key.equals(doneKey))).getSingleOrNull();
+    return row?.value == 'true';
+  }
+
+  Future<List<String>> _computersWithItems() =>
+      (_db.selectOnly(_db.diveComputers)
+            ..addColumns([_db.diveComputers.id])
+            ..where(_db.diveComputers.equipmentId.isNotNull()))
+          .map((r) => r.read(_db.diveComputers.id)!)
+          .get();
+
+  Future<int> _linkAll(List<String> computers) async {
     var linked = 0;
-    // One transaction per computer, not one for the library: a long write
-    // would hold the diver's own saves until it ended.
+    // One transaction and one change log scope per computer, not one for
+    // the library: a long write would hold the diver's own saves until it
+    // ended, and a long scope would file those saves under this repair.
     for (final computerId in computers) {
-      linked += await _db.transaction(
-        () async => _linker.linkComputerGearToDives(
-          computerId: computerId,
-          diveIds: await _recordedDives(computerId),
+      linked += await ChangeLogScope.automatic(
+        _db,
+        label: ChangeLogLabels.qualityRepair,
+        body: () => _db.transaction(
+          () async => _linker.linkComputerGearToDives(
+            computerId: computerId,
+            diveIds: await _recordedDives(computerId),
+          ),
         ),
       );
     }

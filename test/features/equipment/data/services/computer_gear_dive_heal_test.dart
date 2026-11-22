@@ -132,6 +132,35 @@ void main() {
     expect(await equipmentOn('bare-dive'), isEmpty);
   });
 
+  test('leaves a library with no computer unmarked, so a device joining '
+      'a synced library still runs the pass once its data arrives', () async {
+    expect(await ComputerGearDiveHeal().run(), 0);
+    expect(
+      await AppSettingsRepository().getRawSetting(ComputerGearDiveHeal.doneKey),
+      isNull,
+    );
+
+    await insertItem('gear-1');
+    await insertComputer('c1', equipmentId: 'gear-1');
+    await insertDive('d1', computerId: 'c1');
+
+    expect(await ComputerGearDiveHeal().run(), 1);
+    expect(await equipmentOn('d1'), {'gear-1'});
+  });
+
+  test('skips the pass when the marker cannot be read', () async {
+    await insertItem('gear-1');
+    await insertComputer('c1', equipmentId: 'gear-1');
+    await insertDive('d1', computerId: 'c1');
+    await db.customStatement('ALTER TABLE settings RENAME TO settings_gone');
+    addTearDown(
+      () => db.customStatement('ALTER TABLE settings_gone RENAME TO settings'),
+    );
+
+    expect(await ComputerGearDiveHeal().run(), 0);
+    expect(await equipmentOn('d1'), isEmpty);
+  });
+
   test('runs once per library: a link removed afterwards stays removed, '
       'whatever became of its tombstone', () async {
     await insertItem('gear-1');
