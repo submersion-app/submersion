@@ -286,6 +286,19 @@ void main() {
     handle.dispose();
   });
 
+  // With the action buttons in the + menu the bar has room to name the
+  // diver at any width above a phone's.
+  testWidgets('tablet: the switcher names the diver', (tester) async {
+    await _pump(tester, width: 850, divers: 2);
+    expect(
+      find.descendant(
+        of: find.byKey(HomeHeaderBar.switcherKey),
+        matching: find.text('Eric'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a long diver name does not overflow the bar at 800 wide', (
     tester,
   ) async {
@@ -323,6 +336,25 @@ void main() {
       expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
     }
   });
+
+  // Desktop platforms default to compact visual density, which shrinks a
+  // button's minimum size; the header's buttons keep 44 points there too.
+  testWidgets(
+    'desktop: + and the logo are at least 44 by 44',
+    (tester) async {
+      await _pump(tester, width: 1280);
+      for (final finder in [_plus, find.byTooltip('About Submersion')]) {
+        final size = tester.getSize(finder);
+        expect(size.width, greaterThanOrEqualTo(44), reason: '$finder');
+        expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
+      }
+    },
+    variant: const TargetPlatformVariant({
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+      TargetPlatform.linux,
+    }),
+  );
 
   testWidgets('a light can be tapped just above its pill', (tester) async {
     await _pump(

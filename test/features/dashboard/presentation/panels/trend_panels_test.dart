@@ -306,6 +306,28 @@ void main() {
       expect(find.text('61%'), findsOneWidget);
     });
 
+    // The gas names are the app's own strings, not the query's English
+    // keys: in German air is Luft, in Chinese 空气.
+    testWidgets('gas mix names each gas in the diver\'s language', (
+      tester,
+    ) async {
+      await pumpPanel(
+        tester,
+        const GasMixPanel(),
+        locale: const Locale('de'),
+        overrides: [
+          homeGasMixProvider.overrideWith(
+            (ref) async => [
+              DistributionSegment(label: 'Nitrox', count: 6, percentage: 61),
+              DistributionSegment(label: 'Air', count: 3, percentage: 33),
+            ],
+          ),
+        ],
+      );
+      expect(find.text('Luft'), findsOneWidget);
+      expect(find.text('Air'), findsNothing);
+    });
+
     // Each gas in its colour from the dive profile: air orange, nitrox
     // green, trimix purple.
     testWidgets('gas mix colours each gas as the profile does', (tester) async {

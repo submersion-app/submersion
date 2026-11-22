@@ -69,7 +69,14 @@ class GasMixPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => _SharesPanel(
     title: context.l10n.dashboard_panel_gasMix,
     value: ref.watch(homeGasMixProvider),
-    label: (s) => s.label,
+    // The query names each gas by an English key; the row and its colour
+    // both look it up.
+    label: (s) => switch (s.label) {
+      'Air' => context.l10n.insights_focus_gas_air,
+      'Nitrox' => context.l10n.insights_focus_gas_nitrox,
+      'Trimix' => context.l10n.insights_focus_gas_trimix,
+      final other => other,
+    },
     colorOf: (s) => gasMixColor(s.label),
   );
 }

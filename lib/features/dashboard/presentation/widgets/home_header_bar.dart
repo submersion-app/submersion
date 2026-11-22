@@ -120,39 +120,27 @@ class HomeHeaderBar extends ConsumerWidget {
             bottom: BorderSide(color: theme.colorScheme.outlineVariant),
           ),
         ),
-        // The switcher drops the diver's name on a phone, and wherever the
-        // bar's own width cannot fit it at the current text size.
-        child: LayoutBuilder(
-          builder: (context, box) {
-            final compact =
-                phone ||
-                box.maxWidth <
-                    _labelledWidth * MediaQuery.textScalerOf(context).scale(1);
-            return Row(
-              children: [
-                // The quick actions open from the bar's leading edge (the
-                // right in a right-to-left language).
-                const _QuickActionsMenu(),
-                const SizedBox(width: 4),
-                // The lights take the room up to the switcher. On a phone
-                // they sit in the strip below instead.
-                Expanded(child: phone ? const SizedBox() : lightsRow()),
-                _DiverSwitcher(showName: !compact),
-                // The logo closes the bar and opens About Submersion.
-                const SizedBox(width: 4),
-                const _AboutLogo(),
-              ],
-            );
-          },
+        child: Row(
+          children: [
+            // The quick actions open from the bar's leading edge (the right
+            // in a right-to-left language).
+            const _QuickActionsMenu(),
+            const SizedBox(width: 4),
+            // The lights take the room up to the switcher. On a phone they
+            // sit in the strip below instead.
+            Expanded(child: phone ? const SizedBox() : lightsRow()),
+            // The diver's name shows above phone width: with the actions in
+            // the + menu there is room for it, capped and ellipsized.
+            _DiverSwitcher(showName: !phone),
+            // The logo closes the bar and opens About Submersion.
+            const SizedBox(width: 4),
+            const _AboutLogo(),
+          ],
         ),
       ),
     );
   }
 }
-
-/// The bar width, at text scale 1, below which the switcher gives way to
-/// its compact form, the avatar alone.
-const double _labelledWidth = 900;
 
 enum _QuickAction { logDive, planDive, swap, emergency }
 
