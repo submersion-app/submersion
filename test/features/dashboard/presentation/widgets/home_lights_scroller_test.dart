@@ -55,6 +55,16 @@ void main() {
     expect(_mask, findsNothing);
   });
 
+  testWidgets('no fade when every light fits but a trailing gap would not', (
+    tester,
+  ) async {
+    // Three 100-wide lights and the two gaps between them take 312: the
+    // row is 3 short of a gap after the last light, which must not count.
+    await _pump(tester, width: 315, count: 3);
+    expect(_state(tester).fadesEnd, isFalse);
+    expect(_mask, findsNothing);
+  });
+
   for (final direction in TextDirection.values) {
     testWidgets('the edge with lights past it fades (${direction.name})', (
       tester,

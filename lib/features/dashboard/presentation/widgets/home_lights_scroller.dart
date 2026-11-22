@@ -17,7 +17,7 @@ class HomeLightsScroller extends StatefulWidget {
   /// How far in from an edge its fade runs.
   static const double fadeExtent = 24;
 
-  /// The space after each light.
+  /// The space between two lights.
   static const double gap = 6;
 
   @override
@@ -75,11 +75,14 @@ class HomeLightsScrollerState extends State<HomeLightsScroller> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
+          // The gap goes between lights only: one after the last would
+          // count as hidden content and fade an end with every light in
+          // view.
           children: [
-            for (final c in widget.children)
+            for (final (i, c) in widget.children.indexed)
               Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  end: HomeLightsScroller.gap,
+                padding: EdgeInsetsDirectional.only(
+                  start: i == 0 ? 0 : HomeLightsScroller.gap,
                 ),
                 child: c,
               ),
