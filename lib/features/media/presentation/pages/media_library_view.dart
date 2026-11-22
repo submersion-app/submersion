@@ -137,7 +137,9 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
                 child: MediaLibraryHeaderToolbar(selection: _selection),
               ),
             const MediaLibraryActiveFilterChips(),
-            if (widget.showToolbar) const MediaSubscriptionErrorBanner(),
+            // Shown at every width: on desktop the toolbar moves into the
+            // page header, the banner does not.
+            const MediaSubscriptionErrorBanner(),
             if (showingMissing)
               MediaMissingBanner(isEmpty: state.entries.isEmpty),
             Expanded(

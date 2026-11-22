@@ -7,6 +7,7 @@ import 'package:submersion/features/media/data/services/network_credentials_serv
 import 'package:submersion/features/media/data/synology/synology_album_source.dart';
 import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
 
@@ -55,6 +56,8 @@ Future<bool> resolveSharePassword(
       // TODO(media): l10n
       displayName: 'Synology Photos share',
     );
+    // The Saved hosts list reads the store once; show the new row.
+    ref.invalidate(savedHostsProvider);
     polled = await poller.pollNow(subscriptionId, clock.now().toUtc());
   }
   return polled;

@@ -39,6 +39,7 @@ import 'package:submersion/features/media/presentation/pages/media_import_review
 import 'package:submersion/features/media/presentation/providers/manifest_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_preview_pane.dart';
@@ -586,6 +587,8 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
             // TODO(media): l10n
             displayName: 'Synology Photos share',
           );
+      // The Saved hosts list reads the store once; show the new row.
+      ref.invalidate(savedHostsProvider);
       await ref.read(manifestTabProvider.notifier).fetch(widget.url);
     } finally {
       if (mounted) setState(() => _saving = false);

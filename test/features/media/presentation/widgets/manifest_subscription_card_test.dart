@@ -27,12 +27,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/database.dart'
+    show NetworkCredentialHost;
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/subscription_poller.dart';
 import 'package:submersion/features/media/data/synology/synology_album_source.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_subscription_card.dart';
 
@@ -158,6 +161,14 @@ class _FakeCredentials implements NetworkCredentialsService {
     String? displayName,
   }) async {
     saves.add((hostname: hostname, authType: authType, password: password));
+  }
+
+  int listCalls = 0;
+
+  @override
+  Future<List<NetworkCredentialHost>> list() async {
+    listCalls++;
+    return const [];
   }
 
   @override
@@ -337,6 +348,42 @@ void main() {
       ]);
       expect(poller.calls, ['1', '1']);
       expect(field, findsNothing);
+    });
+
+    testWidgets('a saved password refreshes the Saved hosts list', (
+      tester,
+    ) async {
+      final repo = _FakeRepo([_sub('1', manifestUrl: shareUrl)]);
+      final poller = _ScriptedPoller(repo, [kSynologyPasswordMissingMessage]);
+      final creds = _FakeCredentials();
+      await tester.pumpWidget(
+        _wrap(
+          Column(
+            children: [
+              const Expanded(child: ManifestSubscriptionCard()),
+              // Stands in for the Saved hosts card on the same page.
+              Consumer(
+                builder: (context, ref, _) {
+                  ref.watch(savedHostsProvider);
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
+          ),
+          repo: repo,
+          poller: poller,
+          credentials: creds,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(creds.listCalls, 1);
+
+      await tapPollNow(tester);
+      await tester.enterText(field, 'pw');
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+
+      expect(creds.listCalls, 2);
     });
 
     testWidgets('a refused password asks again until cancelled', (
