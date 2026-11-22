@@ -328,10 +328,17 @@ void main() {
       "VALUES ('t-$mediaId', 'media', '$mediaId', 1)",
     );
     await addMedia('m-live');
+    // Synced from another device: its media may still be on its way.
     await repo.storeRun(
-      run(mediaId: 'm-waiting'),
+      run(mediaId: 'm-waiting').copyWith(analysedBy: () => 'laptop'),
       insert: [identification('w', mediaId: 'm-waiting')],
       deleteIds: [],
+    );
+    // Made here, its media gone with no tombstone left: an orphan.
+    await repo.storeRun(
+      run(mediaId: 'm-mine').copyWith(analysedBy: () => 'phone'),
+      insert: const [],
+      deleteIds: const [],
     );
     await tombstone('m-gone');
     await tombstone('m-gone-2');
@@ -352,8 +359,8 @@ void main() {
     );
 
     expect(
-      await repo.orphanMediaIds(),
-      unorderedEquals(['m-gone', 'm-gone-2']),
+      await repo.orphanMediaIds(deviceId: 'phone'),
+      unorderedEquals(['m-gone', 'm-gone-2', 'm-mine']),
     );
   });
 

@@ -13,13 +13,18 @@ class IdentificationCleanup {
     required MediaIdentificationRepository identifications,
     required IdentificationEmbeddingRepository embeddings,
     required IdentificationCropStore crops,
+    Future<String?> Function()? deviceId,
   }) : _identifications = identifications,
        _embeddings = embeddings,
-       _crops = crops;
+       _crops = crops,
+       _deviceId = deviceId ?? (() async => null);
 
   final MediaIdentificationRepository _identifications;
   final IdentificationEmbeddingRepository _embeddings;
   final IdentificationCropStore _crops;
+
+  /// This device's sync id, so the sweep knows the results it made itself.
+  final Future<String?> Function() _deviceId;
   final _log = LoggerService.forClass(IdentificationCleanup);
 
   /// From the media deletion coordinator. A delete held for undo removes
@@ -42,7 +47,9 @@ class IdentificationCleanup {
   /// were never undone. Returns how many media items were cleared.
   Future<int> sweepOrphans() async {
     try {
-      final orphans = await _identifications.orphanMediaIds();
+      final orphans = await _identifications.orphanMediaIds(
+        deviceId: await _deviceId(),
+      );
       if (orphans.isNotEmpty) await _purge(orphans);
       return orphans.length;
     } on Object catch (e) {
@@ -59,9 +66,15 @@ class IdentificationCleanup {
     await _purge(await _identifications.mediaIds());
   }
 
+  /// Rows first, then the synced crops, then what stays on this device:
+  /// an embeddings store that cannot be reached (a browser has none) must
+  /// not leave crops behind that would go on syncing (issue #4876).
   Future<void> _purge(List<String> mediaIds) async {
     final ids = await _identifications.deleteForMedia(mediaIds);
-    await _embeddings.delete(ids);
-    await _crops.deleteMedia(mediaIds);
+    try {
+      await _crops.deleteMedia(mediaIds);
+    } finally {
+      await _embeddings.delete(ids);
+    }
   }
 }

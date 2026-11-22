@@ -160,6 +160,18 @@ class IdentificationCropStore {
     return synced.length == missing.length;
   }
 
+  /// The media that have a crops folder here: the only ones whose crops
+  /// can still be files to move into the logbook.
+  Future<List<String>> mediaWithFiles() async {
+    if (!_files) return const [];
+    final base = await root();
+    if (!await base.exists()) return const [];
+    return [
+      await for (final entity in base.list(followLinks: false))
+        if (entity is Directory) p.basename(entity.path),
+    ];
+  }
+
   Future<void> deleteMedia(List<String> mediaIds) async {
     await _table?.deleteForMedia(mediaIds);
     if (!_files) {

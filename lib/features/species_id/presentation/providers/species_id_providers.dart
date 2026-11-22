@@ -272,6 +272,7 @@ final identificationCleanupProvider = Provider<IdentificationCleanup>(
     identifications: ref.watch(mediaIdentificationRepositoryProvider),
     embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
     crops: ref.watch(identificationCropStoreProvider),
+    deviceId: syncDeviceIdOrNull,
   ),
 );
 

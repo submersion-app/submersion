@@ -281,6 +281,15 @@ void main() {
       expect(s.found, 1);
     });
 
+    test('where no model can run, an item with no results is not analysed, '
+        'not missing a model (issue #4876)', () async {
+      installed = null;
+      marineLifeIdEnabled = false;
+      marineLifeLabelsShown = true;
+      final s = await status(item('m1'));
+      expect(s.state, MediaAnalysisState.notAnalysed);
+    });
+
     test('never analysed', () async {
       final s = await status(item('m1'));
       expect(s.state, MediaAnalysisState.notAnalysed);

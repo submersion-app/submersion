@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
@@ -107,6 +108,12 @@ void main() {
   test('the sweep keeps rows whose media has not arrived yet (issue #4876, '
       'Review Focus 4)', () async {
     await seed('m-on-its-way', 'i3');
+    // As a run synced from another device arrives: with its maker.
+    await identifications.storeRun(
+      run(mediaId: 'm-on-its-way').copyWith(analysedBy: () => 'laptop'),
+      insert: const [],
+      deleteIds: const [],
+    );
     expect(await cleanup.sweepOrphans(), 0);
     expect(await identifications.forMedia('m-on-its-way'), hasLength(1));
   });
@@ -130,6 +137,26 @@ void main() {
       await embeddings.get(['i-other'], classifierId: 'clf'),
       hasLength(1),
     );
+  });
+
+  test('a purge whose embeddings cannot be reached still removes the synced '
+      'crops (issue #4876)', () async {
+    final table = IdentificationCropRepository(database: library);
+    final withTable = IdentificationCropStore(
+      supportPath: () async => support.path,
+      table: table,
+    );
+    addTearDown(withTable.dispose);
+    await seed('m1', 'i1');
+    await withTable.write('m1', 'i1', jpeg, named: true);
+    await local.close();
+    final broken = IdentificationCleanup(
+      identifications: identifications,
+      embeddings: IdentificationEmbeddingRepository(database: local),
+      crops: withTable,
+    );
+    await broken.onMediaDeleted(['m1'], undoable: false);
+    expect(await table.bytesFor('i1'), isNull);
   });
 
   test('a failure does not escape a deletion hook', () async {

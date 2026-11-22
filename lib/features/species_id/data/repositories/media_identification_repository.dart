@@ -431,11 +431,18 @@ class MediaIdentificationRepository {
   /// held for undo and never undone. Rows whose media has simply not
   /// arrived yet are not orphans: results sync on their own, and may land
   /// before the media they describe (issue #4876).
-  Future<List<String>> orphanMediaIds() async {
+  ///
+  /// Results this device made ([deviceId], or a run with no maker yet) are
+  /// orphans with no tombstone too: this device analysed the media, so it
+  /// had it, and a tombstone retired since must not keep them forever.
+  Future<List<String>> orphanMediaIds({String? deviceId}) async {
     final db = _db;
+    // ?1 is this device's id: a run it made, or one with no maker yet.
     const gone =
-        'NOT IN (SELECT id FROM media) AND media_id IN '
-        "(SELECT record_id FROM deletion_log WHERE entity_type = 'media')";
+        'NOT IN (SELECT id FROM media) AND (media_id IN '
+        "(SELECT record_id FROM deletion_log WHERE entity_type = 'media') "
+        'OR media_id IN (SELECT media_id FROM media_identification_runs '
+        'WHERE analysed_by IS NULL OR analysed_by = ?1))';
     final rows = await db
         .customSelect(
           'SELECT media_id FROM media_identification_runs '
@@ -443,6 +450,7 @@ class MediaIdentificationRepository {
           'UNION '
           'SELECT media_id FROM media_identifications '
           'WHERE media_id $gone',
+          variables: [Variable<String>(deviceId)],
           readsFrom: {
             db.mediaIdentificationRuns,
             db.mediaIdentifications,

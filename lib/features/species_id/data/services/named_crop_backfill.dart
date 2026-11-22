@@ -30,7 +30,9 @@ class NamedCropBackfill {
     try {
       final me = await _deviceId();
       var moved = 0;
-      for (final slice in (await _identifications.mediaIds()).slices(batch)) {
+      // Only media with a crops folder can hold files still to move, so a
+      // finished backfill reads no rows at all.
+      for (final slice in (await _crops.mediaWithFiles()).slices(batch)) {
         final (runs, rows) = await _identifications.forMediaIdsWithRuns(
           slice,
           withPaths: false,

@@ -151,6 +151,10 @@ final mediaAnalysisStatusProvider = FutureProvider.autoDispose
         return (
           state: elsewhere
               ? MediaAnalysisState.foundNoModel
+              // Where no model can ever be installed, an item with no results
+              // is simply not analysed.
+              : !marineLifeIdEnabled
+              ? MediaAnalysisState.notAnalysed
               : MediaAnalysisState.noModel,
           found: found,
         );
