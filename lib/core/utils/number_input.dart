@@ -1,4 +1,3 @@
-import 'package:submersion/core/text/ascii_digits.dart';
 import 'package:submersion/core/utils/locale_number_symbols.dart';
 
 /// Locale-aware conversion between a number and the text a diver types into a
@@ -25,13 +24,18 @@ import 'package:submersion/core/utils/locale_number_symbols.dart';
 /// render with a seeding one: the two differ on trailing zeros, which is
 /// information in a rendered reading and noise in an editable field.
 
-/// [text] with every digit set [asciiDigits] knows folded to ASCII, and the
-/// full-width separators, signs and ideographic space a Japanese or Chinese
-/// IME types (`１２．５` for 12.5, #4833) turned into their ASCII forms. They
-/// are the same number, so reading them changes nothing for anyone else.
+/// [text] with the full-width digits, separators, signs and ideographic
+/// space a Japanese or Chinese IME types (`１２．５` for 12.5, #4833)
+/// turned into their ASCII forms. No intl locale uses these forms, so reading
+/// them changes nothing for anyone else.
+///
+/// Only the full-width set is folded, not every set [asciiDigits] knows: intl
+/// reads Arabic-Indic and Persian digits itself under ar_EG and fa, and
+/// rejects ASCII digits there.
 String _foldFullWidth(String text) => String.fromCharCodes(
-  asciiDigits(text).runes.map(
+  text.runes.map(
     (rune) => switch (rune) {
+      >= 0xFF10 && <= 0xFF19 => rune - 0xFF10 + 0x30,
       0xFF0E => 0x2E, // ．
       0xFF0C => 0x2C, // ，
       0xFF0B => 0x2B, // ＋

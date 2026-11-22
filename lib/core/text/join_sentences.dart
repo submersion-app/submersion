@@ -6,7 +6,7 @@ const _ideographicStopLanguages = {'ja', 'zh'};
 final _latinEnd = RegExp(r'[.!?؟。]$');
 
 /// A sentence that already ends in its own stop in Japanese or Chinese.
-final _ideographicEnd = RegExp(r'[。！？!?]$');
+final _ideographicEnd = RegExp(r'[。！？.!?]$');
 
 /// [sentences] joined into one message in [languageCode]'s convention, adding
 /// a full stop to a sentence that lacks one.

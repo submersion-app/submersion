@@ -45,10 +45,13 @@ void main() {
       expect(parseUserDecimal('\u3000\uff18\u3000'), 8);
     });
 
-    test('reads every digit set asciiDigits folds', () {
-      Intl.defaultLocale = 'en_US';
-      expect(parseUserDecimal('\u0661\u0662.\u0665'), 12.5);
-      expect(parseUserDecimal('\u06f8'), 8);
+    // intl reads these locales' own digits; folding them to ASCII would
+    // hide them from it (#4833 review).
+    test('leaves Arabic-Indic and Persian digits to their own locales', () {
+      Intl.defaultLocale = 'ar_EG';
+      expect(parseUserDecimal('\u0661\u0662\u066b\u0665'), 12.5);
+      Intl.defaultLocale = 'fa';
+      expect(parseUserDecimal('\u06f1\u06f2\u066b\u06f5'), 12.5);
     });
 
     test('folds full-width input under a comma locale too', () {

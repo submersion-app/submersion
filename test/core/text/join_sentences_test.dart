@@ -35,6 +35,13 @@ void main() {
       );
     });
 
+    test('an ASCII full stop also ends a Japanese sentence', () {
+      expect(
+        joinSentences(['CSV\u306a\u3069etc.', '\u5b8c\u4e86'], 'ja'),
+        'CSV\u306a\u3069etc.\u5b8c\u4e86',
+      );
+    });
+
     test('a region or script suffix still picks the language', () {
       expect(joinSentences(['完成', '下一步'], 'zh_Hans'), '完成。下一步');
     });
