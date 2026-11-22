@@ -159,7 +159,8 @@ List<Widget> speciesChipWidgets(
           overlay: overlay,
         ),
     for (final s in suggestions)
-      ActionChip(
+      _chip(
+        overlay: overlay,
         key: ValueKey('media_suggested_chip_${s.top.candidate.gbifKey}'),
         avatar: ExcludeSemantics(child: Icon(Icons.add, size: iconSize)),
         label: Row(
@@ -180,15 +181,54 @@ List<Widget> speciesChipWidgets(
               ),
           ],
         ),
+        // Unfilled on a sheet; over the picture the viewer's fill wins.
         backgroundColor: Colors.transparent,
-        // The theme's fill would win over the transparent background.
-        color: overlay ? ViewerTagChips.suggestionColor : null,
         side: BorderSide(color: outline),
         onPressed: onSuggestionTap,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: density,
+        density: density,
       ),
   ];
+}
+
+/// A chip that answers [onPressed]; over the picture with none, a plain
+/// [Chip] instead. A disabled [ActionChip] fades its label and icon to
+/// 38%, lost over a bright picture, and on a locked photo, as the viewer
+/// opens, every suggestion is inert (issue #4921). Off the picture an
+/// inert chip stays a disabled [ActionChip], as before.
+Widget _chip({
+  Key? key,
+  required bool overlay,
+  required Widget avatar,
+  required Widget label,
+  required VoidCallback? onPressed,
+  required VisualDensity density,
+  BorderSide? side,
+  Color? backgroundColor,
+  OutlinedBorder? shape,
+}) {
+  if (overlay && onPressed == null) {
+    return Chip(
+      key: key,
+      avatar: avatar,
+      label: label,
+      side: side,
+      backgroundColor: backgroundColor,
+      shape: shape,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: density,
+    );
+  }
+  return ActionChip(
+    key: key,
+    avatar: avatar,
+    label: label,
+    side: side,
+    backgroundColor: backgroundColor,
+    shape: shape,
+    onPressed: onPressed,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    visualDensity: density,
+  );
 }
 
 /// A species tag the app applied and the diver has not confirmed: drawn
@@ -227,7 +267,8 @@ class _UnconfirmedChip extends StatelessWidget {
               : Theme.of(context).colorScheme.outline,
           radius: _radius,
         ),
-        child: ActionChip(
+        child: _chip(
+          overlay: overlay,
           avatar: Icon(
             Icons.auto_awesome_outlined,
             size: overlay ? ViewerTagChips.iconSize : 16,
@@ -238,10 +279,7 @@ class _UnconfirmedChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(_radius),
           ),
           onPressed: onTap,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: overlay
-              ? ViewerTagChips.density
-              : VisualDensity.compact,
+          density: overlay ? ViewerTagChips.density : VisualDensity.compact,
         ),
       ),
     );

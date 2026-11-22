@@ -179,8 +179,9 @@ void main() {
       );
       final theme = ChipTheme.of(tester.element(chip));
       expect(theme.color?.resolve(const {}), ViewerTagChips.fill);
-      // 34 px before issue #4921.
-      expect(tester.getSize(chip).height, lessThanOrEqualTo(26), reason: label);
+      // 34 px before issue #4921; a chip draws no shorter than 24, plus
+      // its hairline.
+      expect(tester.getSize(chip).height, lessThanOrEqualTo(25), reason: label);
     }
   });
 }

@@ -149,20 +149,20 @@ void main() {
     tester,
   ) async {
     await pump(tester, suggestions: [suggestion(parrotfish)]);
-    final chip = tester.widget<ActionChip>(
-      find.byKey(const ValueKey('media_suggested_chip_1')),
-    );
-    expect(chip.onPressed, isNull);
-    // Dimmed, so it does not pass for a chip that answers a tap (issue
-    // #4921).
-    expect(
-      labelColor(tester, 'Queen Parrotfish'),
-      ViewerTagChips.foregroundInert,
-    );
+    // A plain chip, with nothing to press: a disabled ActionChip would fade
+    // its label to 38%, unreadable over the picture (issue #4921).
+    final chip = find.byKey(const ValueKey('media_suggested_chip_1'));
+    expect(tester.widget(chip), isA<Chip>());
+    expect(find.byType(ActionChip), findsOneWidget, reason: 'only the tag');
+    // As legible as a live one: on a locked photo, as the viewer opens,
+    // every suggestion is inert (issue #4921).
+    expect(labelColor(tester, 'Queen Parrotfish'), ViewerTagChips.foreground);
   });
 
-  testWidgets('in the viewer a suggestion has no fill, unlike a tag, and a '
-      'live one is not dimmed (issue #4921)', (tester) async {
+  testWidgets('in the viewer tags and suggestions alike carry the dark '
+      'wash, over a clear canvas the picture shows through (issue #4921)', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1600, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -171,18 +171,32 @@ void main() {
       suggestions: [suggestion(parrotfish)],
       onSuggestionTap: () {},
     );
-    final chip = tester.widget<ActionChip>(
+    for (final chip in [
+      find.ancestor(
+        of: find.text('Blue Tang'),
+        matching: find.byType(ActionChip),
+      ),
       find.byKey(const ValueKey('media_suggested_chip_1')),
-    );
-    expect(chip.color?.resolve(const {}), Colors.transparent);
-    final tag = find.ancestor(
-      of: find.text('Blue Tang'),
-      matching: find.byType(ActionChip),
-    );
-    expect(
-      ChipTheme.of(tester.element(tag)).color?.resolve(const {}),
-      ViewerTagChips.fill,
-    );
+    ]) {
+      expect(tester.widget<ActionChip>(chip).color, isNull);
+      expect(
+        ChipTheme.of(tester.element(chip)).color?.resolve(const {}),
+        ViewerTagChips.fill,
+      );
+      // The chip paints its fill over a Material of its own, in the
+      // canvas colour: white there turned the wash an opaque grey and an
+      // unfilled chip a white bar its label vanished into.
+      final material = tester.widget<Material>(
+        find.descendant(of: chip, matching: find.byType(Material)).first,
+      );
+      expect(material.color, isNull);
+      expect(material.type, MaterialType.canvas);
+      expect(
+        Theme.of(tester.element(chip)).canvasColor.a,
+        0,
+        reason: 'the picture shows through the chip',
+      );
+    }
     expect(labelColor(tester, 'Queen Parrotfish'), ViewerTagChips.foreground);
   });
 
