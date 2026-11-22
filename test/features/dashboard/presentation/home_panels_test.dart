@@ -66,10 +66,24 @@ void main() {
     });
   });
 
-  test('average depth and species tiles are off by default', () {
+  test('the deepest and average depth tiles are off by default', () {
     expect(defaultHiddenKeyNumbers, {
+      HomeKeyNumber.deepestThisYear,
       HomeKeyNumber.avgDepth,
-      HomeKeyNumber.species,
     });
+  });
+
+  // Species takes the deepest tile's old place, between the gas tile and
+  // the next trip.
+  test('species comes after the gas tile and before the next trip', () {
+    const order = HomeKeyNumber.values;
+    expect(
+      order.indexOf(HomeKeyNumber.species),
+      order.indexOf(HomeKeyNumber.avgSac) + 1,
+    );
+    expect(
+      order.indexOf(HomeKeyNumber.nextTrip),
+      order.indexOf(HomeKeyNumber.species) + 1,
+    );
   });
 }

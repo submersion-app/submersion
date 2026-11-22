@@ -250,11 +250,27 @@ void main() {
 
   testWidgets('the key numbers page toggles a tile', (tester) async {
     final notifier = await _pump(tester, page: const HomeKeyNumbersPage());
-    final species = find.byKey(const Key('homeKeyNumberToggle_species'));
-    expect(tester.widget<SwitchListTile>(species).value, isFalse);
-    await tester.tap(species);
+    // Deepest this year starts off; switching it on keeps the other
+    // default-off tile, average depth, off.
+    final deepest = find.byKey(
+      const Key('homeKeyNumberToggle_deepestThisYear'),
+    );
+    await tester.scrollUntilVisible(deepest, 100);
+    expect(tester.widget<SwitchListTile>(deepest).value, isFalse);
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.byKey(const Key('homeKeyNumberToggle_species')),
+          )
+          .value,
+      isTrue,
+    );
+    await tester.tap(deepest);
     await tester.pumpAndSettle();
-    expect(notifier.state.hiddenHomeKeyNumbers, isNot(contains('species')));
+    expect(
+      notifier.state.hiddenHomeKeyNumbers,
+      isNot(contains('deepestThisYear')),
+    );
     expect(notifier.state.hiddenHomeKeyNumbers, contains('avgDepth'));
   });
 }

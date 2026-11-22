@@ -30,23 +30,25 @@ enum HomePanelType {
   onThisDay,
 }
 
-/// The tiles inside the key numbers panel. [name] is stored in the hidden
-/// tile set, so a value is never renamed.
+/// The tiles inside the key numbers panel, in the order they show. [name]
+/// is stored in the hidden tile set, so a value is never renamed; the order
+/// is free to change.
 enum HomeKeyNumber {
   dives,
   timeUnder,
   lastDive,
   avgSac,
-  deepestThisYear,
-  nextTrip,
-  avgDepth,
   species,
+  nextTrip,
+  deepestThisYear,
+  avgDepth,
 }
 
-/// Tiles a diver sees switched off until they turn them on.
+/// Tiles a diver sees switched off until they turn them on. Neither depth
+/// tile is a headline by default: depth is not a score to chase.
 const Set<HomeKeyNumber> defaultHiddenKeyNumbers = {
+  HomeKeyNumber.deepestThisYear,
   HomeKeyNumber.avgDepth,
-  HomeKeyNumber.species,
 };
 
 /// How wide a panel is, as a share of a desktop row. The units each class

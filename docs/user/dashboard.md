@@ -57,7 +57,7 @@ Tap any panel to open the full screen behind it.
 
 | Panel | What it shows |
 |-------|---------------|
-| **Key numbers** | A row of headline numbers, each with a comparison and, where there is one, a small trend line: dives, time underwater, days since your last dive, average gas consumption, deepest dive this year and days to your next trip. Average depth and species seen can be added. |
+| **Key numbers** | A row of headline numbers, each with a comparison and, where there is one, a small trend line: dives, time underwater, days since your last dive, average gas consumption, species seen (with how many are new this year) and days to your next trip. Deepest dive this year and average depth can be added. |
 | **Activity calendar** | One square per day for the last twelve months (six on a phone), darker on days with more dives. |
 | **Gear service** | The equipment nearest its service, each with a bar showing how far through its interval it is. Overdue gear comes first. |
 | **Coming due** | The next gear services, insurance renewal, certifications and documents, soonest first. |

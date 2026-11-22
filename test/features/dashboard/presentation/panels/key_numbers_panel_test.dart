@@ -117,12 +117,16 @@ void main() {
       'TIME UNDER',
       'LAST DIVE',
       'AVG RMV',
-      'DEEPEST THIS YEAR',
+      'SPECIES',
       'NEXT TRIP',
     ]) {
       expect(find.text(title), findsOneWidget, reason: title);
     }
-    expect(find.text('SPECIES'), findsNothing);
+    expect(find.text('DEEPEST THIS YEAR'), findsNothing);
+    // In the deepest tile's old place: after the gas tile, before the trip.
+    final species = tester.getTopLeft(find.text('SPECIES')).dx;
+    expect(species, greaterThan(tester.getTopLeft(find.text('AVG RMV')).dx));
+    expect(species, lessThan(tester.getTopLeft(find.text('NEXT TRIP')).dx));
     expect(find.text('412'), findsOneWidget);
     expect(find.text('+47 this year'), findsOneWidget);
   });
@@ -207,7 +211,7 @@ void main() {
       width: 1280,
       settings: const AppSettings(hiddenHomeKeyNumbers: {}),
     );
-    expect(find.text('SPECIES'), findsOneWidget);
+    expect(find.text('DEEPEST THIS YEAR'), findsOneWidget);
     expect(find.text('AVG DEPTH'), findsOneWidget);
   });
 
@@ -215,7 +219,11 @@ void main() {
     await _pump(
       tester,
       width: 1280,
-      settings: const AppSettings(depthUnit: DepthUnit.feet),
+      // The depth tiles are off by default; switched on to show feet.
+      settings: const AppSettings(
+        depthUnit: DepthUnit.feet,
+        hiddenHomeKeyNumbers: {},
+      ),
     );
     expect(find.textContaining('ft'), findsWidgets);
   });
@@ -329,6 +337,7 @@ void main() {
     await _pump(
       tester,
       width: 1280,
+      settings: const AppSettings(hiddenHomeKeyNumbers: {}),
       numbers: const HomeKeyNumbers(
         careerDives: 30,
         careerTimeSeconds: 8 * 3600 + 30 * 60,
@@ -376,6 +385,8 @@ void main() {
       tester,
       const KeyNumbersPanel(),
       width: 1280,
+      // Off by default; switched on to test it.
+      settings: const AppSettings(hiddenHomeKeyNumbers: {}),
       overrides: [
         homeKeyNumbersProvider.overrideWith(
           (ref) async => const HomeKeyNumbers(
