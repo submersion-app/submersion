@@ -22,6 +22,9 @@ class RecentOutingsPanel extends ConsumerWidget {
   static const double minCardWidth = 170;
   static const double gap = 8;
 
+  /// How much of the next card shows when more outings follow.
+  static const double peek = 40;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -100,7 +103,13 @@ class _OutingRow extends StatelessWidget {
         ((box.maxWidth + gap) / (RecentOutingsPanel.minCardWidth + gap))
             .floor(),
       );
-      final width = (box.maxWidth - gap * (fit - 1)) / fit;
+      // With more outings than fit, the cards narrow so the next one peeks
+      // in at the edge: a horizontal list draws no scrollbar, and a row of
+      // whole cards would hide that there are more.
+      final more = outings.length > fit;
+      final width = more
+          ? (box.maxWidth - gap * fit - RecentOutingsPanel.peek) / fit
+          : (box.maxWidth - gap * (fit - 1)) / fit;
       return ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: outings.length,

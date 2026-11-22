@@ -519,4 +519,32 @@ void main() {
     }
     expect(find.byType(MediaItemView), findsOneWidget);
   });
+
+  testWidgets('on desktop the next card peeks in when more do not fit', (
+    tester,
+  ) async {
+    await _pump(tester, width: 840, outings: () async => _many(6));
+    final panel = tester.getRect(find.byType(RecentOutingsPanel));
+    final edge = panel.right - 10;
+    final rects = [
+      for (final e in find.byType(OutingCard).evaluate())
+        tester.getRect(find.byWidget(e.widget)),
+    ];
+    // One card is cut by the edge: part of it shows, so more are there.
+    expect(
+      rects.where((r) => r.left < edge - 16 && r.right > edge),
+      hasLength(1),
+    );
+  });
+
+  testWidgets('on desktop cards that all fit are not shrunk', (tester) async {
+    await _pump(tester, width: 840, outings: () async => _many(2));
+    final rects = [
+      for (final e in find.byType(OutingCard).evaluate())
+        tester.getRect(find.byWidget(e.widget)),
+    ];
+    final panel = tester.getRect(find.byType(RecentOutingsPanel));
+    // The width four cards share: nothing peeks, nothing is cut.
+    expect(rects.first.width, closeTo((panel.width - 20 - 3 * 8) / 4, 1));
+  });
 }

@@ -146,14 +146,15 @@ void main() {
       expect(outings, hasLength(1));
     });
 
-    test('a read cut short drops the outing it may have cut', () {
+    test('a read cut short drops the trip-less chain at the cut', () {
       final dives = [
         _dive('old1', 3, 1, site: 'Pier'),
         _dive('old2', 3, 2, site: 'Pier'),
         _dive('new', 5, 1, site: 'Reef'),
       ];
-      // The oldest outing may have begun before the read's first dive.
-      expect(groupOutings(dives, truncated: true).map((o) => o.diveIds), [
+      final cut = DateTime.utc(2026, 3, 1, 10);
+      // Unread dives just before the cut could belong to the Pier chain.
+      expect(groupOutings(dives, cutAt: cut).map((o) => o.diveIds), [
         ['new'],
       ]);
       expect(groupOutings(dives), hasLength(2));
@@ -161,8 +162,38 @@ void main() {
 
     test('a read cut short keeps a lone outing', () {
       final dives = [_dive('a', 3, 1, site: 'Pier'), _dive('b', 3, 2)];
-      expect(groupOutings(dives, truncated: true), hasLength(1));
+      expect(
+        groupOutings(dives, cutAt: DateTime.utc(2026, 3, 1, 10)),
+        hasLength(1),
+      );
     });
+
+    test('a read cut short keeps trips, which the caller completes', () {
+      final dives = [
+        _dive('t-a', 3, 1, tripId: 't', tripName: 'Trip'),
+        _dive('t-b', 3, 3, tripId: 't', tripName: 'Trip'),
+        _dive('new', 5, 1, site: 'Reef'),
+      ];
+      final outings = groupOutings(dives, cutAt: DateTime.utc(2026, 3, 1, 10));
+      expect(outings.map((o) => o.tripId), [null, 't']);
+    });
+
+    test(
+      'only a trip-less chain within the join gap of the cut is dropped',
+      () {
+        final cut = DateTime.utc(2026, 3, 1, 10);
+        final within = groupOutings([
+          _dive('t', 3, 1, tripId: 't', tripName: 'Trip'),
+          _dive('near', 3, 3, site: 'Pier'),
+        ], cutAt: cut);
+        expect(within.map((o) => o.tripId), ['t']);
+        final beyond = groupOutings([
+          _dive('t', 3, 1, tripId: 't', tripName: 'Trip'),
+          _dive('far', 3, 4, site: 'Pier'),
+        ], cutAt: cut);
+        expect(beyond, hasLength(2));
+      },
+    );
 
     test('no dives give no outings', () {
       expect(groupOutings(const []), isEmpty);

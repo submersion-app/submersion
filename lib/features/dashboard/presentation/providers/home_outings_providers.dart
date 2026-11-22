@@ -30,13 +30,13 @@ final _log = LoggerService.forClass(HomeOuting);
 /// (issue #4898), newest first, each with its chosen cover.
 ///
 /// Reads the repositories directly with the current diver and no filter, as
-/// every Home provider does, and rebuilds on dive and media changes and when
-/// the local day turns.
+/// every Home provider does, and rebuilds when a dive, trip, site, sighting
+/// or media item changes and when the local day turns.
 final homeRecentOutingsProvider = FutureProvider<List<HomeOuting>>((ref) async {
   final insights = ref.watch(insightsRepositoryProvider);
   final media = ref.watch(mediaRepositoryProvider);
   final coverRepository = ref.watch(outingCoverRepositoryProvider);
-  ref.invalidateSelfWhen(insights.watchInsightsChanges());
+  ref.invalidateSelfWhen(insights.watchOutingChanges());
   ref.invalidateSelfWhen(media.watchMediaChanges());
   ref.invalidateSelfWhen(localDayChanges());
   final diverId = ref.watch(currentDiverIdProvider);
@@ -47,10 +47,23 @@ final homeRecentOutingsProvider = FutureProvider<List<HomeOuting>>((ref) async {
     diverId: diverId,
     limit: _readLimit + 1,
   );
-  final outings = groupOutings(
-    read.take(_readLimit).toList(),
-    truncated: read.length > _readLimit,
-  );
+  final cut = read.length > _readLimit;
+  final window = read.take(_readLimit).toList();
+  // A trip the read cut through is read whole, so its card counts every
+  // dive; only a trip-less outing at the cut can still be incomplete.
+  final dives = cut
+      ? {
+          for (final d in [
+            ...window,
+            ...await insights.getOutingDivesForTrips(
+              {for (final d in window) ?d.tripId}.toList(),
+              diverId: diverId,
+            ),
+          ])
+            d.id: d,
+        }.values.toList()
+      : window;
+  final outings = groupOutings(dives, cutAt: cut ? window.last.dateTime : null);
   final covers = await _coversFor(coverRepository, outings);
   return [
     for (var i = 0; i < outings.length; i++)

@@ -40,7 +40,8 @@ looks good with a short or sparse history, on phone and desktop alike.
 ## Anti-goals
 
 - Home getting slower to open: no profile sample decoding for this panel, and
-  no more than one dives summary query plus one media query.
+  a dives summary query, two small media queries, and a whole-trips query
+  only for a log longer than the read (see Data).
 - Copying photos into app storage. Covers are the existing media links, shown
   through the existing thumbnail path.
 - Rewriting a layout the diver arranged themselves.
@@ -146,7 +147,8 @@ A new panel, `HomePanelType.recentOutings`, titled "Recent outings".
     (the same "replace the filter" behaviour as the tag link). A date range
     would also catch trip dives on the same days.
 - **Panel tap** (title area): opens the Trips list.
-- **Loading:** placeholder cards at the final size, so nothing jumps.
+- **Loading:** the shared panel loading bar. The panel's height is fixed,
+  so nothing below it moves when the cards arrive.
 - **Empty (no dives):** a short line inside the panel ("Your outings will
   show here once you log a dive"); the existing First dive panel carries the
   call to action.
@@ -157,20 +159,29 @@ A new panel, `HomePanelType.recentOutings`, titled "Recent outings".
 
 ## Data
 
-Two reads, both scoped to the current diver and neither watching any
-Insights-page filter:
+Reads, all scoped to the current diver and none watching any Insights-page
+filter:
 
-1. **Dive summaries:** id, local dive date and time, trip id and trip name,
-   site name, maximum depth, for the diver's most recent dives, newest first,
-   enough to close 8 outings (a fixed cap of the 300 most recent dives is
-   plenty). Summary columns only; no profile samples. Species counts per dive
-   from the sightings table in the same or a companion query.
-2. **Cover candidates:** media linked to those dives, with favourite flag,
-   type, taken time and whether a species identification exists.
+1. **Dive summaries:** id, dive date and time (the stored wall clock), trip
+   id and trip name, site name, maximum depth and the species seen, for the
+   diver's 301 most recent dives, newest first. Summary columns only; no
+   profile samples. Only the newest 300 are grouped; the 301st says whether
+   the log goes further back.
+2. **Whole trips, only when the log goes further back:** every in-scope dive
+   of each trip among those 300, however old, so a trip the read cut through
+   still counts all its dives. A trip-less outing beginning within the 2-day
+   join gap of the cut may still be missing dives, so it is left out unless
+   it is the only outing.
+3. **Cover candidates:** the photos and videos linked to the kept outings'
+   dives, with favourite flag, type, taken time and whether a confirmed
+   species tag exists.
+4. **Cover items:** the chosen covers themselves, at most one per outing.
 
-The provider invalidates itself on dive changes, media changes and the local
-day changing, following the pattern of the existing Home providers, and is
-not watched while the panel is hidden (issue #4251).
+A failed cover read leaves every outing without a cover rather than failing
+the panel. The provider invalidates itself when a dive, trip, site, sighting
+or media item changes and when the local day changes, following the pattern
+of the existing Home providers, and is not watched while the panel is hidden
+(issue #4251).
 
 ## Presets
 

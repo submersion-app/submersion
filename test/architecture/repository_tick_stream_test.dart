@@ -204,6 +204,8 @@ void main() {
           InsightsRepository().watchInsightsChanges(
             filter: DiveFilterState(query: TextNode(const ['reef'])),
           ),
+      'InsightsRepository.watchOutingChanges': () =>
+          InsightsRepository().watchOutingChanges(),
       'ServiceRecordRepository.watchServiceRecordsChanges': () =>
           ServiceRecordRepository().watchServiceRecordsChanges(),
       'ServiceKindRepository.watchServiceKindsChanges': () =>

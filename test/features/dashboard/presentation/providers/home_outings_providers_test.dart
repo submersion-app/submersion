@@ -157,4 +157,88 @@ void main() {
       expect(outings.map((o) => o.outing.tripId), ['t1']);
     });
   });
+
+  test('a trip cut by the read is completed from the log', () async {
+    await db.delete(db.dives).go();
+    await db
+        .into(db.trips)
+        .insert(
+          TripsCompanion.insert(
+            id: 't2',
+            name: 'Older trip',
+            startDate: 0,
+            endDate: 0,
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await db.batch((b) {
+      for (var i = 0; i < 299; i++) {
+        b.insert(
+          db.dives,
+          DivesCompanion(
+            id: Value('t$i'),
+            diveDateTime: Value(
+              DateTime.utc(2026, 6, 3, 0, i).millisecondsSinceEpoch,
+            ),
+            tripId: const Value('t1'),
+            createdAt: const Value(0),
+            updatedAt: const Value(0),
+          ),
+        );
+      }
+    });
+    // The 300th newest dive is on t2; a trip-less dive and t2's first dive
+    // lie past the read.
+    await dive('t2-late', DateTime.utc(2025, 5, 3, 9), tripId: 't2');
+    await dive('pool', DateTime.utc(2025, 5, 2, 9));
+    await dive('t2-early', DateTime.utc(2025, 5, 1, 9), tripId: 't2');
+
+    final outings = await container.read(homeRecentOutingsProvider.future);
+    final t2 = outings.singleWhere((o) => o.outing.tripId == 't2').outing;
+    expect(t2.diveIds, ['t2-early', 't2-late']);
+    expect(t2.firstDay, DateTime(2025, 5, 1));
+  });
+
+  group('what rebuilds the outings', () {
+    Future<void> settle() async {
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 25));
+      }
+    }
+
+    test('a trip rename rebuilds them', () async {
+      final sub = container.listen(homeRecentOutingsProvider, (_, _) {});
+      addTearDown(sub.close);
+      await container.read(homeRecentOutingsProvider.future);
+      await (db.update(db.trips)..where((t) => t.id.equals('t1'))).write(
+        const TripsCompanion(name: Value('Bonaire again')),
+      );
+      await settle();
+      final after = await container.read(homeRecentOutingsProvider.future);
+      expect(after.first.outing.name, 'Bonaire again');
+    });
+
+    test('a cylinder write does not', () async {
+      var builds = 0;
+      final sub = container.listen(homeRecentOutingsProvider, (_, next) {
+        if (next.hasValue && !next.isLoading) builds++;
+      }, fireImmediately: true);
+      addTearDown(sub.close);
+      await container.read(homeRecentOutingsProvider.future);
+      await settle();
+      final before = builds;
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('tank'),
+              diveId: Value('b1'),
+              tankOrder: Value(0),
+            ),
+          );
+      await settle();
+      expect(builds, before);
+    });
+  });
 }

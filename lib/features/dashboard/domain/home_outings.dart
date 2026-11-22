@@ -118,15 +118,16 @@ DateTime _localDay(DateTime wallClock) =>
 /// trip-less dive's outing when its day is at most [maxGapDays] after that
 /// dive's day.
 ///
-/// [truncated] says [dives] is the newest part of a longer log, cut at a
-/// read limit: the outing holding the oldest dive may then have begun
-/// earlier and be missing dives, so it is dropped, unless it is the only
-/// one.
+/// [cutAt] says the trip-less dives in [dives] are the newest part of a
+/// longer log, read back to that dive time: older ones exist but were not
+/// read. A trip-less outing beginning within [maxGapDays] of the cut may be
+/// missing some of them, so it is dropped, unless it is the only outing.
+/// Trip outings must be whole: the caller reads every dive of each trip.
 List<Outing> groupOutings(
   List<OutingDive> dives, {
   int limit = 8,
   int maxGapDays = 2,
-  bool truncated = false,
+  DateTime? cutAt,
 }) {
   final sorted = [...dives]..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   final byTrip = <String, List<OutingDive>>{};
@@ -147,9 +148,13 @@ List<Outing> groupOutings(
   }
   final groups = [...byTrip.values, ...tripless]
     ..sort((a, b) => b.last.dateTime.compareTo(a.last.dateTime));
-  if (truncated && groups.length > 1) {
-    final oldest = sorted.first;
-    groups.removeWhere((g) => g.contains(oldest));
+  if (cutAt != null && groups.length > 1) {
+    final cutDay = _dayNumber(cutAt);
+    groups.removeWhere(
+      (g) =>
+          g.first.tripId == null &&
+          _dayNumber(g.first.dateTime) - cutDay <= maxGapDays,
+    );
   }
   return [for (final g in groups.take(limit)) _outingOf(g)];
 }

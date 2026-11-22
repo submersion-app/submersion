@@ -164,4 +164,20 @@ void main() {
     final dives = await repo.getOutingDives(limit: 3);
     expect(dives.map((d) => d.id), ['d5', 'd4', 'd3']);
   });
+
+  test('dives for trips return every in-scope dive on those trips', () async {
+    await dive('a', DateTime.utc(2026, 5, 3, 9), tripId: 't1', depth: 20);
+    await dive('b', DateTime.utc(2025, 1, 1, 9), tripId: 't1');
+    await dive(
+      'skipped',
+      DateTime.utc(2025, 1, 2, 9),
+      tripId: 't1',
+      excluded: true,
+    );
+    await dive('other', DateTime.utc(2025, 1, 3, 9));
+    final dives = await repo.getOutingDivesForTrips(['t1']);
+    expect(dives.map((d) => d.id), unorderedEquals(['a', 'b']));
+    expect(dives.first.tripName, 'Bonaire May 2026');
+    expect(await repo.getOutingDivesForTrips(const []), isEmpty);
+  });
 }
