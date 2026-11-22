@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
@@ -17,6 +19,9 @@ String _rootKeyOf(ChangeLogEvent event) =>
 
 /// A WHERE clause and its values.
 typedef _ReadingSql = ({String sql, List<Variable<Object>> variables});
+
+/// The table whose manual edits are never a reading.
+const _profileTable = 'dive_profile_series';
 
 /// Works out which deleted records can return and which created records can
 /// go, before anything is written.
@@ -121,52 +126,89 @@ class ChangeLogRecordPlanner {
     );
   }
 
-  /// [removals] less the new readings whose old ones cannot return: a series
-  /// or pressure curve the entry wrote stays while a row of the reading it
-  /// replaced is blocked, as when that row's computer has since been
-  /// deleted, or the source would be left with none (issue #4848). A reading
+  /// Pairs each replaced reading with the rows that replaced it, so a revert
+  /// leaves a source with neither two readings nor none (issue #4848). A new
+  /// row stays while a row of the reading it replaced cannot return, as when
+  /// that row's computer has since been deleted. A replaced row returns only
+  /// with its replacement's removal, so it changed since when that removal
+  /// did: a revert of only what did not change keeps both out. A reading
   /// that is already back loses nothing.
-  Future<List<ChangeLogRevertItem>> keepUnreplaced(
-    List<ChangeLogRevertItem> removals,
+  Future<
+    ({List<ChangeLogRevertItem> restores, List<ChangeLogRevertItem> removals})
+  >
+  pairReadings(
     List<ChangeLogRevertItem> restores,
+    List<ChangeLogRevertItem> removals,
   ) async {
-    final stranded = [
+    String? keyOf(ChangeLogRevertItem item) =>
+        _readingKey(item.event.table, _copyOf(item.event));
+    final stranded = {
       for (final item in restores)
         if (item.block case final block?
             when block != ChangeLogBlock.alreadyRestored)
-          if (_readingOf(item.event.table, _copyOf(item.event))
-              case final reading?)
-            (table: item.event.table, reading: reading),
-    ];
-    if (stranded.isEmpty) return removals;
-    return [
-      for (final item in removals)
-        if (!item.isBlocked && await _ofReading(item.event, stranded))
-          item.copyWith(block: ChangeLogBlock.parentGone)
-        else
-          item,
-    ];
+          ?keyOf(item),
+    };
+    final pairedRemovals = <ChangeLogRevertItem>[];
+    final changed = <String>{};
+    for (final item in removals) {
+      final key = await _liveReadingKey(item.event);
+      final kept = !item.isBlocked && key != null && stranded.contains(key);
+      final paired = kept
+          ? item.copyWith(block: ChangeLogBlock.parentGone)
+          : item;
+      if (key != null && !paired.isBlocked && paired.changedSince) {
+        changed.add(key);
+      }
+      pairedRemovals.add(paired);
+    }
+    return (
+      restores: [
+        for (final item in restores)
+          if (!item.isBlocked && changed.contains(keyOf(item)))
+            item.copyWith(changedSince: true)
+          else
+            item,
+      ],
+      removals: pairedRemovals,
+    );
   }
 
-  /// Whether the live row [event] created belongs to one of [readings].
-  Future<bool> _ofReading(
-    ChangeLogEvent event,
-    List<({String table, _ReadingSql reading})> readings,
-  ) async {
+  /// The reading key of the live row [event] created, null when it has gone
+  /// or its table has no readings.
+  Future<String?> _liveReadingKey(ChangeLogEvent event) async {
+    final columns = changeLogReadingColumns[event.table];
     final spec = _repository.specOf(event.table);
-    if (spec == null) return false;
+    if (columns == null || spec == null) return null;
     final match = changeLogKeyMatch(spec, event.recordId);
-    for (final (:table, :reading) in readings) {
-      if (table != event.table) continue;
-      final row = await _db
-          .customSelect(
-            'SELECT 1 FROM "$table" WHERE ${match.where} AND ${reading.sql}',
-            variables: [...match.variables, ...reading.variables],
-          )
-          .getSingleOrNull();
-      if (row != null) return true;
-    }
-    return false;
+    final row = await _db
+        .customSelect(
+          'SELECT ${[...columns, 'computer_id', if (event.table == _profileTable) 'is_edit'].map((c) => '"$c"').join(', ')} '
+          'FROM "${event.table}" WHERE ${match.where}',
+          variables: match.variables,
+        )
+        .getSingleOrNull();
+    return row == null ? null : _readingKey(event.table, row.data);
+  }
+
+  /// The reading [row] of [table] belongs to, as one comparable value, or
+  /// null for a table with no readings or a manual edit, which is none.
+  static String? _readingKey(String table, Map<String, Object?> row) {
+    final named = _namedColumns(table, row);
+    return named == null
+        ? null
+        : jsonEncode([
+            table,
+            for (final c in named) [c, row[c]],
+          ]);
+  }
+
+  /// The columns that name the reading of [row] ([changeLogReadingColumns]),
+  /// the computer only for a row with no source, or null when it has none.
+  static List<String>? _namedColumns(String table, Map<String, Object?> row) {
+    final columns = changeLogReadingColumns[table];
+    if (columns == null) return null;
+    if (table == _profileTable && _isTrue(row['is_edit'])) return null;
+    return [...columns, if (row['source_id'] == null) 'computer_id'];
   }
 
   static Map<String, Object?> _copyOf(ChangeLogEvent event) => {
@@ -176,15 +218,12 @@ class ChangeLogRecordPlanner {
   /// The rows of [table] in the reading [row] belongs to, as SQL, or null
   /// for a table with no readings or a manual edit, which is none.
   static _ReadingSql? _readingOf(String table, Map<String, Object?> row) {
-    final columns = changeLogReadingColumns[table];
-    if (columns == null) return null;
-    final profile = table == 'dive_profile_series';
-    if (profile && _isTrue(row['is_edit'])) return null;
-    final named = [...columns, if (row['source_id'] == null) 'computer_id'];
+    final named = _namedColumns(table, row);
+    if (named == null) return null;
     return (
       sql: [
         for (final c in named) '"$c" IS ?',
-        if (profile) 'COALESCE(is_edit, 0) = 0',
+        if (table == _profileTable) 'COALESCE(is_edit, 0) = 0',
       ].join(' AND '),
       variables: [for (final c in named) Variable<Object>(row[c])],
     );

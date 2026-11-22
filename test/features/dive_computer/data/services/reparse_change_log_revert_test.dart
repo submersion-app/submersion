@@ -307,6 +307,49 @@ void main() {
     },
   );
 
+  // A later removal re-zeroed the re-parsed series, so a revert of only
+  // what did not change since keeps it, and its old series with it: both
+  // would be two strands of one computer.
+  test('a revert that skips changes since keeps the old series out while '
+      'its replacement stays', () async {
+    await addComputer('c1');
+    await addSource('s1', computerId: 'c1', isPrimary: true);
+    final recording = await addSeries('s1', computerId: 'c1', isPrimary: true);
+    // An edit the re-parse keeps, whose lineage names the recording: the
+    // re-parse clears that link, and putting it back needs the recording.
+    await profileSeries.insertSeries(
+      diveId: 'dive',
+      sourceId: 's1',
+      isPrimary: false,
+      isEdit: true,
+      parentSeriesId: recording,
+      revisionKind: 'edit',
+      samples: const [ProfileSample(timestamp: 0, depth: 3)],
+      now: 1000,
+    );
+    await forget();
+
+    await ReparseBatchService(
+      reparse,
+    ).run(['dive'], parseFn: (_, _, _, _) async => parsed());
+    final operationId = await reparseOperation();
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.removeSource,
+      body: () => db.customStatement(
+        'UPDATE dive_profile_series SET start_timestamp = start_timestamp + 60',
+      ),
+    );
+    await repository.settleAll();
+    final shifted = await profile();
+
+    final service = ChangeLogRevertService(afterDiveWrites: (_) {});
+    final plan = await service.planOperation(operationId);
+    await service.execute(plan, includeChangedSince: false);
+
+    expect(await profile(), shifted);
+  });
+
   test(
     'reverting a re-parse restores the pressure series it replaced',
     () async {
