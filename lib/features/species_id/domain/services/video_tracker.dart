@@ -13,8 +13,9 @@ import 'package:submersion/features/species_id/domain/entities/video_detections.
 /// fish may continue to a nearby box it barely overlaps ([TrackLink], issue
 /// #4729). 3: a track is named from its most decided view, not an average
 /// of its views (issue #4736). 4: only a view a second away agrees with it
-/// (issue #4747).
-const int videoTrackerVersion = 4;
+/// (issue #4747). 5: a small fish is cropped with more of its
+/// surroundings (`VisionModels.momentPadding`, issue #4882).
+const int videoTrackerVersion = 5;
 
 /// How far apart a scan samples a video's frames, in milliseconds.
 const int videoSampleIntervalMs = 250;

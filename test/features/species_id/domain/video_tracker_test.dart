@@ -414,6 +414,6 @@ void main() {
   });
 
   test('a video run names the tracker that made its tracks', () {
-    expect(videoRunDetectorId('det-a+det-m'), 'det-a+det-m#tracker4');
+    expect(videoRunDetectorId('det-a+det-m'), 'det-a+det-m#tracker5');
   });
 }
