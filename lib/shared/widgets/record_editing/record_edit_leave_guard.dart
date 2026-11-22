@@ -77,6 +77,11 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
             if (!controller.isDirty) return;
             final navigator = Navigator.of(context);
             if (!await cancelSitting(context, controller)) return;
+            // The page went while the question was open (an editor closed
+            // by a change of diver, the question being in the root
+            // navigator): popping now would take the page under it.
+            if (!context.mounted) return;
+            if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
             // A page with nothing under it (the list pane's, its tab's first
             // page) locks and stays: there is nowhere to go back to.
             if (navigator.canPop()) navigator.pop();

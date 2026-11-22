@@ -21,6 +21,11 @@ enum SetupStepId {
   setUpSync,
   setUpBackups,
   setUpPhotos,
+
+  /// The species identification model, after the Photos step, on a device
+  /// that can run it and has none (issue #4881). Wizard only: not one of
+  /// the Set up this device steps.
+  speciesModel,
   finish,
   existingChoice,
   restore,
@@ -53,6 +58,12 @@ class SetupWizardDraft {
   /// connect step, with no welcome fork or existing-data choice before it.
   final bool browser;
 
+  /// The species model step is offered (issue #4881). Set once, from facts
+  /// read when the wizard opens, and never cleared: starting the download
+  /// turns the live offer off, and the step must stay where the diver left
+  /// it.
+  final bool speciesModelOffered;
+
   const SetupWizardDraft({
     required this.mode,
     this.path = SetupPath.undecided,
@@ -62,6 +73,7 @@ class SetupWizardDraft {
     this.settings = const AppSettings(),
     this.needsProfile = false,
     this.browser = false,
+    this.speciesModelOffered = false,
   });
 
   SetupWizardDraft copyWith({
@@ -71,6 +83,7 @@ class SetupWizardDraft {
     String? name,
     AppSettings? settings,
     bool? needsProfile,
+    bool? speciesModelOffered,
   }) {
     return SetupWizardDraft(
       mode: mode,
@@ -81,6 +94,7 @@ class SetupWizardDraft {
       name: name ?? this.name,
       settings: settings ?? this.settings,
       needsProfile: needsProfile ?? this.needsProfile,
+      speciesModelOffered: speciesModelOffered ?? this.speciesModelOffered,
     );
   }
 
@@ -136,8 +150,37 @@ const kBrowserSetUpWizardSteps = [
   SetupStepId.setUpSync,
 ];
 
+/// Whether an offer of the species model that arrives now may still add its
+/// step (issue #4881): only while the diver has not passed the Photos step,
+/// so the step is never inserted behind them. A list with no Photos step yet
+/// (the path is still undecided) takes the offer for later.
+bool speciesModelOfferFits(List<SetupStepId> steps, int currentIndex) {
+  final photos = steps.indexOf(SetupStepId.setUpPhotos);
+  return photos < 0 || currentIndex <= photos;
+}
+
 /// Computes the ordered step list for the current draft state.
-List<SetupStepId> computeSteps(SetupWizardDraft draft) {
+List<SetupStepId> computeSteps(SetupWizardDraft draft) =>
+    _withSpeciesModel(draft, _trimmedForBrowser(draft));
+
+/// The species model step right after the Photos step, when it is offered
+/// (issue #4881). A list with no Photos step (skip, restore, open folder, a
+/// browser) never gets it.
+List<SetupStepId> _withSpeciesModel(
+  SetupWizardDraft draft,
+  List<SetupStepId> steps,
+) {
+  if (!draft.speciesModelOffered) return steps;
+  final photos = steps.indexOf(SetupStepId.setUpPhotos);
+  if (photos < 0) return steps;
+  return [
+    ...steps.take(photos + 1),
+    SetupStepId.speciesModel,
+    ...steps.skip(photos + 1),
+  ];
+}
+
+List<SetupStepId> _trimmedForBrowser(SetupWizardDraft draft) {
   final steps = _stepsForPath(draft);
   if (!draft.browser) return steps;
   // A browser drops the backups and photos steps in every mode, and its

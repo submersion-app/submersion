@@ -1,6 +1,6 @@
 # Feature Roadmap
 
-> **Last Updated:** 2026-10-06
+> **Last Updated:** 2026-11-22
 
 What is built, in progress and planned, by feature category.
 
@@ -781,8 +781,8 @@ request.
 | Reset to defaults | Implemented | v1.5 | Restore built-in species to original values |
 | Species photos | Planned | v2.0 | Local or remote images |
 | Distribution map | Planned | v2.0 | Map of sightings |
-| AI species identification | Planned | v2.0 | Upload photo, AI identifies species |
-| Offline species ID | Planned | v2.0 | Works without internet connection |
+| AI species identification | Implemented | v2.0 | Suggests species for a dive's photos and videos with on-device models: Core ML on iOS, iPadOS and macOS, ONNX Runtime on Android, Windows and Linux |
+| Offline species ID | Implemented | v2.0 | Runs on the device once the species pack is downloaded; no connection needed |
 
 **v1.5 Tasks (Complete):**
 
@@ -803,9 +803,9 @@ request.
 - [ ] Species distribution map (heatmap of sightings)
 - [ ] "Life list" progress tracker (total species seen)
 - [ ] Rare species badges
-- [ ] AI-powered species identification from photos (ML model)
-- [ ] Offline species recognition database
-- [ ] Species identification confidence scores
+- [x] AI-powered species identification from photos (ML model)
+- [x] Offline species recognition database
+- [x] Species identification confidence scores
 
 ---
 
@@ -820,8 +820,8 @@ request.
 | Metadata overlay | Implemented | v1.5 | Depth, temp, elapsed time on photos |
 | Write dive data to EXIF | Implemented | v1.5 | In-place modification via native_exif |
 | Photo thumbnails | Implemented | v1.5 | Dynamic loading from device library |
-| Video support in logs | Planned | v2.0 | Attach and play videos |
-| Tag species in photos | Planned | v2.0 | Image annotation |
+| Video support in logs | Implemented | v2.0 | Attach and play videos |
+| Tag species in photos | Implemented | v2.0 | A box on the photo, linked to the dive's sighting |
 | Color correction | Planned | v2.0 | Blue filter removal |
 | Shareable dive cards | Planned | v2.0 | Generate visual summary for social media |
 | Depth/time overlay | Implemented | v1.5 | MiniDiveProfileOverlay on photo viewer |
@@ -850,8 +850,8 @@ request.
 - [ ] Export dive with photos (ZIP archive)
 - [ ] Bulk photo import with auto-match to dives
 - [x] GPS extraction from photos (suggest site creation): desktop and video readers, nearest-site matching, detail-page and post-import surfacing, synced dismissal
-- [ ] Species tagging in photos (tap to tag, bounding box)
-- [ ] Species recognition suggestions (ML model)
+- [x] Species tagging in photos (tap to tag, bounding box)
+- [x] Species recognition suggestions (ML model)
 - [ ] Blue/green color cast removal filter
 - [ ] Underwater white balance correction
 

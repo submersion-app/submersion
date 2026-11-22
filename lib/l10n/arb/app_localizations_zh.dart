@@ -9271,6 +9271,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_step_units => '单位';
 
   @override
+  String get setup_speciesModel_title => '物种识别';
+
+  @override
+  String get setup_speciesModel_intro => '为你的潜水照片和视频推荐物种。在此设备上运行，不会上传任何内容。';
+
+  @override
+  String get setup_speciesModel_introPhotos => '为你的潜水照片推荐物种。在此设备上运行，不会上传任何内容。';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return '下载：$size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => '建议使用 Wi-Fi';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'Windows 还可能从 Microsoft 下载适用于你的显卡或 NPU 的引擎。';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      '正在下载。你可以在“设置 > 数据 > 照片与视频 > 物种识别”中查看进度。';
+
+  @override
+  String get setup_speciesModel_installed => '已安装在此设备上';
+
+  @override
+  String get setup_speciesModel_later =>
+      '目前无法连接到下载。你稍后可以在“设置 > 数据 > 照片与视频 > 物种识别”中找到它。';
+
+  @override
+  String get setup_speciesModel_download => '下载';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       '此账户中的 Submersion 资料库尚未上传完成。请让另一台设备完成同步后重试。';
 
@@ -36820,6 +36855,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String tankPresets_edit_errorSaving(Object error) {
     return '保存预设时出错：$error';
   }
+
+  @override
+  String get tankPresets_edit_notFound => '此气瓶预设已不存在。';
 
   @override
   String tankPresets_edit_gasCapacity(Object capacity) {

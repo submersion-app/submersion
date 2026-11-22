@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
@@ -55,7 +56,9 @@ void main() {
     SpeciesPackState packState = const PackChecking(),
     bool availabilityLoading = false,
     bool installedLoading = false,
+    bool demo = false,
   }) => [
+    demoModeActiveProvider.overrideWithValue(demo),
     visionAvailabilityProvider.overrideWith(
       (ref) => availabilityLoading
           ? Completer<VisionAvailability>().future
@@ -112,6 +115,13 @@ void main() {
 
     test('is not wanted once dismissed', () async {
       expect(await wanted(promptOverrides(dismissed: true)), isFalse);
+    });
+
+    // Demo mode shares the device's preferences, so a dismissal made on a
+    // sample dive would hide the offer in the diver's own logbook too
+    // (issue #4891).
+    test('is not wanted while the sample logbook is open', () async {
+      expect(await wanted(promptOverrides(demo: true)), isFalse);
     });
 
     test('is not wanted on a device the model cannot run on', () async {

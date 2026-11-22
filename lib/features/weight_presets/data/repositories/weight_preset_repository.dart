@@ -120,14 +120,17 @@ class WeightPresetRepository {
   );
 
   /// Create a new named preset from hand-composed rows (the manage-page
-  /// editor). [entries] may be empty.
+  /// editor). [entries] may be empty. The preset takes [id] when given: the
+  /// editor's sitting chose it as it opened (issue #4527, phase 4); a fresh
+  /// one otherwise.
   Future<WeightPreset> createPreset({
+    String? id,
     required String diverId,
     required String displayName,
     required List<WeightEntryDraft> entries,
     String notes = '',
   }) async {
-    final id = _uuid.v4();
+    final presetId = id ?? _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
     final sortOrder = (await _maxSortOrder(diverId)) + 1;
     final entryIds = <String>[];
@@ -137,7 +140,7 @@ class WeightPresetRepository {
           .into(_db.weightPresets)
           .insert(
             WeightPresetsCompanion(
-              id: Value(id),
+              id: Value(presetId),
               diverId: Value(diverId),
               displayName: Value(displayName.trim()),
               notes: Value(notes.trim()),
@@ -154,7 +157,7 @@ class WeightPresetRepository {
             .insert(
               WeightPresetEntriesCompanion(
                 id: Value(entryId),
-                presetId: Value(id),
+                presetId: Value(presetId),
                 weightType: Value(entries[i].weightType.name),
                 amountKg: Value(entries[i].amountKg),
                 notes: Value(entries[i].notes),
@@ -168,7 +171,7 @@ class WeightPresetRepository {
 
     await _syncRepository.markRecordPending(
       entityType: 'weightPresets',
-      recordId: id,
+      recordId: presetId,
       localUpdatedAt: now,
     );
     for (final entryId in entryIds) {
@@ -180,7 +183,9 @@ class WeightPresetRepository {
     }
     SyncEventBus.notifyLocalChange();
 
-    return (await getPresets(diverId: diverId)).firstWhere((p) => p.id == id);
+    return (await getPresets(
+      diverId: diverId,
+    )).firstWhere((p) => p.id == presetId);
   }
 
   /// Rename a preset / edit its notes. The entry list is left untouched.

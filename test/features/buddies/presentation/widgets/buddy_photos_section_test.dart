@@ -8,10 +8,13 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../media/data/repositories/species_photo_fixtures.dart';
 import '../../../media/presentation/widgets/people_tags/people_tag_test_host.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 /// The photos and videos a buddy is tagged in, on the buddy page
 /// (issue #1745).
 void main() {
+  turnOffMarineLifeIdForEachTest();
+
   setUp(() async {
     await setUpTestDatabase();
     await seedPeopleTagFixtures();

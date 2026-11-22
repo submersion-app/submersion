@@ -9721,6 +9721,43 @@ class AppLocalizationsNl extends AppLocalizations {
   String get setup_step_units => 'Eenheden';
 
   @override
+  String get setup_speciesModel_title => 'Soortherkenning';
+
+  @override
+  String get setup_speciesModel_intro =>
+      'Stelt de soorten in je duikfoto\'s en -video\'s voor. Werkt op dit apparaat en er wordt niets geüpload.';
+
+  @override
+  String get setup_speciesModel_introPhotos =>
+      'Stelt de soorten in je duikfoto\'s voor. Werkt op dit apparaat en er wordt niets geüpload.';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return 'Download: $size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => 'Wifi aanbevolen';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'Windows kan ook een engine voor je videokaart of NPU van Microsoft downloaden.';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      'Bezig met downloaden. Je kunt het volgen in Instellingen > Gegevens > Foto\'s en video\'s > Soortherkenning.';
+
+  @override
+  String get setup_speciesModel_installed => 'Geïnstalleerd op dit apparaat';
+
+  @override
+  String get setup_speciesModel_later =>
+      'De download is nu niet bereikbaar. Je vindt hem later in Instellingen > Gegevens > Foto\'s en video\'s > Soortherkenning.';
+
+  @override
+  String get setup_speciesModel_download => 'Downloaden';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       'Dit account bevat een Submersion-bibliotheek die nooit volledig is geüpload. Laat je andere apparaat de synchronisatie voltooien en probeer het opnieuw.';
 
@@ -38893,6 +38930,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String tankPresets_edit_errorSaving(Object error) {
     return 'Fout bij opslaan instelling: $error';
   }
+
+  @override
+  String get tankPresets_edit_notFound =>
+      'Deze flesinstelling bestaat niet meer.';
 
   @override
   String tankPresets_edit_gasCapacity(Object capacity) {

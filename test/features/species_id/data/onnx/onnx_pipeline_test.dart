@@ -229,7 +229,7 @@ void main() {
     expect(red[4 * 8], closeTo(10 / 255, 0.02));
   });
 
-  test('a video moment is cropped and embedded as a photo box is', () {
+  test('a video moment is cropped and embedded, sized by its unpadded box', () {
     final pipeline = OnnxPipeline(
       models: models(),
       detectors: [rfdetr(const [])],
@@ -245,6 +245,119 @@ void main() {
     expect(crop.pixelHeight, 10);
     expect(crop.embedding, Float32List.fromList([4, 5, 6]));
     expect(crop.cropJpeg.sublist(0, 2), [0xFF, 0xD8]);
+  });
+
+  group('how wide a crop is (issue #4882)', () {
+    // A white rectangle on black: how much black the classifier is given
+    // says how much was padded around the box.
+    RgbaImage whiteOnBlack(
+      int width,
+      int height, {
+      required int left,
+      required int top,
+      required int w,
+      required int h,
+    }) {
+      final pixels = Uint8List(width * height * 4);
+      for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+          final i = (y * width + x) * 4;
+          final white = x >= left && x < left + w && y >= top && y < top + h;
+          pixels[i] = pixels[i + 1] = pixels[i + 2] = white ? 255 : 0;
+          pixels[i + 3] = 255;
+        }
+      }
+      return RgbaImage(width, height, pixels);
+    }
+
+    RgbaImage squareOnBlack(int side, int square) {
+      final from = (side - square) ~/ 2;
+      return whiteOnBlack(
+        side,
+        side,
+        left: from,
+        top: from,
+        w: square,
+        h: square,
+      );
+    }
+
+    Float32List momentInput(
+      VisionModels m,
+      RgbaImage img,
+      IdentificationBox box,
+    ) {
+      final cls = classifier([1, 2, 3]);
+      OnnxPipeline(
+        models: m,
+        detectors: [rfdetr(const [])],
+        classifier: cls,
+      ).cropAndEmbed(img, box);
+      return cls.inputs.single;
+    }
+
+    Float32List photoInput(VisionModels m, RgbaImage img, List<double> box) {
+      final cls = classifier([1, 2, 3]);
+      OnnxPipeline(
+        models: m,
+        detectors: [
+          rfdetr([box]),
+        ],
+        classifier: cls,
+      ).analyze(img);
+      return cls.inputs.single;
+    }
+
+    // Every crop at one padding: the rule for small boxes switched off.
+    VisionModels at(double padding) =>
+        models().copyWith(cropPadding: padding, smallBoxSide: 0);
+
+    test('a video box under 256 px is cropped at 0.6', () {
+      final img = squareOnBlack(400, 100);
+      const box = IdentificationBox(
+        x: 0.375,
+        y: 0.375,
+        width: 0.25,
+        height: 0.25,
+      );
+
+      final input = momentInput(models(), img, box);
+
+      expect(input, momentInput(at(0.6), img, box));
+      expect(input, isNot(momentInput(at(0.1), img, box)));
+    });
+
+    test('a video box of 256 px or more keeps the pack padding', () {
+      final img = squareOnBlack(1000, 300);
+      const box = IdentificationBox(x: 0.35, y: 0.35, width: 0.3, height: 0.3);
+
+      final input = momentInput(models(), img, box);
+
+      expect(input, momentInput(at(0.1), img, box));
+      expect(input, isNot(momentInput(at(0.6), img, box)));
+    });
+
+    test('a box is sized against its own side of a tall frame', () {
+      // 360 by 300 px: not small. Sized against the other side of the
+      // frame it would be 1800 by 60 px, and small.
+      final img = whiteOnBlack(400, 2000, left: 20, top: 800, w: 360, h: 300);
+      const box = IdentificationBox(x: 0.05, y: 0.4, width: 0.9, height: 0.15);
+
+      final input = momentInput(models(), img, box);
+
+      expect(input, momentInput(at(0.1), img, box));
+      expect(input, isNot(momentInput(at(0.6), img, box)));
+    });
+
+    test('a photo keeps the pack padding however small its box', () {
+      final img = squareOnBlack(400, 100);
+      const box = [0.5, 0.5, 0.25, 0.25, 0.9];
+
+      final input = photoInput(models(), img, box);
+
+      expect(input, photoInput(at(0.1), img, box));
+      expect(input, isNot(photoInput(at(0.6), img, box)));
+    });
   });
 
   test('detectFrame returns the merged boxes of a frame', () {

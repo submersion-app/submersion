@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 /// The colours of the pencil that opens a card on an unlocked record page
 /// (issue #4527): a filled [fill] disc with an [onFill] glyph and an
-/// [outline] ring.
+/// [outline] ring. The dot that marks a card's unsaved changes wears the
+/// same fill and ring, so the two read as one editing colour.
 ///
 /// Fixed hues rather than ColorScheme roles on purpose, as with
 /// StatusColors. Every role the presets offer is a shade of the page's own
 /// accent, so a pencil drawn in one of them blended into the cards around
-/// it and divers had to hunt for it. Electric lime is a hue no preset's
-/// colour scheme uses, and it reads the same under each of them. The
-/// Species feature accent (FeatureAccentColors) is a lime too, but a deep
-/// kelp one, far darker than this.
+/// it and divers had to hunt for it. Amber yellow is a warm hue far from
+/// every preset's primary, and it reads the same under each of them. It is
+/// a brighter, yellower amber than StatusColors' "due soon" accent.
 @immutable
 class RecordPencilColors extends ThemeExtension<RecordPencilColors> {
   const RecordPencilColors({
@@ -28,26 +28,26 @@ class RecordPencilColors extends ThemeExtension<RecordPencilColors> {
   /// The disc's ring.
   final Color outline;
 
-  /// Lime is bright but barely darker than a light card, so the ring is a
-  /// deep olive that gives the disc an edge at 3:1 or better on every
-  /// preset's card.
+  /// Yellow is bright but barely darker than a light card, so the ring is a
+  /// deep gold that gives the disc (and the dot) an edge at 3:1 or better
+  /// on every preset's card.
   static const RecordPencilColors light = RecordPencilColors(
-    fill: Color(0xFFAEEA00),
-    onFill: Color(0xFF1B2600),
-    outline: Color(0xFF4C6B00),
+    fill: Color(0xFFFFC107),
+    onFill: Color(0xFF3A2A00),
+    outline: Color(0xFF7A5200),
   );
 
-  /// On a dark card the lime itself stands far off the surface, so the
+  /// On a dark card the yellow itself stands far off the surface, so the
   /// ring is the fill and draws no edge of its own.
   static const RecordPencilColors dark = RecordPencilColors(
-    fill: Color(0xFFC6FF00),
-    onFill: Color(0xFF1B2600),
-    outline: Color(0xFFC6FF00),
+    fill: Color(0xFFFFCA28),
+    onFill: Color(0xFF3A2A00),
+    outline: Color(0xFFFFCA28),
   );
 
   /// The active theme's pencil colours. Falls back to the constant for the
   /// theme's brightness, so a bare ThemeData (widget tests, previews) still
-  /// draws the lime pencil.
+  /// draws the amber yellow pencil.
   static RecordPencilColors of(BuildContext context) {
     final theme = Theme.of(context);
     return theme.extension<RecordPencilColors>() ??

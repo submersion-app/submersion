@@ -9811,6 +9811,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setup_step_units => 'Unités';
 
   @override
+  String get setup_speciesModel_title => 'Identification des espèces';
+
+  @override
+  String get setup_speciesModel_intro =>
+      'Suggère les espèces présentes dans vos photos et vidéos de plongée. Fonctionne sur cet appareil, rien n\'est envoyé.';
+
+  @override
+  String get setup_speciesModel_introPhotos =>
+      'Suggère les espèces présentes dans vos photos de plongée. Fonctionne sur cet appareil, rien n\'est envoyé.';
+
+  @override
+  String setup_speciesModel_size(String size) {
+    return 'Téléchargement : $size';
+  }
+
+  @override
+  String get setup_speciesModel_wifi => 'Wi-Fi recommandé';
+
+  @override
+  String get setup_speciesModel_hardware =>
+      'Windows peut aussi télécharger depuis Microsoft un moteur pour votre carte graphique ou votre NPU.';
+
+  @override
+  String get setup_speciesModel_downloading =>
+      'Téléchargement en cours. Vous pouvez le suivre dans Réglages > Données > Photos et vidéos > Identification des espèces.';
+
+  @override
+  String get setup_speciesModel_installed => 'Installé sur cet appareil';
+
+  @override
+  String get setup_speciesModel_later =>
+      'Le téléchargement est inaccessible pour le moment. Vous le retrouverez plus tard dans Réglages > Données > Photos et vidéos > Identification des espèces.';
+
+  @override
+  String get setup_speciesModel_download => 'Télécharger';
+
+  @override
   String get setup_syncPull_incomplete_message =>
       'Ce compte contient une bibliothèque Submersion dont l\'envoi n\'a jamais été terminé. Laissez votre autre appareil finir la synchronisation, puis réessayez.';
 
@@ -39256,6 +39293,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String tankPresets_edit_errorSaving(Object error) {
     return 'Erreur d\'enregistrement du preset : $error';
   }
+
+  @override
+  String get tankPresets_edit_notFound => 'Ce preset de bloc n\'existe plus.';
 
   @override
   String tankPresets_edit_gasCapacity(Object capacity) {

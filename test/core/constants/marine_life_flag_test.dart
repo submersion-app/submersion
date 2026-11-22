@@ -5,7 +5,8 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import '../../helpers/global_test_defaults.dart';
 
 /// Marine life identification is on wherever an engine runs (iPhone, iPad
-/// and Mac) and hidden elsewhere, per
+/// and Mac with Core ML; Android, Windows and Linux with the ONNX engine) and
+/// hidden elsewhere, per
 /// docs/design/specs/2026-11-18-marine-life-release-gate-design.md. These run
 /// without `--dart-define=MARINE_LIFE_ID`, so they see the default.
 void main() {
@@ -22,22 +23,26 @@ void main() {
     }
   });
 
-  test('off for Android, Windows and Linux by default', () {
+  test('on for Android, Windows and Linux by default', () {
     for (final platform in [
       TargetPlatform.android,
       TargetPlatform.windows,
       TargetPlatform.linux,
-      TargetPlatform.fuchsia,
     ]) {
       debugDefaultTargetPlatformOverride = platform;
-      expect(marineLifeIdEnabled, isFalse, reason: '$platform');
+      expect(marineLifeIdEnabled, isTrue, reason: '$platform');
     }
+  });
+
+  test('off where no engine runs', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+    expect(marineLifeIdEnabled, isFalse);
   });
 
   test('follows the platform on every read', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     expect(marineLifeIdEnabled, isTrue);
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
     expect(marineLifeIdEnabled, isFalse);
   });
 
@@ -47,7 +52,25 @@ void main() {
     // Safari on a Mac reports macOS; the web build has no engine.
     expect(visionEngineRuns(TargetPlatform.macOS, web: true), isFalse);
     expect(visionEngineRuns(TargetPlatform.iOS, web: true), isFalse);
-    expect(visionEngineRuns(TargetPlatform.android, web: false), isFalse);
+  });
+
+  test('the engine runs on Android, Windows and Linux by default', () {
+    for (final platform in [
+      TargetPlatform.android,
+      TargetPlatform.windows,
+      TargetPlatform.linux,
+    ]) {
+      expect(
+        visionEngineRuns(platform, web: false),
+        isTrue,
+        reason: '$platform',
+      );
+      expect(
+        visionEngineRuns(platform, web: true),
+        isFalse,
+        reason: '$platform',
+      );
+    }
   });
 
   test('the harness defaults drop a leftover override', () {
@@ -57,7 +80,7 @@ void main() {
     expect(marineLifeIdEnabled, isTrue);
   });
 
-  test('the ONNX platforms run only with the define', () {
+  test('a build can turn the ONNX platforms off', () {
     for (final platform in [
       TargetPlatform.android,
       TargetPlatform.windows,
@@ -100,8 +123,8 @@ void main() {
     expect(visionVideoRuns(TargetPlatform.android, web: true), isFalse);
   });
 
-  test('the platform defines are off by default', () {
-    expect(marineLifeOnnxPlatforms, isFalse);
+  test('the ONNX platforms are on and the floor kept by default', () {
+    expect(marineLifeOnnxPlatforms, isTrue);
     expect(marineLifeIgnoreFloor, isFalse);
   });
 

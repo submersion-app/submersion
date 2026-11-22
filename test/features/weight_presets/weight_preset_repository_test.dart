@@ -292,4 +292,31 @@ void main() {
     final reread = (await repo.getPresets(diverId: diverId)).single;
     expect(reread.entries.single.label, 'Top pocket');
   });
+
+  test('createPreset writes the preset under the id it is given', () async {
+    final created = await repo.createPreset(
+      id: 'given-id',
+      diverId: diverId,
+      displayName: 'Warm water',
+      entries: [
+        (weightType: WeightType.belt, amountKg: 4.0, notes: '', label: ''),
+      ],
+    );
+
+    expect(created.id, 'given-id');
+    final stored = await repo.getPresetById('given-id');
+    expect(stored?.displayName, 'Warm water');
+    expect(stored?.entries.single.amountKg, 4.0);
+  });
+
+  test('createPreset without an id still makes one', () async {
+    final created = await repo.createPreset(
+      diverId: diverId,
+      displayName: 'Cold water',
+      entries: const [],
+    );
+
+    expect(created.id, isNotEmpty);
+    expect(await repo.getPresetById(created.id), isNotNull);
+  });
 }
