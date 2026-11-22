@@ -288,4 +288,123 @@ void main() {
     expect(diver.createdAt, now);
     expect(diver.updatedAt, now);
   });
+
+  // The profile editor skips a Save whose result equals the stored diver
+  // (issue #4527, phase 4), so Diver's equality must see every field a page
+  // writes: a field missing from Diver.props would make its edits vanish.
+  test('every field a page writes makes the diver differ from storage', () {
+    final base = stored();
+    final changes = <String, Diver>{
+      'name': applyPersonalInfoDraft(base, personal, (
+        name: 'Alice Beta',
+        email: personal.email,
+        phone: '',
+        social: '',
+        sex: null,
+        birthYear: '',
+      )),
+      'email': applyPersonalInfoDraft(base, personal, (
+        name: personal.name,
+        email: 'other@example.com',
+        phone: '',
+        social: '',
+        sex: null,
+        birthYear: '',
+      )),
+      'phone': applyPersonalInfoDraft(base, personal, (
+        name: personal.name,
+        email: personal.email,
+        phone: '555',
+        social: '',
+        sex: null,
+        birthYear: '',
+      )),
+      'social': applyPersonalInfoDraft(base, personal, (
+        name: personal.name,
+        email: personal.email,
+        phone: '',
+        social: '@alice',
+        sex: null,
+        birthYear: '',
+      )),
+      'sex': applyPersonalInfoDraft(base, personal, (
+        name: personal.name,
+        email: personal.email,
+        phone: '',
+        social: '',
+        sex: DiverSex.female,
+        birthYear: '',
+      )),
+      'birth year': applyPersonalInfoDraft(base, personal, (
+        name: personal.name,
+        email: personal.email,
+        phone: '',
+        social: '',
+        sex: null,
+        birthYear: '1985',
+      )),
+      'blood type': applyMedicalInfoDraft(base, medical, (
+        bloodType: 'A+',
+        allergies: '',
+        medications: '',
+        medicalNotes: '',
+      )),
+      'allergies': applyMedicalInfoDraft(base, medical, (
+        bloodType: '',
+        allergies: 'nuts',
+        medications: '',
+        medicalNotes: '',
+      )),
+      'medications': applyMedicalInfoDraft(base, medical, (
+        bloodType: '',
+        allergies: '',
+        medications: 'none',
+        medicalNotes: '',
+      )),
+      'medical notes': applyMedicalInfoDraft(base, medical, (
+        bloodType: '',
+        allergies: '',
+        medications: '',
+        medicalNotes: 'cleared',
+      )),
+      'primary contact': applyEmergencyContactsDraft(base, contacts, (
+        name1: 'Robert',
+        phone1: contacts.phone1,
+        relation1: contacts.relation1,
+        name2: '',
+        phone2: '',
+        relation2: '',
+      )),
+      'secondary contact': applyEmergencyContactsDraft(base, contacts, (
+        name1: contacts.name1,
+        phone1: contacts.phone1,
+        relation1: contacts.relation1,
+        name2: 'Carol',
+        phone2: '',
+        relation2: '',
+      )),
+      'notes': applyDiverNotesDraft(base, (notes: ''), (notes: 'note')),
+      'dive count': applyPriorExperienceDraft(base, prior, (
+        diveCount: '126',
+        hours: prior.hours,
+        minutes: prior.minutes,
+        divingSinceYear: prior.divingSinceYear,
+      )),
+      'prior time': applyPriorExperienceDraft(base, prior, (
+        diveCount: prior.diveCount,
+        hours: '91',
+        minutes: prior.minutes,
+        divingSinceYear: prior.divingSinceYear,
+      )),
+      'diving since': applyPriorExperienceDraft(base, prior, (
+        diveCount: prior.diveCount,
+        hours: prior.hours,
+        minutes: prior.minutes,
+        divingSinceYear: 2005,
+      )),
+    };
+    for (final MapEntry(key: field, value: result) in changes.entries) {
+      expect(result, isNot(base), reason: field);
+    }
+  });
 }
