@@ -5,6 +5,9 @@ import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
@@ -103,8 +106,25 @@ class _FakeSubRepo implements ManifestSubscriptionRepository {
   @override
   Future<void> deleteById(String id) async => deleted.add(id);
 
+  /// No subscription reads the feed yet, so the import creates one.
+  @override
+  Future<ManifestSubscription?> findByManifestUrl(String url) async => null;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A library with no rows left behind by a deleted subscription, so every
+/// entry is new.
+class _EmptyMediaRepo implements MediaRepository {
+  @override
+  Future<Map<String, MediaItem>> getDetachedManifestEntriesByUrl(
+    Iterable<String> urls,
+  ) async => const {};
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} not stubbed');
 }
 
 class _RecordingCoordinator implements MediaDeletionCoordinator {
@@ -138,6 +158,7 @@ void main() {
   Widget host(
     _FakePipeline pipeline, {
     ManifestEntry seedEntry = entry,
+    _FakeSubRepo? subRepo,
     List<Override> extraOverrides = const [],
   }) {
     const stub = _StubFetcher();
@@ -149,6 +170,12 @@ void main() {
         // reads the credentials provider; the real one reaches into the
         // not-initialized [DatabaseService] in tests.
         networkCredentialsServiceProvider.overrideWithValue(_FakeCreds()),
+        // The import first looks for a subscription that already reads the
+        // feed and for rows a deleted one left behind; neither exists here.
+        manifestSubscriptionRepositoryProvider.overrideWithValue(
+          subRepo ?? _FakeSubRepo(),
+        ),
+        mediaRepositoryProvider.overrideWithValue(_EmptyMediaRepo()),
         manifestTabProvider.overrideWith(
           (ref) => _SeededManifestTabNotifier(
             ManifestTabShowingPreview(
@@ -197,6 +224,7 @@ void main() {
       host(
         pipeline,
         seedEntry: matchedEntry,
+        subRepo: subRepo,
         extraOverrides: [
           importSuggestionProvider(matchedTakenAt).overrideWith(
             (ref) async => const ImportSuggestion(
@@ -207,7 +235,6 @@ void main() {
               diveNumber: 9,
             ),
           ),
-          manifestSubscriptionRepositoryProvider.overrideWithValue(subRepo),
           mediaDeletionCoordinatorProvider.overrideWithValue(coordinator),
         ],
       ),
@@ -234,7 +261,7 @@ void main() {
     // panel's confirmation only surfaces once it has dismissed.
     await tester.pump(const Duration(seconds: 5));
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Imported 1 entry'), findsOneWidget);
+    expect(find.text('Imported 1 new entry'), findsOneWidget);
 
     // Undo removes the rows AND the sentinel subscription. Invoked through
     // the action's callback: the queued bar's slide-in leaves the tap
