@@ -16,9 +16,16 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// A controller held at [_fixed] that records what the step asks of it.
 /// [download] never completes, like a real 633 MB download in a test.
 class _RecordingPackController extends SpeciesPackController {
-  _RecordingPackController(this._fixed, {this.fetchesEngine = false});
+  _RecordingPackController(
+    this._fixed, {
+    this.fetchesEngine = false,
+    this.refreshDone,
+  });
   final SpeciesPackState _fixed;
   final bool fetchesEngine;
+
+  /// When given, refresh() waits on it, as a manifest fetch would.
+  final Future<void>? refreshDone;
   var refreshes = 0;
   var downloads = 0;
 
@@ -26,7 +33,10 @@ class _RecordingPackController extends SpeciesPackController {
   SpeciesPackState build() => _fixed;
 
   @override
-  Future<void> refresh() async => refreshes++;
+  Future<void> refresh() async {
+    refreshes++;
+    await refreshDone;
+  }
 
   @override
   Future<void> download() {
@@ -56,8 +66,13 @@ void main() {
     WidgetTester tester,
     SpeciesPackState state, {
     bool fetchesEngine = false,
+    Future<void>? refreshDone,
   }) async {
-    controller = _RecordingPackController(state, fetchesEngine: fetchesEngine);
+    controller = _RecordingPackController(
+      state,
+      fetchesEngine: fetchesEngine,
+      refreshDone: refreshDone,
+    );
     nexts = 0;
     final overrides = <Override>[
       speciesPackControllerProvider.overrideWith(() => controller),
@@ -231,6 +246,25 @@ void main() {
     await pumpStep(tester, const PackInstalled(version: '1', bytes: bytes));
     expect(find.text(l10n.setup_speciesModel_installed), findsOneWidget);
     expect(next, findsOneWidget);
+  });
+
+  // A state left from an earlier visit to Settings may be stale: Download
+  // waits for the step's own check, which a download it started would
+  // otherwise have overwritten.
+  testWidgets('Download waits for the step\'s own check to answer', (
+    tester,
+  ) async {
+    final done = Completer<void>();
+    await pumpStep(
+      tester,
+      const PackNotInstalled(bytes: bytes, resumable: false),
+      refreshDone: done.future,
+    );
+    expect(tester.widget<FilledButton>(download).onPressed, isNull);
+    done.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(tester.widget<FilledButton>(download).onPressed, isNotNull);
   });
 
   testWidgets('while checking, Download waits for the size', (tester) async {

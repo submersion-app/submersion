@@ -67,8 +67,8 @@ final libraryHasPhotosOrVideosProvider = FutureProvider.autoDispose<bool>((
 /// is wanted, the library has a photo or video for the model to look at,
 /// and the sample logbook is not open. Demo mode shares the device's
 /// preferences, so a dismissal made there would carry into the diver's own
-/// setup.
-final homeSpeciesBannerProvider = Provider<bool>((ref) {
+/// setup. Auto-disposed, so the library watch ends when Home goes.
+final homeSpeciesBannerProvider = Provider.autoDispose<bool>((ref) {
   if (ref.watch(demoModeActiveProvider)) return false;
   if (!ref.watch(speciesDownloadPromptProvider)) return false;
   return ref.watch(libraryHasPhotosOrVideosProvider).value ?? false;

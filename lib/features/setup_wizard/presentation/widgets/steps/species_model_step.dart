@@ -36,6 +36,11 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
   /// as the Settings confirmation does.
   var _fetchesEngine = false;
 
+  /// The step's own check has answered. Until then Download waits: a state
+  /// left from an earlier visit to Settings may be stale, and the check would
+  /// overwrite a download started meanwhile.
+  var _checked = false;
+
   @override
   void initState() {
     super.initState();
@@ -43,7 +48,7 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
     // After the first frame: refresh() sets the controller's state, which a
     // build must not do.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(controller.refresh());
+      if (mounted) unawaited(_check(controller));
     });
     unawaited(_askAboutEngine(controller));
   }
@@ -51,6 +56,11 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
   Future<void> _askAboutEngine(SpeciesPackController controller) async {
     final fetches = await controller.downloadFetchesHardwareEngine();
     if (mounted && fetches) setState(() => _fetchesEngine = true);
+  }
+
+  Future<void> _check(SpeciesPackController controller) async {
+    await controller.refresh();
+    if (mounted) setState(() => _checked = true);
   }
 
   void _download() {
@@ -107,7 +117,7 @@ class _SpeciesModelStepState extends ConsumerState<SpeciesModelStep> {
         resumable
             ? l10n.settings_speciesId_resume(formatBytes(bytes))
             : l10n.settings_speciesId_download(formatBytes(bytes)),
-        _download,
+        _checked ? _download : null,
         skip,
       ),
       PackDownloading() || PackInstalling() => (
