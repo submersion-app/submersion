@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -53,6 +54,8 @@ class IncidentEditPage extends ConsumerStatefulWidget {
 
 class _IncidentEditPageState extends ConsumerState<IncidentEditPage>
     with RecordEditorHost<IncidentEditPage, IncidentDraft> {
+  static final _log = LoggerService.forClass(IncidentEditPage);
+
   final _formKey = GlobalKey<FormState>();
   final _narrative = TextEditingController();
   final _factors = TextEditingController();
@@ -93,8 +96,9 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage>
   var _dateTouched = false;
 
   /// The blank form a new report opens its sitting on: what a dive or a
-  /// check-in filled in is a change (a seed).
-  late final IncidentDraft _blank = blankIncidentDraft(_todayWallClockUtc());
+  /// check-in filled in is a change (a seed). Dated as the form is, before
+  /// anything is awaited.
+  late final IncidentDraft _blank;
 
   /// The items a committed Save touched, for the findings refresh after it.
   Set<String> _touched = const {};
@@ -120,6 +124,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage>
   @override
   void initState() {
     super.initState();
+    _blank = blankIncidentDraft(_occurredAt);
     for (final text in [_narrative, _factors, _lessons]) {
       text.addListener(editorChanged);
     }
@@ -318,6 +323,13 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage>
         ? stored.equipmentId
         : changes.equipmentId!.value;
     _touched = {?written, ?stored.equipmentId};
+  }
+
+  @override
+  bool editorSaveFailed(Object error) {
+    // The host says so in a snackbar; the log keeps why.
+    _log.error('Could not save a near-miss', error: error);
+    return false;
   }
 
   @override

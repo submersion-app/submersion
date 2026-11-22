@@ -27,6 +27,8 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 /// Records the create/update/delete calls the edit form makes and loads a
 /// fixed result (or throws) for `getIncidentById`, so every page path can be
@@ -284,6 +286,37 @@ void main() {
       find.widgetWithText(AppBarTextAction, 'Save'),
     );
     expect(save.onPressed, isNotNull);
+  });
+
+  testWidgets('a save that fails is logged', (tester) async {
+    useTallSurface(tester);
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+    final repo = _FakeIncidentRepository(
+      writeError: Exception('database is locked'),
+    );
+
+    await tester.pumpWidget(
+      testAppRouter(
+        locale: const Locale('en'),
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        router: routerFor(const IncidentEditPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Lost a fin');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      logged.where((e) => e.message.contains('database is locked')),
+      isNotEmpty,
+    );
   });
 
   testWidgets('leaving while a save runs still files the report', (
