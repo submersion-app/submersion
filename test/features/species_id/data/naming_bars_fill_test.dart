@@ -146,7 +146,7 @@ void main() {
       'run where they can: named crop files move into the logbook',
       () async {
         marineLifeIdEnabled = true;
-      addTearDown(resetMarineLifeIdEnabled);
+        addTearDown(resetMarineLifeIdEnabled);
         await repo.storeRun(
           run(),
           insert: [identification('a')],
