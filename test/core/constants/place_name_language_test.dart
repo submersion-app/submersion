@@ -19,6 +19,7 @@ void main() {
       'ar',
       'he',
       'zh',
+      'ja',
     ]);
   });
 
@@ -29,6 +30,7 @@ void main() {
   test('normalize tolerates case and whitespace', () {
     expect(PlaceNameLanguage.normalize(' DE '), 'de');
     expect(PlaceNameLanguage.normalize('Zh'), 'zh');
+    expect(PlaceNameLanguage.normalize(' JA '), 'ja');
   });
 
   test('normalize falls back to English for unknown, null or blank', () {
@@ -50,6 +52,10 @@ void main() {
         PlaceNameLanguage.forAppLocale('system', const ['pl', 'de']),
         'de',
       );
+    });
+
+    test('a Japanese device stores place names in Japanese', () {
+      expect(PlaceNameLanguage.forAppLocale('system', const ['ja']), 'ja');
     });
 
     test('device language codes are compared case-insensitively', () {

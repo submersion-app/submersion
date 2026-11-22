@@ -43,6 +43,7 @@ class LanguageSettingsPage extends StatelessWidget {
       nativeName: '简体中文',
       englishName: 'Chinese (Simplified)',
     ),
+    LocaleOption(code: 'ja', nativeName: '日本語', englishName: 'Japanese'),
   ];
 
   @override

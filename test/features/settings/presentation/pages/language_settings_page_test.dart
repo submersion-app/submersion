@@ -102,6 +102,18 @@ void main() {
     expect(find.text('German'), findsOneWidget);
   });
 
+  testWidgets('offers Japanese after Chinese', (tester) async {
+    final codes = LanguageSettingsPage.supportedLocales
+        .map((o) => o.code)
+        .toList();
+    expect(codes.indexOf('ja'), codes.indexOf('zh') + 1);
+
+    await _pumpPage(tester);
+
+    expect(find.text('日本語'), findsOneWidget);
+    expect(find.text('Japanese'), findsOneWidget);
+  });
+
   testWidgets('marks only the current language as selected', (tester) async {
     await _pumpPage(tester, settings: const AppSettings(locale: 'de'));
 
