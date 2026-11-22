@@ -67,3 +67,42 @@ CylinderRowDraft cylinderRowDraft(
   },
   material: item.tankMaterial,
 );
+
+/// [stored], the cylinder as stored now, with the diver's changes on it:
+/// each field whose row draft differs from [start] is taken from [edited],
+/// the form's copy, and every other field, those the editor does not show
+/// among them (the default start pressure), stays as stored, so a value a
+/// sync wrote meanwhile is not put back (issue #4527, phase 4). In cubic
+/// feet a size is a capacity at the working pressure, so a new pressure
+/// brings the litres the form worked out with it.
+CylinderConfigItem mergeCylinderEdits({
+  required CylinderConfigItem stored,
+  required CylinderConfigItem edited,
+  required CylinderRowDraft start,
+  required CylinderRowDraft draft,
+  required bool inCuft,
+}) {
+  final labelChanged = draft.label != start.label;
+  final pressureChanged = draft.pressure != start.pressure;
+  final volumeChanged =
+      draft.volume != start.volume || (inCuft && pressureChanged);
+  final mixChanged = draft.o2 != start.o2 || draft.he != start.he;
+  final modChanged = draft.mod != start.mod;
+  final materialChanged = draft.material != start.material;
+  return stored.copyWith(
+    label: labelChanged ? edited.label : null,
+    clearLabel: labelChanged && edited.label == null,
+    tankRole: draft.role != start.role ? edited.tankRole : null,
+    volumeL: volumeChanged ? edited.volumeL : null,
+    clearVolumeL: volumeChanged && edited.volumeL == null,
+    workingPressureBar: pressureChanged ? edited.workingPressureBar : null,
+    clearWorkingPressureBar:
+        pressureChanged && edited.workingPressureBar == null,
+    o2Percent: mixChanged ? edited.o2Percent : null,
+    hePercent: mixChanged ? edited.hePercent : null,
+    decoSwitchDepth: modChanged ? edited.decoSwitchDepth : null,
+    clearDecoSwitchDepth: modChanged && edited.decoSwitchDepth == null,
+    tankMaterial: materialChanged ? edited.tankMaterial : null,
+    clearTankMaterial: materialChanged && edited.tankMaterial == null,
+  );
+}

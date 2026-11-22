@@ -16,6 +16,7 @@ import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart';
+import 'package:submersion/features/cylinder_configs/presentation/widgets/cylinder_config_item_editor.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -420,6 +421,56 @@ void main() {
 
     final saved = await repo.getConfigById(id);
     expect(saved!.items.map((i) => i.id), ['i1', 'i2', 'i3']);
+  });
+
+  testWidgets('an edited cylinder keeps what storage gave its hidden fields', (
+    tester,
+  ) async {
+    final id = await stored();
+    await pump(tester, configId: id);
+    // Another device sets fields this editor does not show on i1, while the
+    // diver changes i1's label and size.
+    await db.customStatement(
+      "UPDATE cylinder_config_items SET tank_material = 'steel', "
+      "default_start_pressure_bar = 200 WHERE id = 'i1'",
+    );
+    await tester.enterText(
+      find.byKey(CylinderConfigItemEditor.labelFieldKey).first,
+      'Left bailout',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Volume').first,
+      '12',
+    );
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+
+    final saved = (await repo.getConfigById(id))!.items.first;
+    expect(saved.label, 'Left bailout');
+    expect(saved.volumeL, 12);
+    expect(saved.workingPressureBar, 207);
+    expect(saved.tankMaterial, TankMaterial.steel);
+    expect(saved.defaultStartPressureBar, 200);
+  });
+
+  testWidgets('a changed pressure in litres keeps the stored size', (
+    tester,
+  ) async {
+    final id = await stored();
+    await pump(tester, configId: id);
+    await db.customStatement(
+      "UPDATE cylinder_config_items SET volume_l = 15 WHERE id = 'i1'",
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Working P').first,
+      '232',
+    );
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+
+    final saved = (await repo.getConfigById(id))!.items.first;
+    expect(saved.workingPressureBar, 232);
+    expect(saved.volumeL, 15);
   });
 
   testWidgets('a configuration deleted while open is refused at Save', (

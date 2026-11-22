@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -209,17 +210,33 @@ class _CylinderConfigEditPageState extends ConsumerState<CylinderConfigEditPage>
     if (start != null && listEquals(draft.rows, start.rows)) return;
     // The cylinders as stored now, with the diver's own changes on them: a
     // cylinder the diver left alone follows storage (kept as stored, or gone
-    // when removed elsewhere meanwhile), one they changed or added is
-    // written as the form has it, and one added elsewhere meanwhile stays.
+    // when removed elsewhere meanwhile), one they changed takes those
+    // changes on its stored copy, one they added is written as the form has
+    // it, and one added elsewhere meanwhile stays.
     final storedById = {for (final item in stored.items) item.id: item};
     final startById = {for (final row in start?.rows ?? const []) row.id: row};
     final formIds = {for (final item in _items) item.id};
+    final inCuft =
+        ref.read(unitFormatterProvider).settings.volumeUnit ==
+        VolumeUnit.cubicFeet;
+    CylinderConfigItem? toWrite(int i) {
+      final item = _items[i];
+      final row = draft.rows[i];
+      final startRow = startById[row.id];
+      final storedItem = storedById[item.id];
+      if (startRow == row) return storedItem;
+      if (startRow == null || storedItem == null) return item;
+      return mergeCylinderEdits(
+        stored: storedItem,
+        edited: item,
+        start: startRow,
+        draft: row,
+        inCuft: inCuft,
+      );
+    }
+
     await repository.saveItems(recordId, [
-      for (var i = 0; i < _items.length; i++)
-        if (startById[draft.rows[i].id] != draft.rows[i])
-          _items[i]
-        else
-          ?storedById[_items[i].id],
+      for (var i = 0; i < _items.length; i++) ?toWrite(i),
       for (final item in stored.items)
         if (!startById.containsKey(item.id) && !formIds.contains(item.id)) item,
     ]);
