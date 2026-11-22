@@ -170,8 +170,8 @@ From `lib/shared/widgets/record_editing/` and the change log services:
   unlock key to answer.
 - The operation gate (`record_operation_gate.dart`) and `runOperation`, for
   Delete and the transmitter's Remove key.
-- `runRecordSitting` and `createRecordSitting`
-  (`lib/core/services/change_log/record_sitting_writer.dart`), with sync
+- `runRecordSitting` (`lib/core/services/change_log/record_sitting_writer.dart`),
+  for a new record as for a stored one, with sync
   told once after the commit, and `RecordSittingRefusal` for a write the
   database refuses.
 

@@ -27,8 +27,8 @@ presets" and "Weight presets" before starting.
 
 - Never write an em-dash, or an en-dash or double hyphen as sentence
   punctuation, in code, comments, tests, commits or the PR.
-- Nothing written to the repo or GitHub mentions Claude, Claude Code or
-  Anthropic; no co-author trailers.
+- Nothing written to the repo or GitHub names the tools used to write it:
+  no tool attribution and no co-author trailers.
 - Every pull request says `Refs #4527`. This plan's PR also carries the
   design note (`docs/design/specs/2026-11-22-unified-editing-phase-4-design.md`),
   by Eric's decision.
