@@ -18,17 +18,20 @@ void showTracksMatchOutcome({
 }) {
   final positioned = outcome.positionedDiveIds;
   final linked = outcome.linkedTrackCount;
+  // What did happen is said even when a part failed, so a diver knows
+  // which tracks are already linked before trying again.
+  final done = [
+    if (positioned.isNotEmpty) l10n.gpsLogger_matchResult(positioned.length),
+    if (linked > 0) l10n.navTrack_match_linkedResult(linked),
+  ];
   final String message;
   if (outcome.failed) {
-    message = l10n.common_error_tryAgain;
-  } else if (positioned.isEmpty && linked == 0) {
+    message = [...done, l10n.common_error_tryAgain].join(' · ');
+  } else if (done.isEmpty) {
     if (outcome.linkProposals.isNotEmpty) return;
     message = l10n.gpsLogger_matchResultNone;
   } else {
-    message = [
-      if (positioned.isNotEmpty) l10n.gpsLogger_matchResult(positioned.length),
-      if (linked > 0) l10n.navTrack_match_linkedResult(linked),
-    ].join(' · ');
+    message = done.join(' · ');
   }
   messenger
     ..clearSnackBars()

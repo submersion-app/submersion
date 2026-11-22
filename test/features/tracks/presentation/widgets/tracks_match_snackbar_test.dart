@@ -138,4 +138,24 @@ void main() {
     );
     expect(find.byType(SnackBar), findsNothing);
   });
+
+  testWidgets('a part that failed still reports what was linked', (
+    tester,
+  ) async {
+    await _show(
+      tester,
+      TracksMatchOutcome(
+        positionedDiveIds: const [],
+        failed: true,
+        linkProposals: [_proposal, _proposal],
+        linkedTrackCount: 1,
+      ),
+    );
+    expect(
+      find.text(
+        '1 underwater track linked · Something went wrong. Please try again.',
+      ),
+      findsOneWidget,
+    );
+  });
 }

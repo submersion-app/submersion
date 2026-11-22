@@ -147,8 +147,9 @@ mixin _NavTrackRouteLinks {
   /// (#4851). A site the diver chose stays, and so does everything else.
   /// When the site changes, the anchor follows the new site's pin
   /// ([navTrackAnchorChangeForSite]), falling back to the dive's entry fix
-  /// when the dive has no pinned site; an anchor the diver placed by hand
-  /// is never moved.
+  /// when the dive has no site; a site with no pin leaves the route
+  /// unanchored, as an import does. An anchor the diver placed by hand is
+  /// never moved.
   Future<({String? siteId, bool writeAnchor, GeoPoint? anchor})?>
   _siteAndAnchorToInherit(
     domain.NavTrack route,
@@ -179,7 +180,7 @@ mixin _NavTrackRouteLinks {
     final entryLat = diveRow.entryLatitude;
     final entryLon = diveRow.entryLongitude;
     if (change.write &&
-        anchor == null &&
+        newSiteId == null &&
         entryLat != null &&
         entryLon != null) {
       anchor = GeoPoint(entryLat, entryLon);

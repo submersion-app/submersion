@@ -854,6 +854,31 @@ void main() {
         },
       );
 
+      test('a dive site with no coordinates leaves the route unanchored, '
+          'even when the dive has an entry fix (as an import does)', () async {
+        await db.customStatement(
+          "INSERT INTO dive_sites (id, name, created_at, updated_at) "
+          "VALUES ('s0', 'Unpinned', 1, 1)",
+        );
+        await db.customStatement(
+          "INSERT INTO dives (id, dive_date_time, site_id, entry_latitude, "
+          "entry_longitude, created_at, updated_at) "
+          "VALUES ('d1', 1700000000000, 's0', 12.0, 34.0, 1, 1)",
+        );
+        final id = await repo.insertImportedRoute(
+          points: _samplePoints(),
+          source: NavTrackSource.seacraftEnc,
+          sourceRef: 'a.csv',
+        );
+
+        await repo.link(id, 'd1', linkMode: NavTrackLinkMode.manual);
+
+        final route = await repo.getById(id);
+        expect(route!.siteId, 's0');
+        expect(route.anchorLatitude, isNull);
+        expect(route.anchorLongitude, isNull);
+      });
+
       test('linking to a dive with no site and no location leaves the '
           'route\'s site/anchor untouched (null stays null)', () async {
         await _insertMinimalDive(db, 'd1');
