@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:xml/xml.dart';
 
 /// Guards how Android starts the main activity for an intent sent from
@@ -12,7 +13,9 @@ const _androidNs = 'http://schemas.android.com/apk/res/android';
 
 XmlElement _mainActivity() {
   final manifest = XmlDocument.parse(
-    File('android/app/src/main/AndroidManifest.xml').readAsStringSync(),
+    File(
+      p.join('android', 'app', 'src', 'main', 'AndroidManifest.xml'),
+    ).readAsStringSync(),
   );
   return manifest
       .findAllElements('activity')

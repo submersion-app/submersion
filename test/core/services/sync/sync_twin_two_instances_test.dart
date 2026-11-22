@@ -100,6 +100,21 @@ void main() {
     expect(await initA.isForeignUploadNonce('nonce-b', 'fake'), isFalse);
     expect(await initB.isForeignUploadNonce('nonce-a2', 'fake'), isFalse);
   });
+
+  test('a failed reload reads the cached ring instead of failing', () async {
+    final prefs = _IsolateCachedPrefs(platformStore);
+    final initializer = SyncInitializer(
+      syncRepository: repository,
+      prefs: prefs,
+    );
+    await initializer.recordUploadNonce('nonce-a', 'fake');
+    prefs.failReload = true;
+
+    expect(await initializer.isForeignUploadNonce('nonce-a', 'fake'), isFalse);
+    expect(await initializer.isForeignUploadNonce('nonce-x', 'fake'), isTrue);
+    await initializer.recordUploadNonce('nonce-b', 'fake');
+    expect(platformStore['sync_upload_nonces_fake'], ['nonce-b', 'nonce-a']);
+  });
 }
 
 /// One isolate's view of the platform preferences: it snapshots
@@ -118,8 +133,12 @@ class _IsolateCachedPrefs extends Fake implements SharedPreferences {
     return true;
   }
 
+  /// Makes [reload] throw, as a platform storage error would.
+  bool failReload = false;
+
   @override
   Future<void> reload() async {
+    if (failReload) throw StateError('storage unavailable');
     _cache = Map.of(_platform);
   }
 

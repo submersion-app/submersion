@@ -251,9 +251,18 @@ class SyncInitializer {
   /// the same phone (Android once started one for a share sent while the app
   /// ran, #4843) records its nonces in the same store. Read from the cache,
   /// this install's own other instance would look like a twin, and a rewrite
-  /// would drop the nonces it recorded.
+  /// would drop the nonces it recorded. A failed reload falls back to the
+  /// cached ring rather than failing the sync.
   Future<List<String>> _recordedUploadNonces(String providerId) async {
-    await _prefs.reload();
+    try {
+      await _prefs.reload();
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not reload preferences; reading the cached nonce ring',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
     return _prefs.getStringList(_uploadNoncesKey(providerId)) ?? const [];
   }
 
