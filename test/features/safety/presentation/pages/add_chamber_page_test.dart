@@ -259,4 +259,23 @@ void main() {
     expect(find.text('CARD'), findsOneWidget);
     expect(await chamberCount(), 0);
   });
+
+  testWidgets('with no active diver Save writes no chamber', (tester) async {
+    // A chamber with no diver is a global one; the card hides Add then.
+    await pump(
+      tester,
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    await fillRequired(tester);
+    await tapBar(tester, 'Save');
+
+    expect(await chamberCount(), 0);
+    expect(find.byType(AddChamberPage), findsOneWidget);
+    expect(
+      find.text("Couldn't save your changes. Nothing was changed."),
+      findsOneWidget,
+    );
+  });
 }
