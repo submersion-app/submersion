@@ -975,6 +975,26 @@ void main() {
         },
       );
 
+      test('a site picked by hand that is the old dive\'s own counts as the '
+          'old dive\'s: a route keeps no record of where its site came '
+          'from', () async {
+        final id = await linkedToD1();
+        await _insertDiveWithSite(db, 'd2', 's2');
+        await repo.setSite(id, 's1', anchor: const GeoPoint(10.0, 20.0));
+
+        await repo.relink(
+          id,
+          fromDiveId: 'd1',
+          toDiveId: 'd2',
+          linkMode: NavTrackLinkMode.manual,
+        );
+
+        final route = await repo.getById(id);
+        expect(route!.siteId, 's2');
+        expect(route.anchorLatitude, 30.0);
+        expect(route.anchorLongitude, 40.0);
+      });
+
       test('moving to a dive with no site but an entry fix drops the old '
           'dive\'s site and anchors on the entry fix', () async {
         final id = await linkedToD1();

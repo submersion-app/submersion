@@ -120,8 +120,8 @@ mixin _NavTrackRouteLinks {
     required String toDiveId,
     required domain.NavTrackLinkMode linkMode,
   }) async {
-    // Read before the unlink: the old dive's site is what tells a site the
-    // route took from it apart from one the diver chose (#4851).
+    // Read before the unlink: a route still on the old dive's site is taken
+    // to have it from that dive (#4851).
     final previousDiveSiteId = await _siteIdOfDive(fromDiveId);
     await unlink(routeId, onlyFromDiveId: fromDiveId);
     return _linkTo(
@@ -143,8 +143,12 @@ mixin _NavTrackRouteLinks {
   /// null when the route keeps both as they are.
   ///
   /// The route takes the dive's site when it has none, or when its site is
-  /// [previousDiveSiteId], the one it took from the dive it was moved off
-  /// (#4851). A site the diver chose stays, and so does everything else.
+  /// [previousDiveSiteId], the site of the dive it was moved off (#4851).
+  /// A route keeps no record of where its site came from, so that site
+  /// counts as the old dive's even when the diver picked the same one by
+  /// hand: moving the route to a dive elsewhere then moves its site too,
+  /// which is what the diver wants in all but that rare case. Any other
+  /// site stays, and so does everything else.
   /// When the site changes, the anchor follows the new site's pin
   /// ([navTrackAnchorChangeForSite]), falling back to the dive's entry fix
   /// when the dive has no site; a site with no pin leaves the route
