@@ -102,10 +102,12 @@ class _PriorExperienceEditPageState
 
   Future<void> _pickDivingSince() async {
     final now = DateTime.now();
-    final year = _divingSinceYear;
+    // A year synced from a device already in the next year (around New
+    // Year) would start the picker after its last date.
+    final year = (_divingSinceYear ?? now.year - 10).clamp(1900, now.year);
     final picked = await showAppDatePicker(
       context: context,
-      initialDate: year != null ? DateTime(year) : DateTime(now.year - 10),
+      initialDate: DateTime(year),
       firstDate: DateTime(1900),
       lastDate: DateTime(now.year, 12, 31),
       initialDatePickerMode: DatePickerMode.year,

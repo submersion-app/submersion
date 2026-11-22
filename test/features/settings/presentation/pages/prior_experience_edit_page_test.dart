@@ -106,6 +106,19 @@ void main() {
     expect(find.byType(DatePickerDialog), findsNothing);
   });
 
+  testWidgets('a diving-since year after this one still opens the picker', (
+    tester,
+  ) async {
+    // Synced from a device already in the next year (around New Year).
+    await pump(tester, divingSince: DateTime(DateTime.now().year + 1));
+
+    await tester.tap(find.text('Diving since'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(DatePickerDialog), findsOneWidget);
+  });
+
   testWidgets('clearing a previously-set dive count persists null', (
     tester,
   ) async {
