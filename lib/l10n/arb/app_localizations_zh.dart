@@ -36859,6 +36859,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_edit_notFound => '此气瓶预设已不存在。';
+
+  @override
   String tankPresets_edit_gasCapacity(Object capacity) {
     return '• 气体容量：$capacity cuft';
   }

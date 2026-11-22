@@ -39704,6 +39704,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_edit_notFound => 'لم يعد إعداد الأسطوانة هذا موجودًا.';
+
+  @override
   String tankPresets_edit_gasCapacity(Object capacity) {
     return 'سعة الغاز: $capacity cuft •';
   }

@@ -61333,6 +61333,12 @@ abstract class AppLocalizations {
   /// **'Error saving preset: {error}'**
   String tankPresets_edit_errorSaving(Object error);
 
+  /// No description provided for @tankPresets_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This tank preset no longer exists.'**
+  String get tankPresets_edit_notFound;
+
   /// No description provided for @tankPresets_edit_gasCapacity.
   ///
   /// In en, this message translates to:

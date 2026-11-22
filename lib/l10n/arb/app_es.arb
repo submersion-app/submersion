@@ -9758,6 +9758,7 @@
   "tankPresets_edit_descriptionOptional": "Descripción (opcional)",
   "tankPresets_edit_errorLoading": "Error al cargar preset: {error}",
   "tankPresets_edit_errorSaving": "Error al guardar preset: {error}",
+  "tankPresets_edit_notFound": "Este preset de tanque ya no existe.",
   "tankPresets_edit_gasCapacity": "- Capacidad de gas: {capacity} cuft",
   "tankPresets_edit_material": "Material",
   "tankPresets_edit_name": "Nombre",

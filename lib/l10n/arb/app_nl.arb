@@ -9758,6 +9758,7 @@
   "tankPresets_edit_descriptionOptional": "Beschrijving (optioneel)",
   "tankPresets_edit_errorLoading": "Fout bij laden instelling: {error}",
   "tankPresets_edit_errorSaving": "Fout bij opslaan instelling: {error}",
+  "tankPresets_edit_notFound": "Deze flesinstelling bestaat niet meer.",
   "tankPresets_edit_gasCapacity": "• Gascapaciteit: {capacity} cuft",
   "tankPresets_edit_material": "Materiaal",
   "tankPresets_edit_name": "Naam",

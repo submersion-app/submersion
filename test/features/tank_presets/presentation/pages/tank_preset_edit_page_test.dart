@@ -322,13 +322,18 @@ void main() {
     late ProviderContainer container;
 
     /// The editor pushed over a stand-in list, in psi and cubic feet.
-    Future<void> pumpEditor(WidgetTester tester, {String? presetId}) async {
+    Future<void> pumpEditor(
+      WidgetTester tester, {
+      String? presetId,
+      bool failLoad = false,
+      bool settle = true,
+    }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final settings = MockSettingsNotifier();
       await settings.setPressureUnit(PressureUnit.psi);
       await settings.setVolumeUnit(VolumeUnit.cubicFeet);
-      repo = _MockTankPresetRepository(preset: stored);
+      repo = _MockTankPresetRepository(preset: stored)..failLoad = failLoad;
       list = _MockTankPresetListNotifier([stored]);
       final router = GoRouter(
         routes: [
@@ -371,7 +376,7 @@ void main() {
           .read(currentDiverIdProvider.notifier)
           .setCurrentDiver('diver-1');
       router.push('/edit');
-      await tester.pumpAndSettle();
+      if (settle) await tester.pumpAndSettle();
     }
 
     Finder saveAction() => find.widgetWithText(AppBarTextAction, 'Save');
@@ -447,6 +452,43 @@ void main() {
       },
     );
 
+    testWidgets('a preset that no longer exists says so and leaves', (
+      tester,
+    ) async {
+      await pumpEditor(tester, presetId: 'gone');
+      expect(find.text('This tank preset no longer exists.'), findsOneWidget);
+      expect(find.byType(TankPresetEditPage), findsNothing);
+      expect(find.text('list'), findsOneWidget);
+    });
+
+    testWidgets('a preset that fails to load says so and leaves', (
+      tester,
+    ) async {
+      await pumpEditor(tester, presetId: 'p1', failLoad: true);
+      expect(find.textContaining('Error loading preset'), findsOneWidget);
+      expect(find.byType(TankPresetEditPage), findsNothing);
+      expect(find.text('list'), findsOneWidget);
+    });
+
+    testWidgets('a new preset opens on the tinted bar from its first frame', (
+      tester,
+    ) async {
+      await pumpEditor(tester, settle: false);
+      // The first frame that builds the editor, offstage or not, already
+      // shows the bar.
+      Finder built(Type type) => find.byType(type, skipOffstage: false);
+      for (
+        var i = 0;
+        i < 5 && built(TankPresetEditPage).evaluate().isEmpty;
+        i++
+      ) {
+        await tester.pump();
+      }
+      expect(built(TankPresetEditPage), findsOneWidget);
+      expect(built(RecordEditBar), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+    });
+
     testWidgets('a new preset typed in closes on a diver switch, writing '
         'nothing', (tester) async {
       await pumpEditor(tester);
@@ -469,6 +511,8 @@ class _MockTankPresetRepository extends TankPresetRepository {
 
   _MockTankPresetRepository({this.preset});
 
+  bool failLoad = false;
+
   final created = <TankPresetEntity>[];
   final updated = <TankPresetEntity>[];
 
@@ -485,6 +529,7 @@ class _MockTankPresetRepository extends TankPresetRepository {
 
   @override
   Future<TankPresetEntity?> getPresetById(String id) async {
+    if (failLoad) throw StateError('database closed');
     if (preset != null && preset!.id == id) {
       return preset;
     }

@@ -16,6 +16,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -410,6 +411,55 @@ void main() {
       unawaited(navigator.maybePop());
       await tester.pumpAndSettle();
     }
+
+    testWidgets('a new preset opens on the tinted bar from its first frame', (
+      tester,
+    ) async {
+      final base = await getBaseOverrides();
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(body: Text('list')),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (_, _) => const WeightPresetEditorPage(),
+              ),
+            ],
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base.cast<Override>(),
+            weightPresetRepositoryProvider.overrideWithValue(repo),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      router.push('/new');
+      // The first frame that builds the editor, offstage or not, already
+      // shows the bar.
+      Finder built(Type type) => find.byType(type, skipOffstage: false);
+      for (
+        var i = 0;
+        i < 5 && built(WeightPresetEditorPage).evaluate().isEmpty;
+        i++
+      ) {
+        await tester.pump();
+      }
+      expect(built(WeightPresetEditorPage), findsOneWidget);
+      expect(built(RecordEditBar), findsOneWidget);
+      expect(find.byType(BackButton), findsNothing);
+    });
 
     testWidgets('a new preset with its one blank row is unchanged', (
       tester,

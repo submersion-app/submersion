@@ -7,7 +7,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -71,8 +70,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
     if (widget.isEditing) {
       _loadPreset();
     } else {
-      // A new preset starts empty: its sitting opens on the empty form.
-      WidgetsBinding.instance.addPostFrameCallback((_) => openEditor());
+      // A new preset starts empty: its sitting opens on the empty form, so
+      // the first frame already shows the Cancel and Save bar.
+      openEditor();
     }
   }
 
@@ -115,16 +115,16 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
           );
         });
         openEditor();
+      } else if (preset == null && mounted) {
+        // A stale link or a preset deleted on another device: there is
+        // nothing to edit, so say so and go back to the list.
+        _leaveUnopened(context.l10n.tankPresets_edit_notFound);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.tankPresets_edit_errorLoading(e.toString()),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
+        _leaveUnopened(
+          context.l10n.tankPresets_edit_errorLoading(e.toString()),
+          isError: true,
         );
       }
     } finally {
@@ -132,6 +132,18 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  /// Says [message] and leaves a preset that could not be opened: an empty
+  /// form with no Save would only mislead.
+  void _leaveUnopened(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
+      ),
+    );
+    Navigator.of(context).maybePop();
   }
 
   @override
@@ -287,6 +299,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
   String get editorTable => 'tank_presets';
 
   @override
+  String get editorLeaveLocation => '/tank-presets';
+
+  @override
   String? get editorStoredId => widget.presetId;
 
   @override
@@ -406,7 +421,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
       );
       return;
     }
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final diverId = editorDiverId;
     if (diverId == null) {
       throw StateError('A new tank preset needs an active diver');
     }

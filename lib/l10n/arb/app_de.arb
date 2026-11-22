@@ -9892,6 +9892,7 @@
   "tankPresets_edit_descriptionOptional": "Beschreibung (optional)",
   "tankPresets_edit_errorLoading": "Fehler beim Laden der Vorlage: {error}",
   "tankPresets_edit_errorSaving": "Fehler beim Speichern der Vorlage: {error}",
+  "tankPresets_edit_notFound": "Diese Flaschenvorlage existiert nicht mehr.",
   "tankPresets_edit_gasCapacity": "- Gaskapazität: {capacity} cuft",
   "tankPresets_edit_material": "Material",
   "tankPresets_edit_name": "Name",

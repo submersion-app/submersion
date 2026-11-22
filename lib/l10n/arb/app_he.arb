@@ -9758,6 +9758,7 @@
   "tankPresets_edit_descriptionOptional": "תיאור (אופציונלי)",
   "tankPresets_edit_errorLoading": "שגיאה בטעינת תבנית: {error}",
   "tankPresets_edit_errorSaving": "שגיאה בשמירת תבנית: {error}",
+  "tankPresets_edit_notFound": "תבנית המיכל הזו כבר לא קיימת.",
   "tankPresets_edit_gasCapacity": "• קיבולת גז: {capacity} cuft",
   "tankPresets_edit_material": "חומר",
   "tankPresets_edit_name": "שם",

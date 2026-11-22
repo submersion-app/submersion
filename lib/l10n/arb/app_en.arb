@@ -23834,6 +23834,7 @@
       }
     }
   },
+  "tankPresets_edit_notFound": "This tank preset no longer exists.",
   "tankPresets_edit_gasCapacity": "• Gas capacity: {capacity} cuft",
   "@tankPresets_edit_gasCapacity": {
     "placeholders": {

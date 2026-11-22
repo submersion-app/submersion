@@ -8,7 +8,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weight_label_field.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
@@ -97,7 +96,7 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
       // A new preset starts with one blank belt row: a default, not a
       // change, so the sitting opens on it.
       _rows.add(_newRow(WeightType.belt));
-      WidgetsBinding.instance.addPostFrameCallback((_) => openEditor());
+      openEditor();
     }
   }
 
@@ -182,6 +181,9 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
   String get editorTable => 'weight_presets';
 
   @override
+  String get editorLeaveLocation => '/weight-presets';
+
+  @override
   String? get editorStoredId => widget.presetId;
 
   @override
@@ -223,7 +225,7 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
       );
       return;
     }
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final diverId = editorDiverId;
     if (diverId == null) {
       throw StateError('A new weight preset needs an active diver');
     }

@@ -9632,6 +9632,7 @@
   "tankPresets_edit_descriptionOptional": "Description (facultatif)",
   "tankPresets_edit_errorLoading": "Erreur de chargement du preset : {error}",
   "tankPresets_edit_errorSaving": "Erreur d'enregistrement du preset : {error}",
+  "tankPresets_edit_notFound": "Ce preset de bloc n'existe plus.",
   "tankPresets_edit_gasCapacity": "- Capacité de gaz : {capacity} cuft",
   "tankPresets_edit_material": "Matériau",
   "tankPresets_edit_name": "Nom",

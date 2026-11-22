@@ -38243,6 +38243,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_edit_notFound => 'תבנית המיכל הזו כבר לא קיימת.';
+
+  @override
   String tankPresets_edit_gasCapacity(Object capacity) {
     return '• קיבולת גז: $capacity cuft';
   }

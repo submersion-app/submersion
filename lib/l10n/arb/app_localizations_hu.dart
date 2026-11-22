@@ -38985,6 +38985,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_edit_notFound => 'Ez a palacksablon már nem létezik.';
+
+  @override
   String tankPresets_edit_gasCapacity(Object capacity) {
     return '- Gáz kapacitás: $capacity cuft';
   }

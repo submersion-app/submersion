@@ -9904,6 +9904,7 @@
   "tankPresets_edit_descriptionOptional": "描述（可选）",
   "tankPresets_edit_errorLoading": "加载预设时出错：{error}",
   "tankPresets_edit_errorSaving": "保存预设时出错：{error}",
+  "tankPresets_edit_notFound": "此气瓶预设已不存在。",
   "tankPresets_edit_gasCapacity": "• 气体容量：{capacity} cuft",
   "tankPresets_edit_material": "材质",
   "tankPresets_edit_name": "名称",

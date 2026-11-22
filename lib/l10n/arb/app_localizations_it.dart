@@ -39199,6 +39199,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_edit_notFound =>
+      'Questo preset bombola non esiste più.';
+
+  @override
   String tankPresets_edit_gasCapacity(Object capacity) {
     return '• Capacità gas: $capacity cuft';
   }

@@ -9628,6 +9628,7 @@
   "tankPresets_edit_descriptionOptional": "Descrizione (opzionale)",
   "tankPresets_edit_errorLoading": "Errore caricamento preset: {error}",
   "tankPresets_edit_errorSaving": "Errore salvataggio preset: {error}",
+  "tankPresets_edit_notFound": "Questo preset bombola non esiste più.",
   "tankPresets_edit_gasCapacity": "• Capacità gas: {capacity} cuft",
   "tankPresets_edit_material": "Materiale",
   "tankPresets_edit_name": "Nome",

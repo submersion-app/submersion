@@ -39291,6 +39291,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_edit_notFound => 'Ce preset de bloc n\'existe plus.';
+
+  @override
   String tankPresets_edit_gasCapacity(Object capacity) {
     return '- Capacité de gaz : $capacity cuft';
   }
