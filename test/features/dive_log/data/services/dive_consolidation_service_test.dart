@@ -902,12 +902,15 @@ void main() {
         List<domain.DiveTank> wholeTanks = const [],
         List<domain.DiveTank> halfTanks = const [],
         bool halfHasSource = true,
+        String? wholeComputerId = 'comp-x',
+        String? serial,
       }) async {
         await seedDive(
           'whole',
           entry: DateTime.utc(2026, 4, 10, 19, 52),
           runtimeMin: 48,
-          computerId: 'comp-x',
+          computerId: wholeComputerId,
+          serial: serial,
           tanks: wholeTanks,
           profile: whole,
         );
@@ -928,6 +931,7 @@ void main() {
           ).add(const Duration(seconds: 1300)),
           runtimeMin: 26,
           computerId: 'comp-x',
+          serial: serial,
           tanks: halfTanks,
           profile: secondHalf,
         );
@@ -1130,6 +1134,149 @@ void main() {
         )..where((e) => e.diveId.equals('whole'))).get();
         expect(events.map((e) => e.id), ['ev-whole']);
       });
+
+      test('repeats no event the target holds when only the serial ties the '
+          'target to the copy\'s computer', () async {
+        // The target was never linked to a computer row; the serial is what
+        // shows the copy came from the same one.
+        await seedSplitDive(wholeComputerId: null, serial: 'SN-1');
+        await seedEvent(
+          'ev-whole',
+          diveId: 'whole',
+          timestamp: 1500,
+          eventType: 'safetyStopStart',
+        );
+        await seedEvent(
+          'ev-half',
+          diveId: 'half',
+          timestamp: 200,
+          eventType: 'safetyStopStart',
+        );
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final events = await (db.select(
+          db.diveProfileEvents,
+        )..where((e) => e.diveId.equals('whole'))).get();
+        expect(events.map((e) => e.id), ['ev-whole']);
+      });
+
+      test(
+        'keeps the readings the target\'s pressure series do not cover',
+        () async {
+          await seedSplitDive(
+            wholeTanks: [tank('tk-w', o2: 21, start: 200, end: 60, order: 0)],
+            halfTanks: [tank('tk-h', o2: 21, start: 200, end: 60, order: 0)],
+          );
+          // The target's series stops at 1800 s; the copy runs on to 2700 s.
+          await tankSeries.insertSeries(
+            id: 'tp-w',
+            diveId: 'whole',
+            tankId: 'tk-w',
+            samples: const [
+              TankPressureSample(timestamp: 1300, pressure: 130),
+              TankPressureSample(timestamp: 1800, pressure: 110),
+            ],
+            now: 1000,
+          );
+          await tankSeries.insertSeries(
+            id: 'tp-h',
+            diveId: 'half',
+            tankId: 'tk-h',
+            samples: const [
+              TankPressureSample(timestamp: 200, pressure: 125),
+              TankPressureSample(timestamp: 1400, pressure: 70),
+            ],
+            now: 1000,
+          );
+
+          await service.apply(
+            targetDiveId: 'whole',
+            secondaryDiveIds: ['half'],
+          );
+
+          final held = await tankSeries.getSeriesForDive('whole');
+          expect(held, hasLength(2));
+          final own = held.singleWhere((s) => s.id == 'tp-w');
+          expect(own.samples, hasLength(2));
+          final added = held.singleWhere((s) => s.id != 'tp-w');
+          expect(added.tankId, 'tk-w');
+          expect(added.samples, const [
+            TankPressureSample(timestamp: 2700, pressure: 70),
+          ]);
+        },
+      );
+
+      test('keeps the copy\'s pressures where only another computer\'s series '
+          'covers the cylinder', () async {
+        await seedSplitDive(
+          wholeTanks: [tank('tk-w', o2: 21, start: 200, end: 60, order: 0)],
+          halfTanks: [tank('tk-h', o2: 21, start: 200, end: 60, order: 0)],
+        );
+        await tankSeries.insertSeries(
+          id: 'tp-other',
+          diveId: 'whole',
+          tankId: 'tk-w',
+          computerId: 'comp-y',
+          samples: const [
+            TankPressureSample(timestamp: 1300, pressure: 130),
+            TankPressureSample(timestamp: 2880, pressure: 60),
+          ],
+          now: 1000,
+        );
+        await seedTankPressureSeries(
+          'tp-h',
+          diveId: 'half',
+          tankId: 'tk-h',
+          timestamp: 200,
+          pressure: 120,
+        );
+
+        await service.apply(targetDiveId: 'whole', secondaryDiveIds: ['half']);
+
+        final held = await tankSeries.getSeriesForDive('whole');
+        expect(held, hasLength(2));
+        final added = held.singleWhere((s) => s.id != 'tp-other');
+        expect(added.samples.single.timestamp, 1500);
+      });
+
+      test(
+        'lets two switches of the copy repeat only one of the target\'s',
+        () async {
+          await seedSplitDive(
+            wholeTanks: [tank('tk-w', o2: 21, start: 200, end: 60, order: 0)],
+            halfTanks: [tank('tk-h', o2: 21, start: 200, end: 60, order: 0)],
+          );
+          await seedGasSwitch(
+            'sw-w',
+            diveId: 'whole',
+            tankId: 'tk-w',
+            timestamp: 1500,
+          );
+          await seedGasSwitch(
+            'sw-h-1',
+            diveId: 'half',
+            tankId: 'tk-h',
+            timestamp: 199,
+          );
+          await seedGasSwitch(
+            'sw-h-2',
+            diveId: 'half',
+            tankId: 'tk-h',
+            timestamp: 201,
+          );
+
+          await service.apply(
+            targetDiveId: 'whole',
+            secondaryDiveIds: ['half'],
+          );
+
+          final switches = await (db.select(
+            db.gasSwitches,
+          )..where((g) => g.diveId.equals('whole'))).get();
+          expect(switches, hasLength(2));
+        },
+      );
 
       test('adds no source for a copy that has no source row', () async {
         await seedSplitDive(halfHasSource: false);

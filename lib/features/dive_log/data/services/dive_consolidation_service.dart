@@ -153,13 +153,10 @@ class DiveConsolidationService {
 
     final foldedEventIds = <String, String>{}; // old event id -> id on target
     // What the target already holds of the stretch an exact copy repeats:
-    // pressure series per cylinder, read before anything is written.
-    final targetTankSeriesTankIds = plan.duplicateIds.isEmpty
-        ? const <String>{}
-        : {
-            for (final s in await _tankSeries.getSeriesForDive(targetDiveId))
-              s.tankId,
-          };
+    // its pressure series, read before anything is written.
+    final targetTankSeries = plan.duplicateIds.isEmpty
+        ? null
+        : await _tankSeries.getSeriesForDive(targetDiveId);
     await _db.transaction(() async {
       await _diveRepo.backfillPrimaryDataSource(targetDiveId);
 
@@ -320,6 +317,7 @@ class DiveConsolidationService {
         targetComputerId: targetRow.computerId,
         eventRows: snapshot.eventRows,
         gasSwitchRows: snapshot.gasSwitchRows,
+        targetTankSeries: targetTankSeries ?? const [],
       );
 
       for (final secondary in plan.secondaries) {
@@ -521,11 +519,17 @@ class DiveConsolidationService {
         for (final s in await _tankSeries.getSeriesForDive(secondary.id)) {
           final mappedTank = tankIdMap[s.tankId];
           if (mappedTank == null || s.samples.isEmpty) continue;
+          final shifted = [for (final p in s.samples) p.shiftedBy(offset)];
           // An exact copy repeats the pressures the cylinder already has on
-          // the target; only a cylinder with none gets them.
-          if (isDuplicate && targetTankSeriesTankIds.contains(mappedTank)) {
-            continue;
-          }
+          // the target; only the readings the target's series lack are kept.
+          final samples = isDuplicate
+              ? copyMatcher.uncoveredPressures(
+                  shifted,
+                  mappedTank,
+                  secRow.computerId,
+                )
+              : shifted;
+          if (samples.isEmpty) continue;
           // A source that is none of the secondary's own tells no more than
           // no source at all, so such a series follows the unattributed rule.
           final copiedSourceId = s.sourceId == null
@@ -545,7 +549,7 @@ class DiveConsolidationService {
             sourceId:
                 copiedSourceId ??
                 (secSources.length > 1 ? null : sourceIdMap[null]),
-            samples: [for (final p in s.samples) p.shiftedBy(offset)],
+            samples: samples,
             now: now,
           );
         }
