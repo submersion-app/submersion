@@ -36,6 +36,29 @@ void main() {
     expect(tombstones.map((t) => t.entityType), contains('emergencyChambers'));
   });
 
+  test('createChamber writes the chamber under the id it is given', () async {
+    final created = await repo.createChamber(
+      id: 'given-id',
+      name: 'Local Chamber',
+      country: 'US',
+      phone: '+1-555-0100',
+    );
+
+    expect(created.id, 'given-id');
+    expect((await repo.getUserChambers()).single.id, 'given-id');
+  });
+
+  test('createChamber without an id still makes one', () async {
+    final created = await repo.createChamber(
+      name: 'Local Chamber',
+      country: 'US',
+      phone: '+1-555-0100',
+    );
+
+    expect(created.id, isNotEmpty);
+    expect((await repo.getUserChambers()).single.id, created.id);
+  });
+
   test('watchChanges exposes a stream over the emergency_chambers table', () {
     expect(repo.watchChanges(), isA<Stream<void>>());
   });

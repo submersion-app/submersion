@@ -2006,6 +2006,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'add-chamber',
                         name: 'addChamber',
+                        onExit: confirmLeaveRecordSitting,
                         builder: (context, state) => const AddChamberPage(),
                       ),
                       GoRoute(
