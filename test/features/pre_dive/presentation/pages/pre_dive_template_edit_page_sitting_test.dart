@@ -346,6 +346,40 @@ void main() {
     expect(items.last.sourceItemId, isNull);
   });
 
+  testWidgets('a section title being typed is a change, and Save writes it', (
+    tester,
+  ) async {
+    final id = await stored();
+    await pump(tester, templateId: id);
+    // The title field keeps the focus: the rename has not been committed.
+    await tester.enterText(find.widgetWithText(TextField, 'Gas'), 'Back gas');
+    await tester.pump();
+    expect(save(tester).onPressed, isNotNull);
+
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.pumpAndSettle();
+    expect((await repo.getSectionsForTemplate(id)).single.title, 'Back gas');
+  });
+
+  testWidgets('Back with a section title being typed asks first', (
+    tester,
+  ) async {
+    await pump(tester, templateId: await stored());
+    await tester.enterText(find.widgetWithText(TextField, 'Gas'), 'Back gas');
+    await tester.pump();
+
+    await back(tester);
+    expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
+  testWidgets('a section title typed blank is no change', (tester) async {
+    await pump(tester, templateId: await stored());
+    await tester.enterText(find.widgetWithText(TextField, 'Gas'), '  ');
+    await tester.pump();
+
+    expect(save(tester).onPressed, isNull);
+  });
+
   testWidgets('Back after renaming asks; Keep editing keeps the name', (
     tester,
   ) async {

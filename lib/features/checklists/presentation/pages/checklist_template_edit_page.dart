@@ -42,6 +42,21 @@ class _ChecklistTemplateEditPageState
   final _descriptionController = TextEditingController();
   List<EditableChecklistItem> _items = [];
   List<EditableChecklistSection> _sections = [];
+
+  /// Section titles being typed, by section id: the section editor renames
+  /// a section only when its title field lets go, and a title being typed
+  /// is already a change.
+  final Map<String, String> _typedTitles = {};
+
+  /// [_sections] as shown, with each title being typed as the rename it
+  /// will become: trimmed, and the title it had when typed blank.
+  List<EditableChecklistSection> get _shownSections => [
+    for (final section in _sections)
+      switch (_typedTitles[section.id]?.trim()) {
+        final typed? when typed.isNotEmpty => section.copyWith(title: typed),
+        _ => section,
+      },
+  ];
   bool _loaded = false;
 
   @override
@@ -172,7 +187,7 @@ class _ChecklistTemplateEditPageState
   ChecklistTemplateDraft readEditorDraft() => checklistTemplateDraft(
     name: _nameController.text,
     description: _descriptionController.text,
-    sections: _sections,
+    sections: _shownSections,
     itemsInDisplayOrder: _itemsInDisplayOrder(),
   );
 
@@ -186,7 +201,7 @@ class _ChecklistTemplateEditPageState
     diverId: editorDiverId,
     draft: readEditorDraft(),
     start: editorCreating ? null : editorStartDraft,
-    sections: _sections,
+    sections: _shownSections,
     itemsInDisplayOrder: _itemsInDisplayOrder(),
   );
 
@@ -293,7 +308,12 @@ class _ChecklistTemplateEditPageState
           ];
         });
       },
+      onTitleChanged: (id, text) {
+        _typedTitles[id] = text;
+        editorChanged();
+      },
       onRenameSection: (id, title) async {
+        _typedTitles.remove(id);
         _change(() {
           _sections = [
             for (final s in _sections)
@@ -308,6 +328,7 @@ class _ChecklistTemplateEditPageState
         });
       },
       onDeleteSection: (id, {moveItemsToSectionId}) async {
+        _typedTitles.remove(id);
         _change(() {
           if (moveItemsToSectionId != null) {
             _items = [
