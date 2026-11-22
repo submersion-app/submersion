@@ -110,23 +110,22 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
     // Inside or right after a link whose markup the diver broke, a pin's
     // link would make that one harder to mend (#4815): asked to mend it
     // first, the diver is not asked when it happened.
-    if (touchesBrokenAnnotationLink(before)) {
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text(context.l10n.notesEditor_annotate_brokenLink)),
-      );
-      return;
-    }
+    if (touchesBrokenAnnotationLink(before)) return _sayMendFirst();
     final result = await ask(selectedWords(before));
     if (result == null || !mounted) return;
-    _apply((v) {
-      final value = v.text == before.text ? before : v;
-      return wrapSelectionAsAnnotation(
-        value,
-        id: result.id,
-        words: result.words,
-      );
-    });
+    final now = widget.controller.value;
+    final value = now.text == before.text ? before : now;
+    // Notes changed while the sheet was up are checked again.
+    if (touchesBrokenAnnotationLink(value)) return _sayMendFirst();
+    _apply(
+      (_) =>
+          wrapSelectionAsAnnotation(value, id: result.id, words: result.words),
+    );
   }
+
+  void _sayMendFirst() => ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+    SnackBar(content: Text(context.l10n.notesEditor_annotate_brokenLink)),
+  );
 
   void _setPreview(bool on) {
     if (on == _previewing) return;

@@ -166,7 +166,7 @@ int _brokenMarkupStart(String notes, int address) {
   return address - _markupLeft.firstMatch(before)!.group(0)!.length;
 }
 
-final RegExp _blankLine = RegExp(r'\n[ \t]*\n');
+final RegExp _blankLine = RegExp(r'\n[ \t\r]*\n');
 
 /// A link's words up to the end of the text, from their opening bracket,
 /// with the `]`, `](` or `(` still after them: without any of these, a `[`

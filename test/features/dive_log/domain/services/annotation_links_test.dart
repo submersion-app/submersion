@@ -327,6 +327,10 @@ void main() {
         marked('[Calm\n\nVomit](annotation:a1'),
         '[Calm\n\nVomit<](annotation:a1>',
       );
+      expect(
+        marked('[Calm\r\n\r\nVomit](annotation:a1'),
+        '[Calm\r\n\r\nVomit<](annotation:a1>',
+      );
     });
 
     test('the shape the report left: the broken link, not the pin', () {

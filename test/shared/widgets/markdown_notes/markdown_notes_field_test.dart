@@ -156,6 +156,28 @@ void main() {
         expect(controller.text, startsWith('Calm\n[Fff](annotation:b2)'));
       });
 
+      testWidgets('notes broken while the sheet was up are checked again', (
+        tester,
+      ) async {
+        await pump(
+          tester,
+          text: 'Calm',
+          onAnnotate: (_) async {
+            controller.value = const TextEditingValue(
+              text: broken,
+              selection: TextSelection.collapsed(offset: broken.length),
+            );
+            return (id: 'b2', words: 'Fff');
+          },
+        );
+        controller.selection = const TextSelection.collapsed(offset: 4);
+        await tester.tap(find.byTooltip('Annotate'));
+        await tester.pumpAndSettle();
+
+        expect(controller.text, broken);
+        expect(find.text(refusal), findsOneWidget);
+      });
+
       testWidgets('once mended, a pin after it goes through', (tester) async {
         await pump(
           tester,
