@@ -125,6 +125,17 @@ void main() {
     expect(key.volumeL, closeTo(77.1 * 28.3168 / bar, 1e-9));
   });
 
+  test('a cuft size with no working pressure is read at the assumed one', () {
+    // As the app shows a tank with no pressure: at 200 bar.
+    final key = save(
+      form: draft(volume: '80', pressure: ''),
+      settings: imperial,
+    );
+
+    expect(key.workingPressureBar, isNull);
+    expect(key.volumeL, closeTo(80 * 28.3168 / 200, 1e-9));
+  });
+
   test('a changed role keeps a serial changed in storage meanwhile', () {
     final start = draft();
     final key = save(

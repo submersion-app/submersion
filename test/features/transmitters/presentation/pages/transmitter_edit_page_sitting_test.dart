@@ -203,6 +203,24 @@ void main() {
     },
   );
 
+  testWidgets('a size with no working pressure shows in cuft, unchanged', (
+    tester,
+  ) async {
+    await repo.create(key('k1', workingPressureBar: null));
+    await open(
+      tester,
+      transmitterId: 'k1',
+      settings: const AppSettings(
+        volumeUnit: VolumeUnit.cubicFeet,
+        pressureUnit: PressureUnit.psi,
+      ),
+    );
+
+    // 11.1 L at the assumed 200 bar is 78.4 cuft.
+    expect(find.widgetWithText(TextFormField, '78.4'), findsOneWidget);
+    expect(save(tester).onPressed, isNull);
+  });
+
   testWidgets(
     'a new key prefilled with the item serial opens with Save enabled',
     (tester) async {

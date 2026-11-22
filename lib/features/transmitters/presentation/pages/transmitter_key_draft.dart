@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -106,8 +107,14 @@ Transmitter transmitterKeyToSave({
   } else if (volumeDisplay == null) {
     volumeL = null;
   } else {
-    volumeL = inCuft && workingPressureBar != null && workingPressureBar > 0
-        ? volumeDisplay * _litersPerCuft / workingPressureBar
+    // In cubic feet a size with no working pressure is read at the one the
+    // app assumes, as it is shown: never as that many litres.
+    volumeL = inCuft
+        ? volumeDisplay *
+              _litersPerCuft /
+              (workingPressureBar != null && workingPressureBar > 0
+                  ? workingPressureBar
+                  : assumedWorkingPressureBar)
         : volumeDisplay;
   }
 

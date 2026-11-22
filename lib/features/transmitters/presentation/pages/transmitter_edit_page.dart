@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -233,11 +234,15 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage>
     double? workingPressureBar,
   ) {
     if (volumeL != null) {
-      final cuft = workingPressureBar != null
-          ? volumeL * workingPressureBar / 28.3168
-          : null;
-      _volumeController.text =
-          settings.volumeUnit == VolumeUnit.cubicFeet && cuft != null
+      // With no working pressure, at the one the app assumes for a tank
+      // with none, as the key's Save reads it back.
+      final cuft =
+          volumeL *
+          (workingPressureBar != null && workingPressureBar > 0
+              ? workingPressureBar
+              : assumedWorkingPressureBar) /
+          28.3168;
+      _volumeController.text = settings.volumeUnit == VolumeUnit.cubicFeet
           ? formatRoundedForInput(cuft, 1)
           // A small bottle keeps two decimals, as the tank editor does: a
           // 0.85 L argon bottle must not save as 0.9 (issue #4243).
