@@ -18,6 +18,11 @@ abstract final class SyncCoordinator {
   static int _depth = 0;
   static int _started = 0;
 
+  /// Bumped by [reset]. A turn counts toward [busy] only while the
+  /// generation it began in is still current, so a turn a test left running
+  /// cannot take one off the next test's count when it ends (issue #4900).
+  static int _generation = 0;
+
   /// Whether a body is running or queued.
   static bool get busy => _depth > 0;
 
@@ -63,6 +68,7 @@ abstract final class SyncCoordinator {
     // schedules its listeners in, and which may have stopped running (a
     // widget test's fake zone, when many test files share an isolate).
     final previous = _depth == 0 ? Future<void>.value() : _tail;
+    final generation = _generation;
     final done = Completer<void>();
     _tail = done.future;
     _depth++;
@@ -75,18 +81,20 @@ abstract final class SyncCoordinator {
         // A callback the body scheduled keeps its zone after the turn ends,
         // and a join from it must then queue like any other run.
         current.active = false;
-        _depth--;
+        if (generation == _generation) _depth--;
         done.complete();
       }
     });
   }
 
-  /// Drops the queue. Only for tests, which restore it in `tearDown`.
+  /// Drops the queue. Only for tests, which restore it in `tearDown`. A turn
+  /// still running carries on, but no longer counts toward [busy].
   @visibleForTesting
   static void reset() {
     _tail = Future<void>.value();
     _depth = 0;
     _started = 0;
+    _generation++;
   }
 }
 

@@ -389,6 +389,14 @@ void main() {
         isNotEmpty,
         reason: 'the replace wrote the marker',
       );
+
+      // The intent clears before the launch sync's turn ends. Let the turn
+      // finish here, so it does not run on into the next test's database
+      // (issue #4900).
+      for (var i = 0; i < 250 && SyncCoordinator.busy; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(SyncCoordinator.busy, isFalse);
     });
 
     test('stays dormant when no cloud provider is configured', () async {
