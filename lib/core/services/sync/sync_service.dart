@@ -9,6 +9,8 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/cylinder_volume_repair.dart';
+import 'package:submersion/core/database/duplicate_primary_series_repair.dart';
+import 'package:submersion/core/database/lone_download_source_repair.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/last_service_date_repair.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
@@ -1469,6 +1471,10 @@ class SyncService {
             for (final dive in remotePayload.data.dives) ?dive['id'] as String?,
             for (final source in remotePayload.data.diveDataSources)
               ?source['diveId'] as String?,
+            // A series row can arrive alone, and the duplicate-series repair
+            // reads only the dives named here (issue #4847).
+            for (final series in remotePayload.data.diveProfileSeries)
+              ?series['diveId'] as String?,
           },
         );
         return result;
@@ -1503,7 +1509,10 @@ class SyncService {
   /// one is not repaired here but as the serializer writes each dive row
   /// (`withDiveRatingInScale`), which conflict resolution also goes through.
   /// One below v368 publishes a cylinder volume typed in cubic feet and
-  /// stored as water volume (issue #4534).
+  /// stored as water volume (issue #4534). One below v380 publishes a lone
+  /// download with no primary row, which the v356 stamp then took for a
+  /// combined dive, and a live series duplicating its source's own under
+  /// another computer's label (issue #4847); both read the touched dives.
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {
       final db = DatabaseService.instance.database;
@@ -1518,6 +1527,12 @@ class SyncService {
       }
       if (await stampCombinedDiveSourceSlots(db, diveIds: touchedDiveIds) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.diveDataSources)});
+      }
+      if (await repairLoneDownloadSources(db, diveIds: touchedDiveIds) > 0) {
+        db.notifyUpdates({TableUpdate.onTable(db.diveDataSources)});
+      }
+      if (await demoteDuplicatePrimarySeries(db, diveIds: touchedDiveIds) > 0) {
+        db.notifyUpdates({TableUpdate.onTable(db.diveProfileSeries)});
       }
       if (await repairLastServiceDates(db) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.equipment)});

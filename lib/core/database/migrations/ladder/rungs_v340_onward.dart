@@ -301,5 +301,17 @@ extension RungsFromV340 on AppDatabase {
     // or null; re-asserted in beforeOpen. The floor does not move.
     if (from < 379) await _assertAveloLineColumns();
     if (from < 379) await reportProgress();
+
+    // v380 (issue #4847): a lone download the v356 stamp took for a combined
+    // dive gets its source back as primary with no slot, so a re-parse can
+    // replace the profile again; and a live series duplicating its source's
+    // own under another computer's label (left by the v182 pack) is demoted.
+    // Data only, so the floor does not move. Both rewrite is_primary, which
+    // is never null: declaring it in changeLogRewrittenColumns would refuse
+    // restoring every source row and series deleted before v380, so it is
+    // left out, and both repairs run again after each inbound sync apply.
+    if (from < 380) await repairLoneDownloadSources(this);
+    if (from < 380) await demoteDuplicatePrimarySeries(this);
+    if (from < 380) await reportProgress();
   }
 }
