@@ -101,6 +101,22 @@ void main() {
     expect(await initB.isForeignUploadNonce('nonce-a2', 'fake'), isFalse);
   });
 
+  test('overlapping records in one isolate keep both nonces', () async {
+    final initializer = SyncInitializer(
+      syncRepository: repository,
+      prefs: _IsolateCachedPrefs(platformStore),
+    );
+
+    // Unawaited between them: the second reload is fetched before the first
+    // write lands, and would otherwise put the stale ring back in the cache.
+    await Future.wait([
+      initializer.recordUploadNonce('nonce-a', 'fake'),
+      initializer.recordUploadNonce('nonce-b', 'fake'),
+    ]);
+
+    expect(platformStore['sync_upload_nonces_fake'], ['nonce-b', 'nonce-a']);
+  });
+
   test('a failed reload reads the cached ring instead of failing', () async {
     final prefs = _IsolateCachedPrefs(platformStore);
     final initializer = SyncInitializer(
@@ -120,7 +136,8 @@ void main() {
 /// One isolate's view of the platform preferences: it snapshots
 /// [_platform] when created and serves reads from that snapshot until
 /// [reload], while writes go through to [_platform], as the plugin's
-/// `SharedPreferences` does.
+/// `SharedPreferences` does. A reload replaces the cache with what it fetched
+/// a round trip earlier, so it can undo a write made in between.
 class _IsolateCachedPrefs extends Fake implements SharedPreferences {
   _IsolateCachedPrefs(this._platform) : _cache = Map.of(_platform);
 
@@ -139,7 +156,10 @@ class _IsolateCachedPrefs extends Fake implements SharedPreferences {
   @override
   Future<void> reload() async {
     if (failReload) throw StateError('storage unavailable');
-    _cache = Map.of(_platform);
+    // Fetched now, applied after a platform round trip, as the plugin does.
+    final fetched = Map.of(_platform);
+    await Future<void>.delayed(Duration.zero);
+    _cache = fetched;
   }
 
   @override

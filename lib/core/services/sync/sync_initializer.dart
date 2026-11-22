@@ -75,6 +75,11 @@ class SyncInitializer {
   /// changes. Optional so the headless isolate and unit tests need none.
   final PeerDeviceNameStore? _peerNames;
 
+  /// The ring update in flight, so updates run one after another. Each reads
+  /// the ring fresh before it rewrites it; overlapping, a later reload could
+  /// put back a ring fetched before the earlier write and drop its nonce.
+  Future<void> _ringUpdate = Future<void>.value();
+
   /// Resolves localizations for the [SyncCheckResult] messages. Injected by
   /// `syncInitializerProvider`; defaults to English so an un-wired caller (a
   /// unit test, the headless isolate) stays deterministic.
@@ -269,7 +274,22 @@ class SyncInitializer {
   /// Record a nonce this install's own manifest on [providerId] carries, or is
   /// about to. A nonce already held moves up rather than taking a second slot,
   /// so a resumed publish retrying its manifest costs the ring nothing.
-  Future<void> recordUploadNonce(String nonce, String providerId) async {
+  ///
+  /// Updates through this initializer are serialized. Two isolates writing in
+  /// the same instant could still lose a nonce, and the next twin check would
+  /// then misread that upload; since #4843 only one engine runs sync, and
+  /// the background isolate records no nonces.
+  Future<void> recordUploadNonce(String nonce, String providerId) {
+    final update = _ringUpdate.then(
+      (_) => _writeUploadNonce(nonce, providerId),
+    );
+    // A failed update must not block the ones queued behind it; the caller
+    // still sees its own failure through [update].
+    _ringUpdate = update.then<void>((_) {}, onError: (Object _) {});
+    return update;
+  }
+
+  Future<void> _writeUploadNonce(String nonce, String providerId) async {
     final nonces = [
       nonce,
       ...(await _recordedUploadNonces(providerId)).where((n) => n != nonce),
