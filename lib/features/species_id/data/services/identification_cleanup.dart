@@ -105,14 +105,24 @@ class IdentificationCleanup {
 
   /// The crop files and embeddings of identifications this logbook has
   /// deleted (issue #4890): what a sync's hook missed, by a crash or a
-  /// failure. Only files whose id this logbook holds a tombstone for,
-  /// since the crops folder is shared by every logbook on the device, so
-  /// only while the sync keeps that tombstone: at least 30 days, and until
-  /// every peer has acknowledged it.
+  /// failure. The crops folder is shared by every logbook on the device, so
+  /// only files of this logbook's photos whose id it holds a tombstone
+  /// for, and only while the sync keeps that tombstone: at least 30 days,
+  /// and until every peer has acknowledged it. A restored copy of this
+  /// logbook shares its photos and ids, and is treated as this logbook, as
+  /// every delete of a crop here is.
   /// Embeddings with no file behind them are left to the local cache
   /// sweep.
   Future<void> _sweepDeletedLeftovers() async {
-    final files = await _crops.fileIds();
+    final onDisk = await _crops.fileIds();
+    if (onDisk.isEmpty) return;
+    // Only this logbook's photos: sync logs a peer's tombstone even for an
+    // identification that was never here (issue #4890).
+    final here = await _identifications.mediaHereAmong(onDisk.keys);
+    final files = {
+      for (final MapEntry(key: mediaId, value: ids) in onDisk.entries)
+        if (here.contains(mediaId)) mediaId: ids,
+    };
     if (files.isEmpty) return;
     final gone = await _identifications.deletedAmong(
       files.values.expand((ids) => ids),

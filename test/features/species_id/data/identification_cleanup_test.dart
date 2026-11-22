@@ -296,6 +296,22 @@ void main() {
       );
     });
 
+    test('the launch sweep keeps another logbook\'s crop even when this one '
+        'holds a tombstone for its id', () async {
+      // Sync logs a peer's tombstone whether or not the row was here.
+      await deletedByPeer('i-other');
+      await crops.write('m-other', 'i-other', jpeg);
+      await embeddings.put({'i-other': vector}, classifierId: 'clf');
+
+      await cleanup.sweepOrphans();
+
+      expect(await crops.allPresent('m-other', ['i-other']), isTrue);
+      expect(
+        await embeddings.get(['i-other'], classifierId: 'clf'),
+        hasLength(1),
+      );
+    });
+
     test('a failure does not escape the sync hook', () async {
       await library.close();
       await expectLater(

@@ -6,8 +6,10 @@ part of 'media_identification_repository.dart';
 extension MediaIdentificationTombstones on MediaIdentificationRepository {
   /// Those of [ids] this logbook holds a tombstone for and no row. Read
   /// from what is committed: an apply that rolled back left its rows, so
-  /// their ids are not among them. An id this logbook never had is not
-  /// either, so another logbook's crops on this device are left alone.
+  /// their ids are not among them. A tombstone alone does not show the
+  /// row was ever here: sync logs a peer's tombstone whether or not it
+  /// found the row, so callers sweeping files shared by every logbook
+  /// also check the media is this logbook's ([mediaHereAmong]).
   Future<Set<String>> deletedAmong(Iterable<String> ids) async {
     final wanted = ids.toSet().toList();
     if (wanted.isEmpty) return const {};
@@ -35,6 +37,35 @@ extension MediaIdentificationTombstones on MediaIdentificationRepository {
       deleted.addAll(tombstoned.toSet().difference(live.toSet()));
     }
     return deleted;
+  }
+
+  /// Those of [mediaIds] this logbook holds: a media row, or a run of the
+  /// marine life model on it. Another logbook's photo has its own media
+  /// id, so its crops folder is never among them.
+  Future<Set<String>> mediaHereAmong(Iterable<String> mediaIds) async {
+    final wanted = mediaIds.toSet();
+    if (wanted.isEmpty) return const {};
+    final db = _db;
+    final media = db.media;
+    final runs = db.mediaIdentificationRuns;
+    final here = <String>{};
+    for (final slice in wanted.slices(MediaIdentificationRepository._slice)) {
+      here.addAll(
+        await (db.selectOnly(media)
+              ..addColumns([media.id])
+              ..where(media.id.isIn(slice)))
+            .map((r) => r.read(media.id)!)
+            .get(),
+      );
+      here.addAll(
+        await (db.selectOnly(runs)
+              ..addColumns([runs.mediaId])
+              ..where(runs.mediaId.isIn(slice)))
+            .map((r) => r.read(runs.mediaId)!)
+            .get(),
+      );
+    }
+    return here;
   }
 
   /// Those of [ids] with no row in this logbook, as committed: for ids
