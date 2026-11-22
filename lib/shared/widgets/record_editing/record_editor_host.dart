@@ -371,8 +371,9 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   bool _isAnotherDiver(String? diverId) =>
       _diverAtOpen != null && diverId != _diverAtOpen;
 
-  /// Leaves the page now, once: for an editor whose record could not be
-  /// opened (gone, or failed to load) as for a finished one.
+  /// Leaves the page, once: for an editor whose record could not be opened
+  /// (gone, or failed to load) as for a finished one. A page whose route is
+  /// still coming in leaves as soon as it has.
   void leaveEditor() {
     if (_leaving || !mounted) return;
     _leaving = true;
