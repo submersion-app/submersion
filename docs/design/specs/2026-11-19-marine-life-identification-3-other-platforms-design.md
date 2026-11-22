@@ -580,8 +580,17 @@ video:
   4 GB and 6 GB devices (the builder sets it from what such phones report);
 - if it fails, Android launches at 8 GB, the 6.5 GiB cut-off.
 
-The same run records the 6a's times (model load, a photo, a video chunk) in
-the findings, as a mid-range reference.
+**Settled by the run (D2, 2026-11-22): it failed.** Android's low memory
+killer stopped the app twice on the 6a, both times within a second of the
+camera opening, with identification holding the app at 3.0 to 3.3 GB. So
+Android launches at 8 GB. The build went on by uninstalling the Play copy,
+the maintainer's choice that day. Figures in
+[the phone memory findings](../findings/2026-11-17-marine-life-phone-memory.md#on-a-pixel-6a).
+
+The same run was to record the 6a's times (model load, a photo, a video
+chunk) in the findings, as a mid-range reference. It could not: the app does
+not log when a stage starts, and the video scanned was a single 2 second
+chunk, so the 6a's times are still unmeasured.
 
 ### 6. The accuracy gate
 
@@ -737,7 +746,8 @@ differs.
 - Whether the worker calls the frame channel directly.
 - Pass 1's decoder on Android (`MediaCodec` is proposed; anything that
   decodes in order and stays well under the detectors' time will do).
-- The Android cut-off value for a 6 GB floor, if the 6a passes.
+- The Android cut-off value for a 6 GB floor, if the 6a passes (not
+  needed: it failed).
 - How the scorer builds or calls the scoring runner, and how it finds ONNX
   Runtime's macOS library.
 - How the measurement build reaches the 6a as an update.
@@ -795,8 +805,9 @@ differs.
 ## Risks
 
 - **Phone speed.** On the 6a's processor, a photo may take several seconds
-  and video will run well behind playback. The decision is to accept that; a
-  measured figure comes from the 6a run.
+  and video will run well behind playback. The decision is to accept that.
+  The 6a run gave no measured figure (see section 5), so phone speed is
+  still unmeasured.
 - **Phone memory.** The 1.5 to 2.5 GB peak is an estimate. Android's limit is
   the phone's whole memory, shared with whatever else is open.
 - **Load time.** Creating a session for a 600 MB model on a phone may take

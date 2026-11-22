@@ -8,10 +8,11 @@ import 'package:submersion/features/species_id/domain/entities/vision_memory.dar
 /// never report more than 6 GiB.
 const int pcMinimumMemoryBytes = 6979321856; // 6.5 GiB
 
-/// The least memory an Android phone or tablet needs: 8 GB at launch, as on
-/// iPhone, until a 6 GB phone (the maintainer's Pixel 6a) has been measured
-/// (piece 3, section 5 of
-/// docs/design/specs/2026-11-19-marine-life-identification-3-other-platforms-design.md).
+/// The least memory an Android phone or tablet needs: 8 GB, as on iPhone. A
+/// 6 GB phone (the maintainer's Pixel 6a) was measured and failed: Android
+/// stopped the app twice with the models loaded (piece 3, section 5 of
+/// docs/design/specs/2026-11-19-marine-life-identification-3-other-platforms-design.md,
+/// and docs/design/findings/2026-11-17-marine-life-phone-memory.md).
 const int androidMinimumMemoryBytes = 6979321856; // 6.5 GiB
 
 /// The device's memory, for the floor and the debug log's readout.
