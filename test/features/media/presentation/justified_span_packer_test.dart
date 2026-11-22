@@ -186,6 +186,32 @@ void main() {
       }
     });
 
+    test('with tiles enough but no split above the minimum width, a large '
+        'item stands alone and the tiles flow under it', () {
+      // Every split of these tiles beside a 3:1 panorama puts one under
+      // 150 px, though there are plenty to fill both rows.
+      final cells = pack(
+        const [3.0],
+        List.filled(20, 1.25),
+        paneWidth: 880,
+        minTileWidth: 150,
+      );
+      expect(cells.first.rect, const Rect.fromLTWH(0, 0, 3 * twoRows, twoRows));
+      expect(cells[1].rect.top, closeTo(twoRows + gap, 1e-9));
+      expect(cells[1].rect.left, 0);
+    });
+
+    test('a large item alone at the pane width stops at three rows', () {
+      // A 1:3 portrait on a 200 px pane: too little beside it, and at the
+      // full width it would be 600 tall.
+      final cells = pack(const [1 / 3], const [], paneWidth: 200);
+      const cap = 3 * target + 2 * gap;
+      final rect = cells.single.rect;
+      expect(rect.topLeft, Offset.zero);
+      expect(rect.height, closeTo(cap, 1e-9));
+      expect(rect.width, closeTo(cap / 3, 1e-9));
+    });
+
     test('nothing overlaps and nothing passes the pane edge', () {
       for (final pane in [phone, 600.0, wide]) {
         final cells = pack(const [4 / 3, 0.75], mixed, paneWidth: pane);

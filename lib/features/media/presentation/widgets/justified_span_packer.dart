@@ -32,7 +32,9 @@ class JustifiedSpanCell {
 /// that keeps both nearest [targetHeight]. Every item keeps its ratio.
 ///
 /// A large item with less than [targetHeight] of pane beside it at two rows'
-/// height fills the pane width on its own. One with no tiles left keeps two
+/// height fills the pane width on its own, up to three rows' height. If no
+/// split of plenty of tiles keeps each at [minTileWidth], it stands alone at
+/// two rows and the tiles flow on under it. One with no tiles left keeps two
 /// rows' height and is not stretched, and tiles too few to fill both rows
 /// sit beside it at the target height, as the row packer leaves its last row.
 ///
@@ -50,6 +52,7 @@ List<JustifiedSpanCell> packJustifiedSpans({
   final floor = targetHeight > 0 ? minTileWidth / targetHeight : 0.0;
   final tiles = [for (final r in tileRatios) math.max(r, floor)];
   final twoRows = 2 * targetHeight + gap;
+  final threeRows = 3 * targetHeight + 2 * gap;
   final cells = <JustifiedSpanCell>[];
   var top = 0.0;
   var next = 0;
@@ -92,8 +95,12 @@ List<JustifiedSpanCell> packJustifiedSpans({
         JustifiedSpanCell(isLarge: true, index: l, rect: rect);
 
     if (beside < targetHeight) {
-      final height = ratio > 0 ? paneWidth / ratio : twoRows;
-      cells.add(large(Rect.fromLTWH(0, top, paneWidth, height)));
+      // The pane's width, but never taller than three rows: a portrait on a
+      // narrow pane narrows instead.
+      final natural = ratio > 0 ? paneWidth / ratio : twoRows;
+      final height = math.min(natural, threeRows);
+      final soloWidth = height < natural ? ratio * height : paneWidth;
+      cells.add(large(Rect.fromLTWH(0, top, soloWidth, height)));
       top += height;
       continue;
     }
@@ -102,17 +109,13 @@ List<JustifiedSpanCell> packJustifiedSpans({
       top += twoRows;
       continue;
     }
-    final split = _bestSplit(
-      largeRatio: ratio,
+    if (!_fillsTwoRows(
       tiles: tiles,
       first: next,
-      paneWidth: paneWidth,
       targetHeight: targetHeight,
       gap: gap,
-      minTileWidth: minTileWidth,
       besideAtTwoRows: beside,
-    );
-    if (split == null) {
+    )) {
       // Too few tiles to fill both rows: they keep the target height.
       cells.add(large(Rect.fromLTWH(0, top, width, twoRows)));
       final bottom = placeRows(
@@ -129,6 +132,22 @@ List<JustifiedSpanCell> packJustifiedSpans({
       );
       next = tiles.length;
       top = math.max(top + twoRows, bottom);
+      continue;
+    }
+    final split = _bestSplit(
+      largeRatio: ratio,
+      tiles: tiles,
+      first: next,
+      paneWidth: paneWidth,
+      targetHeight: targetHeight,
+      gap: gap,
+      minTileWidth: minTileWidth,
+    );
+    if (split == null) {
+      // Tiles enough, but every split puts one under the minimum width:
+      // the large item stands alone and the tiles flow on under it.
+      cells.add(large(Rect.fromLTWH(0, top, width, twoRows)));
+      top += twoRows;
       continue;
     }
     final largeWidth = ratio * split.height;
@@ -217,10 +236,28 @@ typedef _Split = ({
 /// a row at the target height can hold beside anything.
 const int _kMaxRowTiles = 40;
 
+/// Whether the tiles from [first], at [targetHeight], reach across both
+/// rows beside a large item, each [besideAtTwoRows] wide. Fewer keep the
+/// target height, as the row packer's last row does.
+bool _fillsTwoRows({
+  required List<double> tiles,
+  required int first,
+  required double targetHeight,
+  required double gap,
+  required double besideAtTwoRows,
+}) {
+  final left = tiles.length - first;
+  if (left < 2) return false;
+  var total = 0.0;
+  for (var i = first; i < tiles.length; i++) {
+    total += tiles[i];
+  }
+  return total * targetHeight + gap * (left - 2) >= 2 * besideAtTwoRows;
+}
+
 /// The split of the tiles from [first] into two rows beside a large item of
-/// [largeRatio] that keeps both rows nearest [targetHeight], or null when
-/// the tiles left cannot fill both rows at that height or no split keeps
-/// every tile at [minTileWidth].
+/// [largeRatio] that keeps both rows nearest [targetHeight], or null when no
+/// split keeps every tile at [minTileWidth].
 ///
 /// With the block H tall, the large item is `largeRatio * H` wide and a row
 /// of ratio sum S and n tiles is `(paneWidth - largeRatio * H - gap * n) / S`
@@ -234,18 +271,8 @@ _Split? _bestSplit({
   required double targetHeight,
   required double gap,
   required double minTileWidth,
-  required double besideAtTwoRows,
 }) {
   final left = tiles.length - first;
-  if (left < 2) return null;
-  var total = 0.0;
-  for (var i = first; i < tiles.length; i++) {
-    total += tiles[i];
-  }
-  // At the target height the tiles must reach across both rows.
-  if (total * targetHeight + gap * (left - 2) < 2 * besideAtTwoRows) {
-    return null;
-  }
 
   _Split? best;
   var bestCost = double.infinity;
