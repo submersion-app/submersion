@@ -69,16 +69,42 @@ void main() {
       start: stored(),
       linkable: null,
     );
-    expect(changes.link, isNull);
+    expect(changes.observationId, isNull);
+    expect(changes.diveId, isNull);
   });
 
-  test('a check-in picked writes its link and its dive', () {
+  test('a check-in picked writes it, its item and its dive', () {
     final changes = incidentChanges(
       draft: stored(observationId: 'o2', checkInDiveId: 'd2'),
       start: stored(),
       linkable: 'o2',
     );
-    expect(changes.link, (diveId: 'd2', observationId: 'o2'));
+    expect(changes.observationId, (value: 'o2'));
+    expect(changes.equipmentId, (value: 'reg'));
+    expect(changes.diveId, (value: 'd2'));
+  });
+
+  test('a check-in on the dive the report already has leaves the dive as '
+      'stored', () {
+    // Only the link changed: a dive synced in meanwhile is not overwritten
+    // with the one the page loaded.
+    final start = stored(
+      observationId: null,
+      diveId: 'd1',
+      checkInDiveId: null,
+    );
+    final picked = stored(
+      observationId: 'o2',
+      diveId: 'd1',
+      checkInDiveId: 'd1',
+    );
+    final changes = incidentChanges(
+      draft: picked,
+      start: start,
+      linkable: 'o2',
+    );
+    expect(changes.observationId, (value: 'o2'));
+    expect(changes.diveId, isNull);
   });
 
   test('a check-in that has gone takes its dive with it', () {
@@ -87,7 +113,9 @@ void main() {
       start: stored(),
       linkable: null,
     );
-    expect(changes.link, (diveId: null, observationId: null));
+    expect(changes.observationId, (value: null));
+    expect(changes.diveId, (value: null));
+    expect(changes.equipmentId, isNull);
   });
 
   test('the report keeps its own dive when its check-in goes', () {
@@ -114,7 +142,9 @@ void main() {
     );
     final changes = incidentChanges(draft: moved, start: start, linkable: null);
     expect(changes.equipmentId, (value: 'bcd'));
-    expect(changes.link, (diveId: null, observationId: null));
+    expect(changes.observationId, (value: null));
+    // The report's own dive is the same before and after: left as stored.
+    expect(changes.diveId, isNull);
   });
 
   test('an unchanged draft changes nothing', () {

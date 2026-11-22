@@ -55,10 +55,14 @@ String? incidentOptionalText(String text) {
 
 /// What Save writes on a stored report: each field whose draft value
 /// differs from [start]'s, texts trimmed and blank optional ones cleared.
-/// The links only when the check-in, a dive or the item changed (a
+///
+/// The check-in is written, as [linkable] (the chosen check-in, when it can
+/// still be linked), when the check-in, a dive or the item changed: a
 /// check-in belongs to one item, so a link stored on the old one, even one
-/// that reads as none, must not follow), then as [linkable] (the chosen
-/// check-in, when it can still be linked) and [incidentSavedDiveId].
+/// that reads as none, must not follow. A check-in written goes with the
+/// item it is on. The dive is written only when the dive the report saves
+/// with ([incidentSavedDiveId]) is not the one it started with, so a
+/// change of check-in alone leaves a dive synced in meanwhile as stored.
 IncidentChanges incidentChanges({
   required IncidentDraft draft,
   required IncidentDraft start,
@@ -69,6 +73,9 @@ IncidentChanges incidentChanges({
       draft.observationId != start.observationId ||
       draft.diveId != start.diveId ||
       draft.checkInDiveId != start.checkInDiveId;
+  final savedDive = incidentSavedDiveId(draft, linkable);
+  final startDive = incidentSavedDiveId(start, start.observationId);
+  final itemChanged = draft.equipmentId != start.equipmentId;
   return IncidentChanges(
     occurredAt: draft.occurredAt == start.occurredAt ? null : draft.occurredAt,
     category: draft.category == start.category ? null : draft.category,
@@ -82,14 +89,10 @@ IncidentChanges incidentChanges({
     lessonsLearned: draft.lessons == start.lessons
         ? null
         : (value: incidentOptionalText(draft.lessons)),
-    equipmentId: draft.equipmentId == start.equipmentId
-        ? null
-        : (value: draft.equipmentId),
-    link: linkChanged
-        ? (
-            diveId: incidentSavedDiveId(draft, linkable),
-            observationId: linkable,
-          )
+    equipmentId: itemChanged || (linkChanged && linkable != null)
+        ? (value: draft.equipmentId)
         : null,
+    observationId: linkChanged ? (value: linkable) : null,
+    diveId: linkChanged && savedDive != startDive ? (value: savedDive) : null,
   );
 }

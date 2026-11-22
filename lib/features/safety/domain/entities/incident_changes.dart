@@ -14,7 +14,8 @@ class IncidentChanges extends Equatable {
     this.contributingFactors,
     this.lessonsLearned,
     this.equipmentId,
-    this.link,
+    this.diveId,
+    this.observationId,
   });
 
   /// A timezone-stable wall-clock date, stored as UTC.
@@ -26,9 +27,12 @@ class IncidentChanges extends Equatable {
   final ({String? value})? lessonsLearned;
   final ({String? value})? equipmentId;
 
-  /// The report's dive and its check-in, written together: a dive that came
-  /// with a check-in goes when the check-in does.
-  final ({String? diveId, String? observationId})? link;
+  /// The report's dive: written only when the dive it saves with changed,
+  /// so a dive synced in meanwhile survives a change of check-in alone.
+  final ({String? value})? diveId;
+
+  /// The check-in behind the report.
+  final ({String? value})? observationId;
 
   /// Nothing to write.
   bool get isEmpty =>
@@ -39,7 +43,8 @@ class IncidentChanges extends Equatable {
       contributingFactors == null &&
       lessonsLearned == null &&
       equipmentId == null &&
-      link == null;
+      diveId == null &&
+      observationId == null;
 
   @override
   List<Object?> get props => [
@@ -50,6 +55,7 @@ class IncidentChanges extends Equatable {
     contributingFactors,
     lessonsLearned,
     equipmentId,
-    link,
+    diveId,
+    observationId,
   ];
 }

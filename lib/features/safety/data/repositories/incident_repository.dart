@@ -116,7 +116,8 @@ class IncidentRepository {
     final factors = changes.contributingFactors;
     final lessons = changes.lessonsLearned;
     final equipment = changes.equipmentId;
-    final link = changes.link;
+    final dive = changes.diveId;
+    final observation = changes.observationId;
     final written =
         await (_db.update(_db.incidents)..where((t) => t.id.equals(id))).write(
           db.IncidentsCompanion(
@@ -141,10 +142,10 @@ class IncidentRepository {
             equipmentId: equipment == null
                 ? const Value.absent()
                 : Value(equipment.value),
-            diveId: link == null ? const Value.absent() : Value(link.diveId),
-            observationId: link == null
+            diveId: dive == null ? const Value.absent() : Value(dive.value),
+            observationId: observation == null
                 ? const Value.absent()
-                : Value(link.observationId),
+                : Value(observation.value),
             updatedAt: Value(now),
           ),
         );

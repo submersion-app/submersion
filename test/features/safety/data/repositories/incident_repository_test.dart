@@ -277,12 +277,12 @@ void main() {
       expect(back.contributingFactors, 'Cold water.');
     });
 
-    test('applyIncidentChanges writes the dive and check-in links', () async {
+    test('applyIncidentChanges writes the dive link', () async {
       await insertDive('d1');
       final incident = await stored();
       await repo.applyIncidentChanges(
         incident.id,
-        const IncidentChanges(link: (diveId: 'd1', observationId: null)),
+        const IncidentChanges(diveId: (value: 'd1')),
       );
       expect((await repo.getIncidentById(incident.id))!.diveId, 'd1');
     });
