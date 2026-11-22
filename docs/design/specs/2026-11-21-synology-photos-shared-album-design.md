@@ -215,6 +215,12 @@ The URL tab's manifest mode is the entry point; nothing new in navigation.
   page asks for one suggestion per row and rebuilds as each arrives; with
   several hundred rows that froze the app for minutes in the prototype test,
   and nobody wants to tick hundreds of rows by hand.
+- Poll now on a share's subscription (Settings, network sources) that fails
+  for want of a password, none saved or the saved one refused
+  (`synologyNeedsPassword`), opens a password dialog, saves the password for
+  the share and polls again; a refused one asks again until cancelled. A
+  lost password is fixed where the subscription is, not by pasting the link
+  again.
 - Review rows and the network thumbnail widget paint Synology's `sm`
   rendition instead of downloading originals.
 - `ManifestEntry.filename` carries the original file name: shown in review

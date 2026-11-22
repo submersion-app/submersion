@@ -13,6 +13,16 @@ import 'package:submersion/features/media/data/synology/synology_share_sessions.
 /// a stored password the share rejected.
 const String kSynologyPasswordMissingMessage = 'This share needs its password';
 
+/// The failure message when the share refused the saved password.
+const String kSynologyPasswordRejectedMessage =
+    'The share did not accept the password';
+
+/// Whether a fetch failure [message] means the share wants a (different)
+/// password, which the user can fix by typing one.
+bool synologyNeedsPassword(String? message) =>
+    message == kSynologyPasswordMissingMessage ||
+    message == kSynologyPasswordRejectedMessage;
+
 /// Reads a shared Synology Photos album as if it were a manifest feed, so the
 /// subscription poller and the manifest panel need no Synology branch.
 ///
@@ -77,7 +87,7 @@ class SynologyAlbumSource {
         return ManifestFetchFailure(
           statusCode: 401,
           message: saved
-              ? 'The share did not accept the password'
+              ? kSynologyPasswordRejectedMessage
               : kSynologyPasswordMissingMessage,
         );
       }

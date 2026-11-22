@@ -35,8 +35,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -203,7 +208,9 @@ class _SubscriptionTile extends ConsumerWidget {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.media_manifest_polling(label))),
       );
-      final polled = await poller.pollNow(sub.id, clock.now().toUtc());
+      var polled = await poller.pollNow(sub.id, clock.now().toUtc());
+      if (!context.mounted) return;
+      polled = await _askForSharePassword(context, ref, polled: polled);
       if (!context.mounted) return;
       ref.invalidate(manifestSubscriptionsProvider);
       messenger.showSnackBar(
@@ -221,6 +228,43 @@ class _SubscriptionTile extends ConsumerWidget {
         SnackBar(content: Text(l10n.media_manifest_pollError('$e'))),
       );
     }
+  }
+
+  /// After a poll of a Synology Photos share that failed for want of a
+  /// password (none saved, or the saved one refused), asks for it, saves it
+  /// for the share and polls again, until the poll gets past the password or
+  /// the user cancels. Returns what the last poll returned.
+  Future<bool> _askForSharePassword(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool polled,
+  }) async {
+    final share = SynologyShareLink.tryParseShareLink(
+      Uri.parse(sub.manifestUrl),
+    );
+    if (share == null) return polled;
+    final repo = ref.read(manifestSubscriptionRepositoryProvider);
+    final credentials = ref.read(networkCredentialsServiceProvider);
+    final poller = ref.read(subscriptionPollerProvider);
+    while (context.mounted) {
+      final error = (await repo.getById(sub.id))?.lastError;
+      if (!synologyNeedsPassword(error) || !context.mounted) break;
+      final password = await showSynologyPasswordDialog(
+        context,
+        shareLabel: sub.displayName ?? sub.manifestUrl,
+        rejected: error == kSynologyPasswordRejectedMessage,
+      );
+      if (password == null) break;
+      await credentials.save(
+        hostname: NetworkCredentialsService.synologyShareKey(share),
+        authType: kSynologyShareAuthType,
+        password: password,
+        // TODO(media): l10n
+        displayName: 'Synology Photos share',
+      );
+      polled = await poller.pollNow(sub.id, clock.now().toUtc());
+    }
+    return polled;
   }
 
   Future<void> _confirmAndDelete(BuildContext context, WidgetRef ref) async {
