@@ -1310,7 +1310,7 @@ void main() {
         );
         expect(manifest!.uploadNonce, isNotNull);
         expect(
-          initializer.isForeignUploadNonce(
+          await initializer.isForeignUploadNonce(
             manifest.uploadNonce,
             cloud.providerId,
           ),

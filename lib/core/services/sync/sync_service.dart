@@ -1366,7 +1366,7 @@ class SyncService {
     if (manifest == null || manifest.deviceId != deviceId || nonce == null) {
       return (deviceId: deviceId, adopted: false);
     }
-    if (!initializer.isForeignUploadNonce(nonce, provider.providerId)) {
+    if (!await initializer.isForeignUploadNonce(nonce, provider.providerId)) {
       // Ours, and the one the next sync will read. Refresh it, so a run of
       // publishes that fail at the manifest cannot push it out of the ring.
       await initializer.recordUploadNonce(nonce, provider.providerId);
