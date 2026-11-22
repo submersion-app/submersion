@@ -535,11 +535,17 @@ class MediaIdentificationRepository {
           'WHERE media_id $gone '
           'UNION '
           'SELECT media_id FROM media_identifications '
+          'WHERE media_id $gone '
+          // A synced crop has no reference either, and may be all that is
+          // left of a media's results here.
+          'UNION '
+          'SELECT media_id FROM media_identification_crops '
           'WHERE media_id $gone',
           variables: [Variable<String>(deviceId)],
           readsFrom: {
             db.mediaIdentificationRuns,
             db.mediaIdentifications,
+            db.mediaIdentificationCrops,
             db.media,
             db.deletionLog,
           },

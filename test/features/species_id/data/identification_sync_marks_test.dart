@@ -294,6 +294,33 @@ void main() {
     },
   );
 
+  test('the launch sweep also removes a synced crop of deleted media that '
+      'has no run or rows here', () async {
+    final support = await Directory.systemTemp.createTemp('sweep_crop');
+    addTearDown(() => support.delete(recursive: true));
+    final local = LocalCacheDatabase(NativeDatabase.memory());
+    addTearDown(local.close);
+    final table = IdentificationCropRepository();
+    final crops = IdentificationCropStore(
+      supportPath: () async => support.path,
+      table: table,
+    );
+    addTearDown(crops.dispose);
+    // Only the crop arrived, or its rows went another way.
+    await table.put('a', 'm1', Uint8List.fromList([1, 2]));
+    await sync.logDeletions(entityType: 'media', recordIds: ['m1']);
+
+    final swept = await IdentificationCleanup(
+      identifications: repo,
+      embeddings: IdentificationEmbeddingRepository(database: local),
+      crops: crops,
+      deviceId: () async => 'phone',
+    ).sweepOrphans();
+
+    expect(swept, 1);
+    expect(await table.bytesFor('a'), isNull);
+  });
+
   test('clearing every identification clears them on every device: runs, '
       'rows and crops are tombstoned', () async {
     final support = await Directory.systemTemp.createTemp('clear_all');
