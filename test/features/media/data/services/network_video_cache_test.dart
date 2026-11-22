@@ -109,6 +109,33 @@ void main() {
     expect(File(third!).existsSync(), isTrue);
   });
 
+  test('downloads finishing together keep both new videos', () async {
+    final gate = Completer<void>();
+    final c = cache((_) async {
+      await gate.future;
+      return video(10);
+    }, maxBytes: 25);
+    // Two old videos already fill most of the cache.
+    final videos = Directory(p.join(dir.path, 'videos'));
+    await videos.create(recursive: true);
+    for (final name in ['old1.mp4', 'old2.mp4']) {
+      final f = File(p.join(videos.path, name));
+      await f.writeAsBytes(List.filled(10, 1));
+      await f.setLastModified(DateTime(2020));
+    }
+
+    final a = c.fileFor(Uri.parse('https://h/a.mp4'));
+    final b = c.fileFor(Uri.parse('https://h/b.mp4'));
+    gate.complete();
+    final paths = [await a, await b];
+
+    for (final path in paths) {
+      expect(File(path!).existsSync(), isTrue);
+    }
+    expect(File(p.join(videos.path, 'old1.mp4')).existsSync(), isFalse);
+    expect(File(p.join(videos.path, 'old2.mp4')).existsSync(), isFalse);
+  });
+
   test('a video larger than the cache plays, and goes on the next', () async {
     final c = cache(
       (r) async => video(r.url.path.contains('big') ? 40 : 10),

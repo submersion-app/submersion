@@ -233,9 +233,18 @@ class NetworkVideoCache {
     }
   }
 
+  /// The cleanup running now; the next one waits for it.
+  Future<void> _evicting = Future<void>.value();
+
   /// Deletes the least recently used files until the directory fits
-  /// [maxBytes], never [keep] (the file about to play).
-  Future<void> _evict(Directory dir, {required String keep}) async {
+  /// [maxBytes], never [keep] (the file about to play). One cleanup at a
+  /// time: two downloads finishing together would otherwise each count
+  /// from the same listing, and the second, finding files already gone,
+  /// would delete far more than needed.
+  Future<void> _evict(Directory dir, {required String keep}) =>
+      _evicting = _evicting.then((_) => _evictNow(dir, keep: keep));
+
+  Future<void> _evictNow(Directory dir, {required String keep}) async {
     try {
       final files = [
         for (final e in await dir.list().toList())
@@ -256,6 +265,12 @@ class NetworkVideoCache {
         } on FileSystemException catch (e) {
           _log.debug('Video cache kept a file in use: ${e.message}');
         }
+      }
+      if (total > maxBytes) {
+        _log.warning(
+          'Video cache still holds $total bytes, over its $maxBytes: '
+          'files in use or the one about to play',
+        );
       }
     } catch (e) {
       _log.warning('Video cache cleanup failed: $e');

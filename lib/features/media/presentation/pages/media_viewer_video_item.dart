@@ -340,8 +340,10 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   Widget build(BuildContext context) {
     // Watched on every build, not only where the button shows: this page is
-    // what keeps the choice alive while it is swiped off screen, the overlay
-    // hidden or tag mode on.
+    // what keeps the choice alive while the overlay is hidden, tag mode is
+    // on, or the page sits next to the current one (the viewer's galleries
+    // keep a neighbour built with allowImplicitScrolling). Paged further
+    // away, the page is disposed and the conversion plays again.
     final playingOriginal = ref.watch(
       playVideoOriginalProvider(widget.item.id),
     );
