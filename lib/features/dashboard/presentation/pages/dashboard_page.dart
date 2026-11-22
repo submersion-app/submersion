@@ -36,6 +36,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_draft_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/home_species_banner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Home as a technical dashboard (issue #4824): a slim header with the
@@ -154,6 +155,9 @@ class DashboardPage extends ConsumerWidget {
                   slivers: [
                     // Demo mode's way out heads the page (issue #4436).
                     const SliverToBoxAdapter(child: DemoModeDashboardCard()),
+                    // The species model offer, for a diver who would
+                    // otherwise never hear of it (issue #4881).
+                    const SliverToBoxAdapter(child: HomeSpeciesBanner()),
                     SliverPadding(
                       padding: const EdgeInsets.all(12),
                       // The first-dive panel cannot be hidden, so an empty

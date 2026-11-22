@@ -31,6 +31,8 @@ import 'package:submersion/features/insights/data/repositories/insights_reposito
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/home_species_banner.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -77,6 +79,7 @@ Future<void> pumpHome(
   AppSettings settings = const AppSettings(),
   bool demo = false,
   List<Dive> onThisDay = const [],
+  List<Override> extra = const [],
 }) async {
   tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
@@ -179,6 +182,7 @@ Future<void> pumpHome(
         preDiveSessionsProvider.overrideWith((ref) async => []),
         preDiveTemplatesProvider.overrideWith((ref) async => []),
         homeSpeciesCountProvider.overrideWith((ref) async => 0),
+        ...extra,
       ].cast(),
       child: MaterialApp.router(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -371,6 +375,29 @@ void main() {
     final demo = tester.getRect(find.byType(DemoModeDashboardCard));
     final keys = tester.getRect(find.byType(KeyNumbersPanel));
     expect(demo.top, lessThan(keys.top));
+  });
+
+  // Issue #4881: the species model offer heads the page, under demo mode's
+  // way out and above the panels.
+  testWidgets('Home holds the species model banner slot under the demo card', (
+    tester,
+  ) async {
+    // Shown, so it has a size: a hidden banner is a zero-height sliver,
+    // which the finder skips as offstage.
+    await pumpHome(
+      tester,
+      demo: true,
+      extra: [
+        homeSpeciesBannerProvider.overrideWithValue(true),
+        speciesDownloadPromptProvider.overrideWithValue(true),
+      ],
+    );
+    final slot = tester.getRect(find.byType(HomeSpeciesBanner));
+    expect(slot.height, greaterThan(0));
+    final demo = tester.getRect(find.byType(DemoModeDashboardCard));
+    final keys = tester.getRect(find.byType(KeyNumbersPanel));
+    expect(slot.top, greaterThanOrEqualTo(demo.bottom));
+    expect(slot.bottom, lessThanOrEqualTo(keys.top));
   });
 
   testWidgets('pull to refresh refetches', (tester) async {

@@ -2,6 +2,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
@@ -49,4 +51,25 @@ final speciesDownloadPromptProvider = Provider<bool>((ref) {
     PackChecking() || PackNotInstalled() || PackFailed() => true,
     _ => false,
   };
+});
+
+/// Whether the library holds any photo or video, whatever it is attached
+/// to (issue #4881): the count the Photos step of Set up this device uses.
+final libraryHasPhotosOrVideosProvider = FutureProvider.autoDispose<bool>((
+  ref,
+) async {
+  final media = ref.watch(mediaRepositoryProvider);
+  ref.invalidateSelfWhen(media.watchMediaChanges());
+  return await media.countPhotosAndVideos() > 0;
+});
+
+/// Whether Home offers the identification model (issue #4881): the offer
+/// is wanted, the library has a photo or video for the model to look at,
+/// and the sample logbook is not open. Demo mode shares the device's
+/// preferences, so a dismissal made there would carry into the diver's own
+/// setup.
+final homeSpeciesBannerProvider = Provider<bool>((ref) {
+  if (ref.watch(demoModeActiveProvider)) return false;
+  if (!ref.watch(speciesDownloadPromptProvider)) return false;
+  return ref.watch(libraryHasPhotosOrVideosProvider).value ?? false;
 });
