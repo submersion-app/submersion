@@ -552,3 +552,35 @@ valid finding test-first, one commit each.
 - [ ] **Step 5: Ask Eric whether to push and open the PR** (`Refs #4527`,
   screenshots through the project's highest-numbered secret gist). Do not
   push until he says so.
+
+## After the build
+
+Built natively on 2026-11-22 (commits f06b8b5 to the branch head). What
+changed from this plan:
+
+- **History placement is confirmed.** A move is filed under the new dive
+  only; two of Task 2's tests passed before the scope existed, because the
+  triggers already root a media row at its live dive and an outer scope
+  already captures trigger rows. They stay as pins.
+- **The media store drains after the entry closes.** The review found that
+  the deletion coordinator awaited the worker's whole drain (uploads
+  included) inside the Unlink and Remove scopes, filing every queued upload
+  under them. The coordinator gained `deferDrain` (no kick, cached copies
+  purged as final), and `MediaUnlinkService` gained the injected
+  `deleteMediaUndrained` and `drainDeletes`: the labelled methods delete
+  undrained inside the scope and drain once it has closed. Fakes that
+  override `deleteMultipleMedia` take the new parameter.
+- **Gear Remove is one transaction.** A delete that fails leaves no photo
+  half removed and the cover as it was.
+- **Unlink says when it fails** ("Could not unlink the items"), and Unlink
+  and Move log the cause.
+- **Wording changed after review:** the Unlink title is a plural ("Unlink 1
+  item?"), and the Move body counts its items and holds for items on no
+  dive: "The items move to {dive}, off any dive they are on now. Site and
+  gear links stay as they are."
+- **Tests run:** only the files written or changed; the dive picker's own
+  test and the selection bar's web test are left to the pre-push hook.
+- **Shared code beyond the plan's list:**
+  `lib/features/media_store/data/media_deletion_coordinator.dart`
+  (`deferDrain`) and `lib/features/media/presentation/providers/media_providers.dart`
+  (the unlink service's wiring).
