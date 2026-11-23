@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
@@ -142,6 +143,29 @@ void main() {
       await apply(() => insertSection('gear'));
 
       expect((await exportedItem('item'))['sectionId'], 'gear');
+    });
+
+    test('is left out of a streamed base while it is held', () async {
+      await apply(() => insertItem('item', sectionId: 'gear', hlc: phoneClock));
+
+      final base = await serializer.exportBaseToTempFile(
+        deviceId: here,
+        deletions: const [],
+      );
+      addTearDown(() async {
+        final file = File(base.path);
+        if (file.existsSync()) await file.delete();
+      });
+      final json =
+          jsonDecode(await File(base.path).readAsString())
+              as Map<String, dynamic>;
+      final items =
+          ((json['data'] as Map<String, dynamic>)['tripChecklistItems'] as List)
+              .cast<Map<String, dynamic>>();
+
+      final row = items.singleWhere((r) => r['id'] == 'item');
+      expect(row.containsKey('sectionId'), isFalse);
+      expect(row['title'], 'Mask');
     });
 
     test('still comes back after a local edit of the row', () async {
@@ -349,7 +373,7 @@ void main() {
     });
   });
 
-  group('through a real pull from two peers', () {
+  group('through a real pull from peers', () {
     late FakeCloudStorageProvider cloud;
 
     setUp(() => cloud = FakeCloudStorageProvider());
@@ -411,6 +435,48 @@ void main() {
 
       expect((await item('item'))!['section_id'], 'gear');
       expect((await held()).isEmpty, isTrue);
+    });
+
+    test('a newer copy from a peer holding the same link keeps it held until '
+        'the section arrives', () async {
+      await insertSection('gear');
+      await insertItem('item', sectionId: 'gear', hlc: phoneClock);
+      final section = await serializer.fetchRecord(
+        'tripChecklistSections',
+        'gear',
+      );
+      final phoneItem = await serializer.fetchRecord(
+        'tripChecklistItems',
+        'item',
+      );
+      await db.customStatement('DELETE FROM trip_checklist_items');
+      await db.customStatement('DELETE FROM trip_checklist_sections');
+
+      // The iPad holds the same link and ticked the item: its copy is newer
+      // and leaves sectionId out.
+      final ipadItem = {
+        for (final e in phoneItem!.entries)
+          if (e.key != 'sectionId') e.key: e.value,
+        'isDone': true,
+        'hlc': const Hlc(2000, 0, 'ipad').toString(),
+      };
+      await seedPeer('peer-1-phone', SyncData(tripChecklistItems: [phoneItem]));
+      await seedPeer('peer-2-ipad', SyncData(tripChecklistItems: [ipadItem]));
+      await seedPeer(
+        'peer-3-watch',
+        SyncData(
+          tripChecklistSections: [
+            {...section!, 'hlc': const Hlc(900, 0, 'watch').toString()},
+          ],
+        ),
+      );
+
+      final result = await sync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      final synced = (await item('item'))!;
+      expect(synced['is_done'], 1, reason: 'the newer copy applies');
+      expect(synced['section_id'], 'gear', reason: 'and the link comes back');
     });
 
     test('an edit made here before the section arrives leaves the section '

@@ -3450,12 +3450,8 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
-    final String table;
-    try {
-      table = _syncTableFor(entityType).actualTableName;
-    } on Object {
-      return;
-    }
+    final table = _tableNameFor(entityType);
+    if (table == null) return;
     _incomingCopies = await HeldReferenceStore(_db).noteIncoming(
       _incomingCopies,
       table,
@@ -3642,11 +3638,17 @@ class SyncDataSerializer {
         'Sync repair: restored held references in '
         '${(restored.tables.toList()..sort()).join(', ')}',
       );
+      // A dive's children tick the dives a watcher reads them through, as
+      // every other write of them does (see [_tickDivesForChild]).
+      final ticksDives = diveChildEntitiesThatTickDives.any(
+        (type) => restored.tables.contains(_tableNameFor(type)),
+      );
       _db.notifyUpdates({
         for (final table in restored.tables)
           TableUpdate(table, kind: UpdateKind.insert),
         for (final table in restored.tables)
           TableUpdate(table, kind: UpdateKind.update),
+        if (ticksDives) TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
       });
     }
     return restored.held;
