@@ -59727,7 +59727,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'بعض هذه الملفات أنشأها جهاز آخر أو تثبيت سابق لتطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.';
+      'ربما أنشأ بعض هذه الملفات جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.';
 
   @override
   String get backup_unrecognized_empty =>

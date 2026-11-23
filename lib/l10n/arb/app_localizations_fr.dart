@@ -59020,7 +59020,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'Certains de ces fichiers ont été créés par un autre appareil ou par une installation précédente de Submersion. S\'ils contiennent des plongées que vous n\'avez nulle part ailleurs, ces plongées seront perdues.';
+      'Certains de ces fichiers ont peut-être été créés par un autre appareil, une installation précédente ou une ancienne version de Submersion. S\'ils contiennent des plongées que vous n\'avez nulle part ailleurs, ces plongées seront perdues.';
 
   @override
   String get backup_unrecognized_empty =>

@@ -17260,7 +17260,7 @@
   "backup_unrecognized_appBar_title": "Sauvegardes non reconnues",
   "backup_unrecognized_explanation": "Ces fichiers se trouvent dans votre dossier de sauvegardes mais pas dans l'historique de sauvegarde de cet appareil. Seul un fichier écrit par cet appareil peut être supprimé ici : tout autre fichier peut être l'unique copie d'un autre appareil.",
   "backup_unrecognized_explanation_appPrivate": "Ces fichiers se trouvent dans votre dossier de sauvegardes mais pas dans l'historique de sauvegarde de cet appareil. Ce dossier est réservé à Submersion sur cet appareil : aucun autre appareil n'utilise ces fichiers, et chacun d'eux peut être supprimé ici.",
-  "backup_unrecognized_confirm_foreignWarning": "Certains de ces fichiers ont été créés par un autre appareil ou par une installation précédente de Submersion. S'ils contiennent des plongées que vous n'avez nulle part ailleurs, ces plongées seront perdues.",
+  "backup_unrecognized_confirm_foreignWarning": "Certains de ces fichiers ont peut-être été créés par un autre appareil, une installation précédente ou une ancienne version de Submersion. S'ils contiennent des plongées que vous n'avez nulle part ailleurs, ces plongées seront perdues.",
   "backup_unrecognized_empty": "Aucun fichier de sauvegarde non reconnu.",
   "backup_unrecognized_loadFailed": "Impossible de lire le dossier de sauvegardes.",
   "backup_unrecognized_unavailable": "Cet appareil ne peut pas lister le dossier de sauvegardes que vous avez choisi ; les fichiers non reconnus ne peuvent donc pas être trouvés.",

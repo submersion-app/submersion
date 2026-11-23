@@ -58532,7 +58532,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'Sommige van deze bestanden zijn gemaakt door een ander apparaat of een eerdere installatie van Submersion. Als ze duiken bevatten die je nergens anders hebt, gaan die duiken verloren.';
+      'Sommige van deze bestanden zijn mogelijk gemaakt door een ander apparaat, een eerdere installatie of een oudere versie van Submersion. Als ze duiken bevatten die je nergens anders hebt, gaan die duiken verloren.';
 
   @override
   String get backup_unrecognized_empty =>

@@ -17260,7 +17260,7 @@
   "backup_unrecognized_appBar_title": "Cópias de segurança não reconhecidas",
   "backup_unrecognized_explanation": "Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Só pode ser excluído aqui um ficheiro escrito por este dispositivo: qualquer outro pode ser a única cópia de outro dispositivo.",
   "backup_unrecognized_explanation_appPrivate": "Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Esta pasta é privada do Submersion neste dispositivo, por isso nenhum outro dispositivo usa estes ficheiros e qualquer um deles pode ser excluído aqui.",
-  "backup_unrecognized_confirm_foreignWarning": "Alguns destes ficheiros foram criados por outro dispositivo ou por uma instalação anterior do Submersion. Se contiverem mergulhos que não tem em mais nenhum lado, esses mergulhos serão perdidos.",
+  "backup_unrecognized_confirm_foreignWarning": "Alguns destes ficheiros podem ter sido criados por outro dispositivo, por uma instalação anterior ou por uma versão antiga do Submersion. Se contiverem mergulhos que não tem em mais nenhum lado, esses mergulhos serão perdidos.",
   "backup_unrecognized_empty": "Não há ficheiros de cópia de segurança não reconhecidos.",
   "backup_unrecognized_loadFailed": "Não foi possível ler a pasta de cópias de segurança.",
   "backup_unrecognized_unavailable": "Este dispositivo não consegue listar a pasta de cópias de segurança que escolheu, por isso não é possível encontrar ficheiros não reconhecidos.",

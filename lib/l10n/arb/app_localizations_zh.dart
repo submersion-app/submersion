@@ -55205,7 +55205,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      '其中一些文件由另一台设备或之前安装的 Submersion 创建。如果其中包含您在其他地方没有的潜水记录，这些记录将会丢失。';
+      '其中一些文件可能由另一台设备、之前的安装或旧版本的 Submersion 创建。如果其中包含您在其他地方没有的潜水记录，这些记录将会丢失。';
 
   @override
   String get backup_unrecognized_empty => '没有无法识别的备份文件。';

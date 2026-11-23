@@ -58905,7 +58905,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'Alcuni di questi file sono stati creati da un altro dispositivo o da un\'installazione precedente di Submersion. Se contengono immersioni che non hai altrove, quelle immersioni andranno perse.';
+      'Alcuni di questi file potrebbero essere stati creati da un altro dispositivo, da un\'installazione precedente o da una versione meno recente di Submersion. Se contengono immersioni che non hai altrove, quelle immersioni andranno perse.';
 
   @override
   String get backup_unrecognized_empty =>

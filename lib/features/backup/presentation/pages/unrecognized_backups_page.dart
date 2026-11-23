@@ -107,6 +107,9 @@ class _UnrecognizedBackupsPageState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        // Two paragraphs when the warning shows; at a large text scale on a
+        // phone they can outgrow the dialog, so let the content scroll.
+        scrollable: true,
         title: Text(l10n.backup_unrecognized_confirm_title),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -262,7 +265,11 @@ class _BackupTile extends ConsumerWidget {
       // Wrapped, never ellipsized: the timestamp and the device tag sit at the
       // END of the name, so a truncated name hides exactly the parts that tell
       // two entries apart (issue #4973).
-      title: Text(_breakAfterUnderscores(entry.filename)),
+      // The label keeps the break characters away from screen readers.
+      title: Text(
+        _breakAfterUnderscores(entry.filename),
+        semanticsLabel: entry.filename,
+      ),
       isThreeLine: note != null || ownership != null,
       subtitle: Column(
         mainAxisSize: MainAxisSize.min,
@@ -297,15 +304,17 @@ class _BackupTile extends ConsumerWidget {
   }
 }
 
-/// [filename] with a zero-width space after each underscore.
+/// [filename] with a zero-width space after each run of underscores.
 ///
 /// A backup name has no spaces, so without these the line breaker can only
-/// wrap it mid-segment, splitting a timestamp or the device tag. The
+/// wrap it mid-segment, splitting the date, the time or the device tag. The
 /// underscores are the name's own segment boundaries, so a break after one
-/// keeps every segment whole. Display only: the characters are invisible and
-/// the file is still addressed by its path.
+/// keeps every segment whole. A run gets one break, after its last underscore,
+/// so the `__d` device marker is never split between its two underscores.
+/// Display only: the characters are invisible and the file is still addressed
+/// by its path.
 String _breakAfterUnderscores(String filename) =>
-    filename.replaceAll('_', '_\u200B');
+    filename.replaceAllMapped(RegExp('_+'), (match) => '${match[0]}\u200B');
 
 class _DeleteBar extends StatelessWidget {
   const _DeleteBar({required this.selection, required this.onDelete});

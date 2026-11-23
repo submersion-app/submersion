@@ -57979,7 +57979,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'Some of these files were made by another device or an earlier install of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.';
+      'Some of these files may have been made by another device, an earlier install or an older version of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.';
 
   @override
   String get backup_unrecognized_empty => 'No unrecognized backup files.';

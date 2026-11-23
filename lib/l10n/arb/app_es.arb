@@ -17260,7 +17260,7 @@
   "backup_unrecognized_appBar_title": "Copias de seguridad no reconocidas",
   "backup_unrecognized_explanation": "Estos archivos están en tu carpeta de copias de seguridad pero no en el historial de este dispositivo. Aquí solo se puede eliminar un archivo escrito por este dispositivo: cualquier otro podría ser la única copia de otro dispositivo.",
   "backup_unrecognized_explanation_appPrivate": "Estos archivos están en tu carpeta de copias de seguridad pero no en el historial de este dispositivo. Esta carpeta es privada de Submersion en este dispositivo, así que ningún otro dispositivo usa estos archivos y cualquiera de ellos se puede eliminar aquí.",
-  "backup_unrecognized_confirm_foreignWarning": "Algunos de estos archivos los creó otro dispositivo o una instalación anterior de Submersion. Si contienen inmersiones que no tienes en ningún otro sitio, esas inmersiones se perderán.",
+  "backup_unrecognized_confirm_foreignWarning": "Es posible que otro dispositivo, una instalación anterior o una versión antigua de Submersion haya creado algunos de estos archivos. Si contienen inmersiones que no tienes en ningún otro sitio, esas inmersiones se perderán.",
   "backup_unrecognized_empty": "No hay archivos de copia de seguridad no reconocidos.",
   "backup_unrecognized_loadFailed": "No se pudo leer la carpeta de copias de seguridad.",
   "backup_unrecognized_unavailable": "Este dispositivo no puede enumerar la carpeta de copias de seguridad que elegiste, así que no se pueden encontrar archivos no reconocidos.",

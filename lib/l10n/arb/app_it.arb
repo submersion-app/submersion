@@ -17260,7 +17260,7 @@
   "backup_unrecognized_appBar_title": "Backup non riconosciuti",
   "backup_unrecognized_explanation": "Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Qui può essere eliminato solo un file scritto da questo dispositivo: qualsiasi altro potrebbe essere l'unica copia di un altro dispositivo.",
   "backup_unrecognized_explanation_appPrivate": "Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Questa cartella è riservata a Submersion su questo dispositivo, quindi nessun altro dispositivo usa questi file e ognuno di essi può essere eliminato qui.",
-  "backup_unrecognized_confirm_foreignWarning": "Alcuni di questi file sono stati creati da un altro dispositivo o da un'installazione precedente di Submersion. Se contengono immersioni che non hai altrove, quelle immersioni andranno perse.",
+  "backup_unrecognized_confirm_foreignWarning": "Alcuni di questi file potrebbero essere stati creati da un altro dispositivo, da un'installazione precedente o da una versione meno recente di Submersion. Se contengono immersioni che non hai altrove, quelle immersioni andranno perse.",
   "backup_unrecognized_empty": "Nessun file di backup non riconosciuto.",
   "backup_unrecognized_loadFailed": "Impossibile leggere la cartella dei backup.",
   "backup_unrecognized_unavailable": "Questo dispositivo non può elencare la cartella dei backup che hai scelto, quindi i file non riconosciuti non possono essere trovati.",

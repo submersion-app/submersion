@@ -58882,7 +58882,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'Alguns destes ficheiros foram criados por outro dispositivo ou por uma instalação anterior do Submersion. Se contiverem mergulhos que não tem em mais nenhum lado, esses mergulhos serão perdidos.';
+      'Alguns destes ficheiros podem ter sido criados por outro dispositivo, por uma instalação anterior ou por uma versão antiga do Submersion. Se contiverem mergulhos que não tem em mais nenhum lado, esses mergulhos serão perdidos.';
 
   @override
   String get backup_unrecognized_empty =>

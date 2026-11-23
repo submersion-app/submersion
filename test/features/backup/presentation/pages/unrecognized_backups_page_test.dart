@@ -314,6 +314,46 @@ void main() {
       expect(paragraph.overflow, isNot(TextOverflow.ellipsis));
       expect(lineStarts(paragraph), isNotEmpty, reason: 'it wraps instead');
       expect(tester.takeException(), isNull);
+      // Screen readers get the real name, without the break characters.
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is Text && widget.semanticsLabel == longName,
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the stronger warning lays out on a small phone at 2x text', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360 * 3, 640 * 3);
+      tester.view.devicePixelRatio = 3;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(
+        harness(
+          entries: () async => [
+            entry(
+              name: 'theirs.db',
+              ownership: BackupOwnership.otherDevice,
+              inAppPrivateFolder: true,
+            ),
+          ],
+          service: _FakeService(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // At 2x text the header alone fills the screen; the tile is below it.
+      await tester.scrollUntilVisible(find.byType(Checkbox), 200);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('made by another device'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('the name breaks after an underscore wherever it fits', (
@@ -346,6 +386,9 @@ void main() {
       for (final start in starts) {
         final segmentStart = text.lastIndexOf('\u200B', start - 1) + 1;
         if (segmentStart == start) {
+          // Never inside a run of underscores, which would split the `__d`
+          // device marker across two lines.
+          expect(text[start], isNot('_'), reason: 'broke inside `__`');
           atBoundaries++;
           continue;
         }
@@ -430,10 +473,7 @@ void main() {
       await tester.tap(find.byType(FilledButton));
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('another device or an earlier'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('made by another device'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(TextButton, 'Delete'));
       await tester.pumpAndSettle();
@@ -460,7 +500,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('permanently deleted'), findsOneWidget);
-      expect(find.textContaining('another device or an earlier'), findsNothing);
+      expect(find.textContaining('made by another device'), findsNothing);
     });
   });
 }

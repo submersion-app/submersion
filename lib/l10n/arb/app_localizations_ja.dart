@@ -56466,7 +56466,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'これらのファイルの一部は、別の端末または以前にインストールした Submersion が作成したものです。ほかに保存していないダイブが含まれている場合、そのダイブは失われます。';
+      'これらのファイルの一部は、別の端末、以前のインストール、または古いバージョンの Submersion が作成したものかもしれません。ほかに保存していないダイブが含まれている場合、そのダイブは失われます。';
 
   @override
   String get backup_unrecognized_empty => '認識できないバックアップファイルはありません。';

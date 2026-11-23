@@ -58563,7 +58563,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'A fájlok egy részét egy másik eszköz vagy a Submersion egy korábbi telepítése hozta létre. Ha olyan merüléseket tartalmaznak, amelyek máshol nincsenek meg, ezek a merülések elvesznek.';
+      'A fájlok egy részét lehet, hogy egy másik eszköz, egy korábbi telepítés vagy a Submersion egy régebbi verziója hozta létre. Ha olyan merüléseket tartalmaznak, amelyek máshol nincsenek meg, ezek a merülések elvesznek.';
 
   @override
   String get backup_unrecognized_empty =>

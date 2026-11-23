@@ -57653,7 +57653,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'חלק מהקבצים האלה נוצרו במכשיר אחר או בהתקנה קודמת של Submersion. אם יש בהם צלילות שאין לך בשום מקום אחר, הצלילות האלה יאבדו.';
+      'ייתכן שחלק מהקבצים האלה נוצרו במכשיר אחר, בהתקנה קודמת או בגרסה ישנה יותר של Submersion. אם יש בהם צלילות שאין לך בשום מקום אחר, הצלילות האלה יאבדו.';
 
   @override
   String get backup_unrecognized_empty => 'אין קובצי גיבוי לא מזוהים.';

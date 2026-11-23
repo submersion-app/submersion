@@ -58780,7 +58780,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get backup_unrecognized_confirm_foreignWarning =>
-      'Einige dieser Dateien stammen von einem anderen Gerät oder einer früheren Installation von Submersion. Wenn sie Tauchgänge enthalten, die du nirgendwo sonst hast, gehen diese Tauchgänge verloren.';
+      'Einige dieser Dateien stammen möglicherweise von einem anderen Gerät, einer früheren Installation oder einer älteren Version von Submersion. Wenn sie Tauchgänge enthalten, die du nirgendwo sonst hast, gehen diese Tauchgänge verloren.';
 
   @override
   String get backup_unrecognized_empty =>

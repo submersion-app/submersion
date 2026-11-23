@@ -92209,7 +92209,7 @@ abstract class AppLocalizations {
   /// No description provided for @backup_unrecognized_confirm_foreignWarning.
   ///
   /// In en, this message translates to:
-  /// **'Some of these files were made by another device or an earlier install of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.'**
+  /// **'Some of these files may have been made by another device, an earlier install or an older version of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.'**
   String get backup_unrecognized_confirm_foreignWarning;
 
   /// No description provided for @backup_unrecognized_empty.
