@@ -4011,6 +4011,8 @@ class SyncService {
         }
       }
     }
+    // Before anything fills a key the peer left out (issue #4954).
+    await _serializer.noteIncomingRows(entityType, records);
     records = await _keepLibrarySiteLinks(entityType, records);
     records = await _keepLibraryMembershipKeys(entityType, records);
 
@@ -4884,6 +4886,7 @@ class SyncService {
   /// derives the same result from the same rows.
   Future<void> _applyConflictRow(String entityType, Map<String, dynamic> row) =>
       _serializer.applyInDeferredFkTransaction(() async {
+        await _serializer.noteIncomingRows(entityType, [row]);
         await _serializer.upsertRecord(entityType, row);
         await _serializer.repairAfterRowWrite(entityType);
       });
@@ -5745,6 +5748,7 @@ class SyncService {
 
     // Upsert every restored record.
     for (final entry in restored.entries) {
+      await _serializer.noteIncomingRows(entry.key, [...entry.value.values]);
       for (final record in entry.value.values) {
         await _serializer.upsertRecord(entry.key, record);
       }
@@ -5916,6 +5920,7 @@ class SyncService {
           if (recordIdForEntity(table, r) != null) r,
       ];
       if (valid.isEmpty) return;
+      await _serializer.noteIncomingRows(table, valid);
       await _serializer.upsertRecords(table, valid);
       await _landAdoptedFactClears(table, valid);
       await _landAdoptedChildClears(table, valid);

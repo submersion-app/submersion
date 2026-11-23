@@ -23,6 +23,9 @@ import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
+import 'package:submersion/core/services/sync/held_reference_schema.dart';
+import 'package:submersion/core/services/sync/held_reference_store.dart';
+import 'package:submersion/core/services/sync/held_references.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/sync_json_weight.dart';
@@ -1870,6 +1873,8 @@ class SyncDataSerializer {
       final tables = _baseTables;
       // Library sites and their children stay out of the base (issue #2567).
       final librarySites = await librarySiteIds();
+      // So do the columns of links this device still holds (issue #4954).
+      final heldLinks = await HeldReferenceStore(_db).exportFilter();
       for (var t = 0; t < tables.length; t++) {
         final spec = tables[t];
         if (t > 0) await writeData(',');
@@ -1907,7 +1912,12 @@ class SyncDataSerializer {
           }
           // Device-local columns never leave this device, in a base as in a
           // changeset (issue #2947).
-          await writeData(jsonEncode(withoutDeviceLocalColumns(spec.key, row)));
+          var wire = withoutDeviceLocalColumns(spec.key, row);
+          if (!heldLinks.isEmpty) {
+            final table = _tableNameFor(spec.key);
+            if (table != null) wire = heldLinks.strip(table, wire);
+          }
+          await writeData(jsonEncode(wire));
         }
 
         if (spec.table != null) {
@@ -2560,12 +2570,50 @@ class SyncDataSerializer {
   Future<SyncData> _buildSyncData(
     String? hlcSince, {
     bool childrenByOwnClock = false,
-  }) => _withLibrarySiteIdsMemo(
-    () => _buildSyncDataUnmemoised(
-      hlcSince,
-      childrenByOwnClock: childrenByOwnClock,
+  }) async => _withoutHeldLinks(
+    await _withLibrarySiteIdsMemo(
+      () => _buildSyncDataUnmemoised(
+        hlcSince,
+        childrenByOwnClock: childrenByOwnClock,
+      ),
     ),
   );
+
+  /// The SQL table behind the wire key [entityType], or null for a key with
+  /// no table of its own.
+  String? _tableNameFor(String entityType) {
+    try {
+      return _syncTableFor(entityType).actualTableName;
+    } on ArgumentError {
+      return null;
+    }
+  }
+
+  /// [data] without the columns of links this device still holds (issue
+  /// #4954). A held link is cleared here only because its parent has not
+  /// arrived yet; sending that null would clear it on every device, so the
+  /// row goes out without the column and each receiver keeps its own value.
+  Future<SyncData> _withoutHeldLinks(SyncData data) async {
+    final filter = await HeldReferenceStore(_db).exportFilter();
+    if (filter.isEmpty) return data;
+    final json = data.toJson();
+    var changed = false;
+    final stripped = <String, dynamic>{};
+    for (final entry in json.entries) {
+      final table = _tableNameFor(entry.key);
+      final rows = entry.value;
+      if (table == null || !filter.covers(table) || rows is! List) {
+        stripped[entry.key] = rows;
+        continue;
+      }
+      changed = true;
+      stripped[entry.key] = [
+        for (final row in rows)
+          filter.strip(table, row as Map<String, dynamic>),
+      ];
+    }
+    return changed ? SyncData.fromJson(stripped) : data;
+  }
 
   Future<SyncData> _buildSyncDataUnmemoised(
     String? hlcSince, {
@@ -3379,12 +3427,44 @@ class SyncDataSerializer {
   Future<T> applyInDeferredFkTransaction<T>(Future<T> Function() body) async {
     return _db.transaction(() async {
       await _db.customStatement('PRAGMA defer_foreign_keys = ON');
+      // Notes from an apply that rolled back describe writes that never
+      // landed.
+      _incomingCopies.clear();
       return await body();
     });
   }
 
+  /// The peers' copies of held rows seen since the last repair (issue
+  /// #4954). Filled by [noteIncomingRows], read and cleared by the repair.
+  final _incomingCopies = IncomingCopies();
+
+  /// Notes which columns each peer row in [records] carries, for the rows
+  /// whose links this device holds, before a merge or adopt overlays them
+  /// onto the local rows (issue #4954). A held link is let go only when a
+  /// copy that carried its column wins; a copy from a peer that left the
+  /// column out keeps it held. Every apply path calls this with the rows as
+  /// the payload carried them.
+  Future<void> noteIncomingRows(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (records.isEmpty) return;
+    final String table;
+    try {
+      table = _syncTableFor(entityType).actualTableName;
+    } on Object {
+      return;
+    }
+    await HeldReferenceStore(_db).noteIncoming(_incomingCopies, table, [
+      for (final record in records) withCurrentWireKeys(entityType, record),
+    ]);
+  }
+
   /// Repairs every foreign key left dangling after a sync apply: a nullable
   /// reference is cleared; a non-nullable orphan is deleted (a manual cascade).
+  /// Unless the parent is known deleted, a cleared link is held and restored
+  /// once the parent arrives, and stays out of this device's exports until
+  /// then (issue #4954; see held_references.dart).
   /// Applying a remote deletion of a parent can leave a local row pointing at
   /// it via a non-cascading FK, which would otherwise fail the deferred-FK
   /// COMMIT and abort the whole sync. Must run inside
@@ -3412,7 +3492,11 @@ class SyncDataSerializer {
     final dangling = await _db
         .customSelect('PRAGMA foreign_key_check("$table")')
         .get();
-    if (dangling.isNotEmpty) await _repairDanglingReferences();
+    if (dangling.isNotEmpty) {
+      await _repairDanglingReferences();
+    } else {
+      await _restoreHeldReferences();
+    }
     await _rederivePeerValues(writtenEntityType: entityType);
   }
 
@@ -3526,12 +3610,68 @@ class SyncDataSerializer {
     }
   }
 
+  /// Gives back the held rows whose parents arrived (issue #4954), without
+  /// running the whole-database foreign key check.
+  Future<void> _restoreHeldReferences() async {
+    final store = HeldReferenceStore(_db);
+    final loaded = await store.load();
+    if (loaded.isEmpty) {
+      _incomingCopies.clear();
+      return;
+    }
+    final held = await _restoreArrived(store, loaded);
+    await _saveHeld(store, loaded, held);
+  }
+
+  /// [HeldReferenceStore.restoreArrived], announcing the tables it wrote.
+  Future<HeldReferences> _restoreArrived(
+    HeldReferenceStore store,
+    HeldReferences held,
+  ) async {
+    final restored = await store.restoreArrived(held, _incomingCopies);
+    _incomingCopies.clear();
+    if (restored.tables.isNotEmpty) {
+      _log.info(
+        'Sync repair: restored held references in '
+        '${(restored.tables.toList()..sort()).join(', ')}',
+      );
+      _db.notifyUpdates({
+        for (final table in restored.tables)
+          TableUpdate(table, kind: UpdateKind.insert),
+        for (final table in restored.tables)
+          TableUpdate(table, kind: UpdateKind.update),
+      });
+    }
+    return restored.held;
+  }
+
+  Future<void> _saveHeld(
+    HeldReferenceStore store,
+    HeldReferences loaded,
+    HeldReferences held,
+  ) async {
+    if (loaded.isEmpty && held.isEmpty) return;
+    if (held.encode() == loaded.encode()) return;
+    await store.save(held);
+  }
+
+  /// Clears or deletes every row left naming a missing parent, holding each
+  /// cleared link so it can be restored once that parent arrives (issue
+  /// #4954): the parent can come from another peer, applied in its own
+  /// transaction or a later pull. Gives back first whatever an earlier repair held and the
+  /// parent of has arrived since.
   Future<void> _repairDanglingReferences() async {
+    final store = HeldReferenceStore(_db);
+    final loaded = await store.load();
+    var held = await _restoreArrived(store, loaded);
     for (var pass = 0; pass < 5; pass++) {
       final violations = await _db
           .customSelect('PRAGMA foreign_key_check')
           .get();
-      if (violations.isEmpty) return;
+      if (violations.isEmpty) {
+        await _saveHeld(store, loaded, held);
+        return;
+      }
 
       for (final v in violations) {
         final table = v.read<String>('table');
@@ -3539,12 +3679,9 @@ class SyncDataSerializer {
         if (rowid == null) continue; // WITHOUT ROWID tables: not in sync schema
         final fkid = v.read<int>('fkid');
 
-        final fkList = await _db
-            .customSelect('PRAGMA foreign_key_list("$table")')
-            .get();
-        final fk = fkList.where((f) => f.read<int>('id') == fkid).toList();
-        if (fk.isEmpty) continue;
-        final column = fk.first.read<String>('from');
+        final fk = await heldForeignKey(_db, table, fkid);
+        if (fk == null) continue;
+        final column = fk.from;
 
         final info = await _db
             .customSelect('PRAGMA table_info("$table")')
@@ -3564,6 +3701,7 @@ class SyncDataSerializer {
           _db.notifyUpdates({TableUpdate(table, kind: UpdateKind.delete)});
         } else {
           _log.warning('Sync repair: clearing dangling $table."$column"');
+          held = await store.holdLink(held, table, rowid, fk);
           await _db.customStatement(
             'UPDATE "$table" SET "$column" = NULL WHERE rowid = ?',
             [rowid],
