@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -18,6 +17,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 import 'video_viewer_test_harness.dart';
 
 /// A platform with no player, as on Windows before video_player_win (#3548):
@@ -53,17 +53,14 @@ List<LogEntry> _captureLogs() {
 }
 
 void main() {
+  // The page is built inside runAsync, so the viewer's wait before it asks
+  // for marine life analysis runs on real time, and on a Linux runner the
+  // labels ring then outlasts a pumpAndSettle (issue #4949).
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
 
   setUp(() async {
-    // The page is built inside runAsync, so the viewer's 400 ms wait before
-    // it asks for marine life analysis runs on real time. Where the engine
-    // is available (the ONNX one, on a Linux runner), the toolbar's labels
-    // button then spins a ring until IO the fake clock never lets finish,
-    // which times out a pumpAndSettle and adds a spinner (issue #4949).
-    // Nothing here is about marine life.
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();

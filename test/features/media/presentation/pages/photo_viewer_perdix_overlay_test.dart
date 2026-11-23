@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -15,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 /// The Perdix face defaults to the top-right corner, which is where the
 /// viewer's toolbar keeps its action buttons. Those buttons are mounted in the
@@ -22,17 +22,14 @@ import '../../../../helpers/test_database.dart';
 /// dragged out of the corner by its most natural grab points. The page keeps
 /// the face out of that band entirely.
 void main() {
+  // The page is built inside runAsync, so the viewer's wait before it asks
+  // for marine life analysis runs on real time, and on a Linux runner the
+  // labels ring then outlasts a pumpAndSettle (issue #4949).
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
 
   setUp(() async {
-    // The page is built inside runAsync, so the viewer's 400 ms wait before
-    // it asks for marine life analysis runs on real time. Where the engine
-    // is available (the ONNX one, on a Linux runner), the toolbar's labels
-    // button then spins a ring until IO the fake clock never lets finish,
-    // and a drag's pumpAndSettle times out. Nothing here is about marine
-    // life.
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({'perdix_overlay_enabled': true});
     prefs = await SharedPreferences.getInstance();

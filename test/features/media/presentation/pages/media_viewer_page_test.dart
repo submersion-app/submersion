@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -54,14 +53,6 @@ void main() {
   late SharedPreferences prefs;
 
   setUp(() async {
-    // The page is built inside runAsync, so the viewer's 400 ms wait before
-    // it asks for marine life analysis runs on real time. Where the engine
-    // is available (the ONNX one, on a Linux runner), the toolbar's labels
-    // button then spins a ring until IO the fake clock never lets finish,
-    // which times out a pumpAndSettle and adds a spinner (issue #4949).
-    // Nothing here is about marine life.
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
@@ -29,6 +28,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/fake_photo_picker_service.dart';
 import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 /// Rounds of 20 ms of real time, so about five seconds before a wait fails:
 /// room for a machine running many test bundles at once.
@@ -105,6 +105,11 @@ MediaItem item({
 );
 
 void main() {
+  // The page is built inside runAsync, so the viewer's wait before it asks
+  // for marine life analysis runs on real time, and on a Linux runner the
+  // labels ring then outlasts a pumpAndSettle (issue #4949).
+  turnOffMarineLifeIdForEachTest();
+
   const channel = MethodChannel('com.submersion.app/metadata');
   late SharedPreferences prefs;
   late List<MethodCall> nativeCalls;
@@ -113,14 +118,6 @@ void main() {
   late Future<Object?> Function(MethodCall) handler;
 
   setUp(() async {
-    // The page is built inside runAsync, so the viewer's 400 ms wait before
-    // it asks for marine life analysis runs on real time. Where the engine
-    // is available (the ONNX one, on a Linux runner), the toolbar's labels
-    // button then spins a ring until IO the fake clock never lets finish,
-    // and a later pumpAndSettle times out. Nothing here is about marine
-    // life.
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();

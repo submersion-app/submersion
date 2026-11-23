@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -30,6 +29,7 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 final _png = Uint8List.fromList(
   img.encodePng(
@@ -69,17 +69,14 @@ MediaItem photo(String id, {ColorAdjustment? adjustment, String? siteId}) =>
 
 /// Issue #3520: the Adjust color panel inside the viewers.
 void main() {
+  // The page is built inside runAsync, so the viewer's wait before it asks
+  // for marine life analysis runs on real time, and on a Linux runner the
+  // labels ring then outlasts a pumpAndSettle (issue #4949).
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
 
   setUp(() async {
-    // The page is built inside runAsync, so the viewer's 400 ms wait before
-    // it asks for marine life analysis runs on real time. Where the engine
-    // is available (the ONNX one, on a Linux runner), the toolbar's labels
-    // button then spins a ring until IO the fake clock never lets finish,
-    // which times out a pumpAndSettle and adds a spinner (issue #4949).
-    // Nothing here is about marine life.
-    marineLifeIdEnabled = false;
-    addTearDown(resetMarineLifeIdEnabled);
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
