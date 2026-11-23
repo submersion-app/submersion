@@ -423,7 +423,13 @@ class CurrencyPrefWrites extends WritableEntry {
         details: {'id': id},
       );
     }
-    await _r.currency.upsertPref(_applied(current, update.values));
+    final v = update.values;
+    await _r.currency.upsertPref(
+      _applied(current, v),
+      mappingEdited:
+          v.containsKey('counted_dive_type_ids') ||
+          v.containsKey('counted_dive_modes'),
+    );
   }
 
   @override
@@ -431,6 +437,14 @@ class CurrencyPrefWrites extends WritableEntry {
 
   static CurrencyPref _applied(CurrencyPref pref, Map<String, Object?> v) {
     T? kept<T>(String key, T? held) => v.containsKey(key) ? v[key] as T? : held;
+    // A mapping this build cannot read is shown as inheriting the rule. An
+    // update to either half starts the other from that, not from the "any
+    // dive" it decodes to; an update to neither keeps it as stored
+    // (issue #4942).
+    final fromRule =
+        pref.unreadableMapping &&
+        (v.containsKey('counted_dive_type_ids') ||
+            v.containsKey('counted_dive_modes'));
     return CurrencyPref(
       id: pref.id,
       certificationId: pref.certificationId,
@@ -441,12 +455,12 @@ class CurrencyPrefWrites extends WritableEntry {
           ? (v['counted_dive_type_ids'] == null
                 ? null
                 : _textsOf(v['counted_dive_type_ids']))
-          : pref.countedDiveTypeIds,
+          : (fromRule ? null : pref.countedDiveTypeIds),
       countedDiveModes: v.containsKey('counted_dive_modes')
           ? (v['counted_dive_modes'] == null
                 ? null
                 : _enumsOf(v['counted_dive_modes'], DiveMode.values))
-          : pref.countedDiveModes,
+          : (fromRule ? null : pref.countedDiveModes),
       muted: v['muted'] as bool? ?? pref.muted,
       createdAt: pref.createdAt,
       updatedAt: pref.updatedAt,

@@ -99,7 +99,7 @@ final _event = CurrencyEvent(
   updatedAt: _then,
 );
 
-Future<dynamic> _parse({List<CurrencyRule>? rules}) {
+Future<dynamic> _parse({List<CurrencyRule>? rules, List<CurrencyPref>? prefs}) {
   final builder = XmlBuilder();
   builder.element(
     'uddf',
@@ -110,7 +110,7 @@ Future<dynamic> _parse({List<CurrencyRule>? rules}) {
         certifications: [_sourceCert],
         currency: CurrencyBackupData(
           rules: rules ?? [_customRule],
-          prefs: [_pref],
+          prefs: prefs ?? [_pref],
           events: [_event],
         ),
       );
@@ -263,6 +263,51 @@ void main() {
         copy.id,
         reason: 'the pref follows the file rule, not the built-in',
       );
+    },
+  );
+
+  // Issue #4942: a scope this build cannot read decodes to "any". A backup
+  // and restore carries it as stored, so the restored rule still matches
+  // nothing and the card still uses its rule's mapping.
+  test(
+    'a scope this build cannot read survives a backup and restore',
+    () async {
+      final data = await _parse(
+        rules: [
+          _customRule.copyWith(
+            levels: const [],
+            storedClockKind: 'clockFromTheFuture',
+            storedScope: (
+              agencies: '[]',
+              levels: '["levelFromTheFuture"]',
+              types: '["cave"]',
+              modes: '[]',
+            ),
+          ),
+        ],
+        prefs: [
+          _pref.copyWith(
+            countedDiveModes: const [],
+            storedMapping: (types: null, modes: '["modeFromTheFuture"]'),
+          ),
+        ],
+      );
+      await UddfEntityImporter().import(
+        data: data,
+        selections: const UddfImportSelections(certifications: {0}),
+        repositories: _repositories(),
+        diverId: _diverId,
+      );
+
+      final rule = (await currency.getRules()).singleWhere(
+        (r) => r.id == 'custom-1',
+      );
+      expect(rule.unreadableScope, isTrue);
+      expect(rule.levelsJson, '["levelFromTheFuture"]');
+      expect(rule.clockKindJson, 'clockFromTheFuture');
+      final pref = (await currency.getPrefs((await restoredCert()).id)).single;
+      expect(pref.unreadableMapping, isTrue);
+      expect(pref.mappingJson.modes, '["modeFromTheFuture"]');
     },
   );
 
