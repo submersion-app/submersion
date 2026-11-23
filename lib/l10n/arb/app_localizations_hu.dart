@@ -21092,6 +21092,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_smartAlbum_delete => 'Album törlése';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Törlöd ezt: „$name”?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Csak a mentett szűrő törlődik. A fotók és videók nem változnak.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'Az album törlése nem sikerült';
 
   @override
@@ -21290,6 +21299,49 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Merülések keresése';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem',
+      one: '$count elem',
+    );
+    return '$_temp0 áthelyezése?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az elemek ide kerülnek: $dive, és kikerülnek abból a merülésből, amelyhez most tartoznak.',
+      one:
+          'Az elem ide kerül: $dive, és kikerül abból a merülésből, amelyhez most tartozik.',
+    );
+    return '$_temp0 A merülőhely- és felszereléskapcsolatok változatlanok maradnak.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Áthelyezés';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Az áthelyezés egyik merülése szerkesztésre meg van nyitva. Mentsd, vesd el vagy zárold, majd próbáld újra.';
+
+  @override
+  String get media_library_moveFailed => 'Az elemeket nem sikerült áthelyezni';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Az elemeket nem sikerült leválasztani';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Áthelyezés merüléshez';
@@ -63015,6 +63067,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Ismétlődő palackok eltávolítva';
+
+  @override
+  String get changeLog_label_moveMedia => 'Áthelyezve másik merüléshez';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Leválasztva a könyvtárról';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Felszerelésfotók eltávolítva';
 
   @override
   String get changeLog_label_updatePlannedDives =>

@@ -19998,7 +19998,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Desvincular $count itens?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return 'Desvincular $_temp0?';
   }
 
   @override
@@ -21162,6 +21168,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_smartAlbum_delete => 'Excluir álbum';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Excluir \"$name\"?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Só o filtro guardado é removido. Nenhuma foto ou vídeo muda.';
+
+  @override
   String get media_smartAlbum_deleteFailed =>
       'Não foi possível excluir o álbum';
 
@@ -21363,6 +21378,48 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Pesquisar mergulhos';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return 'Mover $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Os itens passam para $dive e saem do mergulho em que estiverem agora.',
+      one: 'O item passa para $dive e sai do mergulho em que estiver agora.',
+    );
+    return '$_temp0 As ligações ao local e ao equipamento mantêm-se.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Mover';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Um mergulho desta mudança está aberto para edição. Guarde, cancele ou bloqueie-o e tente novamente.';
+
+  @override
+  String get media_library_moveFailed => 'Não foi possível mover os itens';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Não foi possível desvincular os itens';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Mover para um mergulho';
@@ -63342,6 +63399,16 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Cilindros duplicados removidos';
+
+  @override
+  String get changeLog_label_moveMedia => 'Movido para outro mergulho';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Desvinculado da biblioteca';
+
+  @override
+  String get changeLog_label_removeGearPhotos =>
+      'Fotos do equipamento removidas';
 
   @override
   String get changeLog_label_updatePlannedDives =>

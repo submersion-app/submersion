@@ -2578,11 +2578,22 @@ class MediaRepository {
   /// stale after the move, so they are deleted with tombstones (enrichment
   /// is an HLC-synced entity) and recomputed lazily by DiveMediaEnricher
   /// the next time the new dive's media renders.
+  ///
+  /// One entry in History labelled as a move, or part of the operation
+  /// already running (an agent's write) (issue #4527).
   Future<void> reassignMediaToDive(
     List<String> mediaIds,
     String newDiveId,
   ) async {
     if (mediaIds.isEmpty) return;
+    await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.moveMedia,
+      body: () => _reassign(mediaIds, newDiveId),
+    );
+  }
+
+  Future<void> _reassign(List<String> mediaIds, String newDiveId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       await _dropEnrichmentRows(mediaIds);

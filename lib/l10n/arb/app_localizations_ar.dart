@@ -20294,7 +20294,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
@@ -21502,6 +21511,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_smartAlbum_delete => 'حذف الألبوم';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'يُحذف عامل التصفية المحفوظ فقط. لا تتغير أي صور أو مقاطع فيديو.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'تعذّر حذف الألبوم';
 
   @override
@@ -21703,6 +21721,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'البحث في الغطسات';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'نقل $_temp0؟';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      many: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      few: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      two: 'ينتقل العنصران إلى $dive ويغادران أي غطسة هما عليها الآن.',
+      one: 'ينتقل العنصر إلى $dive ويغادر أي غطسة هو عليها الآن.',
+    );
+    return '$_temp0 تبقى روابط الموقع والمعدات كما هي.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'نقل';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'إحدى الغطسات في هذا النقل مفتوحة للتعديل. احفظها أو ألغِ التعديل أو اقفلها، ثم حاول مرة أخرى.';
+
+  @override
+  String get media_library_moveFailed => 'تعذّر نقل العناصر';
+
+  @override
+  String get media_library_unlinkFailed => 'تعذّر إلغاء ربط العناصر';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label، $date';
+  }
 
   @override
   String get media_library_moveToDive => 'نقل إلى غطسة';
@@ -64300,6 +64364,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'إزالة الأسطوانات المكررة';
+
+  @override
+  String get changeLog_label_moveMedia => 'نُقلت إلى غطسة أخرى';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'أُلغي الربط من المكتبة';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'أُزيلت صور المعدات';
 
   @override
   String get changeLog_label_updatePlannedDives => 'تم تحديث الغطسات المخططة';

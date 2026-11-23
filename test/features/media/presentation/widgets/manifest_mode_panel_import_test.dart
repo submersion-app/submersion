@@ -114,6 +114,7 @@ class _RecordingCoordinator implements MediaDeletionCoordinator {
   Future<void> deleteMultipleMedia(
     List<String> ids, {
     bool holdRemoteDelete = false,
+    bool deferDrain = false,
   }) async => deleted.addAll(ids);
 
   @override

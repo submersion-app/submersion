@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/helpers/media_move_to_dive.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
-import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/tags/data/services/bulk_tag_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
@@ -15,6 +15,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
+
+final _log = LoggerService.forClass(MediaSelectionBar);
 
 /// The library's contextual bar while a selection is active.
 ///
@@ -53,8 +55,10 @@ class MediaSelectionBar extends ConsumerWidget {
   /// why this surface no longer carries an unlink-per-link pair alongside a
   /// separate Delete.
   ///
-  /// Routed through the deletion coordinator so the remote-blob delete
-  /// intent is enqueued before the rows die (orphan-prevention spec 5.2).
+  /// Routed through the unlink service's labelled entry, so it reads in
+  /// History as one Unlink (issue #4527), and from there through the
+  /// deletion coordinator, so the remote-blob delete intent is enqueued
+  /// before the rows die (orphan-prevention spec 5.2).
   Future<BulkActionOutcome> _unlinkSelected(
     BuildContext context,
     WidgetRef ref,
@@ -65,9 +69,14 @@ class MediaSelectionBar extends ConsumerWidget {
     // Everything else an unlink discards is derived and rebuilds from the
     // source file on a re-link. A caption and the favorite flag live only in
     // Submersion's own row, so they are the part worth naming.
-    final atRisk = await ref
-        .read(mediaRepositoryProvider)
-        .idsWithUserMetadata(ids);
+    final Set<String> atRisk;
+    try {
+      atRisk = await ref.read(mediaRepositoryProvider).idsWithUserMetadata(ids);
+    } catch (error, stackTrace) {
+      _log.error('Unlink failed', error: error, stackTrace: stackTrace);
+      if (context.mounted) _showUnlinkFailed(context);
+      return BulkActionOutcome.failed;
+    }
     if (!context.mounted) return BulkActionOutcome.cancelled;
 
     final l10n = context.l10n;
@@ -95,18 +104,24 @@ class MediaSelectionBar extends ConsumerWidget {
     );
     if (confirmed != true) return BulkActionOutcome.cancelled;
 
-    await ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids);
-    return BulkActionOutcome.completed;
+    try {
+      await ref.read(mediaUnlinkServiceProvider).unlinkFromLibrary(ids);
+      return BulkActionOutcome.completed;
+    } catch (error, stackTrace) {
+      _log.error('Unlink failed', error: error, stackTrace: stackTrace);
+      if (context.mounted) _showUnlinkFailed(context);
+      return BulkActionOutcome.failed;
+    }
   }
 
-  Future<BulkActionOutcome> _moveToDive(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final diveId = await showDivePickerSheet(context);
-    if (diveId == null) return BulkActionOutcome.cancelled;
-    await ref.read(mediaRepositoryProvider).reassignMediaToDive(_ids, diveId);
-    return BulkActionOutcome.completed;
+  /// Says Unlink failed; the selection stays, to try again.
+  void _showUnlinkFailed(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.media_library_unlinkFailed),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
   }
 
   @override
@@ -143,7 +158,7 @@ class MediaSelectionBar extends ConsumerWidget {
             id: 'move_to_dive',
             icon: Icons.drive_file_move_outline,
             label: l10n.media_library_moveToDive,
-            onInvoke: () => _moveToDive(context, ref),
+            onInvoke: () => moveMediaToDive(context, ref, selectedItems),
           ),
         if (canWrite)
           BulkAction(

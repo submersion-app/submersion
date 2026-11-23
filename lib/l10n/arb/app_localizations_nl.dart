@@ -19877,7 +19877,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return '$count items ontkoppelen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0 ontkoppelen?';
   }
 
   @override
@@ -21034,6 +21040,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_smartAlbum_delete => 'Album verwijderen';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '\"$name\" verwijderen?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Alleen het opgeslagen filter verdwijnt. Foto\'s en video\'s veranderen niet.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'Album verwijderen mislukt';
 
   @override
@@ -21233,6 +21248,49 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Duiken zoeken';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0 verplaatsen?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'De items gaan naar $dive en verlaten de duik waar ze nu bij horen.',
+      one: 'Het item gaat naar $dive en verlaat de duik waar het nu bij hoort.',
+    );
+    return '$_temp0 Koppelingen met de duikplek en uitrusting blijven zoals ze zijn.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Verplaatsen';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Een duik in deze verplaatsing is geopend om te bewerken. Sla hem op, annuleer of vergrendel hem en probeer het opnieuw.';
+
+  @override
+  String get media_library_moveFailed =>
+      'De items konden niet worden verplaatst';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'De items konden niet worden ontkoppeld';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Naar duik verplaatsen';
@@ -62980,6 +63038,16 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Dubbele flessen verwijderd';
+
+  @override
+  String get changeLog_label_moveMedia => 'Naar een andere duik verplaatst';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Uit de bibliotheek ontkoppeld';
+
+  @override
+  String get changeLog_label_removeGearPhotos =>
+      'Uitrustingsfoto\'s verwijderd';
 
   @override
   String get changeLog_label_updatePlannedDives => 'Geplande duiken bijgewerkt';

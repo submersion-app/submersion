@@ -20409,6 +20409,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_smartAlbum_delete => 'アルバムを削除';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '「$name」を削除しますか？';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      '保存したフィルターだけが削除されます。写真や動画は変わりません。';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'アルバムを削除できませんでした';
 
   @override
@@ -20606,6 +20615,44 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'ダイブを検索';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件を移動しますか？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$diveに移動し、現在のダイブがあればそこから外れます。',
+    );
+    return '$_temp0ダイビングサイトと器材へのリンクはそのままです。';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => '移動';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'この移動に含まれるダイブが編集中です。保存、キャンセル、またはロックしてから、もう一度お試しください。';
+
+  @override
+  String get media_library_moveFailed => '項目を移動できませんでした';
+
+  @override
+  String get media_library_unlinkFailed => 'リンクを解除できませんでした';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label、$date';
+  }
 
   @override
   String get media_library_moveToDive => 'ダイブに移動';
@@ -60803,6 +60850,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => '重複したタンクを削除';
+
+  @override
+  String get changeLog_label_moveMedia => '別のダイブに移動';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'ライブラリからリンクを解除';
+
+  @override
+  String get changeLog_label_removeGearPhotos => '器材の写真を削除';
 
   @override
   String get changeLog_label_updatePlannedDives => '予定ダイブを更新';
