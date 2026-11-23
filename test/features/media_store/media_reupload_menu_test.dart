@@ -79,9 +79,12 @@ void main() {
       home: Scaffold(
         body: Consumer(
           builder: (context, ref, _) => mediaReuploadAvailable(ref)
-              // The viewer's controls can hide while a dialog is up.
+              // The viewer's controls can hide while a dialog is up. With no
+              // notifier given the button always shows: a constant, so
+              // nothing is left undisposed.
               ? ValueListenableBuilder<bool>(
-                  valueListenable: showButton ?? ValueNotifier(true),
+                  valueListenable:
+                      showButton ?? const AlwaysStoppedAnimation<bool>(true),
                   builder: (_, shown, _) => !shown
                       ? const SizedBox.shrink()
                       : Builder(
