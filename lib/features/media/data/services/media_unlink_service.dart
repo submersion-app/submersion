@@ -1,3 +1,5 @@
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 
@@ -143,6 +145,32 @@ class MediaUnlinkService {
     return SiteUnlinkOutcome(
       deleted: split.deletable.length,
       keptLinked: split.keptIds.length,
+    );
+  }
+
+  /// The media library's Unlink: every link of every row goes, through the
+  /// injected [deleteMedia], as one labelled entry in History (issue #4527).
+  /// Only the library's own bulk action comes here; the other callers of the
+  /// deletion path keep their History as it is.
+  Future<void> unlinkFromLibrary(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.unlinkMedia,
+      body: () => deleteMedia(mediaIds),
+    );
+  }
+
+  /// The Media screen's Gear tab Remove: [unlinkFromEquipment] as one
+  /// labelled entry in History (issue #4527).
+  Future<EquipmentUnlinkOutcome> removeGearPhotos(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) {
+      return const EquipmentUnlinkOutcome(deleted: 0, keptLinked: 0);
+    }
+    return ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.removeGearPhotos,
+      body: () => unlinkFromEquipment(mediaIds),
     );
   }
 
