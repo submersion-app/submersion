@@ -423,7 +423,13 @@ class CurrencyPrefWrites extends WritableEntry {
         details: {'id': id},
       );
     }
-    await _r.currency.upsertPref(_applied(current, update.values));
+    final v = update.values;
+    await _r.currency.upsertPref(
+      _applied(current, v),
+      mappingEdited:
+          v.containsKey('counted_dive_type_ids') ||
+          v.containsKey('counted_dive_modes'),
+    );
   }
 
   @override

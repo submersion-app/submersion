@@ -73,6 +73,9 @@ Map<String, Object?> currencyRuleDocument(CurrencyRule r) => {
   'advisory_text': r.advisoryText,
   'supersedes_rule_id': r.supersedesRuleId,
   'is_built_in': r.isBuiltIn,
+  // A scope array this build cannot read decodes to the empty "any" above;
+  // the app matches such a rule to no card (issue #4942).
+  'unreadable_scope': r.unreadableScope,
 };
 
 // A mapping this build cannot read is shown as inheriting the rule, which

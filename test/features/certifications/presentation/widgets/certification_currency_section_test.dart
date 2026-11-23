@@ -376,6 +376,53 @@ void main() {
     expect(row.countedDiveModes, '["modeFromTheFuture"]');
   });
 
+  testWidgets('any dive chosen over an unreadable mapping is written', (
+    tester,
+  ) async {
+    final ccr = await addCert(
+      'Rebreather Diver',
+      CertificationAgency.padi,
+      CertificationLevel.rebreather,
+    );
+    await db
+        .into(db.certificationCurrencyPrefs)
+        .insert(
+          CertificationCurrencyPrefsCompanion.insert(
+            id: 'p1',
+            certificationId: ccr.id,
+            ruleId: 'rebreather_currency',
+            countedDiveTypeIds: const Value('[]'),
+            countedDiveModes: const Value('["modeFromTheFuture"]'),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    final session = await pumpEditing(tester, ccr);
+
+    // The dialog starts from the rule's CCR and SCR; clearing both is the
+    // diver saying any dive counts, which decodes the same as the stored
+    // mapping but is their choice.
+    await openMenu(tester);
+    await tester.tap(find.text('Which dives count').last);
+    await settle(tester);
+    for (final mode in [
+      'Closed Circuit Rebreather',
+      'Semi-Closed Rebreather',
+    ]) {
+      await tester.tap(find.widgetWithText(FilterChip, mode));
+      await settle(tester);
+    }
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+    await save(tester, session);
+
+    final row = await (db.select(
+      db.certificationCurrencyPrefs,
+    )..where((p) => p.id.equals('p1'))).getSingle();
+    expect(row.countedDiveTypeIds, '[]');
+    expect(row.countedDiveModes, '[]');
+  });
+
   testWidgets('the mapping action appears only for activity clocks', (
     tester,
   ) async {

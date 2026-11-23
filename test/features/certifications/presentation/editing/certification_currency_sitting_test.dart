@@ -253,6 +253,35 @@ void main() {
       );
     });
 
+    test(
+      'a re-picked mapping differs from an unreadable one it decodes as',
+      () {
+        final stored = CurrencyPref(
+          id: 'p1',
+          certificationId: aow.id,
+          ruleId: 'padi_reactivate',
+          countedDiveTypeIds: const [],
+          countedDiveModes: const [],
+          unreadableMapping: true,
+          storedMapping: (types: '[]', modes: '["modeFromTheFuture"]'),
+          createdAt: t0,
+          updatedAt: t0,
+        );
+        final picked = rebuildCurrencyPref(
+          stored,
+          types: const <String>[],
+          modes: const <DiveMode>[],
+        );
+
+        expect(sameCurrencyPrefValues(picked, stored), isFalse);
+        expect(picked.storedMapping, isNull);
+        expect(
+          sameCurrencyPrefValues(rebuildCurrencyPref(stored), stored),
+          isTrue,
+        );
+      },
+    );
+
     test('a copy does not carry an unreadable inherited mapping', () {
       final mine = rule('mine', supersedes: 'padi_reactivate');
       final inherited = CurrencyPref(

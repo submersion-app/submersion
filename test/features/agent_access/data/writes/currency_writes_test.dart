@@ -175,6 +175,8 @@ void main() {
       ),
     );
 
+    expect((await h.one('currency_rules', id))!['unreadable_scope'], isTrue);
+
     await h.run([
       updateOp('currency_rules', id, {'name': 'Renamed'}),
     ]);
@@ -221,6 +223,33 @@ void main() {
       [row.muted, row.countedDiveTypeIds, row.countedDiveModes],
       [true, 'not json', '["modeFromTheFuture"]'],
     );
+  });
+
+  test('a mapping the agent sets over an unreadable one is written', () async {
+    final id = await make('currency_prefs', {
+      'certification_id': card,
+      'rule_id': 'padi_reactivate',
+      'counted_dive_type_ids': ['boat'],
+    });
+    await (db.update(
+      db.certificationCurrencyPrefs,
+    )..where((p) => p.id.equals(id))).write(
+      const CertificationCurrencyPrefsCompanion(
+        countedDiveModes: Value('["modeFromTheFuture"]'),
+      ),
+    );
+
+    await h.run([
+      updateOp('currency_prefs', id, {
+        'counted_dive_type_ids': ['boat'],
+        'counted_dive_modes': <String>[],
+      }),
+    ]);
+
+    final row = await (db.select(
+      db.certificationCurrencyPrefs,
+    )..where((p) => p.id.equals(id))).getSingle();
+    expect([row.countedDiveTypeIds, row.countedDiveModes], ['["boat"]', '[]']);
   });
 
   test('half a mapping over an unreadable one inherits the rest', () async {

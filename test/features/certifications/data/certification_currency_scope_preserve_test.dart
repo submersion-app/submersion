@@ -49,6 +49,7 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   Future<void> insertRule({
+    String clockKind = 'activity',
     String agencies = '[]',
     String levels = '[]',
     String types = '[]',
@@ -62,7 +63,7 @@ void main() {
             id: 'r1',
             diverId: const Value(diverId),
             name: 'Club rule',
-            clockKind: 'activity',
+            clockKind: clockKind,
             applicableAgencies: Value(agencies),
             applicableLevels: Value(levels),
             countedDiveTypeIds: Value(types),
@@ -166,6 +167,40 @@ void main() {
       expect(row.countedDiveModes, '["modeFromTheFuture"]');
     });
 
+    test('editing one half of a rule\'s mapping writes both', () async {
+      // Types and modes are one answer to "which dives count". The dialog
+      // showed no modes, so adding a type writes what it showed, and the
+      // rule counts boat dives instead of still matching nothing.
+      await insertRule(modes: '["modeFromTheFuture"]');
+      final rule = (await repository.getRules()).firstWhere(
+        (r) => r.id == 'r1',
+      );
+
+      await repository.updateRule(
+        rule.copyWith(countedDiveTypeIds: const ['boat']),
+      );
+
+      final row = await storedRule();
+      expect(row.countedDiveTypeIds, '["boat"]');
+      expect(row.countedDiveModes, '[]');
+      final reread = (await repository.getRules()).firstWhere(
+        (r) => r.id == 'r1',
+      );
+      expect(reread.unreadableScope, isFalse);
+    });
+
+    test('a clock kind this build does not know survives a rename', () async {
+      await insertRule(clockKind: 'clockFromTheFuture');
+      final rule = (await repository.getRules()).firstWhere(
+        (r) => r.id == 'r1',
+      );
+      expect(rule.clockKind, CurrencyClockKind.activity);
+
+      await repository.updateRule(rule.copyWith(name: 'Renamed'));
+
+      expect((await storedRule()).clockKind, 'clockFromTheFuture');
+    });
+
     test('a scope the edit changes is written', () async {
       await insertRule(agencies: '["agencyFromTheFuture"]', modes: '["oc"]');
       final rule = (await repository.getRules()).firstWhere(
@@ -240,6 +275,33 @@ void main() {
       expect(row.muted, isTrue);
       expect(row.countedDiveTypeIds, 'not json');
       expect(row.countedDiveModes, '["modeFromTheFuture"]');
+    });
+
+    test('the pref returned is the mapping as written', () async {
+      await insertPref(modes: '["modeFromTheFuture"]');
+      final pref = (await repository.getPrefs(certId)).single;
+
+      final written = await repository.upsertPref(pref.copyWith(muted: true));
+
+      expect(written.unreadableMapping, isTrue);
+      expect(written.mappingJson.modes, '["modeFromTheFuture"]');
+    });
+
+    test('a mapping the diver set is written even when it decodes the same, '
+        'over one this build cannot read', () async {
+      await insertPref(types: '["boat"]', modes: '["modeFromTheFuture"]');
+      // Read back, so it carries the stored mapping a save would keep.
+      final edited = (await repository.getPrefs(
+        certId,
+      )).single.copyWith(countedDiveModes: const []);
+
+      await repository.upsertPref(edited);
+      expect((await storedPref()).countedDiveModes, '["modeFromTheFuture"]');
+
+      await repository.upsertPref(edited, mappingEdited: true);
+      final row = await storedPref();
+      expect(row.countedDiveTypeIds, '["boat"]');
+      expect(row.countedDiveModes, '[]');
     });
 
     test('a mapping the edit changes is written', () async {

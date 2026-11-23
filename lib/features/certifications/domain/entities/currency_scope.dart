@@ -2,6 +2,18 @@ import 'dart:convert';
 
 import 'package:submersion/core/constants/enums.dart';
 
+/// A rule's four scope arrays exactly as they are stored.
+typedef CurrencyScopeJson = ({
+  String agencies,
+  String levels,
+  String types,
+  String modes,
+});
+
+/// A dive-type and dive-mode mapping as it is stored: JSON arrays, or NULL
+/// where a card's setting inherits that half from its rule.
+typedef CurrencyMappingJson = ({String? types, String? modes});
+
 /// Reads and writes the JSON arrays a currency rule stores for its scope and
 /// its activity mapping.
 ///
@@ -85,6 +97,30 @@ abstract final class CurrencyScopeCodec {
     required String next,
     required List<String> Function(String raw) names,
   }) => stored != null && sameValues(stored, next, names) ? stored : next;
+
+  /// What an edit stores for a dive-type and dive-mode mapping: [stored]
+  /// when neither half holds different values from [next], else [next]
+  /// (issue #4942).
+  ///
+  /// The halves are one answer to "which dives count": a dive of either a
+  /// listed type or a listed mode qualifies. A change to one half writes
+  /// both as given, so a diver who re-picks the mapping gets what the
+  /// dialog showed them rather than their half beside an unreadable one.
+  static CurrencyMappingJson keepMappingIfUnchanged({
+    required CurrencyMappingJson? stored,
+    required CurrencyMappingJson next,
+  }) =>
+      stored != null &&
+          sameValues(stored.types, next.types, decodeStrings) &&
+          sameValues(stored.modes, next.modes, modeNames)
+      ? stored
+      : next;
+
+  /// Whether a stored card mapping is one this build can read: each half
+  /// NULL (inherit) or a readable array.
+  static bool isReadableMapping(CurrencyMappingJson mapping) =>
+      (mapping.types == null || isReadableStrings(mapping.types!)) &&
+      (mapping.modes == null || isReadableModes(mapping.modes!));
 
   /// Whether [raw] is a JSON list of strings at all.
   static bool isReadableStrings(String raw) {

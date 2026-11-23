@@ -4,7 +4,6 @@ import 'package:submersion/core/services/export/models/currency_backup_data.dart
 import 'package:submersion/features/certifications/domain/entities/currency_event.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_pref.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
-import 'package:submersion/features/certifications/domain/entities/currency_scope.dart';
 
 /// The rows the parser reads back, as the import pipeline's maps.
 typedef UddfCurrencyRows = ({
@@ -96,6 +95,9 @@ abstract final class UddfCertificationCurrency {
       nest: () {
         builder.element('name', nest: rule.name);
         builder.element('clockkind', nest: rule.clockKind.name);
+        // The JSON getters give the arrays as stored while the lists match
+        // them, so values this build cannot read travel as they are rather
+        // than as "any" (issue #4942).
         builder.element('agencies', nest: rule.agenciesJson);
         builder.element('levels', nest: rule.levelsJson);
         builder.element('lapsedays', nest: '${rule.lapseDays}');
@@ -127,16 +129,14 @@ abstract final class UddfCertificationCurrency {
         if (pref.leadDaysOverride != null) {
           builder.element('leaddays', nest: '${pref.leadDaysOverride}');
         }
-        final types = pref.countedDiveTypeIds;
-        if (types != null) {
-          builder.element('divetypes', nest: CurrencyScopeCodec.encode(types));
+        // As stored, so a mapping this build cannot read travels as it is
+        // rather than as "any dive" (issue #4942).
+        final mapping = pref.mappingJson;
+        if (mapping.types != null) {
+          builder.element('divetypes', nest: mapping.types);
         }
-        final modes = pref.countedDiveModes;
-        if (modes != null) {
-          builder.element(
-            'divemodes',
-            nest: CurrencyScopeCodec.encode([for (final m in modes) m.name]),
-          );
+        if (mapping.modes != null) {
+          builder.element('divemodes', nest: mapping.modes);
         }
         builder.element('muted', nest: '${pref.muted}');
       },
