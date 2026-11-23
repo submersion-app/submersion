@@ -1385,7 +1385,11 @@ class BackupService {
 
     for (var record in history) {
       final ref = record.localPath;
-      if (ref != null && !isSafRef(ref) && !await File(ref).exists()) {
+      // The shape test comes first so that no other record costs a disk read
+      // here: cloud-backed records were never checked for a local file.
+      if (ref != null &&
+          _endsInDefaultFolder(ref) &&
+          !await File(ref).exists()) {
         final relocated = await _relocatedIntoDefaultFolder(ref);
         if (relocated != null) {
           _log.info('Repointing moved backup record: ${record.filename}');
@@ -1429,18 +1433,12 @@ class BackupService {
   /// they would turn up as unrecognized files instead.
   ///
   /// Only a path that ended in the default folder
-  /// (`.../Submersion/Backups/<name>`) is relocated, and only to the same name
-  /// in today's default folder. A custom folder lives outside the container and does not move
-  /// this way, and a backup name carries its timestamp and device tag, so a
-  /// file found there is the same backup.
+  /// (`.../Submersion/Backups/<name>`, see [_endsInDefaultFolder]) is
+  /// relocated, and only to the same name in today's default folder. A custom
+  /// folder lives outside the container and does not move this way, and a
+  /// backup name carries its timestamp and device tag, so a file found there
+  /// is the same backup.
   Future<String?> _relocatedIntoDefaultFolder(String stalePath) async {
-    final segments = p.split(stalePath);
-    final tail = segments.length - 1 - _localBackupFolder.length;
-    if (tail < 0) return null;
-    for (var i = 0; i < _localBackupFolder.length; i++) {
-      if (segments[tail + i] != _localBackupFolder[i]) return null;
-    }
-
     final String candidate;
     try {
       candidate = p.join(
@@ -1453,6 +1451,20 @@ class BackupService {
     }
     if (p.equals(candidate, stalePath)) return null;
     return await File(candidate).exists() ? candidate : null;
+  }
+
+  /// Whether [path] names a file directly inside a `Submersion/Backups`
+  /// folder, the shape of a path into the default backups folder wherever the
+  /// container currently is. A SAF `content://` reference never matches.
+  static bool _endsInDefaultFolder(String path) {
+    if (isSafRef(path)) return false;
+    final segments = p.split(path);
+    final tail = segments.length - 1 - _localBackupFolder.length;
+    if (tail < 0) return false;
+    for (var i = 0; i < _localBackupFolder.length; i++) {
+      if (segments[tail + i] != _localBackupFolder[i]) return false;
+    }
+    return true;
   }
 
   /// Delete a specific backup (local file + cloud file + metadata).
