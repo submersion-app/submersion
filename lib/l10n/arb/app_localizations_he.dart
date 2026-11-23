@@ -47780,34 +47780,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'דג כירורג בהיר בעל שישה פסים שחורים אנכיים, נצפה לרוב רועה בלהקות גדולות במישורי השונית של ההודו-פסיפי.';
 
   @override
-  String get species_great_hammerhead_name => 'כריש פטיש משונן';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'כריש ייחודי בעל ראש משונן בצורת פטיש, יוצר להקות גדולות סביב הרי ים ואיים מרוחקים מהחוף.';
-
-  @override
-  String get species_wobbegong_name => 'וובגונג מנוקד';
-
-  @override
-  String get species_wobbegong_desc =>
-      'כריש שטיח שטוח ומוסווה היטב בעל אונות משוננות סביב הפה, מצוי בשוניות ממוזגות באוסטרליה.';
-
-  @override
-  String get species_manta_ray_name => 'מנטת שונית';
-
-  @override
-  String get species_manta_ray_desc =>
-      'ענק חינני במוטת כנפיים של עד 5 מטרים המבקר בתחנות ניקוי וניזון מפלנקטון בשוניות ההודו-פסיפי.';
-
-  @override
-  String get species_oceanic_manta_name => 'מנטה אוקיינית';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'מין הטריגון הגדול ביותר, במוטת כנפיים של יותר מ-7 מטרים, נפגש בהרי ים מרוחקים מהחוף ובתחנות ניקוי.';
-
-  @override
   String get species_undulated_moray_name => 'מורנה גלית';
 
   @override

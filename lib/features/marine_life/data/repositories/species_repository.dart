@@ -12,6 +12,7 @@ import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
+import 'package:submersion/features/marine_life/data/services/retired_species_merger.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
@@ -573,6 +574,9 @@ class SpeciesRepository {
   /// stamps an hlc, the seed never does), so catalog corrections reach
   /// existing installs while edits survive. A built-in row the diver deleted
   /// comes back at the next catalog version.
+  ///
+  /// The upgrade also folds each id the catalog retired into its
+  /// replacement (issue #4966), unless the diver edited the retired row.
   Future<void> seedBuiltInSpecies({
     BuiltInSpeciesSeedVersionStore? versionStore,
   }) async {
@@ -608,7 +612,12 @@ class SpeciesRepository {
     });
 
     if (upgrade) {
+      final merged = await RetiredSpeciesMerger(
+        _db,
+        _syncRepository,
+      ).merge(catalog.retired, keepEdited: true);
       await store.markApplied(catalog.version);
+      if (merged) SyncEventBus.notifyLocalChange();
     }
   }
 
@@ -624,11 +633,19 @@ class SpeciesRepository {
   /// replaces the edit on the diver's other devices too. That stamps an hlc,
   /// so later catalog versions leave those rows alone until the next reset.
   Future<void> resetBuiltInSpecies() async {
-    final builtInSpecies = await SpeciesSeedService.loadBundledSpecies();
+    final catalog = await SpeciesSeedService.loadBundledCatalog();
+    final builtInSpecies = catalog.species;
 
     // One transaction: a reset cut short must not leave a restored row with
     // its hlc cleared and no pending mark, which would never publish.
     await _db.transaction(() async {
+      // A reset discards edits, so even an edited retired row folds into
+      // its replacement (issue #4966) before the in-use pass below.
+      await RetiredSpeciesMerger(
+        _db,
+        _syncRepository,
+      ).merge(catalog.retired, keepEdited: false);
+
       // Every edit path stamps an hlc and the seed never does.
       final editedResults = await _db.customSelect('''
         SELECT id FROM species WHERE is_built_in = 1 AND hlc IS NOT NULL

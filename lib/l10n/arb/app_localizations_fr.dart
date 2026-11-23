@@ -49018,34 +49018,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Chirurgien clair barré de six bandes noires verticales, souvent vu brouter en grands bancs sur les platiers récifaux indo-pacifiques.';
 
   @override
-  String get species_great_hammerhead_name => 'Requin-marteau halicorne';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Requin caractéristique à la tête en marteau festonné, formant de grands bancs autour des monts sous-marins et des îles du large.';
-
-  @override
-  String get species_wobbegong_name => 'Requin-tapis tacheté';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Requin-tapis aplati et bien camouflé, orné de lobes frangés autour de la bouche, présent sur les récifs tempérés australiens.';
-
-  @override
-  String get species_manta_ray_name => 'Raie manta de récif';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Géant gracieux atteignant 5 m d\'envergure, qui fréquente les stations de nettoyage et se nourrit de plancton sur les récifs indo-pacifiques.';
-
-  @override
-  String get species_oceanic_manta_name => 'Raie manta océanique';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'La plus grande espèce de raie, dont l\'envergure dépasse 7 m, rencontrée sur les monts sous-marins du large et aux stations de nettoyage.';
-
-  @override
   String get species_undulated_moray_name => 'Murène ondulée';
 
   @override

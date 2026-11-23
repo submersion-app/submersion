@@ -48802,34 +48802,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Heller Doktorfisch mit sechs senkrechten schwarzen Binden, oft in großen Schwärmen beim Weiden auf den Riffdächern des Indopazifiks.';
 
   @override
-  String get species_great_hammerhead_name => 'Bogenstirn-Hammerhai';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Markanter Hai mit gebogenem hammerförmigem Kopf, der an Seebergen und vorgelagerten Inseln große Schulen bildet.';
-
-  @override
-  String get species_wobbegong_name => 'Gefleckter Teppichhai';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Flacher, gut getarnter Teppichhai mit Hautfransen rund um das Maul, an den gemäßigten Riffen Australiens.';
-
-  @override
-  String get species_manta_ray_name => 'Riffmanta';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Anmutiger Riese mit bis zu 5 m Spannweite, der Putzerstationen aufsucht und an Riffen des Indopazifiks Plankton frisst.';
-
-  @override
-  String get species_oceanic_manta_name => 'Riesenmanta';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'Die größte Rochenart mit über 7 m Spannweite, an vorgelagerten Seebergen und Putzerstationen anzutreffen.';
-
-  @override
   String get species_undulated_moray_name => 'Wellenlinien-Muräne';
 
   @override

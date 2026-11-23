@@ -48618,34 +48618,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Halvány doktorhal hat függőleges fekete sávval, gyakran nagy rajokban legel az indo-csendes-óceáni zátonylapokon.';
 
   @override
-  String get species_great_hammerhead_name => 'Csipkés pörölycápa';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Jellegzetes cápa csipkés szegélyű, kalapács alakú fejjel, nagy rajokat alkot tenger alatti hegyeknél és part menti szigeteknél.';
-
-  @override
-  String get species_wobbegong_name => 'Foltos szőnyegcápa';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Lapos, kiválóan álcázott szőnyegcápa a szája körül rojtos bőrlebenyekkel, Ausztrália mérsékelt övi zátonyain él.';
-
-  @override
-  String get species_manta_ray_name => 'Zátonymanta';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Kecses óriás akár 5 méteres szárnyfesztávval, amely tisztogatóállomásokat látogat és planktonnal táplálkozik az indo-csendes-óceáni zátonyokon.';
-
-  @override
-  String get species_oceanic_manta_name => 'Óceáni manta';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'A legnagyobb rájafaj, szárnyfesztávja meghaladja a 7 métert, part menti tenger alatti hegyeknél és tisztogatóállomásoknál találkozni vele.';
-
-  @override
   String get species_undulated_moray_name => 'Hullámos muréna';
 
   @override
