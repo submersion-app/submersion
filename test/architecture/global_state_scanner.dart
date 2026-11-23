@@ -47,6 +47,7 @@ const harnessDefaults = [
   'debugCanShareFiles',
   'GoogleFonts.config.allowRuntimeFetching',
   'DemoModeGate.instance.debugActive',
+  'OnnxVisionEngine.debugLibraryLoadsOverride',
 ];
 
 /// Channels whose mock handlers change what the path provider and the share
