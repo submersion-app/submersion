@@ -54463,6 +54463,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not delete the profile revision.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'Remove This Source';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'Save or undo your edits to delete the profile.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Save or undo your edits to delete the profile or remove this source.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'Delete Entire Profile only deletes revisions of the primary source\'s profile.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'This is the dive\'s only profile revision, so it can\'t be deleted.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Couldn\'t load the profile revisions, so none can be deleted now.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Saved before revision history; not linked to a computer';
 

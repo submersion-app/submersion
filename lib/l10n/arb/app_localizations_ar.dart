@@ -56109,6 +56109,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر حذف مراجعة الملف الشخصي.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'إزالة هذا المصدر';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'احفظ تعديلاتك أو تراجع عنها لحذف الملف.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'احفظ تعديلاتك أو تراجع عنها لحذف الملف أو إزالة هذا المصدر.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'يحذف «حذف الملف الكامل» مراجعات ملف المصدر الأساسي فقط.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'هذه هي المراجعة الوحيدة لملف الغوصة، لذا لا يمكن حذفها.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'تعذر تحميل مراجعات الملف، لذا لا يمكن حذف أي منها الآن.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص';
 

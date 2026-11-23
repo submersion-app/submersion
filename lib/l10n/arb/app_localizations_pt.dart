@@ -55293,6 +55293,29 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível excluir a revisão do perfil.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'Remover esta fonte';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'Salve ou desfaça suas alterações para excluir o perfil.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Salve ou desfaça suas alterações para excluir o perfil ou remover esta fonte.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'Excluir perfil completo só exclui revisões do perfil da fonte principal.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'Esta é a única revisão do perfil do mergulho, então ela não pode ser excluída.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Não foi possível carregar as revisões do perfil, então nenhuma pode ser excluída agora.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Guardado antes do histórico de revisões; sem ligação a um computador';
 
