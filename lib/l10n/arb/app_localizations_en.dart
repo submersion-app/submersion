@@ -55229,6 +55229,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Partly analysed, $count found',
+      one: 'Partly analysed, $count found',
+      zero: 'Partly analysed, nothing found',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => 'Species labels: not analysed';
+
+  @override
+  String get media_labels_buttonAnalysing => 'Species labels: analysing';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'Species labels: partly analysed';
+
+  @override
+  String get media_labels_buttonAnalysed => 'Species labels: analysed';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

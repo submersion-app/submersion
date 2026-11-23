@@ -53803,6 +53803,30 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '一部解析済み、$count件検出',
+      one: '一部解析済み、$count件検出',
+      zero: '一部解析済み、見つかりませんでした',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => '種のラベル：未解析';
+
+  @override
+  String get media_labels_buttonAnalysing => '種のラベル：解析中';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed => '種のラベル：一部解析済み';
+
+  @override
+  String get media_labels_buttonAnalysed => '種のラベル：解析済み';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

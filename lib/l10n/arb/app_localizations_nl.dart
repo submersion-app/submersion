@@ -55749,6 +55749,33 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Deels geanalyseerd, $count gevonden',
+      one: 'Deels geanalyseerd, $count gevonden',
+      zero: 'Deels geanalyseerd, niets gevonden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed =>
+      'Labels voor soorten: niet geanalyseerd';
+
+  @override
+  String get media_labels_buttonAnalysing =>
+      'Labels voor soorten: bezig met analyseren';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'Labels voor soorten: deels geanalyseerd';
+
+  @override
+  String get media_labels_buttonAnalysed => 'Labels voor soorten: geanalyseerd';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -35,6 +35,11 @@ void main() {
     l10n.connections_caption_reef,
     l10n.connections_preset_life,
     l10n.media_labels_action,
+    // The same button's tooltips, naming how far analysis has got.
+    l10n.media_labels_buttonNotAnalysed,
+    l10n.media_labels_buttonAnalysing,
+    l10n.media_labels_buttonPartlyAnalysed,
+    l10n.media_labels_buttonAnalysed,
   ];
 
   /// The wording each locale used for the old "marine life" term. Every entry

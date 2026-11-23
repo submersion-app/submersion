@@ -56900,6 +56900,34 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حُلِّل جزئيًا، عُثر على $count',
+      many: 'حُلِّل جزئيًا، عُثر على $count',
+      few: 'حُلِّل جزئيًا، عُثر على $count',
+      two: 'حُلِّل جزئيًا، عُثر على اثنين',
+      one: 'حُلِّل جزئيًا، عُثر على واحد',
+      zero: 'حُلِّل جزئيًا، لم يُعثر على شيء',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => 'تسميات الأنواع: لم يُحلَّل';
+
+  @override
+  String get media_labels_buttonAnalysing => 'تسميات الأنواع: جارٍ التحليل';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'تسميات الأنواع: حُلِّل جزئيًا';
+
+  @override
+  String get media_labels_buttonAnalysed => 'تسميات الأنواع: حُلِّل';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -52568,6 +52568,29 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '部分已分析，发现 $count 个',
+      zero: '部分已分析，未发现任何内容',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => '物种标签：未分析';
+
+  @override
+  String get media_labels_buttonAnalysing => '物种标签：正在分析';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed => '物种标签：部分已分析';
+
+  @override
+  String get media_labels_buttonAnalysed => '物种标签：已分析';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

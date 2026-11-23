@@ -87853,6 +87853,36 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}'**
   String media_labels_statusFound(int count);
 
+  /// Labels menu status line for a photo or video analysed only in part, such as a video scanned part way (issue #4958), with how many animals were found so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Partly analysed, nothing found} =1{Partly analysed, {count} found} other{Partly analysed, {count} found}}'**
+  String media_labels_statusPartlyFound(int count);
+
+  /// Tooltip of the viewer's species labels button while the item on screen is not analysed; the icon is drawn plain (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: not analysed'**
+  String get media_labels_buttonNotAnalysed;
+
+  /// Tooltip of the viewer's species labels button while the item on screen is being analysed; the icon is drawn in the theme colour (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: analysing'**
+  String get media_labels_buttonAnalysing;
+
+  /// Tooltip of the viewer's species labels button while the item on screen is analysed only in part; the icon is drawn amber (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: partly analysed'**
+  String get media_labels_buttonPartlyAnalysed;
+
+  /// Tooltip of the viewer's species labels button once the item on screen is analysed; the icon is drawn green (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: analysed'**
+  String get media_labels_buttonAnalysed;
+
   /// Brief message after the diver asks for a photo or video to be analysed and it finds animals it cannot name, so no name label is drawn (issue #4872).
   ///
   /// In en, this message translates to:

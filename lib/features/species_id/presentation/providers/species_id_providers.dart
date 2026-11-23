@@ -384,16 +384,25 @@ final videoFileReaderProvider =
       (ref, item) async {
         // Only the playback the player on screen holds: resolving one here
         // could fetch a whole original the diver never played (a load that
-        // failed, a cache that let it go). A scan downloads nothing.
-        if (!ref.exists(videoPlaybackProvider(item))) return null;
+        // failed, a cache that let it go). A scan downloads nothing. The
+        // player may hold it under an earlier copy of the item (issue
+        // #4958): the newest such copy is read.
+        final held = ref.exists(videoPlaybackProvider(item))
+            ? item
+            : ref
+                  .read(liveVideoPlaybacksProvider)
+                  .of(item.id)
+                  .where((copy) => ref.exists(videoPlaybackProvider(copy)))
+                  .lastOrNull;
+        if (held == null) return null;
         final resolving = ref.keepAlive();
         try {
           final access = ref.read(videoFileAccessProvider);
-          final playback = await ref.read(videoPlaybackProvider(item).future);
+          final playback = await ref.read(videoPlaybackProvider(held).future);
           if (playback is! FilePlayback) return null;
           final path = playback.path;
           return <T>(Future<T> Function(String path) read) =>
-              access<T>(path: path, bookmarkRef: item.bookmarkRef, read: read);
+              access<T>(path: path, bookmarkRef: held.bookmarkRef, read: read);
         } finally {
           resolving.close();
         }

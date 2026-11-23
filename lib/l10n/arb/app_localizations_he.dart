@@ -54927,6 +54927,30 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נותח חלקית, נמצאו $count',
+      one: 'נותח חלקית, נמצא אחד',
+      zero: 'נותח חלקית, לא נמצא דבר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => 'תוויות מינים: לא נותח';
+
+  @override
+  String get media_labels_buttonAnalysing => 'תוויות מינים: מנתח';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed => 'תוויות מינים: נותח חלקית';
+
+  @override
+  String get media_labels_buttonAnalysed => 'תוויות מינים: נותח';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

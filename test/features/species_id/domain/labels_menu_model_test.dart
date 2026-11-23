@@ -53,16 +53,17 @@ void main() {
     expect(m.actionEnabled, isTrue);
   });
 
-  test('part analysed with something found says how many', () {
+  test('part analysed with something found says so, and how many (issue '
+      '#4958)', () {
     final m = model(MediaAnalysisState.partial, found: 2);
-    expect(m.line, LabelsStatusLine.found);
+    expect(m.line, LabelsStatusLine.partlyFound);
     expect(m.found, 2);
   });
 
   test('part analysed with nothing found says so, not that it was never '
       'analysed', () {
     final m = model(MediaAnalysisState.partial);
-    expect(m.line, LabelsStatusLine.found);
+    expect(m.line, LabelsStatusLine.partlyFound);
     expect(m.found, 0);
     expect(m.action, AnalyseAction.analyse);
   });
@@ -89,7 +90,7 @@ void main() {
   test('a video part scanned on another device, with no model here, says '
       'what was found and offers nothing (issue #4926)', () {
     final m = model(MediaAnalysisState.partFoundNoModel, found: 2);
-    expect(m.line, LabelsStatusLine.found);
+    expect(m.line, LabelsStatusLine.partlyFound);
     expect(m.found, 2);
     expect(m.actionEnabled, isFalse);
   });

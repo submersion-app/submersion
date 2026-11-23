@@ -10,6 +10,7 @@ import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/labels_menu.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
@@ -149,7 +150,7 @@ void main() {
       'from the start', (tester) async {
     await open(tester, state: MediaAnalysisState.partial, found: 0);
     expect(find.text('Analyse'), findsOneWidget);
-    expect(find.text('Nothing found'), findsOneWidget);
+    expect(find.text('Partly analysed, nothing found'), findsOneWidget);
     await tester.tap(entry('analyse'));
     await tester.pumpAndSettle();
     expect(service.byHand, [true]);
@@ -170,6 +171,12 @@ void main() {
       tester.widget<PopupMenuItem<Object>>(entry('analyse')).enabled,
       isFalse,
     );
+  });
+
+  testWidgets('part analysed, the status says so with what was found '
+      '(issue #4958)', (tester) async {
+    await open(tester, state: MediaAnalysisState.partial, found: 3);
+    expect(find.text('Partly analysed, 3 found'), findsOneWidget);
   });
 
   testWidgets('with no model the status says so and the action waits', (
@@ -243,7 +250,15 @@ void main() {
 
   group('the toolbar action', () {
     /// What the toolbar's labels action is on [item].
-    Future<({bool offered, bool on, ToolbarRing? ring, ToolbarTone? tone})>
+    Future<
+      ({
+        bool offered,
+        bool on,
+        ToolbarRing? ring,
+        ToolbarTone? tone,
+        String? label,
+      })
+    >
     action(
       WidgetTester tester,
       MediaItem item, {
@@ -253,7 +268,14 @@ void main() {
       MediaAnalysisState state = MediaAnalysisState.analysed,
     }) async {
       final overrides = await getBaseOverrides();
-      ({bool offered, bool on, ToolbarRing? ring, ToolbarTone? tone})? result;
+      ({
+        bool offered,
+        bool on,
+        ToolbarRing? ring,
+        ToolbarTone? tone,
+        String? label,
+      })?
+      result;
       await tester.pumpWidget(
         testApp(
           overrides: [
@@ -275,11 +297,15 @@ void main() {
           child: Consumer(
             builder: (context, ref, _) {
               final labels = marineLifeLabelsAction(ref, item, null);
+              final status = labels.status;
               result = (
                 offered: labels.onPressed != null,
                 on: labels.on,
                 ring: labels.ring,
                 tone: labels.tone,
+                label: status == null
+                    ? null
+                    : labelsButtonLabel(context.l10n, status),
               );
               return const SizedBox.shrink();
             },
@@ -354,6 +380,37 @@ void main() {
         );
       });
     }
+
+    // Its tooltip says what the colour means (issue #4958).
+    for (final (state, label) in [
+      (MediaAnalysisState.notAnalysed, 'Species labels: not analysed'),
+      (MediaAnalysisState.noModel, 'Species labels: not analysed'),
+      (MediaAnalysisState.partial, 'Species labels: partly analysed'),
+      (MediaAnalysisState.analysed, 'Species labels: analysed'),
+      (MediaAnalysisState.foundNoModel, 'Species labels: analysed'),
+      (MediaAnalysisState.partFoundNoModel, 'Species labels: partly analysed'),
+    ]) {
+      testWidgets('names the state for ${state.name}: $label', (tester) async {
+        expect(
+          (await action(tester, testMediaItem(id: 'p1'), state: state)).label,
+          label,
+        );
+      });
+    }
+
+    testWidgets('names the state as analysing while it is analysed', (
+      tester,
+    ) async {
+      expect(
+        (await action(
+          tester,
+          testMediaItem(id: 'p1'),
+          busy: true,
+          state: MediaAnalysisState.partial,
+        )).label,
+        'Species labels: analysing',
+      );
+    });
 
     testWidgets('colours the icon as under way while it is analysed', (
       tester,

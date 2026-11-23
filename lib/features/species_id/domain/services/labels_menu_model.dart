@@ -48,6 +48,10 @@ enum LabelsStatusLine {
   analysing,
   analysingPercent,
   found,
+
+  /// Looked at only in part (issue #4958): what was found so far, and that
+  /// it is not done, as the icon's amber says.
+  partlyFound,
 }
 
 /// What the menu shows: its status line, with how many were found and how
@@ -86,12 +90,12 @@ LabelsMenuModel labelsMenuModel({
   final line = switch (state) {
     MediaAnalysisState.noModel => LabelsStatusLine.noModel,
     MediaAnalysisState.notAnalysed => LabelsStatusLine.notAnalysed,
-    // Looked at, even if only in part: what was found so far, nothing
-    // included.
+    // Looked at only in part: what was found so far, and that it is not
+    // done (issue #4958).
     MediaAnalysisState.partial ||
+    MediaAnalysisState.partFoundNoModel => LabelsStatusLine.partlyFound,
     MediaAnalysisState.analysed ||
-    MediaAnalysisState.foundNoModel ||
-    MediaAnalysisState.partFoundNoModel => LabelsStatusLine.found,
+    MediaAnalysisState.foundNoModel => LabelsStatusLine.found,
   };
   return (
     line: line,
