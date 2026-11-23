@@ -143,10 +143,7 @@ class TripGearTab extends ConsumerWidget {
             context,
             ref,
             gear: [for (final row in gear) row.item],
-            bagIds: {
-              for (final row in gear)
-                if (row.bagId case final bagId?) row.item.id: bagId,
-            },
+            bagIds: {for (final row in gear) row.item.id: ?row.bagId},
             states: held.states,
             writes: HeldTripGearWrites(
               session: editing,

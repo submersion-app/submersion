@@ -90,7 +90,7 @@ void main() {
       active: [bcd, weighedFins],
       editing: true,
     );
-    final weight = UnitFormatter(const AppSettings()).formatWeight(4.0);
+    final weight = const UnitFormatter(AppSettings()).formatWeight(4.0);
     await openPicker(tester);
     await tickAndAdd(tester, ['Hollis wing', 'Fins']);
     expect(find.text('Choose a bag'), findsOneWidget);
