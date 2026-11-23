@@ -92,12 +92,21 @@ Future<void> detachSideTripsForDelete(
 /// and never for a trip that has side trips of its own. The trip form only
 /// offers valid parents; this keeps a stale choice or a sync race from
 /// writing a link every reader would then ignore.
+///
+/// Only a parent being set or changed is checked: [parentId] equal to
+/// [storedParentId], the trip's parent as stored, is kept as it is (issue
+/// #4941). `parent_trip_id` has no foreign key because a sync can deliver a
+/// side trip before its larger trip, so an edit that leaves the parent
+/// alone must not unlink it while the larger trip is missing here, or while
+/// a sync race leaves either trip briefly in a shape the check refuses.
 Future<String?> writableParentId(
   AppDatabase db, {
   required String tripId,
   required String? parentId,
+  String? storedParentId,
 }) async {
   if (parentId == null || parentId == tripId) return null;
+  if (parentId == storedParentId) return parentId;
   final row = await db
       .customSelect(
         'SELECT '
