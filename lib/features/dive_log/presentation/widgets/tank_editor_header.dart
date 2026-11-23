@@ -110,29 +110,31 @@ class TankEditorHeader extends StatelessWidget {
   }
 
   Widget _menu(BuildContext context, ThemeData theme) {
-    return PopupMenuButton<int>(
+    // Each item carries its own action: the items are built when the menu
+    // opens, but the picked value reaches a later build of this header, whose
+    // actions may have changed (the "My cylinders" one appears once the
+    // diver's gear loads), so an index could run a different action.
+    return PopupMenuButton<TankHeaderAction>(
       key: const Key('tank-actions-menu'),
       icon: const Icon(Icons.more_vert),
       tooltip: MaterialLocalizations.of(context).showMenuTooltip,
-      onSelected: (i) => actions[i].onPressed(),
+      onSelected: (action) => action.onPressed(),
       itemBuilder: (context) => [
-        for (var i = 0; i < actions.length; i++)
-          PopupMenuItem<int>(
-            key: actions[i].key,
-            value: i,
+        for (final action in actions)
+          PopupMenuItem<TankHeaderAction>(
+            key: action.key,
+            value: action,
             child: Row(
               children: [
                 Icon(
-                  actions[i].icon,
-                  color: actions[i].destructive
-                      ? theme.colorScheme.error
-                      : null,
+                  action.icon,
+                  color: action.destructive ? theme.colorScheme.error : null,
                 ),
                 const SizedBox(width: 12),
                 Flexible(
                   child: Text(
-                    actions[i].label,
-                    style: actions[i].destructive
+                    action.label,
+                    style: action.destructive
                         ? TextStyle(color: theme.colorScheme.error)
                         : null,
                   ),
