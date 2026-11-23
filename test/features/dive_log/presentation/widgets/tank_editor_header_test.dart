@@ -50,4 +50,39 @@ void main() {
 
     expect(ran, ['scan']);
   });
+
+  testWidgets('a lone action stays a button however narrow, since a menu '
+      'would take the same room', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 120,
+            child: TankEditorHeader(
+              leading: const SizedBox(width: 40),
+              title: 'All tanks',
+              subtitle: 'EAN32',
+              actions: [
+                TankHeaderAction(
+                  key: const Key('scan'),
+                  icon: Icons.circle,
+                  label: 'scan',
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('tank-actions-menu')), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(IconButton),
+        matching: find.byIcon(Icons.circle),
+      ),
+      findsOneWidget,
+    );
+  });
 }

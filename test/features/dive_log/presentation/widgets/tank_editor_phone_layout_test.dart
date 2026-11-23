@@ -116,9 +116,8 @@ void main() {
           'and title whole', (tester) async {
         await pumpAt(tester, openRow(), width: width, textScale: scale);
 
-        final minWidth = TextScaler.linear(
-          scale,
-        ).scale(TankFieldGrid.defaultMinFieldWidth);
+        // Text grows linearly here, so the fields' text grows by scale.
+        final minWidth = TankFieldGrid.defaultMinFieldWidth * scale;
         for (final label in [
           l.diveLog_tank_label_o2,
           l.diveLog_tank_label_he,

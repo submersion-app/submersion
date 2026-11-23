@@ -119,6 +119,40 @@ void main() {
     expect(field.controller.text, '232');
   });
 
+  testWidgets('the minimum width follows the text size under nonlinear '
+      'scaling, as on Android 14 and later', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const _NonlinearScaler()),
+          child: child!,
+        ),
+        home: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 300,
+            child: TankFieldGrid(
+              minFieldWidth: 100,
+              children: [
+                for (var i = 0; i < 2; i++)
+                  SizedBox(key: ValueKey(i), height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // The fields' 16 sp text doubles, so each needs 200 dp and takes a
+    // line, though a 100 "font size" would not grow at all.
+    expect(
+      tester.getRect(find.byKey(const ValueKey(1))).top,
+      greaterThan(tester.getRect(find.byKey(const ValueKey(0))).bottom),
+    );
+  });
+
   testWidgets('slots size a lone field as one column of a fuller row', (
     tester,
   ) async {
@@ -156,4 +190,17 @@ void main() {
       greaterThan(tester.getRect(find.byKey(const ValueKey(0))).bottom),
     );
   });
+}
+
+/// Android's nonlinear font scaling in small: body text sizes double, while
+/// sizes from 100 up do not grow.
+class _NonlinearScaler extends TextScaler {
+  const _NonlinearScaler();
+
+  @override
+  double scale(double fontSize) =>
+      fontSize >= 100 ? fontSize : (fontSize * 2).clamp(0, 100).toDouble();
+
+  @override
+  double get textScaleFactor => 2;
 }

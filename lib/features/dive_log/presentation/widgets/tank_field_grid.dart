@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 /// not fit moves to the next line at the same column width, so O2 and He
 /// share a line on a phone with N2 below O2.
 ///
-/// [minFieldWidth] grows with the text scale, since the fields hold text.
+/// [minFieldWidth] grows with the fields' text size ([textGrowth]).
 /// [slots] sets the columns for fewer [children] than the row is laid out
 /// for, so a lone field lines up with a full row above it.
 class TankFieldGrid extends StatelessWidget {
@@ -43,9 +43,19 @@ class TankFieldGrid extends StatelessWidget {
     return fit.clamp(1, count);
   }
 
+  /// How much the text size setting grows the fields' own text. Measured on
+  /// their font size rather than by scaling [minFieldWidth] as if it were
+  /// one: Android 14 and later scale text nonlinearly, growing large sizes
+  /// less than small ones, so a 100 "font size" would hardly grow while the
+  /// fields' 16 sp text doubled.
+  static double textGrowth(BuildContext context) {
+    final fontSize = Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16;
+    return MediaQuery.textScalerOf(context).scale(fontSize) / fontSize;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final minWidth = MediaQuery.textScalerOf(context).scale(minFieldWidth);
+    final minWidth = minFieldWidth * textGrowth(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = columnsFor(

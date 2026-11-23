@@ -120,7 +120,7 @@ class TankEditor extends ConsumerStatefulWidget {
   final DiveMode diveMode;
 
   /// Draws the editor on its own card. False where the host already frames
-  /// it, such as the outlined [TankRow] of the Cylinders card: a card inside
+  /// it, such as the outlined `TankRow` of the Cylinders card: a card inside
   /// that outline left a phone too little width (issue #4962).
   final bool framed;
 

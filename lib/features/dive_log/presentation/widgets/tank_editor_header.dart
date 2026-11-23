@@ -63,9 +63,12 @@ class TankEditorHeader extends StatelessWidget {
               final buttonWidth =
                   kMinInteractiveDimension +
                   theme.visualDensity.baseSizeAdjustment.dx;
+              // A lone action stays a button: the menu would take the same
+              // room and only add a tap.
               final folds =
+                  actions.length > 1 &&
                   textWidth + actions.length * buttonWidth >
-                  constraints.maxWidth;
+                      constraints.maxWidth;
               return Row(
                 children: [
                   Expanded(
@@ -89,7 +92,7 @@ class TankEditorHeader extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (folds && actions.isNotEmpty)
+                  if (folds)
                     _menu(context, theme)
                   else
                     for (final action in actions)
