@@ -18,6 +18,11 @@ class PlanChartPalette {
   final Color stopTagBackground;
   final Color stopTagBorder;
   final Color stopTagText;
+
+  /// A previewed stop's change against the base plan, and a new stop.
+  final Color stopTagChangeBackground;
+  final Color stopTagChangeBorder;
+  final Color stopTagChangeText;
   final Color ghostLine;
 
   /// Dashed logged profile of the dive a What-if plan came from.
@@ -42,6 +47,9 @@ class PlanChartPalette {
     required this.stopTagBackground,
     required this.stopTagBorder,
     required this.stopTagText,
+    required this.stopTagChangeBackground,
+    required this.stopTagChangeBorder,
+    required this.stopTagChangeText,
     required this.ghostLine,
     required this.sourceDiveLine,
     required this.scrubCursor,
@@ -76,6 +84,9 @@ class PlanChartPalette {
       stopTagBackground: tint(scheme.surface, scheme.primary, 0.10),
       stopTagBorder: scheme.primary.withValues(alpha: 0.45),
       stopTagText: Color.lerp(scheme.primary, scheme.onSurface, 0.45)!,
+      stopTagChangeBackground: tint(scheme.surface, scheme.error, 0.14),
+      stopTagChangeBorder: scheme.error.withValues(alpha: 0.6),
+      stopTagChangeText: Color.lerp(scheme.error, scheme.onSurface, 0.15)!,
       ghostLine: scheme.outline.withValues(alpha: 0.6),
       sourceDiveLine: scheme.tertiary.withValues(alpha: 0.85),
       scrubCursor: scheme.onSurfaceVariant,
@@ -102,6 +113,9 @@ class PlanChartPalette {
       other.stopTagBackground == stopTagBackground &&
       other.stopTagBorder == stopTagBorder &&
       other.stopTagText == stopTagText &&
+      other.stopTagChangeBackground == stopTagChangeBackground &&
+      other.stopTagChangeBorder == stopTagChangeBorder &&
+      other.stopTagChangeText == stopTagChangeText &&
       other.ghostLine == ghostLine &&
       other.sourceDiveLine == sourceDiveLine &&
       other.scrubCursor == scrubCursor &&
@@ -125,6 +139,9 @@ class PlanChartPalette {
     stopTagBackground,
     stopTagBorder,
     stopTagText,
+    stopTagChangeBackground,
+    stopTagChangeBorder,
+    stopTagChangeText,
     ghostLine,
     sourceDiveLine,
     scrubCursor,

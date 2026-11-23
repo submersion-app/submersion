@@ -19,6 +19,7 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_palett
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_top_readouts.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_issue_marker_layer.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_worst_case_marker_layer.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -300,11 +301,13 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     );
     final direction = Directionality.of(context);
 
-    final stopTagLabels = [
-      for (final marker in series.stopLabels)
-        "${units.formatDepth(marker.depth, decimals: 0)} "
-            "${marker.durationSeconds ~/ 60}'",
-    ];
+    // While a contingency is previewed its stops are tagged, compared with
+    // the plan's, as the table and stats then describe the preview.
+    final stopTags = planStopTags(
+      series: series,
+      preview: ghost,
+      formatDepth: (m) => units.formatDepth(m, decimals: 0),
+    );
     final meanDepthLabel = context.l10n.plannerCanvas_chart_meanDepth(
       units.formatDepth(
         PlanChartGeometry.meanDepthMeters(series.profile),
@@ -699,7 +702,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                               series: series,
                               ghost: ghost,
                               sourceDive: sourceDive,
-                              stopTagLabels: stopTagLabels,
+                              stopTags: stopTags,
                               meanDepthLabel: meanDepthLabel,
                               labelStyle: labelStyle,
                               tagStyle: tagStyle,
