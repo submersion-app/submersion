@@ -59015,6 +59015,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ces fichiers se trouvent dans votre dossier de sauvegardes mais pas dans l\'historique de sauvegarde de cet appareil. Seul un fichier écrit par cet appareil peut être supprimé ici : tout autre fichier peut être l\'unique copie d\'un autre appareil.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Ces fichiers se trouvent dans votre dossier de sauvegardes mais pas dans l\'historique de sauvegarde de cet appareil. Ce dossier est réservé à Submersion sur cet appareil : aucun autre appareil n\'utilise ces fichiers, et chacun d\'eux peut être supprimé ici.';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'Certains de ces fichiers ont été créés par un autre appareil ou par une installation précédente de Submersion. S\'ils contiennent des plongées que vous n\'avez nulle part ailleurs, ces plongées seront perdues.';
+
+  @override
   String get backup_unrecognized_empty =>
       'Aucun fichier de sauvegarde non reconnu.';
 

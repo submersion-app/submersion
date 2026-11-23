@@ -55200,6 +55200,14 @@ class AppLocalizationsZh extends AppLocalizations {
       '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此处只能删除本设备写入的文件：其他文件可能是另一台设备的唯一副本。';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此文件夹在本设备上仅供 Submersion 使用，因此其他设备不会使用这些文件，此处可以删除其中任何文件。';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      '其中一些文件由另一台设备或之前安装的 Submersion 创建。如果其中包含您在其他地方没有的潜水记录，这些记录将会丢失。';
+
+  @override
   String get backup_unrecognized_empty => '没有无法识别的备份文件。';
 
   @override

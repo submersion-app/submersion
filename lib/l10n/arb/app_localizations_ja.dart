@@ -56461,6 +56461,14 @@ class AppLocalizationsJa extends AppLocalizations {
       'これらのファイルはバックアップフォルダにありますが、この端末のバックアップ履歴にはありません。ここで削除できるのはこの端末が書き込んだファイルのみです。それ以外は別の端末の唯一のコピーである可能性があります。';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'これらのファイルはバックアップフォルダにありますが、この端末のバックアップ履歴にはありません。このフォルダはこの端末の Submersion 専用のため、ほかの端末がこれらのファイルを使うことはなく、どれでもここで削除できます。';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'これらのファイルの一部は、別の端末または以前にインストールした Submersion が作成したものです。ほかに保存していないダイブが含まれている場合、そのダイブは失われます。';
+
+  @override
   String get backup_unrecognized_empty => '認識できないバックアップファイルはありません。';
 
   @override

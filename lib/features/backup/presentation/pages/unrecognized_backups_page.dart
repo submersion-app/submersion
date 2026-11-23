@@ -16,9 +16,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// what may be the only copy of someone's dive log. The navigation step buys
 /// room to say which files are safe to remove and why the rest are not.
 ///
-/// Only [BackupOwnership.thisDevice] entries are selectable. The service
-/// re-checks that on the way through, so this widget's job is to avoid
-/// offering the choice at all, not to be the thing that enforces it.
+/// Only [UnrecognizedBackup.isReclaimable] entries are selectable: this
+/// device's own files, plus every file when the folder is private to the app.
+/// The service re-checks that on the way through, so this widget's job is to
+/// avoid offering the choice at all, not to be the thing that enforces it.
 class UnrecognizedBackupsPage extends ConsumerStatefulWidget {
   const UnrecognizedBackupsPage({super.key});
 
@@ -98,12 +99,31 @@ class _UnrecognizedBackupsPageState
     // removes the gap entirely rather than guarding it.
     final service = ref.read(unrecognizedBackupServiceProvider);
 
+    // Only reachable for a folder private to the app, where such a file is
+    // most likely this device before a reinstall. It may still hold dives
+    // that exist nowhere else, so the diver is told before, not after.
+    final foreign = selection.any((entry) => entry.isForeign);
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.backup_unrecognized_confirm_title),
-        content: Text(
-          l10n.backup_unrecognized_confirm_message(selection.length),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (foreign) ...[
+              Text(
+                l10n.backup_unrecognized_confirm_foreignWarning,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            Text(l10n.backup_unrecognized_confirm_message(selection.length)),
+          ],
         ),
         actions: [
           TextButton(
@@ -181,8 +201,12 @@ class _List extends StatelessWidget {
         if (index == 0) {
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            // Every entry comes from the same folder, so any one of them
+            // speaks for all.
             child: Text(
-              context.l10n.backup_unrecognized_explanation,
+              entries.any((entry) => entry.inAppPrivateFolder)
+                  ? context.l10n.backup_unrecognized_explanation_appPrivate
+                  : context.l10n.backup_unrecognized_explanation,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -225,43 +249,63 @@ class _BackupTile extends ConsumerWidget {
       ),
     );
 
+    // Below the name rather than beside it: a trailing label took width the
+    // name needed, and in the private folder it now sits next to a checkbox.
+    final ownership = switch (entry.ownership) {
+      BackupOwnership.thisDevice => null,
+      BackupOwnership.otherDevice =>
+        l10n.backup_unrecognized_ownership_otherDevice,
+      _ => l10n.backup_unrecognized_ownership_unattributed,
+    };
+
     return ListTile(
-      title: Text(entry.filename, overflow: TextOverflow.ellipsis),
-      isThreeLine: note != null,
-      subtitle: note == null
-          ? detail
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  note,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                detail,
-              ],
+      // Wrapped, never ellipsized: the timestamp and the device tag sit at the
+      // END of the name, so a truncated name hides exactly the parts that tell
+      // two entries apart (issue #4973).
+      title: Text(_breakAfterUnderscores(entry.filename)),
+      isThreeLine: note != null || ownership != null,
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (ownership != null)
+            Text(
+              ownership,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+          if (note != null)
+            Text(
+              note,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium,
+            ),
+          detail,
+        ],
+      ),
       trailing: entry.isReclaimable
           ? Checkbox(
               value: selected,
               onChanged: (value) => onToggle(value ?? false),
             )
-          : Text(
-              switch (entry.ownership) {
-                BackupOwnership.otherDevice =>
-                  l10n.backup_unrecognized_ownership_otherDevice,
-                _ => l10n.backup_unrecognized_ownership_unattributed,
-              },
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
+          : null,
       onTap: entry.isReclaimable ? () => onToggle(!selected) : null,
     );
   }
 }
+
+/// [filename] with a zero-width space after each underscore.
+///
+/// A backup name has no spaces, so without these the line breaker can only
+/// wrap it mid-segment, splitting a timestamp or the device tag. The
+/// underscores are the name's own segment boundaries, so a break after one
+/// keeps every segment whole. Display only: the characters are invisible and
+/// the file is still addressed by its path.
+String _breakAfterUnderscores(String filename) =>
+    filename.replaceAll('_', '_\u200B');
 
 class _DeleteBar extends StatelessWidget {
   const _DeleteBar({required this.selection, required this.onDelete});

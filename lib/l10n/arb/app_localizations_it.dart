@@ -58900,6 +58900,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Qui può essere eliminato solo un file scritto da questo dispositivo: qualsiasi altro potrebbe essere l\'unica copia di un altro dispositivo.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Questa cartella è riservata a Submersion su questo dispositivo, quindi nessun altro dispositivo usa questi file e ognuno di essi può essere eliminato qui.';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'Alcuni di questi file sono stati creati da un altro dispositivo o da un\'installazione precedente di Submersion. Se contengono immersioni che non hai altrove, quelle immersioni andranno perse.';
+
+  @override
   String get backup_unrecognized_empty =>
       'Nessun file di backup non riconosciuto.';
 

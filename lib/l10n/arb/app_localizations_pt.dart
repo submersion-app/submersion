@@ -58877,6 +58877,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Só pode ser excluído aqui um ficheiro escrito por este dispositivo: qualquer outro pode ser a única cópia de outro dispositivo.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Esta pasta é privada do Submersion neste dispositivo, por isso nenhum outro dispositivo usa estes ficheiros e qualquer um deles pode ser excluído aqui.';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'Alguns destes ficheiros foram criados por outro dispositivo ou por uma instalação anterior do Submersion. Se contiverem mergulhos que não tem em mais nenhum lado, esses mergulhos serão perdidos.';
+
+  @override
   String get backup_unrecognized_empty =>
       'Não há ficheiros de cópia de segurança não reconhecidos.';
 

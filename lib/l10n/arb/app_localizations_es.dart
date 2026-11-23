@@ -58947,6 +58947,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Estos archivos están en tu carpeta de copias de seguridad pero no en el historial de este dispositivo. Aquí solo se puede eliminar un archivo escrito por este dispositivo: cualquier otro podría ser la única copia de otro dispositivo.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Estos archivos están en tu carpeta de copias de seguridad pero no en el historial de este dispositivo. Esta carpeta es privada de Submersion en este dispositivo, así que ningún otro dispositivo usa estos archivos y cualquiera de ellos se puede eliminar aquí.';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'Algunos de estos archivos los creó otro dispositivo o una instalación anterior de Submersion. Si contienen inmersiones que no tienes en ningún otro sitio, esas inmersiones se perderán.';
+
+  @override
   String get backup_unrecognized_empty =>
       'No hay archivos de copia de seguridad no reconocidos.';
 

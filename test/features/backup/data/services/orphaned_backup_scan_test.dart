@@ -48,12 +48,15 @@ void main() {
     return file.path;
   }
 
-  OrphanedBackupScan build({Set<String> known = const {}}) =>
-      OrphanedBackupScan(
-        backupsDirectory: () async => backups.path,
-        knownPaths: () async => known,
-        thisDeviceId: () async => thisDevice,
-      );
+  OrphanedBackupScan build({
+    Set<String> known = const {},
+    bool appPrivateFolder = false,
+  }) => OrphanedBackupScan(
+    backupsDirectory: () async => backups.path,
+    knownPaths: () async => known,
+    thisDeviceId: () async => thisDevice,
+    appPrivateFolder: appPrivateFolder,
+  );
 
   test('a plaintext forgotten backup reports its note', () async {
     final name = buildBackupFilename(
@@ -310,6 +313,95 @@ void main() {
       expect(bytes, 300);
       expect(File(mine).existsSync(), isFalse);
       expect(File(theirs).existsSync(), isTrue);
+    });
+  });
+
+  group('in the app-private default folder', () {
+    // Issue #4973: on Android and iOS the default folder is the app's private
+    // documents directory. No other device can write to it and no file manager
+    // can reach it, so a file tagged for another device (typically this one
+    // before a reinstall gave it a new id) can only be removed here.
+
+    test('another device\'s backup is reclaimable', () async {
+      await writeBackup(deviceId: otherDevice, timestamp: '2026-08-31_120000');
+
+      final found = await build(appPrivateFolder: true).find();
+
+      expect(found.single.ownership, BackupOwnership.otherDevice);
+      expect(found.single.inAppPrivateFolder, isTrue);
+      expect(found.single.isReclaimable, isTrue);
+    });
+
+    test('a legacy backup is reclaimable', () async {
+      await writeRaw('submersion_backup_2026-08-31_120000.db');
+
+      final found = await build(appPrivateFolder: true).find();
+
+      expect(found.single.ownership, BackupOwnership.unattributed);
+      expect(found.single.isReclaimable, isTrue);
+    });
+
+    test('reclaim deletes another device\'s and a legacy file', () async {
+      final theirs = await writeBackup(
+        deviceId: otherDevice,
+        timestamp: '2026-08-31_130000',
+        bytes: 900,
+      );
+      final legacy = await writeRaw(
+        'submersion_backup_2026-08-31_120000.db',
+        bytes: 400,
+      );
+      final scan = build(appPrivateFolder: true);
+
+      final bytes = await scan.reclaim(await scan.find());
+
+      expect(bytes, 1300);
+      expect(File(theirs).existsSync(), isFalse);
+      expect(File(legacy).existsSync(), isFalse);
+    });
+
+    test('reclaim decides from its own folder, not the entry', () async {
+      // An entry listed from the private folder, handed to a scan of a folder
+      // that is not private (the user chose a custom location in between),
+      // must not carry its permission across.
+      final theirs = await writeBackup(
+        deviceId: otherDevice,
+        timestamp: '2026-08-31_130000',
+      );
+      final listed = await build(appPrivateFolder: true).find();
+
+      expect(await build().reclaim(listed), 0);
+      expect(File(theirs).existsSync(), isTrue);
+    });
+
+    test('still refuses a file outside the backups directory', () async {
+      final elsewhere = await Directory.systemTemp.createTemp('not_backups');
+      addTearDown(() async {
+        if (elsewhere.existsSync()) await elsewhere.delete(recursive: true);
+      });
+      final outsider = File(
+        p.join(
+          elsewhere.path,
+          buildBackupFilename(
+            timestamp: '2026-09-01_1200',
+            deviceId: otherDevice,
+          ),
+        ),
+      );
+      await outsider.writeAsBytes(List<int>.filled(100, 0));
+
+      final bytes = await build(appPrivateFolder: true).reclaim([
+        UnrecognizedBackup(
+          path: outsider.path,
+          sizeBytes: 100,
+          modified: DateTime(2026, 9, 1),
+          ownership: BackupOwnership.otherDevice,
+          inAppPrivateFolder: true,
+        ),
+      ]);
+
+      expect(bytes, 0);
+      expect(outsider.existsSync(), isTrue);
     });
   });
 }

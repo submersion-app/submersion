@@ -58775,6 +58775,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Dateien liegen in deinem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Hier kann nur eine von diesem Gerät geschriebene Datei gelöscht werden: alles andere könnte die einzige Kopie eines anderen Geräts sein.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Diese Dateien liegen in deinem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Dieser Ordner gehört auf diesem Gerät allein Submersion, daher nutzt kein anderes Gerät diese Dateien, und jede davon kann hier gelöscht werden.';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'Einige dieser Dateien stammen von einem anderen Gerät oder einer früheren Installation von Submersion. Wenn sie Tauchgänge enthalten, die du nirgendwo sonst hast, gehen diese Tauchgänge verloren.';
+
+  @override
   String get backup_unrecognized_empty =>
       'Keine nicht erkannten Sicherungsdateien.';
 

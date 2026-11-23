@@ -57648,6 +57648,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'הקבצים האלה נמצאים בתיקיית הגיבויים שלך אך לא בהיסטוריית הגיבויים של המכשיר הזה. אפשר למחוק כאן רק קובץ שהמכשיר הזה כתב: כל קובץ אחר עלול להיות העותק היחיד של מכשיר אחר.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'הקבצים האלה נמצאים בתיקיית הגיבויים שלך אך לא בהיסטוריית הגיבויים של המכשיר הזה. התיקייה הזו פרטית ל-Submersion במכשיר הזה, ולכן אף מכשיר אחר לא משתמש בקבצים האלה, ואפשר למחוק כאן כל אחד מהם.';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'חלק מהקבצים האלה נוצרו במכשיר אחר או בהתקנה קודמת של Submersion. אם יש בהם צלילות שאין לך בשום מקום אחר, הצלילות האלה יאבדו.';
+
+  @override
   String get backup_unrecognized_empty => 'אין קובצי גיבוי לא מזוהים.';
 
   @override

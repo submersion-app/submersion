@@ -17413,6 +17413,8 @@
   "dataQuality_repairLabel_removeGearFromDive": "Aus dem Tauchgang von {diver} entfernen",
   "backup_unrecognized_appBar_title": "Nicht erkannte Sicherungen",
   "backup_unrecognized_explanation": "Diese Dateien liegen in deinem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Hier kann nur eine von diesem Gerät geschriebene Datei gelöscht werden: alles andere könnte die einzige Kopie eines anderen Geräts sein.",
+  "backup_unrecognized_explanation_appPrivate": "Diese Dateien liegen in deinem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Dieser Ordner gehört auf diesem Gerät allein Submersion, daher nutzt kein anderes Gerät diese Dateien, und jede davon kann hier gelöscht werden.",
+  "backup_unrecognized_confirm_foreignWarning": "Einige dieser Dateien stammen von einem anderen Gerät oder einer früheren Installation von Submersion. Wenn sie Tauchgänge enthalten, die du nirgendwo sonst hast, gehen diese Tauchgänge verloren.",
   "backup_unrecognized_empty": "Keine nicht erkannten Sicherungsdateien.",
   "backup_unrecognized_loadFailed": "Der Sicherungsordner konnte nicht gelesen werden.",
   "backup_unrecognized_unavailable": "Dieses Gerät kann den gewählten Sicherungsordner nicht auflisten, daher können nicht erkannte Dateien nicht gefunden werden.",

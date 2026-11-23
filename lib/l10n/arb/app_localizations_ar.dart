@@ -59722,6 +59722,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. هذا المجلد خاص بتطبيق Submersion على هذا الجهاز، لذا لا يستخدم أي جهاز آخر هذه الملفات ويمكن حذف أي منها هنا.';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'بعض هذه الملفات أنشأها جهاز آخر أو تثبيت سابق لتطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.';
+
+  @override
   String get backup_unrecognized_empty =>
       'لا توجد ملفات نسخ احتياطي غير معروفة.';
 

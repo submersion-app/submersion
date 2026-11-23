@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -19,8 +21,10 @@ class BackupsDirectoryAccess {
   BackupsDirectoryAccess({
     required Future<String?> Function() configuredLocation,
     required Future<BackupDirLease> Function() acquireLease,
+    bool defaultIsAppPrivate = false,
   }) : _configuredLocation = configuredLocation,
-       _acquireLease = acquireLease;
+       _acquireLease = acquireLease,
+       _defaultIsAppPrivate = defaultIsAppPrivate;
 
   /// Wired to the live preferences and a resolver that only reads.
   ///
@@ -33,10 +37,17 @@ class BackupsDirectoryAccess {
   }) => BackupsDirectoryAccess(
     configuredLocation: () async => preferences.getSettings().backupLocation,
     acquireLease: () => _leaseForReading(preferences, bookmarks: bookmarks),
+    // The default folder is the app's documents directory. On Android and
+    // iOS that is sandboxed: no file manager reaches it (iOS does not opt in
+    // to Files sharing) and no other device or sync client can write to it.
+    // On desktop the user can browse it and a sync client can mirror it, so
+    // it is treated like any folder the diver picked.
+    defaultIsAppPrivate: Platform.isAndroid || Platform.isIOS,
   );
 
   final Future<String?> Function() _configuredLocation;
   final Future<BackupDirLease> Function() _acquireLease;
+  final bool _defaultIsAppPrivate;
 
   /// Runs [body] with a directory `dart:io` can list, or null when there is
   /// none.
@@ -47,15 +58,30 @@ class BackupsDirectoryAccess {
   /// backup history has lost track of, and the sandbox default is not where a
   /// SAF-configured device keeps its backups. Scanning it would offer a
   /// different directory's files for deletion under a heading about this one.
-  Future<T> use<T>(Future<T> Function(String? directoryPath) body) async {
+  Future<T> use<T>(Future<T> Function(String? directoryPath) body) =>
+      useFolder((folder) => body(folder?.path));
+
+  /// [use], with the verdict on whether the folder is private to this app.
+  ///
+  /// Decided from the same read of the configured location that chose the
+  /// path, so the two cannot disagree: a diver switching to a custom folder
+  /// between a listing and a delete gets a delete judged by the new folder.
+  ///
+  /// Only the default folder on a sandboxed platform is private. Anything the
+  /// diver chose may be synced or shared, whatever platform it is on.
+  Future<T> useFolder<T>(Future<T> Function(BackupsFolder? folder) body) async {
     final configured = await _configuredLocation();
-    if (configured != null && configured.isNotEmpty && isSafRef(configured)) {
-      return body(null);
-    }
+    final isCustom = configured != null && configured.isNotEmpty;
+    if (isCustom && isSafRef(configured)) return body(null);
 
     final lease = await _acquireLease();
     try {
-      return await body(lease.path);
+      return await body(
+        BackupsFolder(
+          path: lease.path,
+          isAppPrivate: !isCustom && _defaultIsAppPrivate,
+        ),
+      );
     } finally {
       await lease.release();
     }
@@ -108,4 +134,20 @@ class BackupsDirectoryAccess {
   }
 
   static Future<void> _noRelease() async {}
+}
+
+/// The backups directory as one operation sees it.
+class BackupsFolder {
+  const BackupsFolder({required this.path, required this.isAppPrivate});
+
+  final String path;
+
+  /// True when only this app on this device can have put files here: the
+  /// default folder inside an Android or iOS sandbox.
+  ///
+  /// A backup from "another device" in such a folder cannot be anyone else's
+  /// copy. It is this device under an earlier identity, typically a reinstall
+  /// whose restored app data kept the files but not the device id, and the
+  /// diver has no other way to remove it.
+  final bool isAppPrivate;
 }

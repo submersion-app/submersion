@@ -72,6 +72,70 @@ void main() {
     expect(released, 1);
   });
 
+  group('whether the folder is private to the app', () {
+    // Issue #4973: the default folder on Android and iOS is the app's private
+    // documents directory, where no other device can have written a file.
+    // Only that combination unlocks deleting another device's backups.
+    Future<bool?> privacyOf({
+      required String? configured,
+      required bool defaultIsAppPrivate,
+    }) => BackupsDirectoryAccess(
+      configuredLocation: () async => configured,
+      acquireLease: () async => countingLease('/backups', () {}),
+      defaultIsAppPrivate: defaultIsAppPrivate,
+    ).useFolder((folder) async => folder?.isAppPrivate);
+
+    test('the default folder on a private-sandbox platform is', () async {
+      expect(
+        await privacyOf(configured: null, defaultIsAppPrivate: true),
+        isTrue,
+      );
+      expect(
+        await privacyOf(configured: '', defaultIsAppPrivate: true),
+        isTrue,
+      );
+    });
+
+    test('a custom folder never is, even on that platform', () async {
+      // A folder the diver picked may be synced or shared.
+      expect(
+        await privacyOf(
+          configured: '/Dropbox/dives',
+          defaultIsAppPrivate: true,
+        ),
+        isFalse,
+      );
+    });
+
+    test('the default folder on a desktop platform is not', () async {
+      // The user can browse it, and a sync client can mirror it.
+      expect(
+        await privacyOf(configured: null, defaultIsAppPrivate: false),
+        isFalse,
+      );
+    });
+
+    test('a SAF location has no folder at all', () async {
+      final folder = await BackupsDirectoryAccess(
+        configuredLocation: () async => 'content://x/tree/y',
+        acquireLease: () async => fail('no lease for a content:// URI'),
+        defaultIsAppPrivate: true,
+      ).useFolder((folder) async => folder);
+
+      expect(folder, isNull);
+    });
+
+    test('the folder carries the leased path', () async {
+      final folder = await BackupsDirectoryAccess(
+        configuredLocation: () async => null,
+        acquireLease: () async => countingLease('/backups', () {}),
+        defaultIsAppPrivate: true,
+      ).useFolder((folder) async => folder);
+
+      expect(folder?.path, '/backups');
+    });
+  });
+
   group('the live factory', () {
     // Every test above injects both callbacks, which exercises the policy and
     // none of the wiring. This is the seam where a mistake is invisible: the
@@ -202,6 +266,14 @@ void main() {
       await BackupsDirectoryAccess.live(prefs).use((_) async {});
 
       expect(prefs.getSettings().backupLocation, unreachable);
+    });
+
+    test('the default folder is private only on Android and iOS', () async {
+      final folder = await BackupsDirectoryAccess.live(
+        await preferences(),
+      ).useFolder((folder) async => folder);
+
+      expect(folder?.isAppPrivate, Platform.isAndroid || Platform.isIOS);
     });
 
     test('a SAF location resolves to no directory', () async {

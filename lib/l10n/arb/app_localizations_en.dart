@@ -57974,6 +57974,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'These files are in your backups folder but not in this device\'s backup history. Only a file this device wrote can be deleted here: anything else may be another device\'s only copy.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'These files are in your backups folder but not in this device\'s backup history. This folder is private to Submersion on this device, so no other device uses these files and any of them can be deleted here.';
+
+  @override
+  String get backup_unrecognized_confirm_foreignWarning =>
+      'Some of these files were made by another device or an earlier install of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.';
+
+  @override
   String get backup_unrecognized_empty => 'No unrecognized backup files.';
 
   @override
