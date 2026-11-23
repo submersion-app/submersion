@@ -19563,7 +19563,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'לבטל קישור של $count פריטים?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return 'לבטל קישור של $_temp0?';
   }
 
   @override
@@ -19710,7 +19716,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'לבטל קישור של $count פריטים?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return 'לבטל קישור של $_temp0?';
   }
 
   @override

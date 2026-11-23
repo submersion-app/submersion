@@ -19993,7 +19993,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Desvincular $count itens?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return 'Desvincular $_temp0?';
   }
 
   @override
@@ -20141,7 +20147,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Desvincular $count itens?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return 'Desvincular $_temp0?';
   }
 
   @override

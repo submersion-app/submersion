@@ -31727,7 +31727,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_diveMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_diveMediaSection_unlinkSelectedTitle(int count);
 
   /// Title of the library unlink confirmation dialog
@@ -31937,7 +31937,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_siteMediaSection_unlinkSelectedTitle(int count);
 
   /// Site page unlink confirmation body
