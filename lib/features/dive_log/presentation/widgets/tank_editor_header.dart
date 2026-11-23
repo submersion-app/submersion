@@ -72,10 +72,12 @@ class TankEditorHeader extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Two lines, so a large text size wraps the title
+                        // at a word rather than cutting it short.
                         Text(
                           title,
                           style: titleStyle,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(

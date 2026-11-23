@@ -54,35 +54,23 @@ class TankFieldGrid extends StatelessWidget {
           minFieldWidth: minWidth,
           spacing: spacing,
         );
-        final lines = <Widget>[];
-        for (var start = 0; start < children.length; start += columns) {
-          if (lines.isNotEmpty) lines.add(SizedBox(height: runSpacing));
-          lines.add(_line(children.skip(start).take(columns), columns));
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: lines,
+        final width = constraints.maxWidth;
+        // One Wrap, not a Row per line: every field keeps its place in one
+        // child list, so a field that changes line when the columns change
+        // (a rotation, a window resize) keeps its focus and state. Wrap
+        // allows for rounding, so exact column widths fill a line.
+        final fieldWidth = width.isFinite
+            ? (width - spacing * (columns - 1)) / columns
+            : null;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: runSpacing,
+          children: [
+            for (final child in children)
+              SizedBox(width: fieldWidth, child: child),
+          ],
         );
       },
-    );
-  }
-
-  /// One line of [columns] equal cells, the cells past [fields] left empty
-  /// so the fields keep the column width.
-  Widget _line(Iterable<Widget> fields, int columns) {
-    final cells = [
-      for (final field in fields) Expanded(child: field),
-      for (var i = fields.length; i < columns; i++) const Spacer(),
-    ];
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < cells.length; i++) ...[
-          if (i > 0) SizedBox(width: spacing),
-          cells[i],
-        ],
-      ],
     );
   }
 }

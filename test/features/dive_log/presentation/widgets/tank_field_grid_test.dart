@@ -69,6 +69,56 @@ void main() {
     expect(third.width, first.width);
   });
 
+  testWidgets('a focused field that changes line when the columns change '
+      'keeps its focus and text', (tester) async {
+    late StateSetter setOuter;
+    var width = 360.0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                setOuter = setState;
+                return SizedBox(
+                  width: width,
+                  child: const TankFieldGrid(
+                    minFieldWidth: 100,
+                    children: [
+                      TextField(key: ValueKey(0)),
+                      TextField(key: ValueKey(1)),
+                      TextField(key: ValueKey(2)),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey(2)));
+    await tester.enterText(find.byKey(const ValueKey(2)), '232');
+    final top = tester.getRect(find.byKey(const ValueKey(0))).top;
+    expect(tester.getRect(find.byKey(const ValueKey(2))).top, top);
+
+    // Narrower, as on a rotation back to portrait: the third field moves
+    // to a second line.
+    setOuter(() => width = 300);
+    await tester.pump();
+
+    expect(tester.getRect(find.byKey(const ValueKey(2))).top, greaterThan(top));
+    final field = tester.widget<EditableText>(
+      find.descendant(
+        of: find.byKey(const ValueKey(2)),
+        matching: find.byType(EditableText),
+      ),
+    );
+    expect(field.focusNode.hasFocus, isTrue);
+    expect(field.controller.text, '232');
+  });
+
   testWidgets('slots size a lone field as one column of a fuller row', (
     tester,
   ) async {
