@@ -51857,6 +51857,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_deleteProfile_failed => '无法删除剖面版本。';
 
   @override
+  String get diveLog_profileEditor_removeSource => '移除此数据源';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint => '请先保存或撤销你的更改。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      '版本属于主数据源的剖面，因此无法在此删除该数据源的剖面。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      '这是该潜水唯一的剖面版本，因此无法删除。';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint => '保存于版本历史之前；未关联潜水电脑';
 
   @override

@@ -53068,6 +53068,20 @@ class AppLocalizationsJa extends AppLocalizations {
       'プロファイルのリビジョンを削除できませんでした。';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'このソースを削除';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint => '先に変更を保存するか元に戻してください。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'リビジョンはプライマリソースのプロファイルに属するため、ここではこのソースのプロファイルを削除できません。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'これはこのダイブの唯一のプロファイルリビジョンのため、削除できません。';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'リビジョン履歴の導入前に保存。コンピューターとは関連付けられていません';
 

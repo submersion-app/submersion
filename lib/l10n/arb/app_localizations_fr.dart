@@ -55424,6 +55424,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de supprimer la révision du profil.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'Supprimer cette source';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'Enregistrez ou annulez d\'abord vos modifications.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'Les révisions appartiennent au profil de la source principale ; le profil de cette source ne peut donc pas être supprimé ici.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'Il s\'agit de la seule révision du profil de cette plongée ; elle ne peut donc pas être supprimée.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Enregistré avant l’historique des révisions ; lié à aucun ordinateur';
 

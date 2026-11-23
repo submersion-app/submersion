@@ -86746,6 +86746,30 @@ abstract class AppLocalizations {
   /// **'Could not delete the profile revision.'**
   String get diveLog_profileEditor_deleteProfile_failed;
 
+  /// No description provided for @diveLog_profileEditor_removeSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove This Source'**
+  String get diveLog_profileEditor_removeSource;
+
+  /// No description provided for @diveLog_profileEditor_unsavedEditsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save or undo your edits first.'**
+  String get diveLog_profileEditor_unsavedEditsHint;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_notPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Revisions belong to the primary source\'s profile, so this source\'s profile can\'t be deleted here.'**
+  String get diveLog_profileEditor_deleteProfile_notPrimary;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_onlyRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the dive\'s only profile revision, so it can\'t be deleted.'**
+  String get diveLog_profileEditor_deleteProfile_onlyRevision;
+
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
   ///
   /// In en, this message translates to:

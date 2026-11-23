@@ -55313,6 +55313,21 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile eliminare la revisione del profilo.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'Rimuovi questa fonte';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'Prima salva o annulla le modifiche.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'Le revisioni appartengono al profilo della fonte principale, quindi il profilo di questa fonte non può essere eliminato qui.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'Questa è l\'unica revisione del profilo dell\'immersione, quindi non può essere eliminata.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Salvato prima della cronologia delle revisioni; non collegato a un computer';
 

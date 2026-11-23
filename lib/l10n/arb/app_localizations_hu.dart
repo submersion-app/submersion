@@ -54986,6 +54986,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült törölni a profilverziót.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'E forrás eltávolítása';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'Előbb mentse vagy vonja vissza a módosításait.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'A verziók az elsődleges forrás profiljához tartoznak, ezért ennek a forrásnak a profilja itt nem törölhető.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'Ez a merülés egyetlen profilverziója, ezért nem törölhető.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'A verzióelőzmények előtt mentve; nincs számítógéphez kapcsolva';
 

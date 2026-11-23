@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_import/presentation/providers/dive_heal
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/open_profile_editor.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/refresh_after_source_removal.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/download_target_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/flight_window_warning_banner.dart';

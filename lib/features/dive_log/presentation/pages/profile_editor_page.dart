@@ -11,12 +11,14 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series_revi
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_owner.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/refresh_after_source_removal.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_context_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_toolbar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_editor_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/remove_source_flow.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for editing a dive profile's depth data.
@@ -351,6 +353,20 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         history != null &&
         history.length > 1 &&
         activeRevision != null;
+    final l10n = context.l10n;
+    // Said under the Cleanup buttons, since a disabled button alone left
+    // divers thinking the editor could not remove anything (issue #4972).
+    final String? deleteProfileHint;
+    if (state.hasChanges) {
+      deleteProfileHint = l10n.diveLog_profileEditor_unsavedEditsHint;
+    } else if (!showRevisions) {
+      deleteProfileHint = l10n.diveLog_profileEditor_deleteProfile_notPrimary;
+    } else if (history != null && history.length <= 1) {
+      deleteProfileHint = l10n.diveLog_profileEditor_deleteProfile_onlyRevision;
+    } else {
+      deleteProfileHint = null;
+    }
+    final removableSource = _removableSource();
 
     return PopScope(
       canPop: !state.hasChanges,
@@ -444,11 +460,61 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
                           activeRevision.revisionKind == 'computer_import',
                     )
                   : null,
+              deleteProfileHint: deleteProfileHint,
+              showRemoveSource: removableSource != null,
+              onRemoveSource: removableSource != null && !state.hasChanges
+                  ? () => _handleRemoveSource(removableSource)
+                  : null,
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// The source this editor started from, when Remove This Source can take
+  /// it off the dive: the dive has another source, and the two do not share
+  /// a computer, which the removal refuses (as the Data Sources menu hides
+  /// it). Null for the dive's profile on a single-source dive.
+  DiveDataSource? _removableSource() {
+    final sourceId = widget.sourceId;
+    if (sourceId == null) return null;
+    final sources =
+        ref.watch(diveDataSourcesProvider(widget.diveId)).value ?? const [];
+    if (sources.length < 2) return null;
+    final source = sources.where((s) => s.id == sourceId).firstOrNull;
+    if (source == null) return null;
+    final sharesComputer =
+        source.computerId != null &&
+        sources.any(
+          (s) => s.id != source.id && s.computerId == source.computerId,
+        );
+    return sharesComputer ? null : source;
+  }
+
+  /// Removes the source being edited with everything it owns, through the
+  /// flow the Data Sources menu runs (issue #4393), then leaves the editor:
+  /// the profile it shows is gone. Like that menu on the dive page, it
+  /// offers no Undo; the removal reverts from History (issue #4527).
+  Future<void> _handleRemoveSource(DiveDataSource source) async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    final diveId = widget.diveId;
+    final removed = await removeSourceWithUndo(
+      context,
+      ref,
+      diveId: diveId,
+      sourceId: source.id,
+      sourceName: resolveSourceName(source, sourceNameLabelsFor(context)),
+      afterChange: () => refreshAfterSourceRemoval(
+        container,
+        diveId: diveId,
+        sourceId: source.id,
+      ),
+      offerUndo: false,
+    );
+    if (!removed || !mounted) return;
+    _didApplyProfileChange = true;
+    context.pop(true);
   }
 
   /// Switching revisions reloads the editor, so [enabled] is false while
