@@ -149,6 +149,34 @@ void main() {
       expect(reread.unreadableScope, isFalse);
     });
 
+    test(
+      'moving a date rule to an activity clock writes its mapping',
+      () async {
+        // The dialog shows the new clock's mapping and saves it, so the rule
+        // counts what the diver saw instead of still matching nothing.
+        await insertRule(clockKind: 'date', types: 'not json');
+        final rule = (await repository.getRules()).firstWhere(
+          (r) => r.id == 'r1',
+        );
+        expect(rule.unreadableScope, isTrue);
+
+        await repository.updateRule(
+          rule.copyWith(
+            clockKind: CurrencyClockKind.activity,
+            countedDiveTypeIds: const ['boat'],
+          ),
+        );
+
+        final row = await storedRule();
+        expect(row.clockKind, 'activity');
+        expect(row.countedDiveTypeIds, '["boat"]');
+        final reread = (await repository.getRules()).firstWhere(
+          (r) => r.id == 'r1',
+        );
+        expect(reread.unreadableScope, isFalse);
+      },
+    );
+
     test('a date rule\'s name edit keeps its stored mapping', () async {
       await insertRule(modes: '["modeFromTheFuture"]');
       await (db.update(

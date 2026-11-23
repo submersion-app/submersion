@@ -119,18 +119,18 @@ class CertificationCurrencyRepository {
         names: names,
       );
       // The dive types and modes are one mapping, kept as stored only when
-      // neither half changed. Switching to a date clock is a change to it: a
-      // date clock never reads the mapping, so the empty one the dialog saves
-      // cannot widen anything, and writing it lets a rule whose mapping this
-      // build cannot read be repaired by dating it. A rule already on a date
-      // clock keeps its stored mapping like any other unchanged column.
-      final dated =
-          rule.clockKind == CurrencyClockKind.date &&
+      // neither half changed. A change of clock is a change to it too: the
+      // dialog shows and saves the mapping for the new clock (empty for a
+      // date clock, which never reads it), so it is written as given. That
+      // lets a rule whose mapping this build cannot read be repaired by
+      // changing its clock either way. A rule that keeps its clock keeps its
+      // stored mapping like any other unchanged column.
+      final clockChanged =
           stored != null &&
-          stored.clockKind != CurrencyClockKind.date.name;
+          CurrencyClockKind.parse(stored.clockKind) != rule.clockKind;
       // "As given" is the lists themselves: the JSON getters would hand back
       // a rule's own stored arrays while the lists decode the same.
-      final mapping = dated
+      final mapping = clockChanged
           ? rule.encodedMapping
           : CurrencyScopeCodec.keepMappingIfUnchanged(
               stored: stored == null
