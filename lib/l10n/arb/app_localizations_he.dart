@@ -57671,6 +57671,23 @@ class AppLocalizationsHe extends AppLocalizations {
       'הקבצים האלה נמצאים בתיקיית הגיבויים שלך אך לא בהיסטוריית הגיבויים של המכשיר הזה. אפשר למחוק כאן רק קובץ שהמכשיר הזה כתב: כל קובץ אחר עלול להיות העותק היחיד של מכשיר אחר.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'הקבצים האלה נמצאים בתיקיית הגיבויים שלך אך לא בהיסטוריית הגיבויים של המכשיר הזה. התיקייה הזו פרטית ל-Submersion במכשיר הזה, ולכן אף מכשיר אחר לא משתמש בקבצים האלה, ואפשר למחוק כאן כל אחד מהם.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ייתכן ש-$count קבצים נבחרים נוצרו במכשיר אחר, בהתקנה קודמת או בגרסה ישנה יותר של Submersion. אם יש בהם צלילות שאין לך בשום מקום אחר, הצלילות האלה יאבדו.',
+      one:
+          'ייתכן שקובץ נבחר אחד נוצר במכשיר אחר, בהתקנה קודמת או בגרסה ישנה יותר של Submersion. אם יש בו צלילות שאין לך בשום מקום אחר, הצלילות האלה יאבדו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_unrecognized_empty => 'אין קובצי גיבוי לא מזוהים.';
 
   @override

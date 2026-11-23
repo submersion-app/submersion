@@ -7,6 +7,7 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 
@@ -70,6 +71,107 @@ void main() {
     );
 
     expect(released, 1);
+  });
+
+  group('whether the folder is private to the app', () {
+    // Issue #4973: the default folder on Android and iOS is the app's private
+    // documents directory, where no other device can have written a file.
+    // Only that combination unlocks deleting another device's backups.
+    Future<bool?> privacyOf({
+      required String? configured,
+      required bool defaultIsAppPrivate,
+    }) => BackupsDirectoryAccess(
+      configuredLocation: () async => configured,
+      acquireLease: () async => countingLease('/backups', () {}),
+      defaultIsAppPrivate: defaultIsAppPrivate,
+    ).useFolder((folder) async => folder?.isAppPrivate);
+
+    test('the default folder on a private-sandbox platform is', () async {
+      expect(
+        await privacyOf(configured: null, defaultIsAppPrivate: true),
+        isTrue,
+      );
+      expect(
+        await privacyOf(configured: '', defaultIsAppPrivate: true),
+        isTrue,
+      );
+    });
+
+    test('a custom folder never is, even on that platform', () async {
+      // A folder the diver picked may be synced or shared.
+      expect(
+        await privacyOf(
+          configured: '/Dropbox/dives',
+          defaultIsAppPrivate: true,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a location set while the lease is taken is not', () async {
+      // The lease reads the location on its own; a custom folder chosen in
+      // between must not inherit the default's verdict.
+      var reads = 0;
+      final private = await BackupsDirectoryAccess(
+        configuredLocation: () async => reads++ == 0 ? null : '/Dropbox/dives',
+        acquireLease: () async => countingLease('/Dropbox/dives', () {}),
+        defaultIsAppPrivate: true,
+      ).useFolder((folder) async => folder?.isAppPrivate);
+
+      expect(private, isFalse);
+    });
+
+    test('a lease that did not choose the default folder is not', () async {
+      // A location set and cleared again around the lease reads as the
+      // default both times, but the lease still holds the custom path.
+      final private = await BackupsDirectoryAccess(
+        configuredLocation: () async => null,
+        acquireLease: () async => countingLease('/Dropbox/dives', () {}),
+        defaultIsAppPrivate: true,
+        defaultPath: () async => '/backups',
+      ).useFolder((folder) async => folder?.isAppPrivate);
+
+      expect(private, isFalse);
+    });
+
+    test('a lease of the default folder itself is', () async {
+      final private = await BackupsDirectoryAccess(
+        configuredLocation: () async => null,
+        acquireLease: () async => countingLease('/backups', () {}),
+        defaultIsAppPrivate: true,
+        defaultPath: () async => '/backups',
+      ).useFolder((folder) async => folder?.isAppPrivate);
+
+      expect(private, isTrue);
+    });
+
+    test('the default folder on a desktop platform is not', () async {
+      // The user can browse it, and a sync client can mirror it.
+      expect(
+        await privacyOf(configured: null, defaultIsAppPrivate: false),
+        isFalse,
+      );
+    });
+
+    test('a SAF location has no folder at all', () async {
+      final folder = await BackupsDirectoryAccess(
+        configuredLocation: () async => 'content://x/tree/y',
+        acquireLease: () async => fail('no lease for a content:// URI'),
+        defaultIsAppPrivate: true,
+      ).useFolder((folder) async => folder);
+
+      expect(folder, isNull);
+    });
+
+    test('the folder carries the leased path', () async {
+      final folder = await BackupsDirectoryAccess(
+        configuredLocation: () async => null,
+        acquireLease: () async => countingLease('/backups', () {}),
+        defaultIsAppPrivate: true,
+      ).useFolder((folder) async => folder);
+
+      expect(folder?.path, '/backups');
+    });
   });
 
   group('the live factory', () {
@@ -202,6 +304,22 @@ void main() {
       await BackupsDirectoryAccess.live(prefs).use((_) async {});
 
       expect(prefs.getSettings().backupLocation, unreachable);
+    });
+
+    test('the default folder on a desktop host is not private', () async {
+      // Tests run on macOS, Linux or Windows, so this pins the desktop answer
+      // for the real wiring. It does not reach the default-path check: on a
+      // desktop host `defaultIsAppPrivate` is false and the verdict stops
+      // there. The mobile answer cannot be produced here (HostPlatform reads
+      // dart:io directly); the injected `defaultIsAppPrivate` and
+      // `defaultPath` tests above cover that branch.
+      expect(HostPlatform.isMobile, isFalse, reason: 'expects a desktop host');
+
+      final folder = await BackupsDirectoryAccess.live(
+        await preferences(),
+      ).useFolder((folder) async => folder);
+
+      expect(folder?.isAppPrivate, isFalse);
     });
 
     test('a SAF location resolves to no directory', () async {

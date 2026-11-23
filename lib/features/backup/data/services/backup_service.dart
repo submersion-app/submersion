@@ -1375,12 +1375,29 @@ class BackupService {
   ///
   /// Records with no localPath (legacy), a cloud backup or an extra copy are
   /// kept.
+  ///
+  /// A record whose file has moved with the app's own container is repointed
+  /// rather than pruned (see [_relocatedIntoDefaultFolder]).
   Future<List<BackupRecord>> getValidatedBackupHistory() async {
     final history = _preferences.getHistory();
     final validRecords = <BackupRecord>[];
-    var pruned = false;
+    var changed = false;
 
-    for (final record in history) {
+    for (var record in history) {
+      final ref = record.localPath;
+      // The shape test comes first so that no other record costs a disk read
+      // here: cloud-backed records were never checked for a local file.
+      if (ref != null &&
+          _endsInDefaultFolder(ref) &&
+          !await File(ref).exists()) {
+        final relocated = await _relocatedIntoDefaultFolder(ref);
+        if (relocated != null) {
+          _log.info('Repointing moved backup record: ${record.filename}');
+          record = record.copyWith(localPath: relocated);
+          changed = true;
+        }
+      }
+
       // Extra copies (issue #3782) keep a record too: they may be the only
       // copies left.
       if (record.localPath != null &&
@@ -1392,19 +1409,62 @@ class BackupService {
             : await File(ref).exists();
         if (!stillThere) {
           _log.info('Pruning stale backup record: ${record.filename}');
-          pruned = true;
+          changed = true;
           continue;
         }
       }
       validRecords.add(record);
     }
 
-    if (pruned) {
+    if (changed) {
       await _preferences.setHistory(validRecords);
     }
 
     return [...validRecords]
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
+
+  /// Where a missing default-folder backup now lives, or null.
+  ///
+  /// Records hold absolute paths, and iOS moves the app's container (and so
+  /// every path into it) across updates and restores, while the files move
+  /// with it. Pruning on the old path would drop every local record at once:
+  /// the Backups page would lose them, retention would stop covering them, and
+  /// they would turn up as unrecognized files instead.
+  ///
+  /// Only a path that ended in the default folder
+  /// (`.../Submersion/Backups/<name>`, see [_endsInDefaultFolder]) is
+  /// relocated, and only to the same name in today's default folder. A custom
+  /// folder lives outside the container and does not move this way, and a
+  /// backup name carries its timestamp and device tag, so a file found there
+  /// is the same backup.
+  Future<String?> _relocatedIntoDefaultFolder(String stalePath) async {
+    final String candidate;
+    try {
+      candidate = p.join(
+        await defaultBackupsDirectoryPath(),
+        p.basename(stalePath),
+      );
+    } catch (e) {
+      _log.warning('Could not resolve the default backups folder: $e');
+      return null;
+    }
+    if (p.equals(candidate, stalePath)) return null;
+    return await File(candidate).exists() ? candidate : null;
+  }
+
+  /// Whether [path] names a file directly inside a `Submersion/Backups`
+  /// folder, the shape of a path into the default backups folder wherever the
+  /// container currently is. A SAF `content://` reference never matches.
+  static bool _endsInDefaultFolder(String path) {
+    if (isSafRef(path)) return false;
+    final segments = p.split(path);
+    final tail = segments.length - 1 - _localBackupFolder.length;
+    if (tail < 0) return false;
+    for (var i = 0; i < _localBackupFolder.length; i++) {
+      if (segments[tail + i] != _localBackupFolder[i]) return false;
+    }
+    return true;
   }
 
   /// Delete a specific backup (local file + cloud file + metadata).

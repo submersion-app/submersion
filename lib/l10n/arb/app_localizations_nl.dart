@@ -58550,6 +58550,23 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze bestanden staan in je back-upmap maar niet in de back-upgeschiedenis van dit apparaat. Alleen een bestand dat dit apparaat heeft geschreven kan hier worden verwijderd: al het andere kan de enige kopie van een ander apparaat zijn.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Deze bestanden staan in je back-upmap maar niet in de back-upgeschiedenis van dit apparaat. Deze map is op dit apparaat alleen van Submersion, dus geen ander apparaat gebruikt deze bestanden en elk ervan kan hier worden verwijderd.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geselecteerde bestanden zijn mogelijk gemaakt door een ander apparaat, een eerdere installatie of een oudere versie van Submersion. Als ze duiken bevatten die je nergens anders hebt, gaan die duiken verloren.',
+      one:
+          'Eén geselecteerd bestand is mogelijk gemaakt door een ander apparaat, een eerdere installatie of een oudere versie van Submersion. Als het duiken bevat die je nergens anders hebt, gaan die duiken verloren.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_unrecognized_empty =>
       'Geen niet-herkende back-upbestanden.';
 

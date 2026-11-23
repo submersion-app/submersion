@@ -11,6 +11,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/unrecognized_backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -119,4 +120,45 @@ void main() {
       expect(found.single.ownership, BackupOwnership.thisDevice);
     },
   );
+
+  test('the scan re-runs when the backup location changes', () async {
+    // Each entry records whether its folder was private to the app. A listing
+    // cached from the default folder would keep that verdict after the diver
+    // chose a shared folder (issue #4973).
+    await writeBackup('2026-09-01_1200');
+    final custom = await Directory.systemTemp.createTemp('custom_backups');
+    addTearDown(() async {
+      if (custom.existsSync()) await custom.delete(recursive: true);
+    });
+
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(
+          await SharedPreferences.getInstance(),
+        ),
+        syncRepositoryProvider.overrideWithValue(
+          _FakeSyncRepository(thisDevice),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    // Kept alive, as the Storage usage page keeps it, so a stale cache would
+    // survive the location change.
+    final subscription = container.listen(
+      unrecognizedBackupsProvider,
+      (_, _) {},
+    );
+    addTearDown(subscription.close);
+
+    expect(
+      await container.read(unrecognizedBackupsProvider.future),
+      hasLength(1),
+    );
+
+    await container
+        .read(backupSettingsProvider.notifier)
+        .setBackupLocation(custom.path);
+
+    expect(await container.read(unrecognizedBackupsProvider.future), isEmpty);
+  });
 }

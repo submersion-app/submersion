@@ -58581,6 +58581,23 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Itt csak olyan fájl törölhető, amelyet ez az eszköz írt: bármi más lehet egy másik eszköz egyetlen másolata.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Ez a mappa ezen az eszközön csak a Submersioné, így más eszköz nem használja ezeket a fájlokat, és bármelyikük törölhető itt.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count kijelölt fájlt lehet, hogy egy másik eszköz, egy korábbi telepítés vagy a Submersion egy régebbi verziója hozott létre. Ha olyan merüléseket tartalmaznak, amelyek máshol nincsenek meg, ezek a merülések elvesznek.',
+      one:
+          'Egy kijelölt fájlt lehet, hogy egy másik eszköz, egy korábbi telepítés vagy a Submersion egy régebbi verziója hozott létre. Ha olyan merüléseket tartalmaz, amelyek máshol nincsenek meg, ezek a merülések elvesznek.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_unrecognized_empty =>
       'Nincs ismeretlen biztonsági mentési fájl.';
 

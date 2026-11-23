@@ -58923,6 +58923,23 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Qui può essere eliminato solo un file scritto da questo dispositivo: qualsiasi altro potrebbe essere l\'unica copia di un altro dispositivo.';
 
   @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Questa cartella è riservata a Submersion su questo dispositivo, quindi nessun altro dispositivo usa questi file e ognuno di essi può essere eliminato qui.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count file selezionati potrebbero essere stati creati da un altro dispositivo, da un\'installazione precedente o da una versione meno recente di Submersion. Se contengono immersioni che non hai altrove, quelle immersioni andranno perse.',
+      one:
+          'Un file selezionato potrebbe essere stato creato da un altro dispositivo, da un\'installazione precedente o da una versione meno recente di Submersion. Se contiene immersioni che non hai altrove, quelle immersioni andranno perse.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get backup_unrecognized_empty =>
       'Nessun file di backup non riconosciuto.';
 
