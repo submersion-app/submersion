@@ -146,6 +146,47 @@ void main() {
     expect(await deletions('mediaSpecies'), [dropped.id]);
   });
 
+  test(
+    'a dropped twin tag the diver confirmed confirms the kept tag',
+    () async {
+      final tags = MediaSpeciesRepository();
+      final kept = await tags.addTag(
+        mediaId: 'm1',
+        speciesId: 'sp_manta',
+        unconfirmed: true,
+      );
+      await tags.addTag(mediaId: 'm1', speciesId: 'sp_twin');
+      await db.delete(db.syncRecords).go();
+
+      await upgrade();
+
+      final row = await db.select(db.mediaSpecies).getSingle();
+      expect(row.id, kept.id);
+      expect(row.unconfirmed, isNull);
+      expect(await records('mediaSpecies', 'pending'), [kept.id]);
+    },
+  );
+
+  test('a dropped twin entry passes its notes to a kept one without', () async {
+    await repository.addExpectedSpecies(siteId: 's1', speciesId: 'sp_manta');
+    await repository.addExpectedSpecies(
+      siteId: 's1',
+      speciesId: 'sp_twin',
+      notes: 'At the cleaning station',
+    );
+    final kept = (await db.select(db.siteSpecies).get())
+        .firstWhere((r) => r.speciesId == 'sp_manta')
+        .id;
+    await db.delete(db.syncRecords).go();
+
+    await upgrade();
+
+    final row = await db.select(db.siteSpecies).getSingle();
+    expect(row.id, kept);
+    expect(row.notes, 'At the cleaning station');
+    expect(await records('siteSpecies', 'pending'), [kept]);
+  });
+
   test('an expected species moves, or goes when the site has both', () async {
     await insertTestSite('s2', 'Wall');
     await repository.addExpectedSpecies(siteId: 's1', speciesId: 'sp_twin');
@@ -218,6 +259,19 @@ void main() {
     expect((await read('sp_twin'))!.commonName, 'Mine');
     final rows = await db.select(db.sightings).get();
     expect(rows.map((r) => r.speciesId), ['sp_twin']);
+  });
+
+  test('a failed fold leaves the launch going and retries next time', () async {
+    await repository.addSighting(diveId: 'd1', speciesId: 'sp_twin');
+    // Any SQL failure inside the fold: here a table it writes is missing.
+    await db.customStatement('DROP TABLE media_identifications');
+
+    await upgrade();
+
+    expect(await read('sp_twin'), isNotNull);
+    final rows = await db.select(db.sightings).get();
+    expect(rows.map((r) => r.speciesId), ['sp_twin']);
+    expect(store.version, 1, reason: 'the next launch must try again');
   });
 
   test('the same version leaves a twin alone', () async {

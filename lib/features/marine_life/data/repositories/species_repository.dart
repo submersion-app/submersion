@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -612,10 +614,19 @@ class SpeciesRepository {
     });
 
     if (upgrade) {
-      final merged = await RetiredSpeciesMerger(
-        _db,
-        _syncRepository,
-      ).merge(catalog.retired, keepEdited: true);
+      // A failed fold must not stop the launch. Each twin folds in its own
+      // transaction, so a failure leaves that twin whole, and the version
+      // stays unapplied so the next launch tries again.
+      final bool merged;
+      try {
+        merged = await RetiredSpeciesMerger(
+          _db,
+          _syncRepository,
+        ).merge(catalog.retired, keepEdited: true);
+      } catch (e) {
+        debugPrint('Retired species fold failed (will retry): $e');
+        return;
+      }
       await store.markApplied(catalog.version);
       if (merged) SyncEventBus.notifyLocalChange();
     }

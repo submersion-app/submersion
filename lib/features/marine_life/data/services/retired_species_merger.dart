@@ -68,8 +68,17 @@ class RetiredSpeciesMerger {
         from,
         to,
         now,
+        _carryConfirmation,
       );
-      await _moveTags('site_species', 'siteSpecies', 'site_id', from, to, now);
+      await _moveTags(
+        'site_species',
+        'siteSpecies',
+        'site_id',
+        from,
+        to,
+        now,
+        _carryNotes,
+      );
       await _moveIdentifications(from, to, now);
       // Nothing points at the row now, so no cascade takes diver data. No
       // deletion is published: every device retires it at its own upgrade,
@@ -109,7 +118,8 @@ class RetiredSpeciesMerger {
   }
 
   /// Moves the [table] rows naming [from] to [to], or drops one whose
-  /// [owner] (the photo or the site) already names [to].
+  /// [owner] (the photo or the site) already names [to], after [carry] has
+  /// passed what the dropped row held onto the kept one.
   Future<void> _moveTags(
     String table,
     String entityType,
@@ -117,6 +127,7 @@ class RetiredSpeciesMerger {
     String from,
     String to,
     int now,
+    Future<void> Function(String dropped, String kept, int now) carry,
   ) async {
     final rows = await _db
         .customSelect(
@@ -127,13 +138,15 @@ class RetiredSpeciesMerger {
     for (final row in rows) {
       final id = row.data['id'] as String;
       final ownerId = row.data['owner'] as String;
-      final twin = await _db
+      final kept = await _db
           .customSelect(
-            'SELECT 1 FROM $table WHERE $owner = ? AND species_id = ? LIMIT 1',
+            'SELECT id FROM $table WHERE $owner = ? AND species_id = ? '
+            'LIMIT 1',
             variables: [Variable.withString(ownerId), Variable.withString(to)],
           )
           .getSingleOrNull();
-      if (twin != null) {
+      if (kept != null) {
+        await carry(id, kept.data['id'] as String, now);
         await _db.customStatement('DELETE FROM $table WHERE id = ?', [id]);
         await _sync.logDeletion(entityType: entityType, recordId: id);
       } else {
@@ -148,6 +161,55 @@ class RetiredSpeciesMerger {
         );
       }
     }
+  }
+
+  /// A dropped photo tag that was the diver's own (unconfirmed NULL)
+  /// confirms a kept tag the app applied, as confirming it by hand does.
+  Future<void> _carryConfirmation(String dropped, String kept, int now) async {
+    final droppedRow = await _db
+        .customSelect(
+          'SELECT unconfirmed FROM media_species WHERE id = ?',
+          variables: [Variable.withString(dropped)],
+        )
+        .getSingle();
+    if (droppedRow.data['unconfirmed'] == 1) return;
+    final updated = await _db.customUpdate(
+      'UPDATE media_species SET unconfirmed = NULL, created_sighting = NULL, '
+      'created_species = NULL WHERE id = ? AND unconfirmed = 1',
+      variables: [Variable.withString(kept)],
+    );
+    if (updated > 0) {
+      await _sync.markRecordPending(
+        entityType: 'mediaSpecies',
+        recordId: kept,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// A dropped expected-species entry's notes pass to a kept entry that has
+  /// none.
+  Future<void> _carryNotes(String dropped, String kept, int now) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT id, notes FROM site_species WHERE id IN (?, ?)',
+          variables: [Variable.withString(dropped), Variable.withString(kept)],
+        )
+        .get();
+    String notesOf(String id) =>
+        (rows.firstWhere((r) => r.data['id'] == id).data['notes'] as String?) ??
+        '';
+    final notes = notesOf(dropped);
+    if (notes.trim().isEmpty || notesOf(kept).isNotEmpty) return;
+    await _db.customStatement(
+      'UPDATE site_species SET notes = ? WHERE id = ?',
+      [notes, kept],
+    );
+    await _sync.markRecordPending(
+      entityType: 'siteSpecies',
+      recordId: kept,
+      localUpdatedAt: now,
+    );
   }
 
   /// The decided and the named (claimed) species are the diver's decision,
