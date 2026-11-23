@@ -137,6 +137,10 @@ void main() {
       events.add('delete');
       await MediaRepository().deleteMultipleMedia(ids);
     },
+    deleteMediaHeld: (ids) async {
+      events.add('held delete');
+      await MediaRepository().deleteMultipleMedia(ids);
+    },
     drainDeletes: () async {
       events.add(
         ChangeLogScope.currentOperationId == null
@@ -181,6 +185,36 @@ void main() {
 
     expect(await media.getMediaById('m1'), isNull);
     expect(await media.getMediaById('g1'), isNull);
+  });
+
+  test('a drain that throws at once does not fail the unlink', () async {
+    await addMedia('m1', diveId: 'd1');
+    final service = MediaUnlinkService(
+      repository: media,
+      deleteMedia: (ids) => MediaRepository().deleteMultipleMedia(ids),
+      drainDeletes: () => throw StateError('the provider has gone'),
+    );
+
+    await service.unlinkFromLibrary(['m1']);
+
+    expect(await media.getMediaById('m1'), isNull);
+  });
+
+  test('unlinking a gear cover from the library clears the cover', () async {
+    final regId = (await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    )).id;
+    await addMedia('g1', equipmentId: regId);
+    await GearPhotoRepository().setCover(regId, 'g1');
+    await clearLog();
+
+    await service.unlinkFromLibrary(['g1']);
+
+    final item = await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals(regId))).getSingle();
+    expect(item.coverMediaId, isNull);
+    expect(await operationLabels(), [ChangeLogLabels.unlinkMedia]);
   });
 
   test('unlinking nothing writes no entry', () async {
@@ -230,7 +264,9 @@ void main() {
 
       await draining(events).removeGearPhotos(['g1']);
 
-      expect(events, ['delete', 'drain outside the entry']);
+      // Held inside the transaction: a final delete's purge waits for a
+      // running analysis, which writes outside it (code review on #4948).
+      expect(events, ['held delete', 'drain outside the entry']);
       expect(await entryClosed(ChangeLogLabels.removeGearPhotos), isTrue);
     });
 
@@ -244,6 +280,7 @@ void main() {
         repository: media,
         deleteMedia: (_) async => throw StateError('disk full'),
         deleteMediaUndrained: (_) async => throw StateError('disk full'),
+        deleteMediaHeld: (_) async => throw StateError('disk full'),
         drainDeletes: () async {},
         gearPhotos: GearPhotoRepository(),
       );

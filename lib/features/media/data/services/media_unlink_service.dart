@@ -79,6 +79,7 @@ class MediaUnlinkService {
     required this.repository,
     required this.deleteMedia,
     this.deleteMediaUndrained,
+    this.deleteMediaHeld,
     this.drainDeletes,
     GearPhotoRepository? gearPhotos,
   }) : _gearPhotos = gearPhotos;
@@ -101,6 +102,13 @@ class MediaUnlinkService {
   /// these, [deleteMedia] is used and nothing more is drained. The drain is
   /// started, not awaited.
   final Future<void> Function(List<String> ids)? deleteMediaUndrained;
+
+  /// [deleteMedia] for a delete inside a transaction that can still roll
+  /// back: it leaves the worker for [drainDeletes] and purges only what this
+  /// device remakes. A final delete's purge waits for a running species
+  /// analysis of those photos, which writes outside the transaction, so it
+  /// would wait on the transaction's lock forever.
+  final Future<void> Function(List<String> ids)? deleteMediaHeld;
   final Future<void> Function()? drainDeletes;
 
   Future<UnlinkOutcome> unlinkFromDive(List<String> mediaIds) async {
@@ -161,14 +169,20 @@ class MediaUnlinkService {
 
   /// The media library's Unlink: every link of every row goes, through the
   /// injected [deleteMedia], as one labelled entry in History (issue #4527).
-  /// Only the library's own bulk action comes here; the other callers of the
-  /// deletion path keep their History as it is.
+  /// A gear item whose cover was one of them loses that cover, as the Gear
+  /// tab's Remove clears it. Only the library's own bulk action comes here;
+  /// the other callers of the deletion path keep their History as it is.
   Future<void> unlinkFromLibrary(List<String> mediaIds) async {
     if (mediaIds.isEmpty) return;
     await ChangeLogScope.bulk(
       DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.unlinkMedia,
-      body: () => (deleteMediaUndrained ?? deleteMedia)(mediaIds),
+      body: () async {
+        await (deleteMediaUndrained ?? deleteMedia)(mediaIds);
+        await (_gearPhotos ?? GearPhotoRepository()).clearCoversNaming(
+          mediaIds,
+        );
+      },
     );
     _drainAfterEntry();
   }
@@ -182,7 +196,7 @@ class MediaUnlinkService {
     }
     final db = DatabaseService.instance.databaseOrNull;
     Future<EquipmentUnlinkOutcome> work() =>
-        _unlinkFromEquipment(mediaIds, deleteMediaUndrained ?? deleteMedia);
+        _unlinkFromEquipment(mediaIds, deleteMediaHeld ?? deleteMedia);
     final outcome = await ChangeLogScope.bulk(
       db,
       label: ChangeLogLabels.removeGearPhotos,
@@ -198,7 +212,9 @@ class MediaUnlinkService {
   void _drainAfterEntry() {
     final drain = drainDeletes;
     if (drain == null) return;
-    logFailure(drain(), MediaUnlinkService, 'drain the media store');
+    // Future.sync: a drain that throws before returning its future is logged
+    // too, rather than failing an action whose rows are already gone.
+    logFailure(Future.sync(drain), MediaUnlinkService, 'drain the media store');
   }
 
   /// The equipment twin of [unlinkFromSite]: rows a dive or site still

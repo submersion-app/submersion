@@ -20,6 +20,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dar
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
+import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
@@ -163,6 +165,15 @@ class _RecordingMediaRepo implements MediaRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Clears no covers: this file runs without a database.
+class _NoCovers implements GearPhotoRepository {
+  @override
+  Future<void> clearCoversNaming(Iterable<String> mediaIds) async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// Records the library's labelled Unlink instead of running it.
 class _RecordingUnlinkService extends MediaUnlinkService {
   _RecordingUnlinkService(MediaRepository repository)
@@ -238,6 +249,7 @@ void main() {
       mediaRepo = _RecordingMediaRepo();
       return ProviderScope(
         overrides: [
+          gearPhotoRepositoryProvider.overrideWithValue(_NoCovers()),
           if (unlinkService != null)
             mediaUnlinkServiceProvider.overrideWithValue(
               unlinkService(mediaRepo),
