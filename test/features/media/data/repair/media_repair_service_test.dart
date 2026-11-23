@@ -39,6 +39,20 @@ class _SlowCloudIds implements CloudIdentifierSource {
   }
 }
 
+/// Runs [during] while it drops the cached mappings, as a save elsewhere
+/// would.
+class _SlowAssetCache extends LocalAssetCacheRepository {
+  _SlowAssetCache(this.during, {super.database});
+
+  final Future<void> Function() during;
+
+  @override
+  Future<void> clearEntries(Iterable<String> mediaIds) async {
+    await during();
+    await super.clearEntries(mediaIds);
+  }
+}
+
 void main() {
   late AppDatabase db;
   late LocalCacheDatabase cacheDb;
@@ -221,6 +235,41 @@ void main() {
           ),
         ),
       ]);
+
+      await ChangeLogSettler(db).settle();
+      final repair = (await db.select(db.changeLogOperations).get())
+          .singleWhere((o) => o.label == ChangeLogLabels.mediaRepair);
+      final filed = await (db.select(
+        db.changeLogEvents,
+      )..where((e) => e.operationId.equals(repair.id))).get();
+      expect(filed.map((e) => e.recordId), isNot(contains('other')));
+      expect(filed.map((e) => e.recordId), contains('a'));
+    });
+
+    test('a save made while the cache is cleared is not filed as the '
+        'repair', () async {
+      final (file, hash) = await tempFile('a.jpg', 'aaaa');
+      await seed('a', contentHash: hash);
+      await seed('other');
+      final item = (await repo.getMediaById('a'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+
+      await service(
+        assetCache: _SlowAssetCache(
+          () => db.customStatement(
+            "UPDATE media SET caption = 'saved meanwhile' WHERE id = 'other'",
+          ),
+          database: cacheDb,
+        ),
+      ).apply([
+        RepairProposal(
+          item: item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(path: file.path, sizeBytes: 4),
+        ),
+      ], source: RepairLogSource.watcher);
 
       await ChangeLogSettler(db).settle();
       final repair = (await db.select(db.changeLogOperations).get())
