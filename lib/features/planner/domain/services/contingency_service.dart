@@ -38,6 +38,22 @@ class LostGasOutcome {
   });
 }
 
+/// Any combination of +depth, +time and lost cylinders applied together:
+/// what the chart previews when several contingency chips are toggled.
+class CombinedContingencyOutcome {
+  /// The cylinders actually dropped, in plan order. Stale or non-losable
+  /// ids in the selection are not listed.
+  final List<DiveTank> lostTanks;
+  final domain.DivePlan plan;
+  final PlanOutcome outcome;
+
+  const CombinedContingencyOutcome({
+    required this.lostTanks,
+    required this.plan,
+    required this.outcome,
+  });
+}
+
 /// Derives contingency variants of a plan and runs them through the
 /// PlanEngine: the classic slate trio (+depth, +time, both) and one
 /// lost-gas schedule per carried deco/stage/travel cylinder.
@@ -117,14 +133,14 @@ class ContingencyService {
       tank.role == TankRole.stage ||
       tank.isTravelGas;
 
-  /// One outcome per losable cylinder (see [isLosable]). Empty for CCR plans
+  /// One outcome per losable cylinder (see [isLosable]). Empty for loop plans
   /// (loop loss is the bailout solver's job) and when no such cylinder is
   /// carried.
   List<LostGasOutcome> lostGas(
     domain.DivePlan inputPlan, {
     TissueState? startState,
   }) {
-    if (inputPlan.mode == domain.PlanMode.ccr || inputPlan.segments.isEmpty) {
+    if (inputPlan.mode != domain.PlanMode.oc || inputPlan.segments.isEmpty) {
       return const [];
     }
     // Losability is a question about derived roles (deco/stage), so resolve
@@ -141,14 +157,14 @@ class ContingencyService {
 
   /// A single tank's lost-gas schedule by [tankId], or null when the tank is
   /// missing, not losable, the only cylinder carried, or the plan can't be
-  /// varied (no segments, or CCR). Lets callers (the chart ghost, a tapped
+  /// varied (no segments, or a loop plan). Lets callers (the chart ghost, a tapped
   /// row) run just the one variant selected instead of the full set.
   LostGasOutcome? lostGasFor(
     domain.DivePlan inputPlan,
     String tankId, {
     TissueState? startState,
   }) {
-    if (inputPlan.mode == domain.PlanMode.ccr || inputPlan.segments.isEmpty) {
+    if (inputPlan.mode != domain.PlanMode.oc || inputPlan.segments.isEmpty) {
       return null;
     }
     final plan = const TankRoleResolver().apply(inputPlan);
@@ -160,30 +176,70 @@ class ContingencyService {
       }
     }
     if (tank == null || !isLosable(tank)) return null;
-    final remaining = plan.tanks.where((t) => t.id != tankId).toList();
-    // Nothing left to breathe — a lost-gas schedule would be meaningless.
-    if (remaining.isEmpty) return null;
-    // Any user segment that breathed the lost cylinder is remapped onto a
-    // fallback (prefer back gas). Without this the contingency would still
-    // "breathe" the lost gas and its consumption would go unaccounted, since
-    // the engine only reports usage for tanks present in plan.tanks.
-    final fallback = remaining.firstWhere(
-      (t) => t.role == TankRole.backGas,
-      orElse: () => remaining.first,
-    );
-    final without = plan.copyWith(
-      tanks: remaining,
-      segments: [
-        for (final segment in plan.segments)
-          segment.tankId == tankId
-              ? segment.copyWith(tankId: fallback.id, gasMix: fallback.gasMix)
-              : segment,
-      ],
-    );
+    final without = _withoutTanks(plan, {tankId});
+    if (without == null) return null;
     return LostGasOutcome(
       tank: tank,
       plan: without,
       outcome: _engine.compute(without, startState: startState),
+    );
+  }
+
+  /// The deviation and lost cylinders applied together, or null when nothing
+  /// applicable is selected. Stale or non-losable ids, lost gases on a loop
+  /// plan and +time without a bottom (see [canLengthen]) are ignored.
+  CombinedContingencyOutcome? contingencyFor(
+    domain.DivePlan inputPlan, {
+    bool deeper = false,
+    bool longer = false,
+    Set<String> lostTankIds = const {},
+    TissueState? startState,
+  }) {
+    if (inputPlan.segments.isEmpty) return null;
+    final plan = const TankRoleResolver().apply(inputPlan);
+    final losable = inputPlan.mode != domain.PlanMode.oc
+        ? const <DiveTank>[]
+        : [
+            for (final t in plan.tanks)
+              if (lostTankIds.contains(t.id) && isLosable(t)) t,
+          ];
+    final lengthen = longer && canLengthen(plan);
+
+    var variant = plan;
+    if (deeper) variant = _deepened(variant);
+    if (lengthen) variant = _lengthened(variant);
+    // Losing every cylinder leaves nothing to breathe: the lost gases are
+    // dropped and the deviation still applies.
+    final without = losable.isEmpty
+        ? null
+        : _withoutTanks(variant, {for (final t in losable) t.id});
+    final lostTanks = without == null ? const <DiveTank>[] : losable;
+    if (without != null) variant = without;
+    if (!deeper && !lengthen && lostTanks.isEmpty) return null;
+    return CombinedContingencyOutcome(
+      lostTanks: lostTanks,
+      plan: variant,
+      outcome: _engine.compute(variant, startState: startState),
+    );
+  }
+
+  /// [plan] without [tankIds], or null when nothing would be left. Segments
+  /// on a dropped cylinder move to the back gas, so its use is accounted for.
+  domain.DivePlan? _withoutTanks(domain.DivePlan plan, Set<String> tankIds) {
+    final remaining = plan.tanks.where((t) => !tankIds.contains(t.id)).toList();
+    if (remaining.isEmpty) return null;
+    final fallback = remaining.firstWhere(
+      (t) => t.role == TankRole.backGas,
+      orElse: () => remaining.first,
+    );
+    return plan.copyWith(
+      tanks: remaining,
+      segments: [
+        for (final segment in plan.segments)
+          tankIds.contains(segment.tankId)
+              ? segment.copyWith(tankId: fallback.id, gasMix: fallback.gasMix)
+              : segment,
+      ],
     );
   }
 
