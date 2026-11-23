@@ -100,26 +100,28 @@ class RetiredSpeciesMerger {
     return [for (final row in rows) row.data['id'] as String];
   }
 
+  /// Set-based: one UPDATE and one pending mark for every sighting, so a
+  /// diver with many sightings of a twin pays one write at the upgrade.
   Future<void> _moveSightings(String from, String to, int now) async {
     final ids = await _ids('SELECT id FROM sightings WHERE species_id = ?', [
       from,
     ]);
-    for (final id in ids) {
-      await _db.customStatement(
-        'UPDATE sightings SET species_id = ? WHERE id = ?',
-        [to, id],
-      );
-      await _sync.markRecordPending(
-        entityType: 'sightings',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-    }
+    if (ids.isEmpty) return;
+    await _db.customStatement(
+      'UPDATE sightings SET species_id = ?, hlc = ? WHERE species_id = ?',
+      [to, await _sync.issueRowClock(), from],
+    );
+    await _sync.markRecordsPending(
+      entityType: 'sightings',
+      recordIds: ids,
+      localUpdatedAt: now,
+    );
   }
 
   /// Moves the [table] rows naming [from] to [to], or drops one whose
   /// [owner] (the photo or the site) already names [to], after [carry] has
-  /// passed what the dropped row held onto the kept one.
+  /// passed what the dropped row held onto the kept one. The drops are few
+  /// (a photo or site tagged with both twins); the moves are set-based.
   Future<void> _moveTags(
     String table,
     String entityType,
@@ -131,36 +133,34 @@ class RetiredSpeciesMerger {
   ) async {
     final rows = await _db
         .customSelect(
-          'SELECT id, $owner AS owner FROM $table WHERE species_id = ?',
-          variables: [Variable.withString(from)],
+          'SELECT r.id AS id, (SELECT k.id FROM $table k '
+          'WHERE k.$owner = r.$owner AND k.species_id = ? LIMIT 1) AS kept '
+          'FROM $table r WHERE r.species_id = ?',
+          variables: [Variable.withString(to), Variable.withString(from)],
         )
         .get();
+    final moved = <String>[];
     for (final row in rows) {
       final id = row.data['id'] as String;
-      final ownerId = row.data['owner'] as String;
-      final kept = await _db
-          .customSelect(
-            'SELECT id FROM $table WHERE $owner = ? AND species_id = ? '
-            'LIMIT 1',
-            variables: [Variable.withString(ownerId), Variable.withString(to)],
-          )
-          .getSingleOrNull();
-      if (kept != null) {
-        await carry(id, kept.data['id'] as String, now);
-        await _db.customStatement('DELETE FROM $table WHERE id = ?', [id]);
-        await _sync.logDeletion(entityType: entityType, recordId: id);
-      } else {
-        await _db.customStatement(
-          'UPDATE $table SET species_id = ? WHERE id = ?',
-          [to, id],
-        );
-        await _sync.markRecordPending(
-          entityType: entityType,
-          recordId: id,
-          localUpdatedAt: now,
-        );
+      final kept = row.data['kept'] as String?;
+      if (kept == null) {
+        moved.add(id);
+        continue;
       }
+      await carry(id, kept, now);
+      await _db.customStatement('DELETE FROM $table WHERE id = ?', [id]);
+      await _sync.logDeletion(entityType: entityType, recordId: id);
     }
+    if (moved.isEmpty) return;
+    await _db.customStatement(
+      'UPDATE $table SET species_id = ?, hlc = ? WHERE species_id = ?',
+      [to, await _sync.issueRowClock(), from],
+    );
+    await _sync.markRecordsPending(
+      entityType: entityType,
+      recordIds: moved,
+      localUpdatedAt: now,
+    );
   }
 
   /// What a dropped photo tag held passes to the kept one: the diver's own
@@ -247,13 +247,11 @@ class RetiredSpeciesMerger {
         [to, from],
       );
     }
-    for (final id in ids) {
-      await _sync.markFactsPending(
-        entityType: 'mediaIdentifications',
-        recordId: id,
-        localUpdatedAt: now,
-        group: SyncFactGroups.identificationDecision,
-      );
-    }
+    await _sync.markFactsPendingForAll(
+      entityType: 'mediaIdentifications',
+      recordIds: ids.toList(),
+      localUpdatedAt: now,
+      group: SyncFactGroups.identificationDecision,
+    );
   }
 }
