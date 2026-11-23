@@ -284,6 +284,23 @@ void main() {
       expect(File(path).existsSync(), isTrue);
     });
 
+    test('refuses a file the history has recorded since the listing', () async {
+      // A backup listed in the window between writing its file and recording
+      // it is tracked by the time the delete runs, and must survive it.
+      final path = await writeBackup(
+        deviceId: thisDevice,
+        timestamp: '2026-08-31_120000',
+      );
+      final listed = await build().find();
+
+      expect(await build(known: {path}).reclaim(listed), 0);
+      expect(
+        await build(known: {path}, appPrivateFolder: true).reclaim(listed),
+        0,
+      );
+      expect(File(path).existsSync(), isTrue);
+    });
+
     test('refuses a legacy file even when handed one', () async {
       final path = await writeRaw('submersion_backup_2026-08-31_120000.db');
       final scan = build();

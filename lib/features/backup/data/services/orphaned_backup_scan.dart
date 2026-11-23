@@ -162,10 +162,15 @@ class OrphanedBackupScan {
     if (directoryPath == null) return 0;
     final directory = p.canonicalize(directoryPath);
     final deviceId = await _thisDeviceId();
+    // Re-read, like the device id: a selection built before a backup finished
+    // recording its file can name that file, and once the history holds it the
+    // file is no longer forgotten, whatever the listing said.
+    final known = await _knownPaths();
 
     var bytes = 0;
     for (final candidate in candidates) {
-      if (!_mayDelete(candidate.path, directory, deviceId)) {
+      if (known.contains(candidate.path) ||
+          !_mayDelete(candidate.path, directory, deviceId)) {
         _log.warning('Refused to reclaim ${candidate.filename}');
         continue;
       }
