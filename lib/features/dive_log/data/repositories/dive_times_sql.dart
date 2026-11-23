@@ -120,8 +120,9 @@ String _sameStrandSql(String r, String p) =>
 /// `sameRecordingWithoutComputer` for two rows with no computer and no merge
 /// slot, as far as SQL can state it: not written by one import, the model
 /// equal or one a vendor-prefixed form of the other, the serials equal or
-/// one of them blank, the same start to the second, the same runtime, and
-/// the maximum depth within 0.1 m. It leaves out the Shearwater hex and
+/// one of them blank, the same start to the second (the column stores whole
+/// seconds, so `=` on it is Dart's comparison), the same runtime, and the
+/// maximum depth within 0.1 m. It leaves out the Shearwater hex and
 /// decimal forms of one serial (`computerSerialsMatch`) and the collapse of
 /// inner runs of whitespace (`normalizeComputerIdentityPart`), so two such
 /// rows read as two sources here, and it compares each row with the first

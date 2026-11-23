@@ -404,6 +404,7 @@ void main() {
     required String model,
     String? serial,
     String? fileName,
+    DateTime? entryTime,
   }) async {
     await db
         .into(db.diveDataSources)
@@ -415,7 +416,7 @@ void main() {
             computerModel: Value(model),
             computerSerial: Value(serial),
             sourceFileName: Value(fileName),
-            entryTime: Value(entry),
+            entryTime: Value(entryTime ?? entry),
             duration: const Value(3000),
             maxDepth: const Value(12.0),
             importedAt: createdAt,
@@ -455,6 +456,42 @@ void main() {
     );
     await repository.saveEditedProfile('stored-twice', points(2400));
     await expectSpan('stored-twice', 2400);
+  });
+
+  test('one recording stored twice collapses when the starts differ '
+      'within a second', () async {
+    // Dart compares the starts to the second; the column stores whole
+    // seconds, so the SQL `=` on the stored value agrees with it.
+    await createBareDive('sub-second');
+    await createLooseSource(
+      'source-1',
+      diveId: 'sub-second',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+      model: 'Perdix 2',
+      entryTime: entry.add(const Duration(milliseconds: 100)),
+    );
+    await createLooseSource(
+      'source-2',
+      diveId: 'sub-second',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+      model: 'Perdix 2',
+      entryTime: entry.add(const Duration(milliseconds: 900)),
+    );
+    await series.insertSeries(
+      diveId: 'sub-second',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'sub-second',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3300),
+    );
+    await repository.saveEditedProfile('sub-second', points(2400));
+    await expectSpan('sub-second', 2400);
   });
 
   test('two computers of one model stay apart when their recordings '
