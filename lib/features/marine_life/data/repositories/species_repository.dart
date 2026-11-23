@@ -623,8 +623,8 @@ class SpeciesRepository {
           _db,
           _syncRepository,
         ).merge(catalog.retired, keepEdited: true);
-      } catch (e) {
-        debugPrint('Retired species fold failed (will retry): $e');
+      } catch (e, stack) {
+        debugPrint('Retired species fold failed (will retry): $e\n$stack');
         return;
       }
       await store.markApplied(catalog.version);

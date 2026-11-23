@@ -68,7 +68,7 @@ class RetiredSpeciesMerger {
         from,
         to,
         now,
-        _carryConfirmation,
+        _carryMediaTag,
       );
       await _moveTags(
         'site_species',
@@ -163,28 +163,48 @@ class RetiredSpeciesMerger {
     }
   }
 
-  /// A dropped photo tag that was the diver's own (unconfirmed NULL)
-  /// confirms a kept tag the app applied, as confirming it by hand does.
-  Future<void> _carryConfirmation(String dropped, String kept, int now) async {
-    final droppedRow = await _db
+  /// What a dropped photo tag held passes to the kept one: the diver's own
+  /// tag (unconfirmed NULL) confirms a kept tag the app applied, as
+  /// confirming it by hand does, and its sighting link and notes fill a kept
+  /// tag that has none.
+  Future<void> _carryMediaTag(String dropped, String kept, int now) async {
+    final rows = await _db
         .customSelect(
-          'SELECT unconfirmed FROM media_species WHERE id = ?',
-          variables: [Variable.withString(dropped)],
+          'SELECT id, unconfirmed, sighting_id, notes FROM media_species '
+          'WHERE id IN (?, ?)',
+          variables: [Variable.withString(dropped), Variable.withString(kept)],
         )
-        .getSingle();
-    if (droppedRow.data['unconfirmed'] == 1) return;
-    final updated = await _db.customUpdate(
-      'UPDATE media_species SET unconfirmed = NULL, created_sighting = NULL, '
-      'created_species = NULL WHERE id = ? AND unconfirmed = 1',
-      variables: [Variable.withString(kept)],
-    );
-    if (updated > 0) {
-      await _sync.markRecordPending(
-        entityType: 'mediaSpecies',
-        recordId: kept,
-        localUpdatedAt: now,
+        .get();
+    Map<String, Object?> of(String id) =>
+        rows.firstWhere((r) => r.data['id'] == id).data;
+    final from = of(dropped);
+    final into = of(kept);
+    bool blank(Object? v) => v == null || (v as String).trim().isEmpty;
+    final sets = <String>[];
+    final args = <Object?>[];
+    if (from['unconfirmed'] != 1 && into['unconfirmed'] == 1) {
+      sets.add(
+        'unconfirmed = NULL, created_sighting = NULL, created_species = NULL',
       );
     }
+    if (into['sighting_id'] == null && from['sighting_id'] != null) {
+      sets.add('sighting_id = ?');
+      args.add(from['sighting_id']);
+    }
+    if (blank(into['notes']) && !blank(from['notes'])) {
+      sets.add('notes = ?');
+      args.add(from['notes']);
+    }
+    if (sets.isEmpty) return;
+    await _db.customStatement(
+      'UPDATE media_species SET ${sets.join(', ')} WHERE id = ?',
+      [...args, kept],
+    );
+    await _sync.markRecordPending(
+      entityType: 'mediaSpecies',
+      recordId: kept,
+      localUpdatedAt: now,
+    );
   }
 
   /// A dropped expected-species entry's notes pass to a kept entry that has

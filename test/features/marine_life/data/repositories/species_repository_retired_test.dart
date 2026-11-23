@@ -167,6 +167,33 @@ void main() {
     },
   );
 
+  test('a dropped twin tag passes its sighting and notes on', () async {
+    final sighting = await repository.addSighting(
+      diveId: 'd1',
+      speciesId: 'sp_twin',
+    );
+    final tags = MediaSpeciesRepository();
+    final kept = await tags.addTag(mediaId: 'm1', speciesId: 'sp_manta');
+    final dropped = await tags.addTag(mediaId: 'm1', speciesId: 'sp_twin');
+    await (db.update(
+      db.mediaSpecies,
+    )..where((t) => t.id.equals(dropped.id))).write(
+      MediaSpeciesCompanion(
+        sightingId: Value(sighting.id),
+        notes: const Value('Chevron belly'),
+      ),
+    );
+    await db.delete(db.syncRecords).go();
+
+    await upgrade();
+
+    final row = await db.select(db.mediaSpecies).getSingle();
+    expect(row.id, kept.id);
+    expect(row.sightingId, sighting.id);
+    expect(row.notes, 'Chevron belly');
+    expect(await records('mediaSpecies', 'pending'), [kept.id]);
+  });
+
   test('a dropped twin entry passes its notes to a kept one without', () async {
     await repository.addExpectedSpecies(siteId: 's1', speciesId: 'sp_manta');
     await repository.addExpectedSpecies(
