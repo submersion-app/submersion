@@ -37,11 +37,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/contrast_ratio.dart';
 
 class _StubPhotoPickerService implements PhotoPickerService {
+  _StubPhotoPickerService({this.supportsGalleryBrowsing = true});
+
   @override
   Future<PhotoPermissionStatus> currentPermission() => checkPermission();
 
+  /// False as on Windows and Linux, where the Gallery tab is a file dialog.
   @override
-  bool get supportsGalleryBrowsing => true;
+  final bool supportsGalleryBrowsing;
   @override
   Future<List<AssetInfo>> getAssetsInDateRange(DateTime s, DateTime e) async =>
       const [];
@@ -107,13 +110,16 @@ Widget _wrap({
   UrlTabNotifier? urlTab,
   ThemeData? theme,
   bool galleryOnly = false,
+  bool galleryBrowsing = true,
 }) {
   final pipeline = _FakeNetworkFetchPipeline();
   final credentials = _FakeNetworkCredentialsService();
   final mediaRepo = _FakeMediaRepository();
   return ProviderScope(
     overrides: [
-      photoPickerServiceProvider.overrideWithValue(_StubPhotoPickerService()),
+      photoPickerServiceProvider.overrideWithValue(
+        _StubPhotoPickerService(supportsGalleryBrowsing: galleryBrowsing),
+      ),
       if (filesTab != null)
         filesTabNotifierProvider.overrideWith((ref) => filesTab),
       // [UrlTab] watches [urlTabNotifierProvider]. The default factory
@@ -220,6 +226,23 @@ void main() {
 
   // A species page's Add photos hands back only its Gallery choice, so its
   // picker offers nothing else (issue #4527, media library decision 5).
+  // Where the Gallery tab is itself a file dialog (Windows, Linux), the
+  // hint names only links.
+  testWidgets('gallery only without gallery browsing: the hint names only '
+      'links', (tester) async {
+    await tester.pumpWidget(_wrap(galleryOnly: true, galleryBrowsing: false));
+    await tester.pump();
+
+    expect(
+      find.text('To add links, use Import on the Media screen.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('To add files or links, use Import on the Media screen.'),
+      findsNothing,
+    );
+  });
+
   testWidgets('gallery only: no tab bar, no Files or URL tab, the hint and '
       'Done show', (tester) async {
     await tester.pumpWidget(_wrap(galleryOnly: true));

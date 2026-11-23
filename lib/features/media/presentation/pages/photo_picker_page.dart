@@ -313,7 +313,13 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                   child: ImportElsewhereHint(
-                    message: context.l10n.media_photoPicker_galleryOnlyHint,
+                    // Where the Gallery is a file dialog, files are added here.
+                    message:
+                        ref
+                            .read(photoPickerServiceProvider)
+                            .supportsGalleryBrowsing
+                        ? context.l10n.media_photoPicker_galleryOnlyHint
+                        : context.l10n.media_photoPicker_galleryOnlyLinksHint,
                   ),
                 ),
                 Expanded(child: _galleryTab(context)),

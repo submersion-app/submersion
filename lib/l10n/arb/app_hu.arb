@@ -5800,6 +5800,7 @@
   "media_photoPicker_tab_url": "URL",
   "media_photoPicker_feedElsewhereHint": "Fotófolyam hozzáadásához használd az Importálás lehetőséget a Média képernyőn.",
   "media_photoPicker_galleryOnlyHint": "Fájlok vagy hivatkozások hozzáadásához használd az Importálás lehetőséget a Média képernyőn.",
+  "media_photoPicker_galleryOnlyLinksHint": "Hivatkozások hozzáadásához használd az Importálás lehetőséget a Média képernyőn.",
   "media_photoPicker_clearSelectionButton": "Törlés",
   "media_photoPicker_closeTooltip": "Fotóválasztó bezárása",
   "media_photoPicker_doneButton": "Kész",

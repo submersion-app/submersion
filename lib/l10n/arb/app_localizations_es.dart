@@ -20326,6 +20326,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Para añadir archivos o enlaces, usa Importar en la pantalla Multimedia.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Para añadir enlaces, usa Importar en la pantalla Multimedia.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Limpiar';
 
   @override

@@ -6052,6 +6052,7 @@
   "media_photoPicker_tab_url": "URL",
   "media_photoPicker_feedElsewhereHint": "Um einen Foto-Feed hinzuzufügen, verwende Importieren im Bereich Medien.",
   "media_photoPicker_galleryOnlyHint": "Um Dateien oder Links hinzuzufügen, verwende Importieren im Bereich Medien.",
+  "media_photoPicker_galleryOnlyLinksHint": "Um Links hinzuzufügen, verwende Importieren im Bereich Medien.",
   "media_photoPicker_clearSelectionButton": "Löschen",
   "media_photoPicker_closeTooltip": "Fotoauswahl schließen",
   "media_photoPicker_doneButton": "Fertig",

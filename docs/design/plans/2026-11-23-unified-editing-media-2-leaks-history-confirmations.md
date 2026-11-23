@@ -853,3 +853,9 @@ changed from this plan:
     opens, like the hashing and bookmarks.
   - `SittingMediaWriters.forSite` has a test of its one-write-per-category
     grouping, Uncategorized included.
+- **A third review (code-review, xhigh, on the PR):** two nits. The test
+  host for Re-upload no longer leaves a notifier undisposed. And, on Eric's
+  call, where the Gallery tab is a file dialog (Windows, Linux) the species
+  picker's hint names only links (`media_photoPicker_galleryOnlyLinksHint`,
+  "To add links, use Import on the Media screen."): eight new strings in
+  all.

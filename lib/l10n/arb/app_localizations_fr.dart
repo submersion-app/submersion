@@ -20378,6 +20378,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pour ajouter des fichiers ou des liens, utilisez Importer dans l\'écran Médias.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Pour ajouter des liens, utilisez Importer dans l\'écran Médias.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Effacer';
 
   @override

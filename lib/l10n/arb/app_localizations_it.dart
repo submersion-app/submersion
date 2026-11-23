@@ -20335,6 +20335,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Per aggiungere file o link, usa Importa nella schermata Media.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Per aggiungere link, usa Importa nella schermata Media.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Cancella';
 
   @override

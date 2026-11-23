@@ -5800,6 +5800,7 @@
   "media_photoPicker_tab_url": "URL",
   "media_photoPicker_feedElsewhereHint": "כדי להוסיף פיד תמונות, השתמש בייבוא במסך המדיה.",
   "media_photoPicker_galleryOnlyHint": "כדי להוסיף קבצים או קישורים, השתמש בייבוא במסך המדיה.",
+  "media_photoPicker_galleryOnlyLinksHint": "כדי להוסיף קישורים, השתמש בייבוא במסך המדיה.",
   "media_photoPicker_clearSelectionButton": "נקה",
   "media_photoPicker_closeTooltip": "סגור בורר תמונות",
   "media_photoPicker_doneButton": "סיום",

@@ -20313,6 +20313,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Um Dateien oder Links hinzuzufügen, verwende Importieren im Bereich Medien.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Um Links hinzuzufügen, verwende Importieren im Bereich Medien.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Löschen';
 
   @override

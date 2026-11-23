@@ -19336,6 +19336,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_galleryOnlyHint => '要添加文件或链接，请在媒体页面使用导入。';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint => '要添加链接，请在媒体页面使用导入。';
+
+  @override
   String get media_photoPicker_clearSelectionButton => '清除';
 
   @override

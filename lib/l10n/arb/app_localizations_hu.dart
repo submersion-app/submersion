@@ -20264,6 +20264,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Fájlok vagy hivatkozások hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Hivatkozások hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Törlés';
 
   @override

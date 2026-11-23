@@ -19897,6 +19897,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'כדי להוסיף קבצים או קישורים, השתמש בייבוא במסך המדיה.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'כדי להוסיף קישורים, השתמש בייבוא במסך המדיה.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'נקה';
 
   @override

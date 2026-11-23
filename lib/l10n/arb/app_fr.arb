@@ -5800,6 +5800,7 @@
   "media_photoPicker_tab_url": "URL",
   "media_photoPicker_feedElsewhereHint": "Pour ajouter un flux de photos, utilisez Importer dans l'écran Médias.",
   "media_photoPicker_galleryOnlyHint": "Pour ajouter des fichiers ou des liens, utilisez Importer dans l'écran Médias.",
+  "media_photoPicker_galleryOnlyLinksHint": "Pour ajouter des liens, utilisez Importer dans l'écran Médias.",
   "media_photoPicker_clearSelectionButton": "Effacer",
   "media_photoPicker_closeTooltip": "Fermer le sélecteur de photos",
   "media_photoPicker_doneButton": "Terminé",

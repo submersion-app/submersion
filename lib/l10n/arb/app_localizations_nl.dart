@@ -20208,6 +20208,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gebruik Importeren op het scherm Media om bestanden of links toe te voegen.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Gebruik Importeren op het scherm Media om links toe te voegen.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Wissen';
 
   @override

@@ -20655,6 +20655,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لإضافة ملفات أو روابط، استخدم استيراد في شاشة الوسائط.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'لإضافة روابط، استخدم استيراد في شاشة الوسائط.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'مسح';
 
   @override

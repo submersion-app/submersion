@@ -20330,6 +20330,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Para adicionar arquivos ou links, use Importar na tela Mídia.';
 
   @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Para adicionar links, use Importar na tela Mídia.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Limpar';
 
   @override
