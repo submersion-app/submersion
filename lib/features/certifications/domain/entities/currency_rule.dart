@@ -65,6 +65,11 @@ class CurrencyRule extends Equatable {
   /// and a restore (issue #4942). A storage detail, so not part of
   /// equality.
   final CurrencyScopeJson? storedScope;
+
+  /// The clock kind exactly as stored, which may name one this build does
+  /// not know ([clockKind] then reads activity). [clockKindJson] writes it
+  /// back while [clockKind] is unchanged. Not part of equality.
+  final String? storedClockKind;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -85,6 +90,7 @@ class CurrencyRule extends Equatable {
     this.isBuiltIn = false,
     this.unreadableScope = false,
     this.storedScope,
+    this.storedClockKind,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -106,6 +112,7 @@ class CurrencyRule extends Equatable {
     bool? isBuiltIn,
     bool? unreadableScope,
     CurrencyScopeJson? storedScope,
+    String? storedClockKind,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => CurrencyRule(
@@ -125,9 +132,18 @@ class CurrencyRule extends Equatable {
     isBuiltIn: isBuiltIn ?? this.isBuiltIn,
     unreadableScope: unreadableScope ?? this.unreadableScope,
     storedScope: storedScope ?? this.storedScope,
+    storedClockKind: storedClockKind ?? this.storedClockKind,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
+
+  /// The clock kind as it is stored: [storedClockKind] while it still reads
+  /// as [clockKind], else [clockKind]'s name.
+  String get clockKindJson =>
+      storedClockKind != null &&
+          CurrencyClockKind.parse(storedClockKind!) == clockKind
+      ? storedClockKind!
+      : clockKind.name;
 
   /// Scope arrays as they are stored: [storedScope]'s while the lists hold
   /// the same values, else the lists encoded.

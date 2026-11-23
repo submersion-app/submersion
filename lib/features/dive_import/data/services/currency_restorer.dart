@@ -163,6 +163,7 @@ class CurrencyRestorer {
       diverId: diverId,
       name: data['name'] as String,
       clockKind: CurrencyClockKind.parse(data['clockKind'] as String),
+      storedClockKind: data['clockKind'] as String,
       agencies: CurrencyScopeCodec.decodeAgencies(
         data['applicableAgencies'] as String,
       ),

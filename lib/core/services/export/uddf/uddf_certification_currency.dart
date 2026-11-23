@@ -94,10 +94,10 @@ abstract final class UddfCertificationCurrency {
       attributes: {'id': rule.id},
       nest: () {
         builder.element('name', nest: rule.name);
-        builder.element('clockkind', nest: rule.clockKind.name);
-        // The JSON getters give the arrays as stored while the lists match
-        // them, so values this build cannot read travel as they are rather
-        // than as "any" (issue #4942).
+        // The JSON getters give the clock kind and arrays as stored while
+        // the parsed values match them, so values this build cannot read
+        // travel as they are rather than as activity or "any" (issue #4942).
+        builder.element('clockkind', nest: rule.clockKindJson);
         builder.element('agencies', nest: rule.agenciesJson);
         builder.element('levels', nest: rule.levelsJson);
         builder.element('lapsedays', nest: '${rule.lapseDays}');
@@ -201,7 +201,9 @@ abstract final class UddfCertificationCurrency {
     return {
       'id': id,
       'name': name,
-      'clockKind': CurrencyClockKind.parse(_text(e, 'clockkind') ?? '').name,
+      // As written: a clock kind this build does not know is parsed where
+      // it is used, and kept for writing back (issue #4942).
+      'clockKind': _text(e, 'clockkind') ?? CurrencyClockKind.activity.name,
       'applicableAgencies': _text(e, 'agencies') ?? '[]',
       'applicableLevels': _text(e, 'levels') ?? '[]',
       'lapseDays': lapse,

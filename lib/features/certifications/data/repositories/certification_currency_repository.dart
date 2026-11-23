@@ -67,7 +67,7 @@ class CertificationCurrencyRepository {
             id: Value(id),
             diverId: Value(rule.diverId),
             name: Value(rule.name),
-            clockKind: Value(rule.clockKind.name),
+            clockKind: Value(rule.clockKindJson),
             applicableAgencies: Value(rule.agenciesJson),
             applicableLevels: Value(rule.levelsJson),
             lapseDays: Value(rule.lapseDays),
@@ -413,6 +413,7 @@ class CertificationCurrencyRepository {
         !CurrencyScopeCodec.isReadableLevels(row.applicableLevels) ||
         !CurrencyScopeCodec.isReadableStrings(row.countedDiveTypeIds) ||
         !CurrencyScopeCodec.isReadableModes(row.countedDiveModes),
+    storedClockKind: row.clockKind,
     storedScope: (
       agencies: row.applicableAgencies,
       levels: row.applicableLevels,

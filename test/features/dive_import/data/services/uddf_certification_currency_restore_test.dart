@@ -276,6 +276,7 @@ void main() {
         rules: [
           _customRule.copyWith(
             levels: const [],
+            storedClockKind: 'clockFromTheFuture',
             storedScope: (
               agencies: '[]',
               levels: '["levelFromTheFuture"]',
@@ -303,6 +304,7 @@ void main() {
       );
       expect(rule.unreadableScope, isTrue);
       expect(rule.levelsJson, '["levelFromTheFuture"]');
+      expect(rule.clockKindJson, 'clockFromTheFuture');
       final pref = (await currency.getPrefs((await restoredCert()).id)).single;
       expect(pref.unreadableMapping, isTrue);
       expect(pref.mappingJson.modes, '["modeFromTheFuture"]');
