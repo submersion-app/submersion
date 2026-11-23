@@ -5746,12 +5746,12 @@ class SyncService {
       }
     }
 
-    // The holds describe the copy being replaced (issue #4954).
+    // The holds describe the copy being replaced (issue #4954). None is left
+    // for the rows written here to settle, so this adopt notes none of them.
     await _serializer.discardHeldReferences();
 
     // Upsert every restored record.
     for (final entry in restored.entries) {
-      await _serializer.noteIncomingRows(entry.key, [...entry.value.values]);
       for (final record in entry.value.values) {
         await _serializer.upsertRecord(entry.key, record);
       }
@@ -5910,7 +5910,8 @@ class SyncService {
       if (inboundOnlyLegacyEntities.containsKey(entity)) continue;
       await _serializer.deleteAllRecords(entity);
     }
-    // The holds describe the copy being replaced (issue #4954).
+    // The holds describe the copy being replaced (issue #4954). None is left
+    // for the rows written here to settle, so this adopt notes none of them.
     await _serializer.discardHeldReferences();
 
     // Batched upsert of a table's rows (skipping null-id rows, matching the
@@ -5925,7 +5926,6 @@ class SyncService {
           if (recordIdForEntity(table, r) != null) r,
       ];
       if (valid.isEmpty) return;
-      await _serializer.noteIncomingRows(table, valid);
       await _serializer.upsertRecords(table, valid);
       await _landAdoptedFactClears(table, valid);
       await _landAdoptedChildClears(table, valid);

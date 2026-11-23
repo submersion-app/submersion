@@ -3471,8 +3471,9 @@ class SyncDataSerializer {
   /// whose links this device holds, before a merge or adopt overlays them
   /// onto the local rows (issue #4954). A held link is let go only when a
   /// copy that carried its column wins; a copy that left the column out (a
-  /// peer whose build does not know it) keeps it held. Every apply path calls
-  /// this with the rows as the payload carried them.
+  /// peer whose build does not know it) keeps it held. Every apply path that
+  /// merges into an existing library calls this with the rows as the payload
+  /// carried them; a replace-adopt discards the holds instead.
   Future<void> noteIncomingRows(
     String entityType,
     List<Map<String, dynamic>> records,
