@@ -20374,6 +20374,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pour ajouter un flux de photos, utilisez Importer dans l\'écran Médias.';
 
   @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Pour ajouter des fichiers ou des liens, utilisez Importer dans l\'écran Médias.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Effacer';
 
   @override

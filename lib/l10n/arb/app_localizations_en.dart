@@ -20037,6 +20037,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'To add a feed of photos, use Import on the Media screen.';
 
   @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'To add files or links, use Import on the Media screen.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Clear';
 
   @override

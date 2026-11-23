@@ -106,6 +106,7 @@ Widget _wrap({
   FilesTabNotifier? filesTab,
   UrlTabNotifier? urlTab,
   ThemeData? theme,
+  bool galleryOnly = false,
 }) {
   final pipeline = _FakeNetworkFetchPipeline();
   final credentials = _FakeNetworkCredentialsService();
@@ -142,6 +143,7 @@ Widget _wrap({
         startTime: DateTime.utc(2024, 1, 1, 9),
         endTime: DateTime.utc(2024, 1, 1, 11),
         target: target,
+        galleryOnly: galleryOnly,
       ),
     ),
   );
@@ -214,6 +216,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
 
     expect(find.byType(UrlTab), findsOneWidget);
+  });
+
+  // A species page's Add photos hands back only its Gallery choice, so its
+  // picker offers nothing else (issue #4527, media library decision 5).
+  testWidgets('gallery only: no tab bar, no Files or URL tab, the hint and '
+      'Done show', (tester) async {
+    await tester.pumpWidget(_wrap(galleryOnly: true));
+    await tester.pump();
+
+    expect(find.byType(TabBar), findsNothing);
+    expect(find.byType(FilesTab), findsNothing);
+    expect(find.byType(UrlTab), findsNothing);
+    expect(
+      find.text('To add files or links, use Import on the Media screen.'),
+      findsOneWidget,
+    );
+    expect(find.text('Done'), findsOneWidget);
   });
 
   // The AppBar's Done action commits the GALLERY tab's selection only; the

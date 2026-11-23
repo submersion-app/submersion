@@ -19609,6 +19609,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '写真フィードを追加するには、メディア画面のインポートを使用してください。';
 
   @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'ファイルやリンクを追加するには、メディア画面のインポートを使用してください。';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'クリア';
 
   @override

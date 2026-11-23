@@ -5925,6 +5925,7 @@
   "media_photoPicker_tab_files": "الملفات",
   "media_photoPicker_tab_url": "URL",
   "media_photoPicker_feedElsewhereHint": "لإضافة موجز صور، استخدم استيراد في شاشة الوسائط.",
+  "media_photoPicker_galleryOnlyHint": "لإضافة ملفات أو روابط، استخدم استيراد في شاشة الوسائط.",
   "media_photoPicker_clearSelectionButton": "مسح",
   "media_photoPicker_closeTooltip": "إغلاق منتقي الصور",
   "media_photoPicker_doneButton": "تم",

@@ -20651,6 +20651,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لإضافة موجز صور، استخدم استيراد في شاشة الوسائط.';
 
   @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'لإضافة ملفات أو روابط، استخدم استيراد في شاشة الوسائط.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'مسح';
 
   @override

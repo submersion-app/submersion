@@ -32162,6 +32162,12 @@ abstract class AppLocalizations {
   /// **'To add a feed of photos, use Import on the Media screen.'**
   String get media_photoPicker_feedElsewhereHint;
 
+  /// No description provided for @media_photoPicker_galleryOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add files or links, use Import on the Media screen.'**
+  String get media_photoPicker_galleryOnlyHint;
+
   /// No description provided for @media_photoPicker_clearSelectionButton.
   ///
   /// In en, this message translates to:

@@ -20309,6 +20309,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Um einen Foto-Feed hinzuzufügen, verwende Importieren im Bereich Medien.';
 
   @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Um Dateien oder Links hinzuzufügen, verwende Importieren im Bereich Medien.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Löschen';
 
   @override
