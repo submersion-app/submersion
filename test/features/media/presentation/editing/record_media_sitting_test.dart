@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -5,8 +6,24 @@ import 'package:submersion/features/media/presentation/editing/record_media_sitt
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
+import 'package:submersion/features/media/data/repositories/site_attachment_repository.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+/// Records each category write a site's sitting makes, touching no database.
+class _RecordingSiteAttachments extends SiteAttachmentRepository {
+  final List<(List<String>, SiteAttachmentCategory?)> calls = [];
+
+  @override
+  Future<int> setSiteCategory(
+    List<String> ids,
+    SiteAttachmentCategory? category,
+  ) async {
+    calls.add((List.of(ids), category));
+    return ids.length;
+  }
+}
 
 /// Photos added, unlinked and relinked in a sitting, written at Save
 /// (issue #4527, plan 6).
@@ -317,4 +334,33 @@ void main() {
       await expectLater(session.runHeldWrites(), throwsUnsupportedError);
     });
   });
+
+  // The site's own writer: one write per category, Uncategorized included.
+  test(
+    'a site sitting writes each held category once, null included',
+    () async {
+      final repository = _RecordingSiteAttachments();
+      final container = ProviderContainer(
+        overrides: [
+          siteAttachmentRepositoryProvider.overrideWithValue(repository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await SittingMediaWriters.forSite(container.read).setCategories!({
+        'm1': SiteAttachmentCategory.parking,
+        'm2': null,
+        'm3': SiteAttachmentCategory.parking,
+      });
+
+      expect(repository.calls, hasLength(2));
+      expect(
+        repository.calls
+            .firstWhere((c) => c.$2 == SiteAttachmentCategory.parking)
+            .$1,
+        ['m1', 'm3'],
+      );
+      expect(repository.calls.firstWhere((c) => c.$2 == null).$1, ['m2']);
+    },
+  );
 }
