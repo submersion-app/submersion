@@ -42,37 +42,49 @@ void main() {
     updatedAt: DateTime(2026, 1, 1),
   );
 
-  Widget host({required bool connected, required List<Object> recorded}) =>
-      ProviderScope(
-        overrides: [
-          mediaStoreResolverProvider.overrideWith(
-            (ref) => connected ? resolver : null,
-          ),
-          mediaStoreReuploadProvider.overrideWithValue(
-            (String mediaId, MediaUploadQuality level) async =>
-                recorded.add([mediaId, level]),
-          ),
-        ],
-        child: MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Consumer(
-              builder: (context, ref, _) => mediaReuploadAvailable(ref)
-                  ? Builder(
-                      builder: (anchor) => IconButton(
-                        key: const Key('media-reupload-button'),
-                        icon: const Icon(Icons.tune),
-                        onPressed: () =>
-                            showMediaReuploadMenu(anchor, ref, item),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ),
+  // Its full-quality original is in the store.
+  final uploadedOriginal = item.copyWith(
+    remoteUploadedAt: DateTime(2026, 1, 2),
+  );
+  // Only a compressed copy is in the store.
+  final renditionOnly = item.copyWith(
+    remoteCompressedUploadedAt: DateTime(2026, 1, 2),
+  );
+
+  Widget host({
+    required bool connected,
+    required List<Object> recorded,
+    MediaItem? photo,
+  }) => ProviderScope(
+    overrides: [
+      mediaStoreResolverProvider.overrideWith(
+        (ref) => connected ? resolver : null,
+      ),
+      mediaStoreReuploadProvider.overrideWithValue(
+        (String mediaId, MediaUploadQuality level) async =>
+            recorded.add([mediaId, level]),
+      ),
+    ],
+    child: MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: Consumer(
+          builder: (context, ref, _) => mediaReuploadAvailable(ref)
+              ? Builder(
+                  builder: (anchor) => IconButton(
+                    key: const Key('media-reupload-button'),
+                    icon: const Icon(Icons.tune),
+                    onPressed: () =>
+                        showMediaReuploadMenu(anchor, ref, photo ?? item),
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
-      );
+      ),
+    ),
+  );
 
   testWidgets('hidden when no store is connected', (tester) async {
     await tester.pumpWidget(host(connected: false, recorded: []));
@@ -91,5 +103,66 @@ void main() {
     expect(recorded, [
       ['m1', MediaUploadQuality.small],
     ]);
+  });
+
+  // A compressed level for an uploaded original drops the full-quality
+  // copy, so it asks first (issue #4527, media library decision 4).
+  group('a downgrade of an uploaded original', () {
+    Future<List<Object>> pick(
+      WidgetTester tester,
+      MediaItem photo,
+      String level,
+    ) async {
+      final recorded = <Object>[];
+      await tester.pumpWidget(
+        host(connected: true, recorded: recorded, photo: photo),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('media-reupload-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(level).last);
+      await tester.pumpAndSettle();
+      return recorded;
+    }
+
+    testWidgets('asks; Replace queues it', (tester) async {
+      final recorded = await pick(tester, uploadedOriginal, 'Balanced');
+      expect(find.text('Replace the full-quality copy?'), findsOneWidget);
+      expect(find.textContaining('with a Balanced copy'), findsOneWidget);
+      expect(recorded, isEmpty);
+
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+      expect(recorded, [
+        ['m1', MediaUploadQuality.balanced],
+      ]);
+      expect(find.text('Re-upload queued'), findsOneWidget);
+    });
+
+    testWidgets('Cancel queues nothing', (tester) async {
+      final recorded = await pick(tester, uploadedOriginal, 'Balanced');
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(recorded, isEmpty);
+      expect(find.text('Re-upload queued'), findsNothing);
+    });
+
+    testWidgets('Original queues at once', (tester) async {
+      final recorded = await pick(tester, uploadedOriginal, 'Original');
+      expect(find.text('Replace the full-quality copy?'), findsNothing);
+      expect(recorded, [
+        ['m1', MediaUploadQuality.original],
+      ]);
+    });
+
+    testWidgets('a photo with only a compressed copy queues at once', (
+      tester,
+    ) async {
+      final recorded = await pick(tester, renditionOnly, 'Small');
+      expect(find.text('Replace the full-quality copy?'), findsNothing);
+      expect(recorded, [
+        ['m1', MediaUploadQuality.small],
+      ]);
+    });
   });
 }

@@ -45330,6 +45330,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Erneuter Upload in Warteschlange';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Kopie in voller Qualität ersetzen?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'Das in deinem Speicher abgelegte Original wird durch eine Kopie in der Stufe $level ersetzt. Das Foto auf diesem Gerät bleibt erhalten.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Ersetzen';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Installiere ffmpeg, um Videokomprimierung zu aktivieren. Bis dahin werden Originale hochgeladen.';
 

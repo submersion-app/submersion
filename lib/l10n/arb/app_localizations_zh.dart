@@ -42749,6 +42749,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_quality_reuploadQueued => '重新上传已加入队列';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle => '替换全画质副本？';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return '存储中的原图将被替换为$level副本。此设备上的照片会保留。';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => '替换';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       '安装 ffmpeg 以启用视频压缩。在此之前将上传原始文件。';
 

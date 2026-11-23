@@ -43523,6 +43523,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_mediaStorage_quality_reuploadQueued => '再アップロードを予約しました';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'フル画質のコピーを置き換えますか？';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'ストレージに保存されたオリジナルは $level のコピーに置き換えられます。この端末の写真はそのまま残ります。';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => '置き換える';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       '動画を圧縮するにはffmpegをインストールしてください。それまではオリジナルがアップロードされます。';
 

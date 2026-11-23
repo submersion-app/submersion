@@ -44327,6 +44327,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_quality_reuploadQueued => 'העלאה מחדש בתור';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'להחליף את העותק באיכות מלאה?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'המקור השמור באחסון שלך יוחלף בעותק $level. התמונה במכשיר זה נשמרת.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'החלף';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'התקן ffmpeg כדי לאפשר דחיסת וידאו. עד אז מועלים קבצי המקור.';
 

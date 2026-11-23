@@ -45425,6 +45425,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ricaricamento in coda';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Sostituire la copia a piena qualità?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'L\'originale conservato nel tuo spazio di archiviazione viene sostituito da una copia $level. La foto su questo dispositivo viene mantenuta.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Sostituisci';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Installa ffmpeg per abilitare la compressione video. Fino ad allora vengono caricati gli originali.';
 

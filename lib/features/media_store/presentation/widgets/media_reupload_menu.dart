@@ -23,10 +23,18 @@ String _qualityLabel(
   MediaUploadQuality.small => l10n.settings_mediaStorage_quality_small,
 };
 
+/// Whether re-uploading [item] at [level] drops its full-quality copy from
+/// the store: a compressed level for an uploaded original replaces it, and
+/// the original's object is deleted once no row uses it
+/// (`MediaUploadPipeline.process`).
+bool reuploadDropsOriginal(MediaItem item, MediaUploadQuality level) =>
+    item.remoteUploadedAt != null && level != MediaUploadQuality.original;
+
 /// Opens the upload-quality picker for [item], anchored to the widget
 /// [anchorContext] belongs to (the toolbar icon, or the overflow button when
 /// picked from the menu), and queues a re-upload at the chosen level,
-/// replacing what the store holds.
+/// replacing what the store holds. A downgrade of an uploaded original asks
+/// first (issue #4527, media library decision 4).
 Future<void> showMediaReuploadMenu(
   BuildContext anchorContext,
   WidgetRef ref,
@@ -56,9 +64,36 @@ Future<void> showMediaReuploadMenu(
     ],
   );
   if (level == null || !anchorContext.mounted) return;
+  if (reuploadDropsOriginal(item, level) &&
+      !await _confirmDowngrade(anchorContext, _qualityLabel(l10n, level))) {
+    return;
+  }
+  if (!anchorContext.mounted) return;
   await ref.read(mediaStoreReuploadProvider)(item.id, level);
   if (!anchorContext.mounted) return;
   ScaffoldMessenger.of(anchorContext).showSnackBar(
     SnackBar(content: Text(l10n.settings_mediaStorage_quality_reuploadQueued)),
   );
+}
+
+Future<bool> _confirmDowngrade(BuildContext context, String level) async {
+  final l10n = context.l10n;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.settings_mediaStorage_quality_downgradeTitle),
+      content: Text(l10n.settings_mediaStorage_quality_downgradeBody(level)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: Text(l10n.common_action_cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: Text(l10n.settings_mediaStorage_quality_downgradeConfirm),
+        ),
+      ],
+    ),
+  );
+  return confirmed == true;
 }

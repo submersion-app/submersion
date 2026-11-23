@@ -45531,6 +45531,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Nouveau téléversement en file d\'attente';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Remplacer la copie en pleine qualité ?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'L\'original conservé dans votre stockage est remplacé par une copie $level. La photo sur cet appareil est conservée.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Remplacer';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Installez ffmpeg pour activer la compression vidéo. Les originaux sont téléversés d\'ici là.';
 

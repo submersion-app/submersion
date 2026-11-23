@@ -45387,6 +45387,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Novo envio na fila';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Substituir a cópia em qualidade total?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'O original guardado no seu armazenamento é substituído por uma cópia $level. A foto neste dispositivo é mantida.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Substituir';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Instale o ffmpeg para ativar a compressão de vídeo. Até lá, os originais são enviados.';
 

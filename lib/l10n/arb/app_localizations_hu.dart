@@ -45168,6 +45168,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Újratöltés sorba állítva';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Lecseréled a teljes minőségű másolatot?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'A tárhelyeden őrzött eredetit egy $level másolat váltja fel. Az eszközön lévő fotó megmarad.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Csere';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Telepítse az ffmpeg-et a videótömörítés engedélyezéséhez. Addig az eredetik kerülnek feltöltésre.';
 

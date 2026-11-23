@@ -28103,6 +28103,16 @@
   "settings_mediaStorage_quality_small": "Small",
   "settings_mediaStorage_quality_caveat": "With a compression level set, full-resolution originals are not uploaded — they remain only on this device.",
   "settings_mediaStorage_quality_reuploadQueued": "Re-upload queued",
+  "settings_mediaStorage_quality_downgradeTitle": "Replace the full-quality copy?",
+  "settings_mediaStorage_quality_downgradeBody": "The original kept in your storage is replaced with a {level} copy. The photo on this device is kept.",
+  "@settings_mediaStorage_quality_downgradeBody": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_mediaStorage_quality_downgradeConfirm": "Replace",
   "settings_mediaStorage_quality_linuxFfmpegHint": "Install ffmpeg to enable video compression. Originals are uploaded until then.",
   "settings_mediaStorage_quality_saveFailed": "Could not save the upload quality. Try again.",
   "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it.",

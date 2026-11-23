@@ -46060,6 +46060,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'تمت إضافة إعادة الرفع إلى قائمة الانتظار';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'استبدال النسخة بالجودة الكاملة؟';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'تُستبدل النسخة الأصلية المحفوظة في مساحة التخزين بنسخة $level. تبقى الصورة على هذا الجهاز.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'استبدال';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'ثبّت ffmpeg لتمكين ضغط الفيديو. حتى ذلك الحين يتم رفع النسخ الأصلية.';
 

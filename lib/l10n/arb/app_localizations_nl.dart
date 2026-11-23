@@ -45125,6 +45125,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Opnieuw uploaden in wachtrij';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'De kopie in volledige kwaliteit vervangen?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'Het origineel in je opslag wordt vervangen door een kopie in $level. De foto op dit apparaat blijft bewaard.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Vervangen';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Installeer ffmpeg om videocompressie in te schakelen. Tot die tijd worden originelen geüpload.';
 

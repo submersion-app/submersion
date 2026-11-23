@@ -44677,6 +44677,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_mediaStorage_quality_reuploadQueued => 'Re-upload queued';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Replace the full-quality copy?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'The original kept in your storage is replaced with a $level copy. The photo on this device is kept.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Replace';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Install ffmpeg to enable video compression. Originals are uploaded until then.';
 
