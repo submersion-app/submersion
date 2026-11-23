@@ -1890,6 +1890,8 @@ class SyncDataSerializer {
           for (final g in SyncFactGroups.of(spec.key)) g.clockKey,
         ];
 
+        final heldTable = heldLinks.isEmpty ? null : _tableNameFor(spec.key);
+
         Future<void> emit(Map<String, dynamic> row) async {
           if (librarySites.isNotEmpty) {
             if (spec.key == 'diveSites' && row['sharedLibraryId'] != null) {
@@ -1912,11 +1914,10 @@ class SyncDataSerializer {
           }
           // Device-local columns never leave this device, in a base as in a
           // changeset (issue #2947).
-          var wire = withoutDeviceLocalColumns(spec.key, row);
-          if (!heldLinks.isEmpty) {
-            final table = _tableNameFor(spec.key);
-            if (table != null) wire = heldLinks.strip(table, wire);
-          }
+          final local = withoutDeviceLocalColumns(spec.key, row);
+          final wire = heldTable == null
+              ? local
+              : heldLinks.strip(heldTable, local);
           await writeData(jsonEncode(wire));
         }
 
@@ -3429,14 +3430,14 @@ class SyncDataSerializer {
       await _db.customStatement('PRAGMA defer_foreign_keys = ON');
       // Notes from an apply that rolled back describe writes that never
       // landed.
-      _incomingCopies.clear();
+      _incomingCopies = IncomingCopies.none;
       return await body();
     });
   }
 
   /// The peers' copies of held rows seen since the last repair (issue
   /// #4954). Filled by [noteIncomingRows], read and cleared by the repair.
-  final _incomingCopies = IncomingCopies();
+  var _incomingCopies = IncomingCopies.none;
 
   /// Notes which columns each peer row in [records] carries, for the rows
   /// whose links this device holds, before a merge or adopt overlays them
@@ -3455,9 +3456,11 @@ class SyncDataSerializer {
     } on Object {
       return;
     }
-    await HeldReferenceStore(_db).noteIncoming(_incomingCopies, table, [
-      for (final record in records) withCurrentWireKeys(entityType, record),
-    ]);
+    _incomingCopies = await HeldReferenceStore(_db).noteIncoming(
+      _incomingCopies,
+      table,
+      [for (final record in records) withCurrentWireKeys(entityType, record)],
+    );
   }
 
   /// Repairs every foreign key left dangling after a sync apply: a nullable
@@ -3492,10 +3495,10 @@ class SyncDataSerializer {
     final dangling = await _db
         .customSelect('PRAGMA foreign_key_check("$table")')
         .get();
-    if (dangling.isNotEmpty) {
+    // A restored orphan can itself name a parent that is still missing, so
+    // a restore that put rows back runs the whole repair after it.
+    if (dangling.isNotEmpty || await _restoreHeldReferences()) {
       await _repairDanglingReferences();
-    } else {
-      await _restoreHeldReferences();
     }
     await _rederivePeerValues(writtenEntityType: entityType);
   }
@@ -3611,16 +3614,20 @@ class SyncDataSerializer {
   }
 
   /// Gives back the held rows whose parents arrived (issue #4954), without
-  /// running the whole-database foreign key check.
-  Future<void> _restoreHeldReferences() async {
+  /// running the whole-database foreign key check. True when it put back a
+  /// held orphan, whose rows the full repair must then check.
+  Future<bool> _restoreHeldReferences() async {
     final store = HeldReferenceStore(_db);
     final loaded = await store.load();
     if (loaded.isEmpty) {
-      _incomingCopies.clear();
-      return;
+      _incomingCopies = IncomingCopies.none;
+      return false;
     }
     final held = await _restoreArrived(store, loaded);
-    await _saveHeld(store, loaded, held);
+    await store.save(held, previous: loaded);
+    // An orphan that left the hold was put back or dropped; either way the
+    // full check after it is cheap next to a failed commit.
+    return loaded.orphans.keys.any((id) => !held.orphans.containsKey(id));
   }
 
   /// [HeldReferenceStore.restoreArrived], announcing the tables it wrote.
@@ -3629,7 +3636,7 @@ class SyncDataSerializer {
     HeldReferences held,
   ) async {
     final restored = await store.restoreArrived(held, _incomingCopies);
-    _incomingCopies.clear();
+    _incomingCopies = IncomingCopies.none;
     if (restored.tables.isNotEmpty) {
       _log.info(
         'Sync repair: restored held references in '
@@ -3643,16 +3650,6 @@ class SyncDataSerializer {
       });
     }
     return restored.held;
-  }
-
-  Future<void> _saveHeld(
-    HeldReferenceStore store,
-    HeldReferences loaded,
-    HeldReferences held,
-  ) async {
-    if (loaded.isEmpty && held.isEmpty) return;
-    if (held.encode() == loaded.encode()) return;
-    await store.save(held);
   }
 
   /// Clears or deletes every row left naming a missing parent, holding each
@@ -3669,7 +3666,7 @@ class SyncDataSerializer {
           .customSelect('PRAGMA foreign_key_check')
           .get();
       if (violations.isEmpty) {
-        await _saveHeld(store, loaded, held);
+        await store.save(held, previous: loaded);
         return;
       }
 

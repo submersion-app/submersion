@@ -60,7 +60,8 @@ const Set<String> deviceLocalSettingsKeys = {
   'nav_always_hide_labels_desktop',
   // The links and rows a sync apply set aside until their parent arrives
   // (issue #4954): they describe this device's copy of the library.
-  heldReferencesSettingsKey,
+  heldLinksSettingsKey,
+  heldOrphansSettingsKey,
 };
 
 /// Whether the synced record [recordId] of [entityType] is a device-local

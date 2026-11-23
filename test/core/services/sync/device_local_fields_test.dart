@@ -39,7 +39,10 @@ void main() {
   });
 
   test('the held references stay on each device', () {
-    expect(deviceLocalSettingsKeys, contains(heldReferencesSettingsKey));
+    expect(
+      deviceLocalSettingsKeys,
+      containsAll([heldLinksSettingsKey, heldOrphansSettingsKey]),
+    );
   });
 
   test('the notification settings and theme mode are device-local', () {

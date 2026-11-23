@@ -25,9 +25,19 @@ class IncomingCopy {
 /// key the peer left out reads the same as one it sent as null; these
 /// notes, taken from the payload itself, tell the two apart.
 class IncomingCopies {
-  final Map<String, List<IncomingCopy>> _byRow = {};
+  const IncomingCopies._(this._byRow);
 
-  void add(String rowId, IncomingCopy copy) => (_byRow[rowId] ??= []).add(copy);
+  static const none = IncomingCopies._({});
+
+  final Map<String, List<IncomingCopy>> _byRow;
+
+  bool get isEmpty => _byRow.isEmpty;
+
+  /// These notes and [copy] of [rowId].
+  IncomingCopies adding(String rowId, IncomingCopy copy) => IncomingCopies._({
+    ..._byRow,
+    rowId: [...?_byRow[rowId], copy],
+  });
 
   /// The copy of [rowId] whose clock is [hlc], if one was seen.
   IncomingCopy? find(String rowId, String? hlc) {
@@ -36,8 +46,6 @@ class IncomingCopies {
     }
     return null;
   }
-
-  void clear() => _byRow.clear();
 }
 
 /// Removes held link columns from this device's exported rows.
@@ -82,15 +90,31 @@ class HeldReferenceStore {
 
   HeldSchema get _schema => HeldSchema.of(_db);
 
-  Future<HeldReferences> load() async {
+  /// Everything held. The repair alone needs the orphans.
+  Future<HeldReferences> load() async => HeldReferences(
+    links: await loadLinks(),
+    orphans: await _decoded(
+      heldOrphansSettingsKey,
+      HeldReferences.decodeOrphans,
+    ),
+  );
+
+  /// The held links alone: what every apply and export reads.
+  Future<Map<String, HeldLink>> loadLinks() =>
+      _decoded(heldLinksSettingsKey, HeldReferences.decodeLinks);
+
+  Future<Map<String, T>> _decoded<T>(
+    String key,
+    Map<String, T> Function(String? value) decode,
+  ) async {
     final row = await _db
         .customSelect(
           'SELECT value FROM settings WHERE key = ?',
-          variables: [Variable.withString(heldReferencesSettingsKey)],
+          variables: [Variable.withString(key)],
         )
         .getSingleOrNull();
     try {
-      return HeldReferences.decode(row?.read<String?>('value'));
+      return decode(row?.read<String?>('value'));
     } on Object catch (e, stackTrace) {
       // A hold that cannot be read restores nothing; the rows keep the
       // repair's result, as they did before holds existed.
@@ -99,42 +123,54 @@ class HeldReferenceStore {
         error: e,
         stackTrace: stackTrace,
       );
-      return const HeldReferences();
+      return const {};
     }
   }
 
-  Future<void> save(HeldReferences held) async {
-    if (held.isEmpty) {
-      await _db.customStatement('DELETE FROM settings WHERE key = ?', [
-        heldReferencesSettingsKey,
-      ]);
+  /// Writes [held], touching only the part that differs from [previous].
+  Future<void> save(
+    HeldReferences held, {
+    required HeldReferences previous,
+  }) async {
+    final links = held.encodeLinks();
+    if (links != previous.encodeLinks()) {
+      await _write(heldLinksSettingsKey, held.links.isEmpty ? null : links);
+    }
+    final orphans = held.encodeOrphans();
+    if (orphans != previous.encodeOrphans()) {
+      await _write(
+        heldOrphansSettingsKey,
+        held.orphans.isEmpty ? null : orphans,
+      );
+    }
+  }
+
+  Future<void> _write(String key, String? value) async {
+    if (value == null) {
+      await _db.customStatement('DELETE FROM settings WHERE key = ?', [key]);
       return;
     }
     await _db.customStatement(
       'INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) '
       'ON CONFLICT(key) DO UPDATE SET value = excluded.value, '
       'updated_at = excluded.updated_at',
-      [
-        heldReferencesSettingsKey,
-        held.encode(),
-        DateTime.now().millisecondsSinceEpoch,
-      ],
+      [key, value, DateTime.now().millisecondsSinceEpoch],
     );
   }
 
-  /// Notes the copies in [records], wire rows of [table], of rows this
-  /// device holds a link for.
-  Future<void> noteIncoming(
+  /// [notes] with the copies in [records], wire rows of [table], of rows
+  /// this device holds a link for.
+  Future<IncomingCopies> noteIncoming(
     IncomingCopies notes,
     String table,
     Iterable<Map<String, dynamic>> records,
   ) async {
-    final held = await load();
     final rowIds = {
-      for (final link in held.links.values)
+      for (final link in (await loadLinks()).values)
         if (link.table == table) link.rowId,
     };
-    if (rowIds.isEmpty) return;
+    if (rowIds.isEmpty) return notes;
+    var noted = notes;
     final keyColumns = await _schema.keyColumns(table);
     for (final record in records) {
       final rowId = heldRowId(table, {
@@ -142,7 +178,7 @@ class HeldReferenceStore {
       });
       if (!rowIds.contains(rowId)) continue;
       final hlc = record['hlc'];
-      notes.add(
+      noted = noted.adding(
         rowId,
         IncomingCopy(
           hlc: hlc is String ? hlc : null,
@@ -150,16 +186,17 @@ class HeldReferenceStore {
         ),
       );
     }
+    return noted;
   }
 
   /// The filter that keeps this device's held links off the wire: a link
   /// still cleared here goes out without its column.
   Future<HeldExportFilter> exportFilter() async {
-    final held = await load();
-    if (held.links.isEmpty) return HeldExportFilter.none;
+    final links = await loadLinks();
+    if (links.isEmpty) return HeldExportFilter.none;
     final byTable =
         <String, ({List<String> keyColumns, Map<String, Set<String>> keys})>{};
-    for (final link in held.links.values) {
+    for (final link in links.values) {
       final row = await _readRow(link.table, link.key, [link.column]);
       if (row == null || row.data[link.column] != null) continue;
       final entry = byTable[link.table] ??= (
@@ -212,17 +249,15 @@ class HeldReferenceStore {
     if (row == null || value == null || await _isTombstoned(value)) {
       return held;
     }
-    final rows = <HeldRow>[];
-    final links = <HeldLink>[];
-    await _capture(table, rowid, row, rows, links, {});
+    final captured = await _capture(table, rowid, row, _Captured.none);
     final orphan = HeldOrphan(
       table: table,
       key: await _keyOf(table, row),
       parent: HeldParent(table: fk.parent, column: fk.to, value: value),
-      rows: rows,
+      rows: captured.rows,
     );
     return HeldReferences(
-      links: {...held.links, for (final link in links) link.id: link},
+      links: {...held.links, for (final link in captured.links) link.id: link},
       orphans: {...held.orphans, orphan.id: orphan},
     );
   }
@@ -286,9 +321,7 @@ class HeldReferenceStore {
       if (hasClock) 'hlc',
     ]);
     // Gone, or set again by a write since: nothing left to give back.
-    if (row == null ||
-        row.data[link.column] != null ||
-        await _isTombstoned(link.parent.value)) {
+    if (row == null || row.data[link.column] != null) {
       return (outcome: _Outcome.drop, link: link);
     }
     var kept = link;
@@ -312,7 +345,10 @@ class HeldReferenceStore {
     if (!await _exists(link.parent.table, {
       link.parent.column: link.parent.value,
     })) {
-      return (outcome: _Outcome.keep, link: kept);
+      // Only a parent that is missing can be gone for good.
+      return await _isTombstoned(link.parent.value)
+          ? (outcome: _Outcome.drop, link: link)
+          : (outcome: _Outcome.keep, link: kept);
     }
     final where = _where(link.key);
     await _db.customStatement(
@@ -325,13 +361,15 @@ class HeldReferenceStore {
   Future<_Outcome> _settleOrphan(HeldOrphan orphan) async {
     // A copy that arrived since decides the row.
     if (await _exists(orphan.table, orphan.key)) return _Outcome.drop;
-    if (await _isTombstoned(orphan.parent.value)) return _Outcome.drop;
     final id = orphan.key['id'];
     if (id != null && await _isTombstoned(id)) return _Outcome.drop;
     if (!await _exists(orphan.parent.table, {
       orphan.parent.column: orphan.parent.value,
     })) {
-      return _Outcome.keep;
+      // Only a parent that is missing can be gone for good.
+      return await _isTombstoned(orphan.parent.value)
+          ? _Outcome.drop
+          : _Outcome.keep;
     }
     for (final row in orphan.rows) {
       final key = {
@@ -362,19 +400,25 @@ class HeldReferenceStore {
     return _Outcome.restored;
   }
 
-  /// Reads [row] and, depth first, every row an `ON DELETE CASCADE` from it
-  /// reaches, each after its parent. A link `ON DELETE SET NULL` clears goes
-  /// to [links] instead. [visited] guards against a cycle of keys.
-  Future<void> _capture(
+  /// [so] with [row] and, depth first, every row an `ON DELETE CASCADE`
+  /// from it reaches, each after its parent. A link `ON DELETE SET NULL`
+  /// clears joins the links instead. Visited rows guard against a cycle.
+  Future<_Captured> _capture(
     String table,
     int rowid,
     Map<String, Object?> row,
-    List<HeldRow> rows,
-    List<HeldLink> links,
-    Set<String> visited,
+    _Captured so,
   ) async {
-    if (!visited.add('$table|$rowid')) return;
-    rows.add(HeldRow(table: table, values: row));
+    final visit = '$table|$rowid';
+    if (so.visited.contains(visit)) return so;
+    var captured = _Captured(
+      rows: [
+        ...so.rows,
+        HeldRow(table: table, values: row),
+      ],
+      links: so.links,
+      visited: {...so.visited, visit},
+    );
     for (final fk in await _schema.childrenOf(table)) {
       final value = row[fk.to];
       if (value == null) continue;
@@ -389,7 +433,7 @@ class HeldReferenceStore {
         final childRowid = child.data[_rowidAlias] as int;
         final values = _withoutRowidAlias(child.data);
         if (fk.onDelete == 'CASCADE') {
-          await _capture(fk.table, childRowid, values, rows, links, visited);
+          captured = await _capture(fk.table, childRowid, values, captured);
         } else if (fk.onDelete == 'SET NULL') {
           final link = HeldLink(
             table: fk.table,
@@ -398,12 +442,17 @@ class HeldReferenceStore {
             parent: HeldParent(table: table, column: fk.to, value: value),
             hlc: values['hlc'] as String?,
           );
-          links.add(link);
+          captured = _Captured(
+            rows: captured.rows,
+            links: [...captured.links, link],
+            visited: captured.visited,
+          );
         }
         // Any other action leaves the child naming a missing row, and the
         // repair's next pass holds it in turn.
       }
     }
+    return captured;
   }
 
   static const _rowidAlias = '__held_rowid';
@@ -496,3 +545,20 @@ class HeldReferenceStore {
 }
 
 enum _Outcome { keep, drop, restored }
+
+/// The rows and links one orphan's capture has gathered so far.
+class _Captured {
+  const _Captured({
+    required this.rows,
+    required this.links,
+    required this.visited,
+  });
+
+  static const none = _Captured(rows: [], links: [], visited: {});
+
+  final List<HeldRow> rows;
+  final List<HeldLink> links;
+
+  /// `table|rowid` of each row already read.
+  final Set<String> visited;
+}

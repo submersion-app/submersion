@@ -44,9 +44,13 @@ void main() {
       },
     );
 
-    final decoded = HeldReferences.decode(held.encode());
+    final decoded = HeldReferences.decode(
+      links: held.encodeLinks(),
+      orphans: held.encodeOrphans(),
+    );
 
-    expect(decoded.encode(), held.encode());
+    expect(decoded.encodeLinks(), held.encodeLinks());
+    expect(decoded.encodeOrphans(), held.encodeOrphans());
     final link = decoded.links.values.single;
     expect(link.key, {'dive_id': 'd', 'equipment_id': 'e'});
     expect(link.parent.value, 's');
@@ -64,7 +68,7 @@ void main() {
   });
 
   test('nothing stored decodes to nothing held', () {
-    expect(HeldReferences.decode(null).isEmpty, isTrue);
-    expect(HeldReferences.decode('').isEmpty, isTrue);
+    expect(HeldReferences.decode().isEmpty, isTrue);
+    expect(HeldReferences.decode(links: '', orphans: '').isEmpty, isTrue);
   });
 }

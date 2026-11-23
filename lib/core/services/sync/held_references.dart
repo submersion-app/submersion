@@ -8,17 +8,20 @@
 /// transaction or a later pull, nothing would bring the link back, and the
 /// next local edit of the row would send the cleared value to every device.
 ///
-/// Both kinds live in one device-local `settings` value
-/// ([heldReferencesSettingsKey]): they describe this device's copy of the
+/// Both kinds live in device-local `settings` values ([heldLinksSettingsKey],
+/// [heldOrphansSettingsKey]): they describe this device's copy of the
 /// library, never the library itself.
 library;
 
 import 'dart:convert';
 import 'dart:typed_data';
 
-/// The `settings` key holding this device's held references. Device-local:
-/// listed in `deviceLocalSettingsKeys`.
-const String heldReferencesSettingsKey = 'sync_held_references';
+/// The `settings` keys holding this device's held links and held orphans.
+/// Device-local: listed in `deviceLocalSettingsKeys`. Kept apart because
+/// every apply and export reads the links, while the orphans, which can
+/// carry whole rows with their blobs, are read only by the repair.
+const String heldLinksSettingsKey = 'sync_held_links';
+const String heldOrphansSettingsKey = 'sync_held_orphans';
 
 /// The identity of one row: its SQL table and its primary key values, by SQL
 /// column name. Rows are matched by primary key, never by rowid, since a
@@ -178,21 +181,28 @@ class HeldOrphan {
 class HeldReferences {
   const HeldReferences({this.links = const {}, this.orphans = const {}});
 
-  factory HeldReferences.decode(String? value) {
-    if (value == null || value.isEmpty) return const HeldReferences();
-    final json = jsonDecode(value) as Map<String, dynamic>;
+  factory HeldReferences.decode({String? links, String? orphans}) =>
+      HeldReferences(
+        links: decodeLinks(links),
+        orphans: decodeOrphans(orphans),
+      );
+
+  static Map<String, HeldLink> decodeLinks(String? value) {
+    if (value == null || value.isEmpty) return const {};
     final links = [
-      for (final link in json['links'] as List? ?? const [])
+      for (final link in jsonDecode(value) as List)
         HeldLink.fromJson(link as Map<String, dynamic>),
     ];
+    return {for (final link in links) link.id: link};
+  }
+
+  static Map<String, HeldOrphan> decodeOrphans(String? value) {
+    if (value == null || value.isEmpty) return const {};
     final orphans = [
-      for (final orphan in json['orphans'] as List? ?? const [])
+      for (final orphan in jsonDecode(value) as List)
         HeldOrphan.fromJson(orphan as Map<String, dynamic>),
     ];
-    return HeldReferences(
-      links: {for (final link in links) link.id: link},
-      orphans: {for (final orphan in orphans) orphan.id: orphan},
-    );
+    return {for (final orphan in orphans) orphan.id: orphan};
   }
 
   final Map<String, HeldLink> links;
@@ -200,10 +210,11 @@ class HeldReferences {
 
   bool get isEmpty => links.isEmpty && orphans.isEmpty;
 
-  String encode() => jsonEncode({
-    'links': [for (final link in links.values) link.toJson()],
-    'orphans': [for (final orphan in orphans.values) orphan.toJson()],
-  });
+  String encodeLinks() =>
+      jsonEncode([for (final link in links.values) link.toJson()]);
+
+  String encodeOrphans() =>
+      jsonEncode([for (final orphan in orphans.values) orphan.toJson()]);
 }
 
 const _blobKey = r'$blob';

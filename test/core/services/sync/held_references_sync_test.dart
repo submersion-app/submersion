@@ -95,15 +95,19 @@ void main() {
               .getSingle())
           .read<int>('n');
 
-  Future<HeldReferences> held() async {
-    final row = await db
-        .customSelect(
-          'SELECT value FROM settings WHERE key = ?',
-          variables: [Variable.withString(heldReferencesSettingsKey)],
-        )
-        .getSingleOrNull();
-    return HeldReferences.decode(row?.read<String?>('value'));
-  }
+  Future<String?> setting(String key) async =>
+      (await db
+              .customSelect(
+                'SELECT value FROM settings WHERE key = ?',
+                variables: [Variable.withString(key)],
+              )
+              .getSingleOrNull())
+          ?.read<String?>('value');
+
+  Future<HeldReferences> held() async => HeldReferences.decode(
+    links: await setting(heldLinksSettingsKey),
+    orphans: await setting(heldOrphansSettingsKey),
+  );
 
   Future<Map<String, dynamic>> exportedItem(String id) async {
     final payload = await serializer.exportData(
@@ -285,6 +289,36 @@ void main() {
       },
     );
 
+    test('put back by a single conflict write, it is repaired before the '
+        'commit when it names another missing parent', () async {
+      await insertSection('soon-gone');
+      await apply(
+        () => insertItem(
+          'late-item',
+          checklistId: 'late-list',
+          sectionId: 'soon-gone',
+          hlc: phoneClock,
+        ),
+      );
+      expect((await held()).orphans, hasLength(1));
+      // The section goes before the checklist arrives, with no tombstone.
+      await db.customStatement(
+        "DELETE FROM trip_checklist_sections WHERE id = 'soon-gone'",
+      );
+
+      await serializer.applyInDeferredFkTransaction(() async {
+        await db.customStatement(
+          'INSERT INTO trip_checklists (id, trip_id, name, created_at, '
+          "updated_at) VALUES ('late-list', 'trip', 'Spares', 0, 0)",
+        );
+        await serializer.repairAfterRowWrite('tripChecklists');
+      });
+
+      final restored = (await item('late-item'))!;
+      expect(restored['section_id'], isNull);
+      expect((await held()).links, hasLength(1));
+    });
+
     test('is not put back over a copy that arrived since', () async {
       await apply(
         () => db.customStatement(
@@ -393,7 +427,7 @@ void main() {
         deviceId: here,
         deletions: const [],
       )).data.settings.map((s) => s['key']);
-      expect(ownSettings, isNot(contains(heldReferencesSettingsKey)));
+      expect(ownSettings, isNot(contains(heldLinksSettingsKey)));
 
       // The phone, which has the item in its section, applies that edit.
       DatabaseService.instance.resetForTesting();
