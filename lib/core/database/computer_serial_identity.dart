@@ -91,6 +91,48 @@ bool computerSerialsMatch(String? a, String? b, {required bool shearwater}) {
   return serialMatchKeys(b, shearwater: shearwater).any(left.contains);
 }
 
+/// Whether two source rows with no registered computer name one computer by
+/// what they recorded of it: the models agree and the serials do not
+/// conflict.
+///
+/// - The model, compared normalized and allowing a vendor prefix on one
+///   side, so 'Shearwater Perdix 2' and 'Perdix 2' agree. A blank model
+///   matches nothing.
+/// - The serial, unless one side has none; the Shearwater hex and decimal
+///   forms are one serial, per [computerSerialsMatch].
+///
+/// `sameRecordingWithoutComputer` reads it in Dart and the
+/// `same_computer_identity` SQL function in `profileSpanSecondsSql`, so the
+/// two reads cannot drift.
+bool sameComputerModelAndSerial({
+  required String? modelA,
+  required String? serialA,
+  required String? modelB,
+  required String? serialB,
+}) {
+  if (!_sameModel(modelA, modelB)) return false;
+  if (normalizeComputerIdentityPart(serialA).isEmpty ||
+      normalizeComputerIdentityPart(serialB).isEmpty) {
+    return true;
+  }
+  return computerSerialsMatch(
+    serialA,
+    serialB,
+    shearwater: shearwaterPair(modelA: modelA, modelB: modelB),
+  );
+}
+
+bool _sameModel(String? a, String? b) {
+  final left = normalizeComputerIdentityPart(a);
+  final right = normalizeComputerIdentityPart(b);
+  if (left.isEmpty || right.isEmpty) return false;
+  if (left == right) return true;
+  final (longer, shorter) = left.length > right.length
+      ? (left, right)
+      : (right, left);
+  return longer.endsWith(' $shorter');
+}
+
 /// The serial to store for a download that libdivecomputer reported as
 /// [serial] for [vendor] / [product]: trimmed, and for a Shearwater the
 /// 8-character uppercase hex the computer itself shows. Null when blank.

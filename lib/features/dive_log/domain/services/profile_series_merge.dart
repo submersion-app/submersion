@@ -267,19 +267,30 @@ bool _spansOverlap((int, int) a, (int, int) b) {
   return (start, end);
 }
 
-/// Series-level twin of `DiveRepository._dropSupersededOriginals`.
+/// [series] without the demoted series a newer active one superseded in the
+/// primary source's family.
 ///
 /// A saved profile edit demotes the originals and inserts a null-computer
-/// series under the same source; the demoted originals of the primary
-/// family are superseded and must not render next to the edit. Family
-/// membership follows the legacy rule: with no data sources every series is
-/// family; otherwise a null-computer series or one on the primary computer
-/// is. The caller resolves the primary computer whenever promoted and demoted
-/// rows coexist, including the null-computer demoted-edit case; this keeps
-/// family membership aligned with `_dropSupersededOriginals` and prevents
-/// the restored original from rendering beside an inactive child edit.
-/// Nothing is dropped unless the family holds both a primary and a demoted
-/// member.
+/// series under the same source; activating an older revision demotes the
+/// rest. Either way the primary family then holds one active series and the
+/// demoted ones it replaced, which must not render beside it, whichever of
+/// them carries a computer (issue #4960).
+///
+/// Family membership follows `_liveSeriesByShownSource`, the per-source read.
+/// A series naming one of the dive's source rows ([sourceRowIds]) is family
+/// when that row shows as the primary source ([primarySourceRowIds]); this
+/// keeps a second source recorded with no computer out of it. A series naming
+/// no such row follows the legacy rule: with no data sources every series is
+/// family; otherwise a null-computer series or one on the primary computer is.
+///
+/// An active series with no computer (a saved edit) supersedes every demoted
+/// member of the family. An active computer recording supersedes only the
+/// ones proven to share its source: those naming a primary source row, or any
+/// on a dive whose every source row shows as the primary. Elsewhere a demoted
+/// series placed by the legacy rule may be a second recording, stored demoted
+/// too: a second computer on a dive with no sources, or a source recorded with
+/// no computer whose series predates the source_id column. Here this read
+/// keeps what the per-source read drops.
 ///
 /// `profileSpanSecondsSql` restates this rule in SQL so Insights measures a
 /// dive over the same series (issue #3537); change both together, and
@@ -288,19 +299,32 @@ List<ProfileSeries> dropSupersededSeries(
   List<ProfileSeries> series, {
   required bool hasSources,
   required String? primaryComputerId,
+  required Set<String> sourceRowIds,
+  required Set<String> primarySourceRowIds,
 }) {
   if (!series.any((s) => !s.isPrimary) || !series.any((s) => s.isPrimary)) {
     return series;
   }
-  bool isFamily(ProfileSeries s) =>
-      !hasSources || s.computerId == null || s.computerId == primaryComputerId;
+  bool isFamily(ProfileSeries s) => sourceRowIds.contains(s.sourceId)
+      ? primarySourceRowIds.contains(s.sourceId)
+      : !hasSources ||
+            s.computerId == null ||
+            s.computerId == primaryComputerId;
   final family = series.where(isFamily);
-  final edited =
-      family.any((s) => s.isPrimary && s.computerId == null) &&
-      family.any((s) => !s.isPrimary);
-  if (!edited) return series;
+  final hasEdit = family.any((s) => s.isPrimary && s.computerId == null);
+  final hasActive = family.any((s) => s.isPrimary);
+  final everyRowIsPrimary =
+      sourceRowIds.isNotEmpty &&
+      primarySourceRowIds.length == sourceRowIds.length;
+  bool isSuperseded(ProfileSeries s) {
+    if (s.isPrimary || !isFamily(s)) return false;
+    if (hasEdit) return true;
+    return hasActive &&
+        (sourceRowIds.contains(s.sourceId) || everyRowIsPrimary);
+  }
+
   return [
     for (final s in series)
-      if (s.isPrimary || !isFamily(s)) s,
+      if (!isSuperseded(s)) s,
   ];
 }
