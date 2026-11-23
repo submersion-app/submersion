@@ -7,7 +7,8 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 
 /// Re-reads everything that shows [diveId] once [sourceId] has left it, and
 /// again once an Undo brings it back (issue #4393). Shared by the dive
-/// page's Data Sources menu and the profile editor's Cleanup tab (#4972).
+/// page's Data Sources menu, the data quality inbox's Remove source and the
+/// profile editor's Cleanup tab (#4972).
 ///
 /// A source the chart was showing or overlaying stops being asked for, the
 /// dive's findings, sensor summaries and derived metrics are recomputed, and

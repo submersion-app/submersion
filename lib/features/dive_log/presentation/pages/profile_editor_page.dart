@@ -52,6 +52,11 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   List<DiveProfilePoint>? _lastProfile;
   bool _didApplyProfileChange = false;
 
+  /// Remove This Source is running: the editor may not be left until it
+  /// reports, and once the source is gone the editor keeps showing its last
+  /// profile through the exit transition rather than "no profile data".
+  bool _removingSource = false;
+
   void _initializeProvider(List<DiveProfilePoint> profile) {
     final previous = _lastProfile;
     if (previous != null) {
@@ -314,7 +319,10 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         ),
       ),
       data: (profiles) {
-        final points = profiles[sourceId]?.points ?? const [];
+        final points =
+            profiles[sourceId]?.points ??
+            (_removingSource ? _lastProfile : null) ??
+            const [];
         if (points.isEmpty) {
           return Scaffold(
             appBar: AppBar(
@@ -375,9 +383,9 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     final removableSource = _removableSource();
 
     return PopScope(
-      canPop: !state.hasChanges,
+      canPop: !state.hasChanges && !_removingSource,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
+        if (didPop || _removingSource) return;
         final shouldPop = await _onWillPop();
         if (shouldPop && mounted) {
           context.pop(_didApplyProfileChange);
@@ -505,19 +513,27 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   Future<void> _handleRemoveSource(DiveDataSource source) async {
     final container = ProviderScope.containerOf(context, listen: false);
     final diveId = widget.diveId;
-    final removed = await removeSourceWithUndo(
-      context,
-      ref,
-      diveId: diveId,
-      sourceId: source.id,
-      sourceName: resolveSourceName(source, sourceNameLabelsFor(context)),
-      afterChange: () => refreshAfterSourceRemoval(
-        container,
+    setState(() => _removingSource = true);
+    var removed = false;
+    try {
+      removed = await removeSourceWithUndo(
+        context,
+        ref,
         diveId: diveId,
         sourceId: source.id,
-      ),
-      offerUndo: false,
-    );
+        sourceName: resolveSourceName(source, sourceNameLabelsFor(context)),
+        afterChange: () => refreshAfterSourceRemoval(
+          container,
+          diveId: diveId,
+          sourceId: source.id,
+        ),
+        offerUndo: false,
+      );
+    } finally {
+      // Kept after a removal, so the editor stays as it was through the
+      // exit transition.
+      if (!removed && mounted) setState(() => _removingSource = false);
+    }
     if (!removed || !mounted) return;
     _didApplyProfileChange = true;
     context.pop(true);

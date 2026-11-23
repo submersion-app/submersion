@@ -116,21 +116,22 @@ void main() {
                   source('src-b', primary: false, dc: 'dc-b'),
                 ],
           ),
+          // A removed source is gone from the next read, as in the database.
           sourceProfilesProvider(dive.id).overrideWith(
-            (ref) async => const {
-              'src-a': SourceProfile(
+            (ref) async => {
+              'src-a': const SourceProfile(
                 sourceId: 'src-a',
                 computerId: 'dc-a',
                 isEdited: false,
                 points: primaryPoints,
               ),
-              'src-b': SourceProfile(
+              'src-b': const SourceProfile(
                 sourceId: 'src-b',
                 computerId: 'dc-b',
                 isEdited: false,
                 points: secondPoints,
               ),
-            },
+            }..removeWhere((id, _) => removal.removed.contains(id)),
           ),
           profileSeriesHistoryProvider(dive.id).overrideWith(
             (ref) async => historyFails
@@ -205,6 +206,26 @@ void main() {
       // The dive page refreshes only when the editor reports a change.
       expect(popResult, isTrue);
       expect(find.text('Source removed'), findsOneWidget);
+    });
+
+    testWidgets('keeps its chart while it leaves, not "no profile data"', (
+      tester,
+    ) async {
+      await pumpEditor(tester, sourceId: 'src-b');
+
+      await tester.ensureVisible(find.text(removeLabel));
+      await tester.tap(find.text(removeLabel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+      // Step through the exit transition, after the sources re-read.
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 30));
+        expect(find.text('No profile data available'), findsNothing);
+      }
+      await tester.pumpAndSettle();
+
+      expect(removal.removed, ['src-b']);
+      expect(find.byType(ProfileEditorPage), findsNothing);
     });
 
     testWidgets('turning the confirmation down keeps the editor open', (

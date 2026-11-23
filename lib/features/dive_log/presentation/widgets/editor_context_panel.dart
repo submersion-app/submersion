@@ -279,8 +279,16 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               ),
             ),
             if (widget.showRemoveSource)
+              // Permanent, like Delete Entire Profile, so it reads as
+              // destructive rather than as one of the sample tools.
               FilledButton.tonalIcon(
                 onPressed: widget.onRemoveSource,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                  foregroundColor: Theme.of(
+                    context,
+                  ).colorScheme.onErrorContainer,
+                ),
                 icon: const Icon(Icons.remove_circle_outline, size: 18),
                 label: Text(context.l10n.diveLog_profileEditor_removeSource),
               ),
