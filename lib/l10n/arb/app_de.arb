@@ -6251,6 +6251,8 @@
   "media_sources_scanNow": "Jetzt scannen",
   "media_sources_autoApply": "Exakte Treffer automatisch neu verknüpfen",
   "media_sources_neverScanned": "Noch nie gescannt",
+  "media_sources_removeFolderTitle": "Diesen Ordner nicht mehr überwachen?",
+  "media_sources_removeFolderBody": "Submersion vergisst die Dateien, die es in {folder} gefunden hat, und sucht dort nicht mehr nach fehlenden Fotos. Es wird kein Foto und keine Datei gelöscht.",
   "media_source_gallery": "Fotomediathek",
   "media_source_localFile": "Lokale Dateien",
   "media_source_networkUrl": "Weblinks",

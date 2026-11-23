@@ -20075,6 +20075,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_sources_neverScanned => '从未扫描';
 
   @override
+  String get media_sources_removeFolderTitle => '停止监视此文件夹？';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion 将忘记在 $folder 中找到的文件，不再在那里查找缺失的照片。不会删除任何照片或文件。';
+  }
+
+  @override
   String get media_source_gallery => '照片图库';
 
   @override

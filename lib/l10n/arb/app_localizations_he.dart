@@ -20665,6 +20665,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_sources_neverScanned => 'לא נסרק מעולם';
 
   @override
+  String get media_sources_removeFolderTitle => 'להפסיק לעקוב אחר תיקייה זו?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion שוכח את הקבצים שמצא ב-$folder, ולכן לא יחפש שם עוד תמונות חסרות. שום תמונה או קובץ לא נמחקים.';
+  }
+
+  @override
   String get media_source_gallery => 'ספריית תמונות';
 
   @override

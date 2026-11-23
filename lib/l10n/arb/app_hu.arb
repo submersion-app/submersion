@@ -5999,6 +5999,8 @@
   "media_sources_scanNow": "Keresés most",
   "media_sources_autoApply": "Pontos egyezések automatikus újracsatolása",
   "media_sources_neverScanned": "Még nem vizsgált",
+  "media_sources_removeFolderTitle": "Leállítod a mappa figyelését?",
+  "media_sources_removeFolderBody": "A Submersion elfelejti a(z) {folder} mappában talált fájlokat, így ott már nem keresi a hiányzó fotókat. Egyetlen fotó vagy fájl sem törlődik.",
   "media_source_gallery": "Fotókönyvtár",
   "media_source_localFile": "Helyi fájlok",
   "media_source_networkUrl": "Webhivatkozások",

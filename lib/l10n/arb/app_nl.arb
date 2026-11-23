@@ -6125,6 +6125,8 @@
   "media_sources_scanNow": "Nu scannen",
   "media_sources_autoApply": "Exacte overeenkomsten automatisch opnieuw koppelen",
   "media_sources_neverScanned": "Nooit gescand",
+  "media_sources_removeFolderTitle": "Deze map niet meer volgen?",
+  "media_sources_removeFolderBody": "Submersion vergeet de bestanden die het in {folder} vond, dus ontbrekende foto's worden daar niet meer gezocht. Er wordt geen foto of bestand verwijderd.",
   "media_source_gallery": "Fotobibliotheek",
   "media_source_localFile": "Lokale bestanden",
   "media_source_networkUrl": "Weblinks",

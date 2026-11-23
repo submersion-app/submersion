@@ -5999,6 +5999,8 @@
   "media_sources_scanNow": "Scansiona ora",
   "media_sources_autoApply": "Ricollega automaticamente le corrispondenze esatte",
   "media_sources_neverScanned": "Mai scansionata",
+  "media_sources_removeFolderTitle": "Smettere di monitorare questa cartella?",
+  "media_sources_removeFolderBody": "Submersion dimentica i file trovati in {folder}, quindi non cercherà più lì le foto mancanti. Nessuna foto o file viene eliminato.",
   "media_source_gallery": "Libreria foto",
   "media_source_localFile": "File locali",
   "media_source_networkUrl": "Link web",

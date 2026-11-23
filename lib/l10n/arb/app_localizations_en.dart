@@ -20813,6 +20813,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_sources_neverScanned => 'Never scanned';
 
   @override
+  String get media_sources_removeFolderTitle => 'Stop watching this folder?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion forgets the files it found in $folder, so missing photos are no longer looked for there. No photo or file is deleted.';
+  }
+
+  @override
   String get media_source_gallery => 'Photo library';
 
   @override

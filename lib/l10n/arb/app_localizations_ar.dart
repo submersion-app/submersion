@@ -21465,6 +21465,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_sources_neverScanned => 'لم يتم الفحص مطلقًا';
 
   @override
+  String get media_sources_removeFolderTitle => 'إيقاف مراقبة هذا المجلد؟';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'ينسى Submersion الملفات التي وجدها في $folder، فلن يُبحث هناك بعد الآن عن الصور المفقودة. لا يُحذف أي صورة أو ملف.';
+  }
+
+  @override
   String get media_source_gallery => 'مكتبة الصور';
 
   @override

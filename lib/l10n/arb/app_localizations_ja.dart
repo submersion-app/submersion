@@ -20372,6 +20372,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_sources_neverScanned => '未スキャン';
 
   @override
+  String get media_sources_removeFolderTitle => 'このフォルダの監視を停止しますか？';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion は $folder で見つけたファイルを記録から外し、そこで見つからない写真を探さなくなります。写真やファイルは削除されません。';
+  }
+
+  @override
   String get media_source_gallery => '写真ライブラリ';
 
   @override

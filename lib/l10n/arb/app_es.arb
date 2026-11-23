@@ -6125,6 +6125,8 @@
   "media_sources_scanNow": "Buscar ahora",
   "media_sources_autoApply": "Volver a vincular automáticamente las coincidencias exactas",
   "media_sources_neverScanned": "Nunca analizada",
+  "media_sources_removeFolderTitle": "¿Dejar de vigilar esta carpeta?",
+  "media_sources_removeFolderBody": "Submersion olvida los archivos que encontró en {folder}, así que ya no buscará allí las fotos que faltan. No se elimina ninguna foto ni archivo.",
   "media_source_gallery": "Fototeca",
   "media_source_localFile": "Archivos locales",
   "media_source_networkUrl": "Enlaces web",

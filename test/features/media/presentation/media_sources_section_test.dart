@@ -155,17 +155,41 @@ void main() {
     expect(await watched.getRoots(), isEmpty);
   });
 
-  testWidgets('removing a root drops it from the list', (tester) async {
+  // Removing a folder asks first, naming it (issue #4527, media library
+  // decision 3).
+  testWidgets('removing a root asks, then drops it from the list', (
+    tester,
+  ) async {
     await watched.addRoot('/nas/Dives');
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
     expect(find.text('/nas/Dives'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.clear));
+    await tester.tap(find.byTooltip('Remove'));
+    await tester.pumpAndSettle();
+    expect(find.text('Stop watching this folder?'), findsOneWidget);
+    expect(find.textContaining('found in /nas/Dives'), findsOneWidget);
+    expect(await watched.getRoots(), isNotEmpty);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Remove'));
     await tester.pumpAndSettle();
 
     expect(find.text('/nas/Dives'), findsNothing);
     expect(await watched.getRoots(), isEmpty);
+  });
+
+  testWidgets('Cancel keeps the watched folder', (tester) async {
+    await watched.addRoot('/nas/Dives');
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Remove'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('/nas/Dives'), findsOneWidget);
+    expect(await watched.getRoots(), isNotEmpty);
   });
 
   testWidgets('Scan now runs the scanner and reports what it did', (

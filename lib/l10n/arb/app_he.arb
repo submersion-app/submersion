@@ -5999,6 +5999,8 @@
   "media_sources_scanNow": "סריקה עכשיו",
   "media_sources_autoApply": "קישור אוטומטי של התאמות מדויקות",
   "media_sources_neverScanned": "לא נסרק מעולם",
+  "media_sources_removeFolderTitle": "להפסיק לעקוב אחר תיקייה זו?",
+  "media_sources_removeFolderBody": "Submersion שוכח את הקבצים שמצא ב-{folder}, ולכן לא יחפש שם עוד תמונות חסרות. שום תמונה או קובץ לא נמחקים.",
   "media_source_gallery": "ספריית תמונות",
   "media_source_localFile": "קבצים מקומיים",
   "media_source_networkUrl": "קישורי אינטרנט",

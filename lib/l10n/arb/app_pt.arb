@@ -6125,6 +6125,8 @@
   "media_sources_scanNow": "Verificar agora",
   "media_sources_autoApply": "Revincular automaticamente correspondências exatas",
   "media_sources_neverScanned": "Nunca verificada",
+  "media_sources_removeFolderTitle": "Parar de monitorar esta pasta?",
+  "media_sources_removeFolderBody": "O Submersion esquece os arquivos que encontrou em {folder}, então não procurará mais as fotos ausentes ali. Nenhuma foto ou arquivo é excluído.",
   "media_source_gallery": "Fototeca",
   "media_source_localFile": "Arquivos locais",
   "media_source_networkUrl": "Links da web",

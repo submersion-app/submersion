@@ -6125,6 +6125,8 @@
   "media_sources_scanNow": "فحص الآن",
   "media_sources_autoApply": "إعادة ربط المطابقات التامة تلقائيًا",
   "media_sources_neverScanned": "لم يتم الفحص مطلقًا",
+  "media_sources_removeFolderTitle": "إيقاف مراقبة هذا المجلد؟",
+  "media_sources_removeFolderBody": "ينسى Submersion الملفات التي وجدها في {folder}، فلن يُبحث هناك بعد الآن عن الصور المفقودة. لا يُحذف أي صورة أو ملف.",
   "media_source_gallery": "مكتبة الصور",
   "media_source_localFile": "الملفات المحلية",
   "media_source_networkUrl": "روابط الويب",

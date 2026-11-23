@@ -20996,6 +20996,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_sources_neverScanned => 'Nooit gescand';
 
   @override
+  String get media_sources_removeFolderTitle => 'Deze map niet meer volgen?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion vergeet de bestanden die het in $folder vond, dus ontbrekende foto\'s worden daar niet meer gezocht. Er wordt geen foto of bestand verwijderd.';
+  }
+
+  @override
   String get media_source_gallery => 'Fotobibliotheek';
 
   @override

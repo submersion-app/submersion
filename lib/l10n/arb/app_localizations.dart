@@ -33315,6 +33315,18 @@ abstract class AppLocalizations {
   /// **'Never scanned'**
   String get media_sources_neverScanned;
 
+  /// No description provided for @media_sources_removeFolderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop watching this folder?'**
+  String get media_sources_removeFolderTitle;
+
+  /// No description provided for @media_sources_removeFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion forgets the files it found in {folder}, so missing photos are no longer looked for there. No photo or file is deleted.'**
+  String media_sources_removeFolderBody(String folder);
+
   /// Source type name
   ///
   /// In en, this message translates to:

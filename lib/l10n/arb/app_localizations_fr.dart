@@ -21173,6 +21173,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_sources_neverScanned => 'Jamais analysé';
 
   @override
+  String get media_sources_removeFolderTitle =>
+      'Ne plus surveiller ce dossier ?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion oublie les fichiers trouvés dans $folder et n\'y cherche plus les photos manquantes. Aucune photo ni aucun fichier n\'est supprimé.';
+  }
+
+  @override
   String get media_source_gallery => 'Photothèque';
 
   @override

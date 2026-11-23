@@ -13002,6 +13002,15 @@
   "@media_sources_neverScanned": {
     "description": "Sources section: a root with no scan yet"
   },
+  "media_sources_removeFolderTitle": "Stop watching this folder?",
+  "media_sources_removeFolderBody": "Submersion forgets the files it found in {folder}, so missing photos are no longer looked for there. No photo or file is deleted.",
+  "@media_sources_removeFolderBody": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "media_source_gallery": "Photo library",
   "@media_source_gallery": {
     "description": "Source type name"

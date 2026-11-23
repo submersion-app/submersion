@@ -6266,6 +6266,8 @@
   "media_sources_scanNow": "立即扫描",
   "media_sources_autoApply": "自动重新关联完全匹配项",
   "media_sources_neverScanned": "从未扫描",
+  "media_sources_removeFolderTitle": "停止监视此文件夹？",
+  "media_sources_removeFolderBody": "Submersion 将忘记在 {folder} 中找到的文件，不再在那里查找缺失的照片。不会删除任何照片或文件。",
   "media_source_gallery": "照片图库",
   "media_source_localFile": "本地文件",
   "media_source_networkUrl": "网络链接",
