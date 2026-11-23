@@ -5,6 +5,7 @@ import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/held_reference_schema.dart';
 import 'package:submersion/core/services/sync/held_references.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 
 final _log = LoggerService.forClass(HeldReferenceStore);
 
@@ -84,9 +85,17 @@ class HeldExportFilter {
 /// method runs inside the apply's deferred-FK transaction, so a hold and the
 /// repair that made it commit or roll back together.
 class HeldReferenceStore {
-  HeldReferenceStore(this._db);
+  HeldReferenceStore(this._db, {String? Function(String table)? entityTypeOf})
+    : _entityTypeOf = entityTypeOf ?? _noEntityType;
 
   final GeneratedDatabase _db;
+
+  /// The wire entity type whose rows live in an SQL table, or null for a
+  /// table that does not sync. Tombstones are logged by entity type and
+  /// record id, so this is what [_isTombstoned] matches them by.
+  final String? Function(String table) _entityTypeOf;
+
+  static String? _noEntityType(String table) => null;
 
   HeldSchema get _schema => HeldSchema.of(_db);
 
@@ -219,7 +228,9 @@ class HeldReferenceStore {
   ) async {
     final row = await _readByRowid(table, rowid);
     final value = row?[fk.from];
-    if (row == null || value == null || await _isTombstoned(value)) {
+    if (row == null ||
+        value == null ||
+        await _isTombstoned(fk.parent, {fk.to: value})) {
       return held;
     }
     final link = HeldLink(
@@ -246,7 +257,9 @@ class HeldReferenceStore {
   ) async {
     final row = await _readByRowid(table, rowid);
     final value = row?[fk.from];
-    if (row == null || value == null || await _isTombstoned(value)) {
+    if (row == null ||
+        value == null ||
+        await _isTombstoned(fk.parent, {fk.to: value})) {
       return held;
     }
     final captured = await _capture(table, rowid, row, _Captured.none);
@@ -346,7 +359,9 @@ class HeldReferenceStore {
       link.parent.column: link.parent.value,
     })) {
       // Only a parent that is missing can be gone for good.
-      return await _isTombstoned(link.parent.value)
+      return await _isTombstoned(link.parent.table, {
+            link.parent.column: link.parent.value,
+          })
           ? (outcome: _Outcome.drop, link: link)
           : (outcome: _Outcome.keep, link: kept);
     }
@@ -361,41 +376,46 @@ class HeldReferenceStore {
   Future<_Outcome> _settleOrphan(HeldOrphan orphan) async {
     // A copy that arrived since decides the row.
     if (await _exists(orphan.table, orphan.key)) return _Outcome.drop;
-    final id = orphan.key['id'];
-    if (id != null && await _isTombstoned(id)) return _Outcome.drop;
+    if (await _isTombstoned(orphan.table, orphan.key)) return _Outcome.drop;
     if (!await _exists(orphan.parent.table, {
       orphan.parent.column: orphan.parent.value,
     })) {
       // Only a parent that is missing can be gone for good.
-      return await _isTombstoned(orphan.parent.value)
+      return await _isTombstoned(orphan.parent.table, {
+            orphan.parent.column: orphan.parent.value,
+          })
           ? _Outcome.drop
           : _Outcome.keep;
     }
-    for (final row in orphan.rows) {
-      final key = {
-        for (final column in await _schema.keyColumns(row.table))
-          column: row.values[column],
-      };
-      if (await _exists(row.table, key)) continue;
-      final rowRecordId = row.values['id'];
-      if (rowRecordId != null && await _isTombstoned(rowRecordId)) continue;
-      final columns = row.values.keys.toList();
-      try {
+    // All or nothing: a row that no longer fits (a unique key another row
+    // took) keeps the whole orphan held, so nothing beneath it is lost.
+    await _db.customStatement('SAVEPOINT $_restoreSavepoint');
+    try {
+      for (final row in orphan.rows) {
+        final key = {
+          for (final column in await _schema.keyColumns(row.table))
+            column: row.values[column],
+        };
+        if (await _exists(row.table, key)) continue;
+        if (await _isTombstoned(row.table, row.values)) continue;
+        final columns = row.values.keys.toList();
         await _db.customStatement(
           'INSERT INTO "${row.table}" '
           '(${columns.map((c) => '"$c"').join(', ')}) '
           'VALUES (${List.filled(columns.length, '?').join(', ')})',
           [for (final c in columns) row.values[c]],
         );
-      } on Object catch (e, stackTrace) {
-        // One row that no longer fits (a unique key another row took) must
-        // not stop the rest; the repair after this cleans up what it leaves.
-        _log.warning(
-          'Could not restore a held ${row.table} row',
-          error: e,
-          stackTrace: stackTrace,
-        );
       }
+      await _db.customStatement('RELEASE $_restoreSavepoint');
+    } on Object catch (e, stackTrace) {
+      _log.warning(
+        'Could not restore a held ${orphan.table} row; still held',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      await _db.customStatement('ROLLBACK TO $_restoreSavepoint');
+      await _db.customStatement('RELEASE $_restoreSavepoint');
+      return _Outcome.keep;
     }
     return _Outcome.restored;
   }
@@ -456,6 +476,7 @@ class HeldReferenceStore {
   }
 
   static const _rowidAlias = '__held_rowid';
+  static const _restoreSavepoint = 'held_orphan_restore';
 
   Map<String, Object?> _withoutRowidAlias(Map<String, Object?> data) => {
     for (final e in data.entries)
@@ -505,13 +526,25 @@ class HeldReferenceStore {
     for (final column in await _schema.keyColumns(table)) column: row[column],
   };
 
-  /// A parent some device deleted is never coming back.
-  Future<bool> _isTombstoned(Object value) async {
-    if (value is! String) return false;
+  /// Whether some device deleted the row of [table] that [values] (SQL
+  /// column values, its key at least) name: such a row never comes back.
+  /// Matched by entity type and record id, as the deletion log keys it, so
+  /// a composite-key row counts and an unrelated row sharing an id does not.
+  Future<bool> _isTombstoned(String table, Map<String, Object?> values) async {
+    final entityType = _entityTypeOf(table);
+    if (entityType == null) return false;
+    final recordId = syncRecordId(entityType, {
+      for (final e in values.entries) columnJsonKey(e.key): e.value,
+    });
+    if (recordId == null) return false;
     final row = await _db
         .customSelect(
-          'SELECT 1 FROM deletion_log WHERE record_id = ? LIMIT 1',
-          variables: [Variable.withString(value)],
+          'SELECT 1 FROM deletion_log WHERE entity_type = ? AND record_id = ? '
+          'LIMIT 1',
+          variables: [
+            Variable.withString(entityType),
+            Variable.withString(recordId),
+          ],
         )
         .getSingleOrNull();
     return row != null;

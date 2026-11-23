@@ -1874,7 +1874,10 @@ class SyncDataSerializer {
       // Library sites and their children stay out of the base (issue #2567).
       final librarySites = await librarySiteIds();
       // So do the columns of links this device still holds (issue #4954).
-      final heldLinks = await HeldReferenceStore(_db).exportFilter();
+      final heldLinks = await HeldReferenceStore(
+        _db,
+        entityTypeOf: _entityTypeForTable,
+      ).exportFilter();
       for (var t = 0; t < tables.length; t++) {
         final spec = tables[t];
         if (t > 0) await writeData(',');
@@ -2580,6 +2583,16 @@ class SyncDataSerializer {
     ),
   );
 
+  /// The wire entity type whose rows live in the SQL table [table], or null
+  /// for a table that does not sync. Read by the held references to match
+  /// tombstones, which are keyed by entity type.
+  String? _entityTypeForTable(String table) => (_entityTypesByTable ??= {
+    for (final type in const SyncData().toJson().keys.toList().reversed)
+      ?_tableNameFor(type): type,
+  })[table];
+
+  static Map<String, String>? _entityTypesByTable;
+
   /// The SQL table behind the wire key [entityType], or null for a key with
   /// no table of its own.
   String? _tableNameFor(String entityType) {
@@ -2595,7 +2608,10 @@ class SyncDataSerializer {
   /// arrived yet; sending that null would clear it on every device, so the
   /// row goes out without the column and each receiver keeps its own value.
   Future<SyncData> _withoutHeldLinks(SyncData data) async {
-    final filter = await HeldReferenceStore(_db).exportFilter();
+    final filter = await HeldReferenceStore(
+      _db,
+      entityTypeOf: _entityTypeForTable,
+    ).exportFilter();
     if (filter.isEmpty) return data;
     final json = data.toJson();
     var changed = false;
@@ -3452,11 +3468,13 @@ class SyncDataSerializer {
     if (records.isEmpty) return;
     final table = _tableNameFor(entityType);
     if (table == null) return;
-    _incomingCopies = await HeldReferenceStore(_db).noteIncoming(
-      _incomingCopies,
-      table,
-      [for (final record in records) withCurrentWireKeys(entityType, record)],
-    );
+    _incomingCopies =
+        await HeldReferenceStore(
+          _db,
+          entityTypeOf: _entityTypeForTable,
+        ).noteIncoming(_incomingCopies, table, [
+          for (final record in records) withCurrentWireKeys(entityType, record),
+        ]);
   }
 
   /// Repairs every foreign key left dangling after a sync apply: a nullable
@@ -3613,7 +3631,7 @@ class SyncDataSerializer {
   /// running the whole-database foreign key check. True when it put back a
   /// held orphan, whose rows the full repair must then check.
   Future<bool> _restoreHeldReferences() async {
-    final store = HeldReferenceStore(_db);
+    final store = HeldReferenceStore(_db, entityTypeOf: _entityTypeForTable);
     final loaded = await store.load();
     if (loaded.isEmpty) {
       _incomingCopies = IncomingCopies.none;
@@ -3660,7 +3678,7 @@ class SyncDataSerializer {
   /// later pull. First gives back whatever an earlier repair held whose
   /// parent has arrived since.
   Future<void> _repairDanglingReferences() async {
-    final store = HeldReferenceStore(_db);
+    final store = HeldReferenceStore(_db, entityTypeOf: _entityTypeForTable);
     final loaded = await store.load();
     var held = await _restoreArrived(store, loaded);
     for (var pass = 0; pass < 5; pass++) {

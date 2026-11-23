@@ -10,6 +10,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/held_references.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
@@ -254,6 +255,20 @@ void main() {
     });
   });
 
+  test('a deletion of another kind of row with the same id does not count '
+      'as the parent\'s', () async {
+    await db.customStatement(
+      'INSERT INTO deletion_log (id, entity_type, record_id, deleted_at) '
+      "VALUES ('tomb', 'dives', 'gear', 0)",
+    );
+
+    await apply(() => insertItem('item', sectionId: 'gear', hlc: phoneClock));
+    expect((await held()).links, hasLength(1));
+
+    await apply(() => insertSection('gear'));
+    expect((await item('item'))!['section_id'], 'gear');
+  });
+
   group('a NOT NULL child of a parent that has not arrived', () {
     test(
       'comes back with everything beneath it when the parent arrives',
@@ -341,6 +356,98 @@ void main() {
       final restored = (await item('late-item'))!;
       expect(restored['section_id'], isNull);
       expect((await held()).links, hasLength(1));
+    });
+
+    test(
+      'with a composite key is not put back once a peer deleted it',
+      () async {
+        await db.customStatement(
+          'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+          "VALUES ('dive', 0, 0, 0)",
+        );
+        await apply(
+          () => db.customStatement(
+            'INSERT INTO dive_equipment (dive_id, equipment_id) '
+            "VALUES ('dive', 'late-reg')",
+          ),
+        );
+        expect((await held()).orphans, hasLength(1));
+
+        final recordId = syncRecordId('diveEquipment', {
+          'diveId': 'dive',
+          'equipmentId': 'late-reg',
+        });
+        await db.customStatement(
+          'INSERT INTO deletion_log (id, entity_type, record_id, deleted_at) '
+          "VALUES ('tomb', 'diveEquipment', ?, 0)",
+          [recordId],
+        );
+        await apply(
+          () => db.customStatement(
+            'INSERT INTO equipment (id, name, type, created_at, updated_at) '
+            "VALUES ('late-reg', 'Reg', 'regulator', 0, 0)",
+          ),
+        );
+
+        final links = await db
+            .customSelect("SELECT 1 FROM dive_equipment WHERE dive_id = 'dive'")
+            .get();
+        expect(links, isEmpty);
+        expect((await held()).isEmpty, isTrue);
+      },
+    );
+
+    test('stays held, with nothing half put back, when a row no longer '
+        'fits', () async {
+      await apply(
+        () => db.customStatement(
+          'INSERT INTO trip_checklist_sections (id, checklist_id, title, '
+          "created_at, updated_at) VALUES ('late-gear', 'late-list', "
+          "'Dive gear', 0, 0)",
+        ),
+      );
+      await apply(
+        () => db.customStatement(
+          'INSERT INTO trip_checklists (id, trip_id, name, created_at, '
+          "updated_at) VALUES ('late-list', 'late-trip', 'Spares', 0, 0)",
+        ),
+      );
+      // Something else now holds the section's title.
+      await db.customStatement(
+        'CREATE UNIQUE INDEX test_section_title '
+        'ON trip_checklist_sections (title)',
+      );
+      await insertSection('taken');
+      await db.customStatement(
+        "UPDATE trip_checklist_sections SET title = 'Dive gear' "
+        "WHERE id = 'taken'",
+      );
+
+      await apply(
+        () => db.customStatement(
+          'INSERT INTO trips (id, name, start_date, end_date, created_at, '
+          "updated_at) VALUES ('late-trip', 'Roatan', 0, 0, 0, 0)",
+        ),
+      );
+
+      Future<bool> sectionBack() async =>
+          (await db
+              .customSelect(
+                "SELECT 1 FROM trip_checklist_sections WHERE id = 'late-gear'",
+              )
+              .getSingleOrNull()) !=
+          null;
+      expect(await sectionBack(), isFalse);
+      expect((await held()).orphans.keys, hasLength(1));
+
+      await db.customStatement(
+        "DELETE FROM trip_checklist_sections "
+        "WHERE id = 'taken'",
+      );
+      await apply(() async {});
+
+      expect(await sectionBack(), isTrue);
+      expect((await held()).isEmpty, isTrue);
     });
 
     test('is not put back over a copy that arrived since', () async {
