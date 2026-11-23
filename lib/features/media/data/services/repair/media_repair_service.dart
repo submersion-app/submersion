@@ -210,31 +210,39 @@ class MediaRepairService {
   ///
   /// A watcher pass (the daily one, and Media, Sources, Scan now) is matched
   /// and written without review, so History files it as automatic; a
-  /// reviewed Re-link files as the diver's (issue #4527). Inside a scope
-  /// already running, such as a dive's sitting, it joins that one.
+  /// reviewed Re-link files as the diver's (issue #4527). Only the writes
+  /// run in that scope: anything saved while it is open takes its label, so
+  /// the per-row work before them (hashing, bookmarks) stays outside. Inside
+  /// a scope already running, such as a dive's sitting, it joins that one.
   Future<RepairApplyReport> apply(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
     List<Future<void> Function()>? afterCommit,
     List<Future<void> Function()>? onRollback,
-  }) {
-    Future<RepairApplyReport> body() => _applyInner(
-      accepted,
-      source: source,
-      afterCommit: afterCommit,
-      onRollback: onRollback,
-    );
+  }) => _applyInner(
+    accepted,
+    source: source,
+    afterCommit: afterCommit,
+    onRollback: onRollback,
+  );
+
+  /// Runs [writes] as one History entry labelled as a media repair, filed
+  /// by [source].
+  static Future<T> _logged<T>(
+    RepairLogSource source,
+    Future<T> Function() writes,
+  ) {
     final db = DatabaseService.instance.databaseOrNull;
     return source == RepairLogSource.watcher
         ? ChangeLogScope.automatic(
             db,
             label: ChangeLogLabels.mediaRepair,
-            body: body,
+            body: writes,
           )
         : ChangeLogScope.bulk(
             db,
             label: ChangeLogLabels.mediaRepair,
-            body: body,
+            body: writes,
           );
   }
 
@@ -372,79 +380,81 @@ class MediaRepairService {
       }
     }
 
-    // Stage B: one transaction for every surviving write.
-    await repository.applyRepairWrites(await _withCloudIds(writes));
-    Future<void> clearCache() async {
-      try {
-        await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
-      } on Object catch (e) {
-        // The relink has committed; a stale entry costs one failed fetch,
-        // after which the resolver re-resolves the row.
-        _log.warning('Could not drop cached mappings for relinked rows: $e');
+    return _logged(source, () async {
+      // Stage B: one transaction for every surviving write.
+      await repository.applyRepairWrites(await _withCloudIds(writes));
+      Future<void> clearCache() async {
+        try {
+          await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
+        } on Object catch (e) {
+          // The relink has committed; a stale entry costs one failed fetch,
+          // after which the resolver re-resolves the row.
+          _log.warning('Could not drop cached mappings for relinked rows: $e');
+        }
       }
-    }
 
-    if (afterCommit == null) {
-      await clearCache();
-    } else {
-      afterCommit.add(clearCache);
-    }
-
-    // Stage C: store side effects.
-    for (final stamp in editedStamps) {
-      await repository.stampContentIdentity(
-        stamp.mediaId,
-        contentHash: stamp.hash,
-        sizeBytes: stamp.sizeBytes,
-      );
-      await repository.clearRemoteUploaded(stamp.mediaId);
-      await repository.clearRemoteThumbUploaded(stamp.mediaId);
-      await repository.clearRemoteCompressed(stamp.mediaId);
-      Future<void> enqueue() => queue.enqueueUpload(mediaId: stamp.mediaId);
       if (afterCommit == null) {
-        await enqueue();
+        await clearCache();
       } else {
-        afterCommit.add(enqueue);
+        afterCommit.add(clearCache);
       }
-      reuploadsQueued++;
-    }
-    if (storeIds.isNotEmpty) {
-      final storeId = await attachedStoreId?.call();
-      final converted = storeId == null
-          ? const <String>{}
-          : await repository.convertToCloudBacked(storeIds, storeId: storeId);
-      cloudBacked = converted.length;
-      // Refused rows (stamped only for another store, or no store attached)
-      // keep their pointers and stay missing.
-      skipped += storeIds.length - converted.length;
-      auditEntries.addAll([
-        for (final id in storeIds)
-          if (converted.contains(id)) storeAudit[id]!,
-      ]);
-    }
 
-    // Audit last: history records what actually happened, so it is written
-    // only after the DB and store effects have gone through. That ordering
-    // also means the repair is already committed here -- letting a history
-    // failure escape would report a successful repair as failed and invite
-    // a retry against rows that are no longer missing.
-    try {
-      await log?.record(auditEntries);
-    } catch (e, stackTrace) {
-      _log.warning(
-        'Repair applied but the audit log write failed',
-        error: e,
-        stackTrace: stackTrace,
+      // Stage C: store side effects.
+      for (final stamp in editedStamps) {
+        await repository.stampContentIdentity(
+          stamp.mediaId,
+          contentHash: stamp.hash,
+          sizeBytes: stamp.sizeBytes,
+        );
+        await repository.clearRemoteUploaded(stamp.mediaId);
+        await repository.clearRemoteThumbUploaded(stamp.mediaId);
+        await repository.clearRemoteCompressed(stamp.mediaId);
+        Future<void> enqueue() => queue.enqueueUpload(mediaId: stamp.mediaId);
+        if (afterCommit == null) {
+          await enqueue();
+        } else {
+          afterCommit.add(enqueue);
+        }
+        reuploadsQueued++;
+      }
+      if (storeIds.isNotEmpty) {
+        final storeId = await attachedStoreId?.call();
+        final converted = storeId == null
+            ? const <String>{}
+            : await repository.convertToCloudBacked(storeIds, storeId: storeId);
+        cloudBacked = converted.length;
+        // Refused rows (stamped only for another store, or no store attached)
+        // keep their pointers and stay missing.
+        skipped += storeIds.length - converted.length;
+        auditEntries.addAll([
+          for (final id in storeIds)
+            if (converted.contains(id)) storeAudit[id]!,
+        ]);
+      }
+
+      // Audit last: history records what actually happened, so it is written
+      // only after the DB and store effects have gone through. That ordering
+      // also means the repair is already committed here -- letting a history
+      // failure escape would report a successful repair as failed and invite
+      // a retry against rows that are no longer missing.
+      try {
+        await log?.record(auditEntries);
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Repair applied but the audit log write failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+
+      return RepairApplyReport(
+        relinked: writes.length,
+        cloudBacked: cloudBacked,
+        reuploadsQueued: reuploadsQueued,
+        failed: failed,
+        skipped: skipped,
       );
-    }
-
-    return RepairApplyReport(
-      relinked: writes.length,
-      cloudBacked: cloudBacked,
-      reuploadsQueued: reuploadsQueued,
-      failed: failed,
-      skipped: skipped,
-    );
+    });
   }
 
   /// The watcher applies without a human in the loop, which is worth

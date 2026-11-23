@@ -141,6 +141,45 @@ void main() {
       expect(op.label, ChangeLogLabels.mediaRepair);
     });
 
+    // ChangeLogScope.automatic: anything saved while the scope is open takes
+    // its label, so the per-row work before the writes stays outside it.
+    test('a save made while the files are prepared is not filed as the '
+        'repair', () async {
+      final (file, hash) = await tempFile('a.jpg', 'aaaa');
+      await seed('a', contentHash: hash);
+      await seed('other');
+      final item = (await repo.getMediaById('a'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+
+      await service(
+        // Stands in for the diver saving elsewhere while a bookmark is made.
+        createBookmark: (_) async {
+          await db.customStatement(
+            "UPDATE media SET caption = 'saved meanwhile' WHERE id = 'other'",
+          );
+          return Uint8List(0);
+        },
+        writeBookmark: (_, _) async {},
+      ).apply([
+        RepairProposal(
+          item: item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(path: file.path, sizeBytes: 4),
+        ),
+      ], source: RepairLogSource.watcher);
+
+      await ChangeLogSettler(db).settle();
+      final repair = (await db.select(db.changeLogOperations).get())
+          .singleWhere((o) => o.label == ChangeLogLabels.mediaRepair);
+      final filed = await (db.select(
+        db.changeLogEvents,
+      )..where((e) => e.operationId.equals(repair.id))).get();
+      expect(filed.map((e) => e.recordId), isNot(contains('other')));
+      expect(filed.map((e) => e.recordId), contains('a'));
+    });
+
     test('a reviewed relink (the wizard) stays manual', () async {
       final op = await relinkFiledAs();
       expect(op.source, ChangeLogSource.manual.name);
