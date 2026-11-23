@@ -402,7 +402,7 @@ void main() {
       // viewer asks with is then no longer the one the player resolved.
       final later = item.copyWith(updatedAt: DateTime.utc(2026, 2));
 
-      /// The real playback body, over a file resolved by [resolvedFilePath].
+      /// The real playback body, over a file resolved by [resolvedFilePathProvider].
       ProviderContainer resolvingFiles() {
         opened.clear();
         resolved = 0;

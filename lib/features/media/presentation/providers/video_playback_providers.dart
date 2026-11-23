@@ -16,26 +16,29 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 /// its update time. The fish scan asks with the copy on screen, so it
 /// finds the player's playback here rather than under that exact key.
 class LiveVideoPlaybacks {
-  final _live = <String, List<MediaItem>>{};
+  /// Replaced whole on every change, never changed in place.
+  var _live = const <String, List<MediaItem>>{};
 
-  void _add(MediaItem item) => _live[item.id] = [...?_live[item.id], item];
+  void _add(MediaItem item) => _live = {
+    ..._live,
+    item.id: List.unmodifiable([...?_live[item.id], item]),
+  };
 
   void _remove(MediaItem item) {
     final rest = [
       for (final copy in _live[item.id] ?? const <MediaItem>[])
         if (copy != item) copy,
     ];
-    if (rest.isEmpty) {
-      _live.remove(item.id);
-    } else {
-      _live[item.id] = rest;
-    }
+    _live = {
+      for (final MapEntry(:key, :value) in _live.entries)
+        if (key != item.id) key: value,
+      if (rest.isNotEmpty) item.id: List.unmodifiable(rest),
+    };
   }
 
   /// The copies of the video [mediaId] with a playback held now, the most
   /// recently resolved last.
-  List<MediaItem> of(String mediaId) =>
-      List.unmodifiable(_live[mediaId] ?? const <MediaItem>[]);
+  List<MediaItem> of(String mediaId) => _live[mediaId] ?? const <MediaItem>[];
 }
 
 final liveVideoPlaybacksProvider = Provider<LiveVideoPlaybacks>(
