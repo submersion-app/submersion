@@ -148,6 +148,24 @@ void main() {
       expect(reread.unreadableScope, isFalse);
     });
 
+    test('a date rule\'s name edit keeps its stored mapping', () async {
+      await insertRule(modes: '["modeFromTheFuture"]');
+      await (db.update(
+        db.certificationCurrencyRules,
+      )..where((r) => r.id.equals('r1'))).write(
+        const CertificationCurrencyRulesCompanion(clockKind: Value('date')),
+      );
+      final rule = (await repository.getRules()).firstWhere(
+        (r) => r.id == 'r1',
+      );
+
+      await repository.updateRule(rule.copyWith(name: 'Renamed'));
+
+      final row = await storedRule();
+      expect(row.name, 'Renamed');
+      expect(row.countedDiveModes, '["modeFromTheFuture"]');
+    });
+
     test('a scope the edit changes is written', () async {
       await insertRule(agencies: '["agencyFromTheFuture"]', modes: '["oc"]');
       final rule = (await repository.getRules()).firstWhere(

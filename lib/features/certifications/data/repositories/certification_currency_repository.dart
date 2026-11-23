@@ -118,10 +118,15 @@ class CertificationCurrencyRepository {
         next: next,
         names: names,
       );
-      // A date clock never reads the mapping, so the empty mapping the dialog
-      // saves for it cannot widen anything. Writing it as given lets a rule
-      // whose mapping this build cannot read be repaired by dating it.
-      final dated = rule.clockKind == CurrencyClockKind.date;
+      // Switching to a date clock is a change to the mapping: a date clock
+      // never reads it, so the empty one the dialog saves cannot widen
+      // anything, and writing it lets a rule whose mapping this build cannot
+      // read be repaired by dating it. A rule already on a date clock keeps
+      // its stored mapping like any other unchanged column.
+      final dated =
+          rule.clockKind == CurrencyClockKind.date &&
+          stored != null &&
+          stored.clockKind != CurrencyClockKind.date.name;
       await (_db.update(
         _db.certificationCurrencyRules,
       )..where((t) => t.id.equals(rule.id) & t.isBuiltIn.equals(false))).write(
