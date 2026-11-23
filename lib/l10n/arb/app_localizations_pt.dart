@@ -19993,7 +19993,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Desvincular $count itens?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return 'Desvincular $_temp0?';
   }
 
   @override
@@ -20141,7 +20147,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Desvincular $count itens?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return 'Desvincular $_temp0?';
   }
 
   @override
@@ -20326,6 +20338,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Para adicionar um feed de fotos, use Importar na tela Mídia.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Para adicionar arquivos ou links, use Importar na tela Mídia.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Para adicionar links, use Importar na tela Mídia.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Limpar';
@@ -21120,6 +21144,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'Nunca verificada';
+
+  @override
+  String get media_sources_removeFolderTitle =>
+      'Parar de monitorar esta pasta?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'O Submersion esquece os arquivos que encontrou em $folder, então não procurará mais as fotos ausentes ali. Nenhuma foto ou arquivo é excluído.';
+  }
 
   @override
   String get media_source_gallery => 'Fototeca';
@@ -45425,6 +45458,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Novo envio na fila';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Substituir a cópia em qualidade total?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'O original guardado no seu armazenamento é substituído por uma cópia $level. A foto neste dispositivo é mantida.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Substituir';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

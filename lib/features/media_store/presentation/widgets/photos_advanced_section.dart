@@ -18,6 +18,7 @@ import 'package:submersion/features/settings/presentation/widgets/media_cache_se
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media_store/presentation/widgets/stop_keeping_copies_dialog.dart';
 
 /// Photos & videos' Advanced section (spec section 8.3): upload quality,
 /// upload everything already attached, verify the copies, network
@@ -258,26 +259,8 @@ class _PhotosAdvancedSectionState extends ConsumerState<PhotosAdvancedSection> {
 
   /// Today's Disconnect: this device only; nothing in the account goes.
   Future<void> _stopKeeping() async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.settings_photos_stopKeeping),
-        content: Text(l10n.settings_photos_stopKeepingBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.common_action_cancel),
-          ),
-          TextButton(
-            key: const Key('media-s3-disconnect-confirm'),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.settings_photos_stopKeeping),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+    final confirmed = await confirmStopKeepingCopies(context);
+    if (!confirmed || !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(mediaStoreServiceProvider).disconnect();

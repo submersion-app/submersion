@@ -20040,7 +20040,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Dissocier $count éléments ?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '$count élément',
+    );
+    return 'Dissocier $_temp0 ?';
   }
 
   @override
@@ -20188,7 +20194,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Dissocier $count éléments ?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '$count élément',
+    );
+    return 'Dissocier $_temp0 ?';
   }
 
   @override
@@ -20374,6 +20386,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Pour ajouter un flux de photos, utilisez Importer dans l\'écran Médias.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Pour ajouter des fichiers ou des liens, utilisez Importer dans l\'écran Médias.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Pour ajouter des liens, utilisez Importer dans l\'écran Médias.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Effacer';
@@ -21169,6 +21193,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'Jamais analysé';
+
+  @override
+  String get media_sources_removeFolderTitle =>
+      'Ne plus surveiller ce dossier ?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion oublie les fichiers trouvés dans $folder et n\'y cherche plus les photos manquantes. Aucune photo ni aucun fichier n\'est supprimé.';
+  }
 
   @override
   String get media_source_gallery => 'Photothèque';
@@ -45570,6 +45603,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Nouveau téléversement en file d\'attente';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Remplacer la copie en pleine qualité ?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'L\'original conservé dans votre stockage est remplacé par une copie $level. La photo sur cet appareil est conservée.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Remplacer';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

@@ -20256,6 +20256,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Fotófolyam hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Fájlok vagy hivatkozások hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Hivatkozások hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Törlés';
 
   @override
@@ -21044,6 +21056,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'Még nem vizsgált';
+
+  @override
+  String get media_sources_removeFolderTitle => 'Leállítod a mappa figyelését?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'A Submersion elfelejti a(z) $folder mappában talált fájlokat, így ott már nem keresi a hiányzó fotókat. Egyetlen fotó vagy fájl sem törlődik.';
+  }
 
   @override
   String get media_source_gallery => 'Fotókönyvtár';
@@ -45202,6 +45222,18 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Újratöltés sorba állítva';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Lecseréled a teljes minőségű másolatot?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'A tárhelyeden őrzött eredetit egy $level másolat váltja fel. Az eszközön lévő fotó megmarad.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Csere';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

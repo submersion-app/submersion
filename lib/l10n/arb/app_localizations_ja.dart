@@ -19605,6 +19605,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      '写真フィードを追加するには、メディア画面のインポートを使用してください。';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'ファイルやリンクを追加するには、メディア画面のインポートを使用してください。';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'リンクを追加するには、メディア画面のインポートを使用してください。';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'クリア';
 
   @override
@@ -20362,6 +20374,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => '未スキャン';
+
+  @override
+  String get media_sources_removeFolderTitle => 'このフォルダの監視を停止しますか？';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion は $folder で見つけたファイルを記録から外し、そこで見つからない写真を探さなくなります。写真やファイルは削除されません。';
+  }
 
   @override
   String get media_source_gallery => '写真ライブラリ';
@@ -43552,6 +43572,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => '再アップロードを予約しました';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'フル画質のコピーを置き換えますか？';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'ストレージに保存されたオリジナルは $level のコピーに置き換えられます。この端末の写真はそのまま残ります。';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => '置き換える';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

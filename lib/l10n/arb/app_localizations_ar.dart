@@ -20289,7 +20289,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
@@ -20449,7 +20458,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
@@ -20654,6 +20672,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'لإضافة موجز صور، استخدم استيراد في شاشة الوسائط.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'لإضافة ملفات أو روابط، استخدم استيراد في شاشة الوسائط.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'لإضافة روابط، استخدم استيراد في شاشة الوسائط.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'مسح';
@@ -21464,6 +21494,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'لم يتم الفحص مطلقًا';
+
+  @override
+  String get media_sources_removeFolderTitle => 'إيقاف مراقبة هذا المجلد؟';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'ينسى Submersion الملفات التي وجدها في $folder، فلن يُبحث هناك بعد الآن عن الصور المفقودة. لا يُحذف أي صورة أو ملف.';
+  }
 
   @override
   String get media_source_gallery => 'مكتبة الصور';
@@ -46106,6 +46144,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'تمت إضافة إعادة الرفع إلى قائمة الانتظار';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'استبدال النسخة بالجودة الكاملة؟';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'تُستبدل النسخة الأصلية المحفوظة في مساحة التخزين بنسخة $level. تبقى الصورة على هذا الجهاز.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'استبدال';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

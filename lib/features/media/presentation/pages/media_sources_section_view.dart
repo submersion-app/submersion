@@ -178,11 +178,37 @@ class _WatchedRootTile extends ConsumerWidget {
       ),
       trailing: IconButton(
         icon: const Icon(Icons.clear),
+        tooltip: context.l10n.common_action_remove,
         onPressed: () async {
+          if (!await _confirmRemove(context) || !context.mounted) return;
           await ref.read(watchedFolderRepositoryProvider).removeRoot(root);
           _refreshRoots(ref);
         },
       ),
     );
+  }
+
+  /// Asks before the folder is dropped, with what it forgets (issue #4527,
+  /// media library decision 3).
+  Future<bool> _confirmRemove(BuildContext context) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.media_sources_removeFolderTitle),
+        content: Text(l10n.media_sources_removeFolderBody(root)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.common_action_remove),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 }

@@ -613,10 +613,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               context,
               ref,
               item,
+              // The attachment opens under its own lock (issue #4527).
               editableSiteId: site.id,
-              // The page edits in place, so the attachment opens under its
-              // own lock (issue #4527, phase 2).
-              attachmentLock: true,
             ),
           ),
       // Tags (issue #1765), after media as on a dive. Shown only when the

@@ -12164,7 +12164,7 @@
   "media_diveMediaSection_unlinkButton": "Unlink",
   "media_diveMediaSection_unlinkSelectedButton": "Unlink {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.",
-  "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
+  "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_library_unlinkConfirmTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkError": "Failed to unlink: {error}",
   "media_library_unlinkConfirmBody": "They leave your library, along with their cloud copies and thumbnails. Your original files are not affected. This cannot be undone.",
@@ -12237,7 +12237,7 @@
   "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
   "media_siteDivePhotos_showAll": "Show all",
   "media_siteDivePhotos_showLess": "Show less",
-  "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
+  "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkSelectedContent": "Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.",
   "@media_siteMediaSection_unlinkSelectedContent": {
     "description": "Site page unlink confirmation body",
@@ -12306,6 +12306,9 @@
   "media_photoPicker_tab_gallery": "Gallery",
   "media_photoPicker_tab_files": "Files",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "To add a feed of photos, use Import on the Media screen.",
+  "media_photoPicker_galleryOnlyHint": "To add files or links, use Import on the Media screen.",
+  "media_photoPicker_galleryOnlyLinksHint": "To add links, use Import on the Media screen.",
   "media_photoPicker_clearSelectionButton": "Clear",
   "media_photoPicker_closeTooltip": "Close photo picker",
   "media_photoPicker_doneButton": "Done",
@@ -12999,6 +13002,15 @@
   "media_sources_neverScanned": "Never scanned",
   "@media_sources_neverScanned": {
     "description": "Sources section: a root with no scan yet"
+  },
+  "media_sources_removeFolderTitle": "Stop watching this folder?",
+  "media_sources_removeFolderBody": "Submersion forgets the files it found in {folder}, so missing photos are no longer looked for there. No photo or file is deleted.",
+  "@media_sources_removeFolderBody": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
   },
   "media_source_gallery": "Photo library",
   "@media_source_gallery": {
@@ -28154,6 +28166,16 @@
   "settings_mediaStorage_quality_small": "Small",
   "settings_mediaStorage_quality_caveat": "With a compression level set, full-resolution originals are not uploaded — they remain only on this device.",
   "settings_mediaStorage_quality_reuploadQueued": "Re-upload queued",
+  "settings_mediaStorage_quality_downgradeTitle": "Replace the full-quality copy?",
+  "settings_mediaStorage_quality_downgradeBody": "The original kept in your storage is replaced with a {level} copy. The photo on this device is kept.",
+  "@settings_mediaStorage_quality_downgradeBody": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_mediaStorage_quality_downgradeConfirm": "Replace",
   "settings_mediaStorage_quality_linuxFfmpegHint": "Install ffmpeg to enable video compression. Originals are uploaded until then.",
   "settings_mediaStorage_quality_saveFailed": "Could not save the upload quality. Try again.",
   "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it.",

@@ -19990,7 +19990,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Desvincular $count elementos?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '$count elemento',
+    );
+    return '¿Desvincular $_temp0?';
   }
 
   @override
@@ -20137,7 +20143,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Desvincular $count elementos?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '$count elemento',
+    );
+    return '¿Desvincular $_temp0?';
   }
 
   @override
@@ -20322,6 +20334,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Para añadir una fuente de fotos, usa Importar en la pantalla Multimedia.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Para añadir archivos o enlaces, usa Importar en la pantalla Multimedia.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Para añadir enlaces, usa Importar en la pantalla Multimedia.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Limpiar';
@@ -21114,6 +21138,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'Nunca analizada';
+
+  @override
+  String get media_sources_removeFolderTitle =>
+      '¿Dejar de vigilar esta carpeta?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion olvida los archivos que encontró en $folder, así que ya no buscará allí las fotos que faltan. No se elimina ninguna foto ni archivo.';
+  }
 
   @override
   String get media_source_gallery => 'Fototeca';
@@ -45487,6 +45520,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => 'Resubida en cola';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      '¿Reemplazar la copia en calidad completa?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'El original guardado en tu almacenamiento se reemplaza por una copia $level. La foto de este dispositivo se conserva.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Reemplazar';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

@@ -56,53 +56,9 @@ List<SpeciesTagCandidateGroup> _groups() => [
   ),
 ];
 
-/// Opens the picker from a button so the popped value can be captured.
-Future<TagPhotosResult? Function()> _open(
-  WidgetTester tester,
-  List<SpeciesTagCandidateGroup> groups,
-  _RecordingTaggingService service,
-) async {
-  TagPhotosResult? popped;
-  // Three-column tiles are large; a tall surface keeps every group above
-  // the bottom bar so taps land on the tiles.
-  tester.view.physicalSize = const Size(800, 1800);
-  tester.view.devicePixelRatio = 1.0;
-  addTearDown(tester.view.reset);
-  await tester.pumpWidget(
-    await mediaTestApp(
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: Center(
-            child: ElevatedButton(
-              onPressed: () async {
-                popped = await Navigator.of(context).push<TagPhotosResult>(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const SpeciesTagPickerPage(speciesId: 'sp_x'),
-                  ),
-                );
-              },
-              child: const Text('OPEN'),
-            ),
-          ),
-        ),
-      ),
-      overrides: [
-        speciesTagCandidatesProvider(
-          'sp_x',
-        ).overrideWith((ref) async => groups),
-        speciesTaggingServiceProvider.overrideWithValue(service),
-      ],
-    ),
-  );
-  await tester.tap(find.text('OPEN'));
-  await tester.pumpAndSettle();
-  return () => popped;
-}
-
-/// Opens the picker in its choose-only mode, as a species page in a sitting
-/// does, so the popped choice can be captured.
-Future<Object? Function()> _openChooseOnly(
+/// Opens the picker from a button, as a species page in a sitting does, so
+/// the popped choice can be captured.
+Future<Object? Function()> _open(
   WidgetTester tester,
   List<SpeciesTagCandidateGroup> groups,
   _RecordingTaggingService service, {
@@ -123,7 +79,6 @@ Future<Object? Function()> _openChooseOnly(
                   MaterialPageRoute(
                     builder: (_) => SpeciesTagPickerPage(
                       speciesId: 'sp_x',
-                      chooseOnly: true,
                       alreadyChosen: alreadyChosen,
                     ),
                   ),
@@ -153,7 +108,7 @@ void main() {
     tester,
   ) async {
     final service = _RecordingTaggingService();
-    final read = await _openChooseOnly(tester, _groups(), service);
+    final read = await _open(tester, _groups(), service);
 
     await tester.tap(find.byType(MediaThumbnailTile).at(1));
     await tester.tap(find.byType(MediaThumbnailTile).at(2));
@@ -168,12 +123,7 @@ void main() {
 
   testWidgets('photos already chosen are not offered again', (tester) async {
     final service = _RecordingTaggingService();
-    await _openChooseOnly(
-      tester,
-      _groups(),
-      service,
-      alreadyChosen: const {'p2'},
-    );
+    await _open(tester, _groups(), service, alreadyChosen: const {'p2'});
 
     expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
   });
@@ -190,9 +140,10 @@ void main() {
     expect(find.textContaining('Unknown site'), findsOneWidget);
   });
 
-  testWidgets('the confirm button counts the selection and tags it', (
-    tester,
-  ) async {
+  // The picker only chooses: the species page tags at its Save (issue
+  // #4527, media library plan 2), so no caller can tag past a lock.
+  testWidgets('the confirm button counts the selection, pops the choice and '
+      'tags nothing', (tester) async {
     final service = _RecordingTaggingService();
     final read = await _open(tester, _groups(), service);
 
@@ -207,9 +158,9 @@ void main() {
     await tester.tap(confirm);
     await tester.pumpAndSettle();
 
-    expect(service.taggedSpecies, 'sp_x');
-    expect(service.taggedIds.toSet(), {'p2', 'p3'});
-    expect(read()?.tagged, 2);
+    expect(service.taggedIds, isEmpty);
+    final choice = read() as SpeciesTagChoice?;
+    expect(choice?.items.map((m) => m.id).toSet(), {'p2', 'p3'});
   });
 
   testWidgets('Select all checks every candidate across groups', (

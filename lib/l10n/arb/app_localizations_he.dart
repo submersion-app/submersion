@@ -19563,7 +19563,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'לבטל קישור של $count פריטים?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return 'לבטל קישור של $_temp0?';
   }
 
   @override
@@ -19710,7 +19716,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'לבטל קישור של $count פריטים?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return 'לבטל קישור של $_temp0?';
   }
 
   @override
@@ -19893,6 +19905,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'כדי להוסיף פיד תמונות, השתמש בייבוא במסך המדיה.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'כדי להוסיף קבצים או קישורים, השתמש בייבוא במסך המדיה.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'כדי להוסיף קישורים, השתמש בייבוא במסך המדיה.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'נקה';
@@ -20661,6 +20685,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'לא נסרק מעולם';
+
+  @override
+  String get media_sources_removeFolderTitle => 'להפסיק לעקוב אחר תיקייה זו?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion שוכח את הקבצים שמצא ב-$folder, ולכן לא יחפש שם עוד תמונות חסרות. שום תמונה או קובץ לא נמחקים.';
+  }
 
   @override
   String get media_source_gallery => 'ספריית תמונות';
@@ -44365,6 +44397,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => 'העלאה מחדש בתור';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'להחליף את העותק באיכות מלאה?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'המקור השמור באחסון שלך יוחלף בעותק $level. התמונה במכשיר זה נשמרת.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'החלף';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

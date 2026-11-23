@@ -12,8 +12,8 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
-/// What the picker pops in its choose-only mode: the photos chosen, not yet
-/// tagged (issue #4527, phase 3).
+/// What the picker pops: the photos chosen, not yet tagged (issue #4527,
+/// phase 3).
 class SpeciesTagChoice {
   const SpeciesTagChoice(this.items);
 
@@ -21,9 +21,8 @@ class SpeciesTagChoice {
 }
 
 /// Picks photos to tag with one species, from the dives where the diver
-/// logged it. Pops with the [TagPhotosResult] after tagging, or null; in its
-/// choose-only mode, which a species page in a sitting uses, it tags nothing
-/// and pops a [SpeciesTagChoice].
+/// logged it. It tags nothing: it pops a [SpeciesTagChoice], or null, and
+/// the species page's sitting tags the choice at Save (issue #4527).
 ///
 /// The whole page is a picker, so every tile renders in selection mode and
 /// toggles on tap; one [SelectionController] keyed by media id spans the
@@ -31,16 +30,12 @@ class SpeciesTagChoice {
 class SpeciesTagPickerPage extends ConsumerStatefulWidget {
   final String speciesId;
 
-  /// Pops the choice instead of tagging it: the sitting tags it at Save.
-  final bool chooseOnly;
-
   /// Photos the sitting already holds to tag, left out as tagged ones are.
   final Set<String> alreadyChosen;
 
   const SpeciesTagPickerPage({
     super.key,
     required this.speciesId,
-    this.chooseOnly = false,
     this.alreadyChosen = const {},
   });
 
@@ -51,7 +46,6 @@ class SpeciesTagPickerPage extends ConsumerStatefulWidget {
 
 class _SpeciesTagPickerPageState extends ConsumerState<SpeciesTagPickerPage> {
   final SelectionController _selection = SelectionController();
-  bool _busy = false;
 
   @override
   void initState() {
@@ -146,7 +140,7 @@ class _SpeciesTagPickerPageState extends ConsumerState<SpeciesTagPickerPage> {
                     padding: const EdgeInsets.all(16),
                     child: FilledButton(
                       key: const ValueKey('tag_picker_confirm'),
-                      onPressed: checked.isEmpty || _busy
+                      onPressed: checked.isEmpty
                           ? null
                           : () => _confirm(checked.toList()),
                       child: Text(
@@ -175,29 +169,17 @@ class _SpeciesTagPickerPageState extends ConsumerState<SpeciesTagPickerPage> {
     ];
   }
 
-  Future<void> _confirm(List<String> mediaIds) async {
-    if (widget.chooseOnly) {
-      final groups = ref
-          .read(speciesTagCandidatesProvider(widget.speciesId))
-          .value;
-      final byId = {
-        for (final group in groups ?? const <SpeciesTagCandidateGroup>[])
-          for (final item in group.items) item.id: item,
-      };
-      Navigator.of(
-        context,
-      ).pop(SpeciesTagChoice([for (final id in mediaIds) ?byId[id]]));
-      return;
-    }
-    setState(() => _busy = true);
-    try {
-      final result = await ref
-          .read(speciesTaggingServiceProvider)
-          .tagPhotos(mediaIds: mediaIds, speciesId: widget.speciesId);
-      if (mounted) Navigator.of(context).pop(result);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  void _confirm(List<String> mediaIds) {
+    final groups = ref
+        .read(speciesTagCandidatesProvider(widget.speciesId))
+        .value;
+    final byId = {
+      for (final group in groups ?? const <SpeciesTagCandidateGroup>[])
+        for (final item in group.items) item.id: item,
+    };
+    Navigator.of(
+      context,
+    ).pop(SpeciesTagChoice([for (final id in mediaIds) ?byId[id]]));
   }
 }
 

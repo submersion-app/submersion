@@ -19700,7 +19700,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Unlink $count items?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Unlink $_temp0?';
   }
 
   @override
@@ -19847,7 +19853,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Unlink $count items?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Unlink $_temp0?';
   }
 
   @override
@@ -20037,6 +20049,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'To add a feed of photos, use Import on the Media screen.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'To add files or links, use Import on the Media screen.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'To add links, use Import on the Media screen.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Clear';
@@ -20809,6 +20833,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'Never scanned';
+
+  @override
+  String get media_sources_removeFolderTitle => 'Stop watching this folder?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion forgets the files it found in $folder, so missing photos are no longer looked for there. No photo or file is deleted.';
+  }
 
   @override
   String get media_source_gallery => 'Photo library';
@@ -44714,6 +44746,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => 'Re-upload queued';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Replace the full-quality copy?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'The original kept in your storage is replaced with a $level copy. The photo on this device is kept.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Replace';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

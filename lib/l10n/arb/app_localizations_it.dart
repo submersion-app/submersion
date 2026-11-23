@@ -19998,7 +19998,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Scollegare $count elementi?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return 'Scollegare $_temp0?';
   }
 
   @override
@@ -20145,7 +20151,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Scollegare $count elementi?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return 'Scollegare $_temp0?';
   }
 
   @override
@@ -20331,6 +20343,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Per aggiungere un feed di foto, usa Importa nella schermata Media.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Per aggiungere file o link, usa Importa nella schermata Media.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Per aggiungere link, usa Importa nella schermata Media.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Cancella';
@@ -21122,6 +21146,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'Mai scansionata';
+
+  @override
+  String get media_sources_removeFolderTitle =>
+      'Smettere di monitorare questa cartella?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion dimentica i file trovati in $folder, quindi non cercherà più lì le foto mancanti. Nessuna foto o file viene eliminato.';
+  }
 
   @override
   String get media_source_gallery => 'Libreria foto';
@@ -45464,6 +45497,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Ricaricamento in coda';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Sostituire la copia a piena qualità?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'L\'originale conservato nel tuo spazio di archiviazione viene sostituito da una copia $level. La foto su questo dispositivo viene mantenuta.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Sostituisci';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

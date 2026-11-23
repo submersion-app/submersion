@@ -19330,6 +19330,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint => '要添加照片源，请在媒体页面使用导入。';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint => '要添加文件或链接，请在媒体页面使用导入。';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint => '要添加链接，请在媒体页面使用导入。';
+
+  @override
   String get media_photoPicker_clearSelectionButton => '清除';
 
   @override
@@ -20067,6 +20076,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => '从未扫描';
+
+  @override
+  String get media_sources_removeFolderTitle => '停止监视此文件夹？';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion 将忘记在 $folder 中找到的文件，不再在那里查找缺失的照片。不会删除任何照片或文件。';
+  }
 
   @override
   String get media_source_gallery => '照片图库';
@@ -42779,6 +42796,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => '重新上传已加入队列';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle => '替换全画质副本？';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return '存储中的原图将被替换为$level副本。此设备上的照片会保留。';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => '替换';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

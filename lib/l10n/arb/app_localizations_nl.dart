@@ -19872,7 +19872,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return '$count items ontkoppelen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0 ontkoppelen?';
   }
 
   @override
@@ -20020,7 +20026,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return '$count items ontkoppelen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0 ontkoppelen?';
   }
 
   @override
@@ -20204,6 +20216,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Gebruik Importeren op het scherm Media om een fotofeed toe te voegen.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Gebruik Importeren op het scherm Media om bestanden of links toe te voegen.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Gebruik Importeren op het scherm Media om links toe te voegen.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Wissen';
@@ -20992,6 +21016,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_sources_neverScanned => 'Nooit gescand';
+
+  @override
+  String get media_sources_removeFolderTitle => 'Deze map niet meer volgen?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion vergeet de bestanden die het in $folder vond, dus ontbrekende foto\'s worden daar niet meer gezocht. Er wordt geen foto of bestand verwijderd.';
+  }
 
   @override
   String get media_source_gallery => 'Fotobibliotheek';
@@ -45165,6 +45197,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Opnieuw uploaden in wachtrij';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'De kopie in volledige kwaliteit vervangen?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'Het origineel in je opslag wordt vervangen door een kopie in $level. De foto op dit apparaat blijft bewaard.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Vervangen';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>

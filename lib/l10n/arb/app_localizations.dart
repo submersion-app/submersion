@@ -31727,7 +31727,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_diveMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_diveMediaSection_unlinkSelectedTitle(int count);
 
   /// Title of the library unlink confirmation dialog
@@ -31937,7 +31937,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_siteMediaSection_unlinkSelectedTitle(int count);
 
   /// Site page unlink confirmation body
@@ -32155,6 +32155,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'URL'**
   String get media_photoPicker_tab_url;
+
+  /// No description provided for @media_photoPicker_feedElsewhereHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add a feed of photos, use Import on the Media screen.'**
+  String get media_photoPicker_feedElsewhereHint;
+
+  /// No description provided for @media_photoPicker_galleryOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add files or links, use Import on the Media screen.'**
+  String get media_photoPicker_galleryOnlyHint;
+
+  /// No description provided for @media_photoPicker_galleryOnlyLinksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add links, use Import on the Media screen.'**
+  String get media_photoPicker_galleryOnlyLinksHint;
 
   /// No description provided for @media_photoPicker_clearSelectionButton.
   ///
@@ -33302,6 +33320,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Never scanned'**
   String get media_sources_neverScanned;
+
+  /// No description provided for @media_sources_removeFolderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop watching this folder?'**
+  String get media_sources_removeFolderTitle;
+
+  /// No description provided for @media_sources_removeFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion forgets the files it found in {folder}, so missing photos are no longer looked for there. No photo or file is deleted.'**
+  String media_sources_removeFolderBody(String folder);
 
   /// Source type name
   ///
@@ -70912,6 +70942,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Re-upload queued'**
   String get settings_mediaStorage_quality_reuploadQueued;
+
+  /// No description provided for @settings_mediaStorage_quality_downgradeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the full-quality copy?'**
+  String get settings_mediaStorage_quality_downgradeTitle;
+
+  /// No description provided for @settings_mediaStorage_quality_downgradeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The original kept in your storage is replaced with a {level} copy. The photo on this device is kept.'**
+  String settings_mediaStorage_quality_downgradeBody(String level);
+
+  /// No description provided for @settings_mediaStorage_quality_downgradeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get settings_mediaStorage_quality_downgradeConfirm;
 
   /// No description provided for @settings_mediaStorage_quality_linuxFfmpegHint.
   ///
