@@ -171,18 +171,31 @@ void main() {
     expect(both.outcome.runtimeSeconds, deeper.outcome.runtimeSeconds);
   });
 
-  test('CCR plans take deviations but no lost gases', () {
-    final ccr = _plan(mode: domain.PlanMode.ccr);
+  for (final mode in [
+    domain.PlanMode.ccr,
+    domain.PlanMode.scr,
+    domain.PlanMode.pscr,
+  ]) {
+    test('${mode.name} plans take deviations but no lost gases', () {
+      // A loop's lost supply is the bailout solver's job, not a lost gas,
+      // even for a cylinder flagged as travel gas.
+      final loop = _plan(
+        mode: mode,
+        tanks: [_backTank, _ean50.copyWith(isTravelGas: true), _o2],
+      );
 
-    expect(service.contingencyFor(ccr, lostTankIds: {'ean50'}), isNull);
-    final deeper = service.contingencyFor(
-      ccr,
-      deeper: true,
-      lostTankIds: {'ean50'},
-    )!;
-    expect(deeper.lostTanks, isEmpty);
-    expect(deeper.plan.tanks.map((t) => t.id), contains('ean50'));
-  });
+      expect(service.contingencyFor(loop, lostTankIds: {'ean50'}), isNull);
+      expect(service.lostGas(loop), isEmpty);
+      expect(service.lostGasFor(loop, 'ean50'), isNull);
+      final deeper = service.contingencyFor(
+        loop,
+        deeper: true,
+        lostTankIds: {'ean50'},
+      )!;
+      expect(deeper.lostTanks, isEmpty);
+      expect(deeper.plan.tanks.map((t) => t.id), contains('ean50'));
+    });
+  }
 
   test('lost gases that would leave nothing to breathe are ignored', () {
     // A travel-flagged back gas is losable too, so every cylinder can be

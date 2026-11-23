@@ -448,16 +448,20 @@ final contingencySelectionProvider =
 
 /// Holds [contingencySelectionProvider]'s toggles.
 class ContingencySelectionNotifier extends Notifier<ContingencySelection> {
-  (String, domain.PlanMode)? _planKey;
+  (String, domain.PlanMode, int)? _planKey;
 
   @override
   ContingencySelection build() {
     // Rebuilt rather than written from a listener, so it is safe when the
-    // first read comes from a widget mid-build. Another plan or mode starts
-    // clean; +time goes with the bottom so it cannot return on its own once
-    // a bottom is added again (#4849).
-    final planKey = ref.watch(
-      divePlanNotifierProvider.select((s) => (s.id, s.mode)),
+    // first read comes from a widget mid-build. Another plan, a reopened one
+    // (same id, new load) or another mode starts clean; +time goes with the
+    // bottom so it cannot return on its own once a bottom is added again
+    // (#4849).
+    final plan = ref.watch(divePlanNotifierProvider);
+    final planKey = (
+      plan.id,
+      plan.mode,
+      ref.read(divePlanNotifierProvider.notifier).loadCount,
     );
     final canLengthen = ref.watch(planCanLengthenProvider);
     final samePlan = _planKey == null || _planKey == planKey;
@@ -465,14 +469,27 @@ class ContingencySelectionNotifier extends Notifier<ContingencySelection> {
     final previous = samePlan
         ? stateOrNull ?? ContingencySelection.none
         : ContingencySelection.none;
-    return canLengthen ? previous : previous.copyWith(longer: false);
+    return !canLengthen && previous.longer
+        ? previous.copyWith(longer: false)
+        : previous;
   }
 
   void toggleDeeper() => state = state.copyWith(deeper: !state.deeper);
 
   void toggleLonger() => state = state.copyWith(longer: !state.longer);
 
+  /// Whether [tankId] can be toggled: always off again, and on only while
+  /// a cylinder would still be left to breathe.
+  bool canToggleLostGas(String tankId) {
+    if (state.lostTankIds.contains(tankId)) return true;
+    final losable = {for (final t in ref.read(planLosableTanksProvider)) t.id};
+    if (!losable.contains(tankId)) return false;
+    final lost = state.lostTankIds.where(losable.contains).length;
+    return ref.read(divePlanNotifierProvider).tanks.length - lost > 1;
+  }
+
   void toggleLostGas(String tankId) {
+    if (!canToggleLostGas(tankId)) return;
     final ids = Set<String>.from(state.lostTankIds);
     if (!ids.add(tankId)) ids.remove(tankId);
     state = state.copyWith(lostTankIds: ids);
@@ -490,10 +507,10 @@ class ContingencySelectionNotifier extends Notifier<ContingencySelection> {
 }
 
 /// The carried cylinders that can be toggled lost, in plan order: empty for
-/// CCR plans and plans without segments (see [ContingencyService.isLosable]).
+/// loop plans and plans without segments (see [ContingencyService.isLosable]).
 final planLosableTanksProvider = Provider<List<DiveTank>>((ref) {
   final plan = divePlanFromState(ref.watch(divePlanNotifierProvider));
-  if (plan.mode == domain.PlanMode.ccr || plan.segments.isEmpty) {
+  if (plan.mode != domain.PlanMode.oc || plan.segments.isEmpty) {
     return const [];
   }
   final service = ContingencyService(

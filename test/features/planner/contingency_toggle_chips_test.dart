@@ -152,17 +152,60 @@ void main() {
     expect(find.textContaining('Previewing'), findsNothing);
   });
 
-  testWidgets('CCR plans offer no lost-gas chips', (tester) async {
+  for (final mode in [
+    domain.PlanMode.ccr,
+    domain.PlanMode.scr,
+    domain.PlanMode.pscr,
+  ]) {
+    testWidgets('${mode.name} plans offer no lost-gas chips', (tester) async {
+      final container = await _pump(tester);
+
+      container.read(divePlanNotifierProvider.notifier).updateMode(mode);
+      await tester.pumpAndSettle();
+
+      expect(_chip('+5m'), findsOneWidget);
+      expect(_chip('Lost EAN50'), findsNothing);
+      expect(_chip('Lost O2'), findsNothing);
+    });
+  }
+
+  testWidgets('reopening the same plan starts at Base', (tester) async {
     final container = await _pump(tester);
 
-    container
-        .read(divePlanNotifierProvider.notifier)
-        .updateMode(domain.PlanMode.ccr);
+    await tester.tap(_chip('+5m'));
+    await tester.tap(_chip('Lost EAN50'));
     await tester.pumpAndSettle();
 
-    expect(_chip('+5m'), findsOneWidget);
-    expect(_chip('Lost EAN50'), findsNothing);
-    expect(_chip('Lost O2'), findsNothing);
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    // A reopen loads a fresh copy of the saved plan, same id.
+    notifier.loadPlan(container.read(divePlanNotifierProvider).copyWith());
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(contingencySelectionProvider),
+      ContingencySelection.none,
+    );
+    expect(find.textContaining('Previewing'), findsNothing);
+  });
+
+  testWidgets('no entry point can mark every cylinder lost', (tester) async {
+    // The results pane toggles through the notifier directly, without the
+    // chip bar's disabled state, so the guard has to live there.
+    final container = await _pump(tester);
+    final plan = container.read(divePlanNotifierProvider.notifier);
+    final back = container.read(divePlanNotifierProvider).tanks.first;
+    plan.updateTank(back.id, back.copyWith(isTravelGas: true));
+    await tester.pumpAndSettle();
+
+    final selection = container.read(contingencySelectionProvider.notifier);
+    selection.toggleLostGas(back.id);
+    selection.toggleLostGas('ean50');
+    selection.toggleLostGas('o2');
+
+    expect(container.read(contingencySelectionProvider).lostTankIds, {
+      back.id,
+      'ean50',
+    });
   });
 
   testWidgets('opening another plan clears every toggle', (tester) async {

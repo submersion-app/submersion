@@ -133,14 +133,14 @@ class ContingencyService {
       tank.role == TankRole.stage ||
       tank.isTravelGas;
 
-  /// One outcome per losable cylinder (see [isLosable]). Empty for CCR plans
+  /// One outcome per losable cylinder (see [isLosable]). Empty for loop plans
   /// (loop loss is the bailout solver's job) and when no such cylinder is
   /// carried.
   List<LostGasOutcome> lostGas(
     domain.DivePlan inputPlan, {
     TissueState? startState,
   }) {
-    if (inputPlan.mode == domain.PlanMode.ccr || inputPlan.segments.isEmpty) {
+    if (inputPlan.mode != domain.PlanMode.oc || inputPlan.segments.isEmpty) {
       return const [];
     }
     // Losability is a question about derived roles (deco/stage), so resolve
@@ -157,14 +157,14 @@ class ContingencyService {
 
   /// A single tank's lost-gas schedule by [tankId], or null when the tank is
   /// missing, not losable, the only cylinder carried, or the plan can't be
-  /// varied (no segments, or CCR). Lets callers (the chart ghost, a tapped
+  /// varied (no segments, or a loop plan). Lets callers (the chart ghost, a tapped
   /// row) run just the one variant selected instead of the full set.
   LostGasOutcome? lostGasFor(
     domain.DivePlan inputPlan,
     String tankId, {
     TissueState? startState,
   }) {
-    if (inputPlan.mode == domain.PlanMode.ccr || inputPlan.segments.isEmpty) {
+    if (inputPlan.mode != domain.PlanMode.oc || inputPlan.segments.isEmpty) {
       return null;
     }
     final plan = const TankRoleResolver().apply(inputPlan);
@@ -186,8 +186,8 @@ class ContingencyService {
   }
 
   /// The deviation and lost cylinders applied together, or null when nothing
-  /// applicable is selected. Stale or non-losable ids, lost gases on CCR and
-  /// +time without a bottom (see [canLengthen]) are ignored.
+  /// applicable is selected. Stale or non-losable ids, lost gases on a loop
+  /// plan and +time without a bottom (see [canLengthen]) are ignored.
   CombinedContingencyOutcome? contingencyFor(
     domain.DivePlan inputPlan, {
     bool deeper = false,
@@ -197,7 +197,7 @@ class ContingencyService {
   }) {
     if (inputPlan.segments.isEmpty) return null;
     final plan = const TankRoleResolver().apply(inputPlan);
-    final losable = inputPlan.mode == domain.PlanMode.ccr
+    final losable = inputPlan.mode != domain.PlanMode.oc
         ? const <DiveTank>[]
         : [
             for (final t in plan.tanks)

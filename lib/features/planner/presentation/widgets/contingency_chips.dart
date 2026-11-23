@@ -36,10 +36,10 @@ class ContingencyChips extends ConsumerWidget {
     // A lost id whose tank is gone or no longer losable has no chip, so it
     // must not keep Base dark either.
     final losableIds = {for (final t in losable) t.id};
-    final lostOn = selection.lostTankIds.where(losableIds.contains).length;
-    final anyOn = selection.deeper || selection.longer || lostOn > 0;
-    // One more lost cylinder must still leave one to breathe.
-    final canLoseAnother = state.tanks.length - lostOn > 1;
+    final anyOn =
+        selection.deeper ||
+        selection.longer ||
+        selection.lostTankIds.any(losableIds.contains);
 
     Widget chip(String label, bool on, VoidCallback? onTap) => Semantics(
       selected: on,
@@ -59,7 +59,9 @@ class ContingencyChips extends ConsumerWidget {
       return chip(
         context.l10n.plannerCanvas_contingency_lostGas(tank.gasMix.name),
         on,
-        on || canLoseAnother ? () => notifier.toggleLostGas(tank.id) : null,
+        notifier.canToggleLostGas(tank.id)
+            ? () => notifier.toggleLostGas(tank.id)
+            : null,
       );
     }
 
