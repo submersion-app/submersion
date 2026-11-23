@@ -80,44 +80,60 @@ String _inactiveChildRevisionSql(String s) =>
     'WHERE h.series_id = $s.id AND h.dive_id = $s.dive_id '
     'AND h.parent_series_id IS NOT NULL)';
 
-/// Whether demoted series [s] belongs to the primary source's family while
-/// that family also holds an active series, which superseded it: a saved
-/// edit over its originals, or an activated revision over the others, whether
-/// or not either carries a computer (issue #4960). On a dive with no sources
-/// only an active series with no computer supersedes, as in Dart.
+/// Whether demoted series [s] is one an active series of the primary
+/// source's family superseded, as `dropSupersededSeries` decides it: any
+/// demoted family member beside an active series with no computer (a saved
+/// edit), and beside an active computer recording only one proven to share
+/// its source, by naming a source row of the dive or by every source row
+/// showing as the primary (issue #4960).
 String _supersededOriginalSql(String s) =>
     '(${_primaryFamilySql(s)} AND EXISTS (SELECT 1 FROM dive_profile_series e '
     'WHERE e.dive_id = $s.dive_id AND e.is_primary = 1 '
     'AND ${_primaryFamilySql('e')} '
-    'AND (e.computer_id IS NULL OR EXISTS (SELECT 1 FROM dive_data_sources ds '
-    'WHERE ds.dive_id = e.dive_id))))';
+    'AND (e.computer_id IS NULL '
+    'OR EXISTS (SELECT 1 FROM dive_data_sources r '
+    'WHERE r.id = $s.source_id AND r.dive_id = $s.dive_id) '
+    'OR (EXISTS (SELECT 1 FROM dive_data_sources r '
+    'WHERE r.dive_id = $s.dive_id) '
+    'AND NOT EXISTS (SELECT 1 FROM dive_data_sources r '
+    'JOIN dive_data_sources p ON p.id = ${_firstSourceRowSql('$s.dive_id')} '
+    'WHERE r.dive_id = $s.dive_id AND NOT ${_sameStrandSql('r', 'p')})))))';
+
+/// The id of the first `dive_data_sources` row of the dive [diveId] names, in
+/// shown order: primary first, then oldest, then by id, as the Dart read
+/// orders them.
+String _firstSourceRowSql(String diveId) =>
+    '(SELECT ds.id FROM dive_data_sources ds WHERE ds.dive_id = $diveId '
+    'ORDER BY ds.is_primary DESC, ds.created_at ASC, ds.id ASC LIMIT 1)';
+
+/// Whether source rows [r] and [p] show as one chip: the same row, the same
+/// computer, or, with no computer on either, the same merge slot. That is
+/// `dataSourceStrandKey`; the one strand rule SQL leaves out is the collapse
+/// of two computer-less rows of one recording that carry no merge slot
+/// (`sameRecordingWithoutComputer`), which compares model and serial text.
+/// Never NULL, so it can be negated.
+String _sameStrandSql(String r, String p) =>
+    '(COALESCE(($r.id = $p.id OR $r.computer_id = $p.computer_id '
+    'OR ($r.computer_id IS NULL AND $p.computer_id IS NULL '
+    'AND $r.merge_source_slot = $p.merge_source_slot)), 0) = 1)';
 
 /// Whether series [x] is in the primary source's family, as
 /// `dropSupersededSeries` places it.
 ///
 /// A series naming one of the dive's source rows is family when that row
-/// shows as the first source in shown order: it is that row, or shares its
-/// computer, or, with no computer on either, its merge slot. That is
-/// `dataSourceStrandKey`; the one strand rule SQL leaves out is the collapse
-/// of two computer-less rows of one recording that carry no merge slot
-/// (`sameRecordingWithoutComputer`), which compares model and serial text.
-/// A series naming no such row follows the computer: it is family with no
-/// computer, on a dive with no sources, or on the first source's computer.
+/// shows as the first source in shown order ([_sameStrandSql]). A series
+/// naming no such row follows the computer: it is family with no computer,
+/// on a dive with no sources, or on the first source's computer.
 String _primaryFamilySql(String x) {
-  const sources = 'dive_data_sources ds WHERE ds.dive_id';
-  final firstRow =
-      '(SELECT ds.id FROM $sources = $x.dive_id '
-      'ORDER BY ds.is_primary DESC, ds.created_at ASC, ds.id ASC LIMIT 1)';
+  final firstRow = _firstSourceRowSql('$x.dive_id');
   return '(CASE WHEN EXISTS (SELECT 1 FROM dive_data_sources r '
       'WHERE r.id = $x.source_id AND r.dive_id = $x.dive_id) '
       'THEN EXISTS (SELECT 1 FROM dive_data_sources r '
       'JOIN dive_data_sources p ON p.id = $firstRow '
-      'WHERE r.id = $x.source_id AND (r.id = p.id '
-      'OR r.computer_id = p.computer_id '
-      'OR (r.computer_id IS NULL AND p.computer_id IS NULL '
-      'AND r.merge_source_slot = p.merge_source_slot))) '
+      "WHERE r.id = $x.source_id AND ${_sameStrandSql('r', 'p')}) "
       'ELSE ($x.computer_id IS NULL '
-      'OR NOT EXISTS (SELECT 1 FROM $sources = $x.dive_id) '
+      'OR NOT EXISTS (SELECT 1 FROM dive_data_sources ds '
+      'WHERE ds.dive_id = $x.dive_id) '
       'OR $x.computer_id = (SELECT p.computer_id FROM dive_data_sources p '
       'WHERE p.id = $firstRow)) END)';
 }

@@ -206,6 +206,53 @@ void main() {
       expect(drop([edit, secondRow]).map((s) => s.id), ['edit', 'second-row']);
     });
 
+    // Before v154 a computer-less series on a dive with several sources kept
+    // no source_id, so nothing ties it to the primary rather than to a
+    // second source recorded with no computer.
+    test('an active recording keeps an unfiled computer-less series when '
+        'the dive has another source', () {
+      final recording = series(
+        'recording',
+        computerId: 'c1',
+        sourceId: 's1',
+        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+      );
+      final unfiled = series(
+        'unfiled',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
+      );
+
+      expect(drop([recording, unfiled]).map((s) => s.id), [
+        'recording',
+        'unfiled',
+      ]);
+    });
+
+    test('an active recording drops an unfiled computer-less copy when '
+        'every source row shows as the primary', () {
+      final recording = series(
+        'recording',
+        computerId: 'c1',
+        sourceId: 's1',
+        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+      );
+      final unfiled = series(
+        'unfiled',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
+      );
+
+      final kept = dropSupersededSeries(
+        [recording, unfiled],
+        hasSources: true,
+        primaryComputerId: 'c1',
+        sourceRowIds: const {'s1'},
+        primarySourceRowIds: const {'s1'},
+      );
+      expect(kept.map((s) => s.id), ['recording']);
+    });
+
     test('a series naming no source row follows the computer', () {
       final unfiled = series(
         'unfiled',

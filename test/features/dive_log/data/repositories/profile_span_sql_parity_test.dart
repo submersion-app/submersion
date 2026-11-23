@@ -335,4 +335,62 @@ void main() {
     );
     await expectSpan('same-computer', 3000);
   });
+
+  test('an active recording keeps an unfiled computer-less series when the '
+      'dive has another source', () async {
+    await createComputer('comp-1');
+    await createBareDive('unfiled-two');
+    await createSource(
+      'source-1',
+      diveId: 'unfiled-two',
+      computerId: 'comp-1',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+    );
+    await createSource(
+      'source-2',
+      diveId: 'unfiled-two',
+      computerId: null,
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+    );
+    await series.insertSeries(
+      diveId: 'unfiled-two',
+      computerId: 'comp-1',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    // Written before v154: no source_id ties it to either row.
+    await series.insertSeries(
+      diveId: 'unfiled-two',
+      isPrimary: false,
+      samples: samples(3300),
+    );
+    await expectSpan('unfiled-two', 3300);
+  });
+
+  test('an active recording hides an unfiled computer-less copy on a '
+      'single-source dive', () async {
+    await createComputer('comp-1');
+    await createBareDive('unfiled-one');
+    await createSource(
+      'source-1',
+      diveId: 'unfiled-one',
+      computerId: 'comp-1',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+    );
+    await series.insertSeries(
+      diveId: 'unfiled-one',
+      computerId: 'comp-1',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'unfiled-one',
+      isPrimary: false,
+      samples: samples(3300),
+    );
+    await expectSpan('unfiled-one', 3000);
+  });
 }
