@@ -35,6 +35,7 @@ class HeldSchema {
   final GeneratedDatabase _db;
   final _keyColumns = <String, List<String>>{};
   final _hasClock = <String, bool>{};
+  final _foreignKeys = <String, Map<int, HeldForeignKey>>{};
   Map<String, List<HeldForeignKey>>? _children;
 
   Future<List<Map<String, Object?>>> _tableInfo(String table) async => [
@@ -85,16 +86,21 @@ class HeldSchema {
     return byParent;
   }
 
-  /// [table]'s foreign keys, by SQLite's id for each.
+  /// [table]'s foreign keys, by SQLite's id for each. A key over several
+  /// columns is reported by its first (seq 0), as the repair always read it.
   Future<Map<int, HeldForeignKey>> foreignKeysById(String table) async {
+    final cached = _foreignKeys[table];
+    if (cached != null) return cached;
     final rows = await _db
         .customSelect('PRAGMA foreign_key_list("$table")')
         .get();
     final byId = <int, HeldForeignKey>{};
     for (final row in rows) {
+      final id = row.read<int>('id');
+      if (byId.containsKey(id)) continue;
       final parent = row.read<String>('table');
       final to = row.data['to'] as String? ?? (await keyColumns(parent)).first;
-      byId[row.read<int>('id')] = HeldForeignKey(
+      byId[id] = HeldForeignKey(
         table: table,
         from: row.read<String>('from'),
         parent: parent,
@@ -102,7 +108,7 @@ class HeldSchema {
         onDelete: row.read<String>('on_delete').toUpperCase(),
       );
     }
-    return byId;
+    return _foreignKeys[table] = byId;
   }
 
   Future<List<HeldForeignKey>> foreignKeys(String table) async =>

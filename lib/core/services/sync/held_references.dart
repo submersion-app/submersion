@@ -61,8 +61,8 @@ class HeldParent {
   };
 }
 
-/// A nullable link the repair cleared: restored once [parent] exists, left
-/// out of this device's exports until then.
+/// A nullable link the repair cleared: restored once [parent] exists, and
+/// exported with the value it held until then.
 class HeldLink {
   const HeldLink({
     required this.table,

@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_test/flutter_test.dart';
+
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
-import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/held_references.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
@@ -20,8 +22,8 @@ import '../../../helpers/test_database.dart';
 /// Issue #4954: the sync apply's foreign key repair clears a link (or deletes
 /// a NOT NULL child) whose parent is not on this device yet. When that parent
 /// arrives from another peer, the change is undone, and until then this
-/// device's exports leave a cleared column out, so its next edit of the row
-/// cannot clear the link on every other device.
+/// device exports a held link as the value it held, so its next edit of the
+/// row cannot clear the link on every other device.
 void main() {
   late AppDatabase db;
   late SyncDataSerializer serializer;
@@ -51,6 +53,8 @@ void main() {
 
   tearDown(() {
     DatabaseService.instance.resetForTesting();
+    // performSync configures the process-wide clock for this test's device.
+    SyncClock.instance.reset();
   });
 
   /// One peer's apply: [body] writes its rows, then the repair runs, in one
@@ -136,17 +140,18 @@ void main() {
       expect((await held()).isEmpty, isTrue);
     });
 
-    test('is left out of this device\'s export while it is held', () async {
+    test('goes out in this device\'s export as the value it held', () async {
       await apply(() => insertItem('item', sectionId: 'gear', hlc: phoneClock));
 
-      expect((await exportedItem('item')).containsKey('sectionId'), isFalse);
+      expect((await item('item'))!['section_id'], isNull);
+      expect((await exportedItem('item'))['sectionId'], 'gear');
 
       await apply(() => insertSection('gear'));
 
       expect((await exportedItem('item'))['sectionId'], 'gear');
     });
 
-    test('is left out of a streamed base while it is held', () async {
+    test('goes out in a streamed base as the value it held', () async {
       await apply(() => insertItem('item', sectionId: 'gear', hlc: phoneClock));
 
       final base = await serializer.exportBaseToTempFile(
@@ -165,7 +170,7 @@ void main() {
               .cast<Map<String, dynamic>>();
 
       final row = items.singleWhere((r) => r['id'] == 'item');
-      expect(row.containsKey('sectionId'), isFalse);
+      expect(row['sectionId'], 'gear');
       expect(row['title'], 'Mask');
     });
 
@@ -177,7 +182,7 @@ void main() {
       );
 
       final edited = await exportedItem('item');
-      expect(edited.containsKey('sectionId'), isFalse);
+      expect(edited['sectionId'], 'gear');
       expect(edited['isDone'], isTrue);
 
       await apply(() => insertSection('gear'));
@@ -251,7 +256,35 @@ void main() {
 
       expect((await item('item'))!['section_id'], isNull);
       expect((await held()).isEmpty, isTrue);
-      expect((await exportedItem('item')).containsKey('sectionId'), isTrue);
+      expect((await exportedItem('item'))['sectionId'], isNull);
+    });
+
+    test('a hold this build can no longer read is let go, and the apply '
+        'still commits', () async {
+      // A link held under a column a later schema renamed.
+      const stale = HeldLink(
+        table: 'trip_checklist_items',
+        key: {'id': 'item'},
+        column: 'retired_section_id',
+        parent: HeldParent(
+          table: 'trip_checklist_sections',
+          column: 'id',
+          value: 'gear',
+        ),
+      );
+      await insertItem('item', hlc: phoneClock);
+      await db.customStatement(
+        'INSERT INTO settings (key, value, updated_at) VALUES (?, ?, 0)',
+        [
+          heldLinksSettingsKey,
+          HeldReferences(links: {stale.id: stale}).encodeLinks(),
+        ],
+      );
+
+      expect((await exportedItem('item'))['title'], 'Mask');
+      await apply(() => insertSection('gear'));
+
+      expect((await held()).isEmpty, isTrue);
     });
   });
 
@@ -450,6 +483,64 @@ void main() {
       expect((await held()).isEmpty, isTrue);
     });
 
+    test('is let go when the library is replaced, so the replacement does '
+        'not get it back', () async {
+      // The wire rows of a checklist this device does not have yet.
+      await db.customStatement(
+        'INSERT INTO trip_checklists (id, trip_id, name, created_at, '
+        "updated_at) VALUES ('late-list', 'trip', 'Spares', 0, 0)",
+      );
+      final trip = await serializer.fetchRecord('trips', 'trip');
+      final list = await serializer.fetchRecord('tripChecklists', 'list');
+      final lateList = await serializer.fetchRecord(
+        'tripChecklists',
+        'late-list',
+      );
+      await db.customStatement(
+        "DELETE FROM trip_checklists WHERE id = 'late-list'",
+      );
+      await apply(
+        () => db.customStatement(
+          'INSERT INTO trip_checklist_sections (id, checklist_id, title, '
+          "created_at, updated_at) VALUES ('late-gear', 'late-list', "
+          "'Dive gear', 0, 0)",
+        ),
+      );
+      expect((await held()).orphans, hasLength(1));
+
+      // The replacement library has the checklist but not the section.
+      final replacement = SyncData(
+        trips: [trip!],
+        tripChecklists: [list!, lateList!],
+      );
+      await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: serializer,
+        cloudProvider: FakeCloudStorageProvider(),
+      ).debugAdoptInMemory([
+        SyncPayload(
+          version: syncFormatVersion,
+          exportedAt: 9000,
+          deviceId: 'replacer',
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(replacement.toJson())))
+              .toString(),
+          data: replacement,
+          deletions: const {},
+        ),
+      ]);
+
+      expect(
+        await db
+            .customSelect(
+              "SELECT 1 FROM trip_checklist_sections WHERE id = 'late-gear'",
+            )
+            .getSingleOrNull(),
+        isNull,
+      );
+      expect((await held()).isEmpty, isTrue);
+    });
+
     test('is not put back over a copy that arrived since', () async {
       await apply(
         () => db.customStatement(
@@ -544,8 +635,8 @@ void main() {
       expect((await held()).isEmpty, isTrue);
     });
 
-    test('a newer copy from a peer holding the same link keeps it held until '
-        'the section arrives', () async {
+    test('a newer copy that leaves the column out keeps it held until the '
+        'section arrives', () async {
       await insertSection('gear');
       await insertItem('item', sectionId: 'gear', hlc: phoneClock);
       final section = await serializer.fetchRecord(
@@ -559,8 +650,8 @@ void main() {
       await db.customStatement('DELETE FROM trip_checklist_items');
       await db.customStatement('DELETE FROM trip_checklist_sections');
 
-      // The iPad holds the same link and ticked the item: its copy is newer
-      // and leaves sectionId out.
+      // The iPad, on a build that does not know the column, ticked the item:
+      // its copy is newer and leaves sectionId out.
       final ipadItem = {
         for (final e in phoneItem!.entries)
           if (e.key != 'sectionId') e.key: e.value,
@@ -584,6 +675,57 @@ void main() {
       final synced = (await item('item'))!;
       expect(synced['is_done'], 1, reason: 'the newer copy applies');
       expect(synced['section_id'], 'gear', reason: 'and the link comes back');
+    });
+
+    test('an edit made here reaches a device that has never had the item '
+        'with its section, whatever order it pulls in', () async {
+      // Here: the phone's item lands without its section, then the diver
+      // ticks it.
+      await insertSection('gear');
+      await insertItem('item', sectionId: 'gear', hlc: phoneClock);
+      final phoneItem = await serializer.fetchRecord(
+        'tripChecklistItems',
+        'item',
+      );
+      await db.customStatement('DELETE FROM trip_checklist_items');
+      await db.customStatement('DELETE FROM trip_checklist_sections');
+      await apply(() => insertItem('item', sectionId: 'gear', hlc: phoneClock));
+      await db.customStatement(
+        "UPDATE trip_checklist_items SET is_done = 1, hlc = ? WHERE id = 'item'",
+        [localClock],
+      );
+      final ticked = await exportedItem('item');
+
+      // A watch with the section but no item pulls this device's newer copy
+      // before the phone's older one.
+      DatabaseService.instance.resetForTesting();
+      db = await setUpTestDatabase();
+      serializer = SyncDataSerializer();
+      await db.customStatement(
+        'INSERT INTO sync_metadata (id, device_id, created_at, updated_at) '
+        "VALUES ('global', 'watch', 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO trips (id, name, start_date, end_date, created_at, '
+        "updated_at) VALUES ('trip', 'Bonaire', 0, 0, 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO trip_checklists (id, trip_id, name, created_at, '
+        "updated_at) VALUES ('list', 'trip', 'Packing', 0, 0)",
+      );
+      await insertSection('gear');
+
+      await seedPeer('peer-1-$here', SyncData(tripChecklistItems: [ticked]));
+      await seedPeer(
+        'peer-2-phone',
+        SyncData(tripChecklistItems: [phoneItem!]),
+      );
+      final result = await sync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      final onWatch = (await item('item'))!;
+      expect(onWatch['is_done'], 1);
+      expect(onWatch['section_id'], 'gear');
     });
 
     test('an edit made here before the section arrives leaves the section '

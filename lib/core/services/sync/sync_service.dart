@@ -5746,6 +5746,9 @@ class SyncService {
       }
     }
 
+    // The holds describe the copy being replaced (issue #4954).
+    await _serializer.discardHeldReferences();
+
     // Upsert every restored record.
     for (final entry in restored.entries) {
       await _serializer.noteIncomingRows(entry.key, [...entry.value.values]);
@@ -5907,6 +5910,8 @@ class SyncService {
       if (inboundOnlyLegacyEntities.containsKey(entity)) continue;
       await _serializer.deleteAllRecords(entity);
     }
+    // The holds describe the copy being replaced (issue #4954).
+    await _serializer.discardHeldReferences();
 
     // Batched upsert of a table's rows (skipping null-id rows, matching the
     // in-memory path). Batching is the throughput lever: a large adopt is

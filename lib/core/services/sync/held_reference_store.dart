@@ -49,35 +49,36 @@ class IncomingCopies {
   }
 }
 
-/// Removes held link columns from this device's exported rows.
+/// Puts held links back into this device's exported rows.
 class HeldExportFilter {
   const HeldExportFilter(this._byTable);
 
   static const none = HeldExportFilter({});
 
-  /// SQL table to (primary key columns, row id to wire keys left out).
-  final Map<String, ({List<String> keyColumns, Map<String, Set<String>> keys})>
+  /// SQL table to (primary key columns, row id to held wire values).
+  final Map<
+    String,
+    ({List<String> keyColumns, Map<String, Map<String, Object>> values})
+  >
   _byTable;
 
   bool get isEmpty => _byTable.isEmpty;
 
   bool covers(String table) => _byTable.containsKey(table);
 
-  /// [row], a wire row of [table], without the keys of a link this device
-  /// still holds; [row] itself when it has none. The receiver then keeps its
-  /// own value, as it does for any key a peer leaves out.
-  Map<String, dynamic> strip(String table, Map<String, dynamic> row) {
+  /// [row], a wire row of [table], carrying each link this device still
+  /// holds as the value it held; [row] itself when it has none. The row goes
+  /// out as if the repair had never cleared it, so a receiver that has the
+  /// parent keeps the link, and one that does not holds it in turn.
+  Map<String, dynamic> withHeldValues(String table, Map<String, dynamic> row) {
     final entry = _byTable[table];
     if (entry == null) return row;
     final rowId = heldRowId(table, {
       for (final column in entry.keyColumns) column: row[columnJsonKey(column)],
     });
-    final keys = entry.keys[rowId];
-    if (keys == null) return row;
-    return {
-      for (final e in row.entries)
-        if (!keys.contains(e.key)) e.key: e.value,
-    };
+    final values = entry.values[rowId];
+    if (values == null) return row;
+    return {...row, ...values};
   }
 }
 
@@ -167,6 +168,13 @@ class HeldReferenceStore {
     );
   }
 
+  /// Forgets everything held. For a replace of the whole library: the rows
+  /// the holds describe belonged to the copy being discarded.
+  Future<void> discard() async {
+    await _write(heldLinksSettingsKey, null);
+    await _write(heldOrphansSettingsKey, null);
+  }
+
   /// [notes] with the copies in [records], wire rows of [table], of rows
   /// this device holds a link for.
   Future<IncomingCopies> noteIncoming(
@@ -198,21 +206,35 @@ class HeldReferenceStore {
     return noted;
   }
 
-  /// The filter that keeps this device's held links off the wire: a link
-  /// still cleared here goes out without its column.
+  /// The filter that sends this device's held links with the values they
+  /// held: a link still cleared here goes out as it was before the repair.
   Future<HeldExportFilter> exportFilter() async {
     final links = await loadLinks();
     if (links.isEmpty) return HeldExportFilter.none;
     final byTable =
-        <String, ({List<String> keyColumns, Map<String, Set<String>> keys})>{};
+        <
+          String,
+          ({List<String> keyColumns, Map<String, Map<String, Object>> values})
+        >{};
     for (final link in links.values) {
-      final row = await _readRow(link.table, link.key, [link.column]);
-      if (row == null || row.data[link.column] != null) continue;
-      final entry = byTable[link.table] ??= (
-        keyColumns: await _schema.keyColumns(link.table),
-        keys: {},
-      );
-      (entry.keys[link.rowId] ??= {}).add(columnJsonKey(link.column));
+      try {
+        final row = await _readRow(link.table, link.key, [link.column]);
+        if (row == null || row.data[link.column] != null) continue;
+        final entry = byTable[link.table] ??= (
+          keyColumns: await _schema.keyColumns(link.table),
+          values: {},
+        );
+        (entry.values[link.rowId] ??= {})[columnJsonKey(link.column)] =
+            link.parent.value;
+      } on Object catch (e, stackTrace) {
+        // A hold this build cannot read (its table or column was renamed
+        // since) adds nothing to the export; the next apply drops it.
+        _log.warning(
+          'Held ${link.table} link skipped in export',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
     }
     return HeldExportFilter(byTable);
   }
@@ -293,7 +315,10 @@ class HeldReferenceStore {
     while (restoredAny) {
       restoredAny = false;
       for (final orphan in orphans.values.toList()) {
-        final outcome = await _settleOrphan(orphan);
+        final outcome = await _guarded(
+          orphan.table,
+          () => _settleOrphan(orphan),
+        );
         if (outcome == _Outcome.keep) continue;
         orphans.remove(orphan.id);
         if (outcome == _Outcome.restored) {
@@ -305,7 +330,11 @@ class HeldReferenceStore {
     final localNode = await _localNodeId();
     final links = <String, HeldLink>{};
     for (final link in held.links.values) {
-      final settled = await _settleLink(link, notes, localNode);
+      final settled = await _guarded(
+        link.table,
+        () => _settleLink(link, notes, localNode),
+        dropped: (outcome: _Outcome.drop, link: link),
+      );
       switch (settled.outcome) {
         case _Outcome.keep:
           links[link.id] = settled.link;
@@ -319,6 +348,26 @@ class HeldReferenceStore {
       held: HeldReferences(links: links, orphans: orphans),
       tables: tables,
     );
+  }
+
+  /// [settle], or [dropped] when it throws: a hold this build cannot act on
+  /// (its table or column was renamed or dropped by a later schema) is let
+  /// go rather than failing every apply after it.
+  Future<T> _guarded<T>(
+    String table,
+    Future<T> Function() settle, {
+    T? dropped,
+  }) async {
+    try {
+      return await settle();
+    } on Object catch (e, stackTrace) {
+      _log.warning(
+        'Held $table reference dropped: it no longer fits this database',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return dropped ?? (_Outcome.drop as T);
+    }
   }
 
   /// Whether to keep holding [link] (and as what), or that it was written
@@ -341,13 +390,15 @@ class HeldReferenceStore {
     final hlc = hasClock ? row.data['hlc'] as String? : null;
     if (hlc != link.hlc) {
       if (_isMintedBy(hlc, localNode)) {
-        // This device's own edit: it left the column out of its export, so
-        // the other devices still hold the link.
+        // This device's own edit: its export carried the held value, so the
+        // other devices still hold the link.
         kept = link.withHlc(hlc);
       } else {
-        // Another device's copy. One that carried the column decides it; one
-        // that left it out (a peer holding the same link) does not. A write
-        // no note explains is taken as deciding it.
+        // Another device's copy. One that carried the column decides it
+        // (a copy naming the same missing parent is held again by the repair
+        // after this); one that left it out, from a build that does not know
+        // the column, does not. A write no note explains is taken as
+        // deciding it.
         final copy = notes.find(link.rowId, hlc);
         if (copy == null || copy.keys.contains(columnJsonKey(link.column))) {
           return (outcome: _Outcome.drop, link: link);
@@ -376,7 +427,8 @@ class HeldReferenceStore {
   Future<_Outcome> _settleOrphan(HeldOrphan orphan) async {
     // A copy that arrived since decides the row.
     if (await _exists(orphan.table, orphan.key)) return _Outcome.drop;
-    if (await _isTombstoned(orphan.table, orphan.key)) return _Outcome.drop;
+    final root = orphan.rows.isEmpty ? orphan.key : orphan.rows.first.values;
+    if (await _isTombstoned(orphan.table, root)) return _Outcome.drop;
     if (!await _exists(orphan.parent.table, {
       orphan.parent.column: orphan.parent.value,
     })) {
@@ -533,9 +585,16 @@ class HeldReferenceStore {
   Future<bool> _isTombstoned(String table, Map<String, Object?> values) async {
     final entityType = _entityTypeOf(table);
     if (entityType == null) return false;
-    final recordId = syncRecordId(entityType, {
-      for (final e in values.entries) columnJsonKey(e.key): e.value,
-    });
+    final String? recordId;
+    try {
+      recordId = syncRecordId(entityType, {
+        for (final e in values.entries) columnJsonKey(e.key): e.value,
+      });
+    } on TypeError {
+      // A key this build's record ids cannot be made from (not a string):
+      // no tombstone can name it.
+      return false;
+    }
     if (recordId == null) return false;
     final row = await _db
         .customSelect(

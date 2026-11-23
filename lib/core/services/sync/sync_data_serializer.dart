@@ -1873,7 +1873,8 @@ class SyncDataSerializer {
       final tables = _baseTables;
       // Library sites and their children stay out of the base (issue #2567).
       final librarySites = await librarySiteIds();
-      // So do the columns of links this device still holds (issue #4954).
+      // A link this device still holds goes out as the value it held (issue
+      // #4954), never as the repair's null.
       final heldLinks = await HeldReferenceStore(
         _db,
         entityTypeOf: _entityTypeForTable,
@@ -1920,7 +1921,7 @@ class SyncDataSerializer {
           final local = withoutDeviceLocalColumns(spec.key, row);
           final wire = heldTable == null
               ? local
-              : heldLinks.strip(heldTable, local);
+              : heldLinks.withHeldValues(heldTable, local);
           await writeData(jsonEncode(wire));
         }
 
@@ -2574,7 +2575,7 @@ class SyncDataSerializer {
   Future<SyncData> _buildSyncData(
     String? hlcSince, {
     bool childrenByOwnClock = false,
-  }) async => _withoutHeldLinks(
+  }) async => _withHeldLinks(
     await _withLibrarySiteIdsMemo(
       () => _buildSyncDataUnmemoised(
         hlcSince,
@@ -2603,11 +2604,13 @@ class SyncDataSerializer {
     }
   }
 
-  /// [data] without the columns of links this device still holds (issue
-  /// #4954). A held link is cleared here only because its parent has not
-  /// arrived yet; sending that null would clear it on every device, so the
-  /// row goes out without the column and each receiver keeps its own value.
-  Future<SyncData> _withoutHeldLinks(SyncData data) async {
+  /// [data] with each link this device still holds carrying the value it
+  /// held (issue #4954). A held link is cleared here only because its parent
+  /// has not arrived yet; sending that null would clear it on every device.
+  /// Sending the held value (rather than leaving the column out) also gives
+  /// the link to a device that has never had the row: it keeps the link, or
+  /// holds it in turn until the parent reaches it.
+  Future<SyncData> _withHeldLinks(SyncData data) async {
     final filter = await HeldReferenceStore(
       _db,
       entityTypeOf: _entityTypeForTable,
@@ -2626,7 +2629,7 @@ class SyncDataSerializer {
       changed = true;
       stripped[entry.key] = [
         for (final row in rows)
-          filter.strip(table, row as Map<String, dynamic>),
+          filter.withHeldValues(table, row as Map<String, dynamic>),
       ];
     }
     return changed ? SyncData.fromJson(stripped) : data;
@@ -3451,6 +3454,15 @@ class SyncDataSerializer {
     });
   }
 
+  /// Forgets every held reference (issue #4954). A replace of the whole
+  /// library calls this: the holds describe the copy it discards, and one
+  /// put back afterwards would bring a row the replacement removed back into
+  /// the new library.
+  Future<void> discardHeldReferences() async {
+    _incomingCopies = IncomingCopies.none;
+    await HeldReferenceStore(_db).discard();
+  }
+
   /// The peers' copies of held rows seen since the last repair (issue
   /// #4954). Filled by [noteIncomingRows], read and cleared by the repair.
   var _incomingCopies = IncomingCopies.none;
@@ -3458,9 +3470,9 @@ class SyncDataSerializer {
   /// Notes which columns each peer row in [records] carries, for the rows
   /// whose links this device holds, before a merge or adopt overlays them
   /// onto the local rows (issue #4954). A held link is let go only when a
-  /// copy that carried its column wins; a copy from a peer that left the
-  /// column out keeps it held. Every apply path calls this with the rows as
-  /// the payload carried them.
+  /// copy that carried its column wins; a copy that left the column out (a
+  /// peer whose build does not know it) keeps it held. Every apply path calls
+  /// this with the rows as the payload carried them.
   Future<void> noteIncomingRows(
     String entityType,
     List<Map<String, dynamic>> records,
@@ -3480,8 +3492,8 @@ class SyncDataSerializer {
   /// Repairs every foreign key left dangling after a sync apply: a nullable
   /// reference is cleared; a non-nullable orphan is deleted (a manual cascade).
   /// Unless the parent is known deleted, each change is held and undone once
-  /// the parent arrives, and a held link stays out of this device's exports
-  /// until then (issue #4954; see held_references.dart).
+  /// the parent arrives, and a held link goes out in this device's exports
+  /// as the value it held (issue #4954; see held_references.dart).
   /// Applying a remote deletion of a parent can leave a local row pointing at
   /// it via a non-cascading FK, which would otherwise fail the deferred-FK
   /// COMMIT and abort the whole sync. Must run inside
