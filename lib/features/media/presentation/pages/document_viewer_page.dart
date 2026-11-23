@@ -25,21 +25,16 @@ class DocumentViewerPage extends ConsumerStatefulWidget {
   final MediaItem item;
 
   /// The site this document is attached to, when its category and display
-  /// size may be edited here (issue #1039). Null for dive and equipment
-  /// documents, which hides Edit details. The filename is never editable.
+  /// size may be edited here (issue #1039). The document then has its own
+  /// lock (issue #4527): opened locked, with no Edit details, and unlocked
+  /// its details are held until one Save. Null for dive and equipment
+  /// documents, which read only. The filename is never editable.
   final String? editableSiteId;
-
-  /// Whether the document has its own lock (issue #4527, phase 2): opened
-  /// locked, with no Edit details, and unlocked its details are held until
-  /// one Save. Only with an [editableSiteId]; without it, Edit details
-  /// writes at once, as before.
-  final bool attachmentLock;
 
   const DocumentViewerPage({
     super.key,
     required this.item,
     this.editableSiteId,
-    this.attachmentLock = false,
   });
 
   @override
@@ -54,14 +49,8 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
   /// builds; the call is idempotent and cheap afterwards.
   late final Future<void> _engineReady = pdfrxFlutterInitialize();
 
-  /// The item as last saved here, so the app bar shows a rename and a
-  /// second Edit details opens on the saved category and size, not the ones
-  /// the page was opened with. The bytes stay keyed on [widget.item], so an
-  /// edit does not reload the PDF.
-  late MediaItem _item = widget.item;
-
   /// Whether the document has its own lock here.
-  bool get _hasLock => widget.attachmentLock && widget.editableSiteId != null;
+  bool get _hasLock => widget.editableSiteId != null;
 
   @override
   bool get editingOffered => _hasLock && super.editingOffered;
@@ -123,40 +112,23 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
     );
   }
 
-  /// The bar while locked: the lock where the document has one, else Edit
-  /// details as before, and Share.
+  /// The bar while locked: the lock where the document has one, and Share.
   PreferredSizeWidget _lockedBar(BuildContext context, PhotoRecord? stored) {
     return AppBar(
       title: Text(
-        _item.originalFilename ?? context.l10n.media_documentViewer_title,
+        widget.item.originalFilename ?? context.l10n.media_documentViewer_title,
         overflow: TextOverflow.ellipsis,
       ),
       actions: [
-        if (_hasLock) ...[
-          // A device that changes no media (a browser) reads only.
-          if (editingOffered)
-            IconButton(
-              key: const ValueKey('document_unlock'),
-              icon: const Icon(Icons.lock_outline),
-              tooltip: context.l10n.recordEdit_unlockTooltip,
-              onPressed: canUnlock(widget.item, stored)
-                  ? () => unlockPhoto(stored!)
-                  : null,
-            ),
-        ] else if (widget.editableSiteId != null)
+        // A device that changes no media (a browser) reads only.
+        if (_hasLock && editingOffered)
           IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: context.l10n.media_siteAttachment_editDetails,
-            onPressed: () async {
-              final saved = await showAttachmentDetailsSheet(
-                context,
-                item: _item,
-                siteId: widget.editableSiteId!,
-              );
-              if (saved != null && mounted) {
-                setState(() => _item = saved);
-              }
-            },
+            key: const ValueKey('document_unlock'),
+            icon: const Icon(Icons.lock_outline),
+            tooltip: context.l10n.recordEdit_unlockTooltip,
+            onPressed: canUnlock(widget.item, stored)
+                ? () => unlockPhoto(stored!)
+                : null,
           ),
         // Builder so the share popover anchors to this button on iPad:
         // findRenderObject from a Builder's context descends to the
