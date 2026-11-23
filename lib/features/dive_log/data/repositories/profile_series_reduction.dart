@@ -86,8 +86,7 @@ typedef PrimarySourceFamily = ({
 
 /// Reduces series to the points a reader of the whole dive sees: the demoted
 /// series an active one superseded in the primary family dropped, then every
-/// remaining
-/// source's samples interleaved by timestamp.
+/// remaining source's samples interleaved by timestamp.
 ///
 /// [hasSources], [primaryComputerId], [sourceRowIds] and
 /// [primarySourceRowIds] are what [dropSupersededSeries] needs to place each

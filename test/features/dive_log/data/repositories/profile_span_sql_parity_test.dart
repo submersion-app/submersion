@@ -490,4 +490,107 @@ void main() {
     await repository.saveEditedProfile('two-units', points(2400));
     await expectSpan('two-units', 3300);
   });
+
+  test("an edit keeps a second computer's unfiled recording when the primary "
+      'source has no computer', () async {
+    await createComputer('comp-2');
+    await createBareDive('file-primary');
+    await createSource(
+      'source-1',
+      diveId: 'file-primary',
+      computerId: null,
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+    );
+    await createSource(
+      'source-2',
+      diveId: 'file-primary',
+      computerId: 'comp-2',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+    );
+    await series.insertSeries(
+      diveId: 'file-primary',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    // Written before v154: on its computer, but naming no source row.
+    await series.insertSeries(
+      diveId: 'file-primary',
+      computerId: 'comp-2',
+      isPrimary: false,
+      samples: samples(3300),
+    );
+    await repository.saveEditedProfile('file-primary', points(2400));
+    await expectSpan('file-primary', 3300);
+  });
+
+  test('one recording stored twice collapses when only one copy names its '
+      'file', () async {
+    // Written in the same second, so only the file names tell the imports
+    // apart, and one of them has none.
+    final written = DateTime.utc(2026, 3, 1, 20);
+    await createBareDive('one-named');
+    await createLooseSource(
+      'source-1',
+      diveId: 'one-named',
+      isPrimary: true,
+      createdAt: written,
+      model: 'Shearwater Perdix 2',
+    );
+    await createLooseSource(
+      'source-2',
+      diveId: 'one-named',
+      isPrimary: false,
+      createdAt: written,
+      model: 'Perdix 2',
+      serial: '0a1b2c3d',
+      fileName: 'perdix.xml',
+    );
+    await series.insertSeries(
+      diveId: 'one-named',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'one-named',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3000),
+    );
+    await repository.saveEditedProfile('one-named', points(2400));
+    await expectSpan('one-named', 2400);
+  });
+
+  test('one recording stored twice collapses when one model carries a '
+      'trailing newline', () async {
+    await createBareDive('newline-model');
+    await createLooseSource(
+      'source-1',
+      diveId: 'newline-model',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+      model: 'Shearwater Perdix 2',
+    );
+    await createLooseSource(
+      'source-2',
+      diveId: 'newline-model',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+      model: 'Perdix 2\n',
+    );
+    await series.insertSeries(
+      diveId: 'newline-model',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'newline-model',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3000),
+    );
+    await repository.saveEditedProfile('newline-model', points(2400));
+    await expectSpan('newline-model', 2400);
+  });
 }

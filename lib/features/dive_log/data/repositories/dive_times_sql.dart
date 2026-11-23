@@ -122,13 +122,17 @@ String _sameStrandSql(String r, String p) =>
 /// equal or one a vendor-prefixed form of the other, the serials equal or
 /// one of them blank, the same start to the second, the same runtime, and
 /// the maximum depth within 0.1 m. It leaves out the Shearwater hex and
-/// decimal forms of one serial (`computerSerialsMatch`), so two such rows
-/// read as two sources here, and it compares each row with the first row
-/// only, where Dart wants every row already on the strand to agree.
+/// decimal forms of one serial (`computerSerialsMatch`) and the collapse of
+/// inner runs of whitespace (`normalizeComputerIdentityPart`), so two such
+/// rows read as two sources here, and it compares each row with the first
+/// row only, where Dart wants every row already on the strand to agree.
 String _sameRecordingWithoutComputerSql(String r, String p) {
   // unicode_lower, as `normalizeComputerIdentityPart` folds with
-  // toLowerCase (issue #3032); runs of inner whitespace are not collapsed.
-  String norm(String column) => "unicode_lower(TRIM(COALESCE($column, '')))";
+  // toLowerCase (issue #3032), trimming tabs and line breaks as well as
+  // spaces, as Dart's trim does.
+  String norm(String column) =>
+      "unicode_lower(TRIM(COALESCE($column, ''), "
+      "' ' || CHAR(9) || CHAR(10) || CHAR(13)))";
   final rModel = norm('$r.computer_model');
   final pModel = norm('$p.computer_model');
   final rSerial = norm('$r.computer_serial');
@@ -138,9 +142,10 @@ String _sameRecordingWithoutComputerSql(String r, String p) {
       "AND SUBSTR($longer, LENGTH($longer) - LENGTH($shorter)) = ' ' || $shorter)";
   return '($r.computer_id IS NULL AND $p.computer_id IS NULL '
       'AND $r.merge_source_slot IS NULL AND $p.merge_source_slot IS NULL '
+      // IS, not =: one row with no file name must not turn the guard NULL.
       'AND NOT ($r.source_file_name IS NOT NULL '
-      'AND $r.source_file_name = $p.source_file_name '
-      'AND $r.imported_at = $p.imported_at) '
+      'AND $r.source_file_name IS $p.source_file_name '
+      'AND $r.imported_at IS $p.imported_at) '
       "AND $rModel <> '' AND $pModel <> '' "
       'AND ($rModel = $pModel OR ${prefixed(rModel, pModel)} '
       'OR ${prefixed(pModel, rModel)}) '
@@ -157,9 +162,13 @@ String _sameRecordingWithoutComputerSql(String r, String p) {
 /// shows as the first source in shown order ([_sameStrandSql]). A series
 /// naming no such row follows the computer: it is family with no computer,
 /// on a dive with no sources, or on the first source's computer.
+///
+/// Never NULL: the computer comparison is NULL when the first source has no
+/// computer, and a NULL here would survive the `NOT (...)` in
+/// [profileSpanSecondsSql] and drop the series as if it were superseded.
 String _primaryFamilySql(String x) {
   final firstRow = _firstSourceRowSql('$x.dive_id');
-  return '(CASE WHEN EXISTS (SELECT 1 FROM dive_data_sources r '
+  return '(COALESCE((CASE WHEN EXISTS (SELECT 1 FROM dive_data_sources r '
       'WHERE r.id = $x.source_id AND r.dive_id = $x.dive_id) '
       'THEN EXISTS (SELECT 1 FROM dive_data_sources r '
       'JOIN dive_data_sources p ON p.id = $firstRow '
@@ -168,7 +177,7 @@ String _primaryFamilySql(String x) {
       'OR NOT EXISTS (SELECT 1 FROM dive_data_sources ds '
       'WHERE ds.dive_id = $x.dive_id) '
       'OR $x.computer_id = (SELECT p.computer_id FROM dive_data_sources p '
-      'WHERE p.id = $firstRow)) END)';
+      'WHERE p.id = $firstRow)) END), 0) = 1)';
 }
 
 /// A duration the dive actually measured, in seconds, or NULL: the form of

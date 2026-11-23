@@ -7277,8 +7277,8 @@ class DiveRepository {
   /// timestamp (one SQL statement, two for an edited dive). Matches the shape
   /// of `Dive.profile`.
   ///
-  /// Every source is kept -- this is NOT the `isPrimary`-filtered view used by
-  /// [getDiveProfile] -- except for the demoted series an active one
+  /// Every source is kept (this is NOT the `isPrimary`-filtered view used by
+  /// [getDiveProfile]), except for the demoted series an active one
   /// superseded in the primary family (a saved edit's originals, or the
   /// revisions an activated one replaced), which [dropSupersededSeries]
   /// removes. It mirrors the profile read in
