@@ -56925,6 +56925,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تسميات الأنواع: حُلِّل جزئيًا';
 
   @override
+  String get media_labels_buttonOutdated => 'تسميات الأنواع: غير محدَّث';
+
+  @override
   String get media_labels_buttonAnalysed => 'تسميات الأنواع: حُلِّل';
 
   @override

@@ -16536,6 +16536,7 @@
   "media_labels_buttonNotAnalysed": "Labels voor soorten: niet geanalyseerd",
   "media_labels_buttonAnalysing": "Labels voor soorten: bezig met analyseren",
   "media_labels_buttonPartlyAnalysed": "Labels voor soorten: deels geanalyseerd",
+  "media_labels_buttonOutdated": "Labels voor soorten: verouderd",
   "media_labels_buttonAnalysed": "Labels voor soorten: geanalyseerd",
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} gevonden, zonder naam} other{{count} gevonden, geen met naam}}",
   "media_labels_showAllLife": "Al het leven tonen",

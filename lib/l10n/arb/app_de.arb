@@ -16690,6 +16690,7 @@
   "media_labels_buttonNotAnalysed": "Arten-Beschriftungen: nicht analysiert",
   "media_labels_buttonAnalysing": "Arten-Beschriftungen: wird analysiert",
   "media_labels_buttonPartlyAnalysed": "Arten-Beschriftungen: teilweise analysiert",
+  "media_labels_buttonOutdated": "Arten-Beschriftungen: veraltet",
   "media_labels_buttonAnalysed": "Arten-Beschriftungen: analysiert",
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} gefunden, ohne Namen} other{{count} gefunden, keines benannt}}",
   "media_labels_showAllLife": "Alle Lebewesen zeigen",

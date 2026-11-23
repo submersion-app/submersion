@@ -16536,6 +16536,7 @@
   "media_labels_buttonNotAnalysed": "Fajok címkéi: nincs elemezve",
   "media_labels_buttonAnalysing": "Fajok címkéi: elemzés folyamatban",
   "media_labels_buttonPartlyAnalysed": "Fajok címkéi: részben elemezve",
+  "media_labels_buttonOutdated": "Fajok címkéi: elavult",
   "media_labels_buttonAnalysed": "Fajok címkéi: elemezve",
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} találat, név nélkül} other{{count} találat, egyiknek sincs neve}}",
   "media_labels_showAllLife": "Minden élőlény mutatása",

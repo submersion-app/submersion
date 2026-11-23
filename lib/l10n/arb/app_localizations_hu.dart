@@ -55797,6 +55797,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Fajok címkéi: részben elemezve';
 
   @override
+  String get media_labels_buttonOutdated => 'Fajok címkéi: elavult';
+
+  @override
   String get media_labels_buttonAnalysed => 'Fajok címkéi: elemezve';
 
   @override

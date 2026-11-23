@@ -33557,6 +33557,8 @@
   "@media_labels_buttonAnalysing": {"description": "Tooltip of the viewer's species labels button while the item on screen is being analysed; the icon is drawn in the theme colour (issue #4958)."},
   "media_labels_buttonPartlyAnalysed": "Species labels: partly analysed",
   "@media_labels_buttonPartlyAnalysed": {"description": "Tooltip of the viewer's species labels button while the item on screen is analysed only in part; the icon is drawn amber (issue #4958)."},
+  "media_labels_buttonOutdated": "Species labels: out of date",
+  "@media_labels_buttonOutdated": {"description": "Tooltip of the viewer's species labels button when the item on screen was analysed in full, but by an older model, for another place, or with its crops not on this device; the icon is drawn amber and Analyse brings it up to date (issue #4958)."},
   "media_labels_buttonAnalysed": "Species labels: analysed",
   "@media_labels_buttonAnalysed": {"description": "Tooltip of the viewer's species labels button once the item on screen is analysed; the icon is drawn green (issue #4958)."},
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} found, none named} other{{count} found, none named}}",

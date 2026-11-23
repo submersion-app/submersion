@@ -16536,6 +16536,7 @@
   "media_labels_buttonNotAnalysed": "物种标签：未分析",
   "media_labels_buttonAnalysing": "物种标签：正在分析",
   "media_labels_buttonPartlyAnalysed": "物种标签：部分已分析",
+  "media_labels_buttonOutdated": "物种标签：已过时",
   "media_labels_buttonAnalysed": "物种标签：已分析",
   "media_labels_foundNoneNamed": "{count, plural, other{发现 {count} 个，均未命名}}",
   "media_labels_showAllLife": "显示所有生物",

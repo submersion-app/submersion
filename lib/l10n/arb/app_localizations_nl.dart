@@ -55773,6 +55773,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Labels voor soorten: deels geanalyseerd';
 
   @override
+  String get media_labels_buttonOutdated => 'Labels voor soorten: verouderd';
+
+  @override
   String get media_labels_buttonAnalysed => 'Labels voor soorten: geanalyseerd';
 
   @override

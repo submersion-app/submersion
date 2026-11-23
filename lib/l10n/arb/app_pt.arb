@@ -16536,6 +16536,7 @@
   "media_labels_buttonNotAnalysed": "Rótulos de espécies: não analisado",
   "media_labels_buttonAnalysing": "Rótulos de espécies: analisando",
   "media_labels_buttonPartlyAnalysed": "Rótulos de espécies: analisado em parte",
+  "media_labels_buttonOutdated": "Rótulos de espécies: desatualizado",
   "media_labels_buttonAnalysed": "Rótulos de espécies: analisado",
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} encontrado, sem nome} other{{count} encontrados, nenhum com nome}}",
   "media_labels_showAllLife": "Mostrar toda a vida",

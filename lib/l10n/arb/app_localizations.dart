@@ -87877,6 +87877,12 @@ abstract class AppLocalizations {
   /// **'Species labels: partly analysed'**
   String get media_labels_buttonPartlyAnalysed;
 
+  /// Tooltip of the viewer's species labels button when the item on screen was analysed in full, but by an older model, for another place, or with its crops not on this device; the icon is drawn amber and Analyse brings it up to date (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: out of date'**
+  String get media_labels_buttonOutdated;
+
   /// Tooltip of the viewer's species labels button once the item on screen is analysed; the icon is drawn green (issue #4958).
   ///
   /// In en, this message translates to:

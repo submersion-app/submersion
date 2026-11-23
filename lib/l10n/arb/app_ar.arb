@@ -16536,6 +16536,7 @@
   "media_labels_buttonNotAnalysed": "تسميات الأنواع: لم يُحلَّل",
   "media_labels_buttonAnalysing": "تسميات الأنواع: جارٍ التحليل",
   "media_labels_buttonPartlyAnalysed": "تسميات الأنواع: حُلِّل جزئيًا",
+  "media_labels_buttonOutdated": "تسميات الأنواع: غير محدَّث",
   "media_labels_buttonAnalysed": "تسميات الأنواع: حُلِّل",
   "media_labels_foundNoneNamed": "{count, plural, =1{عُثر على واحد، دون اسم} two{عُثر على اثنين، دون اسم} few{عُثر على {count}، ولم يُسمَّ أيٌّ منها} many{عُثر على {count}، ولم يُسمَّ أيٌّ منها} other{عُثر على {count}، ولم يُسمَّ أيٌّ منها}}",
   "media_labels_showAllLife": "إظهار كل الكائنات",

@@ -179,6 +179,13 @@ void main() {
     expect(find.text('Partly analysed, 3 found'), findsOneWidget);
   });
 
+  testWidgets('out of date, the status says what was found, not that it '
+      'stopped part way (issue #4958)', (tester) async {
+    await open(tester, state: MediaAnalysisState.outdated, found: 3);
+    expect(find.text('3 found'), findsOneWidget);
+    expect(find.text('Analyse'), findsOneWidget);
+  });
+
   testWidgets('with no model the status says so and the action waits', (
     tester,
   ) async {
@@ -367,6 +374,7 @@ void main() {
       (MediaAnalysisState.notAnalysed, null),
       (MediaAnalysisState.noModel, null),
       (MediaAnalysisState.partial, ToolbarTone.warn),
+      (MediaAnalysisState.outdated, ToolbarTone.warn),
       (MediaAnalysisState.analysed, ToolbarTone.ok),
       (MediaAnalysisState.foundNoModel, ToolbarTone.ok),
       (MediaAnalysisState.partFoundNoModel, ToolbarTone.warn),
@@ -386,6 +394,7 @@ void main() {
       (MediaAnalysisState.notAnalysed, 'Species labels: not analysed'),
       (MediaAnalysisState.noModel, 'Species labels: not analysed'),
       (MediaAnalysisState.partial, 'Species labels: partly analysed'),
+      (MediaAnalysisState.outdated, 'Species labels: out of date'),
       (MediaAnalysisState.analysed, 'Species labels: analysed'),
       (MediaAnalysisState.foundNoModel, 'Species labels: analysed'),
       (MediaAnalysisState.partFoundNoModel, 'Species labels: partly analysed'),

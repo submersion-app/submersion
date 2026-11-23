@@ -56120,6 +56120,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Etichette delle specie: analizzato in parte';
 
   @override
+  String get media_labels_buttonOutdated =>
+      'Etichette delle specie: non aggiornato';
+
+  @override
   String get media_labels_buttonAnalysed =>
       'Etichette delle specie: analizzato';
 

@@ -85,7 +85,9 @@ marineLifeLabelsAction(
     tone: switch (status) {
       LabelsButtonStatus.notAnalysed => null,
       LabelsButtonStatus.analysing => ToolbarTone.active,
-      LabelsButtonStatus.partial => ToolbarTone.warn,
+      // Both still have work for Analyse to do.
+      LabelsButtonStatus.partial ||
+      LabelsButtonStatus.outdated => ToolbarTone.warn,
       LabelsButtonStatus.analysed => ToolbarTone.ok,
     },
     status: status,
@@ -99,6 +101,7 @@ String labelsButtonLabel(AppLocalizations l10n, LabelsButtonStatus status) =>
       LabelsButtonStatus.notAnalysed => l10n.media_labels_buttonNotAnalysed,
       LabelsButtonStatus.analysing => l10n.media_labels_buttonAnalysing,
       LabelsButtonStatus.partial => l10n.media_labels_buttonPartlyAnalysed,
+      LabelsButtonStatus.outdated => l10n.media_labels_buttonOutdated,
       LabelsButtonStatus.analysed => l10n.media_labels_buttonAnalysed,
     };
 

@@ -52588,6 +52588,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_labels_buttonPartlyAnalysed => '物种标签：部分已分析';
 
   @override
+  String get media_labels_buttonOutdated => '物种标签：已过时';
+
+  @override
   String get media_labels_buttonAnalysed => '物种标签：已分析';
 
   @override

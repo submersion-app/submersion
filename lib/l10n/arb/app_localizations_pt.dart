@@ -56105,6 +56105,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Rótulos de espécies: analisado em parte';
 
   @override
+  String get media_labels_buttonOutdated =>
+      'Rótulos de espécies: desatualizado';
+
+  @override
   String get media_labels_buttonAnalysed => 'Rótulos de espécies: analisado';
 
   @override

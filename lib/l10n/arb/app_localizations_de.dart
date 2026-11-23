@@ -55997,6 +55997,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Arten-Beschriftungen: teilweise analysiert';
 
   @override
+  String get media_labels_buttonOutdated => 'Arten-Beschriftungen: veraltet';
+
+  @override
   String get media_labels_buttonAnalysed => 'Arten-Beschriftungen: analysiert';
 
   @override

@@ -53824,6 +53824,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_labels_buttonPartlyAnalysed => '種のラベル：一部解析済み';
 
   @override
+  String get media_labels_buttonOutdated => '種のラベル：最新ではありません';
+
+  @override
   String get media_labels_buttonAnalysed => '種のラベル：解析済み';
 
   @override

@@ -55251,6 +55251,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Species labels: partly analysed';
 
   @override
+  String get media_labels_buttonOutdated => 'Species labels: out of date';
+
+  @override
   String get media_labels_buttonAnalysed => 'Species labels: analysed';
 
   @override

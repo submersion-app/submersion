@@ -16678,6 +16678,7 @@
   "media_labels_buttonNotAnalysed": "種のラベル：未解析",
   "media_labels_buttonAnalysing": "種のラベル：解析中",
   "media_labels_buttonPartlyAnalysed": "種のラベル：一部解析済み",
+  "media_labels_buttonOutdated": "種のラベル：最新ではありません",
   "media_labels_buttonAnalysed": "種のラベル：解析済み",
   "media_labels_foundNoneNamed": "{count, plural, =1{{count}件検出、名前の判明したものなし} other{{count}件検出、名前の判明したものなし}}",
   "media_labels_showAllLife": "すべての生物を表示",

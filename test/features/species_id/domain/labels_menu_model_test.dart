@@ -68,6 +68,15 @@ void main() {
     expect(m.action, AnalyseAction.analyse);
   });
 
+  test('out of date says how many, as a finished analysis does, and '
+      'offers Analyse (issue #4958)', () {
+    final m = model(MediaAnalysisState.outdated, found: 2);
+    expect(m.line, LabelsStatusLine.found);
+    expect(m.found, 2);
+    expect(m.action, AnalyseAction.analyse);
+    expect(m.actionEnabled, isTrue);
+  });
+
   test('analysed says how many, nothing included', () {
     expect(model(MediaAnalysisState.analysed).line, LabelsStatusLine.found);
     expect(model(MediaAnalysisState.analysed).found, 0);
@@ -101,6 +110,7 @@ void main() {
       (MediaAnalysisState.noModel, LabelsButtonStatus.notAnalysed),
       (MediaAnalysisState.notAnalysed, LabelsButtonStatus.notAnalysed),
       (MediaAnalysisState.partial, LabelsButtonStatus.partial),
+      (MediaAnalysisState.outdated, LabelsButtonStatus.outdated),
       (MediaAnalysisState.analysed, LabelsButtonStatus.analysed),
       // Another device's results are an analysis, even with no model here.
       (MediaAnalysisState.foundNoModel, LabelsButtonStatus.analysed),

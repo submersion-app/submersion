@@ -56237,6 +56237,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Étiquettes d\'espèces : analysé en partie';
 
   @override
+  String get media_labels_buttonOutdated =>
+      'Étiquettes d\'espèces : pas à jour';
+
+  @override
   String get media_labels_buttonAnalysed => 'Étiquettes d\'espèces : analysé';
 
   @override

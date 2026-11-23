@@ -56172,6 +56172,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Etiquetas de especies: analizado en parte';
 
   @override
+  String get media_labels_buttonOutdated =>
+      'Etiquetas de especies: desactualizado';
+
+  @override
   String get media_labels_buttonAnalysed => 'Etiquetas de especies: analizado';
 
   @override

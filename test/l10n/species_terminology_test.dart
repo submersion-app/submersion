@@ -39,6 +39,7 @@ void main() {
     l10n.media_labels_buttonNotAnalysed,
     l10n.media_labels_buttonAnalysing,
     l10n.media_labels_buttonPartlyAnalysed,
+    l10n.media_labels_buttonOutdated,
     l10n.media_labels_buttonAnalysed,
   ];
 

@@ -54948,6 +54948,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_labels_buttonPartlyAnalysed => 'תוויות מינים: נותח חלקית';
 
   @override
+  String get media_labels_buttonOutdated => 'תוויות מינים: לא מעודכן';
+
+  @override
   String get media_labels_buttonAnalysed => 'תוויות מינים: נותח';
 
   @override

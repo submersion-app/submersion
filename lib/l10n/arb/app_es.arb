@@ -16536,6 +16536,7 @@
   "media_labels_buttonNotAnalysed": "Etiquetas de especies: sin analizar",
   "media_labels_buttonAnalysing": "Etiquetas de especies: analizando",
   "media_labels_buttonPartlyAnalysed": "Etiquetas de especies: analizado en parte",
+  "media_labels_buttonOutdated": "Etiquetas de especies: desactualizado",
   "media_labels_buttonAnalysed": "Etiquetas de especies: analizado",
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} encontrado, sin nombre} other{{count} encontrados, ninguno con nombre}}",
   "media_labels_showAllLife": "Mostrar toda la vida",
