@@ -14,11 +14,17 @@ void main() {
   late int sourceReads;
   final derivedRequests = <(Set<String>, bool)>[];
   final summaryRequests = <(Set<String>, bool)>[];
+  // Process-wide hooks: put back whatever was installed before, not null.
+  void Function(Set<String>, bool)? previousDerivedListener;
+  void Function(Set<String>, bool)? previousSummaryListener;
 
   setUp(() {
     sourceReads = 0;
     derivedRequests.clear();
     summaryRequests.clear();
+    previousDerivedListener = DerivedMetricsScheduler.instance.requestListener;
+    previousSummaryListener =
+        SensorSummaryScheduler.instance.summaryRequestListener;
     DerivedMetricsScheduler.instance.requestListener = (ids, force) =>
         derivedRequests.add((ids, force));
     SensorSummaryScheduler.instance.summaryRequestListener = (ids, force) =>
@@ -34,8 +40,9 @@ void main() {
   });
 
   tearDown(() {
-    DerivedMetricsScheduler.instance.requestListener = null;
-    SensorSummaryScheduler.instance.summaryRequestListener = null;
+    DerivedMetricsScheduler.instance.requestListener = previousDerivedListener;
+    SensorSummaryScheduler.instance.summaryRequestListener =
+        previousSummaryListener;
     container.dispose();
   });
 

@@ -17,11 +17,14 @@ import '../../../../helpers/mock_providers.dart';
 class _FakeRemoval implements DiveSourceRemovalService {
   final removed = <String>[];
 
+  /// Sources the service, reading raw rows, finds sharing a computer.
+  final sharing = <String>{};
+
   @override
   Future<bool> sharesComputer({
     required String diveId,
     required String sourceId,
-  }) async => false;
+  }) async => sharing.contains(sourceId);
 
   @override
   Future<SourceRemoval> remove({
@@ -272,15 +275,11 @@ void main() {
     testWidgets('is not offered for a source sharing its computer', (
       tester,
     ) async {
-      // A combined split pair: the removal refuses, as the menu hides it.
-      await pumpEditor(
-        tester,
-        sourceId: 'src-b',
-        sources: [
-          source('src-a', primary: true, dc: 'dc-a'),
-          source('src-b', primary: false, dc: 'dc-a'),
-        ],
-      );
+      // A combined split pair: the removal refuses. The display list
+      // collapses the pair's rows into one source, so it alone cannot tell;
+      // the editor asks the removal service, which reads the raw rows.
+      removal.sharing.add('src-b');
+      await pumpEditor(tester, sourceId: 'src-b');
 
       expect(find.text(removeLabel), findsNothing);
     });

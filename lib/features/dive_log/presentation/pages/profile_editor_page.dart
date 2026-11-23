@@ -493,9 +493,9 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   }
 
   /// The source this editor started from, when Remove This Source can take
-  /// it off the dive: the dive has another source, and the two do not share
-  /// a computer, which the removal refuses (as the Data Sources menu hides
-  /// it). Null for the dive's profile on a single-source dive.
+  /// it off the dive: the dive has another source, and this one does not
+  /// share its computer with another, which the removal refuses. Null for
+  /// the dive's profile on a single-source dive.
   DiveDataSource? _removableSource() {
     final sourceId = widget.sourceId;
     if (sourceId == null) return null;
@@ -504,12 +504,17 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     if (sources.length < 2) return null;
     final source = sources.where((s) => s.id == sourceId).firstOrNull;
     if (source == null) return null;
-    final sharesComputer =
-        source.computerId != null &&
-        sources.any(
-          (s) => s.id != source.id && s.computerId == source.computerId,
-        );
-    return sharesComputer ? null : source;
+    // Asked of the raw rows, which the display list above collapses. Not
+    // offered until the answer is in, nor when it could not be read.
+    final sharesComputer = ref
+        .watch(
+          sourceSharesComputerProvider((
+            diveId: widget.diveId,
+            sourceId: sourceId,
+          )),
+        )
+        .valueOrNull;
+    return sharesComputer == false ? source : null;
   }
 
   /// Removes the source being edited with everything it owns, through the
