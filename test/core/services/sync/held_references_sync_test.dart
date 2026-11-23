@@ -15,11 +15,11 @@ import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
 
-/// Issue #4954: the sync apply's foreign key repair clears a link whose parent
-/// is not on this device yet. When that parent arrives from another peer, the
-/// link is restored, and until then this device's exports leave the cleared
-/// column out, so its next edit of the row cannot clear the link on every
-/// other device.
+/// Issue #4954: the sync apply's foreign key repair clears a link (or deletes
+/// a NOT NULL child) whose parent is not on this device yet. When that parent
+/// arrives from another peer, the change is undone, and until then this
+/// device's exports leave a cleared column out, so its next edit of the row
+/// cannot clear the link on every other device.
 void main() {
   late AppDatabase db;
   late SyncDataSerializer serializer;
@@ -223,6 +223,95 @@ void main() {
       expect((await item('item'))!['section_id'], isNull);
       expect((await held()).isEmpty, isTrue);
       expect((await exportedItem('item')).containsKey('sectionId'), isTrue);
+    });
+  });
+
+  group('a NOT NULL child of a parent that has not arrived', () {
+    test(
+      'comes back with everything beneath it when the parent arrives',
+      () async {
+        // A checklist made on another device, with a section and an item in
+        // it, lands before its trip does.
+        await apply(() async {
+          await db.customStatement(
+            'INSERT INTO trip_checklist_sections (id, checklist_id, title, '
+            'created_at, updated_at, hlc) '
+            "VALUES ('late-gear', 'late-list', 'Dive gear', 0, 0, ?)",
+            [phoneClock],
+          );
+          await insertItem(
+            'late-item',
+            checklistId: 'late-list',
+            sectionId: 'late-gear',
+            hlc: phoneClock,
+          );
+          await db.customStatement(
+            'INSERT INTO trip_checklists (id, trip_id, name, created_at, '
+            "updated_at, hlc) VALUES ('late-list', 'late-trip', 'Spares', "
+            '0, 0, ?)',
+            [phoneClock],
+          );
+        });
+
+        expect(await item('late-item'), isNull);
+        expect((await held()).orphans, isNotEmpty);
+
+        await apply(
+          () => db.customStatement(
+            'INSERT INTO trips (id, name, start_date, end_date, created_at, '
+            "updated_at) VALUES ('late-trip', 'Roatan', 0, 0, 0, 0)",
+          ),
+        );
+
+        final list = await db
+            .customSelect(
+              "SELECT name, hlc FROM trip_checklists WHERE id = 'late-list'",
+            )
+            .getSingleOrNull();
+        expect(list?.data, {'name': 'Spares', 'hlc': phoneClock});
+        expect(
+          await db
+              .customSelect(
+                "SELECT 1 FROM trip_checklist_sections WHERE id = 'late-gear'",
+              )
+              .getSingleOrNull(),
+          isNotNull,
+        );
+        final restoredItem = (await item('late-item'))!;
+        expect(restoredItem['section_id'], 'late-gear');
+        expect(restoredItem['hlc'], phoneClock);
+        expect(await pendingCount(), 0);
+        expect((await held()).isEmpty, isTrue);
+      },
+    );
+
+    test('is not put back over a copy that arrived since', () async {
+      await apply(
+        () => db.customStatement(
+          'INSERT INTO trip_checklist_sections (id, checklist_id, title, '
+          "created_at, updated_at) VALUES ('late-gear', 'late-list', 'Old', "
+          '0, 0)',
+        ),
+      );
+      await apply(() async {
+        await db.customStatement(
+          'INSERT INTO trip_checklists (id, trip_id, name, created_at, '
+          "updated_at) VALUES ('late-list', 'trip', 'Spares', 0, 0)",
+        );
+        await db.customStatement(
+          'INSERT INTO trip_checklist_sections (id, checklist_id, title, '
+          "created_at, updated_at) VALUES ('late-gear', 'late-list', 'New', "
+          '0, 0)',
+        );
+      });
+
+      final title = await db
+          .customSelect(
+            "SELECT title FROM trip_checklist_sections WHERE id = 'late-gear'",
+          )
+          .getSingle();
+      expect(title.read<String>('title'), 'New');
+      expect((await held()).isEmpty, isTrue);
     });
   });
 

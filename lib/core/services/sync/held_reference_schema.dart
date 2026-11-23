@@ -7,6 +7,7 @@ class HeldForeignKey {
     required this.from,
     required this.parent,
     required this.to,
+    required this.onDelete,
   });
 
   /// The child table and column.
@@ -16,6 +17,9 @@ class HeldForeignKey {
   /// The parent table and the column [from] names.
   final String parent;
   final String to;
+
+  /// SQLite's `on_delete` action, upper case (`CASCADE`, `SET NULL`, ...).
+  final String onDelete;
 }
 
 /// The schema facts the holds read, cached per database: the schema does
@@ -31,6 +35,7 @@ class HeldSchema {
   final GeneratedDatabase _db;
   final _keyColumns = <String, List<String>>{};
   final _hasClock = <String, bool>{};
+  Map<String, List<HeldForeignKey>>? _children;
 
   Future<List<Map<String, Object?>>> _tableInfo(String table) async => [
     for (final row
@@ -57,6 +62,29 @@ class HeldSchema {
   Future<bool> hasClock(String table) async => _hasClock[table] ??=
       (await _tableInfo(table)).any((c) => c['name'] == 'hlc');
 
+  /// Every foreign key that names [table] as its parent.
+  Future<List<HeldForeignKey>> childrenOf(String table) async {
+    final children = _children ??= await _loadChildren();
+    return children[table] ?? const [];
+  }
+
+  Future<Map<String, List<HeldForeignKey>>> _loadChildren() async {
+    final tables = await _db
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' "
+          "AND name NOT LIKE 'sqlite_%'",
+        )
+        .get();
+    final byParent = <String, List<HeldForeignKey>>{};
+    for (final t in tables) {
+      final name = t.read<String>('name');
+      for (final fk in await foreignKeys(name)) {
+        (byParent[fk.parent] ??= []).add(fk);
+      }
+    }
+    return byParent;
+  }
+
   /// [table]'s foreign keys, by SQLite's id for each.
   Future<Map<int, HeldForeignKey>> foreignKeysById(String table) async {
     final rows = await _db
@@ -71,10 +99,14 @@ class HeldSchema {
         from: row.read<String>('from'),
         parent: parent,
         to: to,
+        onDelete: row.read<String>('on_delete').toUpperCase(),
       );
     }
     return byId;
   }
+
+  Future<List<HeldForeignKey>> foreignKeys(String table) async =>
+      (await foreignKeysById(table)).values.toList();
 }
 
 /// The foreign key SQLite reports as [fkid] of [table], as the holds need

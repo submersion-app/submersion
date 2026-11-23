@@ -1,8 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/held_references.dart';
 
 void main() {
-  test('held references survive an encode and decode', () {
+  const parent = HeldParent(table: 'trips', column: 'id', value: 'trip');
+
+  test('held references survive an encode and decode, blobs included', () {
+    final blob = Uint8List.fromList([0, 1, 2, 250]);
     final held = HeldReferences(
       links: {
         for (final link in [
@@ -20,6 +25,23 @@ void main() {
         ])
           link.id: link,
       },
+      orphans: {
+        for (final orphan in [
+          HeldOrphan(
+            table: 'trip_checklists',
+            key: const {'id': 'list'},
+            parent: parent,
+            rows: [
+              const HeldRow(
+                table: 'trip_checklists',
+                values: {'id': 'list', 'sort_order': 2, 'weight': 1.5},
+              ),
+              HeldRow(table: 'media', values: {'id': 'm', 'thumb': blob}),
+            ],
+          ),
+        ])
+          orphan.id: orphan,
+      },
     );
 
     final decoded = HeldReferences.decode(held.encode());
@@ -28,6 +50,9 @@ void main() {
     final link = decoded.links.values.single;
     expect(link.key, {'dive_id': 'd', 'equipment_id': 'e'});
     expect(link.parent.value, 's');
+    final rows = decoded.orphans.values.single.rows;
+    expect(rows.first.values, {'id': 'list', 'sort_order': 2, 'weight': 1.5});
+    expect(rows.last.values['thumb'], blob);
   });
 
   test('a row id does not depend on the order of its key columns', () {

@@ -192,7 +192,39 @@ class HeldReferenceStore {
       parent: HeldParent(table: fk.parent, column: fk.to, value: value),
       hlc: row['hlc'] as String?,
     );
-    return HeldReferences(links: {...held.links, link.id: link});
+    return HeldReferences(
+      links: {...held.links, link.id: link},
+      orphans: held.orphans,
+    );
+  }
+
+  /// Holds [table]'s row [rowid], and every row its delete cascades to,
+  /// before the repair deletes it for lack of the parent [fk] names. Links
+  /// the delete clears (`ON DELETE SET NULL`) are held as links to it.
+  Future<HeldReferences> holdOrphan(
+    HeldReferences held,
+    String table,
+    int rowid,
+    HeldForeignKey fk,
+  ) async {
+    final row = await _readByRowid(table, rowid);
+    final value = row?[fk.from];
+    if (row == null || value == null || await _isTombstoned(value)) {
+      return held;
+    }
+    final rows = <HeldRow>[];
+    final links = <HeldLink>[];
+    await _capture(table, rowid, row, rows, links, {});
+    final orphan = HeldOrphan(
+      table: table,
+      key: await _keyOf(table, row),
+      parent: HeldParent(table: fk.parent, column: fk.to, value: value),
+      rows: rows,
+    );
+    return HeldReferences(
+      links: {...held.links, for (final link in links) link.id: link},
+      orphans: {...held.orphans, orphan.id: orphan},
+    );
   }
 
   /// Gives back every held row whose parent now exists, and drops the holds
@@ -206,6 +238,22 @@ class HeldReferenceStore {
   ) async {
     if (held.isEmpty) return (held: held, tables: <String>{});
     final tables = <String>{};
+    final orphans = {...held.orphans};
+    // An orphan can wait for another orphan (a NO ACTION child of a deleted
+    // row), so this repeats until a pass restores nothing.
+    var restoredAny = true;
+    while (restoredAny) {
+      restoredAny = false;
+      for (final orphan in orphans.values.toList()) {
+        final outcome = await _settleOrphan(orphan);
+        if (outcome == _Outcome.keep) continue;
+        orphans.remove(orphan.id);
+        if (outcome == _Outcome.restored) {
+          restoredAny = true;
+          tables.addAll(orphan.rows.map((r) => r.table));
+        }
+      }
+    }
     final localNode = await _localNodeId();
     final links = <String, HeldLink>{};
     for (final link in held.links.values) {
@@ -219,7 +267,10 @@ class HeldReferenceStore {
           break;
       }
     }
-    return (held: HeldReferences(links: links), tables: tables);
+    return (
+      held: HeldReferences(links: links, orphans: orphans),
+      tables: tables,
+    );
   }
 
   /// Whether to keep holding [link] (and as what), or that it was written
@@ -270,6 +321,97 @@ class HeldReferenceStore {
     );
     return (outcome: _Outcome.restored, link: kept);
   }
+
+  Future<_Outcome> _settleOrphan(HeldOrphan orphan) async {
+    // A copy that arrived since decides the row.
+    if (await _exists(orphan.table, orphan.key)) return _Outcome.drop;
+    if (await _isTombstoned(orphan.parent.value)) return _Outcome.drop;
+    final id = orphan.key['id'];
+    if (id != null && await _isTombstoned(id)) return _Outcome.drop;
+    if (!await _exists(orphan.parent.table, {
+      orphan.parent.column: orphan.parent.value,
+    })) {
+      return _Outcome.keep;
+    }
+    for (final row in orphan.rows) {
+      final key = {
+        for (final column in await _schema.keyColumns(row.table))
+          column: row.values[column],
+      };
+      if (await _exists(row.table, key)) continue;
+      final rowRecordId = row.values['id'];
+      if (rowRecordId != null && await _isTombstoned(rowRecordId)) continue;
+      final columns = row.values.keys.toList();
+      try {
+        await _db.customStatement(
+          'INSERT INTO "${row.table}" '
+          '(${columns.map((c) => '"$c"').join(', ')}) '
+          'VALUES (${List.filled(columns.length, '?').join(', ')})',
+          [for (final c in columns) row.values[c]],
+        );
+      } on Object catch (e, stackTrace) {
+        // One row that no longer fits (a unique key another row took) must
+        // not stop the rest; the repair after this cleans up what it leaves.
+        _log.warning(
+          'Could not restore a held ${row.table} row',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    return _Outcome.restored;
+  }
+
+  /// Reads [row] and, depth first, every row an `ON DELETE CASCADE` from it
+  /// reaches, each after its parent. A link `ON DELETE SET NULL` clears goes
+  /// to [links] instead. [visited] guards against a cycle of keys.
+  Future<void> _capture(
+    String table,
+    int rowid,
+    Map<String, Object?> row,
+    List<HeldRow> rows,
+    List<HeldLink> links,
+    Set<String> visited,
+  ) async {
+    if (!visited.add('$table|$rowid')) return;
+    rows.add(HeldRow(table: table, values: row));
+    for (final fk in await _schema.childrenOf(table)) {
+      final value = row[fk.to];
+      if (value == null) continue;
+      final children = await _db
+          .customSelect(
+            'SELECT rowid AS "$_rowidAlias", * FROM "${fk.table}" '
+            'WHERE "${fk.from}" = ?',
+            variables: [_variable(value)],
+          )
+          .get();
+      for (final child in children) {
+        final childRowid = child.data[_rowidAlias] as int;
+        final values = _withoutRowidAlias(child.data);
+        if (fk.onDelete == 'CASCADE') {
+          await _capture(fk.table, childRowid, values, rows, links, visited);
+        } else if (fk.onDelete == 'SET NULL') {
+          final link = HeldLink(
+            table: fk.table,
+            key: await _keyOf(fk.table, values),
+            column: fk.from,
+            parent: HeldParent(table: table, column: fk.to, value: value),
+            hlc: values['hlc'] as String?,
+          );
+          links.add(link);
+        }
+        // Any other action leaves the child naming a missing row, and the
+        // repair's next pass holds it in turn.
+      }
+    }
+  }
+
+  static const _rowidAlias = '__held_rowid';
+
+  Map<String, Object?> _withoutRowidAlias(Map<String, Object?> data) => {
+    for (final e in data.entries)
+      if (e.key != _rowidAlias) e.key: e.value,
+  };
 
   Future<Map<String, Object?>?> _readByRowid(String table, int rowid) async {
     final row = await _db

@@ -3462,9 +3462,9 @@ class SyncDataSerializer {
 
   /// Repairs every foreign key left dangling after a sync apply: a nullable
   /// reference is cleared; a non-nullable orphan is deleted (a manual cascade).
-  /// Unless the parent is known deleted, a cleared link is held and restored
-  /// once the parent arrives, and stays out of this device's exports until
-  /// then (issue #4954; see held_references.dart).
+  /// Unless the parent is known deleted, each change is held and undone once
+  /// the parent arrives, and a held link stays out of this device's exports
+  /// until then (issue #4954; see held_references.dart).
   /// Applying a remote deletion of a parent can leave a local row pointing at
   /// it via a non-cascading FK, which would otherwise fail the deferred-FK
   /// COMMIT and abort the whole sync. Must run inside
@@ -3656,10 +3656,10 @@ class SyncDataSerializer {
   }
 
   /// Clears or deletes every row left naming a missing parent, holding each
-  /// cleared link so it can be restored once that parent arrives (issue
-  /// #4954): the parent can come from another peer, applied in its own
-  /// transaction or a later pull. Gives back first whatever an earlier repair held and the
-  /// parent of has arrived since.
+  /// change so it can be undone once that parent arrives (issue #4954): the
+  /// parent can come from another peer, applied in its own transaction or a
+  /// later pull. First gives back whatever an earlier repair held whose
+  /// parent has arrived since.
   Future<void> _repairDanglingReferences() async {
     final store = HeldReferenceStore(_db);
     final loaded = await store.load();
@@ -3695,6 +3695,7 @@ class SyncDataSerializer {
           _log.warning(
             'Sync repair: deleting orphaned $table row (no parent for "$column")',
           );
+          held = await store.holdOrphan(held, table, rowid, fk);
           await _db.customStatement('DELETE FROM "$table" WHERE rowid = ?', [
             rowid,
           ]);
