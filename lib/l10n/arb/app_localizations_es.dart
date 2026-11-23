@@ -48934,34 +48934,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Pez cirujano pálido con seis barras verticales negras, se ve a menudo pastando en grandes bancos en las planicies de arrecife del Indopacífico.';
 
   @override
-  String get species_great_hammerhead_name => 'Tiburón martillo común';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Tiburón característico con la cabeza en forma de martillo festoneado, forma grandes bancos en montes submarinos e islas oceánicas.';
-
-  @override
-  String get species_wobbegong_name => 'Tiburón alfombra manchado';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Tiburón alfombra plano y bien camuflado con lóbulos flecosos alrededor de la boca, habita los arrecifes templados de Australia.';
-
-  @override
-  String get species_manta_ray_name => 'Manta de arrecife';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Grácil gigante de hasta 5 m de envergadura que visita las estaciones de limpieza y se alimenta de plancton en los arrecifes del Indopacífico.';
-
-  @override
-  String get species_oceanic_manta_name => 'Manta oceánica';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'La raya más grande, con envergaduras superiores a los 7 m, se encuentra en montes submarinos alejados de la costa y estaciones de limpieza.';
-
-  @override
   String get species_undulated_moray_name => 'Morena ondulada';
 
   @override

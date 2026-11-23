@@ -49572,34 +49572,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'سمكة جراح فاتحة اللون بستة أشرطة عمودية سوداء، تُشاهد غالبًا وهي ترعى في أسراب كبيرة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
 
   @override
-  String get species_great_hammerhead_name => 'قرش المطرقة المسنن';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'قرش مميز برأس مطرقي مسنن الحواف، يشكّل أسرابًا كبيرة عند الجبال البحرية والجزر البعيدة عن الساحل.';
-
-  @override
-  String get species_wobbegong_name => 'قرش السجاد المرقّط';
-
-  @override
-  String get species_wobbegong_desc =>
-      'قرش سجاد مسطح جيد التمويه بفصوص مهدّبة حول الفم، يوجد في الشعاب المعتدلة بأستراليا.';
-
-  @override
-  String get species_manta_ray_name => 'شفنين المانتا الشعابي';
-
-  @override
-  String get species_manta_ray_desc =>
-      'عملاق رشيق يبلغ باع جناحيه خمسة أمتار، يزور محطات التنظيف ويتغذى على العوالق في شعاب المحيطين الهندي والهادئ.';
-
-  @override
-  String get species_oceanic_manta_name => 'شفنين المانتا المحيطي';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'أكبر أنواع الشفنين ويتجاوز باع جناحيه سبعة أمتار، ويُصادَف عند الجبال البحرية البعيدة عن الساحل ومحطات التنظيف.';
-
-  @override
   String get species_undulated_moray_name => 'ثعبان البحر المورَي المتموّج';
 
   @override

@@ -76883,54 +76883,6 @@ abstract class AppLocalizations {
   /// **'Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats.'**
   String get species_convict_tang_desc;
 
-  /// No description provided for @species_great_hammerhead_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Scalloped Hammerhead'**
-  String get species_great_hammerhead_name;
-
-  /// No description provided for @species_great_hammerhead_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands.'**
-  String get species_great_hammerhead_desc;
-
-  /// No description provided for @species_wobbegong_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Spotted Wobbegong'**
-  String get species_wobbegong_name;
-
-  /// No description provided for @species_wobbegong_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs.'**
-  String get species_wobbegong_desc;
-
-  /// No description provided for @species_manta_ray_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Reef Manta Ray'**
-  String get species_manta_ray_name;
-
-  /// No description provided for @species_manta_ray_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs.'**
-  String get species_manta_ray_desc;
-
-  /// No description provided for @species_oceanic_manta_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Oceanic Manta Ray'**
-  String get species_oceanic_manta_name;
-
-  /// No description provided for @species_oceanic_manta_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations.'**
-  String get species_oceanic_manta_desc;
-
   /// No description provided for @species_undulated_moray_name.
   ///
   /// In en, this message translates to:

@@ -80,7 +80,7 @@ void main() {
     await tester.tap(find.text('+5m'));
     await tester.pumpAndSettle();
 
-    expect(container.read(selectedDeviationProvider), 'deeper');
+    expect(container.read(contingencySelectionProvider).deviationKey, 'deeper');
     expect(seriesPainter().ghost, isNotNull);
     // The backdrop's ceiling band must track the previewed contingency, not
     // stay pinned to the base plan.
@@ -126,7 +126,7 @@ void main() {
 
     // The selection went with the chips: restoring a bottom brings the time
     // chips back but no preview the diver did not ask for.
-    expect(container.read(selectedDeviationProvider), isNull);
+    expect(container.read(contingencySelectionProvider).deviationKey, isNull);
     notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
     await tester.pumpAndSettle();
     expect(find.text('+5\u2032'), findsOneWidget);
@@ -153,14 +153,16 @@ void main() {
     );
     final notifier = container.read(divePlanNotifierProvider.notifier);
     notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
-    container.read(selectedDeviationProvider.notifier).select('longer');
+    container
+        .read(contingencySelectionProvider.notifier)
+        .selectDeviation('longer');
     // The bottom goes while the chips are not on screen.
     final hold = container.read(divePlanNotifierProvider).segments.last;
     notifier.removeSegment(hold.id);
 
     showChips.value = true;
     await tester.pumpAndSettle();
-    expect(container.read(selectedDeviationProvider), isNull);
+    expect(container.read(contingencySelectionProvider).deviationKey, isNull);
 
     notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
     await tester.pumpAndSettle();
@@ -180,25 +182,32 @@ void main() {
     );
     final notifier = container.read(divePlanNotifierProvider.notifier);
     notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
-    container.read(selectedDeviationProvider.notifier).select('both');
+    container
+        .read(contingencySelectionProvider.notifier)
+        .selectDeviation('both');
     await tester.pump();
 
     // Edited elsewhere (the segment list, say) while the chart is not shown.
+    // Only the +time toggle goes; +depth still applies without a bottom.
     final hold = container.read(divePlanNotifierProvider).segments.last;
     notifier.removeSegment(hold.id);
     await tester.pump();
-    expect(container.read(selectedDeviationProvider), isNull);
+    expect(container.read(contingencySelectionProvider).deviationKey, 'deeper');
 
+    // Restoring a bottom does not bring +time back.
     notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
     await tester.pump();
-    expect(container.read(selectedContingencyProvider), isNull);
+    expect(container.read(contingencySelectionProvider).deviationKey, 'deeper');
+    container.read(contingencySelectionProvider.notifier).clear();
 
     // +depth still applies without a bottom, so it stays selected.
-    container.read(selectedDeviationProvider.notifier).select('deeper');
+    container
+        .read(contingencySelectionProvider.notifier)
+        .selectDeviation('deeper');
     final newHold = container.read(divePlanNotifierProvider).segments.last;
     notifier.removeSegment(newHold.id);
     await tester.pump();
-    expect(container.read(selectedDeviationProvider), 'deeper');
+    expect(container.read(contingencySelectionProvider).deviationKey, 'deeper');
     expect(container.read(selectedContingencyProvider), isNotNull);
   });
 
@@ -242,7 +251,7 @@ void main() {
 
     await tester.tap(find.text('+5m'));
     await tester.pumpAndSettle();
-    expect(container.read(selectedDeviationProvider), 'deeper');
+    expect(container.read(contingencySelectionProvider).deviationKey, 'deeper');
   });
 
   group('the gas row explains a missing turn or min gas (#3603)', () {
@@ -463,13 +472,16 @@ void main() {
       // widget, which isn't in this tree) drives the same provider.
       await tester.tap(find.text('+5m'));
       await tester.pumpAndSettle();
-      expect(container.read(selectedDeviationProvider), 'deeper');
-      expect(container.read(selectedLostGasTankIdProvider), isNull);
+      expect(
+        container.read(contingencySelectionProvider).deviationKey,
+        'deeper',
+      );
+      expect(container.read(contingencySelectionProvider).lostTankIds, isEmpty);
 
       // Tapping again deselects.
       await tester.tap(find.text('+5m'));
       await tester.pumpAndSettle();
-      expect(container.read(selectedDeviationProvider), isNull);
+      expect(container.read(contingencySelectionProvider).deviationKey, isNull);
 
       // Collapsing hides the row's runtime table but keeps its chip.
       await tester.tap(find.byIcon(Icons.expand_more).first);
@@ -483,8 +495,7 @@ void main() {
   );
 
   testWidgets(
-    'marking a tank lost ghosts a profile line and clears the deviation '
-    'selection',
+    'marking a tank lost ghosts a profile line and combines with a deviation',
     (tester) async {
       // A tall physical surface (not just a tall SizedBox, which a Scaffold
       // body would just clamp back down) so the whole results sheet fits
@@ -542,10 +553,16 @@ void main() {
       await tester.tap(find.text('CONTINGENCIES'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Lost EAN50'));
+      final sheetLostEan50 = find.descendant(
+        of: find.byType(PlanResultsSheet),
+        matching: find.text('Lost EAN50'),
+      );
+      await tester.tap(sheetLostEan50);
       await tester.pumpAndSettle();
 
-      expect(container.read(selectedLostGasTankIdProvider), 'deco');
+      expect(container.read(contingencySelectionProvider).lostTankIds, {
+        'deco',
+      });
       expect(seriesPainter().ghost, isNotNull);
       // Selecting a row for preview does not affect its own collapse state.
       expect(
@@ -554,9 +571,9 @@ void main() {
       );
 
       // Tapping again deselects.
-      await tester.tap(find.text('Lost EAN50'));
+      await tester.tap(sheetLostEan50);
       await tester.pumpAndSettle();
-      expect(container.read(selectedLostGasTankIdProvider), isNull);
+      expect(container.read(contingencySelectionProvider).lostTankIds, isEmpty);
       expect(seriesPainter().ghost, isNull);
 
       // Collapsing the row hides its runtime table but keeps the chip. The
@@ -575,15 +592,17 @@ void main() {
         container.read(collapsedContingencyKeysProvider),
         contains('deco'),
       );
-      expect(find.text('Lost EAN50'), findsOneWidget);
+      expect(sheetLostEan50, findsOneWidget);
 
-      // Re-expand, re-select, then pick a deviation chip -- only one
-      // ghost/preview at a time.
+      // Re-expand, re-select, then pick a deviation chip: the two combine
+      // into one preview.
       await tester.tap(find.byIcon(Icons.chevron_right).last);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Lost EAN50'));
+      await tester.tap(sheetLostEan50);
       await tester.pumpAndSettle();
-      expect(container.read(selectedLostGasTankIdProvider), 'deco');
+      expect(container.read(contingencySelectionProvider).lostTankIds, {
+        'deco',
+      });
 
       await tester.tap(
         find.descendant(
@@ -592,8 +611,17 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(container.read(selectedLostGasTankIdProvider), isNull);
-      expect(container.read(selectedDeviationProvider), 'deeper');
+      expect(container.read(contingencySelectionProvider).lostTankIds, {
+        'deco',
+      });
+      expect(
+        container.read(contingencySelectionProvider).deviationKey,
+        'deeper',
+      );
+      expect(
+        container.read(selectedContingencyProvider)!.lostTanks.single.id,
+        'deco',
+      );
       expect(seriesPainter().ghost, isNotNull);
     },
   );

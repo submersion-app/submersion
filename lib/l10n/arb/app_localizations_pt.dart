@@ -48884,34 +48884,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Peixe-cirurgião claro com seis barras verticais negras, visto muitas vezes a pastar em grandes cardumes nos planaltos de recife do Indo-Pacífico.';
 
   @override
-  String get species_great_hammerhead_name => 'Tubarão-martelo-recortado';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Tubarão inconfundível, de cabeça em martelo recortado, que forma grandes cardumes em montes submarinos e ilhas ao largo.';
-
-  @override
-  String get species_wobbegong_name => 'Tubarão-tapete-malhado';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Tubarão-tapete achatado e bem camuflado, com lobos franjados em redor da boca, presente nos recifes temperados da Austrália.';
-
-  @override
-  String get species_manta_ray_name => 'Manta-de-recife';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Gigante gracioso de até 5 m de envergadura, que visita estações de limpeza e se alimenta de plâncton nos recifes do Indo-Pacífico.';
-
-  @override
-  String get species_oceanic_manta_name => 'Manta-oceânica';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'A maior espécie de raia, com envergaduras superiores a 7 m, encontrada em montes submarinos ao largo e em estações de limpeza.';
-
-  @override
   String get species_undulated_moray_name => 'Moreia-ondulada';
 
   @override

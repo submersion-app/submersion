@@ -48912,34 +48912,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Pesce chirurgo chiaro con sei barre verticali nere, spesso visto brucare in grandi banchi sui pianori corallini indo-pacifici.';
 
   @override
-  String get species_great_hammerhead_name => 'Squalo martello smerlato';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Squalo inconfondibile con la testa a martello dal bordo smerlato, forma grandi banchi presso montagne sottomarine e isole al largo.';
-
-  @override
-  String get species_wobbegong_name => 'Wobbegong maculato';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Squalo tappeto piatto e ben mimetizzato, con lobi frangiati attorno alla bocca, presente nelle scogliere temperate australiane.';
-
-  @override
-  String get species_manta_ray_name => 'Manta di barriera';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Gigante aggraziato con un\'apertura alare fino a 5 m, frequenta le stazioni di pulizia e si nutre di plancton nelle barriere indo-pacifiche.';
-
-  @override
-  String get species_oceanic_manta_name => 'Manta oceanica';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'La più grande specie di razza, con apertura alare superiore ai 7 m, incontrata presso montagne sottomarine al largo e stazioni di pulizia.';
-
-  @override
   String get species_undulated_moray_name => 'Murena ondulata';
 
   @override
