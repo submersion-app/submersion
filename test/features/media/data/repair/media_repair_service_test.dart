@@ -6,7 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/features/change_log/data/services/change_log_settler.dart';
+import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
@@ -16,6 +19,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
+import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/fake_photo_picker_service.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -106,6 +110,43 @@ void main() {
     final digest = await sha256OfFile(file);
     return (file, digest.hash);
   }
+
+  // Issue #4527 (media library, plan 2): a pass no one reviewed is never
+  // filed as the diver's change.
+  group('History', () {
+    Future<ChangeLogOperationRow> relinkFiledAs({
+      RepairLogSource? source,
+    }) async {
+      final (file, hash) = await tempFile('a.jpg', 'aaaa');
+      await seed('a', contentHash: hash);
+      final item = (await repo.getMediaById('a'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+      final proposal = RepairProposal(
+        item: item,
+        confidence: RepairConfidence.exact,
+        candidate: RepairCandidate.file(path: file.path, sizeBytes: 4),
+      );
+      await (source == null
+          ? service().apply([proposal])
+          : service().apply([proposal], source: source));
+      await ChangeLogSettler(db).settle();
+      return (await db.select(db.changeLogOperations).get()).single;
+    }
+
+    test('a watcher relink files as one automatic media repair', () async {
+      final op = await relinkFiledAs(source: RepairLogSource.watcher);
+      expect(op.source, ChangeLogSource.automatic.name);
+      expect(op.label, ChangeLogLabels.mediaRepair);
+    });
+
+    test('a reviewed relink (the wizard) stays manual', () async {
+      final op = await relinkFiledAs();
+      expect(op.source, ChangeLogSource.manual.name);
+      expect(op.label, ChangeLogLabels.mediaRepair);
+    });
+  });
 
   test('exact file proposal rewrites the path and clears isOrphaned', () async {
     final (file, hash) = await tempFile('a.jpg', 'aaaa');

@@ -207,21 +207,36 @@ class MediaRepairService {
   /// bookmark is written now; [onRollback] gets what takes it away again,
   /// for the caller to run if the write does not commit. It deletes only a
   /// bookmark no row refers to, so running it after a commit is harmless.
+  ///
+  /// A watcher pass (the daily one, and Media, Sources, Scan now) is matched
+  /// and written without review, so History files it as automatic; a
+  /// reviewed Re-link files as the diver's (issue #4527). Inside a scope
+  /// already running, such as a dive's sitting, it joins that one.
   Future<RepairApplyReport> apply(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
     List<Future<void> Function()>? afterCommit,
     List<Future<void> Function()>? onRollback,
-  }) => ChangeLogScope.bulk(
-    DatabaseService.instance.databaseOrNull,
-    label: ChangeLogLabels.mediaRepair,
-    body: () => _applyInner(
+  }) {
+    Future<RepairApplyReport> body() => _applyInner(
       accepted,
       source: source,
       afterCommit: afterCommit,
       onRollback: onRollback,
-    ),
-  );
+    );
+    final db = DatabaseService.instance.databaseOrNull;
+    return source == RepairLogSource.watcher
+        ? ChangeLogScope.automatic(
+            db,
+            label: ChangeLogLabels.mediaRepair,
+            body: body,
+          )
+        : ChangeLogScope.bulk(
+            db,
+            label: ChangeLogLabels.mediaRepair,
+            body: body,
+          );
+  }
 
   Future<RepairApplyReport> _applyInner(
     List<RepairProposal> accepted, {
