@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -42,7 +41,7 @@ class BackupsDirectoryAccess {
     // to Files sharing) and no other device or sync client can write to it.
     // On desktop the user can browse it and a sync client can mirror it, so
     // it is treated like any folder the diver picked.
-    defaultIsAppPrivate: Platform.isAndroid || Platform.isIOS,
+    defaultIsAppPrivate: HostPlatform.isMobile,
   );
 
   final Future<String?> Function() _configuredLocation;

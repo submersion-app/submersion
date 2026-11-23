@@ -7,6 +7,7 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 
@@ -273,7 +274,7 @@ void main() {
         await preferences(),
       ).useFolder((folder) async => folder);
 
-      expect(folder?.isAppPrivate, Platform.isAndroid || Platform.isIOS);
+      expect(folder?.isAppPrivate, HostPlatform.isMobile);
     });
 
     test('a SAF location resolves to no directory', () async {
