@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
@@ -112,6 +113,14 @@ void main() {
   late Future<Object?> Function(MethodCall) handler;
 
   setUp(() async {
+    // The page is built inside runAsync, so the viewer's 400 ms wait before
+    // it asks for marine life analysis runs on real time. Where the engine
+    // is available (the ONNX one, on a Linux runner), the toolbar's labels
+    // button then spins a ring until IO the fake clock never lets finish,
+    // and a later pumpAndSettle times out. Nothing here is about marine
+    // life.
+    marineLifeIdEnabled = false;
+    addTearDown(resetMarineLifeIdEnabled);
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
