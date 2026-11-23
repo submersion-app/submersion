@@ -103,7 +103,7 @@ class _UnrecognizedBackupsPageState
     // Only reachable for a folder private to the app, where such a file is
     // most likely this device before a reinstall. It may still hold dives
     // that exist nowhere else, so the diver is told before, not after.
-    final foreign = selection.any((entry) => entry.isForeign);
+    final foreign = selection.where((entry) => entry.isForeign).length;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -116,9 +116,9 @@ class _UnrecognizedBackupsPageState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (foreign) ...[
+            if (foreign > 0) ...[
               Text(
-                l10n.backup_unrecognized_confirm_foreignWarning,
+                l10n.backup_unrecognized_confirm_foreignWarning(foreign),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.error,
                   fontWeight: FontWeight.w600,

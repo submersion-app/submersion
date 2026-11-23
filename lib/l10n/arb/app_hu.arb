@@ -17260,7 +17260,7 @@
   "backup_unrecognized_appBar_title": "Ismeretlen biztonsági mentések",
   "backup_unrecognized_explanation": "Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Itt csak olyan fájl törölhető, amelyet ez az eszköz írt: bármi más lehet egy másik eszköz egyetlen másolata.",
   "backup_unrecognized_explanation_appPrivate": "Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Ez a mappa ezen az eszközön csak a Submersioné, így más eszköz nem használja ezeket a fájlokat, és bármelyikük törölhető itt.",
-  "backup_unrecognized_confirm_foreignWarning": "A fájlok egy részét lehet, hogy egy másik eszköz, egy korábbi telepítés vagy a Submersion egy régebbi verziója hozta létre. Ha olyan merüléseket tartalmaznak, amelyek máshol nincsenek meg, ezek a merülések elvesznek.",
+  "backup_unrecognized_confirm_foreignWarning": "{count, plural, =1{Egy kijelölt fájlt lehet, hogy egy másik eszköz, egy korábbi telepítés vagy a Submersion egy régebbi verziója hozott létre. Ha olyan merüléseket tartalmaz, amelyek máshol nincsenek meg, ezek a merülések elvesznek.} other{{count} kijelölt fájlt lehet, hogy egy másik eszköz, egy korábbi telepítés vagy a Submersion egy régebbi verziója hozott létre. Ha olyan merüléseket tartalmaznak, amelyek máshol nincsenek meg, ezek a merülések elvesznek.}}",
   "backup_unrecognized_empty": "Nincs ismeretlen biztonsági mentési fájl.",
   "backup_unrecognized_loadFailed": "A biztonsági mentések mappája nem olvasható.",
   "backup_unrecognized_unavailable": "Ez az eszköz nem tudja kilistázni a kiválasztott mentési mappát, ezért az ismeretlen fájlok nem találhatók meg.",

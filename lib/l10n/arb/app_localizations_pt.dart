@@ -58881,8 +58881,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Estes ficheiros estão na sua pasta de cópias de segurança mas não no histórico deste dispositivo. Esta pasta é privada do Submersion neste dispositivo, por isso nenhum outro dispositivo usa estes ficheiros e qualquer um deles pode ser excluído aqui.';
 
   @override
-  String get backup_unrecognized_confirm_foreignWarning =>
-      'Alguns destes ficheiros podem ter sido criados por outro dispositivo, por uma instalação anterior ou por uma versão antiga do Submersion. Se contiverem mergulhos que não tem em mais nenhum lado, esses mergulhos serão perdidos.';
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ficheiros selecionados podem ter sido criados por outro dispositivo, por uma instalação anterior ou por uma versão antiga do Submersion. Se contiverem mergulhos que não tem em mais nenhum lado, esses mergulhos serão perdidos.',
+      one:
+          'Um ficheiro selecionado pode ter sido criado por outro dispositivo, por uma instalação anterior ou por uma versão antiga do Submersion. Se contiver mergulhos que não tem em mais nenhum lado, esses mergulhos serão perdidos.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty =>

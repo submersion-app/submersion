@@ -308,9 +308,11 @@ void main() {
 
     test('the default folder on a desktop host is not private', () async {
       // Tests run on macOS, Linux or Windows, so this pins the desktop answer
-      // for the real wiring, including the default-path check. The mobile
-      // answer cannot be produced here (HostPlatform reads dart:io directly);
-      // the injected `defaultIsAppPrivate` tests above cover that branch.
+      // for the real wiring. It does not reach the default-path check: on a
+      // desktop host `defaultIsAppPrivate` is false and the verdict stops
+      // there. The mobile answer cannot be produced here (HostPlatform reads
+      // dart:io directly); the injected `defaultIsAppPrivate` and
+      // `defaultPath` tests above cover that branch.
       expect(HostPlatform.isMobile, isFalse, reason: 'expects a desktop host');
 
       final folder = await BackupsDirectoryAccess.live(

@@ -474,11 +474,44 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('made by another device'), findsOneWidget);
+      expect(find.textContaining('One selected file'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(TextButton, 'Delete'));
       await tester.pumpAndSettle();
 
       expect(service.reclaimed.map((e) => e.filename), ['theirs.db']);
+    });
+
+    testWidgets('the warning counts only the foreign files', (tester) async {
+      await tester.pumpWidget(
+        harness(
+          entries: () async => [
+            entry(name: 'mine.db', inAppPrivateFolder: true),
+            entry(
+              name: 'theirs.db',
+              ownership: BackupOwnership.otherDevice,
+              inAppPrivateFolder: true,
+            ),
+            entry(
+              name: 'legacy.db',
+              ownership: BackupOwnership.unattributed,
+              inAppPrivateFolder: true,
+            ),
+          ],
+          service: _FakeService(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      for (final checkbox in find.byType(Checkbox).evaluate().toList()) {
+        await tester.tap(find.byWidget(checkbox.widget));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('2 selected files'), findsOneWidget);
+      expect(find.textContaining('3 backup files'), findsOneWidget);
     });
 
     testWidgets('deleting only this device\'s files keeps the plain warning', (

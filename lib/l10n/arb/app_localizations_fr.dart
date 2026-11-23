@@ -59019,8 +59019,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ces fichiers se trouvent dans votre dossier de sauvegardes mais pas dans l\'historique de sauvegarde de cet appareil. Ce dossier est réservé à Submersion sur cet appareil : aucun autre appareil n\'utilise ces fichiers, et chacun d\'eux peut être supprimé ici.';
 
   @override
-  String get backup_unrecognized_confirm_foreignWarning =>
-      'Certains de ces fichiers ont peut-être été créés par un autre appareil, une installation précédente ou une ancienne version de Submersion. S\'ils contiennent des plongées que vous n\'avez nulle part ailleurs, ces plongées seront perdues.';
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fichiers sélectionnés ont peut-être été créés par un autre appareil, une installation précédente ou une ancienne version de Submersion. S\'ils contiennent des plongées que vous n\'avez nulle part ailleurs, ces plongées seront perdues.',
+      one:
+          'Un fichier sélectionné a peut-être été créé par un autre appareil, une installation précédente ou une ancienne version de Submersion. S\'il contient des plongées que vous n\'avez nulle part ailleurs, ces plongées seront perdues.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty =>

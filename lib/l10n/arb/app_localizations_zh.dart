@@ -55204,8 +55204,17 @@ class AppLocalizationsZh extends AppLocalizations {
       '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此文件夹在本设备上仅供 Submersion 使用，因此其他设备不会使用这些文件，此处可以删除其中任何文件。';
 
   @override
-  String get backup_unrecognized_confirm_foreignWarning =>
-      '其中一些文件可能由另一台设备、之前的安装或旧版本的 Submersion 创建。如果其中包含您在其他地方没有的潜水记录，这些记录将会丢失。';
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '所选的 $count 个文件可能由另一台设备、之前的安装或旧版本的 Submersion 创建。如果其中包含您在其他地方没有的潜水记录，这些记录将会丢失。',
+      one:
+          '所选的 1 个文件可能由另一台设备、之前的安装或旧版本的 Submersion 创建。如果其中包含您在其他地方没有的潜水记录，这些记录将会丢失。',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty => '没有无法识别的备份文件。';
