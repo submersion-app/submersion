@@ -122,7 +122,8 @@ class BackupsDirectoryAccess {
   /// would point every future backup at the sandbox instead of the folder the
   /// diver chose, silently and permanently.
   ///
-  /// A SAF location never reaches here: [use] returns before taking a lease.
+  /// A SAF location never reaches here: [useFolder] returns before taking a
+  /// lease.
   static Future<BackupDirLease> _leaseForReading(
     BackupPreferences preferences, {
     BackupBookmarkPort? bookmarks,

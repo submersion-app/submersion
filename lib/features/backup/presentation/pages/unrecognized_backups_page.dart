@@ -315,7 +315,10 @@ class _BackupTile extends ConsumerWidget {
 /// Display only: the characters are invisible and the file is still addressed
 /// by its path.
 String _breakAfterUnderscores(String filename) =>
-    filename.replaceAllMapped(RegExp('_+'), (match) => '${match[0]}\u200B');
+    filename.replaceAllMapped(_underscoreRun, (match) => '${match[0]}\u200B');
+
+/// A run of underscores, compiled once rather than on every tile build.
+final RegExp _underscoreRun = RegExp('_+');
 
 class _DeleteBar extends StatelessWidget {
   const _DeleteBar({required this.selection, required this.onDelete});

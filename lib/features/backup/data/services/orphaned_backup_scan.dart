@@ -135,8 +135,10 @@ class OrphanedBackupScan {
 
   /// Deletes the reclaimable entries in [candidates], returning bytes freed.
   ///
-  /// Decides for itself which entries it may delete, from the filename and the
-  /// live device id, rather than reading [UnrecognizedBackup.isReclaimable].
+  /// Decides for itself which entries it may delete, from the filename, the
+  /// live device id, a fresh read of the history and whether this scan's own
+  /// folder is private to the app, rather than reading
+  /// [UnrecognizedBackup.isReclaimable].
   /// That field was computed when the directory was listed, so re-reading it
   /// would only re-consult this class's own earlier answer: it cannot catch a
   /// caller that built an entry some other way, and it cannot notice the device
@@ -228,7 +230,12 @@ class OrphanedBackupScan {
 /// record left holding the old path still describes the file at the new one,
 /// and matching on the full path alone would list that file as forgotten. In
 /// the app-private folder, where ownership no longer guards a delete, it would
-/// then be offered for deletion while the Backups page still lists it.
+/// then be offered for deletion although the history still records it.
+///
+/// `BackupService.getValidatedBackupHistory` repoints such a record to the
+/// moved file rather than pruning it, but only once the Backups page loads.
+/// Until then the raw history still holds the old path, and this name match
+/// is what keeps the file accounted for.
 ///
 /// A backup name carries its timestamp and device tag, so a name match is the
 /// same backup. Matching on it too can only make the scan list, and reclaim
