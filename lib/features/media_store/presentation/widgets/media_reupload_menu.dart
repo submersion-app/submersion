@@ -71,17 +71,22 @@ Future<void> showMediaReuploadMenu(
     ],
   );
   if (level == null || !anchorContext.mounted) return;
-  // Read now: the button the menu hangs from can go while the dialog is up
-  // (the viewer's controls hide), and a confirmed choice must still queue.
+  // Read now: the button the menu hangs from can go from here on (the
+  // viewer's controls hide), and a level the diver picked must still be
+  // asked about and queued. The dialog hangs from the navigator instead.
   final reupload = ref.read(mediaStoreReuploadProvider);
   final messenger = ScaffoldMessenger.of(anchorContext);
+  final navigator = Navigator.of(anchorContext);
   final storeId = level == MediaUploadQuality.original
       ? null
       : await ref.read(mediaAttachedStoreIdProvider.future);
-  if (!anchorContext.mounted) return;
-  if (reuploadDropsOriginal(item, level, storeId: storeId) &&
-      !await _confirmDowngrade(anchorContext, _qualityLabel(l10n, level))) {
-    return;
+  if (reuploadDropsOriginal(item, level, storeId: storeId)) {
+    if (!navigator.mounted) return;
+    final confirmed = await _confirmDowngrade(
+      navigator.context,
+      _qualityLabel(l10n, level),
+    );
+    if (!confirmed) return;
   }
   await reupload(item.id, level);
   if (!messenger.mounted) return;

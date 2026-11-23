@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -57,9 +58,12 @@ void main() {
     MediaItem? photo,
     ValueNotifier<bool>? showButton,
     String? attachedStoreId,
+    Future<String?>? storeIdRead,
   }) => ProviderScope(
     overrides: [
-      mediaAttachedStoreIdProvider.overrideWith((ref) async => attachedStoreId),
+      mediaAttachedStoreIdProvider.overrideWith(
+        (ref) => storeIdRead ?? Future.value(attachedStoreId),
+      ),
       mediaStoreResolverProvider.overrideWith(
         (ref) => connected ? resolver : null,
       ),
@@ -231,6 +235,70 @@ void main() {
       expect(find.text('Replace the full-quality copy?'), findsNothing);
       expect(recorded, [
         ['m1', MediaUploadQuality.small],
+      ]);
+    });
+  });
+
+  // The viewer's controls can hide while the store is still being read: a
+  // level the diver picked is still queued, or still asked about.
+  group('the button hides while the store is read', () {
+    Future<(List<Object>, Completer<String?>)> pickThenHide(
+      WidgetTester tester,
+      MediaItem photo,
+      String level,
+    ) async {
+      final recorded = <Object>[];
+      final showButton = ValueNotifier(true);
+      addTearDown(showButton.dispose);
+      final storeId = Completer<String?>();
+      await tester.pumpWidget(
+        host(
+          connected: true,
+          recorded: recorded,
+          photo: photo,
+          showButton: showButton,
+          storeIdRead: storeId.future,
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('media-reupload-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(level).last);
+      await tester.pumpAndSettle();
+      showButton.value = false;
+      await tester.pump();
+      return (recorded, storeId);
+    }
+
+    testWidgets('a plain re-upload is still queued', (tester) async {
+      final (recorded, storeId) = await pickThenHide(
+        tester,
+        renditionOnly,
+        'Small',
+      );
+      storeId.complete(null);
+      await tester.pumpAndSettle();
+      expect(recorded, [
+        ['m1', MediaUploadQuality.small],
+      ]);
+      expect(find.text('Re-upload queued'), findsOneWidget);
+    });
+
+    testWidgets('a downgrade still asks, and Replace queues it', (
+      tester,
+    ) async {
+      final (recorded, storeId) = await pickThenHide(
+        tester,
+        uploadedOriginal,
+        'Balanced',
+      );
+      storeId.complete(null);
+      await tester.pumpAndSettle();
+      expect(find.text('Replace the full-quality copy?'), findsOneWidget);
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+      expect(recorded, [
+        ['m1', MediaUploadQuality.balanced],
       ]);
     });
   });
