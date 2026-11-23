@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
@@ -154,6 +155,64 @@ void main() {
     expect(
       [pref['lapse_days_override'], pref['lead_days_override']],
       [null, null],
+    );
+  });
+
+  // Issue #4942: a scope this build cannot read decodes to "any", so an
+  // edit that leaves it alone must write back exactly what was stored.
+  test('a name edit keeps a rule\'s unreadable scope as stored', () async {
+    final id = await make('currency_rules', {
+      'name': 'Club rule',
+      'lapse_days': 400,
+      'lead_days': 30,
+    });
+    await (db.update(
+      db.certificationCurrencyRules,
+    )..where((r) => r.id.equals(id))).write(
+      const CertificationCurrencyRulesCompanion(
+        applicableAgencies: Value('["agencyFromTheFuture"]'),
+        countedDiveTypeIds: Value('not json'),
+      ),
+    );
+
+    await h.run([
+      updateOp('currency_rules', id, {'name': 'Renamed'}),
+    ]);
+
+    final row = await (db.select(
+      db.certificationCurrencyRules,
+    )..where((r) => r.id.equals(id))).getSingle();
+    expect(
+      [row.name, row.applicableAgencies, row.countedDiveTypeIds],
+      ['Renamed', '["agencyFromTheFuture"]', 'not json'],
+    );
+  });
+
+  test('a mute toggle keeps a pref\'s unreadable mapping as stored', () async {
+    final id = await make('currency_prefs', {
+      'certification_id': card,
+      'rule_id': 'padi_reactivate',
+      'counted_dive_type_ids': ['boat'],
+    });
+    await (db.update(
+      db.certificationCurrencyPrefs,
+    )..where((p) => p.id.equals(id))).write(
+      const CertificationCurrencyPrefsCompanion(
+        countedDiveTypeIds: Value('not json'),
+        countedDiveModes: Value('["modeFromTheFuture"]'),
+      ),
+    );
+
+    await h.run([
+      updateOp('currency_prefs', id, {'muted': true}),
+    ]);
+
+    final row = await (db.select(
+      db.certificationCurrencyPrefs,
+    )..where((p) => p.id.equals(id))).getSingle();
+    expect(
+      [row.muted, row.countedDiveTypeIds, row.countedDiveModes],
+      [true, 'not json', '["modeFromTheFuture"]'],
     );
   });
 

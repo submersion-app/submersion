@@ -325,6 +325,57 @@ void main() {
     }
   });
 
+  // Issue #4942: a card mapping this build cannot read decodes to "any
+  // dive". The dialog starts from the rule's mapping, which is what the
+  // engine applies in its place, and a mute leaves the stored value alone.
+  testWidgets('an unreadable card mapping starts from the rule\'s', (
+    tester,
+  ) async {
+    final ccr = await addCert(
+      'Rebreather Diver',
+      CertificationAgency.padi,
+      CertificationLevel.rebreather,
+    );
+    await db
+        .into(db.certificationCurrencyPrefs)
+        .insert(
+          CertificationCurrencyPrefsCompanion.insert(
+            id: 'p1',
+            certificationId: ccr.id,
+            ruleId: 'rebreather_currency',
+            countedDiveModes: const Value('["modeFromTheFuture"]'),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    final session = await pumpEditing(tester, ccr);
+
+    await openMenu(tester);
+    await tester.tap(find.text('Which dives count').last);
+    await settle(tester);
+    for (final mode in [
+      'Closed Circuit Rebreather',
+      'Semi-Closed Rebreather',
+    ]) {
+      final chip = tester.widget<FilterChip>(
+        find.widgetWithText(FilterChip, mode),
+      );
+      expect(chip.selected, isTrue, reason: mode);
+    }
+    await tester.tap(find.text('Cancel'));
+    await settle(tester);
+
+    await openMenu(tester);
+    await tester.tap(find.text('Mute').last);
+    await settle(tester);
+    await save(tester, session);
+    final row = await (db.select(
+      db.certificationCurrencyPrefs,
+    )..where((p) => p.id.equals('p1'))).getSingle();
+    expect(row.muted, isTrue);
+    expect(row.countedDiveModes, '["modeFromTheFuture"]');
+  });
+
   testWidgets('the mapping action appears only for activity clocks', (
     tester,
   ) async {

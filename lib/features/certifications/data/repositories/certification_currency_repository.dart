@@ -101,6 +101,20 @@ class CertificationCurrencyRepository {
       throw StateError('Built-in currency rules cannot be edited');
     }
     final nowMs = DateTime.now().millisecondsSinceEpoch;
+    final stored = await (_db.select(
+      _db.certificationCurrencyRules,
+    )..where((t) => t.id.equals(rule.id))).getSingleOrNull();
+    // A scope the edit leaves alone is written back as stored, readable or
+    // not (issue #4942).
+    String scope(
+      String? Function(CurrencyRuleRow row) column,
+      String next,
+      List<String> Function(String raw) names,
+    ) => CurrencyScopeCodec.keepIfUnchanged(
+      stored: stored == null ? null : column(stored),
+      next: next,
+      names: names,
+    );
     await (_db.update(
       _db.certificationCurrencyRules,
     )..where((t) => t.id.equals(rule.id) & t.isBuiltIn.equals(false))).write(
@@ -108,12 +122,36 @@ class CertificationCurrencyRepository {
         diverId: Value(rule.diverId),
         name: Value(rule.name),
         clockKind: Value(rule.clockKind.name),
-        applicableAgencies: Value(rule.agenciesJson),
-        applicableLevels: Value(rule.levelsJson),
+        applicableAgencies: Value(
+          scope(
+            (r) => r.applicableAgencies,
+            rule.agenciesJson,
+            CurrencyScopeCodec.agencyNames,
+          ),
+        ),
+        applicableLevels: Value(
+          scope(
+            (r) => r.applicableLevels,
+            rule.levelsJson,
+            CurrencyScopeCodec.levelNames,
+          ),
+        ),
         lapseDays: Value(rule.lapseDays),
         leadDays: Value(rule.leadDays),
-        countedDiveTypeIds: Value(rule.diveTypesJson),
-        countedDiveModes: Value(rule.diveModesJson),
+        countedDiveTypeIds: Value(
+          scope(
+            (r) => r.countedDiveTypeIds,
+            rule.diveTypesJson,
+            CurrencyScopeCodec.decodeStrings,
+          ),
+        ),
+        countedDiveModes: Value(
+          scope(
+            (r) => r.countedDiveModes,
+            rule.diveModesJson,
+            CurrencyScopeCodec.modeNames,
+          ),
+        ),
         advisoryText: Value(rule.advisoryText),
         supersedesRuleId: Value(rule.supersedesRuleId),
         updatedAt: Value(nowMs),
@@ -170,6 +208,30 @@ class CertificationCurrencyRepository {
       _db.certificationCurrencyPrefs,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     final createdAtMs = existing?.createdAt ?? nowMs;
+    final nextTypes = pref.countedDiveTypeIds == null
+        ? null
+        : CurrencyScopeCodec.encode(pref.countedDiveTypeIds!);
+    final nextModes = pref.countedDiveModes == null
+        ? null
+        : CurrencyScopeCodec.encode([
+            for (final m in pref.countedDiveModes!) m.name,
+          ]);
+    // Types and modes are one answer to "which dives count". A save that
+    // leaves both alone writes them back as stored, readable or not, so a
+    // mute toggle cannot turn an unreadable mapping into "any dive"; a save
+    // that changes either writes both as given (issue #4942).
+    final keepMapping =
+        existing != null &&
+        CurrencyScopeCodec.sameValues(
+          existing.countedDiveTypeIds,
+          nextTypes,
+          CurrencyScopeCodec.decodeStrings,
+        ) &&
+        CurrencyScopeCodec.sameValues(
+          existing.countedDiveModes,
+          nextModes,
+          CurrencyScopeCodec.modeNames,
+        );
     await _db
         .into(_db.certificationCurrencyPrefs)
         .insertOnConflictUpdate(
@@ -180,16 +242,10 @@ class CertificationCurrencyRepository {
             lapseDaysOverride: Value(pref.lapseDaysOverride),
             leadDaysOverride: Value(pref.leadDaysOverride),
             countedDiveTypeIds: Value(
-              pref.countedDiveTypeIds == null
-                  ? null
-                  : CurrencyScopeCodec.encode(pref.countedDiveTypeIds!),
+              keepMapping ? existing.countedDiveTypeIds : nextTypes,
             ),
             countedDiveModes: Value(
-              pref.countedDiveModes == null
-                  ? null
-                  : CurrencyScopeCodec.encode([
-                      for (final m in pref.countedDiveModes!) m.name,
-                    ]),
+              keepMapping ? existing.countedDiveModes : nextModes,
             ),
             muted: Value(pref.muted),
             createdAt: Value(createdAtMs),
@@ -344,6 +400,11 @@ class CertificationCurrencyRepository {
     countedDiveModes: row.countedDiveModes == null
         ? null
         : CurrencyScopeCodec.decodeModes(row.countedDiveModes!),
+    unreadableMapping:
+        (row.countedDiveTypeIds != null &&
+            !CurrencyScopeCodec.isReadableStrings(row.countedDiveTypeIds!)) ||
+        (row.countedDiveModes != null &&
+            !CurrencyScopeCodec.isReadableModes(row.countedDiveModes!)),
     muted: row.muted,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),

@@ -22,6 +22,13 @@ class CurrencyPref extends Equatable {
   final List<String>? countedDiveTypeIds;
   final List<DiveMode>? countedDiveModes;
 
+  /// True when a stored mapping array is malformed or names only dive modes
+  /// this build does not know (issue #4942). It decodes to an empty list,
+  /// which would read as "any dive", so the engine applies the rule's own
+  /// mapping instead. The repository keeps the stored value on a save that
+  /// leaves the mapping alone.
+  final bool unreadableMapping;
+
   final bool muted;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -34,6 +41,7 @@ class CurrencyPref extends Equatable {
     this.leadDaysOverride,
     this.countedDiveTypeIds,
     this.countedDiveModes,
+    this.unreadableMapping = false,
     this.muted = false,
     required this.createdAt,
     required this.updatedAt,
@@ -51,6 +59,7 @@ class CurrencyPref extends Equatable {
     int? leadDaysOverride,
     List<String>? countedDiveTypeIds,
     List<DiveMode>? countedDiveModes,
+    bool? unreadableMapping,
     bool? muted,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -62,6 +71,7 @@ class CurrencyPref extends Equatable {
     leadDaysOverride: leadDaysOverride ?? this.leadDaysOverride,
     countedDiveTypeIds: countedDiveTypeIds ?? this.countedDiveTypeIds,
     countedDiveModes: countedDiveModes ?? this.countedDiveModes,
+    unreadableMapping: unreadableMapping ?? this.unreadableMapping,
     muted: muted ?? this.muted,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -76,6 +86,7 @@ class CurrencyPref extends Equatable {
     leadDaysOverride,
     countedDiveTypeIds,
     countedDiveModes,
+    unreadableMapping,
     muted,
     createdAt,
     updatedAt,

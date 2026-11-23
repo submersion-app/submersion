@@ -108,6 +108,10 @@ CurrencyPref rebuildCurrencyPref(
   countedDiveModes: identical(modes, _keep)
       ? p.countedDiveModes
       : modes as List<DiveMode>?,
+  // A mapping left alone stays as unreadable as it was; a new one is the
+  // diver's own (issue #4942).
+  unreadableMapping:
+      identical(types, _keep) && identical(modes, _keep) && p.unreadableMapping,
   muted: muted ?? p.muted,
   createdAt: p.createdAt,
   updatedAt: p.updatedAt,
@@ -140,8 +144,11 @@ CurrencyPref _currentPref(
       ),
       lapse: inherited.lapseDaysOverride,
       lead: inherited.leadDaysOverride,
-      types: inherited.countedDiveTypeIds,
-      modes: inherited.countedDiveModes,
+      // A mapping this build cannot read would decode to "any dive"; the
+      // copy inherits the rule's mapping instead, as the engine already
+      // applied it (issue #4942).
+      types: inherited.unreadableMapping ? null : inherited.countedDiveTypeIds,
+      modes: inherited.unreadableMapping ? null : inherited.countedDiveModes,
     );
   }
   return CurrencyPref(

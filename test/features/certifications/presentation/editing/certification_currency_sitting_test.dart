@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Certification;
 import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -222,6 +223,57 @@ void main() {
       expect(pref.muted, isTrue);
       expect(pref.leadDaysOverride, 10);
       expect(pref.lapseDaysOverride, 300);
+    });
+
+    // Issue #4942: an unreadable mapping decodes to "any dive". Carried onto
+    // a copy's new row it would be written as "any"; the copy inherits the
+    // rule's mapping instead, as the engine applied it.
+    test('a rebuild keeps an unreadable mapping only while untouched', () {
+      final unreadable = CurrencyPref(
+        id: 'p1',
+        certificationId: aow.id,
+        ruleId: 'padi_reactivate',
+        countedDiveTypeIds: const [],
+        unreadableMapping: true,
+        createdAt: t0,
+        updatedAt: t0,
+      );
+
+      expect(
+        rebuildCurrencyPref(unreadable, muted: true).unreadableMapping,
+        isTrue,
+      );
+      expect(
+        rebuildCurrencyPref(
+          unreadable,
+          types: const ['boat'],
+          modes: const <DiveMode>[],
+        ).unreadableMapping,
+        isFalse,
+      );
+    });
+
+    test('a copy does not carry an unreadable inherited mapping', () {
+      final mine = rule('mine', supersedes: 'padi_reactivate');
+      final inherited = CurrencyPref(
+        id: 'p1',
+        certificationId: aow.id,
+        ruleId: 'padi_reactivate',
+        countedDiveTypeIds: const [],
+        countedDiveModes: const [],
+        unreadableMapping: true,
+        muted: true,
+        createdAt: t0,
+        updatedAt: t0,
+      );
+
+      final pref = currencyPrefsFor(CurrencyGroup([member(aow, mine)]), {
+        (certificationId: aow.id, ruleId: 'padi_reactivate'): inherited,
+      }, (p) => rebuildCurrencyPref(p, lapse: 300)).single;
+
+      expect(pref.countedDiveTypeIds, isNull);
+      expect(pref.countedDiveModes, isNull);
+      expect(pref.muted, isTrue);
     });
   });
 
