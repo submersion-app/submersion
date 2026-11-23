@@ -243,7 +243,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           ],
         ),
         const SizedBox(height: 12),
-        // Four buttons do not fit one line on a phone, so they wrap.
+        // The buttons do not fit one line on a phone, so they wrap.
         Wrap(
           spacing: 8,
           runSpacing: 8,

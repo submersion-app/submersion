@@ -55362,11 +55362,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
-      'Las revisiones pertenecen al perfil de la fuente principal, por lo que el perfil de esta fuente no se puede eliminar aquí.';
+      'Eliminar perfil completo solo elimina revisiones del perfil de la fuente principal.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_onlyRevision =>
       'Esta es la única revisión del perfil de la inmersión, por lo que no se puede eliminar.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'No se pudieron cargar las revisiones del perfil, así que ahora no se puede eliminar ninguna.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

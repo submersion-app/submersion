@@ -54971,11 +54971,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
-      'Revisies horen bij het profiel van de primaire bron, dus het profiel van deze bron kan hier niet worden verwijderd.';
+      'Hele profiel verwijderen verwijdert alleen revisies van het profiel van de primaire bron.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_onlyRevision =>
       'Dit is de enige profielrevisie van de duik, dus deze kan niet worden verwijderd.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'De profielrevisies konden niet worden geladen, dus er kan nu geen worden verwijderd.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

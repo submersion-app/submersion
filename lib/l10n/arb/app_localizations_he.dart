@@ -54173,11 +54173,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
-      'הגרסאות שייכות לפרופיל של המקור הראשי, ולכן לא ניתן למחוק כאן את הפרופיל של המקור הזה.';
+      '„מחק את כל הפרופיל” מוחק רק גרסאות של הפרופיל של המקור הראשי.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_onlyRevision =>
       'זוהי גרסת הפרופיל היחידה של הצלילה, ולכן לא ניתן למחוק אותה.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'לא ניתן היה לטעון את גרסאות הפרופיל, ולכן אי אפשר למחוק אף אחת כרגע.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

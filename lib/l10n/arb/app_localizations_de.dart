@@ -55190,11 +55190,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
-      'Revisionen gehören zum Profil der primären Quelle, daher kann das Profil dieser Quelle hier nicht gelöscht werden.';
+      '„Gesamtes Profil löschen“ löscht nur Revisionen des Profils der primären Quelle.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_onlyRevision =>
       'Dies ist die einzige Profilrevision des Tauchgangs, daher kann sie nicht gelöscht werden.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Die Profilrevisionen konnten nicht geladen werden, daher kann gerade keine gelöscht werden.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

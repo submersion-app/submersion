@@ -52,8 +52,10 @@ void main() {
   const onlyRevisionHint =
       "This is the dive's only profile revision, so it can't be deleted.";
   const notPrimaryHint =
-      "Revisions belong to the primary source's profile, so this "
-      "source's profile can't be deleted here.";
+      "Delete Entire Profile only deletes revisions of the primary "
+      "source's profile.";
+  const historyFailedHint =
+      "Couldn't load the profile revisions, so none can be deleted now.";
   const unsavedHint = 'Save or undo your edits first.';
 
   late Dive dive;
@@ -97,6 +99,7 @@ void main() {
     String? sourceId,
     List<DiveDataSource>? sources,
     List<ProfileSeriesRevision>? revisions,
+    bool historyFails = false,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -130,7 +133,9 @@ void main() {
             },
           ),
           profileSeriesHistoryProvider(dive.id).overrideWith(
-            (ref) async => revisions ?? [revision('series-a', active: true)],
+            (ref) async => historyFails
+                ? throw StateError('database is locked')
+                : revisions ?? [revision('series-a', active: true)],
           ),
         ],
         child: MaterialApp.router(
@@ -291,6 +296,13 @@ void main() {
       );
 
       expect(find.text(notPrimaryHint), findsOneWidget);
+    });
+
+    testWidgets('when the revisions could not be loaded', (tester) async {
+      await pumpEditor(tester, sourceId: 'src-a', historyFails: true);
+
+      expect(buttonLabelled(tester, 'Delete Entire Profile').onPressed, isNull);
+      expect(find.text(historyFailedHint), findsOneWidget);
     });
 
     testWidgets('says nothing when the profile can be deleted', (tester) async {

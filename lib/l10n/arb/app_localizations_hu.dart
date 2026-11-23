@@ -54994,11 +54994,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
-      'A verziók az elsődleges forrás profiljához tartoznak, ezért ennek a forrásnak a profilja itt nem törölhető.';
+      'A „Teljes profil törlése” csak az elsődleges forrás profiljának verzióit törli.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_onlyRevision =>
       'Ez a merülés egyetlen profilverziója, ezért nem törölhető.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Nem sikerült betölteni a profilverziókat, ezért most egyik sem törölhető.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

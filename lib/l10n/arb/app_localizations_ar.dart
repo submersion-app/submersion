@@ -56117,11 +56117,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
-      'تنتمي المراجعات إلى ملف المصدر الأساسي، لذا لا يمكن حذف ملف هذا المصدر هنا.';
+      'يحذف «حذف الملف الكامل» مراجعات ملف المصدر الأساسي فقط.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_onlyRevision =>
       'هذه هي المراجعة الوحيدة لملف الغوصة، لذا لا يمكن حذفها.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'تعذر تحميل مراجعات الملف، لذا لا يمكن حذف أي منها الآن.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

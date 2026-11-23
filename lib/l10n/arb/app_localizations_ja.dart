@@ -53075,11 +53075,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
-      'リビジョンはプライマリソースのプロファイルに属するため、ここではこのソースのプロファイルを削除できません。';
+      '「プロファイル全体を削除」で削除できるのは、プライマリソースのプロファイルのリビジョンだけです。';
 
   @override
   String get diveLog_profileEditor_deleteProfile_onlyRevision =>
       'これはこのダイブの唯一のプロファイルリビジョンのため、削除できません。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'プロファイルのリビジョンを読み込めなかったため、現在は削除できません。';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

@@ -341,9 +341,10 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   Widget _buildEditor({bool showRevisions = true}) {
     final state = ref.watch(_editorProvider);
     final notifier = ref.read(_editorProvider.notifier);
-    final history = showRevisions
-        ? ref.watch(profileSeriesHistoryProvider(widget.diveId)).valueOrNull
+    final historyAsync = showRevisions
+        ? ref.watch(profileSeriesHistoryProvider(widget.diveId))
         : null;
+    final history = historyAsync?.valueOrNull;
     final activeRevision = (history == null || history.isEmpty)
         ? null
         : history.firstWhere((r) => r.isActive, orElse: () => history.first);
@@ -361,7 +362,12 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
       deleteProfileHint = l10n.diveLog_profileEditor_unsavedEditsHint;
     } else if (!showRevisions) {
       deleteProfileHint = l10n.diveLog_profileEditor_deleteProfile_notPrimary;
-    } else if (history != null && history.length <= 1) {
+    } else if (history == null && (historyAsync?.hasError ?? false)) {
+      deleteProfileHint =
+          l10n.diveLog_profileEditor_deleteProfile_historyFailed;
+    } else if (history != null && history.length == 1) {
+      // An empty history has no revision to call the only one, so it says
+      // nothing rather than something untrue.
       deleteProfileHint = l10n.diveLog_profileEditor_deleteProfile_onlyRevision;
     } else {
       deleteProfileHint = null;

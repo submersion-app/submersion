@@ -86761,7 +86761,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_profileEditor_deleteProfile_notPrimary.
   ///
   /// In en, this message translates to:
-  /// **'Revisions belong to the primary source\'s profile, so this source\'s profile can\'t be deleted here.'**
+  /// **'Delete Entire Profile only deletes revisions of the primary source\'s profile.'**
   String get diveLog_profileEditor_deleteProfile_notPrimary;
 
   /// No description provided for @diveLog_profileEditor_deleteProfile_onlyRevision.
@@ -86769,6 +86769,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This is the dive\'s only profile revision, so it can\'t be deleted.'**
   String get diveLog_profileEditor_deleteProfile_onlyRevision;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_historyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the profile revisions, so none can be deleted now.'**
+  String get diveLog_profileEditor_deleteProfile_historyFailed;
 
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
   ///

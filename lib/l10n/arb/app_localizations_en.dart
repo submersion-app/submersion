@@ -54471,11 +54471,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
-      'Revisions belong to the primary source\'s profile, so this source\'s profile can\'t be deleted here.';
+      'Delete Entire Profile only deletes revisions of the primary source\'s profile.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_onlyRevision =>
       'This is the dive\'s only profile revision, so it can\'t be deleted.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Couldn\'t load the profile revisions, so none can be deleted now.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>
