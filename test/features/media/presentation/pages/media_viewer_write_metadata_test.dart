@@ -28,6 +28,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/fake_photo_picker_service.dart';
 import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 /// Rounds of 20 ms of real time, so about five seconds before a wait fails:
 /// room for a machine running many test bundles at once.
@@ -104,6 +105,11 @@ MediaItem item({
 );
 
 void main() {
+  // The page is built inside runAsync, so the viewer's wait before it asks
+  // for marine life analysis runs on real time, and on a Linux runner the
+  // labels ring then outlasts a pumpAndSettle (issue #4949).
+  turnOffMarineLifeIdForEachTest();
+
   const channel = MethodChannel('com.submersion.app/metadata');
   late SharedPreferences prefs;
   late List<MethodCall> nativeCalls;
