@@ -55,6 +55,7 @@ void main() {
     required bool connected,
     required List<Object> recorded,
     MediaItem? photo,
+    ValueNotifier<bool>? showButton,
   }) => ProviderScope(
     overrides: [
       mediaStoreResolverProvider.overrideWith(
@@ -72,13 +73,22 @@ void main() {
       home: Scaffold(
         body: Consumer(
           builder: (context, ref, _) => mediaReuploadAvailable(ref)
-              ? Builder(
-                  builder: (anchor) => IconButton(
-                    key: const Key('media-reupload-button'),
-                    icon: const Icon(Icons.tune),
-                    onPressed: () =>
-                        showMediaReuploadMenu(anchor, ref, photo ?? item),
-                  ),
+              // The viewer's controls can hide while a dialog is up.
+              ? ValueListenableBuilder<bool>(
+                  valueListenable: showButton ?? ValueNotifier(true),
+                  builder: (_, shown, _) => !shown
+                      ? const SizedBox.shrink()
+                      : Builder(
+                          builder: (anchor) => IconButton(
+                            key: const Key('media-reupload-button'),
+                            icon: const Icon(Icons.tune),
+                            onPressed: () => showMediaReuploadMenu(
+                              anchor,
+                              ref,
+                              photo ?? item,
+                            ),
+                          ),
+                        ),
                 )
               : const SizedBox.shrink(),
         ),
@@ -133,6 +143,37 @@ void main() {
 
       await tester.tap(find.text('Replace'));
       await tester.pumpAndSettle();
+      expect(recorded, [
+        ['m1', MediaUploadQuality.balanced],
+      ]);
+      expect(find.text('Re-upload queued'), findsOneWidget);
+    });
+
+    testWidgets('Replace queues it even if the button hid meanwhile', (
+      tester,
+    ) async {
+      final recorded = <Object>[];
+      final showButton = ValueNotifier(true);
+      addTearDown(showButton.dispose);
+      await tester.pumpWidget(
+        host(
+          connected: true,
+          recorded: recorded,
+          photo: uploadedOriginal,
+          showButton: showButton,
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('media-reupload-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Balanced').last);
+      await tester.pumpAndSettle();
+
+      showButton.value = false;
+      await tester.pump();
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+
       expect(recorded, [
         ['m1', MediaUploadQuality.balanced],
       ]);

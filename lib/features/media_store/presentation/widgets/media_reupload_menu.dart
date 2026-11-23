@@ -64,14 +64,17 @@ Future<void> showMediaReuploadMenu(
     ],
   );
   if (level == null || !anchorContext.mounted) return;
+  // Read now: the button the menu hangs from can go while the dialog is up
+  // (the viewer's controls hide), and a confirmed choice must still queue.
+  final reupload = ref.read(mediaStoreReuploadProvider);
+  final messenger = ScaffoldMessenger.of(anchorContext);
   if (reuploadDropsOriginal(item, level) &&
       !await _confirmDowngrade(anchorContext, _qualityLabel(l10n, level))) {
     return;
   }
-  if (!anchorContext.mounted) return;
-  await ref.read(mediaStoreReuploadProvider)(item.id, level);
-  if (!anchorContext.mounted) return;
-  ScaffoldMessenger.of(anchorContext).showSnackBar(
+  await reupload(item.id, level);
+  if (!messenger.mounted) return;
+  messenger.showSnackBar(
     SnackBar(content: Text(l10n.settings_mediaStorage_quality_reuploadQueued)),
   );
 }
