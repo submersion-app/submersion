@@ -149,6 +149,8 @@ class _TankRowState extends State<TankRow> {
               diveId: widget.diveId,
               diveMode: widget.diveMode,
               diveDate: widget.diveDate,
+              // The outline above frames it (issue #4962).
+              framed: false,
             ),
             Align(
               alignment: Alignment.centerRight,
