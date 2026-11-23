@@ -19,7 +19,11 @@
 /// their statement uses for `dives`.
 library;
 
+import 'package:submersion/core/database/app_sql_functions.dart'
+    show kSameComputerIdentityFunction;
 import 'package:submersion/core/database/dive_source_stamp.dart';
+import 'package:submersion/features/dive_log/data/services/data_source_strand.dart'
+    show sameRecordingDepthToleranceMeters;
 import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 
 /// `entry_time` and `exit_time` are epoch milliseconds; `runtime` and
@@ -117,60 +121,27 @@ String _sameStrandSql(String r, String p) =>
     'AND $r.merge_source_slot = $p.merge_source_slot) '
     'OR ${_sameRecordingWithoutComputerSql(r, p)}), 0) = 1)';
 
-/// `normalizeComputerIdentityPart` for [column]: trimmed, lower-cased with
-/// unicode_lower as Dart's toLowerCase folds (issue #3032), and every run of
-/// whitespace inside it collapsed to one space. ASCII whitespace only: the
-/// Unicode spaces Dart's `\s` also matches are left as they are.
-String _identityPartSql(String column) {
-  var value = "COALESCE($column, '')";
-  // Tab, line feed, vertical tab, form feed and carriage return become
-  // spaces, so the trim and the collapse below see one kind of space.
-  for (final code in const [9, 10, 11, 12, 13]) {
-    value = "REPLACE($value, CHAR($code), ' ')";
-  }
-  // Collapse runs of any length in three passes: mark each space, drop
-  // every mark that another space follows, then drop the remaining marks.
-  // "a   b" becomes "a <m> <m> <m>b", then "a <m>b", then "a b".
-  const mark = 'CHAR(1)';
-  value =
-      "REPLACE(REPLACE(REPLACE(TRIM($value), ' ', ' ' || $mark), "
-      "$mark || ' ', ''), $mark, '')";
-  return 'unicode_lower($value)';
-}
-
 /// `sameRecordingWithoutComputer` for two rows with no computer and no merge
-/// slot, as far as SQL can state it: not written by one import, the model
-/// equal or one a vendor-prefixed form of the other, the serials equal or
-/// one of them blank, the same start to the second (the column stores whole
-/// seconds, so `=` on it is Dart's comparison), the same runtime, and the
-/// maximum depth within 0.1 m. It leaves out the Shearwater hex and
-/// decimal forms of one serial (`computerSerialsMatch`) and whitespace
-/// outside ASCII ([_identityPartSql]), so two such rows read as two sources
-/// here, and it compares each row with the first row only, where Dart wants
-/// every row already on the strand to agree.
-String _sameRecordingWithoutComputerSql(String r, String p) {
-  const norm = _identityPartSql;
-  final rModel = norm('$r.computer_model');
-  final pModel = norm('$p.computer_model');
-  final rSerial = norm('$r.computer_serial');
-  final pSerial = norm('$p.computer_serial');
-  String prefixed(String longer, String shorter) =>
-      '(LENGTH($longer) > LENGTH($shorter) '
-      "AND SUBSTR($longer, LENGTH($longer) - LENGTH($shorter)) = ' ' || $shorter)";
-  return '($r.computer_id IS NULL AND $p.computer_id IS NULL '
-      'AND $r.merge_source_slot IS NULL AND $p.merge_source_slot IS NULL '
-      // IS, not =: one row with no file name must not turn the guard NULL.
-      'AND NOT ($r.source_file_name IS NOT NULL '
-      'AND $r.source_file_name IS $p.source_file_name '
-      'AND $r.imported_at IS $p.imported_at) '
-      "AND $rModel <> '' AND $pModel <> '' "
-      'AND ($rModel = $pModel OR ${prefixed(rModel, pModel)} '
-      'OR ${prefixed(pModel, rModel)}) '
-      "AND ($rSerial = '' OR $pSerial = '' OR $rSerial = $pSerial) "
-      'AND $r.entry_time = $p.entry_time '
-      'AND $r.duration = $p.duration '
-      'AND ABS($r.max_depth - $p.max_depth) <= 0.1)';
-}
+/// slot: not written by one import, the same computer by model and serial
+/// ([kSameComputerIdentityFunction], which runs the Dart check itself), the
+/// same start to the second (the column stores whole seconds, so `=` on it
+/// is Dart's comparison), the same runtime, and the maximum depth within
+/// [sameRecordingDepthToleranceMeters]. It compares each row with the first
+/// row only, where Dart wants every row already on the strand to agree, so
+/// a serial-less first row can take in two rows whose serials conflict.
+String _sameRecordingWithoutComputerSql(String r, String p) =>
+    '($r.computer_id IS NULL AND $p.computer_id IS NULL '
+    'AND $r.merge_source_slot IS NULL AND $p.merge_source_slot IS NULL '
+    // IS, not =: one row with no file name must not turn the guard NULL.
+    'AND NOT ($r.source_file_name IS NOT NULL '
+    'AND $r.source_file_name IS $p.source_file_name '
+    'AND $r.imported_at IS $p.imported_at) '
+    'AND $kSameComputerIdentityFunction($r.computer_model, '
+    '$r.computer_serial, $p.computer_model, $p.computer_serial) = 1 '
+    'AND $r.entry_time = $p.entry_time '
+    'AND $r.duration = $p.duration '
+    'AND ABS($r.max_depth - $p.max_depth) <= '
+    '$sameRecordingDepthToleranceMeters)';
 
 /// Whether series [x] is in the primary source's family, as
 /// `dropSupersededSeries` places it.

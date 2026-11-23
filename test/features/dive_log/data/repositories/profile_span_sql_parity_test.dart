@@ -662,4 +662,70 @@ void main() {
     await repository.saveEditedProfile('inner-space-model', points(2400));
     await expectSpan('inner-space-model', 2400);
   });
+
+  test('one recording stored twice collapses when one copy carries the '
+      'Shearwater serial in hex and the other in decimal', () async {
+    await createBareDive('hex-decimal-serial');
+    await createLooseSource(
+      'source-1',
+      diveId: 'hex-decimal-serial',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+      model: 'Shearwater Perdix 2',
+      serial: '0A1B2C3D',
+    );
+    await createLooseSource(
+      'source-2',
+      diveId: 'hex-decimal-serial',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+      model: 'Perdix 2',
+      serial: '169552957',
+    );
+    await series.insertSeries(
+      diveId: 'hex-decimal-serial',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'hex-decimal-serial',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3000),
+    );
+    await repository.saveEditedProfile('hex-decimal-serial', points(2400));
+    await expectSpan('hex-decimal-serial', 2400);
+  });
+
+  test('one recording stored twice collapses when a model is padded with a '
+      'non-breaking space', () async {
+    await createBareDive('nbsp-model');
+    await createLooseSource(
+      'source-1',
+      diveId: 'nbsp-model',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+      model: 'Perdix\u00a02',
+    );
+    await createLooseSource(
+      'source-2',
+      diveId: 'nbsp-model',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+      model: 'Perdix 2\u00a0',
+    );
+    await series.insertSeries(
+      diveId: 'nbsp-model',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'nbsp-model',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3000),
+    );
+    await repository.saveEditedProfile('nbsp-model', points(2400));
+    await expectSpan('nbsp-model', 2400);
+  });
 }

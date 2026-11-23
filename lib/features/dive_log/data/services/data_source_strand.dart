@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:submersion/core/database/computer_serial_identity.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/core/database/imported_computer_identity.dart';
 
 /// The strand a `dive_data_sources` row belongs to for display purposes.
 ///
@@ -146,8 +145,8 @@ int? _rowEndMs(DiveDataSourcesData row) {
 
 /// How far apart two parses of one recording may put its maximum depth:
 /// one importer keeps libdivecomputer's full value, another a rounded or
-/// unit-converted one.
-const double _sameRecordingDepthToleranceMeters = 0.1;
+/// unit-converted one. `profileSpanSecondsSql` reads the same value.
+const double sameRecordingDepthToleranceMeters = 0.1;
 
 /// Whether [a] and [b], two source rows of one dive, are the same recording
 /// of the same computer.
@@ -156,23 +155,31 @@ const double _sameRecordingDepthToleranceMeters = 0.1;
 /// false match hides a computer the diver really wore (two units of one
 /// model are common):
 ///
-/// - the model, compared normalized and allowing a vendor prefix on one
-///   side, so 'Shearwater Perdix 2' and 'Perdix 2' agree;
-/// - the serial, unless one side has none (the Shearwater hex and decimal
-///   forms are one serial, per [computerSerialsMatch]);
+/// - the model and serial, per [sameComputerModelAndSerial]: the models
+///   agree allowing a vendor prefix, and the serials do not conflict;
 /// - the start to the second and the runtime to the second, which two
 ///   computers never share, and the maximum depth within rounding.
 ///
 /// Two rows one import wrote from one file never match: the file listed
 /// them as separate computers, and the importer starts each at the dive's
 /// own start, so their shared start is no evidence of one recording.
+///
+/// `profileSpanSecondsSql` restates this rule in SQL so Insights measures a
+/// dive over the same series; change both together, and
+/// `profile_span_sql_parity_test.dart` pins them.
 bool sameRecordingWithoutComputer(
   DiveDataSourcesData a,
   DiveDataSourcesData b,
 ) {
   if (_sameImport(a, b)) return false;
-  if (!_sameModel(a.computerModel, b.computerModel)) return false;
-  if (!_compatibleSerials(a, b)) return false;
+  if (!sameComputerModelAndSerial(
+    modelA: a.computerModel,
+    serialA: a.computerSerial,
+    modelB: b.computerModel,
+    serialB: b.computerSerial,
+  )) {
+    return false;
+  }
   final aStart = a.entryTime;
   final bStart = b.entryTime;
   if (aStart == null || bStart == null) return false;
@@ -184,36 +191,10 @@ bool sameRecordingWithoutComputer(
   final aDepth = a.maxDepth;
   final bDepth = b.maxDepth;
   if (aDepth == null || bDepth == null) return false;
-  return (aDepth - bDepth).abs() <= _sameRecordingDepthToleranceMeters;
+  return (aDepth - bDepth).abs() <= sameRecordingDepthToleranceMeters;
 }
 
 bool _sameImport(DiveDataSourcesData a, DiveDataSourcesData b) =>
     a.sourceFileName != null &&
     a.sourceFileName == b.sourceFileName &&
     a.importedAt == b.importedAt;
-
-bool _sameModel(String? a, String? b) {
-  final left = normalizeComputerIdentityPart(a);
-  final right = normalizeComputerIdentityPart(b);
-  if (left.isEmpty || right.isEmpty) return false;
-  if (left == right) return true;
-  final (longer, shorter) = left.length > right.length
-      ? (left, right)
-      : (right, left);
-  return longer.endsWith(' $shorter');
-}
-
-bool _compatibleSerials(DiveDataSourcesData a, DiveDataSourcesData b) {
-  if (normalizeComputerIdentityPart(a.computerSerial).isEmpty ||
-      normalizeComputerIdentityPart(b.computerSerial).isEmpty) {
-    return true;
-  }
-  return computerSerialsMatch(
-    a.computerSerial,
-    b.computerSerial,
-    shearwater: shearwaterPair(
-      modelA: a.computerModel,
-      modelB: b.computerModel,
-    ),
-  );
-}

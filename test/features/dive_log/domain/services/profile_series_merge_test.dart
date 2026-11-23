@@ -139,8 +139,14 @@ void main() {
       expect(drop([original, edit, other]).map((s) => s.id), ['edit', 'other']);
     });
 
-    test('without an edit nothing is dropped', () {
-      expect(drop([original, other]).map((s) => s.id), ['orig', 'other']);
+    test('an active recording keeps the demoted series of another source', () {
+      final recording = series(
+        'recording',
+        computerId: 'c1',
+        sourceId: 's1',
+        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+      );
+      expect(drop([recording, other]).map((s) => s.id), ['recording', 'other']);
     });
 
     test('a dive with no primary series keeps everything', () {
