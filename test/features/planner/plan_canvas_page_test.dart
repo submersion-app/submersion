@@ -113,6 +113,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PlanProfileChart), findsOneWidget);
+    // The stops are listed in the readouts instead of tagged on the chart.
+    expect(
+      tester
+          .widget<PlanProfileChart>(find.byType(PlanProfileChart))
+          .showStopTags,
+      isFalse,
+    );
     expect(find.byType(PlanChartReadouts), findsOneWidget);
     expect(find.byType(PlanStatusChips), findsNothing);
     expect(find.text('Base'), findsOneWidget);

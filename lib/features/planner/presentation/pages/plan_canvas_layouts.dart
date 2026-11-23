@@ -228,7 +228,10 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     return Stack(
       children: [
         const Positioned.fill(
-          child: Padding(padding: EdgeInsets.all(8), child: PlanProfileChart()),
+          child: Padding(
+            padding: EdgeInsets.all(8),
+            child: PlanProfileChart(showStopTags: false),
+          ),
         ),
         PlanChartReadouts(
           onIssuesTap: () =>

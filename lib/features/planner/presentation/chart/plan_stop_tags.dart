@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 
 /// One stop tag on the chart, and while a contingency is previewed, how its
 /// stop compares with the base plan's stop at the same depth.
@@ -43,6 +46,27 @@ class PlanStopTag {
     isNew,
   );
 }
+
+/// The stops the chart shows, tagged on the profile or, on a phone, listed
+/// in the readouts. While a contingency is previewed they are its stops,
+/// compared with the plan's, as the table and stats then describe the
+/// preview. The Bailout view keeps its own: the ghost is a variant of the
+/// live plan, not of the bailout picture.
+final planChartStopTagsProvider = Provider<List<PlanStopTag>>((ref) {
+  final series = ref.watch(planCanvasSeriesProvider);
+  final showingBailout = ref.watch(
+    planChartBailoutProvider.select((c) => c.picture != null),
+  );
+  final ghost = showingBailout
+      ? null
+      : ref.watch(contingencyGhostSeriesProvider);
+  final units = ref.watch(unitFormatterProvider);
+  return planStopTags(
+    series: series,
+    preview: ghost,
+    formatDepth: (m) => units.formatDepth(m, decimals: 0),
+  );
+});
 
 /// The stop tags to draw: the [preview]'s stops when a contingency is
 /// previewed, compared with [series], else [series]'s own. Changes come from

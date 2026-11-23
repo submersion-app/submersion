@@ -33,7 +33,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// frequency (backdrop / series / overlay), a scrub readout, waypoint handles,
 /// and full on-chart editing (drag, double-click add, gas menu, keyboard).
 class PlanProfileChart extends ConsumerStatefulWidget {
-  const PlanProfileChart({super.key});
+  const PlanProfileChart({super.key, this.showStopTags = true});
+
+  /// False on a phone, where the readouts list the stops instead (#4981).
+  final bool showStopTags;
 
   @override
   ConsumerState<PlanProfileChart> createState() => _PlanProfileChartState();
@@ -301,18 +304,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     );
     final direction = Directionality.of(context);
 
-    // While a contingency is previewed its stops are tagged, compared with
-    // the plan's, as the table and stats then describe the preview. The
-    // Bailout view keeps its own: the ghost is a variant of the live plan,
-    // not of the bailout picture.
-    final showingBailout = ref.watch(
-      planChartBailoutProvider.select((c) => c.picture != null),
-    );
-    final stopTags = planStopTags(
-      series: series,
-      preview: showingBailout ? null : ghost,
-      formatDepth: (m) => units.formatDepth(m, decimals: 0),
-    );
+    final stopTags = widget.showStopTags
+        ? ref.watch(planChartStopTagsProvider)
+        : const <PlanStopTag>[];
     final meanDepthLabel = context.l10n.plannerCanvas_chart_meanDepth(
       units.formatDepth(
         PlanChartGeometry.meanDepthMeters(series.profile),

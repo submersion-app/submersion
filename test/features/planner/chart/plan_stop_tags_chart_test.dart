@@ -29,6 +29,34 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 void main() {
+  testWidgets('a chart without stop tags draws none', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...plannerResultsInline(),
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        child: const SizedBox(
+          width: 600,
+          height: 400,
+          child: PlanProfileChart(showStopTags: false),
+        ),
+      ),
+    );
+    ProviderScope.containerOf(tester.element(find.byType(PlanProfileChart)))
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+
+    final painter =
+        tester
+                .widget<CustomPaint>(find.byKey(const Key('planChartSeries')))
+                .painter
+            as PlanChartSeriesPainter;
+    expect(painter.series.stopLabels, isNotEmpty);
+    expect(painter.stopTags, isEmpty);
+  });
+
   testWidgets('the Bailout view keeps its own tags under a preview', (
     tester,
   ) async {
