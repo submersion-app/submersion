@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart' show debugPrint;
-
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -9,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
@@ -16,10 +15,13 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/marine_life/data/services/retired_species_merger.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
+import 'package:submersion/features/marine_life/domain/entities/bundled_species_catalog.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
+
+const _log = LoggerService('SpeciesRepository');
 
 class SpeciesRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -586,49 +588,75 @@ class SpeciesRepository {
     final store = versionStore;
     final upgrade =
         store != null && await store.appliedVersion() < catalog.version;
+    if (!upgrade) return _seedRows(catalog, upgrade: false);
 
-    await _db.batch((batch) {
-      for (final species in catalog.species) {
-        final companion = SpeciesCompanion(
-          id: Value(species.id),
-          commonName: Value(species.commonName),
-          scientificName: Value(species.scientificName),
-          category: Value(species.category.name),
-          taxonomyClass: Value(species.taxonomyClass),
-          description: Value(species.description),
-          isBuiltIn: const Value(true),
+    // A catalog upgrade is the app's own work: filed as one automatic
+    // operation, never as the diver's edits in the change log.
+    final folded = await ChangeLogScope.automatic(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.qualityRepair,
+      body: () async {
+        await _seedRows(catalog, upgrade: true);
+        return _foldRetired(catalog);
+      },
+    );
+    // A failed fold leaves the version unapplied, so the next launch tries
+    // again.
+    if (folded) await store.markApplied(catalog.version);
+  }
+
+  /// The INSERT OR IGNORE batch, or with [upgrade] the upsert that rewrites
+  /// rows the diver never touched.
+  Future<void> _seedRows(
+    BundledSpeciesCatalog catalog, {
+    required bool upgrade,
+  }) => _db.batch((batch) {
+    for (final species in catalog.species) {
+      final companion = SpeciesCompanion(
+        id: Value(species.id),
+        commonName: Value(species.commonName),
+        scientificName: Value(species.scientificName),
+        category: Value(species.category.name),
+        taxonomyClass: Value(species.taxonomyClass),
+        description: Value(species.description),
+        isBuiltIn: const Value(true),
+      );
+      if (upgrade) {
+        batch.insert(
+          _db.species,
+          companion,
+          onConflict: DoUpdate<$SpeciesTable, Specy>(
+            (old) => companion,
+            where: (old) => old.hlc.isNull(),
+          ),
         );
-        if (upgrade) {
-          batch.insert(
-            _db.species,
-            companion,
-            onConflict: DoUpdate<$SpeciesTable, Specy>(
-              (old) => companion,
-              where: (old) => old.hlc.isNull(),
-            ),
-          );
-        } else {
-          batch.insert(_db.species, companion, mode: InsertMode.insertOrIgnore);
-        }
+      } else {
+        batch.insert(_db.species, companion, mode: InsertMode.insertOrIgnore);
       }
-    });
+    }
+  });
 
-    if (upgrade) {
-      // A failed fold must not stop the launch. Each twin folds in its own
-      // transaction, so a failure leaves that twin whole, and the version
-      // stays unapplied so the next launch tries again.
-      final bool merged;
-      try {
-        merged = await RetiredSpeciesMerger(
-          _db,
-          _syncRepository,
-        ).merge(catalog.retired, keepEdited: true);
-      } catch (e, stack) {
-        debugPrint('Retired species fold failed (will retry): $e\n$stack');
-        return;
-      }
-      await store.markApplied(catalog.version);
+  /// Folds each id [catalog] retired into its replacement, keeping a twin
+  /// the diver edited. Returns false when the fold failed: a failure must
+  /// not stop the launch, and each twin folds in its own transaction, so a
+  /// failure leaves that twin whole while those before it stay folded.
+  Future<bool> _foldRetired(BundledSpeciesCatalog catalog) async {
+    try {
+      final merged = await RetiredSpeciesMerger(
+        _db,
+        _syncRepository,
+      ).merge(catalog.retired, keepEdited: true);
       if (merged) SyncEventBus.notifyLocalChange();
+      return true;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Retired species fold failed (will retry)',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Twins folded before the failure are committed and pending.
+      SyncEventBus.notifyLocalChange();
+      return false;
     }
   }
 

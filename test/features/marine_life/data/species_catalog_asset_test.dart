@@ -1,14 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
+
+final _assetPath = p.join('assets', 'data', 'species.json');
 
 /// The bundled catalog itself (issue #4966): one row per species, and every
 /// retired id names a row that is still there.
 void main() {
   test('no two catalog rows share a scientific name', () async {
     final catalog = SpeciesSeedService.parseCatalog(
-      await File('assets/data/species.json').readAsString(),
+      await File(_assetPath).readAsString(),
     );
     final byName = <String, List<String>>{};
     for (final species in catalog.species) {
@@ -25,7 +28,7 @@ void main() {
 
   test('every retired id is gone and names a row that is there', () async {
     final catalog = SpeciesSeedService.parseCatalog(
-      await File('assets/data/species.json').readAsString(),
+      await File(_assetPath).readAsString(),
     );
     final ids = catalog.species.map((s) => s.id).toSet();
     expect(catalog.retired, isNotEmpty);

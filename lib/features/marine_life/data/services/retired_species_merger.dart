@@ -208,7 +208,7 @@ class RetiredSpeciesMerger {
   }
 
   /// A dropped expected-species entry's notes pass to a kept entry that has
-  /// none.
+  /// none (blank or only spaces, as for a photo tag).
   Future<void> _carryNotes(String dropped, String kept, int now) async {
     final rows = await _db
         .customSelect(
@@ -220,7 +220,7 @@ class RetiredSpeciesMerger {
         (rows.firstWhere((r) => r.data['id'] == id).data['notes'] as String?) ??
         '';
     final notes = notesOf(dropped);
-    if (notes.trim().isEmpty || notesOf(kept).isNotEmpty) return;
+    if (notes.trim().isEmpty || notesOf(kept).trim().isNotEmpty) return;
     await _db.customStatement(
       'UPDATE site_species SET notes = ? WHERE id = ?',
       [notes, kept],

@@ -2,6 +2,11 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/change_log/data/services/change_log_settler.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/bundled_species_catalog.dart';
@@ -9,6 +14,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 
+import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/in_memory_seed_version_store.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../media/data/repositories/species_photo_fixtures.dart';
@@ -114,6 +120,21 @@ void main() {
     expect(store.version, 2);
   });
 
+  test('the fold files as one automatic quality repair', () async {
+    await repository.addSighting(diveId: 'd1', speciesId: 'sp_twin');
+    await ChangeLogSettler(db).settle();
+    await clearLog(db);
+    await db.customStatement('DELETE FROM change_log_operations');
+
+    await upgrade();
+
+    await ChangeLogSettler(db).settle();
+    final operations = await db.select(db.changeLogOperations).get();
+    expect(operations.map((o) => (o.source, o.label)), [
+      (ChangeLogSource.automatic.name, ChangeLogLabels.qualityRepair),
+    ]);
+  });
+
   test('a dive logged with both keeps both sightings', () async {
     await repository.addSighting(diveId: 'd1', speciesId: 'sp_manta');
     await repository.addSighting(diveId: 'd1', speciesId: 'sp_twin');
@@ -214,6 +235,24 @@ void main() {
     expect(await records('siteSpecies', 'pending'), [kept]);
   });
 
+  test('a kept entry whose notes are only spaces takes the twin\'s', () async {
+    await repository.addExpectedSpecies(
+      siteId: 's1',
+      speciesId: 'sp_manta',
+      notes: '  ',
+    );
+    await repository.addExpectedSpecies(
+      siteId: 's1',
+      speciesId: 'sp_twin',
+      notes: 'Cleaning station at 18 m',
+    );
+
+    await upgrade();
+
+    final row = await db.select(db.siteSpecies).getSingle();
+    expect(row.notes, 'Cleaning station at 18 m');
+  });
+
   test('an expected species moves, or goes when the site has both', () async {
     await insertTestSite('s2', 'Wall');
     await repository.addExpectedSpecies(siteId: 's1', speciesId: 'sp_twin');
@@ -290,6 +329,12 @@ void main() {
 
   test('a failed fold leaves the launch going and retries next time', () async {
     await repository.addSighting(diveId: 'd1', speciesId: 'sp_twin');
+    final logged = <LogEntry>[];
+    final logs = LoggerService.logStream.listen(logged.add);
+    addTearDown(logs.cancel);
+    var notices = 0;
+    final changes = SyncEventBus.changes.listen((_) => notices++);
+    addTearDown(changes.cancel);
     // Any SQL failure inside the fold: here a table it writes is missing.
     await db.customStatement('DROP TABLE media_identifications');
 
@@ -299,6 +344,15 @@ void main() {
     final rows = await db.select(db.sightings).get();
     expect(rows.map((r) => r.speciesId), ['sp_twin']);
     expect(store.version, 1, reason: 'the next launch must try again');
+    await pumpEventQueue();
+    expect(
+      logged.where(
+        (e) => e.level == LogLevel.error && e.message.contains('fold'),
+      ),
+      hasLength(1),
+      reason: 'the failure must reach the log file',
+    );
+    expect(notices, greaterThan(0), reason: 'what folded must sync');
   });
 
   test('the same version leaves a twin alone', () async {
