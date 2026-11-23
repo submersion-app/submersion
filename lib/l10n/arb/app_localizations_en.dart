@@ -19705,7 +19705,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Unlink $count items?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Unlink $_temp0?';
   }
 
   @override
@@ -20870,6 +20876,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_smartAlbum_delete => 'Delete album';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Only the saved filter goes. No photos or videos change.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'Could not delete album';
 
   @override
@@ -21067,6 +21082,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Search dives';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Move $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'The items move to $dive, off any dive they are on now.',
+      one: 'The item moves to $dive, off any dive it is on now.',
+    );
+    return '$_temp0 Site and gear links stay as they are.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Move';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'A dive in this move is open for editing. Save, cancel or lock it, then try again.';
+
+  @override
+  String get media_library_moveFailed => 'Could not move the items';
+
+  @override
+  String get media_library_unlinkFailed => 'Could not unlink the items';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Move to dive';
@@ -62415,6 +62470,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Removed duplicate cylinders';
+
+  @override
+  String get changeLog_label_moveMedia => 'Moved to another dive';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Unlinked from the library';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Removed gear photos';
 
   @override
   String get changeLog_label_updatePlannedDives => 'Updated planned dives';

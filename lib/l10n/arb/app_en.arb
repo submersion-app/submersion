@@ -12165,7 +12165,7 @@
   "media_diveMediaSection_unlinkSelectedButton": "Unlink {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.",
   "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
-  "media_library_unlinkConfirmTitle": "Unlink {count} items?",
+  "media_library_unlinkConfirmTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkError": "Failed to unlink: {error}",
   "media_library_unlinkConfirmBody": "They leave your library, along with their cloud copies and thumbnails. Your original files are not affected. This cannot be undone.",
   "media_library_unlinkMetadataNote": "{count,plural, =1{1 of these has a caption or favorite saved in Submersion, and those details are lost.} other{{count} of these have a caption or favorite saved in Submersion, and those details are lost.}}",
@@ -13072,6 +13072,19 @@
   "@media_smartAlbum_delete": {
     "description": "Filter bar: remove a smart album"
   },
+  "media_smartAlbum_deleteConfirmTitle": "Delete \"{name}\"?",
+  "@media_smartAlbum_deleteConfirmTitle": {
+    "description": "Title of the confirmation before a smart album (a saved filter) is deleted from the Load album list. name is the album's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "media_smartAlbum_deleteConfirmBody": "Only the saved filter goes. No photos or videos change.",
+  "@media_smartAlbum_deleteConfirmBody": {
+    "description": "Body of the smart album delete confirmation: only the saved filter goes, no photo or video changes."
+  },
   "media_smartAlbum_deleteFailed": "Could not delete album",
   "@media_smartAlbum_deleteFailed": {
     "description": "Filter bar: the smart album delete did not go through"
@@ -13370,6 +13383,55 @@
   "media_divePicker_search": "Search dives",
   "@media_divePicker_search": {
     "description": "Search hint in the dive picker sheet"
+  },
+  "media_library_moveConfirmTitle": "Move {count, plural, =1{{count} item} other{{count} items}}?",
+  "@media_library_moveConfirmTitle": {
+    "description": "Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_moveConfirmBody": "{count, plural, =1{The item moves to {dive}, off any dive it is on now.} other{The items move to {dive}, off any dive they are on now.}} Site and gear links stay as they are.",
+  "@media_library_moveConfirmBody": {
+    "description": "Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "media_library_moveConfirmAction": "Move",
+  "@media_library_moveConfirmAction": {
+    "description": "The Move to dive confirmation's button that moves the photos and videos."
+  },
+  "media_library_moveDiveOpenHint": "A dive in this move is open for editing. Save, cancel or lock it, then try again.",
+  "@media_library_moveDiveOpenHint": {
+    "description": "Shown when Move to dive is refused because the picked dive, or a dive the selected photos are on, is unlocked for editing on its page. Nothing is moved."
+  },
+  "media_library_moveFailed": "Could not move the items",
+  "@media_library_moveFailed": {
+    "description": "Shown when Move to dive could not write. Nothing moved, and the selection stays."
+  },
+  "media_library_unlinkFailed": "Could not unlink the items",
+  "@media_library_unlinkFailed": {
+    "description": "Shown when the media library's Unlink could not write. The selection stays."
+  },
+  "media_library_moveDiveName": "{label}, {date}",
+  "@media_library_moveDiveName": {
+    "description": "How the Move to dive confirmation names the picked dive: its number and name (label, such as '#42 Blue Hole'), then its date. Use the language's own list separator.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "media_library_moveToDive": "Move to dive",
   "@media_library_moveToDive": {
@@ -37494,6 +37556,18 @@
   "changeLog_label_removeDuplicateCylinders": "Removed duplicate cylinders",
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
+  },
+  "changeLog_label_moveMedia": "Moved to another dive",
+  "@changeLog_label_moveMedia": {
+    "description": "Change log entry title for the media library's Move to dive, which moves the selected photos and videos onto another dive."
+  },
+  "changeLog_label_unlinkMedia": "Unlinked from the library",
+  "@changeLog_label_unlinkMedia": {
+    "description": "Change log entry title for the media library's Unlink, which removes the selected photos and videos from the library (never the original files)."
+  },
+  "changeLog_label_removeGearPhotos": "Removed gear photos",
+  "@changeLog_label_removeGearPhotos": {
+    "description": "Change log entry title for the Media screen's Gear tab Remove, which takes the selected photos off their gear items."
   },
   "changeLog_label_updatePlannedDives": "Updated planned dives",
   "@changeLog_label_updatePlannedDives": {

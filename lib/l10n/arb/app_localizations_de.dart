@@ -19976,7 +19976,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return '$count Elemente trennen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '$count Element',
+    );
+    return '$_temp0 trennen?';
   }
 
   @override
@@ -21164,6 +21170,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_smartAlbum_delete => 'Album löschen';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '„$name“ löschen?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Nur der gespeicherte Filter wird entfernt. Fotos und Videos bleiben unverändert.';
+
+  @override
   String get media_smartAlbum_deleteFailed =>
       'Album konnte nicht gelöscht werden';
 
@@ -21364,6 +21379,50 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Tauchgänge durchsuchen';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '$count Element',
+    );
+    return '$_temp0 verschieben?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Die Elemente werden zu $dive verschoben und verlassen den Tauchgang, zu dem sie jetzt gehören.',
+      one:
+          'Das Element wird zu $dive verschoben und verlässt den Tauchgang, zu dem es jetzt gehört.',
+    );
+    return '$_temp0 Verknüpfungen mit Tauchplatz und Ausrüstung bleiben bestehen.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Verschieben';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Ein Tauchgang in dieser Verschiebung ist zur Bearbeitung geöffnet. Speichere, verwirf oder sperre ihn und versuche es dann erneut.';
+
+  @override
+  String get media_library_moveFailed =>
+      'Die Elemente konnten nicht verschoben werden';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Die Elemente konnten nicht getrennt werden';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Zu Tauchgang verschieben';
@@ -63269,6 +63328,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Doppelte Flaschen entfernt';
+
+  @override
+  String get changeLog_label_moveMedia =>
+      'Zu einem anderen Tauchgang verschoben';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Aus der Mediathek getrennt';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Ausrüstungsfotos entfernt';
 
   @override
   String get changeLog_label_updatePlannedDives =>

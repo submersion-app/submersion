@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
@@ -7,10 +8,11 @@ import '../../../../helpers/test_database.dart';
 /// The larger trip a side trip is part of (issue #3658) is stored, read back
 /// by every mapper, and cleared on demand.
 void main() {
+  late AppDatabase db;
   late TripRepository repository;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     repository = TripRepository();
   });
   tearDown(tearDownTestDatabase);
@@ -97,6 +99,66 @@ void main() {
       final t = await repository.createTrip(trip('Loop'));
       await repository.updateTrip(t.copyWith(parentTripId: t.id));
       expect((await repository.getTripById(t.id))!.parentTripId, isNull);
+    });
+  });
+
+  // parent_trip_id has no foreign key, because a sync can deliver a side
+  // trip before its larger trip. An edit that leaves the parent alone keeps
+  // it, whatever state the parent is in on this device (issue #4941).
+  group('an edit that keeps the parent keeps it', () {
+    Future<void> setParent(String id, String parentId) => db.customStatement(
+      'UPDATE trips SET parent_trip_id = ? WHERE id = ?',
+      [parentId, id],
+    );
+
+    test('when the larger trip is not on this device yet', () async {
+      final side = await repository.createTrip(trip('Raja Ampat'));
+      await setParent(side.id, 'not-synced-yet');
+      final stored = (await repository.getTripById(side.id))!;
+
+      await repository.updateTrip(stored.copyWith(notes: 'Mantas'));
+
+      final after = (await repository.getTripById(side.id))!;
+      expect(after.notes, 'Mantas');
+      expect(after.parentTripId, 'not-synced-yet');
+    });
+
+    test('when a sync race left the larger trip a side trip', () async {
+      final asia = await repository.createTrip(trip('Asia'));
+      final p = await repository.createTrip(trip('Indonesia'));
+      final side = await repository.createTrip(
+        trip('Raja Ampat', parentTripId: p.id),
+      );
+      await setParent(p.id, asia.id);
+      final stored = (await repository.getTripById(side.id))!;
+
+      await repository.updateTrip(stored.copyWith(name: 'Raja'));
+
+      expect((await repository.getTripById(side.id))!.parentTripId, p.id);
+    });
+
+    test('when a sync race gave this side trip side trips', () async {
+      final p = await repository.createTrip(trip('Indonesia'));
+      final side = await repository.createTrip(
+        trip('Raja Ampat', parentTripId: p.id),
+      );
+      final day = await repository.createTrip(trip('Day boat'));
+      await setParent(day.id, side.id);
+      final stored = (await repository.getTripById(side.id))!;
+
+      await repository.updateTrip(stored.copyWith(name: 'Raja'));
+
+      expect((await repository.getTripById(side.id))!.parentTripId, p.id);
+    });
+
+    test('but a changed parent is still checked', () async {
+      final side = await repository.createTrip(trip('Raja Ampat'));
+      await setParent(side.id, 'not-synced-yet');
+      final stored = (await repository.getTripById(side.id))!;
+
+      await repository.updateTrip(stored.copyWith(parentTripId: 'gone'));
+
+      expect((await repository.getTripById(side.id))!.parentTripId, isNull);
     });
   });
 

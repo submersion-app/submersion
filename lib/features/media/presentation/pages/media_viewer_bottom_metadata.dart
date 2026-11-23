@@ -51,6 +51,13 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
       controlsClearance: miniProfileShown
           ? PositionedMiniProfileOverlay.reach + 8
           : 0,
+      // The details stop short of the chart (issue #4921), past the
+      // panel's own side inset.
+      chartClearance: miniProfileShown
+          ? PositionedMiniProfileOverlay.span +
+                8 -
+                _BottomMetadataOverlay.sideInset
+          : 0,
       onHeightChanged: (height) =>
           _onBottomPanelHeight(height, video: item.isVideo),
     );
@@ -91,6 +98,15 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// [controls], so they clear the mini profile chart in the corner.
   final double controlsClearance;
 
+  /// How much further in from the right the details keep, past
+  /// [sideInset], so no tag or reading runs over the mini profile chart in
+  /// the corner (issue #4921). Right, not end: the chart is in the right
+  /// corner whichever way the text runs.
+  final double chartClearance;
+
+  /// How far in from each side the details sit.
+  static const double sideInset = 16;
+
   /// The panel's height, whenever it changes: the fish labels on a video
   /// keep above it.
   final ValueChanged<double>? onHeightChanged;
@@ -106,6 +122,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
     this.onSuggestionTap,
     this.controls,
     this.controlsClearance = 0,
+    this.chartClearance = 0,
     this.onHeightChanged,
   });
 
@@ -153,9 +170,9 @@ class _BottomMetadataOverlay extends StatelessWidget {
               top: false,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  16,
+                  sideInset,
                   controls == null ? 32 : 8,
-                  16,
+                  sideInset + chartClearance,
                   16,
                 ),
                 child: Column(
@@ -210,11 +227,15 @@ class _BottomMetadataOverlay extends StatelessWidget {
                             sitting: sitting,
                           ),
                     ),
-                    // Metadata row
-                    Row(
+                    // Metadata row, onto a second line where the chart
+                    // leaves too little room (issue #4921).
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         // Depth
-                        if (enrichment?.depthMeters != null) ...[
+                        if (enrichment?.depthMeters != null)
                           _MetadataChip(
                             icon: Icons.arrow_downward,
                             value: formatter.formatDepth(
@@ -222,11 +243,9 @@ class _BottomMetadataOverlay extends StatelessWidget {
                               decimals: 1,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                        ],
 
                         // Temperature
-                        if (enrichment?.temperatureCelsius != null) ...[
+                        if (enrichment?.temperatureCelsius != null)
                           _MetadataChip(
                             icon: Icons.thermostat,
                             value: formatter.formatTemperature(
@@ -234,8 +253,6 @@ class _BottomMetadataOverlay extends StatelessWidget {
                               decimals: 0,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                        ],
 
                         // Elapsed time: the diver's pin, the automatic
                         // position, or an explicit unknown for a linked item
@@ -264,7 +281,10 @@ class _BottomMetadataOverlay extends StatelessWidget {
                     const SizedBox(height: 8),
 
                     // Timestamp row
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           formatter.formatDateTime(item.takenAt, l10n: l10n),
@@ -282,8 +302,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                                 MatchConfidence.exact &&
                             enrichment.matchConfidence !=
                                 MatchConfidence.interpolated &&
-                            !enrichment.isManual) ...[
-                          const SizedBox(width: 8),
+                            !enrichment.isManual)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -304,7 +323,6 @@ class _BottomMetadataOverlay extends StatelessWidget {
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ],

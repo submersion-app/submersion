@@ -31733,7 +31733,7 @@ abstract class AppLocalizations {
   /// Title of the library unlink confirmation dialog
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_library_unlinkConfirmTitle(int count);
 
   /// Site page unlink failure snackbar
@@ -33423,6 +33423,18 @@ abstract class AppLocalizations {
   /// **'Delete album'**
   String get media_smartAlbum_delete;
 
+  /// Title of the confirmation before a smart album (a saved filter) is deleted from the Load album list. name is the album's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String media_smartAlbum_deleteConfirmTitle(String name);
+
+  /// Body of the smart album delete confirmation: only the saved filter goes, no photo or video changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the saved filter goes. No photos or videos change.'**
+  String get media_smartAlbum_deleteConfirmBody;
+
   /// Filter bar: the smart album delete did not go through
   ///
   /// In en, this message translates to:
@@ -33758,6 +33770,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search dives'**
   String get media_divePicker_search;
+
+  /// Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {count, plural, =1{{count} item} other{{count} items}}?'**
+  String media_library_moveConfirmTitle(int count);
+
+  /// Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The item moves to {dive}, off any dive it is on now.} other{The items move to {dive}, off any dive they are on now.}} Site and gear links stay as they are.'**
+  String media_library_moveConfirmBody(int count, String dive);
+
+  /// The Move to dive confirmation's button that moves the photos and videos.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get media_library_moveConfirmAction;
+
+  /// Shown when Move to dive is refused because the picked dive, or a dive the selected photos are on, is unlocked for editing on its page. Nothing is moved.
+  ///
+  /// In en, this message translates to:
+  /// **'A dive in this move is open for editing. Save, cancel or lock it, then try again.'**
+  String get media_library_moveDiveOpenHint;
+
+  /// Shown when Move to dive could not write. Nothing moved, and the selection stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not move the items'**
+  String get media_library_moveFailed;
+
+  /// Shown when the media library's Unlink could not write. The selection stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not unlink the items'**
+  String get media_library_unlinkFailed;
+
+  /// How the Move to dive confirmation names the picked dive: its number and name (label, such as '#42 Blue Hole'), then its date. Use the language's own list separator.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {date}'**
+  String media_library_moveDiveName(String label, String date);
 
   /// Library selection action: reassign media to a dive
   ///
@@ -99269,6 +99323,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
+
+  /// Change log entry title for the media library's Move to dive, which moves the selected photos and videos onto another dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to another dive'**
+  String get changeLog_label_moveMedia;
+
+  /// Change log entry title for the media library's Unlink, which removes the selected photos and videos from the library (never the original files).
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked from the library'**
+  String get changeLog_label_unlinkMedia;
+
+  /// Change log entry title for the Media screen's Gear tab Remove, which takes the selected photos off their gear items.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed gear photos'**
+  String get changeLog_label_removeGearPhotos;
 
   /// Change log entry title for the planner's Create / Update planned dives, which writes a plan's dives into the log as planned entries.
   ///

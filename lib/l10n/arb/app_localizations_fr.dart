@@ -20045,7 +20045,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Dissocier $count éléments ?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '$count élément',
+    );
+    return 'Dissocier $_temp0 ?';
   }
 
   @override
@@ -21231,6 +21237,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_smartAlbum_delete => 'Supprimer l\'album';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Supprimer « $name » ?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Seul le filtre enregistré disparaît. Aucune photo ni vidéo n\'est modifiée.';
+
+  @override
   String get media_smartAlbum_deleteFailed =>
       'Impossible de supprimer l\'album';
 
@@ -21433,6 +21448,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Rechercher des plongées';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '$count élément',
+    );
+    return 'Déplacer $_temp0 ?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Les éléments passent à $dive et quittent la plongée où ils se trouvent, le cas échéant.',
+      one:
+          'L\'élément passe à $dive et quitte la plongée où il se trouve, le cas échéant.',
+    );
+    return '$_temp0 Les liens avec le site et l\'équipement ne changent pas.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Déplacer';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Une plongée de ce déplacement est ouverte en modification. Enregistrez, annulez ou verrouillez-la, puis réessayez.';
+
+  @override
+  String get media_library_moveFailed => 'Impossible de déplacer les éléments';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Impossible de dissocier les éléments';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Déplacer vers une plongée';
@@ -63529,6 +63587,16 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Blocs en double supprimés';
+
+  @override
+  String get changeLog_label_moveMedia => 'Déplacé vers une autre plongée';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Dissocié de la médiathèque';
+
+  @override
+  String get changeLog_label_removeGearPhotos =>
+      'Photos d\'équipement retirées';
 
   @override
   String get changeLog_label_updatePlannedDives =>

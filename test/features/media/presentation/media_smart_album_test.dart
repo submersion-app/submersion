@@ -192,6 +192,21 @@ void main() {
       ),
     );
 
+    final confirmation = find.byKey(
+      const ValueKey('smart_album_delete_confirm'),
+    );
+
+    /// Taps Delete in the album delete confirmation.
+    Future<void> confirmDelete(WidgetTester tester) async {
+      await tester.tap(
+        find.descendant(
+          of: confirmation,
+          matching: find.widgetWithText(TextButton, 'Delete'),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
     Future<void> openSheet(WidgetTester tester) async {
       setWide(tester);
       await tester.pumpWidget(host());
@@ -298,6 +313,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pumpAndSettle();
+      await confirmDelete(tester);
 
       expect(repo.deleted, ['a1']);
       // Deleting must not also apply the album it removed.
@@ -319,9 +335,51 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pumpAndSettle();
+      await confirmDelete(tester);
 
       expect(repo.deleted, isEmpty);
       expect(find.text('Could not delete album'), findsOneWidget);
+    });
+
+    // Deleting an album asks first (issue #4527, media library plan 1).
+    testWidgets('deleting an album asks first, naming it', (tester) async {
+      repo = _FakeAlbumRepo([
+        album('a1', 'Blue Hole video', const MediaLibraryFilter(siteId: 's1')),
+      ]);
+      await openSheet(tester);
+
+      await tester.tap(find.text('Load album'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      expect(confirmation, findsOneWidget);
+      expect(find.text('Delete "Blue Hole video"?'), findsOneWidget);
+      expect(repo.deleted, isEmpty);
+    });
+
+    testWidgets('cancelling keeps the album', (tester) async {
+      repo = _FakeAlbumRepo([
+        album('a1', 'Blue Hole video', const MediaLibraryFilter(siteId: 's1')),
+      ]);
+      await openSheet(tester);
+
+      await tester.tap(find.text('Load album'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: confirmation,
+          matching: find.widgetWithText(TextButton, 'Cancel'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(confirmation, findsNothing);
+      expect(repo.deleted, isEmpty);
+      // Still in the album list, to pick another (code review on PR #4948).
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
     });
   });
 }

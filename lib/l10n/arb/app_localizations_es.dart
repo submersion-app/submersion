@@ -19995,7 +19995,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Desvincular $count elementos?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '$count elemento',
+    );
+    return '¿Desvincular $_temp0?';
   }
 
   @override
@@ -21177,6 +21183,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_smartAlbum_delete => 'Eliminar álbum';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '¿Eliminar «$name»?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Solo se elimina el filtro guardado. No cambia ninguna foto ni vídeo.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'No se pudo eliminar el álbum';
 
   @override
@@ -21376,6 +21391,48 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Buscar inmersiones';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '$count elemento',
+    );
+    return '¿Mover $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Los elementos pasan a $dive y dejan la inmersión en la que estén ahora.',
+      one: 'El elemento pasa a $dive y deja la inmersión en la que esté ahora.',
+    );
+    return '$_temp0 Los vínculos con el sitio y el equipo no cambian.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Mover';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Una inmersión de este movimiento está abierta para editar. Guárdala, cancela o bloquéala y vuelve a intentarlo.';
+
+  @override
+  String get media_library_moveFailed => 'No se pudieron mover los elementos';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'No se pudieron desvincular los elementos';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Mover a una inmersión';
@@ -63444,6 +63501,15 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Botellas duplicadas eliminadas';
+
+  @override
+  String get changeLog_label_moveMedia => 'Movido a otra inmersión';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Desvinculado de la biblioteca';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Fotos del equipo quitadas';
 
   @override
   String get changeLog_label_updatePlannedDives =>

@@ -17,6 +17,9 @@ class MiniDiveProfileOverlay extends StatelessWidget {
   /// The chart's height.
   static const double height = 100;
 
+  /// The chart's width.
+  static const double width = 160;
+
   /// The dive profile data points.
   final List<DiveProfilePoint> profile;
 
@@ -52,7 +55,7 @@ class MiniDiveProfileOverlay extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 160,
+          width: MiniDiveProfileOverlay.width,
           height: MiniDiveProfileOverlay.height,
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.7),
@@ -300,6 +303,9 @@ class PositionedMiniProfileOverlay extends StatelessWidget {
 
   /// How far up from the viewer's bottom edge the chart reaches.
   static const double reach = margin + MiniDiveProfileOverlay.height;
+
+  /// How far in from the viewer's right edge the chart reaches.
+  static const double span = margin + MiniDiveProfileOverlay.width;
 
   const PositionedMiniProfileOverlay({
     super.key,
