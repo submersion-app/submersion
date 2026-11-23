@@ -223,6 +223,33 @@ void main() {
     );
   });
 
+  test('half a mapping over an unreadable one inherits the rest', () async {
+    final id = await make('currency_prefs', {
+      'certification_id': card,
+      'rule_id': 'padi_reactivate',
+      'counted_dive_type_ids': ['boat'],
+    });
+    await (db.update(
+      db.certificationCurrencyPrefs,
+    )..where((p) => p.id.equals(id))).write(
+      const CertificationCurrencyPrefsCompanion(
+        countedDiveTypeIds: Value(null),
+        countedDiveModes: Value('["modeFromTheFuture"]'),
+      ),
+    );
+
+    await h.run([
+      updateOp('currency_prefs', id, {
+        'counted_dive_type_ids': ['shore'],
+      }),
+    ]);
+
+    final row = await (db.select(
+      db.certificationCurrencyPrefs,
+    )..where((p) => p.id.equals(id))).getSingle();
+    expect([row.countedDiveTypeIds, row.countedDiveModes], ['["shore"]', null]);
+  });
+
   test('an event in the future is refused', () async {
     final next = DateTime.now().add(const Duration(days: 2));
     final day =
