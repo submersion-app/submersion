@@ -300,4 +300,39 @@ void main() {
     );
     await expectSpan('no-sources', 3300);
   });
+
+  test('a second source row on the primary computer is the primary '
+      'family', () async {
+    await createComputer('comp-1');
+    await createBareDive('same-computer');
+    await createSource(
+      'source-1',
+      diveId: 'same-computer',
+      computerId: 'comp-1',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+    );
+    // Same computer, so it shows in the primary's chip.
+    await createSource(
+      'source-1b',
+      diveId: 'same-computer',
+      computerId: 'comp-1',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+    );
+    await series.insertSeries(
+      diveId: 'same-computer',
+      computerId: 'comp-1',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'same-computer',
+      computerId: 'comp-1',
+      sourceId: 'source-1b',
+      isPrimary: false,
+      samples: samples(3300),
+    );
+    await expectSpan('same-computer', 3000);
+  });
 }

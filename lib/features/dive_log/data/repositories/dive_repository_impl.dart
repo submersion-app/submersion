@@ -7278,8 +7278,10 @@ class DiveRepository {
   /// of `Dive.profile`.
   ///
   /// Every source is kept -- this is NOT the `isPrimary`-filtered view used by
-  /// [getDiveProfile] -- except for the originals a profile edit superseded,
-  /// which [dropSupersededSeries] removes. It mirrors the profile read in
+  /// [getDiveProfile] -- except for the demoted series an active one
+  /// superseded in the primary family (a saved edit's originals, or the
+  /// revisions an activated one replaced), which [dropSupersededSeries]
+  /// removes. It mirrors the profile read in
   /// [getDiveById] exactly: [getDiveForAnalysis] must feed the analysis
   /// pipeline the same samples the `diveProvider` -> [getDiveById] path
   /// shows, which the parity test locks in. Any change to that merge
@@ -7300,8 +7302,8 @@ class DiveRepository {
   /// series at all, which would render a blank chart for exactly the dives
   /// imported from another logbook. Sharing [mergedPointsReduction] with
   /// [getMergedProfile] is what keeps the export and the on-screen chart on
-  /// the same samples: every source, minus the originals a saved edit
-  /// superseded.
+  /// the same samples: every source, minus the demoted series an active one
+  /// superseded in the primary family.
   ///
   /// Dives with no samples are absent from the result rather than mapped to an
   /// empty list. [ProfileSeriesRepository.getSeriesForDives] chunks the id
@@ -7363,7 +7365,7 @@ class DiveRepository {
   /// Shared by [getMergedProfile] and [_mapRowToDive] so `getDiveById`,
   /// [getMergedProfile], and [getDiveForAnalysis] return the same list by
   /// construction (the parity test locks this in). Every source is kept,
-  /// except the demoted originals a saved edit superseded
+  /// except the demoted series an active one superseded in the primary family
   /// ([dropSupersededSeries]). [profileSpanSecondsSql] drops the same series,
   /// hidden revisions too, so a change here goes there as well.
   ///
