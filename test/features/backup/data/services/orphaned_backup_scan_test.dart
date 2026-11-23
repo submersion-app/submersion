@@ -301,6 +301,40 @@ void main() {
       expect(File(path).existsSync(), isTrue);
     });
 
+    test(
+      'a file the history records under a moved path is not listed',
+      () async {
+        // iOS moves the app container across updates and restores, so a record
+        // can hold an old absolute path to a file now at a new one. Matching
+        // only the full path would list it, and the private folder would offer
+        // a backup the Backups page still shows for deletion.
+        final path = await writeRaw('submersion_backup_2026-08-31_120000.db');
+        final moved = p.join(
+          '/var/mobile/Containers/Data/Application/OLD-UUID/Documents',
+          'Submersion',
+          'Backups',
+          p.basename(path),
+        );
+
+        expect(
+          await build(known: {moved}, appPrivateFolder: true).find(),
+          isEmpty,
+        );
+      },
+    );
+
+    test('refuses a file the history records under a moved path', () async {
+      final path = await writeRaw('submersion_backup_2026-08-31_120000.db');
+      final listed = await build(appPrivateFolder: true).find();
+      final moved = p.join('/old/container/Backups', p.basename(path));
+
+      expect(
+        await build(known: {moved}, appPrivateFolder: true).reclaim(listed),
+        0,
+      );
+      expect(File(path).existsSync(), isTrue);
+    });
+
     test('refuses a legacy file even when handed one', () async {
       final path = await writeRaw('submersion_backup_2026-08-31_120000.db');
       final scan = build();

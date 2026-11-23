@@ -99,7 +99,7 @@ class OrphanedBackupScan {
     final directory = Directory(directoryPath);
     if (!await directory.exists()) return const [];
 
-    final known = await _knownPaths();
+    final known = _KnownBackups(await _knownPaths());
     final deviceId = await _thisDeviceId();
     final found = <UnrecognizedBackup>[];
 
@@ -107,7 +107,7 @@ class OrphanedBackupScan {
       if (entity is! File) continue;
       final name = p.basename(entity.path);
       if (!_isBackupFile(name)) continue;
-      if (known.contains(entity.path)) continue;
+      if (known.covers(entity.path)) continue;
 
       try {
         final stat = await entity.stat();
@@ -165,11 +165,11 @@ class OrphanedBackupScan {
     // Re-read, like the device id: a selection built before a backup finished
     // recording its file can name that file, and once the history holds it the
     // file is no longer forgotten, whatever the listing said.
-    final known = await _knownPaths();
+    final known = _KnownBackups(await _knownPaths());
 
     var bytes = 0;
     for (final candidate in candidates) {
-      if (known.contains(candidate.path) ||
+      if (known.covers(candidate.path) ||
           !_mayDelete(candidate.path, directory, deviceId)) {
         _log.warning('Refused to reclaim ${candidate.filename}');
         continue;
@@ -218,4 +218,29 @@ class OrphanedBackupScan {
     final extension = p.extension(name);
     return extension == '.db' || extension == BackupCrypto.fileExtension;
   }
+}
+
+/// The backups the history accounts for, matched by full path or by name.
+///
+/// A recorded path is absolute, and an absolute path into the app's own
+/// storage is not stable: iOS moves the app's container (and so every path
+/// into it) across updates and restores, while the files move with it. A
+/// record left holding the old path still describes the file at the new one,
+/// and matching on the full path alone would list that file as forgotten. In
+/// the app-private folder, where ownership no longer guards a delete, it would
+/// then be offered for deletion while the Backups page still lists it.
+///
+/// A backup name carries its timestamp and device tag, so a name match is the
+/// same backup. Matching on it too can only make the scan list, and reclaim
+/// delete, fewer files.
+class _KnownBackups {
+  _KnownBackups(Set<String> paths)
+    : _paths = paths,
+      _names = {for (final path in paths) p.basename(path)};
+
+  final Set<String> _paths;
+  final Set<String> _names;
+
+  bool covers(String path) =>
+      _paths.contains(path) || _names.contains(p.basename(path));
 }
