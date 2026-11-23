@@ -37473,6 +37473,18 @@
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
   },
+  "changeLog_label_moveMedia": "Moved to another dive",
+  "@changeLog_label_moveMedia": {
+    "description": "Change log entry title for the media library's Move to dive, which moves the selected photos and videos onto another dive."
+  },
+  "changeLog_label_unlinkMedia": "Unlinked from the library",
+  "@changeLog_label_unlinkMedia": {
+    "description": "Change log entry title for the media library's Unlink, which removes the selected photos and videos from the library (never the original files)."
+  },
+  "changeLog_label_removeGearPhotos": "Removed gear photos",
+  "@changeLog_label_removeGearPhotos": {
+    "description": "Change log entry title for the Media screen's Gear tab Remove, which takes the selected photos off their gear items."
+  },
   "changeLog_label_updatePlannedDives": "Updated planned dives",
   "@changeLog_label_updatePlannedDives": {
     "description": "Change log entry title for the planner's Create / Update planned dives, which writes a plan's dives into the log as planned entries."

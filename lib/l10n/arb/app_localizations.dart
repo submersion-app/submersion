@@ -99222,6 +99222,24 @@ abstract class AppLocalizations {
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
 
+  /// Change log entry title for the media library's Move to dive, which moves the selected photos and videos onto another dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to another dive'**
+  String get changeLog_label_moveMedia;
+
+  /// Change log entry title for the media library's Unlink, which removes the selected photos and videos from the library (never the original files).
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked from the library'**
+  String get changeLog_label_unlinkMedia;
+
+  /// Change log entry title for the Media screen's Gear tab Remove, which takes the selected photos off their gear items.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed gear photos'**
+  String get changeLog_label_removeGearPhotos;
+
   /// Change log entry title for the planner's Create / Update planned dives, which writes a plan's dives into the log as planned entries.
   ///
   /// In en, this message translates to:

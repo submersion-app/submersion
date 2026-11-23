@@ -62057,6 +62057,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_removeDuplicateCylinders => 'מכלים כפולים הוסרו';
 
   @override
+  String get changeLog_label_moveMedia => 'הועבר לצלילה אחרת';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'בוטל הקישור מהספרייה';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'תמונות ציוד הוסרו';
+
+  @override
   String get changeLog_label_updatePlannedDives => 'צלילות מתוכננות עודכנו';
 
   @override

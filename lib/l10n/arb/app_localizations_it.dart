@@ -63370,6 +63370,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Bombole duplicate rimosse';
 
   @override
+  String get changeLog_label_moveMedia => 'Spostato in un\'altra immersione';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Scollegato dalla libreria';
+
+  @override
+  String get changeLog_label_removeGearPhotos =>
+      'Foto dell\'attrezzatura rimosse';
+
+  @override
   String get changeLog_label_updatePlannedDives =>
       'Immersioni pianificate aggiornate';
 

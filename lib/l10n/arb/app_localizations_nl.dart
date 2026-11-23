@@ -62982,6 +62982,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dubbele flessen verwijderd';
 
   @override
+  String get changeLog_label_moveMedia => 'Naar een andere duik verplaatst';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Uit de bibliotheek ontkoppeld';
+
+  @override
+  String get changeLog_label_removeGearPhotos =>
+      'Uitrustingsfoto\'s verwijderd';
+
+  @override
   String get changeLog_label_updatePlannedDives => 'Geplande duiken bijgewerkt';
 
   @override

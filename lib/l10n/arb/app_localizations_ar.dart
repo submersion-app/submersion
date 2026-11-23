@@ -64302,6 +64302,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'إزالة الأسطوانات المكررة';
 
   @override
+  String get changeLog_label_moveMedia => 'نُقلت إلى غطسة أخرى';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'أُلغي الربط من المكتبة';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'أُزيلت صور المعدات';
+
+  @override
   String get changeLog_label_updatePlannedDives => 'تم تحديث الغطسات المخططة';
 
   @override

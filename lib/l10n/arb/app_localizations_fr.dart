@@ -63498,6 +63498,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Blocs en double supprimés';
 
   @override
+  String get changeLog_label_moveMedia => 'Déplacé vers une autre plongée';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Dissocié de la médiathèque';
+
+  @override
+  String get changeLog_label_removeGearPhotos =>
+      'Photos d\'équipement retirées';
+
+  @override
   String get changeLog_label_updatePlannedDives =>
       'Plongées planifiées mises à jour';
 

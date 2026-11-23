@@ -59481,6 +59481,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
 
   @override
+  String get changeLog_label_moveMedia => '已移至另一次潜水';
+
+  @override
+  String get changeLog_label_unlinkMedia => '已从媒体库取消关联';
+
+  @override
+  String get changeLog_label_removeGearPhotos => '已移除装备照片';
+
+  @override
   String get changeLog_label_updatePlannedDives => '已更新计划潜水';
 
   @override

@@ -63413,6 +63413,15 @@ class AppLocalizationsEs extends AppLocalizations {
       'Botellas duplicadas eliminadas';
 
   @override
+  String get changeLog_label_moveMedia => 'Movido a otra inmersión';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Desvinculado de la biblioteca';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Fotos del equipo quitadas';
+
+  @override
   String get changeLog_label_updatePlannedDives =>
       'Inmersiones planificadas actualizadas';
 

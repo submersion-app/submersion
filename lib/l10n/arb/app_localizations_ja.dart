@@ -60805,6 +60805,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get changeLog_label_removeDuplicateCylinders => '重複したタンクを削除';
 
   @override
+  String get changeLog_label_moveMedia => '別のダイブに移動';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'ライブラリからリンクを解除';
+
+  @override
+  String get changeLog_label_removeGearPhotos => '器材の写真を削除';
+
+  @override
   String get changeLog_label_updatePlannedDives => '予定ダイブを更新';
 
   @override

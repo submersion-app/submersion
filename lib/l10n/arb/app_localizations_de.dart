@@ -63238,6 +63238,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Doppelte Flaschen entfernt';
 
   @override
+  String get changeLog_label_moveMedia =>
+      'Zu einem anderen Tauchgang verschoben';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Aus der Mediathek getrennt';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Ausrüstungsfotos entfernt';
+
+  @override
   String get changeLog_label_updatePlannedDives =>
       'Geplante Tauchgänge aktualisiert';
 

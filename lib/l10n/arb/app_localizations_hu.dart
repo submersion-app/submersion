@@ -63017,6 +63017,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ismétlődő palackok eltávolítva';
 
   @override
+  String get changeLog_label_moveMedia => 'Áthelyezve másik merüléshez';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Leválasztva a könyvtárról';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Felszerelésfotók eltávolítva';
+
+  @override
   String get changeLog_label_updatePlannedDives =>
       'Tervezett merülések frissítve';
 

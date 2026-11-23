@@ -63344,6 +63344,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Cilindros duplicados removidos';
 
   @override
+  String get changeLog_label_moveMedia => 'Movido para outro mergulho';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Desvinculado da biblioteca';
+
+  @override
+  String get changeLog_label_removeGearPhotos =>
+      'Fotos do equipamento removidas';
+
+  @override
   String get changeLog_label_updatePlannedDives =>
       'Mergulhos planeados atualizados';
 

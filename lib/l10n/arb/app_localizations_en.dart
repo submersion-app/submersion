@@ -62385,6 +62385,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Removed duplicate cylinders';
 
   @override
+  String get changeLog_label_moveMedia => 'Moved to another dive';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Unlinked from the library';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Removed gear photos';
+
+  @override
   String get changeLog_label_updatePlannedDives => 'Updated planned dives';
 
   @override
