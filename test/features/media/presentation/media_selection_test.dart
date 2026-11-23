@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
@@ -152,6 +153,19 @@ class _RecordingMediaRepo implements MediaRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Records the library's labelled Unlink instead of running it.
+class _RecordingUnlinkService extends MediaUnlinkService {
+  _RecordingUnlinkService(MediaRepository repository)
+    : super(repository: repository, deleteMedia: (_) async {});
+
+  final List<String> unlinked = [];
+
+  @override
+  Future<void> unlinkFromLibrary(List<String> mediaIds) async {
+    unlinked.addAll(mediaIds);
+  }
+}
+
 class _FakeDiveRepo implements DiveRepository {
   @override
   Future<List<DivePickerRow>> getDivePickerRows({
@@ -201,11 +215,18 @@ void main() {
     late _RecordingDeletionCoordinator coordinator;
     late _RecordingMediaRepo mediaRepo;
 
-    Widget host(List<MediaLibraryEntry> entries) {
+    Widget host(
+      List<MediaLibraryEntry> entries, {
+      MediaUnlinkService Function(MediaRepository repo)? unlinkService,
+    }) {
       coordinator = _RecordingDeletionCoordinator();
       mediaRepo = _RecordingMediaRepo();
       return ProviderScope(
         overrides: [
+          if (unlinkService != null)
+            mediaUnlinkServiceProvider.overrideWithValue(
+              unlinkService(mediaRepo),
+            ),
           mediaLibraryNotifierProvider.overrideWith(
             (ref) =>
                 _SeededLibraryNotifier(MediaLibraryState(entries: entries)),
@@ -350,6 +371,26 @@ void main() {
         findsNothing,
         reason: 'a completed bulk action leaves selection mode',
       );
+    });
+
+    // One labelled entry in History (issue #4527, media library plan 1).
+    testWidgets('confirming unlink goes through the library\'s labelled '
+        'unlink', (tester) async {
+      late _RecordingUnlinkService service;
+      await tester.pumpWidget(
+        host([
+          entry('a', diveId: 'd1'),
+          entry('b', siteId: 's1'),
+        ], unlinkService: (repo) => service = _RecordingUnlinkService(repo)),
+      );
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0, 1]);
+      await tapUnlink(tester);
+      await confirmUnlink(tester);
+
+      expect(service.unlinked.toSet(), {'a', 'b'});
+      expect(coordinator.deleted, isEmpty);
     });
 
     testWidgets('cancelling deletes nothing and keeps the selection', (

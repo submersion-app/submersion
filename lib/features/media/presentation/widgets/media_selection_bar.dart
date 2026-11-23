@@ -6,7 +6,6 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
-import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/tags/data/services/bulk_tag_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
@@ -53,8 +52,10 @@ class MediaSelectionBar extends ConsumerWidget {
   /// why this surface no longer carries an unlink-per-link pair alongside a
   /// separate Delete.
   ///
-  /// Routed through the deletion coordinator so the remote-blob delete
-  /// intent is enqueued before the rows die (orphan-prevention spec 5.2).
+  /// Routed through the unlink service's labelled entry, so it reads in
+  /// History as one Unlink (issue #4527), and from there through the
+  /// deletion coordinator, so the remote-blob delete intent is enqueued
+  /// before the rows die (orphan-prevention spec 5.2).
   Future<BulkActionOutcome> _unlinkSelected(
     BuildContext context,
     WidgetRef ref,
@@ -95,7 +96,7 @@ class MediaSelectionBar extends ConsumerWidget {
     );
     if (confirmed != true) return BulkActionOutcome.cancelled;
 
-    await ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids);
+    await ref.read(mediaUnlinkServiceProvider).unlinkFromLibrary(ids);
     return BulkActionOutcome.completed;
   }
 
