@@ -806,3 +806,41 @@ this plan linked, the screenshots attached through the project's
 highest-numbered secret gist (`PR screenshots: submersion-app/submersion (N)`,
 pngquant first, `<pr>-<nn>-<screen>-<state>.png`, raw URLs pinned to the
 gist commit). Bind the PR and report its checks.
+
+## After the build
+
+Built natively on 2026-11-22 (commits 5abaa9c to the branch head). What
+changed from this plan:
+
+- **Twelve locale files, not eleven.** `lib/l10n/arb/` holds ar, de, en,
+  es, fr, he, hu, it, ja, nl, pt and zh; every new string is in all twelve.
+  Only the English file carries description blocks, and a new key goes
+  after its neighbour's block, never between a key and its own.
+- **The PDF viewer lost its `_item` copy** along with the immediate Edit
+  details: only that path reassigned it. Two more tests read
+  `attachmentLock` and were updated: `document_open_helper_test.dart` and
+  `site_detail_page_unlock_test.dart`.
+- **The species page's picker test needs a URL tab notifier** with no
+  database behind it: the picker clears the URL tab's staging as it opens,
+  even in its gallery-only form.
+- **The open card's held category has its own test file**,
+  `site_media_section_category_hold_test.dart`, which keeps
+  `site_media_section_test.dart` under 800 lines.
+- **Review (code-review, high, all findings):** seven findings, five
+  fixed, test-first where a behaviour changed:
+  - A repair's History entry holds only its writes. The scope now opens
+    around Stage B onward in `_applyInner`; the per-row hashing and
+    bookmarks before it ran inside the scope, and a save made meanwhile
+    was filed under the repair (as automatic, for a watcher pass).
+  - A confirmed downgrade queues even if the Re-upload button went away
+    while the dialog was up: the queue and the messenger are read first.
+  - The downgrade warning reads the stamps as the attached store sees them
+    (`stampsInStore`): an original uploaded to another store is never
+    dropped by this device, so it does not ask.
+  - The test file split above, and the open card's Cancel test now expects
+    both tiles shown as stored.
+  - Left as they are: a held category is written at Save even when the
+    attachment's own lock saved another meanwhile (the card shows the held
+    one, and Save writes what the card shows); and Set category's read of
+    the stored list cannot be empty once rows were selectable (a reload
+    keeps the previous value).
