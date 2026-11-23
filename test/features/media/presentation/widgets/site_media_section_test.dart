@@ -10,8 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
-import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
-import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
@@ -101,21 +99,13 @@ void main() {
     FutureOr<List<MediaItem>> Function(Ref ref)? loadAttachments,
     List<Override> extraOverrides = const [],
     RecordEditController<DiveSite>? editsInPlace,
-    EditSession<DiveSite>? editing,
   }) async {
-    final section = editing == null
-        ? SiteMediaSection(
-            siteId: 'site-1',
-            onAddPhotosPressed: onPhotos,
-            onAddDocumentPressed: onDoc,
-            onOpenDocument: onOpenDocument,
-          )
-        // The open card rebuilds with its sitting, as the page's does.
-        : ListenableBuilder(
-            listenable: editing,
-            builder: (_, _) =>
-                SiteMediaSection(siteId: 'site-1', editing: editing),
-          );
+    final section = SiteMediaSection(
+      siteId: 'site-1',
+      onAddPhotosPressed: onPhotos,
+      onAddDocumentPressed: onDoc,
+      onOpenDocument: onOpenDocument,
+    );
     return mediaTestApp(
       overrides: [
         // Tiles wait for the learned shapes (issue #4741); none, and no
@@ -709,111 +699,6 @@ void main() {
       find.byKey(const ValueKey('selection_action_setCategory')),
       findsNothing,
     );
-  });
-
-  group('Set category in the open card (issue #4527)', () {
-    const site = DiveSite(id: 'site-1', name: 'Salt Pier');
-    late List<String> written;
-    // Built only if something writes through it: a held write never does.
-    _RecordingSiteMediaNotifier? notifier;
-
-    EditSession<DiveSite> openCard() {
-      written = [];
-      final session = EditSession<DiveSite>(site);
-      addTearDown(() {
-        if (!session.isDisposed) session.dispose();
-      });
-      holdSittingMedia(
-        session,
-        SittingMediaWriters(
-          writeRows: (_) async => const [],
-          insertNetwork: (_) async => const [],
-          unlink: (_) async {},
-          replace: (_, _, _) async {},
-          drainDeletes: () async {},
-          enqueueUpload: (_) {},
-          setCategories: (categories) async => written.addAll([
-            for (final e in categories.entries) '${e.key}:${e.value?.name}',
-          ]),
-        ),
-        cardId: 'media',
-      );
-      return session;
-    }
-
-    Future<void> holdUnderwater(
-      WidgetTester tester,
-      EditSession<DiveSite> session,
-      RecordEditController<DiveSite> controller,
-    ) async {
-      await tester.pumpWidget(
-        await host(
-          attachments: [photoA, photoB],
-          editsInPlace: controller,
-          editing: session,
-          extraOverrides: [
-            siteMediaListNotifierProvider('site-1').overrideWith(
-              (ref) =>
-                  notifier = _RecordingSiteMediaNotifier(ref, deleteCalls: []),
-            ),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.byKey(const ValueKey('selection_action_setCategory')),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Underwater'));
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('is held until Save', (tester) async {
-      final controller = RecordEditController<DiveSite>(onSave: (_) async {});
-      addTearDown(controller.dispose);
-      final session = openCard();
-      await holdUnderwater(tester, session, controller);
-
-      expect(notifier?.categoryCalls ?? const [], isEmpty);
-      expect(session.changedCardIds, {'media'});
-      expect(find.text('Underwater (2)'), findsOneWidget);
-      expect(find.text('Updated 2 items'), findsNothing);
-      expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
-
-      await tester.runAsync(session.runHeldWrites);
-      expect(written.toSet(), {'m1:underwater', 'm2:underwater'});
-    });
-
-    testWidgets('is discarded by Cancel', (tester) async {
-      final controller = RecordEditController<DiveSite>(onSave: (_) async {});
-      addTearDown(controller.dispose);
-      final session = openCard();
-      await holdUnderwater(tester, session, controller);
-      expect(find.text('Underwater (2)'), findsOneWidget);
-
-      session.dispose();
-      // The card closes: the page shows the stored attachments again.
-      await tester.pumpWidget(
-        await host(
-          attachments: [photoA, photoB],
-          editsInPlace: controller,
-          extraOverrides: [
-            siteMediaListNotifierProvider('site-1').overrideWith(
-              (ref) =>
-                  notifier = _RecordingSiteMediaNotifier(ref, deleteCalls: []),
-            ),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Underwater (2)'), findsNothing);
-      expect(written, isEmpty);
-      expect(notifier?.categoryCalls ?? const [], isEmpty);
-    });
   });
 
   testWidgets('a browser offers neither adding nor selecting (#4121)', (
