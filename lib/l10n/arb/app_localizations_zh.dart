@@ -19330,6 +19330,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint => '要添加照片源，请在媒体页面使用导入。';
+
+  @override
   String get media_photoPicker_clearSelectionButton => '清除';
 
   @override

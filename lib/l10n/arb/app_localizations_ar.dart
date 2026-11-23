@@ -20647,6 +20647,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'لإضافة موجز صور، استخدم استيراد في شاشة الوسائط.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'مسح';
 
   @override

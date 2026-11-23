@@ -20256,6 +20256,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Fotófolyam hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Törlés';
 
   @override

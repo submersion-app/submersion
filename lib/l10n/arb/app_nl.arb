@@ -5924,6 +5924,7 @@
   "media_photoPicker_tab_gallery": "Galerij",
   "media_photoPicker_tab_files": "Bestanden",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "Gebruik Importeren op het scherm Media om een fotofeed toe te voegen.",
   "media_photoPicker_clearSelectionButton": "Wissen",
   "media_photoPicker_closeTooltip": "Fotokiezer sluiten",
   "media_photoPicker_doneButton": "Gereed",

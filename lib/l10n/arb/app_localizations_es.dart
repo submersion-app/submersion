@@ -20318,6 +20318,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Para añadir una fuente de fotos, usa Importar en la pantalla Multimedia.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Limpiar';
 
   @override

@@ -19605,6 +19605,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      '写真フィードを追加するには、メディア画面のインポートを使用してください。';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'クリア';
 
   @override

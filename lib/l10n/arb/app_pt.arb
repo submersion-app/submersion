@@ -5924,6 +5924,7 @@
   "media_photoPicker_tab_gallery": "Galeria",
   "media_photoPicker_tab_files": "Arquivos",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "Para adicionar um feed de fotos, use Importar na tela Mídia.",
   "media_photoPicker_clearSelectionButton": "Limpar",
   "media_photoPicker_closeTooltip": "Fechar seletor de fotos",
   "media_photoPicker_doneButton": "Concluído",

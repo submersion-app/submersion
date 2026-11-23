@@ -5798,6 +5798,7 @@
   "media_photoPicker_tab_gallery": "Galéria",
   "media_photoPicker_tab_files": "Fájlok",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "Fotófolyam hozzáadásához használd az Importálás lehetőséget a Média képernyőn.",
   "media_photoPicker_clearSelectionButton": "Törlés",
   "media_photoPicker_closeTooltip": "Fotóválasztó bezárása",
   "media_photoPicker_doneButton": "Kész",

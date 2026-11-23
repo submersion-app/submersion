@@ -6065,6 +6065,7 @@
   "media_photoPicker_tab_gallery": "图库",
   "media_photoPicker_tab_files": "文件",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "要添加照片源，请在媒体页面使用导入。",
   "media_photoPicker_clearSelectionButton": "清除",
   "media_photoPicker_closeTooltip": "关闭照片选择器",
   "media_photoPicker_doneButton": "完成",

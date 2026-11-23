@@ -5798,6 +5798,7 @@
   "media_photoPicker_tab_gallery": "גלריה",
   "media_photoPicker_tab_files": "קבצים",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "כדי להוסיף פיד תמונות, השתמש בייבוא במסך המדיה.",
   "media_photoPicker_clearSelectionButton": "נקה",
   "media_photoPicker_closeTooltip": "סגור בורר תמונות",
   "media_photoPicker_doneButton": "סיום",

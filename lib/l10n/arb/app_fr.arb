@@ -5798,6 +5798,7 @@
   "media_photoPicker_tab_gallery": "Galerie",
   "media_photoPicker_tab_files": "Fichiers",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "Pour ajouter un flux de photos, utilisez Importer dans l'écran Médias.",
   "media_photoPicker_clearSelectionButton": "Effacer",
   "media_photoPicker_closeTooltip": "Fermer le sélecteur de photos",
   "media_photoPicker_doneButton": "Terminé",

@@ -20370,6 +20370,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Pour ajouter un flux de photos, utilisez Importer dans l\'écran Médias.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Effacer';
 
   @override

@@ -20322,6 +20322,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Para adicionar um feed de fotos, use Importar na tela Mídia.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Limpar';
 
   @override

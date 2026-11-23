@@ -19889,6 +19889,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'כדי להוסיף פיד תמונות, השתמש בייבוא במסך המדיה.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'נקה';
 
   @override

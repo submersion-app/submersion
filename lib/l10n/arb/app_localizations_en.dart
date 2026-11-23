@@ -20033,6 +20033,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'To add a feed of photos, use Import on the Media screen.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Clear';
 
   @override

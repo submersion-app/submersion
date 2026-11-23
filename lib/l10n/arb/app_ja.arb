@@ -5902,6 +5902,7 @@
   "media_photoPicker_tab_gallery": "ギャラリー",
   "media_photoPicker_tab_files": "ファイル",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "写真フィードを追加するには、メディア画面のインポートを使用してください。",
   "media_photoPicker_clearSelectionButton": "クリア",
   "media_photoPicker_closeTooltip": "写真の選択を閉じる",
   "media_photoPicker_doneButton": "完了",

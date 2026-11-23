@@ -12306,6 +12306,7 @@
   "media_photoPicker_tab_gallery": "Gallery",
   "media_photoPicker_tab_files": "Files",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "To add a feed of photos, use Import on the Media screen.",
   "media_photoPicker_clearSelectionButton": "Clear",
   "media_photoPicker_closeTooltip": "Close photo picker",
   "media_photoPicker_doneButton": "Done",

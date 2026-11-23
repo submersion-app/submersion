@@ -20200,6 +20200,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Gebruik Importeren op het scherm Media om een fotofeed toe te voegen.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Wissen';
 
   @override
