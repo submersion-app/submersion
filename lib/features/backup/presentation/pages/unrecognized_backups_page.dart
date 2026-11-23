@@ -40,9 +40,10 @@ class _UnrecognizedBackupsPageState
     final scan = ref.watch(unrecognizedBackupsProvider);
 
     // Drop ticks the list no longer offers, before anything reads them. That
-    // means gone, and it also means still listed but no longer this device's:
+    // means gone, and it also means still listed but no longer reclaimable:
     // a sync reset changes the device id, so the next scan classifies the same
-    // file as another device's. Pruning on presence alone would leave it ticked
+    // file as another device's, which outside the app-private folder takes
+    // its checkbox away. Pruning on presence alone would leave it ticked
     // behind a tile that shows "Another device" and no checkbox, with the bar
     // still counting it and a confirm reporting "Freed 0 B" once the service
     // refused it.

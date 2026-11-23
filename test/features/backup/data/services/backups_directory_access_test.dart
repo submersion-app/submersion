@@ -108,6 +108,19 @@ void main() {
       );
     });
 
+    test('a location set while the lease is taken is not', () async {
+      // The lease reads the location on its own; a custom folder chosen in
+      // between must not inherit the default's verdict.
+      var reads = 0;
+      final private = await BackupsDirectoryAccess(
+        configuredLocation: () async => reads++ == 0 ? null : '/Dropbox/dives',
+        acquireLease: () async => countingLease('/Dropbox/dives', () {}),
+        defaultIsAppPrivate: true,
+      ).useFolder((folder) async => folder?.isAppPrivate);
+
+      expect(private, isFalse);
+    });
+
     test('the default folder on a desktop platform is not', () async {
       // The user can browse it, and a sync client can mirror it.
       expect(

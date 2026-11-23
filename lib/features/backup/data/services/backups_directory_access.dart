@@ -57,28 +57,38 @@ class BackupsDirectoryAccess {
   /// backup history has lost track of, and the sandbox default is not where a
   /// SAF-configured device keeps its backups. Scanning it would offer a
   /// different directory's files for deletion under a heading about this one.
+  ///
+  /// Path only. A caller that deletes, or decides what may be deleted, must use
+  /// [useFolder] instead, so that it sees whether the folder is private to the
+  /// app rather than assuming either answer.
   Future<T> use<T>(Future<T> Function(String? directoryPath) body) =>
       useFolder((folder) => body(folder?.path));
 
   /// [use], with the verdict on whether the folder is private to this app.
   ///
-  /// Decided from the same read of the configured location that chose the
-  /// path, so the two cannot disagree: a diver switching to a custom folder
-  /// between a listing and a delete gets a delete judged by the new folder.
+  /// Decided within the same operation that chose the path, so a diver
+  /// switching to a custom folder between a listing and a delete gets a delete
+  /// judged by the new folder.
   ///
   /// Only the default folder on a sandboxed platform is private. Anything the
   /// diver chose may be synced or shared, whatever platform it is on.
   Future<T> useFolder<T>(Future<T> Function(BackupsFolder? folder) body) async {
     final configured = await _configuredLocation();
-    final isCustom = configured != null && configured.isNotEmpty;
-    if (isCustom && isSafRef(configured)) return body(null);
+    final isCustom = _isSet(configured);
+    if (isCustom && isSafRef(configured!)) return body(null);
 
     final lease = await _acquireLease();
     try {
+      // The lease reads the location again on its own, so a change landing
+      // between the two reads could pair a custom path with the default's
+      // verdict. Reading once more after the lease brackets that read: the
+      // folder counts as private only when the location was the default both
+      // before and after the lease chose its path.
+      final stillDefault = !isCustom && !_isSet(await _configuredLocation());
       return await body(
         BackupsFolder(
           path: lease.path,
-          isAppPrivate: !isCustom && _defaultIsAppPrivate,
+          isAppPrivate: stillDefault && _defaultIsAppPrivate,
         ),
       );
     } finally {
@@ -133,6 +143,10 @@ class BackupsDirectoryAccess {
   }
 
   static Future<void> _noRelease() async {}
+
+  /// Whether [location] names a custom folder rather than the default.
+  static bool _isSet(String? location) =>
+      location != null && location.isNotEmpty;
 }
 
 /// The backups directory as one operation sees it.

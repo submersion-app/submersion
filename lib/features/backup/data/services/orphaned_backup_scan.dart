@@ -48,7 +48,8 @@ class UnrecognizedBackup {
 }
 
 /// Finds backup files the history has lost track of, and reclaims the ones
-/// that are provably this device's.
+/// that are provably this device's, or any of them in a folder private to
+/// this app.
 ///
 /// `pruneOldBackups` and the pre-migration prune both work off the
 /// SharedPreferences history, and `getValidatedBackupHistory` drops records
