@@ -36,8 +36,13 @@ const _otherField = ValueKey('a field on a page above');
 
 /// The app as it runs: a router, so the system Back goes through its back
 /// button dispatcher before any route hears of it. Home pushes the guarded
-/// record page, which can push a page of its own above it.
-Future<RecordEditController<_Rec>> _open(WidgetTester tester) async {
+/// record page, which can push a page of its own above it. With
+/// [inShellBody] the page sits in another Scaffold's body, as the shell's
+/// pages do, where MediaQuery has the keyboard's inset taken out.
+Future<RecordEditController<_Rec>> _open(
+  WidgetTester tester, {
+  bool inShellBody = false,
+}) async {
   final controller = RecordEditController<_Rec>(onSave: (_) async {});
   addTearDown(controller.dispose);
   final router = GoRouter(
@@ -53,25 +58,28 @@ Future<RecordEditController<_Rec>> _open(WidgetTester tester) async {
       ),
       GoRoute(
         path: '/record',
-        builder: (context, _) => RecordEditLeaveGuard<_Rec>(
-          controller: controller,
-          child: Scaffold(
-            appBar: AppBar(title: const Text('Record')),
-            body: Column(
-              children: [
-                const TextField(key: _field),
-                TextButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => Scaffold(
-                        appBar: AppBar(title: const Text('Above')),
-                        body: const TextField(key: _otherField),
+        builder: (context, _) => _shell(
+          inShellBody,
+          RecordEditLeaveGuard<_Rec>(
+            controller: controller,
+            child: Scaffold(
+              appBar: AppBar(title: const Text('Record')),
+              body: Column(
+                children: [
+                  const TextField(key: _field),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(title: const Text('Above')),
+                          body: const TextField(key: _otherField),
+                        ),
                       ),
                     ),
+                    child: const Text('push a page'),
                   ),
-                  child: const Text('push a page'),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -92,6 +100,9 @@ Future<RecordEditController<_Rec>> _open(WidgetTester tester) async {
   expect(find.text('Record'), findsOneWidget);
   return controller;
 }
+
+Widget _shell(bool inShellBody, Widget page) =>
+    inShellBody ? Scaffold(body: page) : page;
 
 /// Puts the caret in [field] and, when [keyboardUp], the on-screen
 /// keyboard over the bottom of the window, as Android does.
@@ -142,6 +153,25 @@ void main() {
     expect(_focused(tester, _field), isFalse);
     expect(controller.isUnlocked, isTrue);
     expect(controller.isDirty, isTrue);
+  });
+
+  testWidgets('in a Scaffold body (the shell), where MediaQuery hides the '
+      'keyboard, Back with it up still only closes it', (tester) async {
+    final controller = await _open(tester, inShellBody: true);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await _typeIn(tester, _field);
+    expect(
+      MediaQuery.viewInsetsOf(tester.element(find.byKey(_field))).bottom,
+      0,
+    );
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(_focused(tester, _field), isFalse);
   });
 
   testWidgets('with changes, the Back after the keyboard is gone asks', (
