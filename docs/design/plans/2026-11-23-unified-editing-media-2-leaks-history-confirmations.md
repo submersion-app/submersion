@@ -844,3 +844,12 @@ changed from this plan:
     one, and Save writes what the card shows); and Set category's read of
     the stored list cannot be empty once rows were selectable (a reload
     keeps the previous value).
+- **A second review (code-review, xhigh, all findings, on the PR):** three
+  findings, all fixed test-first:
+  - Re-upload no longer needs its button after the menu: the store id is
+    read, the downgrade dialog hangs from the navigator, and the choice is
+    queued even if the viewer's controls hid meanwhile.
+  - A repair's cloud id lookup (PhotoKit) runs before its History entry
+    opens, like the hashing and bookmarks.
+  - `SittingMediaWriters.forSite` has a test of its one-write-per-category
+    grouping, Uncategorized included.
