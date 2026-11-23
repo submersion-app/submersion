@@ -107,15 +107,48 @@ String _firstSourceRowSql(String diveId) =>
     'ORDER BY ds.is_primary DESC, ds.created_at ASC, ds.id ASC LIMIT 1)';
 
 /// Whether source rows [r] and [p] show as one chip: the same row, the same
-/// computer, or, with no computer on either, the same merge slot. That is
-/// `dataSourceStrandKey`; the one strand rule SQL leaves out is the collapse
-/// of two computer-less rows of one recording that carry no merge slot
-/// (`sameRecordingWithoutComputer`), which compares model and serial text.
-/// Never NULL, so it can be negated.
+/// computer, with no computer on either the same merge slot, or two
+/// computer-less rows of one recording ([_sameRecordingWithoutComputerSql]).
+/// That is `dataSourceStrandKeysById`, compared pairwise against the first
+/// row. Never NULL, so it can be negated.
 String _sameStrandSql(String r, String p) =>
     '(COALESCE(($r.id = $p.id OR $r.computer_id = $p.computer_id '
     'OR ($r.computer_id IS NULL AND $p.computer_id IS NULL '
-    'AND $r.merge_source_slot = $p.merge_source_slot)), 0) = 1)';
+    'AND $r.merge_source_slot = $p.merge_source_slot) '
+    'OR ${_sameRecordingWithoutComputerSql(r, p)}), 0) = 1)';
+
+/// `sameRecordingWithoutComputer` for two rows with no computer and no merge
+/// slot, as far as SQL can state it: not written by one import, the model
+/// equal or one a vendor-prefixed form of the other, the serials equal or
+/// one of them blank, the same start to the second, the same runtime, and
+/// the maximum depth within 0.1 m. It leaves out the Shearwater hex and
+/// decimal forms of one serial (`computerSerialsMatch`), so two such rows
+/// read as two sources here, and it compares each row with the first row
+/// only, where Dart wants every row already on the strand to agree.
+String _sameRecordingWithoutComputerSql(String r, String p) {
+  // unicode_lower, as `normalizeComputerIdentityPart` folds with
+  // toLowerCase (issue #3032); runs of inner whitespace are not collapsed.
+  String norm(String column) => "unicode_lower(TRIM(COALESCE($column, '')))";
+  final rModel = norm('$r.computer_model');
+  final pModel = norm('$p.computer_model');
+  final rSerial = norm('$r.computer_serial');
+  final pSerial = norm('$p.computer_serial');
+  String prefixed(String longer, String shorter) =>
+      '(LENGTH($longer) > LENGTH($shorter) '
+      "AND SUBSTR($longer, LENGTH($longer) - LENGTH($shorter)) = ' ' || $shorter)";
+  return '($r.computer_id IS NULL AND $p.computer_id IS NULL '
+      'AND $r.merge_source_slot IS NULL AND $p.merge_source_slot IS NULL '
+      'AND NOT ($r.source_file_name IS NOT NULL '
+      'AND $r.source_file_name = $p.source_file_name '
+      'AND $r.imported_at = $p.imported_at) '
+      "AND $rModel <> '' AND $pModel <> '' "
+      'AND ($rModel = $pModel OR ${prefixed(rModel, pModel)} '
+      'OR ${prefixed(pModel, rModel)}) '
+      "AND ($rSerial = '' OR $pSerial = '' OR $rSerial = $pSerial) "
+      'AND $r.entry_time = $p.entry_time '
+      'AND $r.duration = $p.duration '
+      'AND ABS($r.max_depth - $p.max_depth) <= 0.1)';
+}
 
 /// Whether series [x] is in the primary source's family, as
 /// `dropSupersededSeries` places it.

@@ -393,4 +393,101 @@ void main() {
     );
     await expectSpan('unfiled-one', 3000);
   });
+
+  // Issue #3654: one download stored twice by two import paths, with no
+  // registered computer to tie the rows; they show as one source.
+  Future<void> createLooseSource(
+    String id, {
+    required String diveId,
+    required bool isPrimary,
+    required DateTime createdAt,
+    required String model,
+    String? serial,
+    String? fileName,
+  }) async {
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: id,
+            diveId: diveId,
+            isPrimary: Value(isPrimary),
+            computerModel: Value(model),
+            computerSerial: Value(serial),
+            sourceFileName: Value(fileName),
+            entryTime: Value(entry),
+            duration: const Value(3000),
+            maxDepth: const Value(12.0),
+            importedAt: createdAt,
+            createdAt: createdAt,
+          ),
+        );
+  }
+
+  test('an edit hides the copy a second import path stored of the same '
+      'recording', () async {
+    await createBareDive('stored-twice');
+    await createLooseSource(
+      'source-1',
+      diveId: 'stored-twice',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+      model: 'Shearwater Perdix 2',
+    );
+    await createLooseSource(
+      'source-2',
+      diveId: 'stored-twice',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+      model: 'Perdix 2',
+      serial: '0a1b2c3d',
+    );
+    await series.insertSeries(
+      diveId: 'stored-twice',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'stored-twice',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3000),
+    );
+    await repository.saveEditedProfile('stored-twice', points(2400));
+    await expectSpan('stored-twice', 2400);
+  });
+
+  test('two computers of one model stay apart when their recordings '
+      'differ', () async {
+    await createBareDive('two-units');
+    await createLooseSource(
+      'source-1',
+      diveId: 'two-units',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+      model: 'Perdix 2',
+      serial: '0a1b2c3d',
+    );
+    await createLooseSource(
+      'source-2',
+      diveId: 'two-units',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+      model: 'Perdix 2',
+      serial: '0f0f0f0f',
+    );
+    await series.insertSeries(
+      diveId: 'two-units',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'two-units',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3300),
+    );
+    await repository.saveEditedProfile('two-units', points(2400));
+    await expectSpan('two-units', 3300);
+  });
 }

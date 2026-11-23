@@ -129,6 +129,62 @@ void main() {
       expect(background.unreadable, isEmpty);
     });
 
+    test('carries the source rows it places series by to the background '
+        'isolate', () async {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: 'comp-1',
+              name: 'comp-1',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'src-1',
+              diveId: 'dive-1',
+              computerId: const Value('comp-1'),
+              isPrimary: const Value(true),
+              importedAt: DateTime.utc(2026),
+              createdAt: DateTime.utc(2026),
+            ),
+          );
+      await series.insertSeries(
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        sourceId: 'src-1',
+        samples: samples(600),
+        now: now,
+      );
+      await series.insertSeries(
+        diveId: 'dive-1',
+        sourceId: 'src-1',
+        isPrimary: false,
+        samples: samples(600, offset: 1, depth: 30),
+        now: now,
+      );
+      final rows = await series.getRowsForDives(['dive-1']);
+      final reduce = mergedPointsReduction(
+        hasSources: true,
+        primaryComputerId: 'comp-1',
+        sourceRowIds: {'src-1', 'src-2'},
+        primarySourceRowIds: {'src-1'},
+      );
+
+      final inline = reduceSeriesRows(rows, reduce);
+      final background = await reduceSeriesRowsInBackground(rows, reduce);
+
+      expect(background.result, inline.result);
+      // The demoted copy names the primary's row, so the active recording
+      // supersedes it on either isolate.
+      expect(background.result, hasLength(600));
+      expect(background.result.map((p) => p.depth), everyElement(lessThan(30)));
+    });
+
     test('reports an unreadable blob instead of failing the read', () async {
       final badId = await series.insertSeries(
         diveId: 'dive-1',
