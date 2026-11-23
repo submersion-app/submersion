@@ -51860,7 +51860,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_removeSource => '移除此数据源';
 
   @override
-  String get diveLog_profileEditor_unsavedEditsHint => '请先保存或撤销你的更改。';
+  String get diveLog_profileEditor_unsavedEditsHint => '请先保存或撤销你的更改，才能删除剖面。';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      '请先保存或撤销你的更改，才能删除剖面或移除此数据源。';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

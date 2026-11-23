@@ -86755,8 +86755,14 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_profileEditor_unsavedEditsHint.
   ///
   /// In en, this message translates to:
-  /// **'Save or undo your edits first.'**
+  /// **'Save or undo your edits to delete the profile.'**
   String get diveLog_profileEditor_unsavedEditsHint;
+
+  /// No description provided for @diveLog_profileEditor_unsavedEditsHintWithSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Save or undo your edits to delete the profile or remove this source.'**
+  String get diveLog_profileEditor_unsavedEditsHintWithSource;
 
   /// No description provided for @diveLog_profileEditor_deleteProfile_notPrimary.
   ///

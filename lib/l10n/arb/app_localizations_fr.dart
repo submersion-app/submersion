@@ -55428,7 +55428,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'Enregistrez ou annulez d\'abord vos modifications.';
+      'Enregistrez ou annulez vos modifications pour supprimer le profil.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Enregistrez ou annulez vos modifications pour supprimer le profil ou cette source.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

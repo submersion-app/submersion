@@ -55186,7 +55186,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'Speichere deine Änderungen zuerst oder mach sie rückgängig.';
+      'Speichere deine Änderungen oder mach sie rückgängig, um das Profil zu löschen.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Speichere deine Änderungen oder mach sie rückgängig, um das Profil zu löschen oder diese Quelle zu entfernen.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

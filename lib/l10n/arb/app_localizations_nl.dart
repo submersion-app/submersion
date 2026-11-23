@@ -54967,7 +54967,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'Sla je wijzigingen eerst op of maak ze ongedaan.';
+      'Sla je wijzigingen op of maak ze ongedaan om het profiel te verwijderen.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Sla je wijzigingen op of maak ze ongedaan om het profiel of deze bron te verwijderen.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

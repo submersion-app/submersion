@@ -55317,7 +55317,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'Prima salva o annulla le modifiche.';
+      'Salva o annulla le modifiche per eliminare il profilo.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Salva o annulla le modifiche per eliminare il profilo o rimuovere questa fonte.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

@@ -363,11 +363,15 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         history.length > 1 &&
         activeRevision != null;
     final l10n = context.l10n;
+    final removableSource = _removableSource();
     // Said under the Cleanup buttons, since a disabled button alone left
     // divers thinking the editor could not remove anything (issue #4972).
     final String? deleteProfileHint;
     if (state.hasChanges) {
-      deleteProfileHint = l10n.diveLog_profileEditor_unsavedEditsHint;
+      // Names what waits: the outlier and trim tools keep working.
+      deleteProfileHint = removableSource != null
+          ? l10n.diveLog_profileEditor_unsavedEditsHintWithSource
+          : l10n.diveLog_profileEditor_unsavedEditsHint;
     } else if (!showRevisions) {
       deleteProfileHint = l10n.diveLog_profileEditor_deleteProfile_notPrimary;
     } else if (history == null && (historyAsync?.hasError ?? false)) {
@@ -380,7 +384,6 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     } else {
       deleteProfileHint = null;
     }
-    final removableSource = _removableSource();
 
     return PopScope(
       canPop: !state.hasChanges && !_removingSource,
@@ -476,7 +479,10 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
                   : null,
               deleteProfileHint: deleteProfileHint,
               showRemoveSource: removableSource != null,
-              onRemoveSource: removableSource != null && !state.hasChanges
+              onRemoveSource:
+                  removableSource != null &&
+                      !state.hasChanges &&
+                      !_removingSource
                   ? () => _handleRemoveSource(removableSource)
                   : null,
             ),
@@ -511,6 +517,9 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   /// the profile it shows is gone. Like that menu on the dive page, it
   /// offers no Undo; the removal reverts from History (issue #4527).
   Future<void> _handleRemoveSource(DiveDataSource source) async {
+    // A second tap while the first removal is still running would start a
+    // second flow, whose failure would clear the flag the first relies on.
+    if (_removingSource) return;
     final container = ProviderScope.containerOf(context, listen: false);
     final diveId = widget.diveId;
     setState(() => _removingSource = true);

@@ -56113,7 +56113,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'احفظ تعديلاتك أو تراجع عنها أولاً.';
+      'احفظ تعديلاتك أو تراجع عنها لحذف الملف.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'احفظ تعديلاتك أو تراجع عنها لحذف الملف أو إزالة هذا المصدر.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

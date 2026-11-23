@@ -54169,7 +54169,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'קודם שמרו או בטלו את השינויים.';
+      'שמרו או בטלו את השינויים כדי למחוק את הפרופיל.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'שמרו או בטלו את השינויים כדי למחוק את הפרופיל או להסיר את המקור הזה.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

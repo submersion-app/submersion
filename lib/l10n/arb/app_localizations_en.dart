@@ -54467,7 +54467,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'Save or undo your edits first.';
+      'Save or undo your edits to delete the profile.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Save or undo your edits to delete the profile or remove this source.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

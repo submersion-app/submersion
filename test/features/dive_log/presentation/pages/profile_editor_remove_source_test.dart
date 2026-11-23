@@ -56,7 +56,11 @@ void main() {
       "source's profile.";
   const historyFailedHint =
       "Couldn't load the profile revisions, so none can be deleted now.";
-  const unsavedHint = 'Save or undo your edits first.';
+  // Names what waits, since the outlier and trim tools keep working.
+  const unsavedHint =
+      'Save or undo your edits to delete the profile or remove this source.';
+  const unsavedDeleteOnlyHint =
+      'Save or undo your edits to delete the profile.';
 
   late Dive dive;
   late _FakeRemoval removal;
@@ -176,6 +180,17 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   }
 
+  /// Smooths the profile, so an edit is pending, and returns to Cleanup.
+  Future<void> smoothThenCleanup(WidgetTester tester) async {
+    await tester.tap(find.text('Smooth').first);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Apply to All'));
+    await tester.tap(find.text('Apply to All'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cleanup').first);
+    await tester.pumpAndSettle();
+  }
+
   FilledButton buttonLabelled(WidgetTester tester, String label) =>
       tester.widget<FilledButton>(
         find.ancestor(
@@ -274,19 +289,24 @@ void main() {
       tester,
     ) async {
       await pumpEditor(tester, sourceId: 'src-b');
-
-      // Smoothing the 18 m plateau changes samples, so the edit is pending.
-      await tester.tap(find.text('Smooth').first);
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Apply to All'));
-      await tester.tap(find.text('Apply to All'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Cleanup').first);
-      await tester.pumpAndSettle();
+      await smoothThenCleanup(tester);
 
       expect(buttonLabelled(tester, removeLabel).onPressed, isNull);
       expect(find.text(unsavedHint), findsOneWidget);
     });
+  });
+
+  testWidgets('unsaved edits on a single-source dive name only the delete', (
+    tester,
+  ) async {
+    await pumpEditor(
+      tester,
+      sources: [source('src-a', primary: true, dc: 'dc-a')],
+    );
+    await smoothThenCleanup(tester);
+
+    expect(find.text(unsavedDeleteOnlyHint), findsOneWidget);
+    expect(find.text(unsavedHint), findsNothing);
   });
 
   group('Delete Entire Profile says why it is unavailable', () {

@@ -53071,7 +53071,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_profileEditor_removeSource => 'このソースを削除';
 
   @override
-  String get diveLog_profileEditor_unsavedEditsHint => '先に変更を保存するか元に戻してください。';
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'プロファイルを削除するには、変更を保存するか元に戻してください。';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'プロファイルの削除やこのソースの削除を行うには、変更を保存するか元に戻してください。';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

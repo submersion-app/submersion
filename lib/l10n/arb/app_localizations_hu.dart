@@ -54990,7 +54990,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'Előbb mentse vagy vonja vissza a módosításait.';
+      'A profil törléséhez mentse vagy vonja vissza a módosításait.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'A profil törléséhez vagy e forrás eltávolításához mentse vagy vonja vissza a módosításait.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>

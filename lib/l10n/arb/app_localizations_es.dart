@@ -55358,7 +55358,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_unsavedEditsHint =>
-      'Guarda o deshaz tus cambios primero.';
+      'Guarda o deshaz tus cambios para eliminar el perfil.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Guarda o deshaz tus cambios para eliminar el perfil o esta fuente.';
 
   @override
   String get diveLog_profileEditor_deleteProfile_notPrimary =>
