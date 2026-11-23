@@ -630,4 +630,36 @@ void main() {
     await repository.saveEditedProfile('newline-model', points(2400));
     await expectSpan('newline-model', 2400);
   });
+
+  test('one recording stored twice collapses when a model has inner runs '
+      'of whitespace', () async {
+    await createBareDive('inner-space-model');
+    await createLooseSource(
+      'source-1',
+      diveId: 'inner-space-model',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+      model: 'Shearwater  Perdix\t2',
+    );
+    await createLooseSource(
+      'source-2',
+      diveId: 'inner-space-model',
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+      model: 'perdix \r\n  2',
+    );
+    await series.insertSeries(
+      diveId: 'inner-space-model',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'inner-space-model',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3000),
+    );
+    await repository.saveEditedProfile('inner-space-model', points(2400));
+    await expectSpan('inner-space-model', 2400);
+  });
 }

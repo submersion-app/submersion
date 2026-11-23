@@ -117,23 +117,39 @@ String _sameStrandSql(String r, String p) =>
     'AND $r.merge_source_slot = $p.merge_source_slot) '
     'OR ${_sameRecordingWithoutComputerSql(r, p)}), 0) = 1)';
 
+/// `normalizeComputerIdentityPart` for [column]: trimmed, lower-cased with
+/// unicode_lower as Dart's toLowerCase folds (issue #3032), and every run of
+/// whitespace inside it collapsed to one space. ASCII whitespace only: the
+/// Unicode spaces Dart's `\s` also matches are left as they are.
+String _identityPartSql(String column) {
+  var value = "COALESCE($column, '')";
+  // Tab, line feed, vertical tab, form feed and carriage return become
+  // spaces, so the trim and the collapse below see one kind of space.
+  for (final code in const [9, 10, 11, 12, 13]) {
+    value = "REPLACE($value, CHAR($code), ' ')";
+  }
+  // Collapse runs of any length in three passes: mark each space, drop
+  // every mark that another space follows, then drop the remaining marks.
+  // "a   b" becomes "a <m> <m> <m>b", then "a <m>b", then "a b".
+  const mark = 'CHAR(1)';
+  value =
+      "REPLACE(REPLACE(REPLACE(TRIM($value), ' ', ' ' || $mark), "
+      "$mark || ' ', ''), $mark, '')";
+  return 'unicode_lower($value)';
+}
+
 /// `sameRecordingWithoutComputer` for two rows with no computer and no merge
 /// slot, as far as SQL can state it: not written by one import, the model
 /// equal or one a vendor-prefixed form of the other, the serials equal or
 /// one of them blank, the same start to the second (the column stores whole
 /// seconds, so `=` on it is Dart's comparison), the same runtime, and the
 /// maximum depth within 0.1 m. It leaves out the Shearwater hex and
-/// decimal forms of one serial (`computerSerialsMatch`) and the collapse of
-/// inner runs of whitespace (`normalizeComputerIdentityPart`), so two such
-/// rows read as two sources here, and it compares each row with the first
-/// row only, where Dart wants every row already on the strand to agree.
+/// decimal forms of one serial (`computerSerialsMatch`) and whitespace
+/// outside ASCII ([_identityPartSql]), so two such rows read as two sources
+/// here, and it compares each row with the first row only, where Dart wants
+/// every row already on the strand to agree.
 String _sameRecordingWithoutComputerSql(String r, String p) {
-  // unicode_lower, as `normalizeComputerIdentityPart` folds with
-  // toLowerCase (issue #3032), trimming tabs and line breaks as well as
-  // spaces, as Dart's trim does.
-  String norm(String column) =>
-      "unicode_lower(TRIM(COALESCE($column, ''), "
-      "' ' || CHAR(9) || CHAR(10) || CHAR(13)))";
+  const norm = _identityPartSql;
   final rModel = norm('$r.computer_model');
   final pModel = norm('$p.computer_model');
   final rSerial = norm('$r.computer_serial');
