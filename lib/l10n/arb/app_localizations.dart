@@ -31733,7 +31733,7 @@ abstract class AppLocalizations {
   /// Title of the library unlink confirmation dialog
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{1 item} other{{count} items}}?'**
   String media_library_unlinkConfirmTitle(int count);
 
   /// Site page unlink failure snackbar
@@ -33747,11 +33747,11 @@ abstract class AppLocalizations {
   /// **'Move {count, plural, =1{1 item} other{{count} items}}?'**
   String media_library_moveConfirmTitle(int count);
 
-  /// Body of the Move to dive confirmation. dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'.
+  /// Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.
   ///
   /// In en, this message translates to:
-  /// **'They move to {dive} and leave the dive they are on now. Site and gear links stay as they are.'**
-  String media_library_moveConfirmBody(String dive);
+  /// **'{count, plural, =1{The item moves to {dive}, off any dive it is on now.} other{The items move to {dive}, off any dive they are on now.}} Site and gear links stay as they are.'**
+  String media_library_moveConfirmBody(int count, String dive);
 
   /// The Move to dive confirmation's button that moves the photos and videos.
   ///
@@ -33770,6 +33770,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not move the items'**
   String get media_library_moveFailed;
+
+  /// Shown when the media library's Unlink could not write. The selection stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not unlink the items'**
+  String get media_library_unlinkFailed;
 
   /// Library selection action: reassign media to a dive
   ///

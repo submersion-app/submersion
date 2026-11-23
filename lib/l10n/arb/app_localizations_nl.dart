@@ -19877,7 +19877,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return '$count items ontkoppelen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0 ontkoppelen?';
   }
 
   @override
@@ -21255,8 +21261,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'Ze gaan naar $dive en verlaten de duik waar ze nu bij horen. Koppelingen met de duikplek en uitrusting blijven zoals ze zijn.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'De items gaan naar $dive en verlaten de duik waar ze nu bij horen.',
+      one: 'Het item gaat naar $dive en verlaat de duik waar het nu bij hoort.',
+    );
+    return '$_temp0 Koppelingen met de duikplek en uitrusting blijven zoals ze zijn.';
   }
 
   @override
@@ -21269,6 +21282,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_library_moveFailed =>
       'De items konden niet worden verplaatst';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'De items konden niet worden ontkoppeld';
 
   @override
   String get media_library_moveToDive => 'Naar duik verplaatsen';

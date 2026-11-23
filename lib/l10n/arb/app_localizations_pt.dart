@@ -19998,7 +19998,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Desvincular $count itens?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '1 item',
+    );
+    return 'Desvincular $_temp0?';
   }
 
   @override
@@ -21385,8 +21391,15 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'Passam para $dive e saem do mergulho em que estão agora. As ligações ao local e ao equipamento mantêm-se.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Os itens passam para $dive e saem do mergulho em que estiverem agora.',
+      one: 'O item passa para $dive e sai do mergulho em que estiver agora.',
+    );
+    return '$_temp0 As ligações ao local e ao equipamento mantêm-se.';
   }
 
   @override
@@ -21398,6 +21411,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => 'Não foi possível mover os itens';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Não foi possível desvincular os itens';
 
   @override
   String get media_library_moveToDive => 'Mover para um mergulho';

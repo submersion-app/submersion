@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
 import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
@@ -9,6 +10,8 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
+
+const _log = LoggerService('MediaMoveToDive');
 
 /// Whether moving items now on [fromDiveIds] to [targetDiveId] would change
 /// a dive that is open for editing on its page (issue #4527).
@@ -66,7 +69,8 @@ Future<BulkActionOutcome> moveMediaToDive(
       for (final item in items) item.id,
     ], row.id);
     return BulkActionOutcome.completed;
-  } catch (_) {
+  } catch (error, stackTrace) {
+    _log.error('Move to dive failed', error: error, stackTrace: stackTrace);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -100,7 +104,7 @@ Future<bool> _confirmMove(
     builder: (dialogContext) => AlertDialog(
       key: const ValueKey('move_to_dive_confirm'),
       title: Text(l10n.media_library_moveConfirmTitle(count)),
-      content: Text(l10n.media_library_moveConfirmBody(dive)),
+      content: Text(l10n.media_library_moveConfirmBody(count, dive)),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),

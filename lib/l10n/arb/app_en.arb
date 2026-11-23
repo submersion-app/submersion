@@ -12165,7 +12165,7 @@
   "media_diveMediaSection_unlinkSelectedButton": "Unlink {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.",
   "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
-  "media_library_unlinkConfirmTitle": "Unlink {count} items?",
+  "media_library_unlinkConfirmTitle": "Unlink {count, plural, =1{1 item} other{{count} items}}?",
   "media_siteMediaSection_unlinkError": "Failed to unlink: {error}",
   "media_library_unlinkConfirmBody": "They leave your library, along with their cloud copies and thumbnails. Your original files are not affected. This cannot be undone.",
   "media_library_unlinkMetadataNote": "{count,plural, =1{1 of these has a caption or favorite saved in Submersion, and those details are lost.} other{{count} of these have a caption or favorite saved in Submersion, and those details are lost.}}",
@@ -13381,10 +13381,13 @@
       }
     }
   },
-  "media_library_moveConfirmBody": "They move to {dive} and leave the dive they are on now. Site and gear links stay as they are.",
+  "media_library_moveConfirmBody": "{count, plural, =1{The item moves to {dive}, off any dive it is on now.} other{The items move to {dive}, off any dive they are on now.}} Site and gear links stay as they are.",
   "@media_library_moveConfirmBody": {
-    "description": "Body of the Move to dive confirmation. dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'.",
+    "description": "Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.",
     "placeholders": {
+      "count": {
+        "type": "int"
+      },
       "dive": {
         "type": "String"
       }
@@ -13401,6 +13404,10 @@
   "media_library_moveFailed": "Could not move the items",
   "@media_library_moveFailed": {
     "description": "Shown when Move to dive could not write. Nothing moved, and the selection stays."
+  },
+  "media_library_unlinkFailed": "Could not unlink the items",
+  "@media_library_unlinkFailed": {
+    "description": "Shown when the media library's Unlink could not write. The selection stays."
   },
   "media_library_moveToDive": "Move to dive",
   "@media_library_moveToDive": {

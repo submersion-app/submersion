@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/media_move_to_dive.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
@@ -14,6 +15,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
+
+final _log = LoggerService.forClass(MediaSelectionBar);
 
 /// The library's contextual bar while a selection is active.
 ///
@@ -96,8 +99,21 @@ class MediaSelectionBar extends ConsumerWidget {
     );
     if (confirmed != true) return BulkActionOutcome.cancelled;
 
-    await ref.read(mediaUnlinkServiceProvider).unlinkFromLibrary(ids);
-    return BulkActionOutcome.completed;
+    try {
+      await ref.read(mediaUnlinkServiceProvider).unlinkFromLibrary(ids);
+      return BulkActionOutcome.completed;
+    } catch (error, stackTrace) {
+      _log.error('Unlink failed', error: error, stackTrace: stackTrace);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.media_library_unlinkFailed),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return BulkActionOutcome.failed;
+    }
   }
 
   @override

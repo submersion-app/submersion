@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_search.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
@@ -83,16 +85,22 @@ void main() {
   late SelectionController controller;
 
   /// [openDive] names the dive whose page is unlocked, if any.
-  Future<void> pump(WidgetTester tester, {String? openDive}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    String? openDive,
+    List<MediaItem>? items,
+  }) async {
+    final selected =
+        items ??
+        [_item('a', diveId: 'd1'), _item('b', diveId: 'd1'), _item('c')];
     tester.view.physicalSize = const Size(420, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     repo = _RecordingMediaRepo();
-    controller = SelectionController()
-      ..enterExplicit()
-      ..toggle('a')
-      ..toggle('b')
-      ..toggle('c');
+    controller = SelectionController()..enterExplicit();
+    for (final item in selected) {
+      controller.toggle(item.id);
+    }
     addTearDown(controller.dispose);
     final session = EditSession<Dive>(
       Dive(id: openDive ?? 'none', dateTime: DateTime.utc(2026)),
@@ -124,12 +132,8 @@ void main() {
               preferredSize: const Size.fromHeight(56),
               child: MediaSelectionBar(
                 controller: controller,
-                selectableIds: const ['a', 'b', 'c'],
-                selectedItems: [
-                  _item('a', diveId: 'd1'),
-                  _item('b', diveId: 'd1'),
-                  _item('c'),
-                ],
+                selectableIds: [for (final item in selected) item.id],
+                selectedItems: selected,
               ),
             ),
           ),
@@ -170,6 +174,23 @@ void main() {
       findsOneWidget,
     );
     expect(repo.reassigned, isNull);
+  });
+
+  testWidgets('one item is spoken of as one, on no dive or on one', (
+    tester,
+  ) async {
+    await pump(tester, items: [_item('c')]);
+    await pickDive(tester);
+
+    expect(find.text('Move 1 item?'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: confirm,
+        matching: find.textContaining('The item moves to #2 Blue Hole'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('They move'), findsNothing);
   });
 
   testWidgets('Cancel writes nothing and keeps the selection', (tester) async {
@@ -258,5 +279,23 @@ void main() {
 
     expect(find.text('Could not move the items'), findsOneWidget);
     expect(controller.value.checkedIds, {'a', 'b', 'c'});
+  });
+
+  testWidgets('a move that fails is logged with its cause', (tester) async {
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+    await pump(tester);
+    repo.reassignError = StateError('disk full');
+    await pickDive(tester);
+    await tester.tap(dialogButton('Move'));
+    await tester.pumpAndSettle();
+
+    expect(
+      logged.where(
+        (e) => e.level == LogLevel.error && e.message.contains('Move to dive'),
+      ),
+      isNotEmpty,
+    );
   });
 }

@@ -106,9 +106,13 @@ class _RecordingDeletionCoordinator implements MediaDeletionCoordinator {
   Future<void> deleteMultipleMedia(
     List<String> ids, {
     bool holdRemoteDelete = false,
+    bool deferDrain = false,
   }) async {
     deleted.addAll(ids);
   }
+
+  @override
+  Future<void> drainHeldDeletes() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -160,8 +164,13 @@ class _RecordingUnlinkService extends MediaUnlinkService {
 
   final List<String> unlinked = [];
 
+  /// When set, the unlink throws instead of recording.
+  Object? error;
+
   @override
   Future<void> unlinkFromLibrary(List<String> mediaIds) async {
+    final failure = error;
+    if (failure != null) throw failure;
     unlinked.addAll(mediaIds);
   }
 }
@@ -393,6 +402,26 @@ void main() {
       expect(coordinator.deleted, isEmpty);
     });
 
+    testWidgets('an unlink that fails says so and keeps the selection', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          [entry('a', diveId: 'd1')],
+          unlinkService: (repo) =>
+              _RecordingUnlinkService(repo)..error = StateError('disk full'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0]);
+      await tapUnlink(tester);
+      await confirmUnlink(tester);
+
+      expect(find.text('Could not unlink the items'), findsOneWidget);
+      expect(find.text('1 selected'), findsOneWidget);
+    });
+
     testWidgets('cancelling deletes nothing and keeps the selection', (
       tester,
     ) async {
@@ -449,7 +478,7 @@ void main() {
       await selectTiles(tester, [0]);
       await tapUnlink(tester);
 
-      expect(find.text('Unlink 1 items?'), findsOneWidget);
+      expect(find.text('Unlink 1 item?'), findsOneWidget);
       expect(find.textContaining('caption or favorite'), findsNothing);
     });
 

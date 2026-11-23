@@ -20627,8 +20627,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return '$diveに移動し、現在のダイブからは外れます。ダイビングサイトと器材へのリンクはそのままです。';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$diveに移動し、現在のダイブがあればそこから外れます。',
+    );
+    return '$_temp0ダイビングサイトと器材へのリンクはそのままです。';
   }
 
   @override
@@ -20640,6 +20645,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => '項目を移動できませんでした';
+
+  @override
+  String get media_library_unlinkFailed => 'リンクを解除できませんでした';
 
   @override
   String get media_library_moveToDive => 'ダイブに移動';

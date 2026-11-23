@@ -19568,7 +19568,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'לבטל קישור של $count פריטים?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return 'לבטל קישור של $_temp0?';
   }
 
   @override
@@ -20921,8 +20927,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'הם יועברו אל $dive ויעזבו את הצלילה שבה הם נמצאים כעת. הקישורים לאתר ולציוד נשארים כפי שהם.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הפריטים יועברו אל $dive ויעזבו כל צלילה שהם נמצאים בה כעת.',
+      one: 'הפריט יועבר אל $dive ויעזוב כל צלילה שהוא נמצא בה כעת.',
+    );
+    return '$_temp0 הקישורים לאתר ולציוד נשארים כפי שהם.';
   }
 
   @override
@@ -20934,6 +20946,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => 'לא ניתן היה להעביר את הפריטים';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'לא ניתן היה לבטל את הקישור של הפריטים';
 
   @override
   String get media_library_moveToDive => 'העברה לצלילה';

@@ -20330,8 +20330,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return '它们将移至 $dive，并离开当前所在的潜水。潜点和装备的关联保持不变。';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将移至 $dive，并离开当前所在的潜水（如有）。',
+    );
+    return '$_temp0潜点和装备的关联保持不变。';
   }
 
   @override
@@ -20343,6 +20348,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => '无法移动这些项目';
+
+  @override
+  String get media_library_unlinkFailed => '无法取消关联这些项目';
 
   @override
   String get media_library_moveToDive => '移至潜水';

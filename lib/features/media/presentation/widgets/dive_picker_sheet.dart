@@ -13,8 +13,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
-/// Modal dive picker used by "Move to dive" and inbox linking. Resolves to
-/// the chosen dive id, or null on dismiss.
+/// Modal dive picker for choosing a dive by id: import review, a file whose
+/// time cannot be read, a gear check-in. Resolves to the chosen dive id, or
+/// null on dismiss.
 Future<String?> showDivePickerSheet(BuildContext context) =>
     showDivePickerRowSheet(context).then((row) => row?.id);
 

@@ -20003,7 +20003,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Scollegare $count elementi?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '1 elemento',
+    );
+    return 'Scollegare $_temp0?';
   }
 
   @override
@@ -21386,8 +21392,16 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'Passano a $dive e lasciano l\'immersione in cui si trovano ora. I collegamenti al sito e all\'attrezzatura restano invariati.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Gli elementi passano a $dive e lasciano l\'immersione in cui si trovano ora, se c\'è.',
+      one:
+          'L\'elemento passa a $dive e lascia l\'immersione in cui si trova ora, se c\'è.',
+    );
+    return '$_temp0 I collegamenti al sito e all\'attrezzatura restano invariati.';
   }
 
   @override
@@ -21399,6 +21413,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => 'Impossibile spostare gli elementi';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Impossibile scollegare gli elementi';
 
   @override
   String get media_library_moveToDive => 'Sposta in un\'immersione';

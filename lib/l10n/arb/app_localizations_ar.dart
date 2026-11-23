@@ -20294,7 +20294,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
@@ -21725,8 +21731,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'تنتقل إلى $dive وتغادر الغطسة التي هي عليها الآن. تبقى روابط الموقع والمعدات كما هي.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      one: 'ينتقل العنصر إلى $dive ويغادر أي غطسة هو عليها الآن.',
+    );
+    return '$_temp0 تبقى روابط الموقع والمعدات كما هي.';
   }
 
   @override
@@ -21738,6 +21750,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => 'تعذّر نقل العناصر';
+
+  @override
+  String get media_library_unlinkFailed => 'تعذّر إلغاء ربط العناصر';
 
   @override
   String get media_library_moveToDive => 'نقل إلى غطسة';

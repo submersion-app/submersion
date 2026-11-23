@@ -19976,7 +19976,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return '$count Elemente trennen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '1 Element',
+    );
+    return '$_temp0 trennen?';
   }
 
   @override
@@ -21365,8 +21371,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'Sie werden zu $dive verschoben und verlassen ihren bisherigen Tauchgang. Verknüpfungen mit Tauchplatz und Ausrüstung bleiben bestehen.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Die Elemente werden zu $dive verschoben und verlassen den Tauchgang, zu dem sie jetzt gehören.',
+      one:
+          'Das Element wird zu $dive verschoben und verlässt den Tauchgang, zu dem es jetzt gehört.',
+    );
+    return '$_temp0 Verknüpfungen mit Tauchplatz und Ausrüstung bleiben bestehen.';
   }
 
   @override
@@ -21379,6 +21393,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get media_library_moveFailed =>
       'Die Elemente konnten nicht verschoben werden';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Die Elemente konnten nicht getrennt werden';
 
   @override
   String get media_library_moveToDive => 'Zu Tauchgang verschieben';

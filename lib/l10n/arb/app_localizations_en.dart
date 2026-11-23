@@ -19705,7 +19705,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Unlink $count items?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return 'Unlink $_temp0?';
   }
 
   @override
@@ -21069,8 +21075,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'They move to $dive and leave the dive they are on now. Site and gear links stay as they are.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'The items move to $dive, off any dive they are on now.',
+      one: 'The item moves to $dive, off any dive it is on now.',
+    );
+    return '$_temp0 Site and gear links stay as they are.';
   }
 
   @override
@@ -21082,6 +21094,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => 'Could not move the items';
+
+  @override
+  String get media_library_unlinkFailed => 'Could not unlink the items';
 
   @override
   String get media_library_moveToDive => 'Move to dive';

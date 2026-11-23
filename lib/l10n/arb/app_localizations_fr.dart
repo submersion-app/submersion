@@ -20045,7 +20045,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Dissocier $count éléments ?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '1 élément',
+    );
+    return 'Dissocier $_temp0 ?';
   }
 
   @override
@@ -21434,8 +21440,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'Ils passent à $dive et quittent leur plongée actuelle. Les liens avec le site et l\'équipement ne changent pas.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Les éléments passent à $dive et quittent la plongée où ils se trouvent, le cas échéant.',
+      one:
+          'L\'élément passe à $dive et quitte la plongée où il se trouve, le cas échéant.',
+    );
+    return '$_temp0 Les liens avec le site et l\'équipement ne changent pas.';
   }
 
   @override
@@ -21447,6 +21461,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => 'Impossible de déplacer les éléments';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Impossible de dissocier les éléments';
 
   @override
   String get media_library_moveToDive => 'Déplacer vers une plongée';

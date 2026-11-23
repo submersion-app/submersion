@@ -21312,8 +21312,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String media_library_moveConfirmBody(String dive) {
-    return 'Átkerülnek ide: $dive, és kikerülnek a jelenlegi merülésükből. A merülőhely- és felszereléskapcsolatok változatlanok maradnak.';
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az elemek ide kerülnek: $dive, és kikerülnek abból a merülésből, amelyhez most tartoznak.',
+      one:
+          'Az elem ide kerül: $dive, és kikerül abból a merülésből, amelyhez most tartozik.',
+    );
+    return '$_temp0 A merülőhely- és felszereléskapcsolatok változatlanok maradnak.';
   }
 
   @override
@@ -21325,6 +21333,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_library_moveFailed => 'Az elemeket nem sikerült áthelyezni';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Az elemeket nem sikerült leválasztani';
 
   @override
   String get media_library_moveToDive => 'Áthelyezés merüléshez';
