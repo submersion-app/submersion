@@ -12164,7 +12164,7 @@
   "media_diveMediaSection_unlinkButton": "Unlink",
   "media_diveMediaSection_unlinkSelectedButton": "Unlink {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.",
-  "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
+  "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_library_unlinkConfirmTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkError": "Failed to unlink: {error}",
   "media_library_unlinkConfirmBody": "They leave your library, along with their cloud copies and thumbnails. Your original files are not affected. This cannot be undone.",
@@ -12237,7 +12237,7 @@
   "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
   "media_siteDivePhotos_showAll": "Show all",
   "media_siteDivePhotos_showLess": "Show less",
-  "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
+  "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkSelectedContent": "Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.",
   "@media_siteMediaSection_unlinkSelectedContent": {
     "description": "Site page unlink confirmation body",

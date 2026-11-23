@@ -122,7 +122,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('selection_action_unlink')));
     await tester.pumpAndSettle();
-    expect(find.text('Unlink 1 items?'), findsOneWidget);
+    expect(find.text('Unlink 1 item?'), findsOneWidget);
     await tester.tap(find.text('Unlink'));
     await tester.pumpAndSettle();
 

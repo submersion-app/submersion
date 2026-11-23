@@ -19998,7 +19998,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Scollegare $count elementi?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return 'Scollegare $_temp0?';
   }
 
   @override
@@ -20145,7 +20151,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Scollegare $count elementi?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return 'Scollegare $_temp0?';
   }
 
   @override
