@@ -27,6 +27,7 @@ import 'package:submersion/features/trips/data/repositories/trip_equipment_repos
 import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
@@ -184,8 +185,21 @@ class FakeEquipment extends EquipmentRepository {
 }
 
 class FakePacks extends TripEquipmentRepository {
+  final assigned = <(String, String, String?)>[];
   final packed = <(String, List<String>)>[];
   final unpacked = <(String, String)>[];
+
+  @override
+  Future<Map<String, String>> bagAssignmentsForTrip(String tripId) async => {};
+
+  @override
+  Future<void> assignBag(
+    String tripId,
+    String equipmentId,
+    String? bagId,
+  ) async {
+    assigned.add((tripId, equipmentId, bagId));
+  }
 
   @override
   Future<int> pack(String tripId, Iterable<String> equipmentIds) async {
@@ -233,14 +247,14 @@ typedef Harness = ({
   FakeSlots slots,
   List<String> pushed,
   EditSession<Trip>? session,
-  SittingList<Trip, EquipmentItem> packed,
+  SittingList<Trip, TripPackedItem> packed,
   SittingList<Trip, TripCylindersHeld> board,
 });
 
 extension HarnessHeld on Harness {
   /// The ids of the gear the sitting holds packed, in its order.
   List<String> get heldPacked => [
-    for (final i in packed.current(session!)!) i.id,
+    for (final i in packed.current(session!)!) i.item.id,
   ];
 
   /// The slots the sitting holds on the board, in board order.
@@ -323,6 +337,7 @@ Future<Harness> pumpTab(
           if (gearError != null) throw gearError;
           return gear;
         }),
+        tripBagAssignmentsProvider('t1').overrideWith((ref) async => {}),
         tripCylinderStatesProvider('t1').overrideWith((ref) async => states),
         tripCylindersProvider(
           't1',

@@ -36472,6 +36472,33 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_bags_choose => 'اختر حقيبة';
+
+  @override
+  String get trips_bags_none => 'بلا حقيبة';
+
+  @override
+  String get trips_bags_move => 'نقل إلى حقيبة';
+
+  @override
+  String get trips_bags_section => 'الحقائب';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'الوزن الإجمالي: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'مجموع الأوزان المعروفة: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'أوزان غير مسجلة: $items';
+  }
+
+  @override
   String get trips_gear_add_action => 'إضافة';
 
   @override

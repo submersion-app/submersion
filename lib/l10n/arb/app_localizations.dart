@@ -56770,6 +56770,48 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Everything in {name} is already packed} one{Packed {count} item from {name}} other{Packed {count} items from {name}}}'**
   String trips_gear_packedFromSet(int count, String name);
 
+  /// No description provided for @trips_bags_choose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a bag'**
+  String get trips_bags_choose;
+
+  /// No description provided for @trips_bags_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get trips_bags_none;
+
+  /// No description provided for @trips_bags_move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to bag'**
+  String get trips_bags_move;
+
+  /// No description provided for @trips_bags_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Bags'**
+  String get trips_bags_section;
+
+  /// No description provided for @trips_bags_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total weight: {weight}'**
+  String trips_bags_total(String weight);
+
+  /// No description provided for @trips_bags_subtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Known subtotal: {weight}'**
+  String trips_bags_subtotal(String weight);
+
+  /// No description provided for @trips_bags_missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing weight: {items}'**
+  String trips_bags_missing(String items);
+
   /// No description provided for @trips_gear_add_action.
   ///
   /// In en, this message translates to:

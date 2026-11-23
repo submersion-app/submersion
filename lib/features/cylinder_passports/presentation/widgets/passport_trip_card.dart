@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_bag_picker.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -25,9 +28,15 @@ const _newTrip = #newTrip;
 /// where the cylinder is only a slot on the trip's cylinder board shows too,
 /// but only a packed trip can be unpacked here.
 class PassportTripCard extends ConsumerStatefulWidget {
-  const PassportTripCard({super.key, required this.equipmentId, this.editing});
+  const PassportTripCard({
+    super.key,
+    required this.equipmentId,
+    this.isBag = false,
+    this.editing,
+  });
 
   final String equipmentId;
+  final bool isBag;
 
   /// The open card's sitting (issue #4527, phase 3): packing and unpacking are
   /// held there until Save. With no sitting given, the card reads only; during
@@ -70,7 +79,7 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
       );
       final held = editing == null ? null : gearItemTripsList.current(editing);
       packedTripIds =
-          held?.toSet() ??
+          held?.map((row) => row.tripId).toSet() ??
           {
             for (final p in trips)
               if (p.packed) p.trip.id,
@@ -117,16 +126,32 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
       _ => null,
     };
     if (tripId == null || !mounted) return;
-    if (editing != null) {
-      packForTripInSitting(editing, tripId);
-      return;
-    }
     try {
-      await ref.read(tripEquipmentRepositoryProvider).pack(tripId, [
-        widget.equipmentId,
-      ]);
+      String? bagId;
+      final isBag = widget.isBag || editing?.working.type == EquipmentType.bag;
+      if (picked is Trip && !isBag) {
+        final gear = await ref.read(tripGearProvider(tripId).future);
+        if (!mounted || !identical(editing, widget.editing)) return;
+        final bags = tripPackingBags(gear);
+        if (bags.isNotEmpty) {
+          final choice = await pickTripBag(context, bags);
+          if (choice == null || !mounted) return;
+          bagId = choice.bagId;
+        }
+      }
+      if (!identical(editing, widget.editing)) return;
+      if (editing != null) {
+        packForTripInSitting(editing, tripId, bagId: bagId);
+        return;
+      }
+      final packs = ref.read(tripEquipmentRepositoryProvider);
+      if (bagId != null) {
+        await packs.packInBag(tripId, widget.equipmentId, bagId);
+      } else {
+        await packs.pack(tripId, [widget.equipmentId]);
+      }
     } catch (e, stackTrace) {
-      _log.error('Failed to pack a cylinder', error: e, stackTrace: stackTrace);
+      _log.error('Failed to pack gear', error: e, stackTrace: stackTrace);
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.passport_trip_failed)),
       );

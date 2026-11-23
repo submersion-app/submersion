@@ -5653,33 +5653,52 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `trip_equipment` row (v248, issue #2338). The
-  /// (trip, item) pair is unique: a peer's copy under another id is
-  /// reconciled to the lower id and then skipped, as
-  /// [_applyEquipmentShareRecord] does.
-  Future<void> _applyTripEquipmentRecord(TripEquipmentRow record) async {
-    await _reconcileJunctionIds(
-      'trip_equipment',
-      parentColumn: 'trip_id',
-      childColumn: 'equipment_id',
-      pairs: [
-        (parent: record.tripId, child: record.equipmentId, id: record.id),
-      ],
-    );
-    await _db
-        .into(_db.tripEquipment)
-        .insert(
-          record,
-          onConflict: DoNothing<$TripEquipmentTable, TripEquipmentRow>(
-            target: const [],
-          ),
+  /// Reconciles copies of the same packed item to the lowest id while keeping
+  /// the bag from the newest copy that knew about bags (issue #4945).
+  Future<void> _applyTripEquipmentRecords(
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (records.isEmpty) return;
+    await _db.batch((batch) {
+      for (final data in records) {
+        final row = TripEquipmentRow.fromJson(data);
+        batch.customStatement(
+          'INSERT INTO trip_equipment '
+          '(id, trip_id, equipment_id, bag_equipment_id, created_at, hlc) '
+          'VALUES (?, ?, ?, ?, ?, ?) '
+          'ON CONFLICT(trip_id, equipment_id) DO UPDATE SET '
+          'id = min(trip_equipment.id, excluded.id), '
+          'created_at = CASE WHEN excluded.id < trip_equipment.id '
+          'THEN excluded.created_at ELSE trip_equipment.created_at END, '
+          // Sync writes canonical, padded HLCs. A missing bag key is from
+          // an older client, while an explicit null clears the assignment.
+          'bag_equipment_id = CASE WHEN ? AND excluded.hlc IS NOT NULL '
+          'AND (trip_equipment.hlc IS NULL OR excluded.hlc > trip_equipment.hlc) '
+          'THEN excluded.bag_equipment_id ELSE trip_equipment.bag_equipment_id END, '
+          'hlc = CASE WHEN ? AND excluded.hlc IS NOT NULL '
+          'AND (trip_equipment.hlc IS NULL OR excluded.hlc > trip_equipment.hlc) '
+          'THEN excluded.hlc ELSE trip_equipment.hlc END '
+          'ON CONFLICT DO NOTHING',
+          [
+            row.id,
+            row.tripId,
+            row.equipmentId,
+            row.bagEquipmentId,
+            row.createdAt,
+            row.hlc,
+            data.containsKey('bagEquipmentId') ? 1 : 0,
+            data.containsKey('bagEquipmentId') ? 1 : 0,
+          ],
         );
+      }
+    });
+    _db.notifyUpdates({TableUpdate.onTable(_db.tripEquipment)});
   }
 
   /// Applies one incoming `trip_hides` row (v250, issue #2594). The
   /// (trip, profile) pair is unique: a peer's copy under another id is
   /// reconciled to the lower id and then skipped, as
-  /// [_applyTripEquipmentRecord] does.
+  /// [_applyTripEquipmentRecords] does.
   Future<void> _applyTripHideRecord(TripHideRow record) async {
     await _reconcileJunctionIds(
       'trip_hides',
@@ -5714,7 +5733,7 @@ class SyncDataSerializer {
   /// Applies one incoming `trip_shares` row (v311, issue #2151). The
   /// (trip, profile) pair is unique: a peer's copy under another id is
   /// reconciled to the lower id and then skipped, as
-  /// [_applyTripEquipmentRecord] does.
+  /// [_applyTripEquipmentRecords] does.
   Future<void> _applyTripShareRecord(TripShareRow record) async {
     await _reconcileJunctionIds(
       'trip_shares',
@@ -6348,7 +6367,7 @@ class SyncDataSerializer {
         await _applyEquipmentShareRecord(EquipmentShareRow.fromJson(data));
         return;
       case 'tripEquipment':
-        await _applyTripEquipmentRecord(TripEquipmentRow.fromJson(data));
+        await _applyTripEquipmentRecords([data]);
         return;
       case 'tripHides':
         await _applyTripHideRecord(TripHideRow.fromJson(data));
@@ -7921,29 +7940,7 @@ class SyncDataSerializer {
         );
         return;
       case 'tripEquipment':
-        // DoNothing: see [_applyTripEquipmentRecord].
-        final packRows = _lowestIdPerPair(
-          records.map((r) => TripEquipmentRow.fromJson(r)).toList(),
-          (row) => (parent: row.tripId, child: row.equipmentId, id: row.id),
-        );
-        await _reconcileJunctionIds(
-          'trip_equipment',
-          parentColumn: 'trip_id',
-          childColumn: 'equipment_id',
-          pairs: [
-            for (final row in packRows)
-              (parent: row.tripId, child: row.equipmentId, id: row.id),
-          ],
-        );
-        await _db.batch(
-          (b) => b.insertAll(
-            _db.tripEquipment,
-            packRows,
-            onConflict: DoNothing<$TripEquipmentTable, TripEquipmentRow>(
-              target: const [],
-            ),
-          ),
-        );
+        await _applyTripEquipmentRecords(records);
         return;
       case 'tripHides':
         // DoNothing: see [_applyTripHideRecord].

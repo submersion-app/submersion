@@ -22,6 +22,7 @@ import 'package:submersion/features/trips/data/services/trip_edit_save_service.d
 import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/data/services/trip_set_bundle.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
@@ -40,7 +41,7 @@ void main() {
   late TripEquipmentRepository packs;
   late TripCylinderRepository cylinders;
   late TripEditSaveService service;
-  late SittingList<Trip, EquipmentItem> packed;
+  late SittingList<Trip, TripPackedItem> packed;
   late SittingList<Trip, TripCylindersHeld> board;
   final changeLog = ChangeLogRepository();
   final at = DateTime.utc(2026);
@@ -163,7 +164,7 @@ void main() {
       ]);
       await writes.unpack('tank');
 
-      expect([for (final i in packed.current(session)!) i.id], ['fins']);
+      expect([for (final i in packed.current(session)!) i.item.id], ['fins']);
       final slot = heldCylindersOf(session, board)!.slots.single;
       expect(slot.equipmentId, 'tank');
       expect(slot.id, isNotEmpty);

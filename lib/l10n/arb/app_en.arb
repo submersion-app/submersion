@@ -20935,6 +20935,34 @@
       "name": {"type": "String"}
     }
   },
+  "trips_bags_choose": "Choose a bag",
+  "trips_bags_none": "Unassigned",
+  "trips_bags_move": "Move to bag",
+  "trips_bags_section": "Bags",
+  "trips_bags_total": "Total weight: {weight}",
+  "@trips_bags_total": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_bags_subtotal": "Known subtotal: {weight}",
+  "@trips_bags_subtotal": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_bags_missing": "Missing weight: {items}",
+  "@trips_bags_missing": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
   "trips_gear_add_action": "Add",
   "trips_gear_add_fromEquipment": "From my equipment",
   "trips_gear_add_fromSet": "An equipment set",

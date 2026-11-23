@@ -35175,6 +35175,33 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_bags_choose => 'בחירת תיק';
+
+  @override
+  String get trips_bags_none => 'ללא תיק';
+
+  @override
+  String get trips_bags_move => 'העברה לתיק';
+
+  @override
+  String get trips_bags_section => 'תיקים';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'משקל כולל: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'סכום משקלים ידועים: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'חסר משקל: $items';
+  }
+
+  @override
   String get trips_gear_add_action => 'הוספה';
 
   @override

@@ -24,6 +24,7 @@ final tripGearProvider = FutureProvider.family<List<EquipmentItem>, String>((
   final equipment = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchChanges());
   ref.invalidateSelfWhen(equipment.watchEquipmentChanges());
+  ref.invalidateSelfWhen(equipment.watchAttributeChanges());
   // Visibility comes and goes with a share row (issue #2046).
   ref.invalidateSelfWhen(
     ref.read(equipmentShareRepositoryProvider).watchChanges(),
@@ -36,6 +37,13 @@ final tripGearProvider = FutureProvider.family<List<EquipmentItem>, String>((
   final items = await equipment.getEquipmentByIds(ids);
   return [...items]..sort((a, b) => compareTextForSort(a.name, b.name));
 });
+
+final tripBagAssignmentsProvider =
+    FutureProvider.family<Map<String, String>, String>((ref, tripId) {
+      final packs = ref.watch(tripEquipmentRepositoryProvider);
+      ref.invalidateSelfWhen(packs.watchChanges());
+      return packs.bagAssignmentsForTrip(tripId);
+    });
 
 /// A trip an item is on: packed through `trip_equipment`, a trip gas slot,
 /// or both (decided 2026-09-29).

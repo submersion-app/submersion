@@ -34484,6 +34484,33 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get trips_bags_choose => 'バッグを選択';
+
+  @override
+  String get trips_bags_none => 'バッグ未指定';
+
+  @override
+  String get trips_bags_move => 'バッグに移す';
+
+  @override
+  String get trips_bags_section => 'バッグ';
+
+  @override
+  String trips_bags_total(String weight) {
+    return '合計重量：$weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return '既知の重量の小計：$weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return '重量未登録：$items';
+  }
+
+  @override
   String get trips_gear_add_action => '追加';
 
   @override

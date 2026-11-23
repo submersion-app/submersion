@@ -45,6 +45,7 @@ void main() {
     List<PackedTrip> trips = const [],
     List<Trip> allTrips = const [],
     bool failing = false,
+    List<EquipmentItem> gear = const [],
     EditSession<EquipmentItem>? editing,
   }) async {
     final fake = _FakePacks(failing: failing);
@@ -55,6 +56,7 @@ void main() {
           ...overrides,
           equipmentTripsProvider('tank').overrideWith((ref) async => trips),
           allTripsProvider.overrideWith((ref) async => allTrips),
+          tripGearProvider.overrideWith((ref, id) async => gear),
           tripEquipmentRepositoryProvider.overrideWithValue(fake),
         ],
         child: SingleChildScrollView(
@@ -90,7 +92,26 @@ void main() {
     expect(fake.packed, isEmpty);
     expect(find.text(l10n.passport_trip_packedFor('Trip a')), findsOneWidget);
     expect(find.byType(RecordChangedDot), findsOneWidget);
-    expect(gearItemTripsList.current(session), ['a']);
+    expect(gearItemTripsList.current(session), [(tripId: 'a', bagId: null)]);
+  });
+
+  testWidgets('pack from the passport chooses a bag on the selected trip', (
+    tester,
+  ) async {
+    final (l10n, fake) = await pump(
+      tester,
+      allTrips: [trip('a')],
+      gear: const [
+        EquipmentItem(id: 'bag', name: 'Gear bag', type: EquipmentType.bag),
+      ],
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trip a'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gear bag'));
+    await tester.pumpAndSettle();
+    expect(fake.bagged, [('a', 'tank', 'bag')]);
   });
 
   testWidgets('with no trips it says so and offers Pack for a trip', (
@@ -460,6 +481,16 @@ class _FakePacks extends TripEquipmentRepository {
   final bool failing;
   final packed = <(String, List<String>)>[];
   final unpacked = <(String, String)>[];
+  final bagged = <(String, String, String)>[];
+
+  @override
+  Future<void> packInBag(
+    String tripId,
+    String equipmentId,
+    String bagId,
+  ) async {
+    bagged.add((tripId, equipmentId, bagId));
+  }
 
   @override
   Future<int> pack(String tripId, Iterable<String> equipmentIds) async {

@@ -85,6 +85,29 @@ void main() {
     expect(await tombstones(), 1);
   });
 
+  test('bag assignments move, clear, and stay on the selected trip', () async {
+    final first = await item('Roller', EquipmentType.bag);
+    final second = await item('Carry-on', EquipmentType.bag);
+    await packs.pack(t1, [first, second]);
+    await packs.pack(t2, [first]);
+
+    await packs.packInBag(t1, bcd, first);
+    expect(await packs.bagAssignmentsForTrip(t1), {bcd: first});
+    expect(await packs.bagAssignmentsForTrip(t2), isEmpty);
+    await packs.assignBag(t1, bcd, second);
+    expect(await packs.bagAssignmentsForTrip(t1), {bcd: second});
+
+    await expectLater(packs.packInBag(t2, tank, second), throwsStateError);
+    expect(await packs.equipmentIdsForTrip(t2), [first]);
+    await packs.unpack(t1, second);
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+    expect(await packs.equipmentIdsForTrip(t1), unorderedEquals([first, bcd]));
+
+    await packs.assignBag(t1, bcd, first);
+    await packs.unpack(t1, bcd);
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+  });
+
   test('tripIdsForEquipment lists the trips an item is packed for', () async {
     await packs.pack(t1, [bcd]);
     await packs.pack(t2, [bcd]);

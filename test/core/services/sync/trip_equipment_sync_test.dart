@@ -93,6 +93,48 @@ void main() {
     expect(rows.map((r) => r.id), ['aaa-peer']);
   });
 
+  test(
+    'bag assignments travel, preserve newer edits, and allow explicit clears',
+    () async {
+      const base = {
+        'id': 'gear',
+        'tripId': 't1',
+        'equipmentId': 'bcd',
+        'createdAt': 1,
+      };
+      await serializer.upsertRecord('tripEquipment', {
+        ...base,
+        'bagEquipmentId': 'roller',
+        'hlc': '000000000000001:000000:peer',
+      });
+      await serializer.upsertRecords('tripEquipment', [
+        {
+          ...base,
+          'bagEquipmentId': 'carry-on',
+          'hlc': '000000000000002:000000:peer',
+        },
+        {...base, 'id': 'earlier-id', 'hlc': '000000000000004:000000:old'},
+      ]);
+      final fetched = await serializer.fetchRecord(
+        'tripEquipment',
+        'earlier-id',
+      );
+      expect(fetched?['bagEquipmentId'], 'carry-on');
+      expect(await db.select(db.tripEquipment).get(), hasLength(1));
+
+      await serializer.upsertRecord('tripEquipment', {
+        ...base,
+        'id': 'earlier-id',
+        'bagEquipmentId': null,
+        'hlc': '000000000000003:000000:peer',
+      });
+      expect(
+        (await db.select(db.tripEquipment).get()).single.bagEquipmentId,
+        isNull,
+      );
+    },
+  );
+
   test('a trips tombstone drops its packed rows', () async {
     await pack('a');
     await serializer.deleteRecord('trips', 't1');

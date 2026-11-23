@@ -1,10 +1,13 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+
+typedef EquipmentPacking = ({String tripId, String? bagId});
 
 /// Gear packed for a trip (issue #2338): the `trip_equipment` links. A
 /// parent-gated child of `trips`; writes never touch the trip or item rows
@@ -34,6 +37,111 @@ class TripEquipmentRepository {
               .map((r) => r.read(_db.tripEquipment.tripId)!)
               .get())
           .toSet();
+
+  Future<Map<String, String>> bagAssignmentsForTrip(String tripId) async {
+    final rows =
+        await (_db.select(_db.tripEquipment)..where(
+              (t) => t.tripId.equals(tripId) & t.bagEquipmentId.isNotNull(),
+            ))
+            .get();
+    return {for (final row in rows) row.equipmentId: row.bagEquipmentId!};
+  }
+
+  Future<List<EquipmentPacking>> packingForEquipment(String equipmentId) async {
+    final rows =
+        await (_db.select(_db.tripEquipment)
+              ..where((t) => t.equipmentId.equals(equipmentId))
+              ..orderBy([(t) => OrderingTerm.asc(t.tripId)]))
+            .get();
+    return [
+      for (final row in rows) (tripId: row.tripId, bagId: row.bagEquipmentId),
+    ];
+  }
+
+  /// Packs gear and assigns it in one transaction.
+  Future<void> packInBag(String tripId, String equipmentId, String bagId) =>
+      _db.transaction(() async {
+        await pack(tripId, [equipmentId]);
+        await assignBag(tripId, equipmentId, bagId);
+      });
+
+  /// Moves packed gear between the bags on this trip. Null means loose gear.
+  Future<void> assignBag(
+    String tripId,
+    String equipmentId,
+    String? bagId,
+  ) async {
+    final changed = await _db.transaction(() async {
+      final packed = _db.tripEquipment;
+      final item =
+          await (_db.select(packed)..where(
+                (t) =>
+                    t.tripId.equals(tripId) & t.equipmentId.equals(equipmentId),
+              ))
+              .getSingleOrNull();
+      if (item == null || item.bagEquipmentId == bagId) return false;
+      if (bagId != null) {
+        final inventory = _db.equipment;
+        final candidates =
+            await (_db.select(packed).join([
+                  innerJoin(
+                    inventory,
+                    inventory.id.equalsExp(packed.equipmentId),
+                  ),
+                ])..where(
+                  packed.tripId.equals(tripId) &
+                      packed.equipmentId.isIn([bagId, equipmentId]) &
+                      inventory.type.equals(EquipmentType.bag.name),
+                ))
+                .get();
+        if (bagId == equipmentId ||
+            candidates.length != 1 ||
+            candidates.single.readTable(packed).equipmentId != bagId) {
+          throw StateError('Choose a packed bag from the same trip');
+        }
+      }
+      await _setBagForRows([item], bagId);
+      return true;
+    });
+    if (changed) SyncEventBus.notifyLocalChange();
+  }
+
+  Future<void> _setBagForRows(
+    List<TripEquipmentRow> rows,
+    String? bagId,
+  ) async {
+    if (rows.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.batch((batch) {
+      for (final row in rows) {
+        batch.update(
+          _db.tripEquipment,
+          TripEquipmentCompanion(bagEquipmentId: Value(bagId)),
+          where: (t) => t.id.equals(row.id),
+        );
+      }
+    });
+    for (final row in rows) {
+      await _syncRepository.markRecordPending(
+        entityType: entity,
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  Future<void> _clearBag(String equipmentId, {String? tripId}) async {
+    final rows =
+        await (_db.select(_db.tripEquipment)..where(
+              (t) =>
+                  t.bagEquipmentId.equals(equipmentId) &
+                  (tripId == null
+                      ? const Constant(true)
+                      : t.tripId.equals(tripId)),
+            ))
+            .get();
+    await _setBagForRows(rows, null);
+  }
 
   /// Packs each of [equipmentIds] for [tripId]; a pair already packed is
   /// left alone. Returns how many were added.
@@ -68,6 +176,7 @@ class TripEquipmentRepository {
   /// Unpacks [equipmentId] from [tripId] and tombstones the link.
   Future<void> unpack(String tripId, String equipmentId) async {
     await _db.transaction(() async {
+      await _clearBag(equipmentId, tripId: tripId);
       final ids = await _idsWhere(
         _db.tripEquipment.tripId.equals(tripId) &
             _db.tripEquipment.equipmentId.equals(equipmentId),
@@ -94,6 +203,7 @@ class TripEquipmentRepository {
 
   /// As [deleteByTripId], for an item delete.
   Future<void> deleteForEquipment(String equipmentId) async {
+    await _clearBag(equipmentId);
     final ids = await _idsWhere(
       _db.tripEquipment.equipmentId.equals(equipmentId),
     );

@@ -36038,6 +36038,33 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get trips_bags_choose => 'Escolher uma mala';
+
+  @override
+  String get trips_bags_none => 'Sem mala';
+
+  @override
+  String get trips_bags_move => 'Mover para uma mala';
+
+  @override
+  String get trips_bags_section => 'Malas';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'Peso total: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'Subtotal conhecido: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'Peso em falta: $items';
+  }
+
+  @override
   String get trips_gear_add_action => 'Adicionar';
 
   @override

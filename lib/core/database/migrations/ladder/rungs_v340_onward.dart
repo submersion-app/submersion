@@ -327,5 +327,8 @@ extension RungsFromV340 on AppDatabase {
     // not move.
     if (from < 382) await _assertDiveHandSetFieldsColumn();
     if (from < 382) await reportProgress();
+
+    if (from < 383) await _assertTripEquipmentBagColumn();
+    if (from < 383) await reportProgress();
   }
 }

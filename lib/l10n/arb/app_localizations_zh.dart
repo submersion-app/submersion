@@ -33925,6 +33925,33 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trips_bags_choose => '选择装备包';
+
+  @override
+  String get trips_bags_none => '未分配';
+
+  @override
+  String get trips_bags_move => '移到装备包';
+
+  @override
+  String get trips_bags_section => '装备包';
+
+  @override
+  String trips_bags_total(String weight) {
+    return '总重量：$weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return '已知重量小计：$weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return '重量缺失：$items';
+  }
+
+  @override
   String get trips_gear_add_action => '添加';
 
   @override

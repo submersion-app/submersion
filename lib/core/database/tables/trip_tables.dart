@@ -422,6 +422,10 @@ class TripEquipment extends Table {
       text().references(Trips, #id, onDelete: KeyAction.cascade)();
   TextColumn get equipmentId =>
       text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+
+  /// The inventory ID of the packed bag on this trip. A soft reference
+  /// lets the bag and its contents arrive independently during sync.
+  TextColumn get bagEquipmentId => text().nullable()();
   IntColumn get createdAt => integer()();
 
   /// This child's own clock, stamped when it is marked pending

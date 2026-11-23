@@ -35816,6 +35816,33 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trips_bags_choose => 'Kies een tas';
+
+  @override
+  String get trips_bags_none => 'Zonder tas';
+
+  @override
+  String get trips_bags_move => 'Verplaatsen naar tas';
+
+  @override
+  String get trips_bags_section => 'Tassen';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'Totaalgewicht: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'Bekend subtotaal: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'Gewicht ontbreekt: $items';
+  }
+
+  @override
   String get trips_gear_add_action => 'Toevoegen';
 
   @override

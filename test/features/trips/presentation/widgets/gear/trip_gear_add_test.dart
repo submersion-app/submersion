@@ -3,9 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' show DiversCompanion;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -52,6 +56,70 @@ void main() {
     expect(h.heldPacked, isEmpty);
     // Appended after the board's last slot.
     expect([for (final s in h.heldSlots) s.equipmentId], [null, 'tk']);
+  });
+
+  testWidgets('assigns gear while packing and recalculates a bag when moved', (
+    tester,
+  ) async {
+    const bag = EquipmentItem(
+      id: 'bag',
+      name: 'Roller bag',
+      type: EquipmentType.bag,
+      attributes: [
+        EquipmentAttribute(
+          id: 'bag-weight',
+          equipmentId: 'bag',
+          key: EquipmentAttrKeys.dryWeightKg,
+          valueNum: 2.5,
+        ),
+      ],
+    );
+    final weighedFins = fins.copyWith(
+      attributes: [
+        const EquipmentAttribute(
+          id: 'fins-weight',
+          equipmentId: 'fins',
+          key: EquipmentAttrKeys.dryWeightKg,
+          valueNum: 1.5,
+        ),
+      ],
+    );
+    final h = await pumpTab(
+      tester,
+      gear: [bag],
+      active: [bcd, weighedFins],
+      editing: true,
+    );
+    final weight = UnitFormatter(const AppSettings()).formatWeight(4.0);
+    await openPicker(tester);
+    await tickAndAdd(tester, ['Hollis wing', 'Fins']);
+    expect(find.text('Choose a bag'), findsOneWidget);
+    await tester.tap(find.text('Roller bag').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Known subtotal: $weight'), findsOneWidget);
+    expect(find.text('Missing weight: Hollis wing'), findsOneWidget);
+    expect(h.packs.assigned, isEmpty);
+
+    await tester.tap(find.byKey(const Key('trip-gear-menu-bcd')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Move to bag'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unassigned'));
+    await tester.pumpAndSettle();
+    expect(find.text('Total weight: $weight'), findsOneWidget);
+    expect(find.textContaining('Known subtotal'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('trip-gear-menu-bcd')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Move to bag'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Roller bag').last);
+    await tester.pumpAndSettle();
+    await h.save();
+    expect(
+      h.packs.assigned,
+      unorderedEquals([('t1', 'bcd', 'bag'), ('t1', 'fins', 'bag')]),
+    );
   });
 
   group('From my equipment picks several (#4205)', () {

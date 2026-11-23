@@ -35865,6 +35865,33 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get trips_bags_choose => 'Táska kiválasztása';
+
+  @override
+  String get trips_bags_none => 'Táska nélkül';
+
+  @override
+  String get trips_bags_move => 'Áthelyezés táskába';
+
+  @override
+  String get trips_bags_section => 'Táskák';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'Össztömeg: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'Ismert részösszeg: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'Hiányzó tömeg: $items';
+  }
+
+  @override
   String get trips_gear_add_action => 'Hozzáadás';
 
   @override

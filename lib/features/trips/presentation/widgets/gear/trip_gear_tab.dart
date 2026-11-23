@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_fill_forecast_banner.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_bag_picker.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_cylinder_slot_row.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_add_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_packed_item_row.dart';
@@ -67,7 +70,18 @@ class TripGearTab extends ConsumerWidget {
       }
       return const Center(child: CircularProgressIndicator.adaptive());
     }
-    return _buildGear(context, ref, gear: gear, states: states);
+    final assignments = tripPackingBags(gear).isEmpty
+        ? const AsyncData(<String, String>{})
+        : ref.watch(tripBagAssignmentsProvider(trip.id));
+    final bagIds = assignments.value;
+    if (bagIds == null) {
+      return Center(
+        child: assignments.hasError
+            ? Text(l10n.common_error_tryAgain)
+            : const CircularProgressIndicator.adaptive(),
+      );
+    }
+    return _buildGear(context, ref, gear: gear, states: states, bagIds: bagIds);
   }
 
   /// The gear and board [editing] holds, drawn as they change.
@@ -128,7 +142,11 @@ class TripGearTab extends ConsumerWidget {
           builder: (context, ref, _) => _buildGear(
             context,
             ref,
-            gear: gear,
+            gear: [for (final row in gear) row.item],
+            bagIds: {
+              for (final row in gear)
+                if (row.bagId case final bagId?) row.item.id: bagId,
+            },
             states: held.states,
             writes: HeldTripGearWrites(
               session: editing,
@@ -154,6 +172,7 @@ class TripGearTab extends ConsumerWidget {
     WidgetRef ref, {
     required List<EquipmentItem> gear,
     required List<TripCylinderState> states,
+    required Map<String, String> bagIds,
     TripGearWrites? writes,
     TripLeadChecklists? lead,
   }) {
@@ -196,7 +215,50 @@ class TripGearTab extends ConsumerWidget {
     final slots = [for (final s in states) s.cylinder];
     // An owned cylinder on the board is listed under Cylinders only, and so
     // is a tank packed without a slot (#2873), offered to the board.
-    final (:packed, :unslottedTanks) = splitTripGear(gear, slots);
+    final bags = tripPackingBags(gear);
+    final bagsById = {for (final bag in bags) bag.id: bag};
+    final contents = {for (final bag in bags) bag.id: <EquipmentItem>[]};
+    final loose = <EquipmentItem>[];
+    for (final item in gear) {
+      if (item.type == EquipmentType.bag) continue;
+      final bagItems = contents[bagIds[item.id]];
+      (bagItems ?? loose).add(item);
+    }
+    final (packed: nonslottedGear, :unslottedTanks) = splitTripGear(
+      loose,
+      slots,
+    );
+    final slottedIds = {for (final slot in slots) ?slot.equipmentId};
+    final packed = [
+      ...nonslottedGear,
+      if (bags.isNotEmpty)
+        for (final item in loose)
+          if (slottedIds.contains(item.id)) item,
+    ];
+
+    VoidCallback? moveAction(EquipmentItem item) {
+      if (writes == null || bags.isEmpty || bagsById.containsKey(item.id)) {
+        return null;
+      }
+      return () async {
+        final choice = await pickTripBag(
+          context,
+          bags,
+          currentBagId: bagIds[item.id],
+        );
+        if (choice != null && context.mounted) {
+          writes.assignBag(item.id, choice.bagId);
+        }
+      };
+    }
+
+    Widget packedRow(EquipmentItem item) => TripPackedItemRow(
+      item: item,
+      alerts: alertsByItem[item.id] ?? const [],
+      margin: marginByItem[item.id],
+      onMoveToBag: moveAction(item),
+      onUnpack: writes == null ? null : () => _unpack(context, writes, item.id),
+    );
 
     void openBoard() => openTripCylinderBoard(context, trip.id);
     // Only the open sitting changes the gear: locked, nothing is offered.
@@ -217,7 +279,10 @@ class TripGearTab extends ConsumerWidget {
             ),
           );
 
-    if (packed.isEmpty && unslottedTanks.isEmpty && states.isEmpty) {
+    if (bags.isEmpty &&
+        packed.isEmpty &&
+        unslottedTanks.isEmpty &&
+        states.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -251,17 +316,25 @@ class TripGearTab extends ConsumerWidget {
               child: addButton,
             ),
           ),
+        if (bags.isNotEmpty) ...[
+          _SectionHeader(title: l10n.trips_bags_section),
+          for (final bag in bags) ...[
+            packedRow(bag),
+            _BagWeight(
+              contents: TripBagContents(bag: bag, items: contents[bag.id]!),
+              units: units,
+            ),
+            for (final item in contents[bag.id]!)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 16),
+                child: packedRow(item),
+              ),
+            const Divider(),
+          ],
+        ],
         if (packed.isNotEmpty) ...[
           _SectionHeader(title: l10n.trips_gear_section_packed),
-          for (final item in packed)
-            TripPackedItemRow(
-              item: item,
-              alerts: alertsByItem[item.id] ?? const [],
-              margin: marginByItem[item.id],
-              onUnpack: writes == null
-                  ? null
-                  : () => _unpack(context, writes, item.id),
-            ),
+          for (final item in packed) packedRow(item),
         ],
         if (states.isNotEmpty || unslottedTanks.isNotEmpty) ...[
           _SectionHeader(
@@ -295,6 +368,7 @@ class TripGearTab extends ConsumerWidget {
               units: units,
               alerts: alertsByItem[item.id] ?? const [],
               // An ended trip's board is history: no prompt to put it on.
+              onMoveToBag: moveAction(item),
               onPutOnBoard: ended || writes == null
                   ? null
                   : () => _putOnBoard(context, writes, item),
@@ -359,6 +433,36 @@ class TripGearTab extends ConsumerWidget {
       );
       messenger.showSnackBar(SnackBar(content: Text(l10n.trips_gear_failed)));
     }
+  }
+}
+
+class _BagWeight extends StatelessWidget {
+  const _BagWeight({required this.contents, required this.units});
+
+  final TripBagContents contents;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final missing = contents.missingWeights;
+    final weight = units.formatWeight(contents.knownWeightKg);
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            missing.isEmpty
+                ? l10n.trips_bags_total(weight)
+                : l10n.trips_bags_subtotal(weight),
+          ),
+          if (missing.isNotEmpty)
+            Text(l10n.trips_bags_missing(missing.join(', '))),
+        ],
+      ),
+    );
   }
 }
 
