@@ -7,16 +7,21 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
+import 'package:submersion/features/marine_life/data/services/retired_species_merger.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
+import 'package:submersion/features/marine_life/domain/entities/bundled_species_catalog.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
+
+const _log = LoggerService('SpeciesRepository');
 
 class SpeciesRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -573,6 +578,9 @@ class SpeciesRepository {
   /// stamps an hlc, the seed never does), so catalog corrections reach
   /// existing installs while edits survive. A built-in row the diver deleted
   /// comes back at the next catalog version.
+  ///
+  /// The upgrade also folds each id the catalog retired into its
+  /// replacement (issue #4966), unless the diver edited the retired row.
   Future<void> seedBuiltInSpecies({
     BuiltInSpeciesSeedVersionStore? versionStore,
   }) async {
@@ -580,35 +588,75 @@ class SpeciesRepository {
     final store = versionStore;
     final upgrade =
         store != null && await store.appliedVersion() < catalog.version;
+    if (!upgrade) return _seedRows(catalog, upgrade: false);
 
-    await _db.batch((batch) {
-      for (final species in catalog.species) {
-        final companion = SpeciesCompanion(
-          id: Value(species.id),
-          commonName: Value(species.commonName),
-          scientificName: Value(species.scientificName),
-          category: Value(species.category.name),
-          taxonomyClass: Value(species.taxonomyClass),
-          description: Value(species.description),
-          isBuiltIn: const Value(true),
+    // A catalog upgrade is the app's own work: filed as one automatic
+    // operation, never as the diver's edits in the change log.
+    final folded = await ChangeLogScope.automatic(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.qualityRepair,
+      body: () async {
+        await _seedRows(catalog, upgrade: true);
+        return _foldRetired(catalog);
+      },
+    );
+    // A failed fold leaves the version unapplied, so the next launch tries
+    // again.
+    if (folded) await store.markApplied(catalog.version);
+  }
+
+  /// The INSERT OR IGNORE batch, or with [upgrade] the upsert that rewrites
+  /// rows the diver never touched.
+  Future<void> _seedRows(
+    BundledSpeciesCatalog catalog, {
+    required bool upgrade,
+  }) => _db.batch((batch) {
+    for (final species in catalog.species) {
+      final companion = SpeciesCompanion(
+        id: Value(species.id),
+        commonName: Value(species.commonName),
+        scientificName: Value(species.scientificName),
+        category: Value(species.category.name),
+        taxonomyClass: Value(species.taxonomyClass),
+        description: Value(species.description),
+        isBuiltIn: const Value(true),
+      );
+      if (upgrade) {
+        batch.insert(
+          _db.species,
+          companion,
+          onConflict: DoUpdate<$SpeciesTable, Specy>(
+            (old) => companion,
+            where: (old) => old.hlc.isNull(),
+          ),
         );
-        if (upgrade) {
-          batch.insert(
-            _db.species,
-            companion,
-            onConflict: DoUpdate<$SpeciesTable, Specy>(
-              (old) => companion,
-              where: (old) => old.hlc.isNull(),
-            ),
-          );
-        } else {
-          batch.insert(_db.species, companion, mode: InsertMode.insertOrIgnore);
-        }
+      } else {
+        batch.insert(_db.species, companion, mode: InsertMode.insertOrIgnore);
       }
-    });
+    }
+  });
 
-    if (upgrade) {
-      await store.markApplied(catalog.version);
+  /// Folds each id [catalog] retired into its replacement, keeping a twin
+  /// the diver edited. Returns false when the fold failed: a failure must
+  /// not stop the launch, and each twin folds in its own transaction, so a
+  /// failure leaves that twin whole while those before it stay folded.
+  Future<bool> _foldRetired(BundledSpeciesCatalog catalog) async {
+    try {
+      final merged = await RetiredSpeciesMerger(
+        _db,
+        _syncRepository,
+      ).merge(catalog.retired, keepEdited: true);
+      if (merged) SyncEventBus.notifyLocalChange();
+      return true;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Retired species fold failed (will retry)',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Twins folded before the failure are committed and pending.
+      SyncEventBus.notifyLocalChange();
+      return false;
     }
   }
 
@@ -624,11 +672,19 @@ class SpeciesRepository {
   /// replaces the edit on the diver's other devices too. That stamps an hlc,
   /// so later catalog versions leave those rows alone until the next reset.
   Future<void> resetBuiltInSpecies() async {
-    final builtInSpecies = await SpeciesSeedService.loadBundledSpecies();
+    final catalog = await SpeciesSeedService.loadBundledCatalog();
+    final builtInSpecies = catalog.species;
 
     // One transaction: a reset cut short must not leave a restored row with
     // its hlc cleared and no pending mark, which would never publish.
     await _db.transaction(() async {
+      // A reset discards edits, so even an edited retired row folds into
+      // its replacement (issue #4966) before the in-use pass below.
+      await RetiredSpeciesMerger(
+        _db,
+        _syncRepository,
+      ).merge(catalog.retired, keepEdited: false);
+
       // Every edit path stamps an hlc and the seed never does.
       final editedResults = await _db.customSelect('''
         SELECT id FROM species WHERE is_built_in = 1 AND hlc IS NOT NULL

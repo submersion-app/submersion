@@ -46912,34 +46912,6 @@ class AppLocalizationsJa extends AppLocalizations {
       '6本の黒い横帯を持つ淡い色のニザダイの仲間で、インド太平洋のリーフフラットで大群になって藻を食べる姿がよく見られます。';
 
   @override
-  String get species_great_hammerhead_name => 'アカシュモクザメ';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      '縁が波打ったハンマー形の頭を持つ特徴的なサメで、海山や沖合の島で大きな群れを作ります。';
-
-  @override
-  String get species_wobbegong_name => 'スポッテッドウォビゴン';
-
-  @override
-  String get species_wobbegong_desc =>
-      '口の周りに房状の皮弁を持つ、平たくカモフラージュの巧みなテンジクザメの仲間です。オーストラリアの温帯のリーフに見られます。';
-
-  @override
-  String get species_manta_ray_name => 'ナンヨウマンタ';
-
-  @override
-  String get species_manta_ray_desc =>
-      '翼幅5mに達する優雅な巨体で、インド太平洋のリーフのクリーニングステーションを訪れ、プランクトンを食べます。';
-
-  @override
-  String get species_oceanic_manta_name => 'オニイトマキエイ';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      '翼幅7mを超える最大のエイで、沖合の海山やクリーニングステーションで出会えます。';
-
-  @override
   String get species_undulated_moray_name => 'アミメウツボ';
 
   @override

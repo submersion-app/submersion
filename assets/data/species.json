@@ -1,5 +1,11 @@
 {
-  "version": 2,
+  "version": 3,
+  "retired": {
+    "sp_great_hammerhead": "sp_scalloped_hammerhead_shark",
+    "sp_wobbegong": "sp_spotted_wobbegong",
+    "sp_oceanic_manta": "sp_giant_oceanic_manta_ray",
+    "sp_manta_ray": "sp_reef_manta_ray"
+  },
   "species": [
     {
       "id": "sp_whale_shark",
@@ -1904,38 +1910,6 @@
       "category": "fish",
       "taxonomyClass": "Actinopterygii",
       "description": "Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats."
-    },
-    {
-      "id": "sp_great_hammerhead",
-      "commonName": "Scalloped Hammerhead",
-      "scientificName": "Sphyrna lewini",
-      "category": "fish",
-      "taxonomyClass": "Actinopterygii",
-      "description": "Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands."
-    },
-    {
-      "id": "sp_wobbegong",
-      "commonName": "Spotted Wobbegong",
-      "scientificName": "Orectolobus maculatus",
-      "category": "fish",
-      "taxonomyClass": "Actinopterygii",
-      "description": "Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs."
-    },
-    {
-      "id": "sp_manta_ray",
-      "commonName": "Reef Manta Ray",
-      "scientificName": "Mobula alfredi",
-      "category": "fish",
-      "taxonomyClass": "Actinopterygii",
-      "description": "Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs."
-    },
-    {
-      "id": "sp_oceanic_manta",
-      "commonName": "Oceanic Manta Ray",
-      "scientificName": "Mobula birostris",
-      "category": "fish",
-      "taxonomyClass": "Actinopterygii",
-      "description": "The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations."
     },
     {
       "id": "sp_undulated_moray",

@@ -48590,34 +48590,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Bleke doktersvis met zes verticale zwarte banden, vaak grazend in grote scholen op Indo-Pacifische rifplaten.';
 
   @override
-  String get species_great_hammerhead_name => 'Geschulpte hamerhaai';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Kenmerkende haai met een geschulpte hamervormige kop, vormt grote scholen bij zeebergen en eilanden in open zee.';
-
-  @override
-  String get species_wobbegong_name => 'Gevlekte wobbegong';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Platte, goed gecamoufleerde tapijthaai met franjeachtige lobben rond de bek, op gematigde Australische riffen.';
-
-  @override
-  String get species_manta_ray_name => 'Rifmanta';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Gracieuze reus met een spanwijdte tot 5 m die poetsstations bezoekt en plankton eet op Indo-Pacifische riffen.';
-
-  @override
-  String get species_oceanic_manta_name => 'Oceanische manta';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'De grootste roggensoort met een spanwijdte van ruim 7 m, te ontmoeten bij zeebergen in open zee en poetsstations.';
-
-  @override
   String get species_undulated_moray_name => 'Gegolfde murene';
 
   @override

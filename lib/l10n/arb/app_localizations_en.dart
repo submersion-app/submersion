@@ -48137,34 +48137,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats.';
 
   @override
-  String get species_great_hammerhead_name => 'Scalloped Hammerhead';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands.';
-
-  @override
-  String get species_wobbegong_name => 'Spotted Wobbegong';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs.';
-
-  @override
-  String get species_manta_ray_name => 'Reef Manta Ray';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs.';
-
-  @override
-  String get species_oceanic_manta_name => 'Oceanic Manta Ray';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations.';
-
-  @override
   String get species_undulated_moray_name => 'Undulated Moray Eel';
 
   @override
