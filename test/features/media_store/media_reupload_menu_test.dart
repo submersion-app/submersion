@@ -56,8 +56,10 @@ void main() {
     required List<Object> recorded,
     MediaItem? photo,
     ValueNotifier<bool>? showButton,
+    String? attachedStoreId,
   }) => ProviderScope(
     overrides: [
+      mediaAttachedStoreIdProvider.overrideWith((ref) async => attachedStoreId),
       mediaStoreResolverProvider.overrideWith(
         (ref) => connected ? resolver : null,
       ),
@@ -193,6 +195,32 @@ void main() {
       expect(find.text('Replace the full-quality copy?'), findsNothing);
       expect(recorded, [
         ['m1', MediaUploadQuality.original],
+      ]);
+    });
+
+    // Stamps from another store say nothing about this one: the pipeline
+    // leaves that store's original alone.
+    testWidgets('an original uploaded to another store queues at once', (
+      tester,
+    ) async {
+      final recorded = <Object>[];
+      await tester.pumpWidget(
+        host(
+          connected: true,
+          recorded: recorded,
+          photo: uploadedOriginal.copyWith(remoteStoreId: 'store-a'),
+          attachedStoreId: 'store-b',
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('media-reupload-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Small').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Replace the full-quality copy?'), findsNothing);
+      expect(recorded, [
+        ['m1', MediaUploadQuality.small],
       ]);
     });
 

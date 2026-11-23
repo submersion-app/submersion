@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media_store/domain/media_backup_status.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -24,11 +25,17 @@ String _qualityLabel(
 };
 
 /// Whether re-uploading [item] at [level] drops its full-quality copy from
-/// the store: a compressed level for an uploaded original replaces it, and
-/// the original's object is deleted once no row uses it
-/// (`MediaUploadPipeline.process`).
-bool reuploadDropsOriginal(MediaItem item, MediaUploadQuality level) =>
-    item.remoteUploadedAt != null && level != MediaUploadQuality.original;
+/// the store [storeId] this device is attached to: a compressed level for an
+/// original uploaded there replaces it, and the original's object is
+/// deleted once no row uses it (`MediaUploadPipeline.process`). Stamps made
+/// in another store say nothing about this one, as the pipeline reads them.
+bool reuploadDropsOriginal(
+  MediaItem item,
+  MediaUploadQuality level, {
+  String? storeId,
+}) =>
+    level != MediaUploadQuality.original &&
+    stampsInStore(item, storeId).remoteUploadedAt != null;
 
 /// Opens the upload-quality picker for [item], anchored to the widget
 /// [anchorContext] belongs to (the toolbar icon, or the overflow button when
@@ -68,7 +75,11 @@ Future<void> showMediaReuploadMenu(
   // (the viewer's controls hide), and a confirmed choice must still queue.
   final reupload = ref.read(mediaStoreReuploadProvider);
   final messenger = ScaffoldMessenger.of(anchorContext);
-  if (reuploadDropsOriginal(item, level) &&
+  final storeId = level == MediaUploadQuality.original
+      ? null
+      : await ref.read(mediaAttachedStoreIdProvider.future);
+  if (!anchorContext.mounted) return;
+  if (reuploadDropsOriginal(item, level, storeId: storeId) &&
       !await _confirmDowngrade(anchorContext, _qualityLabel(l10n, level))) {
     return;
   }
