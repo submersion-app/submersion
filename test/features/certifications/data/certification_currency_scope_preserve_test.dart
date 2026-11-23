@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_pref.dart';
+import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -123,6 +124,28 @@ void main() {
       final row = await storedRule();
       expect(row.lapseDays, 400);
       expect(row.applicableLevels, '["cave","levelFromTheFuture"]');
+    });
+
+    test('dating a rule writes its unused mapping as given', () async {
+      // A date clock never reads the mapping, so the empty one the dialog
+      // saves cannot widen it, and the rule becomes readable again.
+      await insertRule(modes: '["modeFromTheFuture"]');
+      final rule = (await repository.getRules()).firstWhere(
+        (r) => r.id == 'r1',
+      );
+
+      await repository.updateRule(
+        rule.copyWith(
+          clockKind: CurrencyClockKind.date,
+          countedDiveModes: const [],
+        ),
+      );
+
+      expect((await storedRule()).countedDiveModes, '[]');
+      final reread = (await repository.getRules()).firstWhere(
+        (r) => r.id == 'r1',
+      );
+      expect(reread.unreadableScope, isFalse);
     });
 
     test('a scope the edit changes is written', () async {

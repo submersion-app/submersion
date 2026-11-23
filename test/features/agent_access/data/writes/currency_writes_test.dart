@@ -203,6 +203,13 @@ void main() {
       ),
     );
 
+    // The agent sees the rule's mapping applying, not "any dive".
+    final doc = (await h.one('currency_prefs', id))!;
+    expect(
+      [doc['counted_dive_type_ids'], doc['counted_dive_modes']],
+      [null, null],
+    );
+
     await h.run([
       updateOp('currency_prefs', id, {'muted': true}),
     ]);

@@ -101,62 +101,74 @@ class CertificationCurrencyRepository {
       throw StateError('Built-in currency rules cannot be edited');
     }
     final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final stored = await (_db.select(
-      _db.certificationCurrencyRules,
-    )..where((t) => t.id.equals(rule.id))).getSingleOrNull();
-    // A scope the edit leaves alone is written back as stored, readable or
-    // not (issue #4942).
-    String scope(
-      String? Function(CurrencyRuleRow row) column,
-      String next,
-      List<String> Function(String raw) names,
-    ) => CurrencyScopeCodec.keepIfUnchanged(
-      stored: stored == null ? null : column(stored),
-      next: next,
-      names: names,
-    );
-    await (_db.update(
-      _db.certificationCurrencyRules,
-    )..where((t) => t.id.equals(rule.id) & t.isBuiltIn.equals(false))).write(
-      CertificationCurrencyRulesCompanion(
-        diverId: Value(rule.diverId),
-        name: Value(rule.name),
-        clockKind: Value(rule.clockKind.name),
-        applicableAgencies: Value(
-          scope(
-            (r) => r.applicableAgencies,
-            rule.agenciesJson,
-            CurrencyScopeCodec.agencyNames,
+    // One transaction, so a sync apply between the read and the write
+    // cannot be overwritten with the scope read before it.
+    await _db.transaction(() async {
+      final stored = await (_db.select(
+        _db.certificationCurrencyRules,
+      )..where((t) => t.id.equals(rule.id))).getSingleOrNull();
+      // A scope the edit leaves alone is written back as stored, readable or
+      // not (issue #4942).
+      String scope(
+        String? Function(CurrencyRuleRow row) column,
+        String next,
+        List<String> Function(String raw) names,
+      ) => CurrencyScopeCodec.keepIfUnchanged(
+        stored: stored == null ? null : column(stored),
+        next: next,
+        names: names,
+      );
+      // A date clock never reads the mapping, so the empty mapping the dialog
+      // saves for it cannot widen anything. Writing it as given lets a rule
+      // whose mapping this build cannot read be repaired by dating it.
+      final dated = rule.clockKind == CurrencyClockKind.date;
+      await (_db.update(
+        _db.certificationCurrencyRules,
+      )..where((t) => t.id.equals(rule.id) & t.isBuiltIn.equals(false))).write(
+        CertificationCurrencyRulesCompanion(
+          diverId: Value(rule.diverId),
+          name: Value(rule.name),
+          clockKind: Value(rule.clockKind.name),
+          applicableAgencies: Value(
+            scope(
+              (r) => r.applicableAgencies,
+              rule.agenciesJson,
+              CurrencyScopeCodec.agencyNames,
+            ),
           ),
-        ),
-        applicableLevels: Value(
-          scope(
-            (r) => r.applicableLevels,
-            rule.levelsJson,
-            CurrencyScopeCodec.levelNames,
+          applicableLevels: Value(
+            scope(
+              (r) => r.applicableLevels,
+              rule.levelsJson,
+              CurrencyScopeCodec.levelNames,
+            ),
           ),
-        ),
-        lapseDays: Value(rule.lapseDays),
-        leadDays: Value(rule.leadDays),
-        countedDiveTypeIds: Value(
-          scope(
-            (r) => r.countedDiveTypeIds,
-            rule.diveTypesJson,
-            CurrencyScopeCodec.decodeStrings,
+          lapseDays: Value(rule.lapseDays),
+          leadDays: Value(rule.leadDays),
+          countedDiveTypeIds: Value(
+            dated
+                ? rule.diveTypesJson
+                : scope(
+                    (r) => r.countedDiveTypeIds,
+                    rule.diveTypesJson,
+                    CurrencyScopeCodec.decodeStrings,
+                  ),
           ),
-        ),
-        countedDiveModes: Value(
-          scope(
-            (r) => r.countedDiveModes,
-            rule.diveModesJson,
-            CurrencyScopeCodec.modeNames,
+          countedDiveModes: Value(
+            dated
+                ? rule.diveModesJson
+                : scope(
+                    (r) => r.countedDiveModes,
+                    rule.diveModesJson,
+                    CurrencyScopeCodec.modeNames,
+                  ),
           ),
+          advisoryText: Value(rule.advisoryText),
+          supersedesRuleId: Value(rule.supersedesRuleId),
+          updatedAt: Value(nowMs),
         ),
-        advisoryText: Value(rule.advisoryText),
-        supersedesRuleId: Value(rule.supersedesRuleId),
-        updatedAt: Value(nowMs),
-      ),
-    );
+      );
+    });
     await _syncRepository.markRecordPending(
       entityType: rulesEntity,
       recordId: rule.id,
@@ -204,54 +216,59 @@ class CertificationCurrencyRepository {
     final id = pref.id.isEmpty ? _uuid.v4() : pref.id;
     final now = DateTime.now();
     final nowMs = now.millisecondsSinceEpoch;
-    final existing = await (_db.select(
-      _db.certificationCurrencyPrefs,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
-    final createdAtMs = existing?.createdAt ?? nowMs;
-    final nextTypes = pref.countedDiveTypeIds == null
-        ? null
-        : CurrencyScopeCodec.encode(pref.countedDiveTypeIds!);
-    final nextModes = pref.countedDiveModes == null
-        ? null
-        : CurrencyScopeCodec.encode([
-            for (final m in pref.countedDiveModes!) m.name,
-          ]);
-    // Types and modes are one answer to "which dives count". A save that
-    // leaves both alone writes them back as stored, readable or not, so a
-    // mute toggle cannot turn an unreadable mapping into "any dive"; a save
-    // that changes either writes both as given (issue #4942).
-    final keepMapping =
-        existing != null &&
-        CurrencyScopeCodec.sameValues(
-          existing.countedDiveTypeIds,
-          nextTypes,
-          CurrencyScopeCodec.decodeStrings,
-        ) &&
-        CurrencyScopeCodec.sameValues(
-          existing.countedDiveModes,
-          nextModes,
-          CurrencyScopeCodec.modeNames,
-        );
-    await _db
-        .into(_db.certificationCurrencyPrefs)
-        .insertOnConflictUpdate(
-          CertificationCurrencyPrefsCompanion(
-            id: Value(id),
-            certificationId: Value(pref.certificationId),
-            ruleId: Value(pref.ruleId),
-            lapseDaysOverride: Value(pref.lapseDaysOverride),
-            leadDaysOverride: Value(pref.leadDaysOverride),
-            countedDiveTypeIds: Value(
-              keepMapping ? existing.countedDiveTypeIds : nextTypes,
+    // One transaction, so a sync apply between the read and the write
+    // cannot be overwritten with the mapping read before it.
+    final createdAtMs = await _db.transaction(() async {
+      final existing = await (_db.select(
+        _db.certificationCurrencyPrefs,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      final createdAtMs = existing?.createdAt ?? nowMs;
+      final nextTypes = pref.countedDiveTypeIds == null
+          ? null
+          : CurrencyScopeCodec.encode(pref.countedDiveTypeIds!);
+      final nextModes = pref.countedDiveModes == null
+          ? null
+          : CurrencyScopeCodec.encode([
+              for (final m in pref.countedDiveModes!) m.name,
+            ]);
+      // Types and modes are one answer to "which dives count". A save that
+      // leaves both alone writes them back as stored, readable or not, so a
+      // mute toggle cannot turn an unreadable mapping into "any dive"; a save
+      // that changes either writes both as given (issue #4942).
+      final keepMapping =
+          existing != null &&
+          CurrencyScopeCodec.sameValues(
+            existing.countedDiveTypeIds,
+            nextTypes,
+            CurrencyScopeCodec.decodeStrings,
+          ) &&
+          CurrencyScopeCodec.sameValues(
+            existing.countedDiveModes,
+            nextModes,
+            CurrencyScopeCodec.modeNames,
+          );
+      await _db
+          .into(_db.certificationCurrencyPrefs)
+          .insertOnConflictUpdate(
+            CertificationCurrencyPrefsCompanion(
+              id: Value(id),
+              certificationId: Value(pref.certificationId),
+              ruleId: Value(pref.ruleId),
+              lapseDaysOverride: Value(pref.lapseDaysOverride),
+              leadDaysOverride: Value(pref.leadDaysOverride),
+              countedDiveTypeIds: Value(
+                keepMapping ? existing.countedDiveTypeIds : nextTypes,
+              ),
+              countedDiveModes: Value(
+                keepMapping ? existing.countedDiveModes : nextModes,
+              ),
+              muted: Value(pref.muted),
+              createdAt: Value(createdAtMs),
+              updatedAt: Value(nowMs),
             ),
-            countedDiveModes: Value(
-              keepMapping ? existing.countedDiveModes : nextModes,
-            ),
-            muted: Value(pref.muted),
-            createdAt: Value(createdAtMs),
-            updatedAt: Value(nowMs),
-          ),
-        );
+          );
+      return createdAtMs;
+    });
     await _syncRepository.markRecordPending(
       entityType: prefsEntity,
       recordId: id,
