@@ -242,6 +242,15 @@ void main() {
       expect(find.byType(TextField), findsAtLeastNWidgets(1));
     });
 
+    testWidgets('outside a sitting the switch turns Manifest mode on', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrap(const UrlTab()));
+      await tester.tap(find.text('Manifest'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ManifestModePanel), findsOneWidget);
+    });
+
     testWidgets('outside a sitting the hint does not show', (tester) async {
       await tester.pumpWidget(wrap(const UrlTab()));
       expect(find.text('Manifest'), findsOneWidget);
