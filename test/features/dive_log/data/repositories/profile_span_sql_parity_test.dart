@@ -79,7 +79,7 @@ void main() {
   Future<void> createSource(
     String id, {
     required String diveId,
-    required String computerId,
+    required String? computerId,
     required bool isPrimary,
     required DateTime createdAt,
   }) async {
@@ -216,5 +216,88 @@ void main() {
     // The primary computer's original is superseded; the other computer's
     // recording is not part of the edited family and still counts.
     await expectSpan('two-computers', 3300);
+  });
+
+  // Issue #4960: the computer's recording activated over an older copy of its
+  // own source that has no computer, each a root revision.
+  test('activating the computer recording hides a computer-less copy of its '
+      'source', () async {
+    await createComputer('comp-1');
+    await createBareDive('recording');
+    await createSource(
+      'source-1',
+      diveId: 'recording',
+      computerId: 'comp-1',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+    );
+    await series.insertSeries(
+      diveId: 'recording',
+      sourceId: 'source-1',
+      samples: samples(3600),
+    );
+    final recordingId = await series.insertSeries(
+      diveId: 'recording',
+      computerId: 'comp-1',
+      sourceId: 'source-1',
+      isPrimary: false,
+      samples: samples(3000),
+    );
+    await repository.setActiveProfileSeries('recording', recordingId);
+    await expectSpan('recording', 3000);
+  });
+
+  test('an edit keeps a second source recorded with no computer in the '
+      'span', () async {
+    await createComputer('comp-1');
+    await createBareDive('file-second');
+    await createSource(
+      'source-1',
+      diveId: 'file-second',
+      computerId: 'comp-1',
+      isPrimary: true,
+      createdAt: DateTime.utc(2026, 3, 1, 20),
+    );
+    await createSource(
+      'source-2',
+      diveId: 'file-second',
+      computerId: null,
+      isPrimary: false,
+      createdAt: DateTime.utc(2026, 3, 1, 21),
+    );
+    await series.insertSeries(
+      diveId: 'file-second',
+      computerId: 'comp-1',
+      sourceId: 'source-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'file-second',
+      sourceId: 'source-2',
+      isPrimary: false,
+      samples: samples(3300),
+    );
+    await repository.saveEditedProfile('file-second', points(2400));
+    // The file reading is its own source, not the edited family.
+    await expectSpan('file-second', 3300);
+  });
+
+  test('with no data sources a second computer keeps its span beside the '
+      'active one', () async {
+    await createComputer('comp-1');
+    await createComputer('comp-2');
+    await createBareDive('no-sources');
+    await series.insertSeries(
+      diveId: 'no-sources',
+      computerId: 'comp-1',
+      samples: samples(3000),
+    );
+    await series.insertSeries(
+      diveId: 'no-sources',
+      computerId: 'comp-2',
+      isPrimary: false,
+      samples: samples(3300),
+    );
+    await expectSpan('no-sources', 3300);
   });
 }

@@ -123,59 +123,134 @@ void main() {
       samples: const [ProfileSample(timestamp: 0, depth: 3.0)],
     );
 
+    /// A dive whose primary source row is s1 and whose second is s2.
+    List<ProfileSeries> drop(
+      List<ProfileSeries> input, {
+      String? primaryComputerId = 'c1',
+    }) => dropSupersededSeries(
+      input,
+      hasSources: true,
+      primaryComputerId: primaryComputerId,
+      sourceRowIds: const {'s1', 's2'},
+      primarySourceRowIds: const {'s1'},
+    );
+
     test('an edit drops the demoted original of the primary family', () {
-      final kept = dropSupersededSeries(
-        [original, edit, other],
-        hasSources: true,
-        primaryComputerId: 'c1',
-      );
-      expect(kept.map((s) => s.id), ['edit', 'other']);
+      expect(drop([original, edit, other]).map((s) => s.id), ['edit', 'other']);
     });
 
     test('without an edit nothing is dropped', () {
-      final kept = dropSupersededSeries(
-        [original, other],
-        hasSources: true,
-        primaryComputerId: 'c1',
-      );
-      expect(kept.map((s) => s.id), ['orig', 'other']);
+      expect(drop([original, other]).map((s) => s.id), ['orig', 'other']);
     });
 
     test('a dive with no primary series keeps everything', () {
-      final kept = dropSupersededSeries(
-        [original, other],
-        hasSources: true,
-        primaryComputerId: null,
-      );
-      expect(kept, hasLength(2));
+      expect(drop([original, other], primaryComputerId: null), hasLength(2));
     });
 
-    test(
-      'a demoted null-computer series next to a computer primary is kept',
-      () {
-        final primaryComputerOwned = series(
-          'primary-computer',
-          computerId: 'c1',
-          sourceId: 's1',
-          isPrimary: true,
-          samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
-        );
-        final demotedNullComputer = series(
-          'demoted-null',
-          sourceId: 's1',
-          isPrimary: false,
-          samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
-        );
+    // Issue #4960: the computer's recording activated over an older copy of
+    // the same source that has no computer.
+    test('an active computer recording drops a demoted computer-less copy '
+        'of its own source', () {
+      final recording = series(
+        'recording',
+        computerId: 'c1',
+        sourceId: 's1',
+        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+      );
+      final olderCopy = series(
+        'older-copy',
+        sourceId: 's1',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
+      );
 
-        final kept = dropSupersededSeries(
-          [primaryComputerOwned, demotedNullComputer],
-          hasSources: true,
-          primaryComputerId: 'c1',
-        );
+      expect(drop([recording, olderCopy, other]).map((s) => s.id), [
+        'recording',
+        'other',
+      ]);
+    });
 
-        expect(kept.map((s) => s.id), ['primary-computer', 'demoted-null']);
-      },
-    );
+    test('a second source recorded with no computer is not the primary '
+        'family', () {
+      final recording = series(
+        'recording',
+        computerId: 'c1',
+        sourceId: 's1',
+        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+      );
+      // A file reading added as a second source: stored demoted, with no
+      // computer, under its own source row.
+      final fileReading = series(
+        'file-reading',
+        sourceId: 's2',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
+      );
+
+      expect(drop([recording, fileReading]).map((s) => s.id), [
+        'recording',
+        'file-reading',
+      ]);
+    });
+
+    test('the source row wins over the computer', () {
+      // On the primary computer, but filed under the second source row.
+      final secondRow = series(
+        'second-row',
+        computerId: 'c1',
+        sourceId: 's2',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
+      );
+
+      expect(drop([edit, secondRow]).map((s) => s.id), ['edit', 'second-row']);
+    });
+
+    test('a series naming no source row follows the computer', () {
+      final unfiled = series(
+        'unfiled',
+        computerId: 'c1',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
+      );
+      final elsewhere = series(
+        'elsewhere',
+        computerId: 'c2',
+        sourceId: 'gone',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 5, depth: 3.0)],
+      );
+
+      expect(drop([edit, unfiled, elsewhere]).map((s) => s.id), [
+        'edit',
+        'elsewhere',
+      ]);
+    });
+
+    test('with no data sources an active computer recording keeps a second '
+        "computer's demoted one", () {
+      // Nothing proves the demoted one is a copy: a second computer's
+      // recording is stored demoted too.
+      final recording = series(
+        'recording',
+        computerId: 'c1',
+        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+      );
+      final second = series(
+        'second',
+        computerId: 'c2',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
+      );
+      final kept = dropSupersededSeries(
+        [recording, second],
+        hasSources: false,
+        primaryComputerId: null,
+        sourceRowIds: const {},
+        primarySourceRowIds: const {},
+      );
+      expect(kept.map((s) => s.id), ['recording', 'second']);
+    });
 
     test('with no data sources every series is family', () {
       final demotedManual = series(
@@ -187,6 +262,8 @@ void main() {
         [demotedManual, edit, other],
         hasSources: false,
         primaryComputerId: null,
+        sourceRowIds: const {},
+        primarySourceRowIds: const {},
       );
       expect(kept.map((s) => s.id), ['edit']);
     });

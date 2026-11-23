@@ -52,11 +52,10 @@ String timestampRuntimeSecondsSql(String alias) =>
 ///
 /// That read keeps primary and demoted series alike, minus two kinds of
 /// demoted row: an inactive child revision (a history row with a parent),
-/// and, once a saved edit is primary, the superseded originals of the edited
-/// family (`dropSupersededSeries`). Family membership follows that rule: a
-/// series with no computer, every series of a dive with no data sources, or
-/// one on the computer of the dive's first source in shown order (primary
-/// first, then oldest).
+/// and the demoted series of the primary source's family once that family
+/// holds an active one (`dropSupersededSeries`). Family membership follows
+/// that rule, by source row where the series names one and by computer where
+/// it does not; see [_primaryFamilySql].
 ///
 /// One case stays apart: a series whose packed blob fails to decode is
 /// skipped by the Dart read but still counted here, because SQL reads only
@@ -81,18 +80,46 @@ String _inactiveChildRevisionSql(String s) =>
     'WHERE h.series_id = $s.id AND h.dive_id = $s.dive_id '
     'AND h.parent_series_id IS NOT NULL)';
 
-/// Whether demoted series [s] belongs to the family a primary saved edit (a
-/// primary series with no computer) supersedes.
-String _supersededOriginalSql(String s) {
+/// Whether demoted series [s] belongs to the primary source's family while
+/// that family also holds an active series, which superseded it: a saved
+/// edit over its originals, or an activated revision over the others, whether
+/// or not either carries a computer (issue #4960). On a dive with no sources
+/// only an active series with no computer supersedes, as in Dart.
+String _supersededOriginalSql(String s) =>
+    '(${_primaryFamilySql(s)} AND EXISTS (SELECT 1 FROM dive_profile_series e '
+    'WHERE e.dive_id = $s.dive_id AND e.is_primary = 1 '
+    'AND ${_primaryFamilySql('e')} '
+    'AND (e.computer_id IS NULL OR EXISTS (SELECT 1 FROM dive_data_sources ds '
+    'WHERE ds.dive_id = e.dive_id))))';
+
+/// Whether series [x] is in the primary source's family, as
+/// `dropSupersededSeries` places it.
+///
+/// A series naming one of the dive's source rows is family when that row
+/// shows as the first source in shown order: it is that row, or shares its
+/// computer, or, with no computer on either, its merge slot. That is
+/// `dataSourceStrandKey`; the one strand rule SQL leaves out is the collapse
+/// of two computer-less rows of one recording that carry no merge slot
+/// (`sameRecordingWithoutComputer`), which compares model and serial text.
+/// A series naming no such row follows the computer: it is family with no
+/// computer, on a dive with no sources, or on the first source's computer.
+String _primaryFamilySql(String x) {
   const sources = 'dive_data_sources ds WHERE ds.dive_id';
-  return '(EXISTS (SELECT 1 FROM dive_profile_series e '
-      'WHERE e.dive_id = $s.dive_id AND e.is_primary = 1 '
-      'AND e.computer_id IS NULL) '
-      'AND ($s.computer_id IS NULL '
-      'OR NOT EXISTS (SELECT 1 FROM $sources = $s.dive_id) '
-      'OR $s.computer_id = (SELECT ds.computer_id FROM $sources = $s.dive_id '
-      'ORDER BY ds.is_primary DESC, ds.created_at ASC, ds.rowid ASC '
-      'LIMIT 1)))';
+  final firstRow =
+      '(SELECT ds.id FROM $sources = $x.dive_id '
+      'ORDER BY ds.is_primary DESC, ds.created_at ASC, ds.id ASC LIMIT 1)';
+  return '(CASE WHEN EXISTS (SELECT 1 FROM dive_data_sources r '
+      'WHERE r.id = $x.source_id AND r.dive_id = $x.dive_id) '
+      'THEN EXISTS (SELECT 1 FROM dive_data_sources r '
+      'JOIN dive_data_sources p ON p.id = $firstRow '
+      'WHERE r.id = $x.source_id AND (r.id = p.id '
+      'OR r.computer_id = p.computer_id '
+      'OR (r.computer_id IS NULL AND p.computer_id IS NULL '
+      'AND r.merge_source_slot = p.merge_source_slot))) '
+      'ELSE ($x.computer_id IS NULL '
+      'OR NOT EXISTS (SELECT 1 FROM $sources = $x.dive_id) '
+      'OR $x.computer_id = (SELECT p.computer_id FROM dive_data_sources p '
+      'WHERE p.id = $firstRow)) END)';
 }
 
 /// A duration the dive actually measured, in seconds, or NULL: the form of

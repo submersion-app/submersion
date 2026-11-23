@@ -114,6 +114,8 @@ void main() {
       final reduce = mergedPointsReduction(
         hasSources: true,
         primaryComputerId: null,
+        sourceRowIds: const {},
+        primarySourceRowIds: const {},
       );
 
       final inline = reduceSeriesRows(rows, reduce);

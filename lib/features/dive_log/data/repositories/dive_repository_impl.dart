@@ -7345,6 +7345,8 @@ class DiveRepository {
       final reduce = mergedPointsReduction(
         hasSources: primary?.hasSources ?? true,
         primaryComputerId: primary?.computerId,
+        sourceRowIds: primary?.sourceRowIds ?? const {},
+        primarySourceRowIds: primary?.primarySourceRowIds ?? const {},
       );
       final points = reduce([
         for (final s in entry.value)
@@ -7389,18 +7391,16 @@ class DiveRepository {
       for (final r in rows)
         if (!hiddenRevisionIds.contains(r.id)) r,
     ];
-    var hasSources = true;
-    String? primaryComputerId;
-    if (_needsPrimarySource(shown.map((r) => r.isPrimary))) {
-      final primary = await _primarySourceComputer(diveId);
-      hasSources = primary.hasSources;
-      primaryComputerId = primary.computerId;
-    }
+    final primary = _needsPrimarySource(shown.map((r) => r.isPrimary))
+        ? await _primarySourceComputer(diveId)
+        : null;
     return _reduceRows(
       shown,
       mergedPointsReduction(
-        hasSources: hasSources,
-        primaryComputerId: primaryComputerId,
+        hasSources: primary?.hasSources ?? true,
+        primaryComputerId: primary?.computerId,
+        sourceRowIds: primary?.sourceRowIds ?? const {},
+        primarySourceRowIds: primary?.primarySourceRowIds ?? const {},
       ),
       offUiIsolate: offUiIsolate,
     );
@@ -7447,11 +7447,10 @@ class DiveRepository {
   bool _needsPrimarySource(Iterable<bool> primaryFlags) =>
       primaryFlags.contains(true) && primaryFlags.contains(false);
 
-  /// The computer owning [diveId]'s primary data source, and whether the dive
-  /// has any `dive_data_sources` rows to read that from.
-  Future<({bool hasSources, String? computerId})> _primarySourceComputer(
-    String diveId,
-  ) async {
+  /// The computer owning [diveId]'s primary data source, whether the dive
+  /// has any `dive_data_sources` rows to read that from, and which of those
+  /// rows show as the primary source.
+  Future<PrimarySourceFamily> _primarySourceComputer(String diveId) async {
     return _primaryFromRows(await _sourceRowsInShownOrder(diveId));
   }
 
@@ -7464,8 +7463,9 @@ class DiveRepository {
   /// Every requested id gets an entry: a dive with no `dive_data_sources` rows
   /// answers `hasSources: false`, which is what decides family membership, so
   /// a missing key would silently read as "has sources".
-  Future<Map<String, ({bool hasSources, String? computerId})>>
-  _primarySourceComputers(List<String> diveIds) async {
+  Future<Map<String, PrimarySourceFamily>> _primarySourceComputers(
+    List<String> diveIds,
+  ) async {
     if (diveIds.isEmpty) return const {};
 
     final byDive = await _sourceRowsInShownOrderForDives(diveIds);
@@ -7480,12 +7480,28 @@ class DiveRepository {
   /// the batched and the single-dive reads share, so both pick the same row:
   /// that is what keeps the export and the on-screen chart on the same
   /// samples. The first row in shown order is always the one the dive's
-  /// first source shows, so no strand pass is needed to find it.
-  ({bool hasSources, String? computerId}) _primaryFromRows(
-    List<DiveDataSourcesData> rows,
-  ) {
-    if (rows.isEmpty) return (hasSources: false, computerId: null);
-    return (hasSources: true, computerId: rows.first.computerId);
+  /// first source shows, and the rows of its strand are the ones
+  /// `_liveSeriesByShownSource` files under the primary source, which is what
+  /// keeps the merged read and the per-source read on one family.
+  PrimarySourceFamily _primaryFromRows(List<DiveDataSourcesData> rows) {
+    if (rows.isEmpty) {
+      return (
+        hasSources: false,
+        computerId: null,
+        sourceRowIds: const {},
+        primarySourceRowIds: const {},
+      );
+    }
+    final shownIdByRow = _shownIdByRow(rows);
+    return (
+      hasSources: true,
+      computerId: rows.first.computerId,
+      sourceRowIds: shownIdByRow.keys.toSet(),
+      primarySourceRowIds: {
+        for (final MapEntry(key: row, value: shown) in shownIdByRow.entries)
+          if (shown == rows.first.id) row,
+      },
+    );
   }
 
   /// Lean hydration for decompression/exposure analysis: the dive row's
