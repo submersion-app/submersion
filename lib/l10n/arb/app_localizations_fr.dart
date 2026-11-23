@@ -21414,6 +21414,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_divePicker_search => 'Rechercher des plongées';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '1 élément',
+    );
+    return 'Déplacer $_temp0 ?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'Ils passent à $dive et quittent leur plongée actuelle. Les liens avec le site et l\'équipement ne changent pas.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Déplacer';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Une plongée de ce déplacement est ouverte en modification. Enregistrez, annulez ou verrouillez-la, puis réessayez.';
+
+  @override
+  String get media_library_moveFailed => 'Impossible de déplacer les éléments';
+
+  @override
   String get media_library_moveToDive => 'Déplacer vers une plongée';
 
   @override

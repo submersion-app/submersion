@@ -20312,6 +20312,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_divePicker_search => '搜索潜水';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '移动 $count 个项目？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return '它们将移至 $dive，并离开当前所在的潜水。潜点和装备的关联保持不变。';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => '移动';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      '此次移动涉及的一次潜水正在编辑中。请先保存、取消或锁定它，然后重试。';
+
+  @override
+  String get media_library_moveFailed => '无法移动这些项目';
+
+  @override
   String get media_library_moveToDive => '移至潜水';
 
   @override

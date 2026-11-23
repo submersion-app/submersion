@@ -21292,6 +21292,32 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_divePicker_search => 'Merülések keresése';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem',
+      one: '1 elem',
+    );
+    return '$_temp0 áthelyezése?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'Átkerülnek ide: $dive, és kikerülnek a jelenlegi merülésükből. A merülőhely- és felszereléskapcsolatok változatlanok maradnak.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Áthelyezés';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Az áthelyezés egyik merülése szerkesztésre meg van nyitva. Mentsd, vesd el vagy zárold, majd próbáld újra.';
+
+  @override
+  String get media_library_moveFailed => 'Az elemeket nem sikerült áthelyezni';
+
+  @override
   String get media_library_moveToDive => 'Áthelyezés merüléshez';
 
   @override

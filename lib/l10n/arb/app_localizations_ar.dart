@@ -21705,6 +21705,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_divePicker_search => 'البحث في الغطسات';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر',
+      one: 'عنصر واحد',
+    );
+    return 'نقل $_temp0؟';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'تنتقل إلى $dive وتغادر الغطسة التي هي عليها الآن. تبقى روابط الموقع والمعدات كما هي.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'نقل';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'إحدى الغطسات في هذا النقل مفتوحة للتعديل. احفظها أو ألغِ التعديل أو اقفلها، ثم حاول مرة أخرى.';
+
+  @override
+  String get media_library_moveFailed => 'تعذّر نقل العناصر';
+
+  @override
   String get media_library_moveToDive => 'نقل إلى غطسة';
 
   @override

@@ -21345,6 +21345,33 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_divePicker_search => 'Tauchgänge durchsuchen';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '1 Element',
+    );
+    return '$_temp0 verschieben?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'Sie werden zu $dive verschoben und verlassen ihren bisherigen Tauchgang. Verknüpfungen mit Tauchplatz und Ausrüstung bleiben bestehen.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Verschieben';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Ein Tauchgang in dieser Verschiebung ist zur Bearbeitung geöffnet. Speichere, verwirf oder sperre ihn und versuche es dann erneut.';
+
+  @override
+  String get media_library_moveFailed =>
+      'Die Elemente konnten nicht verschoben werden';
+
+  @override
   String get media_library_moveToDive => 'Zu Tauchgang verschieben';
 
   @override

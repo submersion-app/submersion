@@ -20608,6 +20608,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_divePicker_search => 'ダイブを検索';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件を移動しますか？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return '$diveに移動し、現在のダイブからは外れます。ダイビングサイトと器材へのリンクはそのままです。';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => '移動';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'この移動に含まれるダイブが編集中です。保存、キャンセル、またはロックしてから、もう一度お試しください。';
+
+  @override
+  String get media_library_moveFailed => '項目を移動できませんでした';
+
+  @override
   String get media_library_moveToDive => 'ダイブに移動';
 
   @override

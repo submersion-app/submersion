@@ -21365,6 +21365,32 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_divePicker_search => 'Pesquisar mergulhos';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '1 item',
+    );
+    return 'Mover $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'Passam para $dive e saem do mergulho em que estão agora. As ligações ao local e ao equipamento mantêm-se.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Mover';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Um mergulho desta mudança está aberto para edição. Guarde, cancele ou bloqueie-o e tente novamente.';
+
+  @override
+  String get media_library_moveFailed => 'Não foi possível mover os itens';
+
+  @override
   String get media_library_moveToDive => 'Mover para um mergulho';
 
   @override

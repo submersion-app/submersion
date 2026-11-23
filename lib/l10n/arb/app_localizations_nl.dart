@@ -21235,6 +21235,33 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_divePicker_search => 'Duiken zoeken';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0 verplaatsen?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'Ze gaan naar $dive en verlaten de duik waar ze nu bij horen. Koppelingen met de duikplek en uitrusting blijven zoals ze zijn.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Verplaatsen';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Een duik in deze verplaatsing is geopend om te bewerken. Sla hem op, annuleer of vergrendel hem en probeer het opnieuw.';
+
+  @override
+  String get media_library_moveFailed =>
+      'De items konden niet worden verplaatst';
+
+  @override
   String get media_library_moveToDive => 'Naar duik verplaatsen';
 
   @override

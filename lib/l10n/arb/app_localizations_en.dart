@@ -21049,6 +21049,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_divePicker_search => 'Search dives';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return 'Move $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'They move to $dive and leave the dive they are on now. Site and gear links stay as they are.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Move';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'A dive in this move is open for editing. Save, cancel or lock it, then try again.';
+
+  @override
+  String get media_library_moveFailed => 'Could not move the items';
+
+  @override
   String get media_library_moveToDive => 'Move to dive';
 
   @override

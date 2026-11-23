@@ -33729,6 +33729,36 @@ abstract class AppLocalizations {
   /// **'Search dives'**
   String get media_divePicker_search;
 
+  /// Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {count, plural, =1{1 item} other{{count} items}}?'**
+  String media_library_moveConfirmTitle(int count);
+
+  /// Body of the Move to dive confirmation. dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'.
+  ///
+  /// In en, this message translates to:
+  /// **'They move to {dive} and leave the dive they are on now. Site and gear links stay as they are.'**
+  String media_library_moveConfirmBody(String dive);
+
+  /// The Move to dive confirmation's button that moves the photos and videos.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get media_library_moveConfirmAction;
+
+  /// Shown when Move to dive is refused because the picked dive, or a dive the selected photos are on, is unlocked for editing on its page. Nothing is moved.
+  ///
+  /// In en, this message translates to:
+  /// **'A dive in this move is open for editing. Save, cancel or lock it, then try again.'**
+  String get media_library_moveDiveOpenHint;
+
+  /// Shown when Move to dive could not write. Nothing moved, and the selection stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not move the items'**
+  String get media_library_moveFailed;
+
   /// Library selection action: reassign media to a dive
   ///
   /// In en, this message translates to:

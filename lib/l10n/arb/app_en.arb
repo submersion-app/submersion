@@ -13359,6 +13359,36 @@
   "@media_divePicker_search": {
     "description": "Search hint in the dive picker sheet"
   },
+  "media_library_moveConfirmTitle": "Move {count, plural, =1{1 item} other{{count} items}}?",
+  "@media_library_moveConfirmTitle": {
+    "description": "Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_moveConfirmBody": "They move to {dive} and leave the dive they are on now. Site and gear links stay as they are.",
+  "@media_library_moveConfirmBody": {
+    "description": "Body of the Move to dive confirmation. dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'.",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "media_library_moveConfirmAction": "Move",
+  "@media_library_moveConfirmAction": {
+    "description": "The Move to dive confirmation's button that moves the photos and videos."
+  },
+  "media_library_moveDiveOpenHint": "A dive in this move is open for editing. Save, cancel or lock it, then try again.",
+  "@media_library_moveDiveOpenHint": {
+    "description": "Shown when Move to dive is refused because the picked dive, or a dive the selected photos are on, is unlocked for editing on its page. Nothing is moved."
+  },
+  "media_library_moveFailed": "Could not move the items",
+  "@media_library_moveFailed": {
+    "description": "Shown when Move to dive could not write. Nothing moved, and the selection stays."
+  },
   "media_library_moveToDive": "Move to dive",
   "@media_library_moveToDive": {
     "description": "Library selection action: reassign media to a dive"

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/helpers/media_move_to_dive.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/features/tags/data/services/bulk_tag_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
@@ -100,16 +100,6 @@ class MediaSelectionBar extends ConsumerWidget {
     return BulkActionOutcome.completed;
   }
 
-  Future<BulkActionOutcome> _moveToDive(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final diveId = await showDivePickerSheet(context);
-    if (diveId == null) return BulkActionOutcome.cancelled;
-    await ref.read(mediaRepositoryProvider).reassignMediaToDive(_ids, diveId);
-    return BulkActionOutcome.completed;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -144,7 +134,7 @@ class MediaSelectionBar extends ConsumerWidget {
             id: 'move_to_dive',
             icon: Icons.drive_file_move_outline,
             label: l10n.media_library_moveToDive,
-            onInvoke: () => _moveToDive(context, ref),
+            onInvoke: () => moveMediaToDive(context, ref, selectedItems),
           ),
         if (canWrite)
           BulkAction(

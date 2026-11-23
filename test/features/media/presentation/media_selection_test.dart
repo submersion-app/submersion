@@ -465,6 +465,14 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.textContaining('#2'));
       await tester.pumpAndSettle();
+      // Picking the dive asks first (issue #4527, media library plan 1).
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('move_to_dive_confirm')),
+          matching: find.widgetWithText(TextButton, 'Move'),
+        ),
+      );
+      await tester.pumpAndSettle();
 
       expect(mediaRepo.reassigned?.$1, ['a']);
       expect(mediaRepo.reassigned?.$2, 'dive-2');

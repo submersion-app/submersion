@@ -21357,6 +21357,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_divePicker_search => 'Buscar inmersiones';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '1 elemento',
+    );
+    return '¿Mover $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'Pasan a $dive y dejan la inmersión en la que están ahora. Los vínculos con el sitio y el equipo no cambian.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Mover';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Una inmersión de este movimiento está abierta para editar. Guárdala, cancela o bloquéala y vuelve a intentarlo.';
+
+  @override
+  String get media_library_moveFailed => 'No se pudieron mover los elementos';
+
+  @override
   String get media_library_moveToDive => 'Mover a una inmersión';
 
   @override

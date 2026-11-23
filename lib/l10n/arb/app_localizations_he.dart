@@ -20901,6 +20901,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_divePicker_search => 'חיפוש צלילות';
 
   @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return 'להעביר $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(String dive) {
+    return 'הם יועברו אל $dive ויעזבו את הצלילה שבה הם נמצאים כעת. הקישורים לאתר ולציוד נשארים כפי שהם.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'העברה';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'צלילה בהעברה הזו פתוחה לעריכה. יש לשמור, לבטל או לנעול אותה ולנסות שוב.';
+
+  @override
+  String get media_library_moveFailed => 'לא ניתן היה להעביר את הפריטים';
+
+  @override
   String get media_library_moveToDive => 'העברה לצלילה';
 
   @override
