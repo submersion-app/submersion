@@ -6138,6 +6138,8 @@
   "media_smartAlbum_save": "Salvar como álbum",
   "media_smartAlbum_saveTitle": "Nomeie este álbum",
   "media_smartAlbum_delete": "Excluir álbum",
+  "media_smartAlbum_deleteConfirmTitle": "Excluir \"{name}\"?",
+  "media_smartAlbum_deleteConfirmBody": "Só o filtro guardado é removido. Nenhuma foto ou vídeo muda.",
   "media_smartAlbum_deleteFailed": "Não foi possível excluir o álbum",
   "media_smartAlbum_saved": "Álbum salvo",
   "media_sources_lastScanned": "Última verificação {date}",

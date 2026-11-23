@@ -6279,6 +6279,8 @@
   "media_smartAlbum_save": "保存为相册",
   "media_smartAlbum_saveTitle": "为相册命名",
   "media_smartAlbum_delete": "删除相册",
+  "media_smartAlbum_deleteConfirmTitle": "删除“{name}”？",
+  "media_smartAlbum_deleteConfirmBody": "只会删除已保存的筛选条件，照片和视频不受影响。",
   "media_smartAlbum_deleteFailed": "无法删除相册",
   "media_smartAlbum_saved": "相册已保存",
   "media_sources_lastScanned": "上次扫描 {date}",

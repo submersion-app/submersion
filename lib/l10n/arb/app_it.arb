@@ -6012,6 +6012,8 @@
   "media_smartAlbum_save": "Salva come album",
   "media_smartAlbum_saveTitle": "Assegna un nome",
   "media_smartAlbum_delete": "Elimina album",
+  "media_smartAlbum_deleteConfirmTitle": "Eliminare \"{name}\"?",
+  "media_smartAlbum_deleteConfirmBody": "Viene eliminato solo il filtro salvato. Nessuna foto o video cambia.",
   "media_smartAlbum_deleteFailed": "Impossibile eliminare l'album",
   "media_smartAlbum_saved": "Album salvato",
   "media_sources_lastScanned": "Ultima scansione {date}",

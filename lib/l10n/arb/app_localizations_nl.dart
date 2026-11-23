@@ -21034,6 +21034,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_smartAlbum_delete => 'Album verwijderen';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '\"$name\" verwijderen?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Alleen het opgeslagen filter verdwijnt. Foto\'s en video\'s veranderen niet.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'Album verwijderen mislukt';
 
   @override

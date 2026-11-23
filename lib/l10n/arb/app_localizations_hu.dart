@@ -21092,6 +21092,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_smartAlbum_delete => 'Album törlése';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Törlöd ezt: „$name”?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Csak a mentett szűrő törlődik. A fotók és videók nem változnak.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'Az album törlése nem sikerült';
 
   @override

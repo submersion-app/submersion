@@ -6138,6 +6138,8 @@
   "media_smartAlbum_save": "حفظ كألبوم",
   "media_smartAlbum_saveTitle": "تسمية هذا الألبوم",
   "media_smartAlbum_delete": "حذف الألبوم",
+  "media_smartAlbum_deleteConfirmTitle": "حذف \"{name}\"؟",
+  "media_smartAlbum_deleteConfirmBody": "يُحذف عامل التصفية المحفوظ فقط. لا تتغير أي صور أو مقاطع فيديو.",
   "media_smartAlbum_deleteFailed": "تعذّر حذف الألبوم",
   "media_smartAlbum_saved": "تم حفظ الألبوم",
   "media_sources_lastScanned": "آخر فحص {date}",

@@ -21502,6 +21502,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_smartAlbum_delete => 'حذف الألبوم';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'يُحذف عامل التصفية المحفوظ فقط. لا تتغير أي صور أو مقاطع فيديو.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'تعذّر حذف الألبوم';
 
   @override

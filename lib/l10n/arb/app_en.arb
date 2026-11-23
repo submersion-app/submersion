@@ -13060,6 +13060,19 @@
   "@media_smartAlbum_delete": {
     "description": "Filter bar: remove a smart album"
   },
+  "media_smartAlbum_deleteConfirmTitle": "Delete \"{name}\"?",
+  "@media_smartAlbum_deleteConfirmTitle": {
+    "description": "Title of the confirmation before a smart album (a saved filter) is deleted from the Load album list. name is the album's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "media_smartAlbum_deleteConfirmBody": "Only the saved filter goes. No photos or videos change.",
+  "@media_smartAlbum_deleteConfirmBody": {
+    "description": "Body of the smart album delete confirmation: only the saved filter goes, no photo or video changes."
+  },
   "media_smartAlbum_deleteFailed": "Could not delete album",
   "@media_smartAlbum_deleteFailed": {
     "description": "Filter bar: the smart album delete did not go through"

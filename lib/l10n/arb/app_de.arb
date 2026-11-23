@@ -6264,6 +6264,8 @@
   "media_smartAlbum_save": "Als Album speichern",
   "media_smartAlbum_saveTitle": "Album benennen",
   "media_smartAlbum_delete": "Album löschen",
+  "media_smartAlbum_deleteConfirmTitle": "„{name}“ löschen?",
+  "media_smartAlbum_deleteConfirmBody": "Nur der gespeicherte Filter wird entfernt. Fotos und Videos bleiben unverändert.",
   "media_smartAlbum_deleteFailed": "Album konnte nicht gelöscht werden",
   "media_smartAlbum_saved": "Album gespeichert",
   "media_sources_lastScanned": "Zuletzt gescannt {date}",

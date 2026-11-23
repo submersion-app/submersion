@@ -6012,6 +6012,8 @@
   "media_smartAlbum_save": "שמירה כאלבום",
   "media_smartAlbum_saveTitle": "שם לאלבום",
   "media_smartAlbum_delete": "מחיקת אלבום",
+  "media_smartAlbum_deleteConfirmTitle": "למחוק את \"{name}\"?",
+  "media_smartAlbum_deleteConfirmBody": "רק המסנן השמור נמחק. אף תמונה או סרטון לא משתנים.",
   "media_smartAlbum_deleteFailed": "מחיקת האלבום נכשלה",
   "media_smartAlbum_saved": "האלבום נשמר",
   "media_sources_lastScanned": "נסרק לאחרונה {date}",

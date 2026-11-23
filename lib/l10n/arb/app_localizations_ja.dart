@@ -20409,6 +20409,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_smartAlbum_delete => 'アルバムを削除';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '「$name」を削除しますか？';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      '保存したフィルターだけが削除されます。写真や動画は変わりません。';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'アルバムを削除できませんでした';
 
   @override

@@ -6106,6 +6106,8 @@
   "media_smartAlbum_save": "アルバムとして保存",
   "media_smartAlbum_saveTitle": "アルバム名",
   "media_smartAlbum_delete": "アルバムを削除",
+  "media_smartAlbum_deleteConfirmTitle": "「{name}」を削除しますか？",
+  "media_smartAlbum_deleteConfirmBody": "保存したフィルターだけが削除されます。写真や動画は変わりません。",
   "media_smartAlbum_deleteFailed": "アルバムを削除できませんでした",
   "media_smartAlbum_saved": "アルバムを保存しました",
   "media_sources_lastScanned": "最終スキャン：{date}",

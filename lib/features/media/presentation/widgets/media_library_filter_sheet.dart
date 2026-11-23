@@ -10,6 +10,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_smart_album.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
@@ -286,7 +287,7 @@ class _MediaLibraryFilterSheetState
                   tooltip: context.l10n.media_smartAlbum_delete,
                   onPressed: () async {
                     Navigator.of(sheetContext).pop();
-                    await _deleteAlbum(album.id);
+                    await _deleteAlbum(album);
                   },
                 ),
                 onTap: () {
@@ -314,12 +315,38 @@ class _MediaLibraryFilterSheetState
     );
   }
 
+  /// Asks first, naming the album (issue #4527): a saved filter is
+  /// configuration, but a delete has no Undo.
+  ///
   /// Awaited rather than fired and forgotten: an unawaited repository call
   /// turns a failed delete into an uncaught async error and leaves the album
   /// on screen with no explanation for why it came back.
-  Future<void> _deleteAlbum(String id) async {
+  Future<void> _deleteAlbum(MediaSmartAlbum album) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        key: const ValueKey('smart_album_delete_confirm'),
+        title: Text(l10n.media_smartAlbum_deleteConfirmTitle(album.name)),
+        content: Text(l10n.media_smartAlbum_deleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            child: Text(l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     try {
-      await ref.read(mediaSmartAlbumRepositoryProvider).delete(id);
+      await ref.read(mediaSmartAlbumRepositoryProvider).delete(album.id);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -6012,6 +6012,8 @@
   "media_smartAlbum_save": "Enregistrer comme album",
   "media_smartAlbum_saveTitle": "Nommer cet album",
   "media_smartAlbum_delete": "Supprimer l'album",
+  "media_smartAlbum_deleteConfirmTitle": "Supprimer « {name} » ?",
+  "media_smartAlbum_deleteConfirmBody": "Seul le filtre enregistré disparaît. Aucune photo ni vidéo n'est modifiée.",
   "media_smartAlbum_deleteFailed": "Impossible de supprimer l'album",
   "media_smartAlbum_saved": "Album enregistré",
   "media_sources_lastScanned": "Dernière analyse {date}",

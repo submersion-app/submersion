@@ -20114,6 +20114,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_smartAlbum_delete => '删除相册';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '删除“$name”？';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody => '只会删除已保存的筛选条件，照片和视频不受影响。';
+
+  @override
   String get media_smartAlbum_deleteFailed => '无法删除相册';
 
   @override

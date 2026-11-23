@@ -21210,6 +21210,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_smartAlbum_delete => 'Supprimer l\'album';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Supprimer « $name » ?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Seul le filtre enregistré disparaît. Aucune photo ni vidéo n\'est modifiée.';
+
+  @override
   String get media_smartAlbum_deleteFailed =>
       'Impossible de supprimer l\'album';
 

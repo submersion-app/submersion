@@ -6012,6 +6012,8 @@
   "media_smartAlbum_save": "Mentés albumként",
   "media_smartAlbum_saveTitle": "Album elnevezése",
   "media_smartAlbum_delete": "Album törlése",
+  "media_smartAlbum_deleteConfirmTitle": "Törlöd ezt: „{name}”?",
+  "media_smartAlbum_deleteConfirmBody": "Csak a mentett szűrő törlődik. A fotók és videók nem változnak.",
   "media_smartAlbum_deleteFailed": "Az album törlése nem sikerült",
   "media_smartAlbum_saved": "Album mentve",
   "media_sources_lastScanned": "Utoljára vizsgálva: {date}",

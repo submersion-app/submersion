@@ -33393,6 +33393,18 @@ abstract class AppLocalizations {
   /// **'Delete album'**
   String get media_smartAlbum_delete;
 
+  /// Title of the confirmation before a smart album (a saved filter) is deleted from the Load album list. name is the album's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String media_smartAlbum_deleteConfirmTitle(String name);
+
+  /// Body of the smart album delete confirmation: only the saved filter goes, no photo or video changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the saved filter goes. No photos or videos change.'**
+  String get media_smartAlbum_deleteConfirmBody;
+
   /// Filter bar: the smart album delete did not go through
   ///
   /// In en, this message translates to:

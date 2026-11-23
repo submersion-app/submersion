@@ -6138,6 +6138,8 @@
   "media_smartAlbum_save": "Opslaan als album",
   "media_smartAlbum_saveTitle": "Naam dit album",
   "media_smartAlbum_delete": "Album verwijderen",
+  "media_smartAlbum_deleteConfirmTitle": "\"{name}\" verwijderen?",
+  "media_smartAlbum_deleteConfirmBody": "Alleen het opgeslagen filter verdwijnt. Foto's en video's veranderen niet.",
   "media_smartAlbum_deleteFailed": "Album verwijderen mislukt",
   "media_smartAlbum_saved": "Album opgeslagen",
   "media_sources_lastScanned": "Laatst gescand {date}",

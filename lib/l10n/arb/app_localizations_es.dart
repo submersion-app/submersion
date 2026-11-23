@@ -21156,6 +21156,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_smartAlbum_delete => 'Eliminar álbum';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '¿Eliminar «$name»?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Solo se elimina el filtro guardado. No cambia ninguna foto ni vídeo.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'No se pudo eliminar el álbum';
 
   @override

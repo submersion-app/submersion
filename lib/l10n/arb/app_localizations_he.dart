@@ -20702,6 +20702,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_smartAlbum_delete => 'מחיקת אלבום';
 
   @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'למחוק את \"$name\"?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'רק המסנן השמור נמחק. אף תמונה או סרטון לא משתנים.';
+
+  @override
   String get media_smartAlbum_deleteFailed => 'מחיקת האלבום נכשלה';
 
   @override
