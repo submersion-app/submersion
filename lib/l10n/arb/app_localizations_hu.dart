@@ -55774,6 +55774,35 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Részben elemezve, $count találat',
+      one: 'Részben elemezve, $count találat',
+      zero: 'Részben elemezve, nincs találat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => 'Fajok címkéi: nincs elemezve';
+
+  @override
+  String get media_labels_buttonAnalysing =>
+      'Fajok címkéi: elemzés folyamatban';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'Fajok címkéi: részben elemezve';
+
+  @override
+  String get media_labels_buttonOutdated => 'Fajok címkéi: elavult';
+
+  @override
+  String get media_labels_buttonAnalysed => 'Fajok címkéi: elemezve';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

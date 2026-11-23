@@ -56213,6 +56213,37 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Analysé en partie, $count trouvés',
+      one: 'Analysé en partie, $count trouvé',
+      zero: 'Analysé en partie, rien trouvé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed =>
+      'Étiquettes d\'espèces : non analysé';
+
+  @override
+  String get media_labels_buttonAnalysing =>
+      'Étiquettes d\'espèces : analyse en cours';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'Étiquettes d\'espèces : analysé en partie';
+
+  @override
+  String get media_labels_buttonOutdated =>
+      'Étiquettes d\'espèces : pas à jour';
+
+  @override
+  String get media_labels_buttonAnalysed => 'Étiquettes d\'espèces : analysé';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

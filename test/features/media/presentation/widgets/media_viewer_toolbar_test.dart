@@ -81,6 +81,7 @@ void main() {
       ToolbarRing? ring,
       bool labelsOn = true,
       ToolbarTone? tone,
+      String? labelsLabel,
       Brightness brightness = Brightness.light,
     }) async {
       tester.view.physicalSize = Size(width, 800);
@@ -138,6 +139,7 @@ void main() {
                           marineLifeRing: ring,
                           marineLifeLabelsOn: labelsOn,
                           marineLifeTone: tone,
+                          marineLifeLabel: labelsLabel,
                           onReupload: (_) => calls.add('reupload'),
                           onAdjustColor: () => calls.add('adjust_color'),
                           onUnlock: unlockable
@@ -327,6 +329,23 @@ void main() {
         expect(labelsIcon(tester).icon, MdiIcons.fish);
         await pumpFull(tester, 1280, labels: true, labelsOn: false);
         expect(labelsIcon(tester).icon, MdiIcons.fishOff);
+      });
+
+      testWidgets('its tooltip names how far analysis has got, and is the '
+          'plain name without one (issue #4958)', (tester) async {
+        await pumpFull(tester, 1280, labels: true);
+        expect(find.byTooltip('Species labels'), findsOneWidget);
+        await pumpFull(
+          tester,
+          1280,
+          labels: true,
+          tone: ToolbarTone.warn,
+          labelsLabel: 'Species labels: partly analysed',
+        );
+        expect(
+          find.byTooltip('Species labels: partly analysed'),
+          findsOneWidget,
+        );
       });
 
       group('its colour says how far analysis has got (issue #4926)', () {
