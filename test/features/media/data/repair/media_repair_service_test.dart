@@ -23,6 +23,22 @@ import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/fake_photo_picker_service.dart';
 import '../../../../helpers/test_database.dart';
 
+/// Runs [during] while it looks the ids up, as a save elsewhere would.
+class _SlowCloudIds implements CloudIdentifierSource {
+  _SlowCloudIds(this.during);
+
+  final Future<void> Function() during;
+
+  @override
+  bool get isSupported => true;
+
+  @override
+  Future<Map<String, String>> cloudIdentifiers(List<String> localIds) async {
+    await during();
+    return {for (final id in localIds) id: 'cloud-$id'};
+  }
+}
+
 void main() {
   late AppDatabase db;
   late LocalCacheDatabase cacheDb;
@@ -169,6 +185,42 @@ void main() {
           candidate: RepairCandidate.file(path: file.path, sizeBytes: 4),
         ),
       ], source: RepairLogSource.watcher);
+
+      await ChangeLogSettler(db).settle();
+      final repair = (await db.select(db.changeLogOperations).get())
+          .singleWhere((o) => o.label == ChangeLogLabels.mediaRepair);
+      final filed = await (db.select(
+        db.changeLogEvents,
+      )..where((e) => e.operationId.equals(repair.id))).get();
+      expect(filed.map((e) => e.recordId), isNot(contains('other')));
+      expect(filed.map((e) => e.recordId), contains('a'));
+    });
+
+    test('a save made while cloud ids are looked up is not filed as the '
+        'repair', () async {
+      await seed('a');
+      await seed('other');
+      final item = (await repo.getMediaById('a'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+
+      await service(
+        cloudIdentifiers: _SlowCloudIds(
+          () => db.customStatement(
+            "UPDATE media SET caption = 'saved meanwhile' WHERE id = 'other'",
+          ),
+        ),
+      ).apply([
+        RepairProposal(
+          item: item,
+          confidence: RepairConfidence.probable,
+          candidate: const RepairCandidate.galleryAsset(
+            assetId: 'asset-9',
+            sizeBytes: null,
+          ),
+        ),
+      ]);
 
       await ChangeLogSettler(db).settle();
       final repair = (await db.select(db.changeLogOperations).get())

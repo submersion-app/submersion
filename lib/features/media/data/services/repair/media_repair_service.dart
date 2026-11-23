@@ -380,9 +380,11 @@ class MediaRepairService {
       }
     }
 
+    // A platform lookup, before the History scope opens.
+    final resolved = await _withCloudIds(writes);
     return _logged(source, () async {
       // Stage B: one transaction for every surviving write.
-      await repository.applyRepairWrites(await _withCloudIds(writes));
+      await repository.applyRepairWrites(resolved);
       Future<void> clearCache() async {
         try {
           await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
