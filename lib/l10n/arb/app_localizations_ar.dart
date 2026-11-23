@@ -20298,6 +20298,9 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
       one: 'عنصر واحد',
     );
     return 'إلغاء ربط $_temp0؟';
@@ -21724,7 +21727,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count عناصر',
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
       one: 'عنصر واحد',
     );
     return 'نقل $_temp0؟';
@@ -21736,6 +21742,9 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      many: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      few: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      two: 'ينتقل العنصران إلى $dive ويغادران أي غطسة هما عليها الآن.',
       one: 'ينتقل العنصر إلى $dive ويغادر أي غطسة هو عليها الآن.',
     );
     return '$_temp0 تبقى روابط الموقع والمعدات كما هي.';

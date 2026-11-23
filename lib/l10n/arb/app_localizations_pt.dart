@@ -20002,7 +20002,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens',
-      one: '1 item',
+      one: '$count item',
     );
     return 'Desvincular $_temp0?';
   }
@@ -21385,7 +21385,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens',
-      one: '1 item',
+      one: '$count item',
     );
     return 'Mover $_temp0?';
   }

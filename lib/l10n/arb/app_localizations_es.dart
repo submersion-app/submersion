@@ -19999,7 +19999,7 @@ class AppLocalizationsEs extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count elementos',
-      one: '1 elemento',
+      one: '$count elemento',
     );
     return '¿Desvincular $_temp0?';
   }
@@ -21377,7 +21377,7 @@ class AppLocalizationsEs extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count elementos',
-      one: '1 elemento',
+      one: '$count elemento',
     );
     return '¿Mover $_temp0?';
   }

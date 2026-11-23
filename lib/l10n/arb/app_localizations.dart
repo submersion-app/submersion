@@ -31733,7 +31733,7 @@ abstract class AppLocalizations {
   /// Title of the library unlink confirmation dialog
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count, plural, =1{1 item} other{{count} items}}?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_library_unlinkConfirmTitle(int count);
 
   /// Site page unlink failure snackbar
@@ -33744,7 +33744,7 @@ abstract class AppLocalizations {
   /// Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.
   ///
   /// In en, this message translates to:
-  /// **'Move {count, plural, =1{1 item} other{{count} items}}?'**
+  /// **'Move {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_library_moveConfirmTitle(int count);
 
   /// Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.

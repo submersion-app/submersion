@@ -21306,7 +21306,7 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count elem',
-      one: '1 elem',
+      one: '$count elem',
     );
     return '$_temp0 áthelyezése?';
   }

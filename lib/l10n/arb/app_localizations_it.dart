@@ -20007,7 +20007,7 @@ class AppLocalizationsIt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count elementi',
-      one: '1 elemento',
+      one: '$count elemento',
     );
     return 'Scollegare $_temp0?';
   }
@@ -21386,7 +21386,7 @@ class AppLocalizationsIt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count elementi',
-      one: '1 elemento',
+      one: '$count elemento',
     );
     return 'Spostare $_temp0?';
   }

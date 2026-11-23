@@ -19709,7 +19709,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count items',
-      one: '1 item',
+      one: '$count item',
     );
     return 'Unlink $_temp0?';
   }
@@ -21069,7 +21069,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count items',
-      one: '1 item',
+      one: '$count item',
     );
     return 'Move $_temp0?';
   }

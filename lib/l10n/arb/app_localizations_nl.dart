@@ -19881,7 +19881,7 @@ class AppLocalizationsNl extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count items',
-      one: '1 item',
+      one: '$count item',
     );
     return '$_temp0 ontkoppelen?';
   }
@@ -21255,7 +21255,7 @@ class AppLocalizationsNl extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count items',
-      one: '1 item',
+      one: '$count item',
     );
     return '$_temp0 verplaatsen?';
   }

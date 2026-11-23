@@ -6042,7 +6042,7 @@
   "media_repair_summary": "{relinked} újracsatolva, {cloudBacked} felhőalapú, {reuploads} újrafeltöltés sorban, {failed} sikertelen, {skipped} kihagyva",
   "media_divePicker_title": "Áthelyezés merüléshez",
   "media_divePicker_search": "Merülések keresése",
-  "media_library_moveConfirmTitle": "{count, plural, =1{1 elem} other{{count} elem}} áthelyezése?",
+  "media_library_moveConfirmTitle": "{count, plural, =1{{count} elem} other{{count} elem}} áthelyezése?",
   "media_library_moveConfirmBody": "{count, plural, =1{Az elem ide kerül: {dive}, és kikerül abból a merülésből, amelyhez most tartozik.} other{Az elemek ide kerülnek: {dive}, és kikerülnek abból a merülésből, amelyhez most tartoznak.}} A merülőhely- és felszereléskapcsolatok változatlanok maradnak.",
   "media_library_moveConfirmAction": "Áthelyezés",
   "media_library_moveDiveOpenHint": "Az áthelyezés egyik merülése szerkesztésre meg van nyitva. Mentsd, vesd el vagy zárold, majd próbáld újra.",

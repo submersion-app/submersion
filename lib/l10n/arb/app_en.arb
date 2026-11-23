@@ -12165,7 +12165,7 @@
   "media_diveMediaSection_unlinkSelectedButton": "Unlink {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.",
   "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
-  "media_library_unlinkConfirmTitle": "Unlink {count, plural, =1{1 item} other{{count} items}}?",
+  "media_library_unlinkConfirmTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkError": "Failed to unlink: {error}",
   "media_library_unlinkConfirmBody": "They leave your library, along with their cloud copies and thumbnails. Your original files are not affected. This cannot be undone.",
   "media_library_unlinkMetadataNote": "{count,plural, =1{1 of these has a caption or favorite saved in Submersion, and those details are lost.} other{{count} of these have a caption or favorite saved in Submersion, and those details are lost.}}",
@@ -13372,7 +13372,7 @@
   "@media_divePicker_search": {
     "description": "Search hint in the dive picker sheet"
   },
-  "media_library_moveConfirmTitle": "Move {count, plural, =1{1 item} other{{count} items}}?",
+  "media_library_moveConfirmTitle": "Move {count, plural, =1{{count} item} other{{count} items}}?",
   "@media_library_moveConfirmTitle": {
     "description": "Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.",
     "placeholders": {
