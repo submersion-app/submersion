@@ -170,8 +170,10 @@ void main() {
     ) async {
       await pumpMany(tester);
       expect(more, findsOneWidget);
-      final chip = tester.widget<ActionChip>(
-        find.descendant(of: more, matching: find.byType(ActionChip)),
+      // A plain chip when there is nothing to open (issue #4921), so read
+      // the RawChip both kinds build on.
+      final chip = tester.widget<RawChip>(
+        find.descendant(of: more, matching: find.byType(RawChip)),
       );
       expect((chip.label as Text).data, startsWith('+'));
       final row = tester.getSize(find.byType(MediaSpeciesChipsRow));
@@ -186,8 +188,10 @@ void main() {
     ) async {
       final semantics = tester.ensureSemantics();
       await pumpMany(tester);
-      final chip = tester.widget<ActionChip>(
-        find.descendant(of: more, matching: find.byType(ActionChip)),
+      // A plain chip when there is nothing to open (issue #4921), so read
+      // the RawChip both kinds build on.
+      final chip = tester.widget<RawChip>(
+        find.descendant(of: more, matching: find.byType(RawChip)),
       );
       final hidden = int.parse((chip.label as Text).data!.substring(1));
       expect(find.bySemanticsLabel('$hidden more species'), findsOneWidget);
