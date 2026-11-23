@@ -62,20 +62,29 @@ List<PlanStopTag> planStopTags({
     ];
   }
 
-  final baseMinutes = {
-    for (final m in series.stopLabels) _depthKey(m.depth): minutes(m),
-  };
-  return [
-    for (final m in preview.stopLabels)
-      switch (baseMinutes[_depthKey(m.depth)]) {
-        null => PlanStopTag(marker: m, label: label(m), isNew: true),
-        final before => PlanStopTag(
-          marker: m,
-          label: label(m),
-          change: _change(minutes(m) - before),
-        ),
-      },
-  ];
+  // Stops can share a depth (a gas-switch-only stop and the one after it),
+  // so they are matched in order: the n-th preview stop at a depth with the
+  // n-th base stop there.
+  final baseMinutes = <int, List<int>>{};
+  for (final m in series.stopLabels) {
+    (baseMinutes[_depthKey(m.depth)] ??= []).add(minutes(m));
+  }
+  final seen = <int, int>{};
+  PlanStopTag previewTag(CanvasMarker m) {
+    final key = _depthKey(m.depth);
+    final index = seen[key] = (seen[key] ?? -1) + 1;
+    final before = baseMinutes[key];
+    if (before == null || index >= before.length) {
+      return PlanStopTag(marker: m, label: label(m), isNew: true);
+    }
+    return PlanStopTag(
+      marker: m,
+      label: label(m),
+      change: _change(minutes(m) - before[index]),
+    );
+  }
+
+  return [for (final m in preview.stopLabels) previewTag(m)];
 }
 
 int _depthKey(double meters) => (meters * 10).round();

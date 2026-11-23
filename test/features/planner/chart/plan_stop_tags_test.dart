@@ -83,6 +83,18 @@ void main() {
     expect(tags.single.change, '−2');
   });
 
+  test('stops sharing a depth are compared in order', () {
+    // A gas-switch-only stop and the stop after it can share a depth.
+    final tags = planStopTags(
+      series: _series([(21, 60), (21, 120)]),
+      preview: _series([(21, 60), (21, 300), (21, 60)]),
+      formatDepth: _metres,
+    );
+
+    expect(tags.map((t) => t.change), [null, '+3', null]);
+    expect(tags.map((t) => t.isNew), [false, false, true]);
+  });
+
   test('depths are formatted with the given unit', () {
     final tags = planStopTags(
       series: base,

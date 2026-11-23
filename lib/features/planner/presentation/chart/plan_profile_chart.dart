@@ -302,10 +302,15 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     final direction = Directionality.of(context);
 
     // While a contingency is previewed its stops are tagged, compared with
-    // the plan's, as the table and stats then describe the preview.
+    // the plan's, as the table and stats then describe the preview. The
+    // Bailout view keeps its own: the ghost is a variant of the live plan,
+    // not of the bailout picture.
+    final showingBailout = ref.watch(
+      planChartBailoutProvider.select((c) => c.picture != null),
+    );
     final stopTags = planStopTags(
       series: series,
-      preview: ghost,
+      preview: showingBailout ? null : ghost,
       formatDepth: (m) => units.formatDepth(m, decimals: 0),
     );
     final meanDepthLabel = context.l10n.plannerCanvas_chart_meanDepth(
