@@ -6048,6 +6048,7 @@
   "media_library_moveDiveOpenHint": "Az áthelyezés egyik merülése szerkesztésre meg van nyitva. Mentsd, vesd el vagy zárold, majd próbáld újra.",
   "media_library_moveFailed": "Az elemeket nem sikerült áthelyezni",
   "media_library_unlinkFailed": "Az elemeket nem sikerült leválasztani",
+  "media_library_moveDiveName": "{label}, {date}",
   "media_library_moveToDive": "Áthelyezés merüléshez",
   "media_library_unlinkSelected": "Leválasztás",
   "media_library_filter_site": "Merülőhely",

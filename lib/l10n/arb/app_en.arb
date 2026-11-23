@@ -13409,6 +13409,18 @@
   "@media_library_unlinkFailed": {
     "description": "Shown when the media library's Unlink could not write. The selection stays."
   },
+  "media_library_moveDiveName": "{label}, {date}",
+  "@media_library_moveDiveName": {
+    "description": "How the Move to dive confirmation names the picked dive: its number and name (label, such as '#42 Blue Hole'), then its date. Use the language's own list separator.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "media_library_moveToDive": "Move to dive",
   "@media_library_moveToDive": {
     "description": "Library selection action: reassign media to a dive"

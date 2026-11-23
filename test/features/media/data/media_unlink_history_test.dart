@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value, Variable;
@@ -156,6 +157,30 @@ void main() {
     expect(events, ['delete', 'drain outside the entry']);
     expect(await entryClosed(ChangeLogLabels.unlinkMedia), isTrue);
     expect(await operationLabels(), [ChangeLogLabels.unlinkMedia]);
+  });
+
+  // The drain takes the whole upload queue; the diver must not wait for it
+  // (code review on PR #4948).
+  test('Unlink and Remove do not wait for the media store to drain', () async {
+    await addMedia('m1', diveId: 'd1');
+    final regId = (await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    )).id;
+    await addMedia('g1', equipmentId: regId);
+    final neverDrains = Completer<void>();
+    final service = MediaUnlinkService(
+      repository: media,
+      deleteMedia: (ids) => MediaRepository().deleteMultipleMedia(ids),
+      deleteMediaUndrained: (ids) => MediaRepository().deleteMultipleMedia(ids),
+      drainDeletes: () => neverDrains.future,
+      gearPhotos: GearPhotoRepository(),
+    );
+
+    await service.unlinkFromLibrary(['m1']).timeout(const Duration(seconds: 5));
+    await service.removeGearPhotos(['g1']).timeout(const Duration(seconds: 5));
+
+    expect(await media.getMediaById('m1'), isNull);
+    expect(await media.getMediaById('g1'), isNull);
   });
 
   test('unlinking nothing writes no entry', () async {

@@ -21399,6 +21399,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Elemente konnten nicht getrennt werden';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
+
+  @override
   String get media_library_moveToDive => 'Zu Tauchgang verschieben';
 
   @override

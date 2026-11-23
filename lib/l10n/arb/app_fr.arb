@@ -6048,6 +6048,7 @@
   "media_library_moveDiveOpenHint": "Une plongée de ce déplacement est ouverte en modification. Enregistrez, annulez ou verrouillez-la, puis réessayez.",
   "media_library_moveFailed": "Impossible de déplacer les éléments",
   "media_library_unlinkFailed": "Impossible de dissocier les éléments",
+  "media_library_moveDiveName": "{label}, {date}",
   "media_library_moveToDive": "Déplacer vers une plongée",
   "media_library_unlinkSelected": "Dissocier",
   "media_library_filter_site": "Site",

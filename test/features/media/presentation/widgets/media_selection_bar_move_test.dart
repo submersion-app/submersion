@@ -89,6 +89,7 @@ void main() {
     WidgetTester tester, {
     String? openDive,
     List<MediaItem>? items,
+    Locale locale = const Locale('en'),
   }) async {
     final selected =
         items ??
@@ -124,7 +125,7 @@ void main() {
             ),
         ],
         child: MaterialApp(
-          locale: const Locale('en'),
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -191,6 +192,57 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('They move'), findsNothing);
+  });
+
+  // Code review on PR #4948: items already on the picked dive do not move.
+  testWidgets('items already on the picked dive are left out of the move', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      items: [
+        _item('a', diveId: 'dive-2'),
+        _item('b', diveId: 'd1'),
+      ],
+    );
+    await pickDive(tester);
+
+    expect(find.text('Move 1 item?'), findsOneWidget);
+    await tester.tap(dialogButton('Move'));
+    await tester.pumpAndSettle();
+
+    expect(repo.reassigned?.$1, ['b']);
+  });
+
+  testWidgets('a move with every item already there writes nothing', (
+    tester,
+  ) async {
+    await pump(tester, items: [_item('a', diveId: 'dive-2')]);
+    await pickDive(tester);
+
+    expect(confirm, findsNothing);
+    expect(repo.reassigned, isNull);
+    expect(controller.value.isActive, isFalse);
+  });
+
+  testWidgets('the dive is named with the language\'s own separator', (
+    tester,
+  ) async {
+    await pump(tester, locale: const Locale('ja'));
+    await tester.tap(
+      find.byKey(const ValueKey('selection_action_move_to_dive')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('#2'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: confirm,
+        matching: find.textContaining('#2 Blue Hole\u3001'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Cancel writes nothing and keeps the selection', (tester) async {

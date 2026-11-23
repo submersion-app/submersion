@@ -21339,6 +21339,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az elemeket nem sikerült leválasztani';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
+
+  @override
   String get media_library_moveToDive => 'Áthelyezés merüléshez';
 
   @override

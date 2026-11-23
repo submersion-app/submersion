@@ -33777,6 +33777,12 @@ abstract class AppLocalizations {
   /// **'Could not unlink the items'**
   String get media_library_unlinkFailed;
 
+  /// How the Move to dive confirmation names the picked dive: its number and name (label, such as '#42 Blue Hole'), then its date. Use the language's own list separator.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {date}'**
+  String media_library_moveDiveName(String label, String date);
+
   /// Library selection action: reassign media to a dive
   ///
   /// In en, this message translates to:

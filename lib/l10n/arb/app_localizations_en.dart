@@ -21099,6 +21099,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_unlinkFailed => 'Could not unlink the items';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
+
+  @override
   String get media_library_moveToDive => 'Move to dive';
 
   @override

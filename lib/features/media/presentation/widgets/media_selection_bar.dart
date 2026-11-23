@@ -69,9 +69,14 @@ class MediaSelectionBar extends ConsumerWidget {
     // Everything else an unlink discards is derived and rebuilds from the
     // source file on a re-link. A caption and the favorite flag live only in
     // Submersion's own row, so they are the part worth naming.
-    final atRisk = await ref
-        .read(mediaRepositoryProvider)
-        .idsWithUserMetadata(ids);
+    final Set<String> atRisk;
+    try {
+      atRisk = await ref.read(mediaRepositoryProvider).idsWithUserMetadata(ids);
+    } catch (error, stackTrace) {
+      _log.error('Unlink failed', error: error, stackTrace: stackTrace);
+      if (context.mounted) _showUnlinkFailed(context);
+      return BulkActionOutcome.failed;
+    }
     if (!context.mounted) return BulkActionOutcome.cancelled;
 
     final l10n = context.l10n;
@@ -104,16 +109,19 @@ class MediaSelectionBar extends ConsumerWidget {
       return BulkActionOutcome.completed;
     } catch (error, stackTrace) {
       _log.error('Unlink failed', error: error, stackTrace: stackTrace);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.media_library_unlinkFailed),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      if (context.mounted) _showUnlinkFailed(context);
       return BulkActionOutcome.failed;
     }
+  }
+
+  /// Says Unlink failed; the selection stays, to try again.
+  void _showUnlinkFailed(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.media_library_unlinkFailed),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
   }
 
   @override

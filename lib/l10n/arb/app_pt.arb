@@ -6174,6 +6174,7 @@
   "media_library_moveDiveOpenHint": "Um mergulho desta mudança está aberto para edição. Guarde, cancele ou bloqueie-o e tente novamente.",
   "media_library_moveFailed": "Não foi possível mover os itens",
   "media_library_unlinkFailed": "Não foi possível desvincular os itens",
+  "media_library_moveDiveName": "{label}, {date}",
   "media_library_moveToDive": "Mover para um mergulho",
   "media_library_unlinkSelected": "Desvincular",
   "media_library_filter_site": "Ponto",

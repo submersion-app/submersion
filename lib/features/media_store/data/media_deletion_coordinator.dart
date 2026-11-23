@@ -55,7 +55,11 @@ class MediaDeletionCoordinator {
   /// delete is final, so every cached copy goes: for a delete filed as one
   /// History entry, whose caller drains once the entry has closed, so the
   /// worker's other transfers are not filed under it (the media library's
-  /// Unlink, issue #4527).
+  /// Unlink, issue #4527). Inside a transaction that later rolls back, the
+  /// rows come back without their cached copies, which are fetched again
+  /// when next shown: the Gear tab's Remove takes that rare cost rather
+  /// than leave copies of deleted photos behind after every Remove that
+  /// succeeds, as a held delete would.
   Future<void> deleteMultipleMedia(
     List<String> ids, {
     bool holdRemoteDelete = false,

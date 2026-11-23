@@ -21467,6 +21467,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de dissocier les éléments';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
+
+  @override
   String get media_library_moveToDive => 'Déplacer vers une plongée';
 
   @override

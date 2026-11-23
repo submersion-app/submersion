@@ -35,14 +35,21 @@ bool moveTouchesOpenDive({
 /// (`MediaRepository.reassignMediaToDive`).
 ///
 /// A refusal writes nothing and keeps the selection; so does Cancel. There
-/// is no Undo: the History entry reverts the whole move.
+/// is no Undo: the History entry reverts the whole move. Items already on
+/// the picked dive are left out; when that is all of them, nothing is
+/// asked or written.
 Future<BulkActionOutcome> moveMediaToDive(
   BuildContext context,
   WidgetRef ref,
-  List<MediaItem> items,
+  List<MediaItem> selected,
 ) async {
   final row = await showDivePickerRowSheet(context);
   if (row == null || !context.mounted) return BulkActionOutcome.cancelled;
+  final items = [
+    for (final item in selected)
+      if (item.diveId != row.id) item,
+  ];
+  if (items.isEmpty) return BulkActionOutcome.completed;
 
   bool refused() {
     final touches = moveTouchesOpenDive(
@@ -84,11 +91,13 @@ Future<BulkActionOutcome> moveMediaToDive(
 }
 
 /// '#42 Blue Hole, Mar 12, 2026': the dive as the picker showed it, with its
-/// date in the diver's format.
-String _diveName(WidgetRef ref, DivePickerRow row) {
+/// date in the diver's format, joined as the language joins them.
+String _diveName(BuildContext context, WidgetRef ref, DivePickerRow row) {
   final date = ref.read(unitFormatterProvider).formatDate(row.dateTime);
   final label = divePickerRowLabel(row);
-  return label.isEmpty ? date : '$label, $date';
+  return label.isEmpty
+      ? date
+      : context.l10n.media_library_moveDiveName(label, date);
 }
 
 Future<bool> _confirmMove(
@@ -98,7 +107,7 @@ Future<bool> _confirmMove(
   DivePickerRow row,
 ) async {
   final l10n = context.l10n;
-  final dive = _diveName(ref, row);
+  final dive = _diveName(context, ref, row);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(

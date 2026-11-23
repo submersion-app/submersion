@@ -6300,6 +6300,7 @@
   "media_library_moveDiveOpenHint": "Ein Tauchgang in dieser Verschiebung ist zur Bearbeitung geöffnet. Speichere, verwirf oder sperre ihn und versuche es dann erneut.",
   "media_library_moveFailed": "Die Elemente konnten nicht verschoben werden",
   "media_library_unlinkFailed": "Die Elemente konnten nicht getrennt werden",
+  "media_library_moveDiveName": "{label}, {date}",
   "media_library_moveToDive": "Zu Tauchgang verschieben",
   "media_library_unlinkSelected": "Trennen",
   "media_library_filter_site": "Tauchplatz",

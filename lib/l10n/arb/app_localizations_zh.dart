@@ -20353,6 +20353,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_unlinkFailed => '无法取消关联这些项目';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label，$date';
+  }
+
+  @override
   String get media_library_moveToDive => '移至潜水';
 
   @override

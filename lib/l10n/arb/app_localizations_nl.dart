@@ -21288,6 +21288,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'De items konden niet worden ontkoppeld';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
+
+  @override
   String get media_library_moveToDive => 'Naar duik verplaatsen';
 
   @override

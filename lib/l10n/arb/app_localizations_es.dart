@@ -21409,6 +21409,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudieron desvincular los elementos';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
+
+  @override
   String get media_library_moveToDive => 'Mover a una inmersión';
 
   @override

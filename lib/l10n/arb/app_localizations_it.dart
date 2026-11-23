@@ -21419,6 +21419,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile scollegare gli elementi';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
+
+  @override
   String get media_library_moveToDive => 'Sposta in un\'immersione';
 
   @override

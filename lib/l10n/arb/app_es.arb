@@ -6174,6 +6174,7 @@
   "media_library_moveDiveOpenHint": "Una inmersión de este movimiento está abierta para editar. Guárdala, cancela o bloquéala y vuelve a intentarlo.",
   "media_library_moveFailed": "No se pudieron mover los elementos",
   "media_library_unlinkFailed": "No se pudieron desvincular los elementos",
+  "media_library_moveDiveName": "{label}, {date}",
   "media_library_moveToDive": "Mover a una inmersión",
   "media_library_unlinkSelected": "Desvincular",
   "media_library_filter_site": "Sitio",

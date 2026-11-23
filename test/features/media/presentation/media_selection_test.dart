@@ -131,9 +131,15 @@ class _RecordingMediaRepo implements MediaRepository {
   // would mean the carve-out leaked back into this surface, and noSuchMethod
   // makes that a loud failure rather than a quiet empty list.
 
+  /// When set, the caption and favourite probe throws.
+  Object? probeError;
+
   @override
-  Future<Set<String>> idsWithUserMetadata(List<String> mediaIds) async =>
-      mediaIds.where(withUserMetadata.contains).toSet();
+  Future<Set<String>> idsWithUserMetadata(List<String> mediaIds) async {
+    final error = probeError;
+    if (error != null) throw error;
+    return mediaIds.where(withUserMetadata.contains).toSet();
+  }
 
   @override
   Future<void> unlinkFromDive(List<String> mediaIds) async {
@@ -419,6 +425,20 @@ void main() {
       await confirmUnlink(tester);
 
       expect(find.text('Could not unlink the items'), findsOneWidget);
+      expect(find.text('1 selected'), findsOneWidget);
+    });
+
+    testWidgets('a caption check that fails says so', (tester) async {
+      await tester.pumpWidget(host([entry('a', diveId: 'd1')]));
+      mediaRepo.probeError = StateError('database locked');
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0]);
+      await tapUnlink(tester);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('Could not unlink the items'), findsOneWidget);
+      expect(coordinator.deleted, isEmpty);
       expect(find.text('1 selected'), findsOneWidget);
     });
 

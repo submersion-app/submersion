@@ -6174,6 +6174,7 @@
   "media_library_moveDiveOpenHint": "Een duik in deze verplaatsing is geopend om te bewerken. Sla hem op, annuleer of vergrendel hem en probeer het opnieuw.",
   "media_library_moveFailed": "De items konden niet worden verplaatst",
   "media_library_unlinkFailed": "De items konden niet worden ontkoppeld",
+  "media_library_moveDiveName": "{label}, {date}",
   "media_library_moveToDive": "Naar duik verplaatsen",
   "media_library_unlinkSelected": "Ontkoppelen",
   "media_library_filter_site": "Duikstek",

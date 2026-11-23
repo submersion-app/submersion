@@ -20650,6 +20650,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_library_unlinkFailed => 'リンクを解除できませんでした';
 
   @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label、$date';
+  }
+
+  @override
   String get media_library_moveToDive => 'ダイブに移動';
 
   @override

@@ -6048,6 +6048,7 @@
   "media_library_moveDiveOpenHint": "Un'immersione di questo spostamento è aperta in modifica. Salvala, annullala o bloccala, poi riprova.",
   "media_library_moveFailed": "Impossibile spostare gli elementi",
   "media_library_unlinkFailed": "Impossibile scollegare gli elementi",
+  "media_library_moveDiveName": "{label}, {date}",
   "media_library_moveToDive": "Sposta in un'immersione",
   "media_library_unlinkSelected": "Scollega",
   "media_library_filter_site": "Sito",

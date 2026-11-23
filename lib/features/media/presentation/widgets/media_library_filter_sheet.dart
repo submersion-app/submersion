@@ -286,8 +286,10 @@ class _MediaLibraryFilterSheetState
                   icon: const Icon(Icons.delete_outline, size: 18),
                   tooltip: context.l10n.media_smartAlbum_delete,
                   onPressed: () async {
-                    Navigator.of(sheetContext).pop();
-                    await _deleteAlbum(album);
+                    // Asked over the list, so Cancel leaves the diver in it.
+                    if (!await _confirmDeleteAlbum(album)) return;
+                    if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+                    await _deleteAlbum(album.id);
                   },
                 ),
                 onTap: () {
@@ -315,13 +317,9 @@ class _MediaLibraryFilterSheetState
     );
   }
 
-  /// Asks first, naming the album (issue #4527): a saved filter is
-  /// configuration, but a delete has no Undo.
-  ///
-  /// Awaited rather than fired and forgotten: an unawaited repository call
-  /// turns a failed delete into an uncaught async error and leaves the album
-  /// on screen with no explanation for why it came back.
-  Future<void> _deleteAlbum(MediaSmartAlbum album) async {
+  /// Asks before an album is deleted, naming it (issue #4527): a saved
+  /// filter is configuration, but a delete has no Undo.
+  Future<bool> _confirmDeleteAlbum(MediaSmartAlbum album) async {
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -344,9 +342,15 @@ class _MediaLibraryFilterSheetState
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    return confirmed == true && mounted;
+  }
+
+  /// Awaited rather than fired and forgotten: an unawaited repository call
+  /// turns a failed delete into an uncaught async error and leaves the album
+  /// on screen with no explanation for why it came back.
+  Future<void> _deleteAlbum(String id) async {
     try {
-      await ref.read(mediaSmartAlbumRepositoryProvider).delete(album.id);
+      await ref.read(mediaSmartAlbumRepositoryProvider).delete(id);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

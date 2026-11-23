@@ -6174,6 +6174,7 @@
   "media_library_moveDiveOpenHint": "إحدى الغطسات في هذا النقل مفتوحة للتعديل. احفظها أو ألغِ التعديل أو اقفلها، ثم حاول مرة أخرى.",
   "media_library_moveFailed": "تعذّر نقل العناصر",
   "media_library_unlinkFailed": "تعذّر إلغاء ربط العناصر",
+  "media_library_moveDiveName": "{label}، {date}",
   "media_library_moveToDive": "نقل إلى غطسة",
   "media_library_unlinkSelected": "إلغاء الربط",
   "media_library_filter_site": "الموقع",

@@ -378,6 +378,8 @@ void main() {
 
       expect(confirmation, findsNothing);
       expect(repo.deleted, isEmpty);
+      // Still in the album list, to pick another (code review on PR #4948).
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
     });
   });
 }

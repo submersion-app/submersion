@@ -6169,6 +6169,7 @@
   "media_library_moveDiveOpenHint": "この移動に含まれるダイブが編集中です。保存、キャンセル、またはロックしてから、もう一度お試しください。",
   "media_library_moveFailed": "項目を移動できませんでした",
   "media_library_unlinkFailed": "リンクを解除できませんでした",
+  "media_library_moveDiveName": "{label}、{date}",
   "media_library_moveToDive": "ダイブに移動",
   "media_library_unlinkSelected": "リンクを解除",
   "media_library_unlinkedHeader": "未リンク",

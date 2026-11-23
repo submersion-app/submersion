@@ -1,5 +1,6 @@
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 
@@ -97,7 +98,8 @@ class MediaUnlinkService {
   /// [deleteMedia] without the media store's drain, for a delete filed as
   /// one History entry: the worker's other transfers must not be filed
   /// under it. [drainDeletes] runs once the entry has closed. Without
-  /// these, [deleteMedia] is used and nothing more is drained.
+  /// these, [deleteMedia] is used and nothing more is drained. The drain is
+  /// started, not awaited.
   final Future<void> Function(List<String> ids)? deleteMediaUndrained;
   final Future<void> Function()? drainDeletes;
 
@@ -168,7 +170,7 @@ class MediaUnlinkService {
       label: ChangeLogLabels.unlinkMedia,
       body: () => (deleteMediaUndrained ?? deleteMedia)(mediaIds),
     );
-    await drainDeletes?.call();
+    _drainAfterEntry();
   }
 
   /// The Media screen's Gear tab Remove: [unlinkFromEquipment] as one
@@ -186,8 +188,17 @@ class MediaUnlinkService {
       label: ChangeLogLabels.removeGearPhotos,
       body: () => db == null ? work() : db.transaction(work),
     );
-    await drainDeletes?.call();
+    _drainAfterEntry();
     return outcome;
+  }
+
+  /// Starts the media store's drain once the History entry has closed, and
+  /// does not wait for it: the drain takes the whole transfer queue, uploads
+  /// included, and the diver's action is done once the rows are.
+  void _drainAfterEntry() {
+    final drain = drainDeletes;
+    if (drain == null) return;
+    logFailure(drain(), MediaUnlinkService, 'drain the media store');
   }
 
   /// The equipment twin of [unlinkFromSite]: rows a dive or site still

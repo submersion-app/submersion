@@ -6048,6 +6048,7 @@
   "media_library_moveDiveOpenHint": "צלילה בהעברה הזו פתוחה לעריכה. יש לשמור, לבטל או לנעול אותה ולנסות שוב.",
   "media_library_moveFailed": "לא ניתן היה להעביר את הפריטים",
   "media_library_unlinkFailed": "לא ניתן היה לבטל את הקישור של הפריטים",
+  "media_library_moveDiveName": "{label}, {date}",
   "media_library_moveToDive": "העברה לצלילה",
   "media_library_unlinkSelected": "בטל קישור",
   "media_library_filter_site": "אתר",
