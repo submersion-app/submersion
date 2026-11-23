@@ -121,6 +121,30 @@ void main() {
       expect(private, isFalse);
     });
 
+    test('a lease that did not choose the default folder is not', () async {
+      // A location set and cleared again around the lease reads as the
+      // default both times, but the lease still holds the custom path.
+      final private = await BackupsDirectoryAccess(
+        configuredLocation: () async => null,
+        acquireLease: () async => countingLease('/Dropbox/dives', () {}),
+        defaultIsAppPrivate: true,
+        defaultPath: () async => '/backups',
+      ).useFolder((folder) async => folder?.isAppPrivate);
+
+      expect(private, isFalse);
+    });
+
+    test('a lease of the default folder itself is', () async {
+      final private = await BackupsDirectoryAccess(
+        configuredLocation: () async => null,
+        acquireLease: () async => countingLease('/backups', () {}),
+        defaultIsAppPrivate: true,
+        defaultPath: () async => '/backups',
+      ).useFolder((folder) async => folder?.isAppPrivate);
+
+      expect(private, isTrue);
+    });
+
     test('the default folder on a desktop platform is not', () async {
       // The user can browse it, and a sync client can mirror it.
       expect(
@@ -282,12 +306,18 @@ void main() {
       expect(prefs.getSettings().backupLocation, unreachable);
     });
 
-    test('the default folder is private only on Android and iOS', () async {
+    test('the default folder on a desktop host is not private', () async {
+      // Tests run on macOS, Linux or Windows, so this pins the desktop answer
+      // for the real wiring, including the default-path check. The mobile
+      // answer cannot be produced here (HostPlatform reads dart:io directly);
+      // the injected `defaultIsAppPrivate` tests above cover that branch.
+      expect(HostPlatform.isMobile, isFalse, reason: 'expects a desktop host');
+
       final folder = await BackupsDirectoryAccess.live(
         await preferences(),
       ).useFolder((folder) async => folder);
 
-      expect(folder?.isAppPrivate, HostPlatform.isMobile);
+      expect(folder?.isAppPrivate, isFalse);
     });
 
     test('a SAF location resolves to no directory', () async {

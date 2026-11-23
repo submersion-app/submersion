@@ -1,3 +1,5 @@
+import 'package:path/path.dart' as p;
+
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -21,9 +23,11 @@ class BackupsDirectoryAccess {
     required Future<String?> Function() configuredLocation,
     required Future<BackupDirLease> Function() acquireLease,
     bool defaultIsAppPrivate = false,
+    Future<String> Function()? defaultPath,
   }) : _configuredLocation = configuredLocation,
        _acquireLease = acquireLease,
-       _defaultIsAppPrivate = defaultIsAppPrivate;
+       _defaultIsAppPrivate = defaultIsAppPrivate,
+       _defaultPath = defaultPath;
 
   /// Wired to the live preferences and a resolver that only reads.
   ///
@@ -42,11 +46,16 @@ class BackupsDirectoryAccess {
     // On desktop the user can browse it and a sync client can mirror it, so
     // it is treated like any folder the diver picked.
     defaultIsAppPrivate: HostPlatform.isMobile,
+    defaultPath: BackupService.defaultBackupsDirectoryPath,
   );
 
   final Future<String?> Function() _configuredLocation;
   final Future<BackupDirLease> Function() _acquireLease;
   final bool _defaultIsAppPrivate;
+
+  /// Where the default folder is, to confirm a lease really chose it. Null
+  /// skips that check and trusts the location reads alone.
+  final Future<String> Function()? _defaultPath;
 
   /// Runs [body] with a directory `dart:io` can list, or null when there is
   /// none.
@@ -83,13 +92,16 @@ class BackupsDirectoryAccess {
       // between the two reads could pair a custom path with the default's
       // verdict. Reading once more after the lease brackets that read: the
       // folder counts as private only when the location was the default both
-      // before and after the lease chose its path.
-      final stillDefault = !isCustom && !_isSet(await _configuredLocation());
+      // before and after the lease chose its path. Reads alone miss a location
+      // set and then cleared again around the lease, so the leased path must
+      // also be the default folder itself.
+      final isAppPrivate =
+          _defaultIsAppPrivate &&
+          !isCustom &&
+          !_isSet(await _configuredLocation()) &&
+          await _isDefaultPath(lease.path);
       return await body(
-        BackupsFolder(
-          path: lease.path,
-          isAppPrivate: stillDefault && _defaultIsAppPrivate,
-        ),
+        BackupsFolder(path: lease.path, isAppPrivate: isAppPrivate),
       );
     } finally {
       await lease.release();
@@ -143,6 +155,13 @@ class BackupsDirectoryAccess {
   }
 
   static Future<void> _noRelease() async {}
+
+  /// Whether [path] is the default folder, or true when there is no default
+  /// path to compare against.
+  Future<bool> _isDefaultPath(String path) async {
+    final defaultPath = _defaultPath;
+    return defaultPath == null || p.equals(path, await defaultPath());
+  }
 
   /// Whether [location] names a custom folder rather than the default.
   static bool _isSet(String? location) =>
