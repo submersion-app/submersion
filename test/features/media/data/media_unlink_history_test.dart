@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/enums.dart';
@@ -115,6 +115,49 @@ void main() {
     expect(await operationLabels(), [ChangeLogLabels.unlinkMedia]);
   });
 
+  /// Whether the History entry [label] is closed, read as the worker would
+  /// start: the drain must not run inside the entry.
+  Future<bool> entryClosed(String label) async {
+    final row = await db
+        .customSelect(
+          'SELECT closed FROM change_log_operations WHERE label = ?',
+          variables: [Variable.withString(label)],
+        )
+        .getSingleOrNull();
+    return row?.read<bool>('closed') ?? false;
+  }
+
+  /// [service] with the delete split from the media store's drain, as the
+  /// app wires it, recording whether the drain ran inside a History entry.
+  MediaUnlinkService draining(List<String> events) => MediaUnlinkService(
+    repository: media,
+    deleteMedia: (ids) async => events.add('draining delete'),
+    deleteMediaUndrained: (ids) async {
+      events.add('delete');
+      await MediaRepository().deleteMultipleMedia(ids);
+    },
+    drainDeletes: () async {
+      events.add(
+        ChangeLogScope.currentOperationId == null
+            ? 'drain outside the entry'
+            : 'drain inside the entry',
+      );
+    },
+    gearPhotos: GearPhotoRepository(),
+  );
+
+  test('the media store drains after the Unlink entry closes', () async {
+    await addMedia('m1', diveId: 'd1');
+    await clearLog();
+    final events = <String>[];
+
+    await draining(events).unlinkFromLibrary(['m1']);
+
+    expect(events, ['delete', 'drain outside the entry']);
+    expect(await entryClosed(ChangeLogLabels.unlinkMedia), isTrue);
+    expect(await operationLabels(), [ChangeLogLabels.unlinkMedia]);
+  });
+
   test('unlinking nothing writes no entry', () async {
     await clearLog();
 
@@ -153,6 +196,44 @@ void main() {
       expect(cover.coverMediaId, isNull);
       expect(File(kept).existsSync(), isTrue);
       expect(File(gone).existsSync(), isTrue);
+    });
+
+    test('the media store drains after the Remove entry closes', () async {
+      await addMedia('g1', equipmentId: regId);
+      await clearLog();
+      final events = <String>[];
+
+      await draining(events).removeGearPhotos(['g1']);
+
+      expect(events, ['delete', 'drain outside the entry']);
+      expect(await entryClosed(ChangeLogLabels.removeGearPhotos), isTrue);
+    });
+
+    test('a Remove that fails partway changes nothing', () async {
+      // The kept row's link is cleared before the delete runs, so without
+      // one transaction a failed delete would leave it half removed.
+      await addMedia('g1', diveId: 'd1', equipmentId: regId);
+      await addMedia('g2', equipmentId: regId);
+      await GearPhotoRepository().setCover(regId, 'g2');
+      final failing = MediaUnlinkService(
+        repository: media,
+        deleteMedia: (_) async => throw StateError('disk full'),
+        deleteMediaUndrained: (_) async => throw StateError('disk full'),
+        drainDeletes: () async {},
+        gearPhotos: GearPhotoRepository(),
+      );
+
+      await expectLater(
+        failing.removeGearPhotos(['g1', 'g2']),
+        throwsStateError,
+      );
+
+      expect((await media.getMediaById('g1'))!.equipmentId, regId);
+      expect(await media.getMediaById('g2'), isNotNull);
+      final item = await (db.select(
+        db.equipment,
+      )..where((t) => t.id.equals(regId))).getSingle();
+      expect(item.coverMediaId, 'g2');
     });
 
     test('the other unlink paths keep their History', () async {

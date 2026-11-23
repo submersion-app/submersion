@@ -62,6 +62,11 @@ final mediaUnlinkServiceProvider = Provider<MediaUnlinkService>((ref) {
     repository: ref.watch(mediaRepositoryProvider),
     deleteMedia: (ids) =>
         ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids),
+    deleteMediaUndrained: (ids) => ref
+        .read(mediaDeletionCoordinatorProvider)
+        .deleteMultipleMedia(ids, deferDrain: true),
+    drainDeletes: () =>
+        ref.read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
   );
 });
 

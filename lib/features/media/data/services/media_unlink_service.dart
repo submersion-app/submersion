@@ -77,6 +77,8 @@ class MediaUnlinkService {
   MediaUnlinkService({
     required this.repository,
     required this.deleteMedia,
+    this.deleteMediaUndrained,
+    this.drainDeletes,
     GearPhotoRepository? gearPhotos,
   }) : _gearPhotos = gearPhotos;
 
@@ -91,6 +93,13 @@ class MediaUnlinkService {
   /// so no cross-DB transaction exists and this ordering makes the only
   /// crash window harmless).
   final Future<void> Function(List<String> ids) deleteMedia;
+
+  /// [deleteMedia] without the media store's drain, for a delete filed as
+  /// one History entry: the worker's other transfers must not be filed
+  /// under it. [drainDeletes] runs once the entry has closed. Without
+  /// these, [deleteMedia] is used and nothing more is drained.
+  final Future<void> Function(List<String> ids)? deleteMediaUndrained;
+  final Future<void> Function()? drainDeletes;
 
   Future<UnlinkOutcome> unlinkFromDive(List<String> mediaIds) async {
     if (mediaIds.isEmpty) {
@@ -157,28 +166,39 @@ class MediaUnlinkService {
     await ChangeLogScope.bulk(
       DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.unlinkMedia,
-      body: () => deleteMedia(mediaIds),
+      body: () => (deleteMediaUndrained ?? deleteMedia)(mediaIds),
     );
+    await drainDeletes?.call();
   }
 
   /// The Media screen's Gear tab Remove: [unlinkFromEquipment] as one
-  /// labelled entry in History (issue #4527).
+  /// labelled entry in History (issue #4527), written in one transaction so
+  /// a delete that fails leaves no photo half removed.
   Future<EquipmentUnlinkOutcome> removeGearPhotos(List<String> mediaIds) async {
     if (mediaIds.isEmpty) {
       return const EquipmentUnlinkOutcome(deleted: 0, keptLinked: 0);
     }
-    return ChangeLogScope.bulk(
-      DatabaseService.instance.databaseOrNull,
+    final db = DatabaseService.instance.databaseOrNull;
+    Future<EquipmentUnlinkOutcome> work() =>
+        _unlinkFromEquipment(mediaIds, deleteMediaUndrained ?? deleteMedia);
+    final outcome = await ChangeLogScope.bulk(
+      db,
       label: ChangeLogLabels.removeGearPhotos,
-      body: () => unlinkFromEquipment(mediaIds),
+      body: () => db == null ? work() : db.transaction(work),
     );
+    await drainDeletes?.call();
+    return outcome;
   }
 
   /// The equipment twin of [unlinkFromSite]: rows a dive or site still
   /// references keep their row with the equipment link cleared, everything
   /// else leaves the library through the same destructive path.
-  Future<EquipmentUnlinkOutcome> unlinkFromEquipment(
+  Future<EquipmentUnlinkOutcome> unlinkFromEquipment(List<String> mediaIds) =>
+      _unlinkFromEquipment(mediaIds, deleteMedia);
+
+  Future<EquipmentUnlinkOutcome> _unlinkFromEquipment(
     List<String> mediaIds,
+    Future<void> Function(List<String> ids) delete,
   ) async {
     if (mediaIds.isEmpty) {
       return const EquipmentUnlinkOutcome(deleted: 0, keptLinked: 0);
@@ -188,7 +208,7 @@ class MediaUnlinkService {
       await repository.unlinkFromEquipment(split.keptIds);
     }
     if (split.deletable.isNotEmpty) {
-      await deleteMedia(split.deletable);
+      await delete(split.deletable);
     }
     await (_gearPhotos ?? GearPhotoRepository()).clearCoversNaming(mediaIds);
     return EquipmentUnlinkOutcome(
