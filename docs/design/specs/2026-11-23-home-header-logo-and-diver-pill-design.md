@@ -56,8 +56,9 @@ Logo (`_AboutLogo` and `HomeHeaderBar.logoSize`):
 - All distances below are to the drawn tile, as seen, not to its button.
   The tile sits centred in a 44 pt button, so 6 pt of each gap is the
   button's own padding.
-- The tile's edge sits 8 pt from the diver switcher (was 6 pt) and 12 pt
-  from the bar's end (was 10 pt).
+- The tile's edge sits 8 pt from the diver switcher and 12 pt from the
+  bar's end on every platform. Before, these were 6 and 10 pt on desktop,
+  and 8 and 12 pt on phones, where Material padded the button to 48 pt.
 - Bar height stays 48 pt, so the tile has about 8 pt above and below (the
   bar's 1 pt bottom border takes half a point of the lower gap).
 - Tap target stays at least 44 by 44 pt and still opens About Submersion.
@@ -73,7 +74,8 @@ Diver pill (`_DiverSwitcher`):
   jump; wider, the named pill is wider than 44 pt and the lights shift once
   when it arrives, as they already did with several profiles.
 - With no diver to show (loading failed, or none stored), the pill and its
-  placeholder both collapse, leaving no empty gap.
+  placeholder both collapse, leaving no empty gap. This includes a failure
+  Riverpod is still retrying, which it reports as loading with an error.
 - The name still shows only above phone width; phones show the avatar alone.
 - Tapping still opens `showDiverSwitcherSheet`.
 

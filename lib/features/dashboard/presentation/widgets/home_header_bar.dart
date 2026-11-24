@@ -64,9 +64,17 @@ class HomeHeaderBar extends ConsumerWidget {
   /// to the height of the pills and the switcher beside it.
   static const double logoSize = 32;
 
-  /// The logo's button, on every platform: the tile sits centred in it, so
-  /// (logoButton - logoSize) / 2 of each gap beside the tile is the button.
+  /// The logo's button, on every platform: the tile sits centred in it.
   static const double _logoButton = 44;
+
+  /// The part of each gap beside the tile that is the button's own padding.
+  static const double _logoInset = (_logoButton - logoSize) / 2;
+
+  /// Visible distance from the tile to the bar's end.
+  static const double _logoToEnd = 12;
+
+  /// Visible distance from the tile to the diver switcher.
+  static const double _logoToSwitcher = 8;
 
   static const Key switcherKey = ValueKey('home-header-switcher');
 
@@ -105,9 +113,12 @@ class HomeHeaderBar extends ConsumerWidget {
       child: Container(
         height: barHeight,
         // The + button's own 44-point target spaces it from the edge. At the
-        // end, 6 here and 6 inside the logo's button put the tile 12 points
-        // from the edge.
-        padding: const EdgeInsetsDirectional.only(start: 4, end: 6),
+        // end, this and the logo button's own inset put the tile
+        // _logoToEnd from the edge.
+        padding: const EdgeInsetsDirectional.only(
+          start: 4,
+          end: _logoToEnd - _logoInset,
+        ),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: theme.colorScheme.outlineVariant),
@@ -141,9 +152,10 @@ class HomeHeaderBar extends ConsumerWidget {
             // The diver's name shows above phone width: with the actions in
             // the + menu there is room for it, capped and ellipsized.
             _DiverSwitcher(showName: !phone),
-            // The logo closes the bar and opens About Submersion. 2 here and
-            // 6 inside its button put the tile 8 points from the switcher.
-            const SizedBox(width: 2),
+            // The logo closes the bar and opens About Submersion. This and
+            // its button's own inset put the tile _logoToSwitcher from the
+            // switcher.
+            const SizedBox(width: _logoToSwitcher - _logoInset),
             const _AboutLogo(),
           ],
         ),
@@ -264,9 +276,11 @@ class _DiverSwitcher extends ConsumerWidget {
     final diverAsync = ref.watch(dashboardDiverProvider);
     final Diver? diver = diverAsync.value;
     if (diver == null) {
-      // Hold the slot while the diver loads so a phone's bar does not jump;
-      // with no diver to show (failed or missing), leave no empty gap.
-      return diverAsync.isLoading
+      // Hold the slot while the diver first loads so a phone's bar does not
+      // jump. With no diver to show (failed or missing), leave no empty gap:
+      // Riverpod reports a failure it is retrying as loading with an error,
+      // for about 38 seconds, so a held slot would wait that out.
+      return diverAsync.isLoading && !diverAsync.hasError
           ? const SizedBox(width: 44, height: 44)
           : const SizedBox.shrink();
     }

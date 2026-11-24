@@ -161,9 +161,12 @@ void main() {
     expect(dividerToLogo(tester), closeTo(52, 0.5));
   });
 
-  // No diver to show: no empty, untappable slot left in the bar.
+  // No diver to show: no empty, untappable slot left in the bar. Riverpod
+  // retries an Exception (not an Error) for about 38 seconds, reporting it
+  // as loading the whole time; the slot must not wait that out.
   for (final (label, diver) in [
-    ('fails to load', () async => throw StateError('no database')),
+    ('fails with an Error', () async => throw StateError('no database')),
+    ('fails with an Exception', () async => throw Exception('db busy')),
     ('is missing', () async => null),
   ]) {
     testWidgets('no empty slot when the diver $label', (tester) async {
