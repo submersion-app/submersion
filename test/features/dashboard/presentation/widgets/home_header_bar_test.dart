@@ -78,7 +78,7 @@ int _gaugeBuilds = 0;
 Future<void> _pump(
   WidgetTester tester, {
   required double width,
-  int divers = 1,
+  Future<Diver?> Function()? diver,
   String name = 'Eric',
   Future<DashboardGauges> Function()? gauges,
   Locale locale = const Locale('en'),
@@ -112,8 +112,9 @@ Future<void> _pump(
           _gaugeBuilds++;
           return (gauges ?? () async => _mixedGauges)();
         }),
-        diverCountProvider.overrideWith((ref) async => divers),
-        dashboardDiverProvider.overrideWith((ref) async => _diver(name)),
+        dashboardDiverProvider.overrideWith(
+          (ref) => (diver ?? () async => _diver(name))(),
+        ),
         diverListNotifierProvider.overrideWith(
           (ref) => _StubDiverListNotifier([_diver(name)]),
         ),
@@ -141,7 +142,36 @@ void main() {
     await _pump(tester, width: 1280);
     expect(find.byKey(HomeHeaderBar.switcherKey), findsOneWidget);
     expect(find.text('Eric'), findsOneWidget);
+    expect(find.byTooltip('Switch Diver'), findsOneWidget);
   });
+
+  // The divider's distance to the logo (its padding is inside its rect)
+  // shows whether the switcher's slot is held: 2 + 6 = 8 without it, 52 with
+  // a 44-point slot between.
+  double dividerToLogo(WidgetTester tester) =>
+      tester.getRect(_logo).left -
+      tester.getRect(find.byKey(HomeHeaderBar.dividerKey)).right;
+
+  testWidgets('the switcher holds its slot while the diver loads', (
+    tester,
+  ) async {
+    final pending = Completer<Diver?>();
+    await _pump(tester, width: 1280, diver: () => pending.future);
+    expect(find.byKey(HomeHeaderBar.switcherKey), findsNothing);
+    expect(dividerToLogo(tester), closeTo(52, 0.5));
+  });
+
+  // No diver to show: no empty, untappable slot left in the bar.
+  for (final (label, diver) in [
+    ('fails to load', () async => throw StateError('no database')),
+    ('is missing', () async => null),
+  ]) {
+    testWidgets('no empty slot when the diver $label', (tester) async {
+      await _pump(tester, width: 1280, diver: diver);
+      expect(find.byKey(HomeHeaderBar.switcherKey), findsNothing);
+      expect(dividerToLogo(tester), closeTo(8, 0.5));
+    });
+  }
 
   testWidgets('phone: one diver shows the avatar alone', (tester) async {
     await _pump(tester, width: 400);
@@ -168,7 +198,7 @@ void main() {
   ]) {
     testWidgets('+ starts the bar, the lights follow, the logo ends it '
         '(${locale.languageCode})', (tester) async {
-      await _pump(tester, width: 1280, divers: 2, locale: locale);
+      await _pump(tester, width: 1280, locale: locale);
       expect(find.text('Submersion'), findsNothing);
       final bar = tester.getRect(find.byType(HomeHeaderBar));
       final plus = tester.getRect(_plus);
@@ -241,7 +271,7 @@ void main() {
         TargetPlatform.macOS,
       }),
       (tester) async {
-        await _pump(tester, width: 1280, divers: 2, locale: locale);
+        await _pump(tester, width: 1280, locale: locale);
         final bar = tester.getRect(find.byType(HomeHeaderBar));
         final logo = tester.getRect(_logo);
         final switcher = tester.getRect(find.byKey(HomeHeaderBar.switcherKey));
@@ -255,12 +285,6 @@ void main() {
       },
     );
   }
-
-  testWidgets('a switcher with two divers', (tester) async {
-    await _pump(tester, width: 1280, divers: 2);
-    expect(find.byKey(HomeHeaderBar.switcherKey), findsOneWidget);
-    expect(find.byTooltip('Switch Diver'), findsOneWidget);
-  });
 
   // The actions live in the logo's menu: the bar itself holds no buttons
   // for them, and no separate More menu.
@@ -277,7 +301,7 @@ void main() {
   });
 
   testWidgets('every control in the header has an action', (tester) async {
-    await _pump(tester, width: 1280, divers: 2);
+    await _pump(tester, width: 1280);
     final wells = tester.widgetList<InkWell>(
       find.descendant(
         of: find.byType(HomeHeaderBar),
@@ -374,7 +398,7 @@ void main() {
   // With the action buttons in the + menu the bar has room to name the
   // diver at any width above a phone's.
   testWidgets('tablet: the switcher names the diver', (tester) async {
-    await _pump(tester, width: 850, divers: 2);
+    await _pump(tester, width: 850);
     expect(
       find.descendant(
         of: find.byKey(HomeHeaderBar.switcherKey),
@@ -390,7 +414,6 @@ void main() {
     await _pump(
       tester,
       width: 800,
-      divers: 2,
       name: 'Bartholomew Maximilian Featherstonehaugh-Cholmondeley',
     );
     expect(tester.takeException(), isNull);
@@ -409,21 +432,18 @@ void main() {
     expect(_gaugeBuilds, greaterThan(before));
   });
 
-  for (final divers in [1, 2]) {
-    testWidgets('phone: every button is at least 44 by 44 with $divers '
-        'divers', (tester) async {
-      await _pump(tester, width: 390, divers: divers);
-      for (final finder in [
-        find.byTooltip('Quick actions'),
-        find.byTooltip('About Submersion'),
-        find.byKey(HomeHeaderBar.switcherKey),
-      ]) {
-        final size = tester.getSize(finder);
-        expect(size.width, greaterThanOrEqualTo(44), reason: '$finder');
-        expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
-      }
-    });
-  }
+  testWidgets('phone: every button is at least 44 by 44', (tester) async {
+    await _pump(tester, width: 390);
+    for (final finder in [
+      find.byTooltip('Quick actions'),
+      find.byTooltip('About Submersion'),
+      find.byKey(HomeHeaderBar.switcherKey),
+    ]) {
+      final size = tester.getSize(finder);
+      expect(size.width, greaterThanOrEqualTo(44), reason: '$finder');
+      expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
+    }
+  });
 
   // Desktop platforms default to compact visual density, which shrinks a
   // button's minimum size; the header's buttons keep 44 points there too.
@@ -503,7 +523,7 @@ void main() {
   ]) {
     testWidgets('a divider with a gap each side parts the lights from the '
         'switcher (${locale.languageCode})', (tester) async {
-      await _pump(tester, width: 820, divers: 2, locale: locale);
+      await _pump(tester, width: 820, locale: locale);
       // The rule itself, not the space either side of it.
       final divider = tester.getRect(
         find.descendant(
@@ -532,7 +552,6 @@ void main() {
     await _pump(
       tester,
       width: 1280,
-      divers: 2,
       gauges: () async => const DashboardGauges(
         hasGear: true,
         insurance: null,
@@ -546,12 +565,12 @@ void main() {
   });
 
   testWidgets('phone: no divider, the lights sit in the strip', (tester) async {
-    await _pump(tester, width: 400, divers: 2);
+    await _pump(tester, width: 400);
     expect(find.byKey(HomeHeaderBar.dividerKey), findsNothing);
   });
 
   testWidgets('overflowing lights fade at the end, not clip', (tester) async {
-    await _pump(tester, width: 820, divers: 2, textScale: 2);
+    await _pump(tester, width: 820, textScale: 2);
     final scroller = find.descendant(
       of: find.byType(HomeHeaderBar),
       matching: find.byType(HomeLightsScroller),
@@ -586,13 +605,7 @@ void main() {
   testWidgets('German at text scale 2 fits the bar at 800 wide', (
     tester,
   ) async {
-    await _pump(
-      tester,
-      width: 800,
-      divers: 2,
-      locale: const Locale('de'),
-      textScale: 2,
-    );
+    await _pump(tester, width: 800, locale: const Locale('de'), textScale: 2);
     expect(tester.takeException(), isNull);
   });
 

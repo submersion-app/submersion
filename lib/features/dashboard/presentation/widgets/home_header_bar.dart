@@ -261,8 +261,15 @@ class _DiverSwitcher extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // `value`, not the valueOrNull polyfill: a switch reloads the diver, and
     // `value` keeps the previous one until the next has loaded.
-    final Diver? diver = ref.watch(dashboardDiverProvider).value;
-    if (diver == null) return const SizedBox(width: 44, height: 44);
+    final diverAsync = ref.watch(dashboardDiverProvider);
+    final Diver? diver = diverAsync.value;
+    if (diver == null) {
+      // Hold the slot while the diver loads so a phone's bar does not jump;
+      // with no diver to show (failed or missing), leave no empty gap.
+      return diverAsync.isLoading
+          ? const SizedBox(width: 44, height: 44)
+          : const SizedBox.shrink();
+    }
     final theme = Theme.of(context);
     final label = context.l10n.settings_profileHub_switchDiver;
     return Tooltip(

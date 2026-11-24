@@ -69,7 +69,11 @@ Diver pill (`_DiverSwitcher`):
 - Shown with any number of profiles. The `diverCountProvider` check, and its
   "unknown counts as one" loading guess, go away.
 - While the active diver loads, the existing 44 pt placeholder holds the
-  space, so the bar does not jump.
+  space. On a phone that matches the loaded avatar, so the bar does not
+  jump; wider, the named pill is wider than 44 pt and the lights shift once
+  when it arrives, as they already did with several profiles.
+- With no diver to show (loading failed, or none stored), the pill and its
+  placeholder both collapse, leaving no empty gap.
 - The name still shows only above phone width; phones show the avatar alone.
 - Tapping still opens `showDiverSwitcherSheet`.
 
