@@ -60,9 +60,14 @@ class HomeHeaderBar extends ConsumerWidget {
   /// Height of the bar's content. Tall enough for 44-point hit areas.
   static const double barHeight = 48;
 
-  /// The app icon at the end of the bar, which opens About Submersion: the
-  /// largest that leaves the bar a few points above and below it.
-  static const double logoSize = 40;
+  /// The app icon at the end of the bar, which opens About Submersion: small
+  /// enough to leave about 8 points of the bar above and below it, and close
+  /// to the height of the pills and the switcher beside it.
+  static const double logoSize = 32;
+
+  /// The logo's button, on every platform: the tile sits centred in it, so
+  /// (logoButton - logoSize) / 2 of each gap beside the tile is the button.
+  static const double _logoButton = 44;
 
   static const Key switcherKey = ValueKey('home-header-switcher');
 
@@ -100,8 +105,10 @@ class HomeHeaderBar extends ConsumerWidget {
       color: theme.colorScheme.surface,
       child: Container(
         height: barHeight,
-        // The + button's own 44-point target spaces it from the edge.
-        padding: const EdgeInsetsDirectional.only(start: 4, end: 8),
+        // The + button's own 44-point target spaces it from the edge. At the
+        // end, 6 here and 6 inside the logo's button put the tile 12 points
+        // from the edge.
+        padding: const EdgeInsetsDirectional.only(start: 4, end: 6),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: theme.colorScheme.outlineVariant),
@@ -135,8 +142,9 @@ class HomeHeaderBar extends ConsumerWidget {
             // The diver's name shows above phone width: with the actions in
             // the + menu there is room for it, capped and ellipsized.
             _DiverSwitcher(showName: !phone),
-            // The logo closes the bar and opens About Submersion.
-            const SizedBox(width: 4),
+            // The logo closes the bar and opens About Submersion. 2 here and
+            // 6 inside its button put the tile 8 points from the switcher.
+            const SizedBox(width: 2),
             const _AboutLogo(),
           ],
         ),
@@ -218,15 +226,20 @@ class _AboutLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // An icon button, as the + is: one node that a screen reader names by
-    // the tooltip and can tap.
+    // the tooltip and can tap. Shrink-wrapped so the button is 44 on every
+    // platform: Material pads targets to 48 on mobile, which would move the
+    // tile 2 points closer to its neighbours there than on desktop.
     return IconButton(
       tooltip: context.l10n.settings_about_aboutSubmersion,
       onPressed: () => showAboutSubmersion(context),
       padding: EdgeInsets.zero,
       iconSize: HomeHeaderBar.logoSize,
-      style: IconButton.styleFrom(minimumSize: const Size.square(44)),
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(HomeHeaderBar._logoButton),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       icon: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         child: Image.asset(
           'assets/icon/icon.png',
           width: HomeHeaderBar.logoSize,

@@ -174,23 +174,46 @@ void main() {
   });
 
   for (final width in [400.0, 1280.0]) {
-    testWidgets('the logo is 40 points and fits the bar at $width wide', (
-      tester,
-    ) async {
+    testWidgets('the logo is 32 points with room above and below at $width '
+        'wide', (tester) async {
       await _pump(tester, width: width);
-      final logo = find.byWidgetPredicate(
-        (w) =>
-            w is Image &&
-            w.image is AssetImage &&
-            (w.image as AssetImage).assetName == 'assets/icon/icon.png',
-      );
-      expect(logo, findsOneWidget);
-      expect(tester.getSize(logo), const Size(40, 40));
+      expect(_logo, findsOneWidget);
+      expect(tester.getSize(_logo), const Size(32, 32));
       final bar = tester.getRect(find.byType(HomeHeaderBar));
-      final logoRect = tester.getRect(logo);
-      expect(logoRect.top, greaterThanOrEqualTo(bar.top));
-      expect(logoRect.bottom, lessThanOrEqualTo(bar.bottom));
+      final logo = tester.getRect(_logo);
+      expect(logo.top - bar.top, greaterThanOrEqualTo(7));
+      expect(bar.bottom - logo.bottom, greaterThanOrEqualTo(7));
     });
+  }
+
+  // Measured to the drawn tile, not its button: 12 from the bar's end and 8
+  // from the switcher, mirrored in a right-to-left language. Material pads
+  // tap targets to 48 on mobile and not on desktop, so both are checked.
+  for (final (locale, rtl) in [
+    (const Locale('en'), false),
+    (const Locale('he'), true),
+  ]) {
+    testWidgets(
+      'the logo sits 8 from the switcher and 12 from the end '
+      '(${locale.languageCode})',
+      variant: TargetPlatformVariant(const {
+        TargetPlatform.android,
+        TargetPlatform.macOS,
+      }),
+      (tester) async {
+        await _pump(tester, width: 1280, divers: 2, locale: locale);
+        final bar = tester.getRect(find.byType(HomeHeaderBar));
+        final logo = tester.getRect(_logo);
+        final switcher = tester.getRect(find.byKey(HomeHeaderBar.switcherKey));
+        if (rtl) {
+          expect(logo.left - bar.left, closeTo(12, 0.5));
+          expect(switcher.left - logo.right, closeTo(8, 0.5));
+        } else {
+          expect(bar.right - logo.right, closeTo(12, 0.5));
+          expect(logo.left - switcher.right, closeTo(8, 0.5));
+        }
+      },
+    );
   }
 
   testWidgets('a switcher with two divers', (tester) async {
