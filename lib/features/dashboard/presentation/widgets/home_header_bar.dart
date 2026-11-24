@@ -13,7 +13,6 @@ import 'package:submersion/features/dashboard/presentation/widgets/home_status_l
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/about_submersion.dart';
@@ -51,8 +50,8 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
 /// Home's slim header: a + button at the leading edge for the quick actions
 /// (logging and planning a dive, the buddy swap and the emergency card), the
 /// status lights after it (tablet and up) and a divider while there are
-/// lights to part, the diver switcher with more than one diver profile, and
-/// the logo (no wordmark) closing the bar, which opens About Submersion.
+/// lights to part, the diver switcher, and the logo (no wordmark) closing
+/// the bar, which opens About Submersion.
 /// Every control has at least a 44 by 44 hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
@@ -251,8 +250,8 @@ class _AboutLogo extends StatelessWidget {
   }
 }
 
-/// The active diver as a small avatar pill that opens the switcher. Absent
-/// with a single profile: there is nothing to switch to.
+/// The active diver as a small avatar pill that opens the switcher. Shown
+/// with a single profile too: the sheet then offers a new profile.
 class _DiverSwitcher extends ConsumerWidget {
   final bool showName;
 
@@ -260,10 +259,6 @@ class _DiverSwitcher extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Unknown (still loading) counts as one: most divers have one profile,
-    // and the bar must not jump.
-    final count = ref.watch(diverCountProvider).value ?? 1;
-    if (count < 2) return const SizedBox.shrink();
     // `value`, not the valueOrNull polyfill: a switch reloads the diver, and
     // `value` keeps the previous one until the next has loaded.
     final Diver? diver = ref.watch(dashboardDiverProvider).value;

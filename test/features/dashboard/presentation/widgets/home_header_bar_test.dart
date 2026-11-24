@@ -12,6 +12,7 @@ import 'package:submersion/features/dashboard/presentation/widgets/home_header_b
 import 'package:submersion/features/dashboard/presentation/widgets/home_light_chip.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_lights_scroller.dart';
 import 'package:submersion/features/settings/presentation/widgets/submersion_about_dialog.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -42,6 +43,24 @@ Diver _diver(String name) => Diver(
   createdAt: DateTime(2020),
   updatedAt: DateTime(2020),
 );
+
+/// The switcher sheet's list, without a database behind it.
+class _StubDiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>>
+    implements DiverListNotifier {
+  _StubDiverListNotifier(List<Diver> divers) : super(AsyncValue.data(divers));
+
+  @override
+  Future<void> refresh() async {}
+  @override
+  Future<Diver> addDiver(Diver diver) async => diver;
+  @override
+  Future<void> updateDiver(Diver diver) async {}
+  @override
+  Future<DeleteDiverResult> deleteDiver(String id) async =>
+      const DeleteDiverResult(reassignedTripsCount: 0, reassignedSitesCount: 0);
+  @override
+  Future<void> setAsDefault(String id) async {}
+}
 
 /// The app icon in the bar.
 final _logo = find.byWidgetPredicate(
@@ -95,6 +114,9 @@ Future<void> _pump(
         }),
         diverCountProvider.overrideWith((ref) async => divers),
         dashboardDiverProvider.overrideWith((ref) async => _diver(name)),
+        diverListNotifierProvider.overrideWith(
+          (ref) => _StubDiverListNotifier([_diver(name)]),
+        ),
       ].cast(),
       child: MaterialApp.router(
         locale: locale,
@@ -115,9 +137,27 @@ Future<void> _pump(
 }
 
 void main() {
-  testWidgets('no switcher with one diver', (tester) async {
+  testWidgets('a switcher with one diver', (tester) async {
     await _pump(tester, width: 1280);
-    expect(find.byKey(HomeHeaderBar.switcherKey), findsNothing);
+    expect(find.byKey(HomeHeaderBar.switcherKey), findsOneWidget);
+    expect(find.text('Eric'), findsOneWidget);
+  });
+
+  testWidgets('phone: one diver shows the avatar alone', (tester) async {
+    await _pump(tester, width: 400);
+    expect(find.byKey(HomeHeaderBar.switcherKey), findsOneWidget);
+    expect(find.text('Eric'), findsNothing);
+  });
+
+  // The sheet is no dead end with a single profile: it offers a new one.
+  testWidgets('one diver: the switcher opens the sheet with Add New Diver', (
+    tester,
+  ) async {
+    await _pump(tester, width: 1280);
+    await tester.tap(find.byKey(HomeHeaderBar.switcherKey));
+    await tester.pumpAndSettle();
+    expect(find.text('Switch Diver'), findsOneWidget);
+    expect(find.text('Add New Diver'), findsOneWidget);
   });
 
   // The logo stands alone at the end of the bar, after every control, and
@@ -196,7 +236,7 @@ void main() {
     testWidgets(
       'the logo sits 8 from the switcher and 12 from the end '
       '(${locale.languageCode})',
-      variant: TargetPlatformVariant(const {
+      variant: const TargetPlatformVariant({
         TargetPlatform.android,
         TargetPlatform.macOS,
       }),
@@ -369,18 +409,21 @@ void main() {
     expect(_gaugeBuilds, greaterThan(before));
   });
 
-  testWidgets('phone: every button is at least 44 by 44', (tester) async {
-    await _pump(tester, width: 390, divers: 2);
-    for (final finder in [
-      find.byTooltip('Quick actions'),
-      find.byTooltip('About Submersion'),
-      find.byKey(HomeHeaderBar.switcherKey),
-    ]) {
-      final size = tester.getSize(finder);
-      expect(size.width, greaterThanOrEqualTo(44), reason: '$finder');
-      expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
-    }
-  });
+  for (final divers in [1, 2]) {
+    testWidgets('phone: every button is at least 44 by 44 with $divers '
+        'divers', (tester) async {
+      await _pump(tester, width: 390, divers: divers);
+      for (final finder in [
+        find.byTooltip('Quick actions'),
+        find.byTooltip('About Submersion'),
+        find.byKey(HomeHeaderBar.switcherKey),
+      ]) {
+        final size = tester.getSize(finder);
+        expect(size.width, greaterThanOrEqualTo(44), reason: '$finder');
+        expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
+      }
+    });
+  }
 
   // Desktop platforms default to compact visual density, which shrinks a
   // button's minimum size; the header's buttons keep 44 points there too.
