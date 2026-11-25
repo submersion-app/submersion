@@ -33616,7 +33616,7 @@
   "media_species_listLocked": "Unlock to add or dismiss",
   "media_labels_action": "Species labels",
   "media_labels_names": "Show names",
-  "@media_labels_names": {"description": "Labels menu in the media viewer (issue #5023): draw a name label on each animal the app can name or the diver tagged. One of three choices for what is drawn over the photo or video; say what it shows, not just 'Names'."},
+  "@media_labels_names": {"description": "Labels menu in the media viewer (issue #5023): draw a name label on each animal the app can name or the diver tagged (an unnamed one may still get a small dot). One of three choices for what is drawn over the photo or video; say what it shows, not just 'Names'."},
   "media_labels_allLife": "Show all animals",
   "@media_labels_allLife": {"description": "Labels menu in the media viewer (issue #5023): draw the name labels, plus a dot on every other animal found. 'Animals' means the creatures detected in the photo, not 'all of life' or 'a lifetime'."},
   "media_labels_off": "Hide labels",

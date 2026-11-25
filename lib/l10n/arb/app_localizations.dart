@@ -87931,7 +87931,7 @@ abstract class AppLocalizations {
   /// **'Species labels'**
   String get media_labels_action;
 
-  /// Labels menu in the media viewer (issue #5023): draw a name label on each animal the app can name or the diver tagged. One of three choices for what is drawn over the photo or video; say what it shows, not just 'Names'.
+  /// Labels menu in the media viewer (issue #5023): draw a name label on each animal the app can name or the diver tagged (an unnamed one may still get a small dot). One of three choices for what is drawn over the photo or video; say what it shows, not just 'Names'.
   ///
   /// In en, this message translates to:
   /// **'Show names'**
