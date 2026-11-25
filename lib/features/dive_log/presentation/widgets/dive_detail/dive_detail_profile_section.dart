@@ -75,6 +75,11 @@ class DiveChartInputs extends Equatable {
 /// Flutter skips the subtree. This is the most expensive part of the page, and
 /// little that changes on it concerns the chart.
 class DiveDetailProfileSection extends ConsumerWidget {
+  /// The card's padding: narrower at the sides than other cards' 12 px, so
+  /// the chart gets the width (issue #5013). The pinned strip squashes this
+  /// same card, so it follows.
+  static const EdgeInsets cardPadding = EdgeInsets.fromLTRB(6, 12, 6, 12);
+
   const DiveDetailProfileSection({
     super.key,
     required this.diveId,
@@ -274,7 +279,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     Widget card(Widget child) => editing != null
         ? child
         : Card(
-            child: Padding(padding: const EdgeInsets.all(12), child: child),
+            child: Padding(padding: cardPadding, child: child),
           );
     return ProfileLegendSnapshotScope(
       child: card(
