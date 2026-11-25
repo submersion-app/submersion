@@ -88,7 +88,7 @@
 
 **Files:**
 - Modify: `lib/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart:279-282`
-- Test: `test/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section_padding_test.dart`
+- Test: `test/features/dive_log/presentation/pages/dive_detail_profile_card_padding_test.dart`
 
 **Interfaces:**
 - Produces: `static const EdgeInsets cardPadding = EdgeInsets.fromLTRB(6, 12, 6, 12)` on `DiveDetailProfileSection`.

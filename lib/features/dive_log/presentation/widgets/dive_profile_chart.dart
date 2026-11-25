@@ -3829,7 +3829,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// selector interaction, not a chart double-tap.
   bool _inRightAxisSelector(Offset localPosition, Size box) =>
       _rightAxisSelectorActive &&
-      localPosition.dx >= box.width - 50 &&
+      // The same strip as the selector's tap target: the right axis's gutter
+      // alone, so a tap on the plot beside it still reaches the plot.
+      localPosition.dx >=
+          box.width -
+              DiveProfileChart.plotRightInset(box.width, hasRightAxis: true) &&
       localPosition.dy <= box.height - 30;
 
   // Arena outcome callbacks from ChartTouchClaimRecognizer. Only event

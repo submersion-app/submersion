@@ -45,6 +45,7 @@ void main() {
     bool temperature = true,
     ProfileRightAxisMetric? rightAxis = ProfileRightAxisMetric.temperature,
     TextDirection textDirection = TextDirection.ltr,
+    void Function(int seconds, double? depth)? onAnnotationPlaced,
   }) async {
     tester.view.physicalSize = Size(width + 100, 600);
     tester.view.devicePixelRatio = 1;
@@ -57,6 +58,8 @@ void main() {
           ),
         ],
         child: MaterialApp(
+          // The captions and tick labels asserted here are the English ones.
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -69,6 +72,8 @@ void main() {
                   child: DiveProfileChart(
                     profile: _profile(temperature: temperature),
                     meanDepthCurve: List.generate(41, (i) => i * 0.4),
+                    annotationPlacement: onAnnotationPlaced != null,
+                    onAnnotationPlaced: onAnnotationPlaced,
                   ),
                 ),
               ),
@@ -201,6 +206,22 @@ void main() {
     final right = tester.getRect(find.byKey(ProfileAxisCaptions.rightKey));
     expect(left.left, closeTo(chart.left, 0.5));
     expect(right.right, closeTo(chart.right, 0.5));
+  });
+
+  testWidgets('a tap in the plot beside the narrower gutter still lands', (
+    tester,
+  ) async {
+    // The right gutter is 39 px now, not the old 50: a tap 45 px from the
+    // right edge is on the plot and must place, not count as the axis menu.
+    final placed = <int>[];
+    await pumpChart(
+      tester,
+      onAnnotationPlaced: (seconds, _) => placed.add(seconds),
+    );
+    final chart = tester.getRect(find.byType(LineChart).first);
+    await tester.tapAt(Offset(chart.right - 45, chart.center.dy));
+    await tester.pump();
+    expect(placed, hasLength(1));
   });
 
   test('plot insets drop the axis-name strip', () {
