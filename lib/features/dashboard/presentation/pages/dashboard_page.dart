@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
+import 'package:submersion/features/dashboard/presentation/home_header_style.dart';
 import 'package:submersion/features/dashboard/presentation/home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/home_presets.dart';
@@ -30,12 +31,16 @@ import 'package:submersion/features/dashboard/presentation/providers/gauge_provi
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_banner_row.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/home_species_banner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -132,6 +137,14 @@ class DashboardPage extends ConsumerWidget {
     ];
     final tier = homeWidthTierOf(context);
     final rows = packHomeRows(visible, tier);
+    // The header the diver chose for this width (issue #5003), saved on the
+    // device: the welcome banner scrolls with the page above a pinned row of
+    // quick actions and lights; the compact bar stays above the scroll view.
+    final banner =
+        ref.watch(
+          settingsProvider.select((s) => homeHeaderStyleFor(s, tier)),
+        ) ==
+        HomeHeaderStyle.banner;
     final noDives = ref.watch(diveStatisticsProvider).value?.totalDives == 0;
 
     double rowHeight(HomeRow row) =>
@@ -147,8 +160,7 @@ class DashboardPage extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const HomeHeaderBar(),
-            const HomeStatusStrip(),
+            if (!banner) ...[const HomeHeaderBar(), const HomeStatusStrip()],
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async => _refresh(ref),
@@ -156,6 +168,18 @@ class DashboardPage extends ConsumerWidget {
                   slivers: [
                     // Demo mode's way out heads the page (issue #4436).
                     const SliverToBoxAdapter(child: DemoModeDashboardCard()),
+                    if (banner) ...[
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+                          child: HeroHeader(),
+                        ),
+                      ),
+                      const SliverPersistentHeader(
+                        pinned: true,
+                        delegate: HomeBannerRowDelegate(),
+                      ),
+                    ],
                     // The species model offer, for a diver who would
                     // otherwise never hear of it (issue #4881).
                     const SliverToBoxAdapter(child: HomeSpeciesBanner()),
@@ -225,6 +249,10 @@ class DashboardPage extends ConsumerWidget {
   /// Everything Home reads, so a pull to refresh reloads all of it.
   void _refresh(WidgetRef ref) {
     ref.invalidate(diveStatisticsProvider);
+    // The welcome banner's totals and countries.
+    ref.invalidate(careerTotalsProvider);
+    ref.invalidate(logbookDiveCountsProvider);
+    ref.invalidate(homeCountriesVisitedProvider);
     ref.invalidate(recentDivesProvider);
     ref.invalidate(dashboardGaugesProvider);
     ref.invalidate(daysSinceLastDiveProvider);
