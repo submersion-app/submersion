@@ -115,20 +115,15 @@ void main() {
   ) async {
     await pumpChart(tester);
 
-    // fl_chart reserves the axis-name band (16, its default axisNameSize)
-    // plus the tick gutter for the left axis, then lays the plot out inside
-    // its 1 px border (the border Container pads its child by the border
-    // width); the plot rect starts there.
-    const plotLeft = 16 + 32 + 1.0;
+    // fl_chart reserves the tick gutter for the left axis (no axis-name band
+    // since the units moved to captions, issue #5013), then lays the plot out
+    // inside its 1 px border (the border Container pads its child by the
+    // border width); the plot rect starts there.
+    const plotLeft = 32 + 1.0;
     expect(DiveProfileChart.leftAxisSize(chartWidth), 32);
     expect(
       handleX(tester, RangeSelectionOverlay.startHandleKey),
       closeTo(plotLeft, 0.5),
-    );
-    // The old placement (tick gutter + 5) sat 11 px inside the axis labels.
-    expect(
-      handleX(tester, RangeSelectionOverlay.startHandleKey),
-      greaterThan(DiveProfileChart.leftAxisSize(chartWidth) + 5),
     );
   });
 

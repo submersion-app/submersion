@@ -77,6 +77,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_event_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_highlight_range.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_axis_captions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/counterdiffusion_overlay.dart';
 import 'package:submersion/features/dive_log/domain/entities/counterdiffusion_analysis.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
@@ -435,9 +436,6 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Short and instant findings inflate to this so they stay visible.
   static const double _minHighlightBandPx = 12.0;
 
-  /// fl_chart default axisNameSize used for left and right axes.
-  static const double _leftRightAxisNameSize = 16.0;
-
   /// Width of the border fl_chart draws around the plot. fl_chart lays the
   /// plot out inside it, so it counts toward the plot insets.
   static const double _plotBorderWidth = 1.0;
@@ -638,18 +636,21 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Width from the chart's left edge to the plot, for something laid out to
   /// line up with the plot's time axis at the default zoom.
   static double plotLeftInset(double availableWidth) =>
-      _leftRightAxisNameSize + leftAxisSize(availableWidth) + _plotBorderWidth;
+      leftAxisSize(availableWidth) + _plotBorderWidth;
 
   /// The same from the right edge. fl_chart reserves the gutter only while
   /// the right axis shows a metric.
   static double plotRightInset(
     double availableWidth, {
     required bool hasRightAxis,
-  }) =>
-      (hasRightAxis
-          ? _leftRightAxisNameSize + rightAxisSize(availableWidth)
-          : 0) +
-      _plotBorderWidth;
+  }) => (hasRightAxis ? rightAxisSize(availableWidth) : 0) + _plotBorderWidth;
+
+  /// Gap between a tick label and the plot. A narrow chart's gutters are
+  /// tight, so the gap closes there: at the default 8 px a 3-digit depth in
+  /// feet ("100") was clipped to "10" in the 28 px left gutter, and a 4-digit
+  /// psi tick did not fit the 32 px right one (issue #5013).
+  static double tickLabelGap(double availableWidth) =>
+      availableWidth < 350 ? 4.0 : 8.0;
 
   /// Builds the label for a tank's pressure row in the profile tooltip,
   /// appending the gas type when the tank is known, e.g. "Tank 1 (EAN32)".
@@ -2961,17 +2962,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // same reason as in _buildChart -- so the plot rect (and so the gesture math
     // keyed on it) never disagrees with what the axis is showing this frame.
     // Still ref.read: this runs from gesture callbacks too, outside build.
-    final preferredMetric = _preferredRightAxisMetric;
-    final effectiveRightAxisMetric =
-        _hoverRightAxisMetric ??
-        (preferredMetric != null
-            ? _getEffectiveRightAxisMetric(preferredMetric)
-            : null);
-    final rightAxisRange = effectiveRightAxisMetric != null
-        ? _getMetricRange(effectiveRightAxisMetric, units)
-        : null;
-    final hasRightAxisName =
-        effectiveRightAxisMetric != null && rightAxisRange != null;
+    final hasRightAxis = _shownRightAxisMetric(units) != null;
 
     const border = DiveProfileChart._plotBorderWidth;
     return (
@@ -2982,7 +2973,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // right-axis metric the plot rect runs to the chart's border.
       right: DiveProfileChart.plotRightInset(
         availableWidth,
-        hasRightAxis: hasRightAxisName,
+        hasRightAxis: hasRightAxis,
       ),
       bottom:
           DiveProfileChart._bottomAxisNameSize +
@@ -3373,10 +3364,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Left axis offset = axisNameSize + sideTitles reservedSize
-        final legendLeftPadding =
-            DiveProfileChart._leftRightAxisNameSize +
-            DiveProfileChart.leftAxisSize(constraints.maxWidth);
+        // The left axis's tick gutter, so the legend starts over the plot.
+        final legendLeftPadding = DiveProfileChart.leftAxisSize(
+          constraints.maxWidth,
+        );
 
         // The chart with gesture handling, on its own layer so a pan frame
         // repaints the plot alone. exportKey, when given, names this boundary
@@ -3421,6 +3412,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ],
               ),
 
+            // The axes' units, over their tick columns. They follow the
+            // right axis as hover switches it, which repaints the plot alone,
+            // so they listen to the same tick the plot does.
+            ValueListenableBuilder<int>(
+              valueListenable: _plotPointerTick,
+              builder: (context, _, _) => _axisCaptions(units),
+            ),
+
             // Fill bounded parents (e.g. fullscreen); keep the 200px default
             // in unbounded contexts such as inline scroll views. The zoom
             // hint and the plot share a Stack (not separate Column children)
@@ -3438,6 +3437,43 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         );
       },
     );
+  }
+
+  /// The unit captions above the tick columns (issue #5013): the depth unit
+  /// on the left, and the right axis's unit in its colour while it shows a
+  /// metric.
+  Widget _axisCaptions(UnitFormatter units) {
+    final metric = _shownRightAxisMetric(units);
+    return ProfileAxisCaptions(
+      leftCaption: units.depthSymbol,
+      rightCaption: metric == null
+          ? null
+          : rightAxisUnitCaption(metric, units, context.l10n),
+      rightColor: metric == null
+          ? null
+          : _palette.rightAxisColor(metric, singleTank: _isSingleTankDive),
+      onRightTap: metric == null || widget.depthAndPressureOnly
+          ? null
+          : () => _showRightAxisMetricSelector(
+              context,
+              Theme.of(context).colorScheme,
+              metric,
+            ),
+    );
+  }
+
+  /// The metric the right axis shows this frame, or null when it shows none:
+  /// the hovered line's metric first, then the diver's choice, and only while
+  /// that metric has a range to draw (the same rule fl_chart's titles follow).
+  ProfileRightAxisMetric? _shownRightAxisMetric(UnitFormatter units) {
+    final preferredMetric = _preferredRightAxisMetric;
+    final metric =
+        _hoverRightAxisMetric ??
+        (preferredMetric != null
+            ? _getEffectiveRightAxisMetric(preferredMetric)
+            : null);
+    if (metric == null || _getMetricRange(metric, units) == null) return null;
+    return metric;
   }
 
   /// Stacks the zoom hint behind [plot] instead of laying it out below as a
@@ -4647,13 +4683,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ),
             ),
             titlesData: FlTitlesData(
+              // No axis names on the sides: the units sit in the caption row
+              // above the plot instead (issue #5013).
               leftTitles: AxisTitles(
-                axisNameWidget: Text(
-                  context.l10n.diveLog_profile_axisDepth(units.depthSymbol),
-                  style: Theme.of(context).textTheme.labelSmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: DiveProfileChart.leftAxisSize(availableWidth),
@@ -4667,6 +4699,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     }
                     return SideTitleWidget(
                       meta: meta,
+                      space: DiveProfileChart.tickLabelGap(availableWidth),
                       child: Text(
                         depthTickLabel(value),
                         style: Theme.of(context).textTheme.labelSmall,
@@ -4724,20 +4757,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ),
               ),
               rightTitles: AxisTitles(
-                axisNameWidget:
-                    effectiveRightAxisMetric != null && rightAxisRange != null
-                    ? Text(
-                        _rightAxisLabel(effectiveRightAxisMetric, units),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: _palette.rightAxisColor(
-                            effectiveRightAxisMetric,
-                            singleTank: _isSingleTankDive,
-                          ),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    : null,
                 sideTitles: SideTitles(
                   showTitles:
                       effectiveRightAxisMetric != null &&
@@ -4790,6 +4809,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     );
                     return SideTitleWidget(
                       meta: meta,
+                      space: DiveProfileChart.tickLabelGap(availableWidth),
                       child: Text(
                         label,
                         style: Theme.of(
@@ -5328,7 +5348,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             right: 0,
             top: 0,
             bottom: 30, // Leave space for bottom axis
-            width: 50, // Match reservedSize of right axis
+            // The right axis's gutter alone: any wider and the target would
+            // reach into the plot and take its scrub touches.
+            width: DiveProfileChart.plotRightInset(
+              availableWidth,
+              hasRightAxis: true,
+            ),
             child: Semantics(
               button: true,
               label: context.l10n.diveLog_profile_semantics_changeRightAxis,
@@ -8193,10 +8218,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ascentRateAxisRange: _ascentRateAxisRange,
     ),
   );
-
-  /// Build axis label text for the right axis (e.g. "Temp (°C)").
-  String _rightAxisLabel(ProfileRightAxisMetric metric, UnitFormatter units) =>
-      rightAxisLabel(metric, units, context.l10n);
 }
 
 /// Compact version of the dive profile chart for list previews

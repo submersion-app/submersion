@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_l
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_axis_captions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_bar_overlay.dart';
@@ -5117,7 +5118,10 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.textContaining('Rate ('), findsOneWidget);
+        expect(
+          tester.widget<Text>(find.byKey(ProfileAxisCaptions.rightKey)).data,
+          'm/min',
+        );
       },
     );
   });

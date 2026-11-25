@@ -15,6 +15,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_axis_captions.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -208,7 +209,10 @@ void main() {
     overlays.value = [_overlay(30)];
     await _pumpChart(tester, profile: _profile(null), overlays: overlays);
 
-    expect(find.text('Temp (°C)'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(ProfileAxisCaptions.rightKey)).data,
+      '°C',
+    );
     expect(
       _axisReadingAt(tester, _flatLineY(tester, dashed: true)),
       closeTo(30, 0.1),
@@ -252,7 +256,10 @@ void main() {
         tankPressures: {'a': _tank('a', 0)},
       );
 
-      expect(find.text('Temp (°C)'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(ProfileAxisCaptions.rightKey)).data,
+        '°C',
+      );
     });
 
     testWidgets('a threshold marker sits on the line at its own pressure', (

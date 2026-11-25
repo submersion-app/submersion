@@ -202,37 +202,6 @@ bool hasDataForMetric(
   }
 }
 
-/// Build axis label text for the right axis (e.g. "Temp (°C)").
-String rightAxisLabel(
-  ProfileRightAxisMetric metric,
-  UnitFormatter units,
-  AppLocalizations l10n,
-) {
-  final name = profileMetricShortName(l10n, metric);
-  final perMin = l10n.units_profileMetric_min;
-  switch (metric) {
-    case ProfileRightAxisMetric.temperature:
-      return '$name (${units.temperatureSymbol})';
-    case ProfileRightAxisMetric.pressure:
-      return '$name (${units.pressureSymbol})';
-    case ProfileRightAxisMetric.meanDepth:
-      return '$name (${units.depthSymbol})';
-    case ProfileRightAxisMetric.sac:
-      return '$name (${units.pressureSymbol}/$perMin)';
-    case ProfileRightAxisMetric.ascentRate:
-      return '$name (${units.depthSymbol}/$perMin)';
-    case ProfileRightAxisMetric.buoyancy:
-    case ProfileRightAxisMetric.aveloBuoyancy:
-      return '$name (${units.weightSymbol})';
-    case ProfileRightAxisMetric.computerRmv:
-      return '$name (${units.rmvSymbol})';
-    default:
-      final suffix = profileMetricUnitSuffix(l10n, metric);
-      if (suffix != null) return '$name ($suffix)';
-      return name;
-  }
-}
-
 /// The right axis's unit alone (e.g. "bar", "°C"), for the caption above the
 /// chart's right tick column (issue #5013). A metric with no unit falls back
 /// to its short name, so the caption never goes blank.
