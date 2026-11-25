@@ -55895,13 +55895,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_labels_action => 'Fajok címkéi';
 
   @override
-  String get media_labels_names => 'Nevek';
+  String get media_labels_names => 'Nevek mutatása';
 
   @override
-  String get media_labels_allLife => 'Minden élőlény';
+  String get media_labels_allLife => 'Minden állat mutatása';
 
   @override
-  String get media_labels_off => 'Ki';
+  String get media_labels_off => 'Címkék elrejtése';
 
   @override
   String get media_labels_analyse => 'Elemzés';
@@ -55976,7 +55976,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Minden élőlény mutatása';
+  String get media_labels_showAllLife => 'Minden állat mutatása';
 
   @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';

@@ -56201,13 +56201,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_labels_action => 'Rótulos de espécies';
 
   @override
-  String get media_labels_names => 'Nomes';
+  String get media_labels_names => 'Mostrar nomes';
 
   @override
-  String get media_labels_allLife => 'Toda a vida';
+  String get media_labels_allLife => 'Mostrar todos os animais';
 
   @override
-  String get media_labels_off => 'Desativados';
+  String get media_labels_off => 'Ocultar rótulos';
 
   @override
   String get media_labels_analyse => 'Analisar';
@@ -56284,7 +56284,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Mostrar toda a vida';
+  String get media_labels_showAllLife => 'Mostrar todos os animais';
 
   @override
   String get media_species_possibleMatches => 'Possíveis correspondências';

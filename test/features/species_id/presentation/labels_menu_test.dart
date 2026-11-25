@@ -42,12 +42,13 @@ void main() {
     bool busy = false,
     double? progress,
     bool warm = true,
+    Locale locale = const Locale('en'),
   }) async {
     final shown = item ?? testMediaItem(id: 'm1');
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           ...overrides,
           mediaIdentificationServiceProvider.overrideWithValue(service),
@@ -116,12 +117,24 @@ void main() {
 
   testWidgets('checks the mode in force', (tester) async {
     await open(tester, mode: LabelMode.allLife);
-    expect(find.text('Names'), findsOneWidget);
-    expect(find.text('All life'), findsOneWidget);
-    expect(find.text('Off'), findsOneWidget);
+    // Each mode says what it draws (issue #5023): bare "All life" read as
+    // "a whole lifetime" once translated.
+    expect(find.text('Show names'), findsOneWidget);
+    expect(find.text('Show all animals'), findsOneWidget);
+    expect(find.text('Hide labels'), findsOneWidget);
     expect(checked(tester, 'all_life'), isTrue);
     expect(checked(tester, 'names'), isFalse);
     expect(checked(tester, 'off'), isFalse);
+  });
+
+  testWidgets('in French each mode says what it draws (issue #5023)', (
+    tester,
+  ) async {
+    await open(tester, locale: const Locale('fr'));
+    expect(find.text('Afficher les noms'), findsOneWidget);
+    expect(find.text('Afficher tous les animaux'), findsOneWidget);
+    expect(find.text('Masquer les étiquettes'), findsOneWidget);
+    expect(find.text('Toute la vie'), findsNothing);
   });
 
   testWidgets('a mode picked is the one in force', (tester) async {

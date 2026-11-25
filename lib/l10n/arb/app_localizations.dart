@@ -87931,22 +87931,22 @@ abstract class AppLocalizations {
   /// **'Species labels'**
   String get media_labels_action;
 
-  /// No description provided for @media_labels_names.
+  /// Labels menu in the media viewer (issue #5023): draw a name label on each animal the app can name or the diver tagged. One of three choices for what is drawn over the photo or video; say what it shows, not just 'Names'.
   ///
   /// In en, this message translates to:
-  /// **'Names'**
+  /// **'Show names'**
   String get media_labels_names;
 
-  /// No description provided for @media_labels_allLife.
+  /// Labels menu in the media viewer (issue #5023): draw the name labels, plus a dot on every other animal found. 'Animals' means the creatures detected in the photo, not 'all of life' or 'a lifetime'.
   ///
   /// In en, this message translates to:
-  /// **'All life'**
+  /// **'Show all animals'**
   String get media_labels_allLife;
 
-  /// No description provided for @media_labels_off.
+  /// Labels menu in the media viewer (issue #5023): draw no labels over the photo or video.
   ///
   /// In en, this message translates to:
-  /// **'Off'**
+  /// **'Hide labels'**
   String get media_labels_off;
 
   /// No description provided for @media_labels_analyse.
@@ -88033,10 +88033,10 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{{count} found, none named} other{{count} found, none named}}'**
   String media_labels_foundNoneNamed(int count);
 
-  /// Action on that message: switch the labels to All life, which draws the unnamed animals too.
+  /// Action on the notice shown when an analysis finds animals it cannot name: switch the labels menu to its 'Show all animals' choice, which draws the unnamed animals too. Use the same words as media_labels_allLife.
   ///
   /// In en, this message translates to:
-  /// **'Show all life'**
+  /// **'Show all animals'**
   String get media_labels_showAllLife;
 
   /// No description provided for @media_species_possibleMatches.

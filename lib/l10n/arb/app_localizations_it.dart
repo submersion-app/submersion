@@ -56215,13 +56215,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_labels_action => 'Etichette delle specie';
 
   @override
-  String get media_labels_names => 'Nomi';
+  String get media_labels_names => 'Mostra i nomi';
 
   @override
-  String get media_labels_allLife => 'Tutta la vita';
+  String get media_labels_allLife => 'Mostra tutti gli animali';
 
   @override
-  String get media_labels_off => 'Disattivate';
+  String get media_labels_off => 'Nascondi le etichette';
 
   @override
   String get media_labels_analyse => 'Analizza';
@@ -56300,7 +56300,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Mostra tutta la vita';
+  String get media_labels_showAllLife => 'Mostra tutti gli animali';
 
   @override
   String get media_species_possibleMatches => 'Possibili corrispondenze';

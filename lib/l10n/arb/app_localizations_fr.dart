@@ -56334,13 +56334,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_labels_action => 'Étiquettes d\'espèces';
 
   @override
-  String get media_labels_names => 'Noms';
+  String get media_labels_names => 'Afficher les noms';
 
   @override
-  String get media_labels_allLife => 'Toute la vie';
+  String get media_labels_allLife => 'Afficher tous les animaux';
 
   @override
-  String get media_labels_off => 'Désactivées';
+  String get media_labels_off => 'Masquer les étiquettes';
 
   @override
   String get media_labels_analyse => 'Analyser';
@@ -56417,7 +56417,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Afficher toute la vie';
+  String get media_labels_showAllLife => 'Afficher tous les animaux';
 
   @override
   String get media_species_possibleMatches => 'Correspondances possibles';

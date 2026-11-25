@@ -55349,13 +55349,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_labels_action => 'Species labels';
 
   @override
-  String get media_labels_names => 'Names';
+  String get media_labels_names => 'Show names';
 
   @override
-  String get media_labels_allLife => 'All life';
+  String get media_labels_allLife => 'Show all animals';
 
   @override
-  String get media_labels_off => 'Off';
+  String get media_labels_off => 'Hide labels';
 
   @override
   String get media_labels_analyse => 'Analyse';
@@ -55429,7 +55429,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Show all life';
+  String get media_labels_showAllLife => 'Show all animals';
 
   @override
   String get media_species_possibleMatches => 'Possible matches';
