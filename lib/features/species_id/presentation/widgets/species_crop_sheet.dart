@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -13,9 +14,16 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+final _log = LoggerService.forClass(SpeciesCropSheet);
+
+/// Whether a tag's crops are being read, so a second tap meanwhile opens
+/// nothing more.
+bool _opening = false;
+
 /// Opens what [chip]'s species looks like on [item], a locked photo or
 /// video (issue #5024): its crops in a sheet, or the species page when
-/// there is none to show (a tag added by hand, or labels off).
+/// there is none to show (a tag added by hand, labels off, or a read that
+/// failed).
 Future<void> openSpeciesCrops(
   BuildContext context,
   WidgetRef ref, {
@@ -27,12 +35,26 @@ Future<void> openSpeciesCrops(
     context.push(speciesPage);
     return;
   }
-  // Read once, at the tap: the photo is locked, so its tags hold still.
-  final identifications = await ref
-      .read(mediaIdentificationRepositoryProvider)
-      .forMedia(item.id);
+  if (_opening) return;
+  _opening = true;
+  List<MediaIdentification> crops;
+  try {
+    // Read once, at the tap: the photo is locked, so its tags hold still.
+    final identifications = await ref
+        .read(mediaIdentificationRepositoryProvider)
+        .forMedia(item.id);
+    crops = cropsOfSpecies(identifications, chip.speciesId);
+  } catch (e, stack) {
+    _log.warning(
+      'Could not read the crops of a species tag',
+      error: e,
+      stackTrace: stack,
+    );
+    crops = const [];
+  } finally {
+    _opening = false;
+  }
   if (!context.mounted) return;
-  final crops = cropsOfSpecies(identifications, chip.speciesId);
   if (crops.isEmpty) {
     context.push(speciesPage);
     return;
@@ -163,6 +185,7 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
     final selected = index == _selected;
     final id = widget.crops[index].id;
     final scheme = Theme.of(context).colorScheme;
+    void select() => setState(() => _selected = index);
     return Semantics(
       button: true,
       selected: selected,
@@ -171,9 +194,10 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
         widget.crops.length,
       ),
       excludeSemantics: true,
+      onTap: select,
       child: GestureDetector(
         key: ValueKey('species_crop_thumb_$id'),
-        onTap: () => setState(() => _selected = index),
+        onTap: select,
         child: Container(
           width: _thumbSize,
           height: _thumbSize,

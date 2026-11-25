@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -13,6 +14,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_crop_sheet.dart';
@@ -53,6 +55,8 @@ Future<void> pumpOpener(
   MediaType type = MediaType.photo,
   List<dynamic> extra = const [],
   Set<String> missing = const {},
+  MediaIdentificationRepository? repository,
+  int taps = 1,
 }) async {
   final overrides = await getBaseOverrides();
   final item = testMediaItem(id: 'p1', diveId: 'd1', mediaType: type);
@@ -85,7 +89,7 @@ Future<void> pumpOpener(
       overrides: [
         ...overrides,
         mediaIdentificationRepositoryProvider.overrideWithValue(
-          FixedIdentifications(rows),
+          repository ?? FixedIdentifications(rows),
         ),
         identificationCropProvider.overrideWith(
           (ref, key) async =>
@@ -104,8 +108,25 @@ Future<void> pumpOpener(
     ),
   );
   await tester.pumpAndSettle();
-  await tester.tap(find.text('open'));
+  for (var i = 0; i < taps; i++) {
+    await tester.tap(find.text('open'));
+  }
   await tester.pumpAndSettle();
+}
+
+/// A logbook whose read waits for [answer], as a slow one does.
+class _SlowIdentifications extends MediaIdentificationRepository {
+  final answer = Completer<List<MediaIdentification>>();
+
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) => answer.future;
+}
+
+/// A logbook whose read fails.
+class _FailingIdentifications extends MediaIdentificationRepository {
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) async =>
+      throw StateError('logbook closed');
 }
 
 /// A species tag's crops on a locked photo or video (issue #5024).
@@ -129,6 +150,28 @@ void main() {
       await pumpOpener(tester, rows: [gruntAt('a', 0.1)]);
       expect(find.text('DETAIL sp_grunt'), findsOneWidget);
       expect(find.byKey(const ValueKey('species_crop_sheet')), findsNothing);
+    });
+
+    testWidgets('when the read fails the tag opens the species page', (
+      tester,
+    ) async {
+      await pumpOpener(
+        tester,
+        rows: const [],
+        repository: _FailingIdentifications(),
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('DETAIL sp_grunt'), findsOneWidget);
+    });
+
+    testWidgets('a second tap while the first is opening is ignored', (
+      tester,
+    ) async {
+      final slow = _SlowIdentifications();
+      await pumpOpener(tester, rows: const [], repository: slow, taps: 2);
+      slow.answer.complete([gruntAt('a', 0.1)]);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('species_crop_sheet')), findsOneWidget);
     });
 
     testWidgets('with a crop the sheet opens', (tester) async {
@@ -181,6 +224,15 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('species_crop_thumb_c')));
       await tester.pumpAndSettle();
       expect(largeId(tester), 'c');
+    });
+
+    testWidgets('a screen reader can pick a thumbnail', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpOpener(tester, rows: [gruntAt('a', 0.1), gruntAt('b', 0.4)]);
+      tester.semantics.tap(find.semantics.byLabel('Image 2 of 2'));
+      await tester.pumpAndSettle();
+      expect(largeId(tester), 'b');
+      semantics.dispose();
     });
 
     testWidgets('a video says video', (tester) async {
