@@ -160,7 +160,7 @@ final localFileResolverProvider = Provider<LocalFileResolver>((ref) {
     // photo library by metadata before anything is decided (spec 6.3).
     findInLibrary: (item) async => librarySearchOutcome(
       await ref.read(assetResolutionServiceProvider).findInLibrary(item),
-      const PhotoManagerAssetReader().originBytes,
+      const PhotoManagerAssetReader(),
     ),
   );
   // The resolver's fetch gate holds timers that outlive the fetch they bound,
