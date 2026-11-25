@@ -42,6 +42,8 @@ void main() {
       '{"ok": {"lat": 1, "lon": 2, "blank": ["city"]},'
       ' "unknown": {"lat": 1, "lon": 2, "blank": ["city", "reef"]},'
       ' "empty": {"lat": 1, "lon": 2, "blank": []},'
+      ' "numbers": {"lat": 1, "lon": 2, "blank": ["city", 3, null, {}]},'
+      ' "flat": {"lat": 1, "lon": 2, "blank": "city"},'
       ' "junk": 3}',
     );
     final read = await PrefsSiteLookupMemory(prefs).read();
