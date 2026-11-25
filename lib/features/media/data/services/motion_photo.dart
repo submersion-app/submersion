@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 /// Motion photos: a JPEG with a short video appended, as Android cameras
@@ -41,6 +42,91 @@ Uint8List? extractMotionVideo(Uint8List bytes) {
   }
   final start = _lastFtypBox(bytes);
   return start == null ? null : Uint8List.sublistView(bytes, start);
+}
+
+/// [extractMotionVideo] for a file on disk: writes the clip appended to the
+/// motion photo [source] into [target] and answers whether there was one.
+///
+/// Reads [source] in [chunkSize] pieces (the XMP from its head, the clip
+/// copied out piece by piece), so a large photo never sits in memory.
+Future<bool> extractMotionVideoFile(
+  File source,
+  File target, {
+  int chunkSize = 1 << 20,
+}) async {
+  final file = await source.open();
+  try {
+    final length = await file.length();
+    final head = await file.read(
+      length < kMotionPhotoProbeBytes ? length : kMotionPhotoProbeBytes,
+    );
+    final text = latin1.decode(head, allowInvalid: true);
+    int? start;
+    for (final clipLength in _announcedLengths(text)) {
+      final at = length - clipLength;
+      if (at > 0 && await _isFtypInFile(file, at, length)) {
+        start = at;
+        break;
+      }
+    }
+    start ??= await _lastFtypBoxInFile(file, length, chunkSize);
+    if (start == null) return false;
+    final sink = target.openWrite();
+    try {
+      for (var at = start; at < length; at += chunkSize) {
+        await file.setPosition(at);
+        sink.add(
+          await file.read(at + chunkSize > length ? length - at : chunkSize),
+        );
+      }
+    } finally {
+      await sink.close();
+    }
+    return true;
+  } finally {
+    await file.close();
+  }
+}
+
+Future<bool> _isFtypInFile(RandomAccessFile file, int start, int length) async {
+  if (start + 8 > length) return false;
+  await file.setPosition(start);
+  return _isFtypAt(await file.read(8), 0);
+}
+
+/// [_lastFtypBox] over a file, a chunk at a time. Each chunk overlaps the
+/// next by the few bytes a marker spans, so none is missed at a seam.
+Future<int?> _lastFtypBoxInFile(
+  RandomAccessFile file,
+  int length,
+  int chunkSize,
+) async {
+  int? eoi;
+  var previous = -1;
+  for (var at = 2; at < length && eoi == null; at += chunkSize) {
+    await file.setPosition(at);
+    final piece = await file.read(
+      at + chunkSize > length ? length - at : chunkSize,
+    );
+    for (var i = 0; i < piece.length; i++) {
+      if (previous == 0xFF && piece[i] == 0xD9) {
+        eoi = at + i + 1;
+        break;
+      }
+      previous = piece[i];
+    }
+  }
+  if (eoi == null) return null;
+  int? found;
+  for (var at = eoi; at + 8 <= length; at += chunkSize) {
+    await file.setPosition(at);
+    final end = at + chunkSize + 7 > length ? length : at + chunkSize + 7;
+    final piece = await file.read(end - at);
+    for (var i = 0; i + 8 <= piece.length; i++) {
+      if (_isFtypAt(piece, i)) found = at + i;
+    }
+  }
+  return found;
 }
 
 /// Candidate clip lengths the XMP announces, most specific first.

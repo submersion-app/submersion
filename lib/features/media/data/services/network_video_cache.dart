@@ -146,6 +146,10 @@ class NetworkVideoCache {
       return target.path;
     }
     final part = File('${target.path}.part');
+    // The photo itself, streamed to disk: a motion photo can carry a long
+    // clip, and holding the whole file in memory to cut it out could run a
+    // phone out of memory.
+    final source = File('${target.path}.photo.part');
     try {
       final headers = await _headersFor(url) ?? const <String, String>{};
       final response = await _client.send(
@@ -163,17 +167,20 @@ class NetworkVideoCache {
         );
         return null;
       }
-      final bytes = await response.stream.toBytes();
-      final clip = extractMotionVideo(bytes);
-      if (clip == null) {
+      await dir.create(recursive: true);
+      final sink = source.openWrite();
+      try {
+        await response.stream.pipe(sink);
+      } finally {
+        await sink.close();
+      }
+      // Cut beside its name and moved in, like a downloaded video: a write
+      // cut short must not leave a truncated clip that the check above
+      // would serve from then on.
+      if (!await extractMotionVideoFile(source, part)) {
         _log.info('No motion video in the photo from ${url.host}');
         return null;
       }
-      await dir.create(recursive: true);
-      // Written beside its name and moved in, like a downloaded video: a
-      // write cut short must not leave a truncated clip that the check above
-      // would serve from then on.
-      await part.writeAsBytes(clip, flush: true);
       await part.rename(target.path);
       await _evict(dir, keep: target.path);
       return target.path;
@@ -182,10 +189,13 @@ class NetworkVideoCache {
         'Motion photo download failed for ${url.host}: $e',
         stackTrace: st,
       );
-      try {
-        if (await part.exists()) await part.delete();
-      } catch (_) {}
       return null;
+    } finally {
+      for (final leftover in [source, part]) {
+        try {
+          if (await leftover.exists()) await leftover.delete();
+        } catch (_) {}
+      }
     }
   }
 

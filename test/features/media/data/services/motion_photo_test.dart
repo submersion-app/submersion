@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/data/services/motion_photo.dart';
 
 /// A tiny MP4: a 16-byte ftyp box and some payload.
@@ -84,5 +86,65 @@ void main() {
     test('a photo without a clip gives nothing', () {
       expect(extractMotionVideo(_jpeg('GCamera:MotionPhoto="0"')), isNull);
     });
+  });
+
+  group('extractMotionVideoFile', () {
+    late Directory dir;
+
+    setUp(() async {
+      dir = await Directory.systemTemp.createTemp('motion_photo_test');
+    });
+
+    tearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+
+    final clip = _mp4(40);
+    final cases = <String, (Uint8List, List<int>?)>{
+      'the announced length': (
+        _jpeg(
+          'Item:Semantic="MotionPhoto" Item:Length="${clip.length}"',
+          tail: clip,
+        ),
+        clip,
+      ),
+      'the older MicroVideoOffset': (
+        _jpeg('GCamera:MicroVideoOffset="${clip.length}"', tail: clip),
+        clip,
+      ),
+      'the box search': (_jpeg('GCamera:MotionPhoto="1"', tail: clip), clip),
+      'a wrong length': (
+        _jpeg('Item:Semantic="MotionPhoto" Item:Length="7"', tail: clip),
+        clip,
+      ),
+      'no clip': (_jpeg('GCamera:MotionPhoto="0"'), null),
+    };
+
+    // Small chunks put the end-of-image marker and the ftyp box across a
+    // seam between two reads; the last size reads the file in one piece.
+    for (final MapEntry(key: name, value: (photo, expected)) in cases.entries) {
+      for (final chunkSize in const [3, 5, 7, 16, 1 << 20]) {
+        test('$name, read $chunkSize bytes at a time', () async {
+          final source = File(p.join(dir.path, 'photo.jpg'));
+          await source.writeAsBytes(photo);
+          final target = File(p.join(dir.path, 'clip.mp4'));
+
+          final found = await extractMotionVideoFile(
+            source,
+            target,
+            chunkSize: chunkSize,
+          );
+
+          expect(found, expected != null);
+          // The same answer as the in-memory reading.
+          expect(extractMotionVideo(photo), expected);
+          if (expected != null) {
+            expect(await target.readAsBytes(), expected);
+          } else {
+            expect(await target.exists(), isFalse);
+          }
+        });
+      }
+    }
   });
 }
