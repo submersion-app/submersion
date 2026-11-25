@@ -56,6 +56,8 @@ void main() {
     final never = Completer<IdentificationCropImage?>();
     await tester.pumpWidget(
       testApp(
+        // English, so the reason's absence is checked against its text.
+        locale: const Locale('en'),
         overrides: [
           identificationCropProvider.overrideWith((ref, key) => never.future),
         ],
