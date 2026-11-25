@@ -157,7 +157,7 @@ void main() {
     await unlock(tester);
 
     await tester.tap(find.byTooltip('Edit Cylinders'));
-    await tester.tap(find.byTooltip('Edit Weight'));
+    await tester.tap(find.byTooltip('Edit Weights and buoyancy'));
     await tester.tap(find.byTooltip('Edit Equipment'));
     await settle(tester);
 
@@ -375,7 +375,7 @@ void main() {
 
     for (final finder in [
       find.byType(CylindersCard),
-      find.text(l.diveLog_detail_section_weight),
+      find.text(l.diveDetailSection_weights_name),
     ]) {
       await tester.tap(finder.first, warnIfMissed: false);
       await settle(tester);

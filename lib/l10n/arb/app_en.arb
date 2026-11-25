@@ -14694,10 +14694,9 @@
   },
   "diveLog_detail_locationsMap_title": "Dive Locations",
   "diveLog_detail_coordinatesCopied": "Coordinates copied to clipboard",
-  "diveDetailSection_weights_name": "Weights",
-  "diveDetailSection_weights_description": "Weight breakdown, total weight",
+  "diveDetailSection_weights_name": "Weights and buoyancy",
+  "diveDetailSection_weights_description": "Weights carried, buoyancy through the dive, lead for next time, ditchable weight",
   "diveDetailSection_buoyancy_name": "Buoyancy",
-  "diveDetailSection_buoyancy_description": "Buoyancy through the dive, lead for next time, ditchable weight",
   "buoyancy_verdictBuoyant": "At your final stop (~{depth}) you were about {amount} buoyant",
   "@buoyancy_verdictBuoyant": {
     "placeholders": {

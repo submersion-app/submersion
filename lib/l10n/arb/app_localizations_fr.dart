@@ -23089,18 +23089,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Coordonnées copiées dans le presse-papiers';
 
   @override
-  String get diveDetailSection_weights_name => 'Lestage';
+  String get diveDetailSection_weights_name => 'Lestage et flottabilité';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Répartition des lests, poids total';
+      'Lests portés, flottabilité pendant la plongée, lest pour la prochaine fois, lest largable';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Flottabilité';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Flottabilité pendant la plongée, lest pour la prochaine fois, lest largable';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

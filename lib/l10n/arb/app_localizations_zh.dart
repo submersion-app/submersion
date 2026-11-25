@@ -21864,16 +21864,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_coordinatesCopied => '坐标已复制到剪贴板';
 
   @override
-  String get diveDetailSection_weights_name => '重量';
+  String get diveDetailSection_weights_name => '配重与浮力';
 
   @override
-  String get diveDetailSection_weights_description => '配重明细、总重量';
+  String get diveDetailSection_weights_description =>
+      '携带的配重、整个潜水过程的浮力、下次的配重和可抛弃配重';
 
   @override
   String get diveDetailSection_buoyancy_name => '浮力';
-
-  @override
-  String get diveDetailSection_buoyancy_description => '整个潜水过程的浮力、下次的配重和可抛弃配重';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

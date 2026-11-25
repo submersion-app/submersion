@@ -23030,18 +23030,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Coordenadas copiadas al portapapeles';
 
   @override
-  String get diveDetailSection_weights_name => 'Lastres';
+  String get diveDetailSection_weights_name => 'Lastres y flotabilidad';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Desglose de pesos, peso total';
+      'Lastres llevados, flotabilidad durante la inmersión, lastre para la próxima vez, lastre soltable';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Flotabilidad';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Flotabilidad durante la inmersión, lastre para la próxima vez, lastre soltable';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

@@ -23010,18 +23010,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Koordinaten in die Zwischenablage kopiert';
 
   @override
-  String get diveDetailSection_weights_name => 'Gewichte';
+  String get diveDetailSection_weights_name => 'Gewichte und Auftrieb';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Gewichtsaufteilung, Gesamtgewicht';
+      'Mitgeführte Gewichte, Auftrieb im Tauchgangverlauf, Blei fürs nächste Mal, abwerfbares Blei';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Auftrieb';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Auftrieb im Tauchgangverlauf, Blei fürs nächste Mal, abwerfbares Blei';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

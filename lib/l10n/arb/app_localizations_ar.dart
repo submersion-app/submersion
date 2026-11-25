@@ -23418,18 +23418,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم نسخ الإحداثيات إلى الحافظة';
 
   @override
-  String get diveDetailSection_weights_name => 'الأوزان';
+  String get diveDetailSection_weights_name => 'الأوزان والطفو';
 
   @override
   String get diveDetailSection_weights_description =>
-      'تفصيل الأوزان، إجمالي الوزن';
+      'الأوزان المحمولة، الطفو خلال الغطسة، الرصاص للمرة القادمة، والوزن القابل للإسقاط';
 
   @override
   String get diveDetailSection_buoyancy_name => 'الطفو';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'الطفو خلال الغطسة، الرصاص للمرة القادمة، والوزن القابل للإسقاط';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

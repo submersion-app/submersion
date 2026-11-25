@@ -22540,18 +22540,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_coordinatesCopied => 'הקואורדינטות הועתקו ללוח';
 
   @override
-  String get diveDetailSection_weights_name => 'משקולות';
+  String get diveDetailSection_weights_name => 'משקולות וציפה';
 
   @override
   String get diveDetailSection_weights_description =>
-      'פירוט משקולות, משקל כולל';
+      'משקולות שנשאו, ציפה לאורך הצלילה, משקולות לפעם הבאה ומשקל הניתן להשלכה';
 
   @override
   String get diveDetailSection_buoyancy_name => 'ציפה';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'ציפה לאורך הצלילה, משקולות לפעם הבאה ומשקל הניתן להשלכה';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

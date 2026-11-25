@@ -23031,18 +23031,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Coordenadas copiadas para a área de transferência';
 
   @override
-  String get diveDetailSection_weights_name => 'Pesos';
+  String get diveDetailSection_weights_name => 'Pesos e flutuabilidade';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Detalhamento de peso, peso total';
+      'Pesos levados, flutuabilidade durante o mergulho, lastro para a próxima vez, lastro descartável';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Flutuabilidade';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Flutuabilidade durante o mergulho, lastro para a próxima vez, lastro descartável';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

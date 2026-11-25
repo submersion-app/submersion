@@ -22698,18 +22698,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Coordinates copied to clipboard';
 
   @override
-  String get diveDetailSection_weights_name => 'Weights';
+  String get diveDetailSection_weights_name => 'Weights and buoyancy';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Weight breakdown, total weight';
+      'Weights carried, buoyancy through the dive, lead for next time, ditchable weight';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Buoyancy';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Buoyancy through the dive, lead for next time, ditchable weight';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

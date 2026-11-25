@@ -22196,17 +22196,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_detail_coordinatesCopied => '座標をクリップボードにコピーしました';
 
   @override
-  String get diveDetailSection_weights_name => 'ウェイト';
+  String get diveDetailSection_weights_name => 'ウェイトと浮力';
 
   @override
-  String get diveDetailSection_weights_description => 'ウェイトの内訳、合計ウェイト';
+  String get diveDetailSection_weights_description =>
+      '携行したウェイト、ダイブ中の浮力、次回のウェイト量、投棄可能なウェイト';
 
   @override
   String get diveDetailSection_buoyancy_name => '浮力';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'ダイブ中の浮力、次回のウェイト量、投棄可能なウェイト';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

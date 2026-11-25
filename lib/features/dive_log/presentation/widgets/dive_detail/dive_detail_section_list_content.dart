@@ -126,11 +126,16 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
         }
         return hasRoutes ? NavTrackSection(dive: dive) : null;
       case DiveDetailSectionId.weights:
-        if (!_onPage(ref, id, presence, stored, edit)) return null;
-        return DiveWeightSection(dive: dive);
-      case DiveDetailSectionId.buoyancy:
-        if (!diveHasBuoyancyInputs(dive)) return null;
-        return DiveDetailBuoyancySection(dive: dive);
+        // The weights can be edited; the buoyancy model below them is worked
+        // out from the dive as stored (issue #5005). The card shows when
+        // either has something to show.
+        final showWeights = _onPage(ref, id, presence, stored, edit);
+        if (!showWeights && !watchHasBuoyancy(ref, stored)) return null;
+        return DiveWeightsBuoyancyCard(
+          dive: dive,
+          stored: stored,
+          showWeights: showWeights,
+        );
       case DiveDetailSectionId.tanks:
         if (!_onPage(ref, id, presence, stored, edit)) return null;
         return DiveDetailCylindersSection(dive: dive);
@@ -277,9 +282,9 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
           DiveTideSection(dive: dive),
         );
 
-      // Cylinders and Weight can be edited: they draw the sitting's dive
-      // and count as present while open. Gas consumption and Buoyancy are
-      // worked out, and draw the dive as stored.
+      // Cylinders can be edited: it draws the sitting's dive and counts as
+      // present while open. Gas consumption is worked out, and draws the
+      // dive as stored.
       case DiveDetailSectionId.tanks:
         final hasTanks = _onPage(
           ref,
@@ -299,25 +304,6 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
               ? DiveDetailCylindersSection(dive: this.dive)
               : const SizedBox.shrink(),
           DiveSacSegmentsSection(dive: dive, retention: retention),
-        );
-
-      case DiveDetailSectionId.weights:
-        final hasWeights = _onPage(
-          ref,
-          DiveDetailSectionId.weights,
-          presence,
-          stored,
-          edit,
-        );
-        final weightsOpen = open.contains(DiveDetailSectionId.weights.name);
-        if ((!hasWeights && !weightsOpen) || !watchHasBuoyancy(ref, dive)) {
-          return null;
-        }
-        return _PairCards(
-          hasWeights
-              ? DiveWeightSection(dive: this.dive)
-              : const SizedBox.shrink(),
-          DiveDetailBuoyancySection(dive: dive),
         );
 
       case DiveDetailSectionId.buddies:
