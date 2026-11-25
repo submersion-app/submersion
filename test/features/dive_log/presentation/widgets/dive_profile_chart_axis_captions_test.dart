@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -125,6 +126,41 @@ void main() {
         .setRightAxisMetric(ProfileRightAxisMetric.meanDepth);
     await tester.pumpAndSettle();
     expect(captionText(tester, ProfileAxisCaptions.rightKey), 'm');
+  });
+
+  testWidgets('right caption follows the right axis as hover switches it', (
+    tester,
+  ) async {
+    // Hovering a tagged line switches the right axis to that line's metric
+    // for the hover alone, repainting the plot only (issue #2228 follow-up);
+    // the caption has to switch with it.
+    await pumpChart(tester, rightAxis: ProfileRightAxisMetric.meanDepth);
+    expect(captionText(tester, ProfileAxisCaptions.rightKey), 'm');
+
+    // Half way through the dive, near the top of the plot: far from the 30 m
+    // depth line, so the temperature line is the nearest tagged one. The
+    // first move over the plot is fl_chart's enter event; the second hovers.
+    final chart = tester.getRect(find.byType(LineChart).first);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: chart.centerLeft + const Offset(-5, 0));
+    addTearDown(mouse.removePointer);
+    for (final y in [chart.top + 4, chart.top + 6]) {
+      await mouse.moveTo(Offset(chart.center.dx, y));
+      await tester.pump();
+    }
+
+    // The axis itself switched (temperature ticks, not the depth scale)...
+    expect(
+      find
+          .byType(SideTitleWidget)
+          .evaluate()
+          .map((e) => e.widget as SideTitleWidget)
+          .where((w) => w.meta.axisSide == AxisSide.right)
+          .map((w) => (w.child as Text).data),
+      contains('22.0'),
+    );
+    // ...and the caption with it.
+    expect(captionText(tester, ProfileAxisCaptions.rightKey), '°C');
   });
 
   testWidgets('right caption follows imperial temperature', (tester) async {
