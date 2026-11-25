@@ -86,4 +86,24 @@ void main() {
       order.indexOf(HomeKeyNumber.species) + 1,
     );
   });
+
+  // Issue #5003: the original Quick Actions card, a third of a desktop row
+  // and tall enough for its six buttons.
+  test('quick actions is a list-width panel in the extra tall class', () {
+    final spec = homePanelSpec(HomePanelType.quickActions);
+    expect(spec.width, HomePanelWidth.sList);
+    expect(spec.height, HomePanelHeight.extraTall);
+    expect(spec.conditional, isFalse);
+  });
+
+  test('quick actions follows key numbers in the enum', () {
+    expect(
+      HomePanelType.values.indexOf(HomePanelType.quickActions),
+      HomePanelType.values.indexOf(HomePanelType.keyNumbers) + 1,
+    );
+  });
+
+  test('extra tall is the tallest height class', () {
+    expect(HomePanelHeight.values.last, HomePanelHeight.extraTall);
+  });
 }

@@ -166,7 +166,7 @@ banner reads.
   with the other hidden panels at the end.
 - Width `sList` (a third of a desktop row, half a tablet row, a full phone
   row). A new height class sized to the original card: title plus six
-  full-width buttons, about 340 pt at text scale 1 (scaled like the other
+  full-width buttons, 392 pt at text scale 1 (scaled like the other
   heights). Panels sharing its row on desktop grow to that height.
 - Content restored from `quick_actions_card.dart` (commit `dce6b49217b^`):
   a `Card` with the "Quick Actions" title and, in a column:

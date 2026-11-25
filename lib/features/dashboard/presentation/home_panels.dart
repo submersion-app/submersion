@@ -7,6 +7,9 @@
 /// the new Home reads the old hidden-card set by these names.
 enum HomePanelType {
   keyNumbers,
+
+  /// The original Quick Actions card (issue #5003), off in every preset.
+  quickActions,
   waitingForDownload,
   preDive,
   activeCourses,
@@ -61,7 +64,10 @@ enum HomePanelWidth { sChart, sList, m, l, xl }
 
 /// How tall a panel's row is. Fixed per class rather than measured, so rows
 /// can be built lazily and panels in a row always line up.
-enum HomePanelHeight { short, medium, tall }
+///
+/// [extraTall] fits the Quick Actions card's six stacked buttons. It stays
+/// last: a row takes its tallest panel's height by index.
+enum HomePanelHeight { short, medium, tall, extraTall }
 
 class HomePanelSpec {
   final HomePanelWidth width;
@@ -78,6 +84,10 @@ HomePanelSpec homePanelSpec(HomePanelType type) => switch (type) {
   HomePanelType.keyNumbers => const HomePanelSpec(
     HomePanelWidth.xl,
     HomePanelHeight.short,
+  ),
+  HomePanelType.quickActions => const HomePanelSpec(
+    HomePanelWidth.sList,
+    HomePanelHeight.extraTall,
   ),
   HomePanelType.waitingForDownload => const HomePanelSpec(
     HomePanelWidth.sList,

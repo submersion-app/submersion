@@ -35,6 +35,7 @@ import 'package:submersion/features/dashboard/presentation/widgets/hero_header.d
 import 'package:submersion/features/dashboard/presentation/widgets/home_banner_row.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -222,6 +223,7 @@ class DashboardPage extends ConsumerWidget {
 
   static Widget _panel(HomePanelType panel) => switch (panel) {
     HomePanelType.keyNumbers => const KeyNumbersPanel(),
+    HomePanelType.quickActions => const QuickActionsCard(),
     HomePanelType.waitingForDownload => const WaitingForDownloadPanel(),
     HomePanelType.preDive => const PreDivePanel(),
     HomePanelType.activeCourses => const ActiveCoursePanel(),
