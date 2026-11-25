@@ -67,10 +67,6 @@ const List<DiveDetailSectionPair> kDiveDetailSectionPairs = [
     DiveDetailSectionId.tide,
   ),
   DiveDetailSectionPair(
-    DiveDetailSectionId.weights,
-    DiveDetailSectionId.buoyancy,
-  ),
-  DiveDetailSectionPair(
     DiveDetailSectionId.buddies,
     DiveDetailSectionId.signatures,
   ),

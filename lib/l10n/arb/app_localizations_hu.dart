@@ -22942,18 +22942,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Koordináták a vágólapra másolva';
 
   @override
-  String get diveDetailSection_weights_name => 'Súlyok';
+  String get diveDetailSection_weights_name => 'Súlyok és felhajtóerő';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Súly lebontás, teljes súly';
+      'Vitt súlyok, felhajtóerő a merülés során, ólom a következő alkalomra, ledobható ólom';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Felhajtóerő';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Felhajtóerő a merülés során, ólom a következő alkalomra, ledobható ólom';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

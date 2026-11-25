@@ -8,24 +8,22 @@ import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/info/buoyancy_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_lead_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_safety_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_through_dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_what_if_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
-import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
-/// Dive-detail section presenting the modeled net buoyancy of a dive in the
-/// order a diver asks about it: what buoyancy did through the dive and why
-/// (readout, chart and the balance of parts under the cursor), the term
-/// breakdown, the lead for next time, then the safety checks.
-/// Self-suppresses (renders nothing) until it has an outcome, or when the
-/// dive is unmodelable.
+/// The modeled net buoyancy of a dive in the order a diver asks about it:
+/// what buoyancy did through the dive and why (readout, chart and the balance
+/// of parts under the cursor), the term breakdown, the lead for next time,
+/// then the safety checks.
+///
+/// This is the body of the Weights and buoyancy card, which draws the frame,
+/// the title and [BuoyancyHeaderActions] (issue #5005). Renders nothing until
+/// it has an outcome, or when the dive is unmodelable.
 class BuoyancySection extends ConsumerWidget {
   final String diveId;
   final UnitFormatter units;
@@ -49,7 +47,7 @@ class BuoyancySection extends ConsumerWidget {
     if (outcome == null) return const SizedBox.shrink();
     final synced = dive;
     if (synced == null) {
-      return _card(
+      return _body(
         context,
         outcome,
         BuoyancyThroughDive(outcome: outcome, units: units),
@@ -57,7 +55,7 @@ class BuoyancySection extends ConsumerWidget {
     }
     // The cursor is watched by this part alone, so scrubbing anywhere on the
     // dive rebuilds the readout, chart and balance rather than the whole card.
-    return _card(
+    return _body(
       context,
       outcome,
       Consumer(
@@ -81,130 +79,31 @@ class BuoyancySection extends ConsumerWidget {
     );
   }
 
-  Widget _card(
+  Widget _body(
     BuildContext context,
     BuoyancyTwinOutcome outcome,
     Widget throughDive,
   ) {
     final o = outcome.outputs;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _header(context, outcome),
-            const SizedBox(height: 12),
-            throughDive,
-            const SizedBox(height: 4),
-            _breakdown(context, o),
-            const Divider(height: 24),
-            BuoyancyLeadBlock(diveId: diveId, outcome: outcome, units: units),
-            const Divider(height: 24),
-            BuoyancySafetyRows(
-              outputs: o,
-              units: units,
-              wingLiftCapacityKg: outcome.wingLiftCapacityKg,
-              leadRecorded: outcome.result.input.leadKg > 0,
-            ),
-            ..._hints(context, outcome),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        throughDive,
+        const SizedBox(height: 4),
+        _breakdown(context, o),
+        const Divider(height: 24),
+        BuoyancyLeadBlock(diveId: diveId, outcome: outcome, units: units),
+        const Divider(height: 24),
+        BuoyancySafetyRows(
+          outputs: o,
+          units: units,
+          wingLiftCapacityKg: outcome.wingLiftCapacityKg,
+          leadRecorded: outcome.result.input.leadKg > 0,
         ),
-      ),
+        ..._hints(context, outcome),
+      ],
     );
-  }
-
-  /// The title row. When the What if? label cannot fit beside the title
-  /// and the info icon (a narrow half-row card, a long translation or a
-  /// large text scale), the button keeps only its icon and carries the label
-  /// as its tooltip, rather than overflowing the row.
-  Widget _header(BuildContext context, BuoyancyTwinOutcome outcome) {
-    final theme = Theme.of(context);
-    final l10n = context.l10n;
-    final label = l10n.buoyancy_whatIfButton;
-    void openWhatIf() => showBuoyancyWhatIfSheet(
-      context,
-      baseInput: outcome.result.input,
-      units: units,
-    );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact =
-            constraints.maxWidth <
-            _whatIfLabelWidth(context, label) + _headerChromeWidth;
-        return Row(
-          children: [
-            Icon(Icons.waves, color: theme.colorScheme.primary),
-            const SizedBox(width: 8),
-            // Expanded rather than a Spacer after it: on a narrow card
-            // (half of a paired row) the title gives way to the button.
-            Expanded(
-              child: Text(
-                l10n.diveDetailSection_buoyancy_name.toUpperCase(),
-                style: theme.textTheme.titleSmall?.copyWith(
-                  letterSpacing: 0.5,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            // A what-if, not an edit: the sheet saves nothing, so an editing
-            // verb here read as changing the dive (#4585).
-            if (compact)
-              IconButton(
-                onPressed: openWhatIf,
-                tooltip: label,
-                icon: const Icon(Icons.tune, size: 20),
-              )
-            else
-              TextButton.icon(
-                onPressed: openWhatIf,
-                icon: const Icon(Icons.tune, size: 16),
-                label: Text(label, maxLines: 1),
-              ),
-            HeaderInfoButton(
-              title: l10n.diveDetailSection_buoyancy_name,
-              height: 40,
-              width: _infoSlotWidth,
-              content: (context) => buoyancyInfo(
-                context.l10n,
-                infoUnits(context),
-                hasDrysuitGas: outcome.outputs.drysuitGasLiters > 0,
-                canTryWhatIf: true,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// The info icon's slot in the header row.
-  static const double _infoSlotWidth = 48;
-
-  /// Everything in the header row besides the button's label: the waves
-  /// icon and its gap (32), the text button's icon, gap and padding at
-  /// standard density (52), and the info slot. The title may shrink to
-  /// nothing, as it always could. Compact density trims the button's
-  /// padding, so this errs toward collapsing a few pixels early, never
-  /// toward overflowing.
-  static const double _headerChromeWidth = 32 + 52 + _infoSlotWidth;
-
-  /// The rendered width of [label] in the text button's style.
-  static double _whatIfLabelWidth(BuildContext context, String label) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: label,
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
-      maxLines: 1,
-    )..layout();
-    final width = painter.width;
-    painter.dispose();
-    return width;
   }
 
   Widget _breakdown(BuildContext context, TwinOutputs o) {

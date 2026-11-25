@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_equipment_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_weights_buoyancy_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
@@ -173,7 +173,7 @@ void main() {
     await open(tester);
     final before = [
       heightOf(tester, CylindersCard),
-      heightOf(tester, DiveWeightSection),
+      heightOf(tester, DiveWeightsBuoyancyCard),
       heightOf(tester, DiveEquipmentSection),
     ];
 
@@ -181,7 +181,7 @@ void main() {
 
     for (final card in [
       CylindersCard,
-      DiveWeightSection,
+      DiveWeightsBuoyancyCard,
       DiveEquipmentSection,
     ]) {
       expect(
@@ -195,7 +195,7 @@ void main() {
     }
     expect([
       heightOf(tester, CylindersCard),
-      heightOf(tester, DiveWeightSection),
+      heightOf(tester, DiveWeightsBuoyancyCard),
       heightOf(tester, DiveEquipmentSection),
     ], before);
   });
@@ -230,7 +230,7 @@ void main() {
     // A change on another card: a weight added.
     await tester.tap(
       find.descendant(
-        of: find.byType(DiveWeightSection),
+        of: find.byType(DiveWeightsBuoyancyCard),
         matching: find.byType(RecordPencilIcon),
       ),
     );

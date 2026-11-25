@@ -23037,18 +23037,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Coordinate copiate negli appunti';
 
   @override
-  String get diveDetailSection_weights_name => 'Zavorra';
+  String get diveDetailSection_weights_name => 'Zavorra e assetto';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Ripartizione pesi, peso totale';
+      'Zavorra portata, assetto durante l\'immersione, zavorra per la prossima volta, zavorra sganciabile';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Assetto';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Assetto durante l\'immersione, zavorra per la prossima volta, zavorra sganciabile';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

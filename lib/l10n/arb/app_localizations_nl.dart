@@ -22896,18 +22896,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Coördinaten gekopieerd naar klembord';
 
   @override
-  String get diveDetailSection_weights_name => 'Gewichten';
+  String get diveDetailSection_weights_name => 'Gewichten en drijfvermogen';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Gewichtsoverzicht, totaalgewicht';
+      'Meegenomen gewichten, drijfvermogen tijdens de duik, lood voor de volgende keer, afwerpbaar lood';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Drijfvermogen';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Drijfvermogen tijdens de duik, lood voor de volgende keer, afwerpbaar lood';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {

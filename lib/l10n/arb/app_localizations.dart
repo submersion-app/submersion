@@ -36246,13 +36246,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_weights_name.
   ///
   /// In en, this message translates to:
-  /// **'Weights'**
+  /// **'Weights and buoyancy'**
   String get diveDetailSection_weights_name;
 
   /// No description provided for @diveDetailSection_weights_description.
   ///
   /// In en, this message translates to:
-  /// **'Weight breakdown, total weight'**
+  /// **'Weights carried, buoyancy through the dive, lead for next time, ditchable weight'**
   String get diveDetailSection_weights_description;
 
   /// No description provided for @diveDetailSection_buoyancy_name.
@@ -36260,12 +36260,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buoyancy'**
   String get diveDetailSection_buoyancy_name;
-
-  /// No description provided for @diveDetailSection_buoyancy_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Buoyancy through the dive, lead for next time, ditchable weight'**
-  String get diveDetailSection_buoyancy_description;
 
   /// No description provided for @buoyancy_verdictBuoyant.
   ///
