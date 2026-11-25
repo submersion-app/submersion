@@ -85,6 +85,74 @@ void main() {
     expect(legend.state.showAveloGasRemaining, isTrue);
   });
 
+  test('every metric turns on its own line and no other', () {
+    // Each metric's toggle, read off the legend. A metric picked from the
+    // axis menu must turn on exactly this one.
+    final toggles = <ProfileRightAxisMetric, bool Function(ProfileLegendState)>{
+      ProfileRightAxisMetric.temperature: (s) => s.showTemperature,
+      ProfileRightAxisMetric.pressure: (s) => s.showPressure,
+      ProfileRightAxisMetric.heartRate: (s) => s.showHeartRate,
+      ProfileRightAxisMetric.sac: (s) => s.showSac,
+      ProfileRightAxisMetric.ascentRate: (s) => s.showAscentRateLine,
+      ProfileRightAxisMetric.ndl: (s) => s.showNdl,
+      ProfileRightAxisMetric.ppO2: (s) => s.showPpO2,
+      ProfileRightAxisMetric.ppN2: (s) => s.showPpN2,
+      ProfileRightAxisMetric.ppHe: (s) => s.showPpHe,
+      ProfileRightAxisMetric.gasDensity: (s) => s.showDensity,
+      ProfileRightAxisMetric.gf: (s) => s.showGf,
+      ProfileRightAxisMetric.surfaceGf: (s) => s.showSurfaceGf,
+      ProfileRightAxisMetric.meanDepth: (s) => s.showMeanDepth,
+      ProfileRightAxisMetric.tts: (s) => s.showTts,
+      ProfileRightAxisMetric.cns: (s) => s.showCns,
+      ProfileRightAxisMetric.otu: (s) => s.showOtu,
+      ProfileRightAxisMetric.o2CellMv: (s) => s.showO2Cells,
+      ProfileRightAxisMetric.gtr: (s) => s.showGtr,
+      ProfileRightAxisMetric.buoyancy: (s) => s.showBuoyancy,
+      ProfileRightAxisMetric.aveloBuoyancy: (s) => s.showAveloBuoyancy,
+      ProfileRightAxisMetric.aveloGasRemaining: (s) => s.showAveloGasRemaining,
+      ProfileRightAxisMetric.computerRmv: (s) => s.showComputerRmv,
+    };
+    expect(toggles.keys, unorderedEquals(ProfileRightAxisMetric.values));
+
+    // Every line off, so each pick's effect shows alone.
+    const allOff = AppSettings(
+      defaultShowTemperature: false,
+      defaultShowPressure: false,
+      defaultShowHeartRate: false,
+      defaultShowSac: false,
+      defaultShowAscentRateLine: false,
+      showNdlOnProfile: false,
+      defaultShowPpO2: false,
+      defaultShowPpN2: false,
+      defaultShowPpHe: false,
+      defaultShowGasDensity: false,
+      defaultShowGf: false,
+      defaultShowSurfaceGf: false,
+      defaultShowMeanDepth: false,
+      defaultShowTts: false,
+      defaultShowCns: false,
+      defaultShowOtu: false,
+      defaultShowO2CellMv: false,
+      defaultShowGtr: false,
+      defaultShowBuoyancy: false,
+      defaultShowAveloBuoyancy: false,
+      defaultShowAveloGasRemaining: false,
+      defaultShowComputerRmv: false,
+    );
+
+    for (final picked in ProfileRightAxisMetric.values) {
+      final legend = _legend(allOff);
+      legend.setRightAxisMetric(picked);
+      for (final MapEntry(key: metric, value: isOn) in toggles.entries) {
+        expect(
+          isOn(legend.state),
+          metric == picked,
+          reason: 'picking ${picked.name}, ${metric.name}',
+        );
+      }
+    }
+  });
+
   test('clearing the pick leaves the lines as they were', () {
     final legend = _legend(const AppSettings(defaultShowSac: false));
 
