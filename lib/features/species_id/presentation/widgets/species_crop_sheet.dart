@@ -169,8 +169,8 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
             iconAlignment: IconAlignment.end,
             label: Text(l10n.media_species_openSpeciesPage),
             onPressed: () {
-              // The page goes over the viewer, not over this sheet, so Back
-              // returns to the photo.
+              // The page goes over what opened this sheet, not over the
+              // sheet itself, so Back returns there.
               final router = GoRouter.of(context);
               Navigator.of(context).pop();
               router.push('/species/${chip.speciesId}');

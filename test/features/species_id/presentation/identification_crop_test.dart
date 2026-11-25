@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -48,5 +49,28 @@ void main() {
     await tester.pump();
     expect(find.byType(Image), findsNothing);
     expect(find.byIcon(Icons.image_not_supported_outlined), findsOneWidget);
+  });
+
+  testWidgets('a crop still loading draws neither the placeholder nor its '
+      'reason (issue #5024)', (tester) async {
+    final never = Completer<IdentificationCropImage?>();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          identificationCropProvider.overrideWith((ref, key) => never.future),
+        ],
+        child: const SizedBox.square(
+          dimension: 200,
+          child: IdentificationCrop(
+            mediaId: 'm1',
+            identificationId: 'a',
+            showReason: true,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byIcon(Icons.image_not_supported_outlined), findsNothing);
+    expect(find.text('Image not on this device'), findsNothing);
   });
 }

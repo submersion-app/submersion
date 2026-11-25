@@ -474,9 +474,17 @@ class IdentificationCrop extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final crop = ref
-        .watch(identificationCropProvider((mediaId, identificationId)))
-        .value;
+    final read = ref.watch(
+      identificationCropProvider((mediaId, identificationId)),
+    );
+    // Still being read: the plain background, never "not on this device"
+    // for a crop that is about to show (issue #5024).
+    if (read.isLoading && !read.hasValue) {
+      return ColoredBox(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      );
+    }
+    final crop = read.value;
     final placeholder = _Placeholder(showReason: showReason);
     return switch (crop) {
       null => placeholder,

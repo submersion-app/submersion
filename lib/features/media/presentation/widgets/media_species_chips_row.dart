@@ -114,14 +114,15 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
   }
 }
 
-/// The chips for [mediaId]'s species, in the order the viewer shows them:
-/// the diver's tags, the app's tags not yet confirmed, then the app's
+/// The chips for [mediaId]'s species, in the order the viewer shows them: the
+/// diver's tags, the app's tags not yet confirmed, then the app's
 /// suggestions. A tag opens its species page; the others call
-/// [onSuggestionTap], and are inert without it. A suggestion on the "Recorded nearby" list read for [nearbyRequest] ends
-/// with a pin. [overlay] draws them as the viewer's compact chips over the
-/// picture, under a [ViewerTagChips.theme] (issue #4921). With [cropsOf],
-/// every tag, the diver's or the app's, opens its species' crops on that
-/// photo or video instead (issue #5024); suggestions are unchanged.
+/// [onSuggestionTap], and are inert without it. A suggestion on the "Recorded
+/// nearby" list read for [nearbyRequest] ends with a pin. [overlay] draws
+/// them as the viewer's compact chips over the picture, under a
+/// [ViewerTagChips.theme] (issue #4921). With [cropsOf], every tag, the
+/// diver's or the app's, opens its species' crops on that photo or video
+/// instead (issue #5024); suggestions are unchanged.
 List<Widget> speciesChipWidgets(
   BuildContext context,
   WidgetRef ref,
