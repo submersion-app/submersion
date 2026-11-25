@@ -51,7 +51,7 @@ SittingList<Trip, TripPackedItem> tripPackedGearList({
     var moved = false;
     for (final row in after.entries) {
       if (before[row.key] != row.value) {
-        await packs.assignBag(trip.id, row.key, row.value);
+        await packs.assignBag(trip.id, row.key, row.value, orLoose: true);
         moved = true;
       }
     }

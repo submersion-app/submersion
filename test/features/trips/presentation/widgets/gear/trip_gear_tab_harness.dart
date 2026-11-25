@@ -196,8 +196,9 @@ class FakePacks extends TripEquipmentRepository {
   Future<void> assignBag(
     String tripId,
     String equipmentId,
-    String? bagId,
-  ) async {
+    String? bagId, {
+    bool orLoose = false,
+  }) async {
     assigned.add((tripId, equipmentId, bagId));
   }
 

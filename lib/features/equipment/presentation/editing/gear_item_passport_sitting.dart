@@ -83,7 +83,7 @@ final gearItemTripsList = SittingList<EquipmentItem, EquipmentPacking>(
           await repository.pack(row.key, [item.id]);
         }
       } else if (before[row.key] != row.value) {
-        await repository.assignBag(row.key, item.id, row.value);
+        await repository.assignBag(row.key, item.id, row.value, orLoose: true);
       }
     }
     for (final tripId in before.keys) {

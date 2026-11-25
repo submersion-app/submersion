@@ -5824,6 +5824,11 @@ class SyncDataSerializer {
 
   /// Reconciles copies of the same packed item to the lowest id while keeping
   /// the bag from the newest copy that knew about bags (issue #4945).
+  ///
+  /// Three steps per row, so no step can fail the batch: the local copy of
+  /// the pair takes the newer bag, then moves to the incoming id when that is
+  /// lower and no other row holds it, then the incoming row lands if neither
+  /// its pair nor its id is held.
   Future<void> _applyTripEquipmentRecords(
     List<Map<String, dynamic>> records,
   ) async {
@@ -5831,23 +5836,26 @@ class SyncDataSerializer {
     await _db.batch((batch) {
       for (final data in records) {
         final row = TripEquipmentRow.fromJson(data);
+        // Sync writes canonical, padded HLCs. A missing bag key is from an
+        // older client, while an explicit null clears the assignment.
+        if (data.containsKey('bagEquipmentId') && row.hlc != null) {
+          batch.customStatement(
+            'UPDATE trip_equipment SET bag_equipment_id = ?, hlc = ? '
+            'WHERE trip_id = ? AND equipment_id = ? '
+            'AND (hlc IS NULL OR hlc < ?)',
+            [row.bagEquipmentId, row.hlc, row.tripId, row.equipmentId, row.hlc],
+          );
+        }
+        batch.customStatement(
+          'UPDATE trip_equipment SET id = ?, created_at = ? '
+          'WHERE trip_id = ? AND equipment_id = ? AND id > ? '
+          'AND NOT EXISTS (SELECT 1 FROM trip_equipment WHERE id = ?)',
+          [row.id, row.createdAt, row.tripId, row.equipmentId, row.id, row.id],
+        );
         batch.customStatement(
           'INSERT INTO trip_equipment '
           '(id, trip_id, equipment_id, bag_equipment_id, created_at, hlc) '
-          'VALUES (?, ?, ?, ?, ?, ?) '
-          'ON CONFLICT(trip_id, equipment_id) DO UPDATE SET '
-          'id = min(trip_equipment.id, excluded.id), '
-          'created_at = CASE WHEN excluded.id < trip_equipment.id '
-          'THEN excluded.created_at ELSE trip_equipment.created_at END, '
-          // Sync writes canonical, padded HLCs. A missing bag key is from
-          // an older client, while an explicit null clears the assignment.
-          'bag_equipment_id = CASE WHEN ? AND excluded.hlc IS NOT NULL '
-          'AND (trip_equipment.hlc IS NULL OR excluded.hlc > trip_equipment.hlc) '
-          'THEN excluded.bag_equipment_id ELSE trip_equipment.bag_equipment_id END, '
-          'hlc = CASE WHEN ? AND excluded.hlc IS NOT NULL '
-          'AND (trip_equipment.hlc IS NULL OR excluded.hlc > trip_equipment.hlc) '
-          'THEN excluded.hlc ELSE trip_equipment.hlc END '
-          'ON CONFLICT DO NOTHING',
+          'VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
           [
             row.id,
             row.tripId,
@@ -5855,8 +5863,6 @@ class SyncDataSerializer {
             row.bagEquipmentId,
             row.createdAt,
             row.hlc,
-            data.containsKey('bagEquipmentId') ? 1 : 0,
-            data.containsKey('bagEquipmentId') ? 1 : 0,
           ],
         );
       }

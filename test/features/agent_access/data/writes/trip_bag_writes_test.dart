@@ -15,7 +15,7 @@ void main() {
   late ChildWriteHarness h;
   late String tripId;
 
-  Future<void> item(String id, String type) => db
+  Future<void> item(String id, String type, {String owner = kDiverA}) => db
       .into(db.equipment)
       .insert(
         EquipmentCompanion.insert(
@@ -24,7 +24,7 @@ void main() {
           type: type,
           createdAt: kSeedTime,
           updatedAt: kSeedTime,
-          diverId: const Value(kDiverA),
+          diverId: Value(owner),
         ),
       );
 
@@ -162,6 +162,80 @@ void main() {
     expect(await packed(), {'carry-on': null, 'fins': null, 'mask': null});
   });
 
+  test('gear the agent cannot see stays in its bag', () async {
+    await item('b-reg', 'regulator', owner: kDiverB);
+    await db
+        .into(db.tripEquipment)
+        .insert(
+          TripEquipmentCompanion.insert(
+            id: 'pack-b-reg',
+            tripId: tripId,
+            equipmentId: 'b-reg',
+            createdAt: kSeedTime,
+            bagEquipmentId: const Value('duffel'),
+          ),
+        );
+    final doc = (await h.records.one(
+      'trips',
+      tripId,
+      include: ['bag_contents'],
+    ))!;
+    expect(doc['bag_contents'], isEmpty);
+
+    await h.run([
+      update(
+        bags: {
+          'duffel': ['fins'],
+        },
+      ),
+    ]);
+    expect((await packed())['b-reg'], 'duffel');
+    await h.run([update(bags: {})]);
+    expect((await packed())['b-reg'], 'duffel');
+    expect((await packed())['fins'], isNull);
+  });
+
+  test('a bag that stopped being one reads empty and can be reset', () async {
+    await h.run([
+      update(
+        bags: {
+          'duffel': ['fins'],
+        },
+      ),
+    ]);
+    await db.customStatement(
+      "UPDATE equipment SET type = 'other' WHERE id = 'duffel'",
+    );
+    final doc = (await h.records.one(
+      'trips',
+      tripId,
+      include: ['bag_contents'],
+    ))!;
+    expect(doc['bag_contents'], isEmpty);
+    expect((await h.preview([update(bags: {})])).items, isEmpty);
+
+    await h.run([
+      update(
+        bags: {
+          'carry-on': ['fins'],
+        },
+      ),
+    ]);
+    expect((await packed())['fins'], 'carry-on');
+  });
+
+  test('an earlier change in the set that makes gear a bag counts', () async {
+    await h.run([
+      updateOp('equipment', 'mask', {'type': 'bag'}),
+      update(
+        bags: {
+          'mask': ['fins'],
+        },
+      ),
+    ]);
+    expect((await packed())['fins'], 'mask');
+  });
+
   group('is refused', () {
     Future<PlanBlock?> blockFor(Map<String, Object?> bags) async =>
         (await h.preview([update(bags: bags)])).items.single.block;
@@ -209,6 +283,48 @@ void main() {
         'carry-on': ['fins'],
       });
       expect(block!.detail, contains('fins is in more than one bag'));
+    });
+
+    test('for gear the agent cannot see', () async {
+      await item('b-reg', 'regulator', owner: kDiverB);
+      await db
+          .into(db.tripEquipment)
+          .insert(
+            TripEquipmentCompanion.insert(
+              id: 'pack-b-reg',
+              tripId: tripId,
+              equipmentId: 'b-reg',
+              createdAt: kSeedTime,
+            ),
+          );
+      final block = await blockFor({
+        'duffel': ['b-reg'],
+      });
+      expect(block!.detail, contains('b-reg is not packed'));
+    });
+
+    test('for a bag an earlier change in the set makes not a bag', () async {
+      final plan = await h.preview([
+        updateOp('equipment', 'duffel', {'type': 'other'}),
+        update(
+          bags: {
+            'duffel': ['fins'],
+          },
+        ),
+      ]);
+      expect(plan.items.last.block!.detail, contains('duffel is not a bag'));
+    });
+
+    test('for gear an earlier change in the set deletes', () async {
+      final plan = await h.preview([
+        deleteOp('equipment', 'fins'),
+        update(
+          bags: {
+            'duffel': ['fins'],
+          },
+        ),
+      ]);
+      expect(plan.items.last.block!.detail, contains('fins is not packed'));
     });
 
     test('on a new trip, before anything is packed', () async {

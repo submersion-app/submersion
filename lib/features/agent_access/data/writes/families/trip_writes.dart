@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart' show TripType;
 import 'package:submersion/core/data/visibility/shared_item_policy.dart'
     show SharedItemKind;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/agent_access/data/records/families/trip_bag_contents.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/item_share_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
@@ -98,7 +99,19 @@ class TripWrites extends WritableEntry {
   Future<Map<String, Object?>> stored(
     String id,
     Map<String, Object?> document,
-  ) async => {...document, 'bag_contents': await bagContentsOf(_r, id)};
+  ) async => {
+    ...document,
+    'bag_contents': await bagContentsOf(_r, id, await _ownerOf(id)),
+  };
+
+  Future<String?> _ownerOf(String id) async =>
+      (await DatabaseService.instance.database
+              .customSelect(
+                'SELECT diver_id FROM trips WHERE id = ?',
+                variables: [Variable.withString(id)],
+              )
+              .getSingleOrNull())
+          ?.readNullable<String>('diver_id');
 
   @override
   String? titleOf(Map<String, Object?> document) => document['name'] as String?;
@@ -270,7 +283,7 @@ class TripWrites extends WritableEntry {
       }
     }
     if (update.values.containsKey('bag_contents')) {
-      await setBagContents(_r, id, update.values['bag_contents']);
+      await setBagContents(_r, id, ownerId, update.values['bag_contents']);
     }
   }
 

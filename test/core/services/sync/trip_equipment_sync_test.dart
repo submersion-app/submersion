@@ -135,6 +135,48 @@ void main() {
     },
   );
 
+  test('a peer id another pair holds here leaves both rows standing', () async {
+    // Gear merged on this device can hold the peer's id under another pair.
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'fins',
+            name: 'Fins',
+            type: 'fins',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await pack('zzz-local');
+    await db
+        .into(db.tripEquipment)
+        .insert(
+          TripEquipmentCompanion.insert(
+            id: 'aaa-peer',
+            tripId: 't1',
+            equipmentId: 'fins',
+            createdAt: 1,
+          ),
+        );
+    await serializer.upsertRecords('tripEquipment', [
+      {
+        'id': 'aaa-peer',
+        'tripId': 't1',
+        'equipmentId': 'bcd',
+        'bagEquipmentId': 'roller',
+        'createdAt': 2,
+        'hlc': '000000000000001:000000:peer',
+      },
+    ]);
+    final rows = {
+      for (final r in await db.select(db.tripEquipment).get())
+        r.id: (r.equipmentId, r.bagEquipmentId),
+    };
+    expect(rows, {'zzz-local': ('bcd', 'roller'), 'aaa-peer': ('fins', null)});
+  });
+
   test('a trips tombstone drops its packed rows', () async {
     await pack('a');
     await serializer.deleteRecord('trips', 't1');

@@ -97,8 +97,7 @@ void main() {
     await packs.assignBag(t1, bcd, second);
     expect(await packs.bagAssignmentsForTrip(t1), {bcd: second});
 
-    await expectLater(packs.packInBag(t2, tank, second), throwsStateError);
-    expect(await packs.equipmentIdsForTrip(t2), [first]);
+    await expectLater(packs.assignBag(t1, bcd, tank), throwsStateError);
     await packs.unpack(t1, second);
     expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
     expect(await packs.equipmentIdsForTrip(t1), unorderedEquals([first, bcd]));
@@ -107,6 +106,49 @@ void main() {
     await packs.unpack(t1, bcd);
     expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
   });
+
+  test('a bag chosen before it left the trip packs the gear loose', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.pack(t2, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+
+    // Unpacked elsewhere, while a sitting still held it as the choice.
+    await packs.unpack(t2, roller);
+    await packs.packInBag(t2, tank, roller);
+    expect((await packs.equipmentIdsForTrip(t2)).toSet(), {tank});
+    expect(await packs.bagAssignmentsForTrip(t2), isEmpty);
+
+    await packs.unpack(t1, roller);
+    await packs.pack(t1, [roller]);
+    await packs.assignBag(t1, tank, roller, orLoose: true);
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+  });
+
+  test('gear whose bag stopped being a bag reads loose', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+    await db.customStatement(
+      "UPDATE equipment SET type = 'other' WHERE id = ?",
+      [roller],
+    );
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+  });
+
+  test(
+    'gear whose bag row was dropped by an older client reads loose',
+    () async {
+      final roller = await item('Roller', EquipmentType.bag);
+      await packs.pack(t1, [roller]);
+      await packs.packInBag(t1, bcd, roller);
+      await db.customStatement(
+        'DELETE FROM trip_equipment WHERE trip_id = ? AND equipment_id = ?',
+        [t1, roller],
+      );
+      expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+    },
+  );
 
   test('tripIdsForEquipment lists the trips an item is packed for', () async {
     await packs.pack(t1, [bcd]);

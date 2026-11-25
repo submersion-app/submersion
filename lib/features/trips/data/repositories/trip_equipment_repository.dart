@@ -38,13 +38,28 @@ class TripEquipmentRepository {
               .get())
           .toSet();
 
+  /// The trip's gear in a bag, item to bag. An item whose bag is no longer
+  /// packed on the trip, or is no longer a bag, rides loose.
   Future<Map<String, String>> bagAssignmentsForTrip(String tripId) async {
-    final rows =
-        await (_db.select(_db.tripEquipment)..where(
-              (t) => t.tripId.equals(tripId) & t.bagEquipmentId.isNotNull(),
-            ))
-            .get();
-    return {for (final row in rows) row.equipmentId: row.bagEquipmentId!};
+    final rows = await _db
+        .customSelect(
+          'SELECT item.equipment_id AS item, item.bag_equipment_id AS bag '
+          'FROM trip_equipment item '
+          'JOIN trip_equipment packed ON packed.trip_id = item.trip_id '
+          'AND packed.equipment_id = item.bag_equipment_id '
+          'JOIN equipment bag ON bag.id = item.bag_equipment_id '
+          'AND bag.type = ? '
+          'WHERE item.trip_id = ?',
+          variables: [
+            Variable.withString(EquipmentType.bag.name),
+            Variable.withString(tripId),
+          ],
+          readsFrom: {_db.tripEquipment, _db.equipment},
+        )
+        .get();
+    return {
+      for (final row in rows) row.read<String>('item'): row.read<String>('bag'),
+    };
   }
 
   Future<List<EquipmentPacking>> packingForEquipment(String equipmentId) async {
@@ -58,19 +73,24 @@ class TripEquipmentRepository {
     ];
   }
 
-  /// Packs gear and assigns it in one transaction.
+  /// Packs gear and assigns it in one transaction. Gear whose bag has left
+  /// the trip since it was chosen is packed loose.
   Future<void> packInBag(String tripId, String equipmentId, String bagId) =>
       _db.transaction(() async {
         await pack(tripId, [equipmentId]);
-        await assignBag(tripId, equipmentId, bagId);
+        await assignBag(tripId, equipmentId, bagId, orLoose: true);
       });
 
   /// Moves packed gear between the bags on this trip. Null means loose gear.
+  /// A bag that is not a bag packed on this trip throws, or with [orLoose]
+  /// leaves the gear loose: a sitting's held choice can outlive its bag,
+  /// unpacked on another device before Save.
   Future<void> assignBag(
     String tripId,
     String equipmentId,
-    String? bagId,
-  ) async {
+    String? bagId, {
+    bool orLoose = false,
+  }) async {
     final changed = await _db.transaction(() async {
       final packed = _db.tripEquipment;
       final item =
@@ -80,7 +100,8 @@ class TripEquipmentRepository {
               ))
               .getSingleOrNull();
       if (item == null || item.bagEquipmentId == bagId) return false;
-      if (bagId != null) {
+      var target = bagId;
+      if (target != null) {
         final inventory = _db.equipment;
         final candidates =
             await (_db.select(packed).join([
@@ -90,17 +111,21 @@ class TripEquipmentRepository {
                   ),
                 ])..where(
                   packed.tripId.equals(tripId) &
-                      packed.equipmentId.isIn([bagId, equipmentId]) &
+                      packed.equipmentId.isIn([target, equipmentId]) &
                       inventory.type.equals(EquipmentType.bag.name),
                 ))
                 .get();
-        if (bagId == equipmentId ||
+        if (target == equipmentId ||
             candidates.length != 1 ||
-            candidates.single.readTable(packed).equipmentId != bagId) {
-          throw StateError('Choose a packed bag from the same trip');
+            candidates.single.readTable(packed).equipmentId != target) {
+          if (!orLoose) {
+            throw StateError('Choose a packed bag from the same trip');
+          }
+          target = null;
         }
       }
-      await _setBagForRows([item], bagId);
+      if (item.bagEquipmentId == target) return false;
+      await _setBagForRows([item], target);
       return true;
     });
     if (changed) SyncEventBus.notifyLocalChange();

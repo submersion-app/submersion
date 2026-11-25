@@ -3,27 +3,15 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/constants/enums.dart' show EquipmentType;
+import 'package:submersion/features/agent_access/data/records/families/trip_bag_contents.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 
-/// A trip's packed bags, each to the packed items riding in it, as the gear
-/// tab groups them (issue #4945). Packed gear in no bag is loose and not
-/// listed; a bag with nothing in it is not listed either.
-Future<Map<String, List<String>>> bagContentsOf(
-  RecordRepositories r,
-  String tripId,
-) async {
-  final byBag = <String, List<String>>{};
-  for (final MapEntry(key: itemId, value: bagId)
-      in (await r.tripEquipment.bagAssignmentsForTrip(tripId)).entries) {
-    (byBag[bagId] ??= []).add(itemId);
-  }
-  return {for (final e in byBag.entries) e.key: e.value..sort()};
-}
-
 /// Why [check]'s `bag_contents` cannot be the trip's bags, or null: each
 /// key a bag packed on the trip, each item packed on it and not a bag, and
-/// no item in two bags. The trip's `equipment_ids` in the same change count.
+/// no item in two bags. The trip's `equipment_ids` in the same change count,
+/// and so do the changes before it in the set: gear they delete, take off
+/// this trip, or turn into or out of a bag.
 Future<PlanBlock?> bagContentsProblem(
   RecordRepositories r,
   WriteCheck check,
@@ -37,13 +25,24 @@ Future<PlanBlock?> bagContentsProblem(
     );
   }
   final byBag = decodedBagContents(check.values['bag_contents']);
-  final gear = check.relations['equipment_ids'];
-  final packed = {
-    ...await r.tripEquipment.equipmentIdsForTrip(tripId),
-    ...?gear?.add,
-  }.difference(gear?.remove ?? const <String>{});
   final named = {...byBag.keys, for (final ids in byBag.values) ...ids};
-  final unpacked = named.difference(packed);
+  final gear = check.relations['equipment_ids'];
+  final soFar = check.soFar;
+  final gone = soFar.deleted['equipment'] ?? const <String>{};
+  final packed =
+      {...await r.tripEquipment.equipmentIdsForTrip(tripId), ...?gear?.add}
+          .where(
+            (id) =>
+                !gone.contains(id) &&
+                !(gear?.remove.contains(id) ?? false) &&
+                !(soFar.unlinked[('equipment', id)]?['trips']?.contains(
+                      tripId,
+                    ) ??
+                    false),
+          )
+          .toSet();
+  final seen = await visibleEquipment(r, named, check.ownerId);
+  final unpacked = named.difference(packed.intersection(seen));
   if (unpacked.isNotEmpty) {
     return PlanBlock(
       BlockReason.invalidValue,
@@ -51,7 +50,15 @@ Future<PlanBlock?> bagContentsProblem(
       'on this trip; add it to equipment_ids first.',
     );
   }
-  final bags = await _bagIds(r, named);
+  final stored = await _bagIds(r, named);
+  final bags = {
+    for (final id in named)
+      if (switch (soFar.values[('equipment', id)]?['type']) {
+        final String type => type == EquipmentType.bag.name,
+        _ => stored.contains(id),
+      })
+        id,
+  };
   final notBags = byBag.keys.toSet().difference(bags);
   if (notBags.isNotEmpty) {
     return PlanBlock(
@@ -59,31 +66,32 @@ Future<PlanBlock?> bagContentsProblem(
       'bag_contents: ${(notBags.toList()..sort()).join(', ')} is not a bag.',
     );
   }
-  final seen = <String>{};
-  for (final ids in byBag.values) {
-    for (final id in ids) {
-      if (bags.contains(id)) {
-        return PlanBlock(
-          BlockReason.invalidValue,
-          'bag_contents: $id is a bag and cannot go in another bag.',
-        );
-      }
-      if (!seen.add(id)) {
-        return PlanBlock(
-          BlockReason.invalidValue,
-          'bag_contents: $id is in more than one bag.',
-        );
-      }
+  final placed = <String>{};
+  for (final id in [for (final ids in byBag.values) ...ids]) {
+    if (bags.contains(id)) {
+      return PlanBlock(
+        BlockReason.invalidValue,
+        'bag_contents: $id is a bag and cannot go in another bag.',
+      );
     }
+    if (placed.contains(id)) {
+      return PlanBlock(
+        BlockReason.invalidValue,
+        'bag_contents: $id is in more than one bag.',
+      );
+    }
+    placed.add(id);
   }
   return null;
 }
 
-/// Puts each packed item of [tripId] in the bag [parsed] names for it, and
-/// the rest loose, through the repository the gear tab moves gear with.
+/// Puts each packed item of [tripId] that [diverId] sees in the bag [parsed]
+/// names for it, and the rest loose, through the repository the gear tab
+/// moves gear with. Gear [diverId] does not see stays where it is.
 Future<void> setBagContents(
   RecordRepositories r,
   String tripId,
+  String? diverId,
   Object? parsed,
 ) async {
   final bagOf = {
@@ -92,7 +100,7 @@ Future<void> setBagContents(
     ).entries)
       for (final id in ids) id: bagId,
   };
-  final current = await r.tripEquipment.bagAssignmentsForTrip(tripId);
+  final current = await visibleBagAssignments(r, tripId, diverId);
   final items = {...current.keys, ...bagOf.keys}.toList()..sort();
   for (final itemId in items) {
     if (current[itemId] != bagOf[itemId]) {

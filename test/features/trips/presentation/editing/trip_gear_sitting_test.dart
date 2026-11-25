@@ -57,8 +57,13 @@ void main() {
     name: 'Steel 12',
     type: EquipmentType.tank,
   );
+  const duffel = EquipmentItem(
+    id: 'duffel',
+    name: 'Duffel',
+    type: EquipmentType.bag,
+  );
   final catalogue = {
-    for (final i in [fins, wing, tank]) i.id: i,
+    for (final i in [fins, wing, tank, duffel]) i.id: i,
   };
 
   Future<List<String>> labels() async {
@@ -255,6 +260,25 @@ void main() {
     );
     expect(await listItems.getByChecklistId('c1'), isEmpty);
     expect(session.changedCardIds, {'checklists'});
+  });
+
+  test('Save packs gear loose when its held bag was unpacked meanwhile, '
+      'and still writes the rest', () async {
+    await packs.pack('t1', ['duffel']);
+    final session = await open();
+    final writes = writesOf(session);
+    writes.assignBag('fins', 'duffel');
+    await writes.pack([wing]);
+
+    // Another device unpacks the bag before this one saves.
+    await packs.unpack('t1', 'duffel');
+    await save(session);
+
+    expect(
+      await packs.equipmentIdsForTrip('t1'),
+      unorderedEquals(['fins', 'tank', 'wing']),
+    );
+    expect(await packs.bagAssignmentsForTrip('t1'), isEmpty);
   });
 
   test('rental slots keep their order and get ids', () async {
