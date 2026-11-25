@@ -581,29 +581,35 @@ void main() {
       expect((await next(memory)).sites.map((s) => s.id), ['empty']);
     });
 
-    test(
-      'a site that moved while its lookup was in flight is not noted',
-      () async {
-        await seed();
-        final memory = _FakeMemory();
-        // A sync moves the empty site while OpenStreetMap is being asked
-        // about its old coordinates.
-        final location = _MovingLocationService(answers, () async {
-          final empty = (await sites.getSiteById('empty'))!;
-          await sites.updateSite(
-            empty.copyWith(location: const GeoPoint(46.0, 7.0)),
-          );
-        });
+    test('a site that moved while its lookup was in flight is neither written '
+        'nor noted', () async {
+      await seed();
+      final memory = _FakeMemory();
+      // A sync moves the empty site while OpenStreetMap is being asked
+      // about its old coordinates.
+      final location = _MovingLocationService(answers, () async {
+        final empty = (await sites.getSiteById('empty'))!;
+        await sites.updateSite(
+          empty.copyWith(location: const GeoPoint(46.0, 7.0)),
+        );
+      });
 
-        await service(
-          location,
-          memory: memory,
-        ).run(onProgress: (_, _) {}, isCancelled: () => false);
+      final summary = await service(
+        location,
+        memory: memory,
+      ).run(onProgress: (_, _) {}, isCancelled: () => false);
 
-        expect(memory.notes.containsKey('empty'), isFalse);
-        expect(memory.notes.containsKey('partial'), isTrue);
-      },
-    );
+      expect(memory.notes.containsKey('empty'), isFalse);
+      expect(memory.notes.containsKey('partial'), isTrue);
+      final moved = (await sites.getSiteById('empty'))!;
+      expect(
+        moved.city,
+        isNull,
+        reason: 'Weggis answered for where the site used to be',
+      );
+      expect(summary.updated, 0);
+      expect(summary.failed, 1, reason: 'not "nothing to add"');
+    });
 
     test('a cancelled run keeps what it learned', () async {
       await seed();

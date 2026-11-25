@@ -202,49 +202,41 @@ class SiteLocationBackfillService {
   );
 
   /// [notes] with what the lookup that just answered [found] for [siteId]
-  /// at [asked] left empty: OpenStreetMap has nothing for those fields at
-  /// this place. The same map comes back, unchanged, when there is nothing
-  /// new to note, or when the site moved while the lookup was in flight (a
-  /// sync, another edit): the answer is about [asked], not where it is now.
+  /// left empty on [after], the site as it stands now: OpenStreetMap has
+  /// nothing for those fields at this place. The same map comes back,
+  /// unchanged, when there is nothing new to note. The caller has already
+  /// made sure [after] is still where the lookup asked about.
   ///
   /// Fields whose own request failed ([PlaceLookup.addressUnknown],
   /// [PlaceLookup.bodyOfWaterUnknown]) are left out of the note, so noting
   /// never hides a site OpenStreetMap was not actually asked about. A
   /// failure here only costs the note, so it is logged rather than counted
   /// against the lookup.
-  Future<Map<String, SiteLookupNote>> _noted(
+  static Map<String, SiteLookupNote> _noted(
     String siteId,
-    GeoPoint asked,
+    DiveSite? after,
     PlaceLookup found,
     Map<String, SiteLookupNote> notes,
-  ) async {
-    try {
-      final after = await _sites.getSiteById(siteId);
-      final now = after?.location;
-      if (after != null &&
-          (now == null ||
-              now.latitude != asked.latitude ||
-              now.longitude != asked.longitude)) {
-        return notes;
-      }
-      final note = after == null ? null : SiteLookupNote.of(after, found);
-      if (note == null) {
-        if (!notes.containsKey(siteId)) return notes;
-        return {
-          for (final entry in notes.entries)
-            if (entry.key != siteId) entry.key: entry.value,
-        };
-      }
-      if (notes[siteId] == note) return notes;
-      return {...notes, siteId: note};
-    } catch (e, stackTrace) {
-      _log.warning(
-        'Could not note the lookup for site $siteId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return notes;
+  ) {
+    final note = after == null ? null : SiteLookupNote.of(after, found);
+    if (note == null) {
+      if (!notes.containsKey(siteId)) return notes;
+      return {
+        for (final entry in notes.entries)
+          if (entry.key != siteId) entry.key: entry.value,
+      };
     }
+    if (notes[siteId] == note) return notes;
+    return {...notes, siteId: note};
+  }
+
+  /// Whether [site] still stands at [asked]. A sync or another edit can move
+  /// a site while its lookup is in flight; the answer is about [asked].
+  static bool _stillAt(DiveSite site, GeoPoint asked) {
+    final now = site.location;
+    return now != null &&
+        now.latitude == asked.latitude &&
+        now.longitude == asked.longitude;
   }
 
   Future<BackfillSummary> _runInner({
@@ -293,21 +285,28 @@ class SiteLocationBackfillService {
           }
           failed++;
         } else {
-          if (await _sites.applyLocationDetails(
+          // The write itself checks the coordinates inside its transaction,
+          // so an answer for where a site used to be is never written to
+          // where it is now.
+          final wrote = await _sites.applyLocationDetails(
             site.id,
             lookup,
             overwrite: mode == SiteLocationLookupMode.refreshAll,
-          )) {
+            onlyAt: point,
+          );
+          final after = await _sites.getSiteById(site.id);
+          final moved = after != null && !_stillAt(after, point);
+          if (wrote) {
             updated++;
-          } else if (lookup.addressUnknown) {
-            // The address request failed, so this is not a site
-            // OpenStreetMap had nothing for, which is what "unchanged" tells
-            // the diver.
+          } else if (moved || lookup.addressUnknown) {
+            // Neither is a site OpenStreetMap had nothing for, which is
+            // what "unchanged" tells the diver: the lookup answered for a
+            // place the site has left, or its address request failed.
             failed++;
           } else {
             unchanged++;
           }
-          notes = await _noted(site.id, point, lookup, notes);
+          if (!moved) notes = _noted(site.id, after, lookup, notes);
         }
       } catch (e, stackTrace) {
         _log.warning(
