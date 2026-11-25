@@ -453,8 +453,11 @@ class LocationService {
       _log.warning('Web reverse geocoding refused: $e');
       return const PlaceLookup.unavailable();
     } catch (e) {
+      // Not "nothing here": a TLS error, a malformed body or a stalled
+      // response. Callers that remember answers must not remember this one
+      // (issue #4992).
       _log.warning('Web reverse geocoding failed: $e');
-      return const PlaceLookup.empty();
+      return const PlaceLookup(addressUnknown: true);
     }
   }
 

@@ -511,16 +511,59 @@ void main() {
       expect(offline.notes, isEmpty);
     });
 
-    test('a lookup that found nothing at all is not remembered', () async {
-      // The web geocoder answers an empty result for a failure it cannot
-      // classify (a broken response, a TLS error); noting it would hide the
-      // site from every later run.
+    test('a lookup that found nothing at all is remembered', () async {
+      // OpenStreetMap answered "nothing here" (open sea outside the sea
+      // table, say): asking again would get the same answer.
       await seed();
       final memory = _FakeMemory();
       final summary = await fill(memory, const {});
       expect(summary.unchanged, 2);
-      expect(memory.notes, isEmpty);
+      expect(memory.notes.keys, unorderedEquals(['empty', 'partial']));
+      expect((await next(memory)).sites, isEmpty);
+    });
+
+    test('an address that could not be fetched is not remembered and counts '
+        'as failed', () async {
+      // A TLS error or a broken body: OpenStreetMap was never really asked,
+      // so neither the note nor the "nothing to add" summary may claim it.
+      await seed();
+      final memory = _FakeMemory();
+      const broken = PlaceLookup(addressUnknown: true);
+      final summary = await fill(memory, {
+        '47.0,8.4': broken,
+        '47.1,8.5': broken,
+      });
+      expect(summary.failed, 2);
+      expect(summary.unchanged, 0);
+      for (final note in memory.notes.values) {
+        expect(
+          note.blank,
+          isNot(contains(SiteLocationField.country)),
+          reason: 'an address that was never fetched is not noted',
+        );
+      }
       expect((await next(memory)).sites, hasLength(2));
+    });
+
+    test('a sea name alone does not let a failed address be noted', () async {
+      // The bundled sea table answers offline, so a marine site can come
+      // back with a body of water although its address request failed.
+      await seed();
+      final memory = _FakeMemory();
+      final summary = await fill(memory, {
+        '47.0,8.4': const PlaceLookup(
+          bodyOfWater: 'Lake Lucerne',
+          addressUnknown: true,
+        ),
+        '47.1,8.5': sameAsStored,
+      });
+      expect(summary.updated, 1, reason: 'the body of water was written');
+      expect(
+        memory.notes.containsKey('empty'),
+        isFalse,
+        reason: 'its empty country, region and town were never asked',
+      );
+      expect((await next(memory)).sites.map((s) => s.id), ['empty']);
     });
 
     test('a body of water whose own lookup failed is asked again', () async {

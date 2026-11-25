@@ -36,7 +36,7 @@ class SiteLookupNote {
   /// A field counts only when it is empty on the site *and* in [found]. A
   /// field the lookup did answer but that was not written (a library site this
   /// profile may not edit, say) is not OpenStreetMap's gap, and a body of
-  /// water whose lookup failed was never really asked.
+  /// water or an address whose lookup failed was never really asked.
   static SiteLookupNote? of(DiveSite site, PlaceLookup found) {
     final point = site.location;
     if (point == null) return null;
@@ -52,14 +52,17 @@ class SiteLookupNote {
     );
   }
 
-  static bool _unanswered(SiteLocationField field, PlaceLookup found) =>
-      switch (field) {
-        SiteLocationField.country => _isBlank(found.country),
-        SiteLocationField.region => _isBlank(found.region),
-        SiteLocationField.city => _isBlank(found.locality),
-        SiteLocationField.bodyOfWater =>
-          _isBlank(found.bodyOfWater) && !found.bodyOfWaterUnknown,
-      };
+  static bool _unanswered(
+    SiteLocationField field,
+    PlaceLookup found,
+  ) => switch (field) {
+    SiteLocationField.country =>
+      _isBlank(found.country) && !found.addressUnknown,
+    SiteLocationField.region => _isBlank(found.region) && !found.addressUnknown,
+    SiteLocationField.city => _isBlank(found.locality) && !found.addressUnknown,
+    SiteLocationField.bodyOfWater =>
+      _isBlank(found.bodyOfWater) && !found.bodyOfWaterUnknown,
+  };
 
   final double latitude;
   final double longitude;

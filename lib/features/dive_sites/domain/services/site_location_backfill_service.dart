@@ -116,25 +116,23 @@ class SiteLocationBackfillService {
     final all = await _sites.getAllSites(diverId: diverId);
     final notes = await _readNotes();
     final stamper = LibraryEditStamper();
-    final sites = <DiveSite>[];
-    var alreadyLookedUp = 0;
-    for (final site in all) {
-      if (!wants(site, mode)) continue;
-      if (site.sharedLibraryId != null &&
-          !await stamper.mayEdit(site.id, actingDiverId: diverId)) {
-        continue;
-      }
-      if (mode == SiteLocationLookupMode.fillMissing &&
-          (notes[site.id]?.covers(site) ?? false)) {
-        alreadyLookedUp++;
-        continue;
-      }
-      sites.add(site);
-    }
+    final wanted = [
+      for (final site in all)
+        if (wants(site, mode) &&
+            (site.sharedLibraryId == null ||
+                await stamper.mayEdit(site.id, actingDiverId: diverId)))
+          site,
+    ];
+    bool answered(DiveSite site) =>
+        mode == SiteLocationLookupMode.fillMissing &&
+        (notes[site.id]?.covers(site) ?? false);
     await _dropNotesForMissingSites(notes, all);
     return BackfillCandidates(
-      sites: sites,
-      alreadyLookedUp: alreadyLookedUp,
+      sites: [
+        for (final site in wanted)
+          if (!answered(site)) site,
+      ],
+      alreadyLookedUp: wanted.where(answered).length,
       diverId: diverId,
     );
   }
@@ -209,18 +207,17 @@ class SiteLocationBackfillService {
   /// new to note, or when the site moved while the lookup was in flight (a
   /// sync, another edit): the answer is about [asked], not where it is now.
   ///
-  /// A lookup that found nothing at all leaves the notes alone: the web
-  /// geocoder answers an empty result for a failure it could not classify
-  /// (a broken response, a TLS error), and noting that would hide the site
-  /// from every later run. A failure here only costs the note, so it is
-  /// logged rather than counted against the lookup.
+  /// Fields whose own request failed ([PlaceLookup.addressUnknown],
+  /// [PlaceLookup.bodyOfWaterUnknown]) are left out of the note, so noting
+  /// never hides a site OpenStreetMap was not actually asked about. A
+  /// failure here only costs the note, so it is logged rather than counted
+  /// against the lookup.
   Future<Map<String, SiteLookupNote>> _noted(
     String siteId,
     GeoPoint asked,
     PlaceLookup found,
     Map<String, SiteLookupNote> notes,
   ) async {
-    if (found.isEmpty) return notes;
     try {
       final after = await _sites.getSiteById(siteId);
       final now = after?.location;
@@ -302,6 +299,11 @@ class SiteLocationBackfillService {
             overwrite: mode == SiteLocationLookupMode.refreshAll,
           )) {
             updated++;
+          } else if (lookup.addressUnknown) {
+            // The address request failed, so this is not a site
+            // OpenStreetMap had nothing for, which is what "unchanged" tells
+            // the diver.
+            failed++;
           } else {
             unchanged++;
           }

@@ -374,6 +374,25 @@ void main() {
       expect(result.country, isNull);
       expect(result.region, isNull);
       expect(result.locality, isNull);
+      expect(
+        result.addressUnknown,
+        isTrue,
+        reason: 'a broken answer is not "nothing here" (#4992)',
+      );
+    });
+
+    test('an unable-to-geocode answer is a real, empty answer', () async {
+      final server = FakeNominatim(
+        body: jsonEncode({'error': 'Unable to geocode'}),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(36.0143, -5.6044, languageCode: 'en'),
+      );
+
+      expect(result.isEmpty, isTrue);
+      expect(result.addressUnknown, isFalse);
+      expect(result.networkFailed, isFalse);
     });
 
     test('closes the HttpClient even when the body fails to parse', () async {

@@ -66,17 +66,13 @@ class PrefsSiteLookupMemory implements SiteLookupMemory {
     final lon = value['lon'];
     final blank = value['blank'];
     if (lat is! num || lon is! num || blank is! List) return null;
-    final fields = <SiteLocationField>{};
-    for (final name in blank) {
-      final field = SiteLocationField.values.asNameMap()[name];
-      if (field == null) return null;
-      fields.add(field);
-    }
-    if (fields.isEmpty) return null;
+    final byName = SiteLocationField.values.asNameMap();
+    final fields = [for (final name in blank) byName[name]];
+    if (fields.isEmpty || fields.contains(null)) return null;
     return SiteLookupNote(
       latitude: lat.toDouble(),
       longitude: lon.toDouble(),
-      blank: fields,
+      blank: fields.whereType<SiteLocationField>().toSet(),
     );
   }
 }
