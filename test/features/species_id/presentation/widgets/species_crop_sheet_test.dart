@@ -13,7 +13,6 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
-import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_crop_sheet.dart';
@@ -23,16 +22,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../media/presentation/support/media_widget_harness.dart';
 import '../../domain/identification_rules_fixtures.dart';
-
-/// A species tag's crops on a locked photo or video (issue #5024).
-class _Identifications extends MediaIdentificationRepository {
-  _Identifications(this.rows);
-
-  final List<MediaIdentification> rows;
-
-  @override
-  Future<List<MediaIdentification>> forMedia(String mediaId) async => rows;
-}
+import '../species_id_fakes.dart';
 
 /// A 1x1 PNG: a crop that decodes.
 final _pixel = Uint8List.fromList(
@@ -95,7 +85,7 @@ Future<void> pumpOpener(
       overrides: [
         ...overrides,
         mediaIdentificationRepositoryProvider.overrideWithValue(
-          _Identifications(rows),
+          FixedIdentifications(rows),
         ),
         identificationCropProvider.overrideWith(
           (ref, key) async =>
@@ -118,6 +108,7 @@ Future<void> pumpOpener(
   await tester.pumpAndSettle();
 }
 
+/// A species tag's crops on a locked photo or video (issue #5024).
 void main() {
   setUp(() {
     marineLifeIdEnabled = true;
