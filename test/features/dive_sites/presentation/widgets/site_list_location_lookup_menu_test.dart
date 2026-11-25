@@ -32,9 +32,9 @@ class _RecordingBackfill extends StateNotifier<BackfillState>
   final List<SiteLocationLookupMode> counted = [];
 
   @override
-  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+  Future<BackfillCandidates> findCandidates(SiteLocationLookupMode mode) async {
     counted.add(mode);
-    return const [];
+    return const BackfillCandidates(sites: []);
   }
 
   @override

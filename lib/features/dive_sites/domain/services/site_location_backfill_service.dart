@@ -5,6 +5,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_lookup_memory.dart';
 
 /// Outcome of one backfill run.
 class BackfillSummary {
@@ -28,7 +29,18 @@ class BackfillSummary {
   final bool offline;
 }
 
-bool _isBlank(String? value) => value == null || value.trim().isEmpty;
+/// The sites a run would look up, and how many more it leaves out because
+/// an earlier lookup already found nothing for their empty fields.
+class BackfillCandidates {
+  const BackfillCandidates({required this.sites, this.alreadyLookedUp = 0});
+
+  final List<DiveSite> sites;
+
+  /// Sites with empty fields that a [SiteLocationLookupMode.fillMissing]
+  /// run skips: OpenStreetMap had nothing for them at these coordinates
+  /// (issue #4992). Always 0 for a refresh, which asks about every site.
+  final int alreadyLookedUp;
+}
 
 /// What a run writes to the sites it looks up (issue #1187).
 enum SiteLocationLookupMode {
@@ -53,13 +65,20 @@ class SiteLocationBackfillService {
     required LocationService location,
     required String languageCode,
     required this.mode,
+    SiteLookupMemory? memory,
   }) : _sites = sites,
        _location = location,
-       _languageCode = languageCode;
+       _languageCode = languageCode,
+       _memory = memory;
 
   final SiteRepository _sites;
   final LocationService _location;
   final String _languageCode;
+
+  /// What earlier lookups could not fill, so a fill-missing run does not ask
+  /// OpenStreetMap the same question again (issue #4992). Without one,
+  /// every site with an empty field is offered every time.
+  final SiteLookupMemory? _memory;
 
   /// What this run writes to the sites it looks up.
   final SiteLocationLookupMode mode;
@@ -68,11 +87,7 @@ class SiteLocationBackfillService {
   /// A site a [SiteLocationLookupMode.fillMissing] run would look up:
   /// coordinates present and at least one of the four fields blank.
   static bool needsLookup(DiveSite site) =>
-      site.location != null &&
-      (_isBlank(site.country) ||
-          _isBlank(site.region) ||
-          _isBlank(site.city) ||
-          _isBlank(site.bodyOfWater));
+      site.location != null && blankLocationFields(site).isNotEmpty;
 
   /// Whether [mode] would look this site up. A refresh asks about every
   /// site that has coordinates, however complete it already looks, because
@@ -84,17 +99,74 @@ class SiteLocationBackfillService {
 
   /// The sites a run looks up. A shared library site this profile may not
   /// edit is left out: whatever the lookup found, nothing would be written
-  /// to it (issue #2567).
-  Future<List<DiveSite>> candidates({String? diverId}) async {
+  /// to it (issue #2567). A fill-missing run also leaves out a site an
+  /// earlier lookup could not complete, unless it has moved or had a field
+  /// cleared since (issue #4992).
+  Future<BackfillCandidates> candidates({String? diverId}) async {
     final all = await _sites.getAllSites(diverId: diverId);
+    final notes = await _readNotes();
     final stamper = LibraryEditStamper();
-    return [
-      for (final site in all)
-        if (wants(site, mode) &&
-            (site.sharedLibraryId == null ||
-                await stamper.mayEdit(site.id, actingDiverId: diverId)))
-          site,
-    ];
+    final sites = <DiveSite>[];
+    var alreadyLookedUp = 0;
+    for (final site in all) {
+      if (!wants(site, mode)) continue;
+      if (site.sharedLibraryId != null &&
+          !await stamper.mayEdit(site.id, actingDiverId: diverId)) {
+        continue;
+      }
+      if (mode == SiteLocationLookupMode.fillMissing &&
+          (notes[site.id]?.covers(site) ?? false)) {
+        alreadyLookedUp++;
+        continue;
+      }
+      sites.add(site);
+    }
+    await _dropNotesForMissingSites(notes, all);
+    return BackfillCandidates(sites: sites, alreadyLookedUp: alreadyLookedUp);
+  }
+
+  Future<Map<String, SiteLookupNote>> _readNotes() async {
+    final memory = _memory;
+    if (memory == null) return {};
+    try {
+      return await memory.read();
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not read site lookup notes; every incomplete site is offered',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return {};
+    }
+  }
+
+  Future<void> _writeNotes(Map<String, SiteLookupNote> notes) async {
+    final memory = _memory;
+    if (memory == null) return;
+    try {
+      await memory.write(notes);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not save site lookup notes; these sites will be offered again',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Forgets notes for sites that are gone, so the store does not grow with
+  /// every deleted site.
+  Future<void> _dropNotesForMissingSites(
+    Map<String, SiteLookupNote> notes,
+    List<DiveSite> all,
+  ) async {
+    if (notes.isEmpty) return;
+    final ids = {for (final site in all) site.id};
+    final kept = {
+      for (final entry in notes.entries)
+        if (ids.contains(entry.key)) entry.key: entry.value,
+    };
+    if (kept.length != notes.length) await _writeNotes(kept);
   }
 
   /// Runs the lookup over [targets], or over [candidates] when the caller
@@ -117,22 +189,50 @@ class SiteLocationBackfillService {
     ),
   );
 
+  /// Records in [notes] what the lookup that just answered for [siteId]
+  /// left empty: OpenStreetMap has nothing for those fields at this place.
+  /// Returns whether [notes] changed. A failure here only costs the note,
+  /// so it is logged rather than counted against the lookup.
+  Future<bool> _noteLookup(
+    String siteId,
+    Map<String, SiteLookupNote> notes,
+  ) async {
+    try {
+      final after = await _sites.getSiteById(siteId);
+      final note = after == null ? null : SiteLookupNote.of(after);
+      if (note == null) return notes.remove(siteId) != null;
+      if (notes[siteId] == note) return false;
+      notes[siteId] = note;
+      return true;
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not note the lookup for site $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
+  }
+
   Future<BackfillSummary> _runInner({
     String? diverId,
     List<DiveSite>? targets,
     required void Function(int done, int total) onProgress,
     required bool Function() isCancelled,
   }) async {
-    final sites = targets ?? await candidates(diverId: diverId);
+    final sites = targets ?? (await candidates(diverId: diverId)).sites;
     final total = sites.length;
     var updated = 0;
     var unchanged = 0;
     var failed = 0;
     var done = 0;
+    final notes = await _readNotes();
+    var notesChanged = false;
     onProgress(done, total);
 
     for (final site in sites) {
       if (isCancelled()) {
+        if (notesChanged) await _writeNotes(notes);
         return BackfillSummary(
           total: total,
           updated: updated,
@@ -159,14 +259,17 @@ class SiteLocationBackfillService {
             );
           }
           failed++;
-        } else if (await _sites.applyLocationDetails(
-          site.id,
-          lookup,
-          overwrite: mode == SiteLocationLookupMode.refreshAll,
-        )) {
-          updated++;
         } else {
-          unchanged++;
+          if (await _sites.applyLocationDetails(
+            site.id,
+            lookup,
+            overwrite: mode == SiteLocationLookupMode.refreshAll,
+          )) {
+            updated++;
+          } else {
+            unchanged++;
+          }
+          notesChanged = await _noteLookup(site.id, notes) || notesChanged;
         }
       } catch (e, stackTrace) {
         _log.warning(
@@ -180,6 +283,7 @@ class SiteLocationBackfillService {
       onProgress(done, total);
     }
 
+    if (notesChanged) await _writeNotes(notes);
     return BackfillSummary(
       total: total,
       updated: updated,

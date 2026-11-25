@@ -5,12 +5,30 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_bac
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Seconds per site for the estimate: up to two Nominatim requests (address
 /// layer, then natural layer), one second apart. On mobile the address may
 /// come from the platform geocoder instead, so this is an upper bound.
 const int _secondsPerSite = 2;
+
+/// Sentences joined the way [l10n]'s language writes them: Chinese and
+/// Japanese run sentences together, the rest separate them with a space.
+String _sentences(AppLocalizations l10n, List<String> parts) =>
+    parts.join(const {'ja', 'zh'}.contains(l10n.localeName) ? '' : ' ');
+
+/// What a finished fill-missing run did, saying in words that the sites it
+/// left alone had nothing more on OpenStreetMap (issue #4992). The bare
+/// "unchanged" count read as though the run had skipped them.
+String _fillSummary(AppLocalizations l10n, BackfillSummary summary) =>
+    _sentences(l10n, [
+      l10n.diveSites_backfill_summary_updated(summary.updated),
+      if (summary.unchanged > 0)
+        l10n.diveSites_backfill_summary_nothingToAdd(summary.unchanged),
+      if (summary.failed > 0)
+        l10n.diveSites_backfill_summary_failed(summary.failed),
+    ]);
 
 /// The bulk location-lookup flow (issue #1187): count, confirm, run with a
 /// progress dialog, summarise in a snackbar.
@@ -42,8 +60,12 @@ Future<void> showSiteLocationBackfillFlow(
   // The candidates are listed once here: the count drives the confirmation
   // copy and the same list is then handed to the run, so a large site list is
   // not read and mapped twice.
-  final candidates = await notifier.findCandidates(mode);
+  final found = await notifier.findCandidates(mode);
+  final candidates = found.sites;
   final count = candidates.length;
+  // Sites an earlier lookup could not complete: left out of this run, but
+  // named, so the count on the menu and the dialog agree (issue #4992).
+  final alreadyLookedUp = found.alreadyLookedUp;
   if (!context.mounted) return;
   if (count == 0) {
     messenger.showSnackBar(
@@ -51,6 +73,8 @@ Future<void> showSiteLocationBackfillFlow(
         content: Text(
           refreshing
               ? l10n.diveSites_refresh_nothing
+              : alreadyLookedUp > 0
+              ? l10n.diveSites_backfill_nothingNew(alreadyLookedUp)
               : l10n.diveSites_backfill_nothingToFill,
         ),
       ),
@@ -71,7 +95,14 @@ Future<void> showSiteLocationBackfillFlow(
       content: Text(
         refreshing
             ? l10n.diveSites_refresh_confirm_body(count, language, minutes)
-            : l10n.diveSites_backfill_confirm_body(count, minutes),
+            : _sentences(l10n, [
+                l10n.diveSites_backfill_confirm_body(count, minutes),
+                if (alreadyLookedUp > 0)
+                  l10n.diveSites_backfill_confirm_alreadyLookedUp(
+                    alreadyLookedUp,
+                  ),
+                l10n.diveSites_backfill_confirm_mayStayEmpty,
+              ]),
       ),
       actions: [
         TextButton(
@@ -105,11 +136,13 @@ Future<void> showSiteLocationBackfillFlow(
       content: Text(
         summary.offline
             ? l10n.diveSites_backfill_offline
-            : l10n.diveSites_backfill_summary(
+            : refreshing
+            ? l10n.diveSites_backfill_summary(
                 summary.updated,
                 summary.unchanged,
                 summary.failed,
-              ),
+              )
+            : _fillSummary(l10n, summary),
       ),
     ),
   );

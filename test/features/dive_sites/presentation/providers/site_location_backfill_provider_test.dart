@@ -104,7 +104,21 @@ void main() {
     final found = await notifier.findCandidates(
       SiteLocationLookupMode.fillMissing,
     );
-    expect(found, hasLength(2));
+    expect(found.sites, hasLength(2));
+  });
+
+  test('a finished run is remembered on this device, so the sites it could '
+      'not complete are not offered again (issue #4992)', () async {
+    final notifier = container.read(siteLocationBackfillProvider.notifier);
+    // Each lookup answers country and town only, so region and body of
+    // water stay empty on both sites.
+    await runToCompletion(notifier.start(SiteLocationLookupMode.fillMissing));
+
+    final next = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
+    );
+    expect(next.sites, isEmpty);
+    expect(next.alreadyLookedUp, 2);
   });
 
   test('reports progress while running and finishes with a summary', () async {
@@ -206,8 +220,8 @@ void main() {
       SiteLocationLookupMode.refreshAll,
     );
 
-    expect(filling, hasLength(2));
-    expect(refreshing, hasLength(3));
+    expect(filling.sites, hasLength(2));
+    expect(refreshing.sites, hasLength(3));
   });
 
   test('a started run looks up only the candidates it was handed', () async {
@@ -222,7 +236,7 @@ void main() {
 
     final run = notifier.start(
       SiteLocationLookupMode.fillMissing,
-      targets: candidates,
+      targets: candidates.sites,
     );
     while (location.gates.isEmpty) {
       await tick();

@@ -16,10 +16,12 @@ class _ScriptedBackfill extends StateNotifier<BackfillState>
   _ScriptedBackfill({
     required this.candidates,
     required this.script,
+    this.alreadyLookedUp = 0,
     this.stepDelay = const Duration(milliseconds: 10),
   }) : super(const BackfillIdle());
 
   final int candidates;
+  final int alreadyLookedUp;
   final List<BackfillState> script;
   final Duration stepDelay;
   int startCalls = 0;
@@ -29,10 +31,14 @@ class _ScriptedBackfill extends StateNotifier<BackfillState>
   List<DiveSite>? startedTargets;
 
   @override
-  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
-    return [
-      for (var i = 0; i < candidates; i++) DiveSite(id: '$i', name: 'Site $i'),
-    ];
+  Future<BackfillCandidates> findCandidates(SiteLocationLookupMode mode) async {
+    return BackfillCandidates(
+      sites: [
+        for (var i = 0; i < candidates; i++)
+          DiveSite(id: '$i', name: 'Site $i'),
+      ],
+      alreadyLookedUp: alreadyLookedUp,
+    );
   }
 
   @override
@@ -153,7 +159,105 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(find.text('Filling in location details'), findsNothing);
-    expect(find.text('Updated 90, unchanged 13, failed 1'), findsOneWidget);
+    expect(
+      find.text(
+        'Updated 90 sites. OpenStreetMap had nothing to add for 13 sites. '
+        '1 lookup failed.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  group('sites OpenStreetMap cannot complete (issue #4992)', () {
+    testWidgets('the confirmation says some fields may stay empty', (
+      tester,
+    ) async {
+      final notifier = _ScriptedBackfill(candidates: 49, script: const []);
+      await tester.pumpWidget(host(notifier));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining(
+          'Some fields may stay empty: OpenStreetMap often has no body of '
+          'water for a pool, cenote or quarry, and no town for a site '
+          'offshore.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('looked up before'), findsNothing);
+    });
+
+    testWidgets('the confirmation counts the sites it leaves out', (
+      tester,
+    ) async {
+      final notifier = _ScriptedBackfill(
+        candidates: 3,
+        alreadyLookedUp: 46,
+        script: const [],
+      );
+      await tester.pumpWidget(host(notifier));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('3 sites with coordinates'), findsOneWidget);
+      expect(
+        find.textContaining(
+          '46 other sites were looked up before and OpenStreetMap had '
+          'nothing more for them.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('nothing new to ask says why instead of starting', (
+      tester,
+    ) async {
+      final notifier = _ScriptedBackfill(
+        candidates: 0,
+        alreadyLookedUp: 49,
+        script: const [],
+      );
+      await tester.pumpWidget(host(notifier));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          '49 sites still have empty location details, but OpenStreetMap had '
+          'nothing more for them. Moving a site or clearing one of its '
+          'fields offers it again.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Fill in missing location details?'), findsNothing);
+      expect(notifier.startCalls, 0);
+    });
+
+    testWidgets('a run that fills nothing says OpenStreetMap had nothing', (
+      tester,
+    ) async {
+      final notifier = _ScriptedBackfill(
+        candidates: 49,
+        script: const [
+          BackfillFinished(
+            BackfillSummary(total: 49, updated: 0, unchanged: 49, failed: 0),
+          ),
+        ],
+      );
+      await tester.pumpWidget(host(notifier));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Updated 0 sites. OpenStreetMap had nothing to add for 49 sites.',
+        ),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('a small batch is estimated in the singular', (tester) async {
@@ -304,6 +408,11 @@ void main() {
     );
     expect(notifier.startedTargets, hasLength(notifier.candidates));
     await tester.pumpAndSettle();
+    expect(
+      find.text('Updated 30, unchanged 0, failed 0'),
+      findsOneWidget,
+      reason: 'a refresh keeps its own summary',
+    );
   });
 
   testWidgets('a refresh with no coordinates anywhere says so', (tester) async {
