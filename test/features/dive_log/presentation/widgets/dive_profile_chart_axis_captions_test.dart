@@ -168,6 +168,16 @@ void main() {
     expect(captionText(tester, ProfileAxisCaptions.rightKey), '°C');
   });
 
+  testWidgets('tapping the right caption opens the right axis menu', (
+    tester,
+  ) async {
+    await pumpChart(tester);
+    expect(find.byType(PopupMenuItem<ProfileRightAxisMetric?>), findsNothing);
+    await tester.tap(find.byKey(ProfileAxisCaptions.rightKey));
+    await tester.pumpAndSettle();
+    expect(find.byType(PopupMenuItem<ProfileRightAxisMetric?>), findsWidgets);
+  });
+
   testWidgets('right caption follows imperial temperature', (tester) async {
     await pumpChart(tester, settings: _imperial);
     expect(captionText(tester, ProfileAxisCaptions.rightKey), '°F');
