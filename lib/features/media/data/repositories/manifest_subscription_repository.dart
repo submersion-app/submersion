@@ -205,6 +205,33 @@ class ManifestSubscriptionRepository {
   /// `SubscriptionPollerScheduler` to compute the polling cadence (the
   /// scheduler needs to see *all* active subs' `pollIntervalSeconds`, not
   /// just the ones currently due).
+  /// Every subscription, paused ones included, oldest first. For what
+  /// describes a subscription rather than polls it (the album name a saved
+  /// share password row is shown under): pausing a feed changes neither.
+  Future<List<ManifestSubscription>> listAll() async {
+    try {
+      final query = _db.select(_db.mediaSubscriptions).join([
+        leftOuterJoin(
+          _db.mediaSubscriptionState,
+          _db.mediaSubscriptionState.subscriptionId.equalsExp(
+            _db.mediaSubscriptions.id,
+          ),
+        ),
+      ])..orderBy([OrderingTerm.asc(_db.mediaSubscriptions.createdAt)]);
+      final rows = await query.get();
+      return [
+        for (final r in rows)
+          _toEntity(
+            r.readTable(_db.mediaSubscriptions),
+            r.readTableOrNull(_db.mediaSubscriptionState),
+          ),
+      ];
+    } catch (e, st) {
+      _log.error('listAll failed', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
   Future<List<ManifestSubscription>> listAllActive() async {
     try {
       final query = _db.select(_db.mediaSubscriptions).join([

@@ -79,7 +79,11 @@ final savedHostAlbumNamesProvider = FutureProvider<Map<String, String>>((
   ref,
 ) async {
   try {
-    final subs = await ref.watch(manifestSubscriptionsProvider.future);
+    // Every subscription, paused ones too: pausing a feed keeps its saved
+    // password row, which must keep its album name.
+    final repository = ref.watch(manifestSubscriptionRepositoryProvider);
+    ref.invalidateSelfWhen(repository.watchSubscriptionsChanges());
+    final subs = await repository.listAll();
     return {
       for (final s in subs)
         if (s.displayName != null && s.displayName!.isNotEmpty)
