@@ -1,33 +1,33 @@
 {
   "schema": 1,
-  "generated_at": "2026-11-24T15:00:11Z",
-  "total": 12611,
+  "generated_at": "2026-11-25T14:39:31Z",
+  "total": 12688,
   "platforms": {
-    "macos": 7690,
-    "android": 2211,
-    "windows": 1809,
-    "linux": 901
+    "macos": 7708,
+    "android": 2243,
+    "windows": 1825,
+    "linux": 912
   },
   "recent_releases": [
     {
+      "tag": "v1.8.6.9762",
+      "published_at": "2026-11-25T06:11:29Z",
+      "downloads": 41
+    },
+    {
       "tag": "v1.8.5.9757",
       "published_at": "2026-11-24T05:42:58Z",
-      "downloads": 71
+      "downloads": 105
     },
     {
       "tag": "v1.8.4.9354",
       "published_at": "2026-11-07T07:16:05Z",
-      "downloads": 509
+      "downloads": 510
     },
     {
       "tag": "v1.8.3.9095",
       "published_at": "2026-10-26T19:25:54Z",
       "downloads": 492
-    },
-    {
-      "tag": "v1.8.2.8916",
-      "published_at": "2026-10-14T17:26:52Z",
-      "downloads": 503
     }
   ],
   "history": [
@@ -269,6 +269,16 @@
         "android": 2211,
         "windows": 1809,
         "linux": 901
+      }
+    },
+    {
+      "date": "2026-11-25",
+      "total": 12688,
+      "platforms": {
+        "macos": 7708,
+        "android": 2243,
+        "windows": 1825,
+        "linux": 912
       }
     }
   ]
