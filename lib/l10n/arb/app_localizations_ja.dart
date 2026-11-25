@@ -12330,6 +12330,67 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_backfill_offline => '場所の検索を利用できません。接続を確認して、もう一度お試しください。';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      '一部の項目は空欄のままになることがあります。OpenStreetMapには、プール、セノーテ、採石場の水域や、沖合のサイトの町がないことがよくあります。';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ほかのサイト$count件は検索済みで、OpenStreetMapに追加できる情報はありませんでした。',
+      one: 'ほかのサイト1件は検索済みで、OpenStreetMapに追加できる情報はありませんでした。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'サイト$count件に空欄の場所情報が残っていますが、OpenStreetMapに追加できる情報はありませんでした。サイトを移動するか項目を空にすると、再び対象になります。',
+      one:
+          'サイト1件に空欄の場所情報が残っていますが、OpenStreetMapに追加できる情報はありませんでした。サイトを移動するか項目を空にすると、再び対象になります。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のサイトを更新しました。',
+      one: '1件のサイトを更新しました。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のサイトはOpenStreetMapに追加できる情報がありませんでした。',
+      one: '1件のサイトはOpenStreetMapに追加できる情報がありませんでした。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の検索に失敗しました。',
+      one: '1件の検索に失敗しました。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => '地名を更新';
 
   @override

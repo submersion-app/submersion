@@ -12771,6 +12771,70 @@ class AppLocalizationsHu extends AppLocalizations {
       'A helylekérdezés nem érhető el. Ellenőrizze a kapcsolatot, és próbálja újra.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'Egyes mezők üresek maradhatnak: az OpenStreetMap egy uszodához, cenotéhoz vagy kőbányához gyakran nem ad víztestet, egy nyílt vízi merülőhelyhez pedig települést.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A Submersion már lekérdezett további $count merülőhelyet, de az OpenStreetMap nem adott hozzájuk többet.',
+      one:
+          'A Submersion már lekérdezett további 1 merülőhelyet, de az OpenStreetMap nem adott hozzá többet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülőhelynek még vannak üres helyadatai, de az OpenStreetMap nem adott hozzájuk többet. Ha áthelyez egy helyet, vagy kiüríti valamelyik mezőjét, újra felajánljuk.',
+      one:
+          '1 merülőhelynek még vannak üres helyadatai, de az OpenStreetMap nem adott hozzá többet. Ha áthelyezi a helyet, vagy kiüríti valamelyik mezőjét, újra felajánljuk.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülőhely frissítve.',
+      one: '1 merülőhely frissítve.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az OpenStreetMap $count merülőhelyhez nem tudott semmit hozzáadni.',
+      one: 'Az OpenStreetMap 1 merülőhelyhez nem tudott semmit hozzáadni.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lekérdezés sikertelen.',
+      one: '1 lekérdezés sikertelen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'Helynevek frissítése';
 
   @override

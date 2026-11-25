@@ -12721,6 +12721,69 @@ class AppLocalizationsNl extends AppLocalizations {
       'Locatie opzoeken is niet beschikbaar. Controleer je verbinding en probeer het opnieuw.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'Sommige velden kunnen leeg blijven: OpenStreetMap heeft vaak geen water voor een zwembad, cenote of groeve, en geen plaats voor een stek op open zee.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count andere duikstekken zijn al opgezocht en OpenStreetMap had er niets meer voor.',
+      one:
+          '1 andere duikstek is al opgezocht en OpenStreetMap had er niets meer voor.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duikstekken hebben nog lege locatiegegevens, maar OpenStreetMap had er niets meer voor. Een verplaatste stek, of een stek met een leeggemaakt veld, wordt opnieuw aangeboden.',
+      one:
+          '1 duikstek heeft nog lege locatiegegevens, maar OpenStreetMap had er niets meer voor. Een verplaatste stek, of een stek met een leeggemaakt veld, wordt opnieuw aangeboden.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikstekken bijgewerkt.',
+      one: '1 duikstek bijgewerkt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'OpenStreetMap had niets toe te voegen voor $count duikstekken.',
+      one: 'OpenStreetMap had niets toe te voegen voor 1 duikstek.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count opzoekingen mislukt.',
+      one: '1 opzoeking mislukt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'Plaatsnamen bijwerken';
 
   @override

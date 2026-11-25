@@ -12168,6 +12168,65 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_backfill_offline => '地点查找不可用。请检查网络连接后重试。';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      '部分字段可能仍为空：OpenStreetMap 通常没有泳池、天然井或采石场的水域，也没有离岸潜点的城镇。';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另有 $count 个潜点已查找过，OpenStreetMap 没有更多信息。',
+      one: '另有 1 个潜点已查找过，OpenStreetMap 没有更多信息。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜点仍有空白的位置信息，但 OpenStreetMap 没有更多信息。移动潜点或清空其某个字段后，会再次列入。',
+      one: '1 个潜点仍有空白的位置信息，但 OpenStreetMap 没有更多信息。移动潜点或清空其某个字段后，会再次列入。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已更新 $count 个潜点。',
+      one: '已更新 1 个潜点。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'OpenStreetMap 没有可为 $count 个潜点补充的信息。',
+      one: 'OpenStreetMap 没有可为 1 个潜点补充的信息。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次查找失败。',
+      one: '1 次查找失败。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => '刷新地名';
 
   @override

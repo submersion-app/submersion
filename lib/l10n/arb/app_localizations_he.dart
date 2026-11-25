@@ -12526,6 +12526,68 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש המיקום אינו זמין. בדקו את החיבור ונסו שוב.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'חלק מהשדות עשויים להישאר ריקים: ל-OpenStreetMap לרוב אין גוף מים לבריכה, לצנוטה או למחצבה, ואין עיר לאתר בלב ים.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count אתרים נוספים כבר נבדקו, ול-OpenStreetMap לא היה עליהם מידע נוסף.',
+      one: 'אתר אחד נוסף כבר נבדק, ול-OpenStreetMap לא היה עליו מידע נוסף.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ל-$count אתרים עדיין חסרים פרטי מיקום, אך ל-OpenStreetMap לא היה עליהם מידע נוסף. הזזת אתר או ריקון אחד משדותיו יציעו אותו שוב.',
+      one:
+          'לאתר אחד עדיין חסרים פרטי מיקום, אך ל-OpenStreetMap לא היה עליו מידע נוסף. הזזת האתר או ריקון אחד משדותיו יציעו אותו שוב.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עודכנו $count אתרים.',
+      one: 'עודכן אתר אחד.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-OpenStreetMap לא היה מה להוסיף ל-$count אתרים.',
+      one: 'ל-OpenStreetMap לא היה מה להוסיף לאתר אחד.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חיפושים נכשלו.',
+      one: 'חיפוש אחד נכשל.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'עדכון שמות המקומות';
 
   @override

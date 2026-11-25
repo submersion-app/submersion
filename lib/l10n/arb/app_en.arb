@@ -7715,6 +7715,47 @@
     }
   },
   "diveSites_backfill_offline": "Location lookup is unavailable. Check your connection and try again.",
+  "diveSites_backfill_confirm_mayStayEmpty": "Some fields may stay empty: OpenStreetMap often has no body of water for a pool, cenote or quarry, and no town for a site offshore.",
+  "diveSites_backfill_confirm_alreadyLookedUp": "{count, plural, =1{1 other site was looked up before and OpenStreetMap had nothing more for it.} other{{count} other sites were looked up before and OpenStreetMap had nothing more for them.}}",
+  "@diveSites_backfill_confirm_alreadyLookedUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_backfill_nothingNew": "{count, plural, =1{1 site still has empty location details, but OpenStreetMap had nothing more for it. Moving the site or clearing one of its fields offers it again.} other{{count} sites still have empty location details, but OpenStreetMap had nothing more for them. Moving a site or clearing one of its fields offers it again.}}",
+  "@diveSites_backfill_nothingNew": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_backfill_summary_updated": "{count, plural, =1{Updated 1 site.} other{Updated {count} sites.}}",
+  "@diveSites_backfill_summary_updated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_backfill_summary_nothingToAdd": "{count, plural, =1{OpenStreetMap had nothing to add for 1 site.} other{OpenStreetMap had nothing to add for {count} sites.}}",
+  "@diveSites_backfill_summary_nothingToAdd": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_backfill_summary_failed": "{count, plural, =1{1 lookup failed.} other{{count} lookups failed.}}",
+  "@diveSites_backfill_summary_failed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_list_menu_refreshPlaceNames": "Refresh place names",
   "diveSites_refresh_confirm_title": "Refresh place names?",
   "diveSites_refresh_confirm_body": "{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",

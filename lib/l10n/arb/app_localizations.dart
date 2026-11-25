@@ -20261,6 +20261,42 @@ abstract class AppLocalizations {
   /// **'Location lookup is unavailable. Check your connection and try again.'**
   String get diveSites_backfill_offline;
 
+  /// No description provided for @diveSites_backfill_confirm_mayStayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Some fields may stay empty: OpenStreetMap often has no body of water for a pool, cenote or quarry, and no town for a site offshore.'**
+  String get diveSites_backfill_confirm_mayStayEmpty;
+
+  /// No description provided for @diveSites_backfill_confirm_alreadyLookedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 other site was looked up before and OpenStreetMap had nothing more for it.} other{{count} other sites were looked up before and OpenStreetMap had nothing more for them.}}'**
+  String diveSites_backfill_confirm_alreadyLookedUp(int count);
+
+  /// No description provided for @diveSites_backfill_nothingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site still has empty location details, but OpenStreetMap had nothing more for it. Moving the site or clearing one of its fields offers it again.} other{{count} sites still have empty location details, but OpenStreetMap had nothing more for them. Moving a site or clearing one of its fields offers it again.}}'**
+  String diveSites_backfill_nothingNew(int count);
+
+  /// No description provided for @diveSites_backfill_summary_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated 1 site.} other{Updated {count} sites.}}'**
+  String diveSites_backfill_summary_updated(int count);
+
+  /// No description provided for @diveSites_backfill_summary_nothingToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{OpenStreetMap had nothing to add for 1 site.} other{OpenStreetMap had nothing to add for {count} sites.}}'**
+  String diveSites_backfill_summary_nothingToAdd(int count);
+
+  /// No description provided for @diveSites_backfill_summary_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 lookup failed.} other{{count} lookups failed.}}'**
+  String diveSites_backfill_summary_failed(int count);
+
   /// No description provided for @diveSites_list_menu_refreshPlaceNames.
   ///
   /// In en, this message translates to:

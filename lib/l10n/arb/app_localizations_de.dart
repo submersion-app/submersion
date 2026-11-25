@@ -12795,6 +12795,69 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Ortssuche ist nicht verfügbar. Prüfe deine Verbindung und versuche es erneut.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'Manche Felder können leer bleiben: OpenStreetMap kennt für ein Schwimmbad, eine Cenote oder einen Steinbruch oft kein Gewässer und für einen Tauchplatz auf offener See keinen Ort.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count weitere Tauchplätze wurden schon abgefragt, und OpenStreetMap hatte dafür nichts mehr.',
+      one:
+          '1 weiterer Tauchplatz wurde schon abgefragt, und OpenStreetMap hatte dafür nichts mehr.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchplätze haben noch leere Ortsangaben, aber OpenStreetMap hatte dafür nichts mehr. Wird ein Platz verschoben oder eines seiner Felder geleert, wird er wieder angeboten.',
+      one:
+          '1 Tauchplatz hat noch leere Ortsangaben, aber OpenStreetMap hatte dafür nichts mehr. Wird der Platz verschoben oder eines seiner Felder geleert, wird er wieder angeboten.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze aktualisiert.',
+      one: '1 Tauchplatz aktualisiert.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Für $count Tauchplätze hatte OpenStreetMap nichts zu ergänzen.',
+      one: 'Für 1 Tauchplatz hatte OpenStreetMap nichts zu ergänzen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Abfragen fehlgeschlagen.',
+      one: '1 Abfrage fehlgeschlagen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'Ortsnamen aktualisieren';
 
   @override
