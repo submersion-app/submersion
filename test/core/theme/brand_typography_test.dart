@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart' show LicenseRegistry;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/theme/brand_typography.dart';
 
@@ -61,6 +63,19 @@ void main() {
         .toList();
 
     expect(families, contains(BrandTypography.wordmarkFamily));
+  });
+
+  test('the bundled face is the one the brand wordmark is drawn from', () {
+    // scripts/brand renders the logo from its own copy of the font. Were the
+    // two to drift, the app name would stop matching the logo silently.
+    final bundled = File(
+      p.join('assets', 'fonts', 'InterDisplay-ExtraBold.ttf'),
+    ).readAsBytesSync();
+    final brand = File(
+      p.join('scripts', 'brand', 'fonts', 'InterDisplay-ExtraBold.ttf'),
+    ).readAsBytesSync();
+
+    expect(bundled, orderedEquals(brand));
   });
 
   test('registers the SIL Open Font License the bundled font ships '
