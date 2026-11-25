@@ -87,6 +87,9 @@ Future<void> showSiteLocationBackfillFlow(
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
+      // The body runs to four sentences; on a small phone with large text it
+      // must scroll rather than overflow the dialog.
+      scrollable: true,
       title: Text(
         refreshing
             ? l10n.diveSites_refresh_confirm_title

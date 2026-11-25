@@ -235,6 +235,28 @@ void main() {
       expect(notifier.startCalls, 0);
     });
 
+    testWidgets('the longer confirmation fits a small phone at large text', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      final notifier = _ScriptedBackfill(
+        candidates: 3,
+        alreadyLookedUp: 46,
+        script: const [],
+      );
+      await tester.pumpWidget(host(notifier));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('Start'));
+      expect(find.text('Start').hitTestable(), findsOneWidget);
+    });
+
     testWidgets('Japanese runs the summary sentences together', (tester) async {
       final notifier = _ScriptedBackfill(
         candidates: 3,
