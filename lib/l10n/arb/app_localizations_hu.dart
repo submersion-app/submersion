@@ -55985,6 +55985,36 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_species_cropUnavailable => 'A kép nincs ezen az eszközön';
 
   @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ezen a fotón',
+      one: '$count ezen a fotón',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ebben a videóban',
+      one: '$count ebben a videóban',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'Fajoldal';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return '$index. kép ($count közül)';
+  }
+
+  @override
   String get media_species_taggedOnPhoto => 'Ezen a fotón címkézve';
 
   @override

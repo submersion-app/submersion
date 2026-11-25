@@ -54005,6 +54005,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_species_cropUnavailable => '画像がこのデバイスにありません';
 
   @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'この写真に$count件',
+      one: 'この写真に$count件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'この動画に$count件',
+      one: 'この動画に$count件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => '種のページ';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return '画像 $index/$count';
+  }
+
+  @override
   String get media_species_taggedOnPhoto => 'この写真でタグ付け済み';
 
   @override
