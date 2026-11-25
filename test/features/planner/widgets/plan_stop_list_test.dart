@@ -441,6 +441,97 @@ void main() {
     expect(page.offset, greaterThan(atRelease));
   });
 
+  testWidgets('a finger that turns back before it lifts leaves the page '
+      'where it is', (tester) async {
+    final page = ScrollController();
+    addTearDown(page.dispose);
+    final stops = [for (var d = 42; d >= 3; d -= 3) (d.toDouble(), 1)];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            controller: page,
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: PlanStopList(tags: _tags(stops), formatDepth: _metres),
+              ),
+              const SizedBox(height: 4000),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Past the list's end, so the page moves, then back down a little: the
+    // list scrolls back and takes the rest, and the page keeps no flick.
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(PlanStopList)),
+    );
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(0, -20));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final pushed = page.offset;
+    expect(pushed, greaterThan(0));
+    for (var i = 0; i < 5; i++) {
+      await gesture.moveBy(const Offset(0, 20));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(page.offset, pushed);
+  });
+
+  testWidgets('a list that goes mid-swipe lets the page go', (tester) async {
+    final page = ScrollController();
+    addTearDown(page.dispose);
+    final showList = ValueNotifier(true);
+    addTearDown(showList.dispose);
+    final stops = [for (var d = 42; d >= 3; d -= 3) (d.toDouble(), 1)];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            controller: page,
+            children: [
+              ValueListenableBuilder(
+                valueListenable: showList,
+                builder: (context, show, _) => SizedBox(
+                  height: 200,
+                  child: show
+                      ? PlanStopList(tags: _tags(stops), formatDepth: _metres)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 4000),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(PlanStopList)),
+    );
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(0, -20));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(page.offset, greaterThan(0));
+    // The plan changes under the finger and the list has no room any more.
+    showList.value = false;
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    // The page is free again: a drag of its own moves it.
+    final before = page.offset;
+    await tester.drag(find.byType(ListView), const Offset(0, -100));
+    await tester.pumpAndSettle();
+    expect(page.offset, greaterThan(before));
+  });
+
   testWidgets('a page that takes no drags is not moved', (tester) async {
     final page = ScrollController();
     addTearDown(page.dispose);

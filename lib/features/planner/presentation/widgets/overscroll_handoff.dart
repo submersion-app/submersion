@@ -11,40 +11,39 @@ import 'package:flutter/widgets.dart';
 class OverscrollHandoff {
   Drag? _drag;
 
-  /// Whether a drag is being handed on right now.
-  bool get isActive => _drag != null;
-
   /// Acts on [notification] from the nested list. [context] is above the
   /// list and below the scrollable that should take the drag.
   void handle(ScrollNotification notification, BuildContext context) {
     // Only the list's own notifications, not those of anything nested in it.
     if (notification.depth != 0) return;
-    switch (notification) {
-      case OverscrollNotification(:final dragDetails?, :final overscroll):
-        final drag = _drag ?? _start(dragDetails, context);
-        // Only the part the list could not take, in the finger's terms.
-        drag?.update(
-          DragUpdateDetails(
-            globalPosition: dragDetails.globalPosition,
-            localPosition: dragDetails.localPosition,
-            sourceTimeStamp: dragDetails.sourceTimeStamp,
-            delta: Offset(0, -overscroll),
-            primaryDelta: -overscroll,
-          ),
-        );
-      case ScrollEndNotification(:final dragDetails, :final metrics):
-        final drag = _drag;
-        if (drag == null) return;
-        _drag = null;
-        // The flick goes on only when the finger lifts still pushing past
-        // the list's end; once it turned back, the list took it.
-        drag.end(
-          dragDetails != null && metrics.atEdge
-              ? dragDetails
-              : DragEndDetails(primaryVelocity: 0),
-        );
-      default:
-        break;
+    if (notification case OverscrollNotification(
+      :final dragDetails?,
+      :final overscroll,
+    )) {
+      final drag = _drag ?? _start(dragDetails, context);
+      // Only the part the list could not take, in the finger's terms.
+      drag?.update(
+        DragUpdateDetails(
+          globalPosition: dragDetails.globalPosition,
+          localPosition: dragDetails.localPosition,
+          sourceTimeStamp: dragDetails.sourceTimeStamp,
+          delta: Offset(0, -overscroll),
+          primaryDelta: -overscroll,
+        ),
+      );
+    } else if (notification case ScrollEndNotification(
+      :final dragDetails,
+      :final metrics,
+    ) when _drag != null) {
+      final drag = _drag!;
+      _drag = null;
+      // The flick goes on only when the finger lifts still pushing past
+      // the list's end; once it turned back, the list took it.
+      drag.end(
+        dragDetails != null && metrics.atEdge
+            ? dragDetails
+            : DragEndDetails(primaryVelocity: 0),
+      );
     }
   }
 
