@@ -202,10 +202,32 @@ bool hasDataForMetric(
   }
 }
 
-/// The right axis's unit alone (e.g. "bar", "°C"), for the caption above the
-/// chart's right tick column (issue #5013). A metric with no unit falls back
-/// to its short name, so the caption never goes blank.
+/// The caption above the chart's right tick column (issue #5013): the right
+/// axis's unit (e.g. "°C"), with the metric's short name in front when that
+/// unit alone would not say which axis it is, because another right-axis
+/// metric or the depth axis reads in it too (e.g. "ppO2 bar", "Mean m").
+/// Which units are shared follows [units]: in psi, tank pressure stands alone.
+/// A metric with no unit, or whose short name already carries its unit
+/// ("GF%"), shows the short name alone.
 String rightAxisUnitCaption(
+  ProfileRightAxisMetric metric,
+  UnitFormatter units,
+  AppLocalizations l10n,
+) {
+  final name = profileMetricShortName(l10n, metric);
+  final unit = _rightAxisUnit(metric, units, l10n);
+  if (unit == null || name.endsWith(unit)) return name;
+  final shared =
+      unit == units.depthSymbol ||
+      ProfileRightAxisMetric.values.any(
+        (other) =>
+            other != metric && _rightAxisUnit(other, units, l10n) == unit,
+      );
+  return shared ? '$name $unit' : unit;
+}
+
+/// The unit [metric] reads in, or null for a metric without one.
+String? _rightAxisUnit(
   ProfileRightAxisMetric metric,
   UnitFormatter units,
   AppLocalizations l10n,
@@ -220,9 +242,7 @@ String rightAxisUnitCaption(
     ProfileRightAxisMetric.buoyancy ||
     ProfileRightAxisMetric.aveloBuoyancy => units.weightSymbol,
     ProfileRightAxisMetric.computerRmv => units.rmvSymbol,
-    _ =>
-      profileMetricUnitSuffix(l10n, metric) ??
-          profileMetricShortName(l10n, metric),
+    _ => profileMetricUnitSuffix(l10n, metric),
   };
 }
 

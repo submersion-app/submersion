@@ -130,7 +130,7 @@ void main() {
         .read(profileLegendProvider.notifier)
         .setRightAxisMetric(ProfileRightAxisMetric.meanDepth);
     await tester.pumpAndSettle();
-    expect(captionText(tester, ProfileAxisCaptions.rightKey), 'm');
+    expect(captionText(tester, ProfileAxisCaptions.rightKey), 'Mean m');
   });
 
   testWidgets('right caption follows the right axis as hover switches it', (
@@ -140,7 +140,7 @@ void main() {
     // for the hover alone, repainting the plot only (issue #2228 follow-up);
     // the caption has to switch with it.
     await pumpChart(tester, rightAxis: ProfileRightAxisMetric.meanDepth);
-    expect(captionText(tester, ProfileAxisCaptions.rightKey), 'm');
+    expect(captionText(tester, ProfileAxisCaptions.rightKey), 'Mean m');
 
     // Half way through the dive, near the top of the plot: far from the 30 m
     // depth line, so the temperature line is the nearest tagged one. The

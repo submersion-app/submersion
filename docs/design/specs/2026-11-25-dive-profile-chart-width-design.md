@@ -60,8 +60,16 @@ would cost more height there.
    rotated axis-name strips on the left and right axes. In their place a short
    caption row sits directly above the plot: the depth unit (for example `m` or
    `ft`) left-aligned over the left tick column, and the right axis's unit (for
-   example `bar`, `psi`, `°C`) right-aligned over the right tick column, drawn
-   in the right axis's colour, as the rotated title is today. The right caption
+   example `psi`, `°C`) right-aligned over the right tick column, drawn
+   in the right axis's colour, as the rotated title is today. When that unit
+   alone would not say which axis it is, because another right-axis metric or
+   the depth axis reads in it too, the metric's short name goes in front:
+   `ppO2 bar` and `Press bar` (tank pressure) in bar, `Mean m` for mean depth,
+   `NDL min`, `CNS %`. Which units are shared follows the diver's settings, so
+   in psi tank pressure is a bare `psi`. A short name that already carries
+   its unit (`GF%`) is shown alone. Decided after review on 2026-11-25, from
+   mockups of units only against shared-unit names: units only left ppO2 and
+   tank pressure reading the same `bar`, told apart by colour alone. The right caption
    follows the right axis: it changes when the metric changes (menu or hover
    auto-switch) and is absent when the right axis shows nothing. Height cost is
    one `labelSmall` line, about 12 px; no width.

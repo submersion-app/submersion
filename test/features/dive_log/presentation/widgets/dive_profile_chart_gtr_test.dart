@@ -138,7 +138,7 @@ void main() {
 
       expect(
         tester.widget<Text>(find.byKey(ProfileAxisCaptions.rightKey)).data,
-        'min',
+        'GTR min',
       );
     });
   });
