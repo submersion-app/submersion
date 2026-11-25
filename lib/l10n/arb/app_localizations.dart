@@ -44940,6 +44940,12 @@ abstract class AppLocalizations {
   /// **'Transmitter'**
   String get settings_conflict_ref_transmitter;
 
+  /// No description provided for @settings_conflict_ref_packedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed in'**
+  String get settings_conflict_ref_packedIn;
+
   /// No description provided for @settings_conflict_ref_trip.
   ///
   /// In en, this message translates to:

@@ -28575,6 +28575,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'المرسل';
 
   @override
+  String get settings_conflict_ref_packedIn => 'معبأ في';
+
+  @override
   String get settings_conflict_ref_trip => 'الرحلة';
 
   @override

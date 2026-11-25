@@ -73,6 +73,23 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
         await r.tripEquipment.equipmentIdsForTrip(trip.id),
         load.diverId,
       ),
+      // Each packed bag to the packed gear riding in it (issue #4945).
+      'bag_contents': (trip, load) async {
+        final assigned = await r.tripEquipment.bagAssignmentsForTrip(trip.id);
+        final visible = (await RecordReader(r.db).visibleRows(
+          'equipment',
+          rootScope(QuerySubject.equipment),
+          {...assigned.keys, ...assigned.values}.toList(),
+          load.diverId,
+        )).toSet();
+        final byBag = <String, List<String>>{};
+        for (final MapEntry(key: item, value: bag) in assigned.entries) {
+          if (visible.contains(item) && visible.contains(bag)) {
+            (byBag[bag] ??= []).add(item);
+          }
+        }
+        return {for (final e in byBag.entries) e.key: e.value..sort()};
+      },
       'side_trips': (trip, load) async => [
         for (final side in await r.sideTrips.getSideTrips(
           trip.id,

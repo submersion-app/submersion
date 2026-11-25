@@ -67,6 +67,9 @@ final exempt = <String, String>{
     '$gear/equipment_repository_impl.dart:$method':
         'a shortcut for a status change, which equipment covers through '
         'updateEquipment',
+  'lib/features/trips/data/repositories/trip_equipment_repository.dart:packInBag':
+      'a shortcut for pack then assignBag, which trips covers as '
+      'equipment_ids and bag_contents',
   '$gear/equipment_repository_impl.dart:createEquipmentWithTags':
       'the demo data seeder\'s create, which equipment covers as fields and '
       'a tags relation',

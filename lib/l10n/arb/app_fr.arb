@@ -8029,6 +8029,7 @@
   "settings_conflict_ref_regulator": "Détendeur",
   "settings_conflict_ref_samePerson": "Même personne que",
   "settings_conflict_ref_transmitter": "Émetteur",
+  "settings_conflict_ref_packedIn": "Rangé dans",
   "settings_conflict_ref_weightPreset": "Modèle de lest",
   "settings_conflict_ref_yourRole": "Votre rôle",
   "settings_conflict_remoteDeleted": "{device} a supprimé cet enregistrement.",

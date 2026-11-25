@@ -27589,6 +27589,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'משדר';
 
   @override
+  String get settings_conflict_ref_packedIn => 'ארוז בתוך';
+
+  @override
   String get settings_conflict_ref_trip => 'טיול';
 
   @override

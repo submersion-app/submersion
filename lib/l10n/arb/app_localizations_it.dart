@@ -28304,6 +28304,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'Trasmettitore';
 
   @override
+  String get settings_conflict_ref_packedIn => 'Riposto in';
+
+  @override
   String get settings_conflict_ref_trip => 'Viaggio';
 
   @override

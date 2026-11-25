@@ -275,6 +275,7 @@ Future<Harness> pumpTab(
   List<EquipmentSet> sets = const [],
   AppSettings settings = const AppSettings(),
   Object? gearError,
+  Object? bagError,
   List<String>? forecastReads,
   String? scanned,
   ComponentsIndex components = ComponentsIndex.empty,
@@ -337,7 +338,10 @@ Future<Harness> pumpTab(
           if (gearError != null) throw gearError;
           return gear;
         }),
-        tripBagAssignmentsProvider('t1').overrideWith((ref) async => {}),
+        tripBagAssignmentsProvider('t1').overrideWith((ref) async {
+          if (bagError != null) throw bagError;
+          return {};
+        }),
         tripCylinderStatesProvider('t1').overrideWith((ref) async => states),
         tripCylindersProvider(
           't1',

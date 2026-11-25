@@ -8289,6 +8289,7 @@
   "settings_conflict_ref_regulator": "Atemregler",
   "settings_conflict_ref_samePerson": "Dieselbe Person wie",
   "settings_conflict_ref_transmitter": "Sender",
+  "settings_conflict_ref_packedIn": "Verpackt in",
   "settings_conflict_ref_weightPreset": "Bleivorlage",
   "settings_conflict_ref_yourRole": "Deine Rolle",
   "settings_conflict_remoteDeleted": "{device} hat diesen Eintrag gelöscht.",

@@ -28156,6 +28156,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'Jeladó';
 
   @override
+  String get settings_conflict_ref_packedIn => 'Becsomagolva ide';
+
+  @override
   String get settings_conflict_ref_trip => 'Utazás';
 
   @override

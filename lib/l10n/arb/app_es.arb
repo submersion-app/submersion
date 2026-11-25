@@ -8155,6 +8155,7 @@
   "settings_conflict_ref_regulator": "Regulador",
   "settings_conflict_ref_samePerson": "Misma persona que",
   "settings_conflict_ref_transmitter": "Transmisor",
+  "settings_conflict_ref_packedIn": "Empacado en",
   "settings_conflict_ref_weightPreset": "Plantilla de lastre",
   "settings_conflict_ref_yourRole": "Tu función",
   "settings_conflict_remoteDeleted": "{device} eliminó este registro.",

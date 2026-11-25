@@ -8029,6 +8029,7 @@
   "settings_conflict_ref_regulator": "Erogatore",
   "settings_conflict_ref_samePerson": "Stessa persona di",
   "settings_conflict_ref_transmitter": "Trasmettitore",
+  "settings_conflict_ref_packedIn": "Riposto in",
   "settings_conflict_ref_weightPreset": "Modello di zavorra",
   "settings_conflict_ref_yourRole": "Il tuo ruolo",
   "settings_conflict_remoteDeleted": "{device} ha eliminato questo record.",

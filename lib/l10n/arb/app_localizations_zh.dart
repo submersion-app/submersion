@@ -26678,6 +26678,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_transmitter => '发射器';
 
   @override
+  String get settings_conflict_ref_packedIn => '装在';
+
+  @override
   String get settings_conflict_ref_trip => '行程';
 
   @override

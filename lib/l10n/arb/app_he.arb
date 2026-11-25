@@ -8159,6 +8159,7 @@
   "settings_conflict_ref_regulator": "וסת",
   "settings_conflict_ref_samePerson": "אותו אדם כמו",
   "settings_conflict_ref_transmitter": "משדר",
+  "settings_conflict_ref_packedIn": "ארוז בתוך",
   "settings_conflict_ref_weightPreset": "תבנית משקולות",
   "settings_conflict_ref_yourRole": "התפקיד שלך",
   "settings_conflict_remoteDeleted": "{device} מחק את הרשומה הזו.",

@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/item_share_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/trip_bag_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
@@ -20,7 +21,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Trips, through the repository the trip edit page saves through. A trip is
 /// a range of days; a side trip hangs off one trip, one level deep; the
-/// dives the diver assigns stretch it to cover them; packed gear is a list.
+/// dives the diver assigns stretch it to cover them; packed gear is a list,
+/// and the packed bags hold some of it.
 /// A new liveaboard trip gets its itinerary days, and a trip that stops
 /// being a liveaboard loses its vessel details, as the page's save does.
 class TripWrites extends WritableEntry {
@@ -54,6 +56,7 @@ class TripWrites extends WritableEntry {
       key: const FieldCodec.integer(min: 1, max: 100000, nullable: true),
     'divers_sharing_cylinders': const FieldCodec.integer(min: 1, max: 100),
     'parent_trip_id': const FieldCodec.reference('trips', nullable: true),
+    'bag_contents': const FieldCodec.idLists(maxItems: 500),
   };
 
   @override
@@ -67,7 +70,11 @@ class TripWrites extends WritableEntry {
   };
 
   @override
-  String get note => shareNote;
+  String get note =>
+      '$shareNote bag_contents names each packed bag with the packed gear '
+      'riding in it and replaces the list: packed gear it leaves out is '
+      'loose. A bag does not go in another bag. Set it in an update; '
+      'equipment_ids in the same change counts.';
 
   @override
   Future<Set<String>> currentRelation(String id, String relation) async {
@@ -86,13 +93,21 @@ class TripWrites extends WritableEntry {
     return {for (final row in rows) row.read<String>('linked')};
   }
 
+  /// A read lists the trip's bags, so a plan compares against them.
+  @override
+  Future<Map<String, Object?>> stored(
+    String id,
+    Map<String, Object?> document,
+  ) async => {...document, 'bag_contents': await bagContentsOf(_r, id)};
+
   @override
   String? titleOf(Map<String, Object?> document) => document['name'] as String?;
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
-    final problem = await tripProblem(check);
+    final problem =
+        await tripProblem(check) ?? await bagContentsProblem(_r, check);
     if (problem != null || check.kind != ChangeKind.update) return problem;
     return shareProblem(
       _r,
@@ -229,7 +244,7 @@ class TripWrites extends WritableEntry {
           'Trip $id no longer exists.',
           details: {'id': id},
         ));
-    if (update.values.isNotEmpty) {
+    if (update.values.keys.any((k) => k != 'bag_contents')) {
       final next = _applied(current, update.values);
       await _r.trips.updateTrip(next, actingDiverId: ownerId);
       if (current.tripType == TripType.liveaboard &&
@@ -253,6 +268,9 @@ class TripWrites extends WritableEntry {
       for (final itemId in gear.remove) {
         await _r.tripEquipment.unpack(id, itemId);
       }
+    }
+    if (update.values.containsKey('bag_contents')) {
+      await setBagContents(_r, id, update.values['bag_contents']);
     }
   }
 

@@ -119,6 +119,27 @@ void main() {
       expect(gear.map((e) => e.name), ['Apeks', 'Zeagle']);
     });
 
+    test('tripBagAssignmentsProvider maps packed gear to its bag', () async {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'duffel',
+              name: 'duffel',
+              type: 'bag',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('me'),
+            ),
+          );
+      final packs = TripEquipmentRepository();
+      await packs.pack('t1', ['duffel', 'Zeagle', 'Apeks']);
+      await packs.assignBag('t1', 'Zeagle', 'duffel');
+      expect(await read(tripBagAssignmentsProvider('t1')), {
+        'Zeagle': 'duffel',
+      });
+    });
+
     test('gear the diver cannot see is left off', () async {
       await TripEquipmentRepository().pack('t1', ['Apeks', 'reg']);
       final gear = await read(tripGearProvider('t1'));

@@ -27820,6 +27820,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'Transmitter';
 
   @override
+  String get settings_conflict_ref_packedIn => 'Packed in';
+
+  @override
   String get settings_conflict_ref_trip => 'Trip';
 
   @override

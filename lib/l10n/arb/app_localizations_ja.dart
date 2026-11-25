@@ -27092,6 +27092,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'トランスミッター';
 
   @override
+  String get settings_conflict_ref_packedIn => '収納先';
+
+  @override
   String get settings_conflict_ref_trip => 'トリップ';
 
   @override

@@ -122,6 +122,47 @@ void main() {
     );
   });
 
+  testWidgets('a tank packed into a bag is slotted too, and counted once', (
+    tester,
+  ) async {
+    const bag = EquipmentItem(
+      id: 'bag',
+      name: 'Roller bag',
+      type: EquipmentType.bag,
+    );
+    final h = await pumpTab(tester, gear: [bag], active: [tank], editing: true);
+    await openPicker(tester);
+    await tickAndAdd(tester, ['Faber 12']);
+    await tester.tap(find.text('Roller bag').last);
+    await tester.pumpAndSettle();
+
+    expect(h.heldPacked, containsAll(['bag', 'tk']));
+    expect([for (final s in h.heldSlots) s.equipmentId], contains('tk'));
+    await h.save();
+    expect(h.packs.assigned, [('t1', 'tk', 'bag')]);
+  });
+
+  testWidgets('a packed tank off the board moves into a bag from its menu', (
+    tester,
+  ) async {
+    const bag = EquipmentItem(
+      id: 'bag',
+      name: 'Roller bag',
+      type: EquipmentType.bag,
+    );
+    final h = await pumpTab(tester, gear: [bag, tank], editing: true);
+
+    await tester.tap(find.byKey(const Key('trip-gear-menu-tk')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Move to bag'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Roller bag').last);
+    await tester.pumpAndSettle();
+    await h.save();
+
+    expect(h.packs.assigned, [('t1', 'tk', 'bag')]);
+  });
+
   group('From my equipment picks several (#4205)', () {
     testWidgets('ticked gear is packed in one pass and a tank slotted', (
       tester,

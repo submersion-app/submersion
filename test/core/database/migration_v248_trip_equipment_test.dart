@@ -47,6 +47,8 @@ void main() {
       'id',
       'trip_id',
       'equipment_id',
+      // v383 adds the bag the item is packed in (issue #4945).
+      'bag_equipment_id',
       'created_at',
       'hlc',
     });

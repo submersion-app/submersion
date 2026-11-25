@@ -8155,6 +8155,7 @@
   "settings_conflict_ref_regulator": "المنظم",
   "settings_conflict_ref_samePerson": "الشخص نفسه مثل",
   "settings_conflict_ref_transmitter": "المرسل",
+  "settings_conflict_ref_packedIn": "معبأ في",
   "settings_conflict_ref_weightPreset": "قالب الرصاص",
   "settings_conflict_ref_yourRole": "دورك",
   "settings_conflict_remoteDeleted": "حذف {device} هذا السجل.",

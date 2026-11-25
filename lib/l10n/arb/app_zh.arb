@@ -8297,6 +8297,7 @@
   "settings_conflict_ref_regulator": "调节器",
   "settings_conflict_ref_samePerson": "与此人相同",
   "settings_conflict_ref_transmitter": "发射器",
+  "settings_conflict_ref_packedIn": "装在",
   "settings_conflict_ref_weightPreset": "配重预设",
   "settings_conflict_ref_yourRole": "您的角色",
   "settings_conflict_remoteDeleted": "{device} 已删除此记录。",

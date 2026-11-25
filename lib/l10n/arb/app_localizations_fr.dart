@@ -28355,6 +28355,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'Émetteur';
 
   @override
+  String get settings_conflict_ref_packedIn => 'Rangé dans';
+
+  @override
   String get settings_conflict_ref_trip => 'Voyage';
 
   @override

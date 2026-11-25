@@ -28115,6 +28115,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'Zender';
 
   @override
+  String get settings_conflict_ref_packedIn => 'Ingepakt in';
+
+  @override
   String get settings_conflict_ref_trip => 'Reis';
 
   @override

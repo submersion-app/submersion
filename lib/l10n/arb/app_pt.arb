@@ -8155,6 +8155,7 @@
   "settings_conflict_ref_regulator": "Regulador",
   "settings_conflict_ref_samePerson": "Mesma pessoa que",
   "settings_conflict_ref_transmitter": "Transmissor",
+  "settings_conflict_ref_packedIn": "Embalado em",
   "settings_conflict_ref_weightPreset": "Modelo de lastro",
   "settings_conflict_ref_yourRole": "Sua função",
   "settings_conflict_remoteDeleted": "{device} excluiu este registro.",

@@ -8382,6 +8382,7 @@
   "settings_conflict_ref_profileEvent": "プロファイルのイベント",
   "settings_conflict_ref_scenario": "シナリオ",
   "settings_conflict_ref_transmitter": "トランスミッター",
+  "settings_conflict_ref_packedIn": "収納先",
   "settings_conflict_ref_trip": "トリップ",
   "settings_conflict_ref_tripCylinder": "トリップのタンク",
   "settings_conflict_ref_weightPreset": "ウェイトのプリセット",

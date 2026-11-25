@@ -28235,6 +28235,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'Sender';
 
   @override
+  String get settings_conflict_ref_packedIn => 'Verpackt in';
+
+  @override
   String get settings_conflict_ref_trip => 'Reise';
 
   @override

@@ -110,18 +110,16 @@ class TripEquipmentRepository {
     List<TripEquipmentRow> rows,
     String? bagId,
   ) async {
-    if (rows.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.batch((batch) {
-      for (final row in rows) {
-        batch.update(
-          _db.tripEquipment,
-          TripEquipmentCompanion(bagEquipmentId: Value(bagId)),
-          where: (t) => t.id.equals(row.id),
-        );
-      }
-    });
     for (final row in rows) {
+      await (_db.update(
+        _db.tripEquipment,
+      )..where((t) => t.id.equals(row.id))).write(
+        TripEquipmentCompanion(
+          bagEquipmentId: Value(bagId),
+          hlc: Value(await _syncRepository.issueRowClock()),
+        ),
+      );
       await _syncRepository.markRecordPending(
         entityType: entity,
         recordId: row.id,

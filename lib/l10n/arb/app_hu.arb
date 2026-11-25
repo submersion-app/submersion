@@ -8029,6 +8029,7 @@
   "settings_conflict_ref_regulator": "Légzőautomata",
   "settings_conflict_ref_samePerson": "Ugyanaz a személy, mint",
   "settings_conflict_ref_transmitter": "Jeladó",
+  "settings_conflict_ref_packedIn": "Becsomagolva ide",
   "settings_conflict_ref_weightPreset": "Ólomsablon",
   "settings_conflict_ref_yourRole": "A te szereped",
   "settings_conflict_remoteDeleted": "Törölve ezen: {device}",
