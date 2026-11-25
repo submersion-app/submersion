@@ -21314,6 +21314,110 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'تشغيل الأصل';
+
+  @override
+  String get media_viewer_playMotion => 'تشغيل الحركة';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'لا يمكن لهذا الجهاز تشغيل حركة هذه الصورة';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر تحديث $count اشتراك صور، من بينها \"$name\": $error',
+      many: 'تعذّر تحديث $count اشتراكًا للصور، من بينها \"$name\": $error',
+      few: 'تعذّر تحديث $count اشتراكات صور، من بينها \"$name\": $error',
+      two: 'تعذّر تحديث اشتراكَي صور، من بينهما \"$name\": $error',
+      one: 'تعذّر تحديث اشتراك الصور \"$name\": $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'فتح';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      many: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتان',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ساعة',
+      many: '$count ساعة',
+      few: '$count ساعات',
+      two: 'ساعتان',
+      one: 'ساعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'كلمة مرور المشاركة';
+
+  @override
+  String get media_sharePassword_needed =>
+      'تحتاج مشاركة Synology Photos هذه إلى كلمة المرور الخاصة بها.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'لم تقبل المشاركة كلمة المرور. أدخلها مرة أخرى.';
+
+  @override
+  String get media_sharePassword_field => 'كلمة المرور';
+
+  @override
+  String get media_sharePassword_save => 'حفظ وجلب';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'تُحفظ في سلسلة مفاتيح هذا الجهاز ولا تتم مزامنتها أبدًا.';
+
+  @override
+  String get media_sharePassword_formSave => 'حفظ كلمة المرور والجلب';
+
+  @override
+  String get media_pollInterval_checkEvery => 'التحقق كل';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'لم تقبل المشاركة كلمة المرور المحفوظة.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'تشغيل أو إيقاف الفيديو';
 
   @override
@@ -29698,6 +29802,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataHealth_media_transfersPaused =>
       'عمليات نقل الصور متوقفة مؤقتًا';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'اشتراك الصور $name يحتاج إلى كلمة المرور';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'تعذّر تحديث اشتراك الصور $name';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -52973,6 +53087,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'كلمة المرور مفقودة على هذا الجهاز';
+
+  @override
   String get media_credentials_deleteBody =>
       'يزيل بيانات الاعتماد المحفوظة. ستعرض العناصر المرتبطة عبر هذا المضيف عبارة \"يتطلب تسجيل الدخول\" إلى أن تعيد إضافتها.';
 
@@ -57634,6 +57752,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => 'تعذر التحقق الآن';
+
+  @override
+  String get media_info_checkNeedsPassword => 'كلمة المرور مفقودة أو مرفوضة';
 
   @override
   String get media_info_backupQueued => 'في قائمة انتظار الرفع';
@@ -63707,6 +63828,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'تسجيل الدخول';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'يحتاج ألبوم الصور $name إلى كلمة المرور على هذا الجهاز.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'أدخل كلمة المرور';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'إعادة الاتصال';

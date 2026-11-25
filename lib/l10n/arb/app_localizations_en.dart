@@ -20631,6 +20631,99 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Play original';
+
+  @override
+  String get media_viewer_playMotion => 'Play motion';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'This device cannot play the motion of this photo';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photo subscriptions could not be updated, among them \"$name\": $error',
+      one: 'Photo subscription \"$name\" could not be updated: $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Open';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Share password';
+
+  @override
+  String get media_sharePassword_needed =>
+      'This Synology Photos share needs its password.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'The share did not accept the password. Enter it again.';
+
+  @override
+  String get media_sharePassword_field => 'Password';
+
+  @override
+  String get media_sharePassword_save => 'Save and fetch';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'It is kept in this device\'s keychain and never synced.';
+
+  @override
+  String get media_sharePassword_formSave => 'Save password and fetch';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Check every';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'The share did not accept the saved password.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'Play or pause video';
 
   @override
@@ -28887,6 +28980,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataHealth_media_transfersPaused => 'Photo transfers are paused';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'Photo subscription $name needs its password';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Photo subscription $name could not be updated';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -51481,6 +51584,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Password missing on this device';
+
+  @override
   String get media_credentials_deleteBody =>
       'Removes the saved credentials. Items linked through this host will start showing \"Sign in required\" until you re-add them.';
 
@@ -55909,6 +56016,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => 'Could not check right now';
+
+  @override
+  String get media_info_checkNeedsPassword =>
+      'Password missing or not accepted';
 
   @override
   String get media_info_backupQueued => 'Queued for upload';
@@ -61761,6 +61872,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Sign in';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'The photo album $name needs its password on this device.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => 'Enter password';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Reconnect';

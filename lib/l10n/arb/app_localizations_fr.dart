@@ -20978,6 +20978,100 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Lire l\'original';
+
+  @override
+  String get media_viewer_playMotion => 'Lire le mouvement';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Cet appareil ne peut pas lire le mouvement de cette photo';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count abonnements photo n’ont pas pu être mis à jour, dont « $name » : $error',
+      one: 'L’abonnement photo « $name » n’a pas pu être mis à jour : $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Ouvrir';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '$count minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count heures',
+      one: '$count heure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours',
+      one: '$count jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Mot de passe du partage';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Ce partage Synology Photos nécessite son mot de passe.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'Le partage n’a pas accepté le mot de passe. Saisissez-le à nouveau.';
+
+  @override
+  String get media_sharePassword_field => 'Mot de passe';
+
+  @override
+  String get media_sharePassword_save => 'Enregistrer et récupérer';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Il est conservé dans le trousseau de cet appareil et n’est jamais synchronisé.';
+
+  @override
+  String get media_sharePassword_formSave =>
+      'Enregistrer le mot de passe et récupérer';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Vérifier toutes les';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'Le partage n’a pas accepté le mot de passe enregistré.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Lire ou mettre en pause la vidéo';
 
@@ -29438,6 +29532,16 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataHealth_media_transfersPaused =>
       'Les transferts de photos sont en pause';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'L\'abonnement photo $name a besoin de son mot de passe';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'L\'abonnement photo $name n\'a pas pu être mis à jour';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -52365,6 +52469,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Mot de passe manquant sur cet appareil';
+
+  @override
   String get media_credentials_deleteBody =>
       'Supprime les identifiants enregistrés. Les éléments liés via cet hôte afficheront « Connectez-vous pour voir » jusqu’à ce que vous les rajoutiez.';
 
@@ -56911,6 +57019,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get media_info_checkUnavailable =>
       'Vérification impossible pour le moment';
+
+  @override
+  String get media_info_checkNeedsPassword => 'Mot de passe manquant ou refusé';
 
   @override
   String get media_info_backupQueued => 'Mis en file pour téléversement';
@@ -62866,6 +62977,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Se connecter';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'L\'album photo $name a besoin de son mot de passe sur cet appareil.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Saisir le mot de passe';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Reconnecter';

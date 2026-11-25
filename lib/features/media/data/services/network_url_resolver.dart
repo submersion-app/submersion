@@ -61,10 +61,15 @@ class NetworkUrlResolver {
   }) async {
     var current = uri;
     for (var hop = 0; hop <= _maxRedirects; hop++) {
-      final headers = <String, String>{
-        ...?extraHeaders,
-        ...?await _credentials.headersFor(current),
-      };
+      // A share whose server cannot be reached fails its session lookup;
+      // that is a transport failure here, not a reason to throw.
+      final Map<String, String>? auth;
+      try {
+        auth = await _credentials.headersFor(current);
+      } catch (e) {
+        return NetworkBytesError('transport: $e');
+      }
+      final headers = <String, String>{...?extraHeaders, ...?auth};
       final http.Response response;
       try {
         response = await _client.get(current, headers: headers);

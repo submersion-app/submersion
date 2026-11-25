@@ -39,9 +39,11 @@ import 'package:submersion/features/media/presentation/helpers/set_time_seed.dar
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_video_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
+import 'package:submersion/features/media/presentation/widgets/motion_photo_layer.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/draggable_perdix_overlay.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
@@ -88,6 +90,7 @@ part 'media_viewer_actions.dart';
 part 'media_viewer_bottom_metadata.dart';
 part 'media_viewer_chrome.dart';
 part 'media_viewer_gallery.dart';
+part 'media_viewer_keyboard.dart';
 part 'media_viewer_perdix.dart';
 part 'media_viewer_video_item.dart';
 part 'media_viewer_write_metadata.dart';
@@ -326,55 +329,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     );
   }
 
-  /// Keyboard navigation for pointer platforms: arrows page, Escape closes.
-  ///
-  /// This node is an ancestor of the video item's own [Focus], which handles
-  /// only the space bar and returns [KeyEventResult.ignored] for everything
-  /// else, so arrows keep working while a video holds focus. Arrow presses are
-  /// reported handled even at the ends of the list, which keeps them from
-  /// falling through to default directional focus traversal.
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-      return KeyEventResult.ignored;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-      _step(-1);
-      return KeyEventResult.handled;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-      _step(1);
-      return KeyEventResult.handled;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.escape) {
-      // Escape backs out one step at a time: in a sitting, Pick white and
-      // the colour panel first (issue #4527), then people tag mode.
-      if (photoUnlocked && pickingWhite) {
-        togglePickWhite();
-        return KeyEventResult.handled;
-      }
-      if (photoUnlocked && colorPanelOpen) {
-        closeColorEditing();
-        return KeyEventResult.handled;
-      }
-      if (taggingPeople) {
-        togglePeopleTagging();
-        return KeyEventResult.handled;
-      }
-      // While unlocked, Escape is Cancel: the viewer stays open.
-      if (photoUnlocked) {
-        unawaited(cancelPhotoSitting());
-        return KeyEventResult.handled;
-      }
-      if (isFullscreen) {
-        exitFullscreen();
-      } else {
-        Navigator.of(context).maybePop();
-      }
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
-  }
-
   @override
   Widget build(BuildContext context) {
     // A sitting keeps its photo here while the photo exists (issue #4527).
@@ -577,6 +531,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                             child: const SizedBox.expand(),
                           ),
                         ),
+                      ),
+
+                    // Above the tap target, which would take its taps.
+                    if (!currentItem.isVideo)
+                      MotionPhotoOverlay(
+                        item: currentItem,
+                        enabled: !pickingWhite && !taggingPeople,
+                        showButton: isFullscreen
+                            ? fullscreenControlsVisible
+                            : _showOverlay || photoUnlocked,
                       ),
 
                     // "Pick white" on a paused video: the player owns ordinary

@@ -32883,6 +32883,108 @@ abstract class AppLocalizations {
   /// **'{current} / {total}'**
   String media_photoViewer_pageIndicator(Object current, Object total);
 
+  /// Video viewer button: a shared album video plays as a smaller conversion; this plays the original file instead
+  ///
+  /// In en, this message translates to:
+  /// **'Play original'**
+  String get media_viewer_playOriginal;
+
+  /// Photo viewer button: plays the short video a motion photo carries
+  ///
+  /// In en, this message translates to:
+  /// **'Play motion'**
+  String get media_viewer_playMotion;
+
+  /// Photo viewer: the motion photo's video cannot be decoded here (for example HEVC on a Windows PC without the HEVC extension)
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot play the motion of this photo'**
+  String get media_viewer_motionUnplayable;
+
+  /// Media library banner: one or more photo subscriptions failed their last poll; name is the first one's name, error its last error
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Photo subscription \"{name}\" could not be updated: {error}} other{{count} photo subscriptions could not be updated, among them \"{name}\": {error}}}'**
+  String media_subscriptionBanner_message(int count, String name, String error);
+
+  /// Media library banner action: opens the network sources settings
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get media_subscriptionBanner_open;
+
+  /// Poll interval choice for a photo subscription, in minutes
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String media_pollInterval_minutes(int count);
+
+  /// Poll interval choice for a photo subscription, in hours
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String media_pollInterval_hours(int count);
+
+  /// Poll interval choice for a photo subscription, in days
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String media_pollInterval_days(int count);
+
+  /// Title of the dialog asking for a Synology Photos shared album's password
+  ///
+  /// In en, this message translates to:
+  /// **'Share password'**
+  String get media_sharePassword_title;
+
+  /// A Synology Photos shared album asks for its password
+  ///
+  /// In en, this message translates to:
+  /// **'This Synology Photos share needs its password.'**
+  String get media_sharePassword_needed;
+
+  /// A Synology Photos shared album refused the password entered
+  ///
+  /// In en, this message translates to:
+  /// **'The share did not accept the password. Enter it again.'**
+  String get media_sharePassword_rejected;
+
+  /// Label of the password field for a shared album
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get media_sharePassword_field;
+
+  /// Dialog button: saves the shared album's password and fetches the album again
+  ///
+  /// In en, this message translates to:
+  /// **'Save and fetch'**
+  String get media_sharePassword_save;
+
+  /// Where a shared album's password is kept
+  ///
+  /// In en, this message translates to:
+  /// **'It is kept in this device\'s keychain and never synced.'**
+  String get media_sharePassword_keychainNote;
+
+  /// Manifest import button: saves the shared album's password and fetches the album
+  ///
+  /// In en, this message translates to:
+  /// **'Save password and fetch'**
+  String get media_sharePassword_formSave;
+
+  /// Label of the poll interval choice in a photo subscription's edit dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Check every'**
+  String get media_pollInterval_checkEvery;
+
+  /// Status where a photo subscription's error is shown (banner, card): the shared album refused the saved password
+  ///
+  /// In en, this message translates to:
+  /// **'The share did not accept the saved password.'**
+  String get media_sharePassword_rejectedStatus;
+
   /// No description provided for @media_photoViewer_playPauseVideoLabel.
   ///
   /// In en, this message translates to:
@@ -46493,6 +46595,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photo transfers are paused'**
   String get dataHealth_media_transfersPaused;
+
+  /// Settings > Data health: a photo subscription (shared album) cannot be read on this device until its password is entered
+  ///
+  /// In en, this message translates to:
+  /// **'Photo subscription {name} needs its password'**
+  String dataHealth_media_subscriptionPassword(String name);
+
+  /// Settings > Data health: the last poll of a photo subscription (shared album, photo feed) failed
+  ///
+  /// In en, this message translates to:
+  /// **'Photo subscription {name} could not be updated'**
+  String dataHealth_media_subscriptionFailing(String name);
 
   /// No description provided for @dataHealth_facts_dives.
   ///
@@ -82415,6 +82529,12 @@ abstract class AppLocalizations {
   /// **'Auth: {authType}'**
   String media_credentials_authLabel(String authType);
 
+  /// Saved hosts list: the row exists (for example from a backup) but this device holds no password for it
+  ///
+  /// In en, this message translates to:
+  /// **'Password missing on this device'**
+  String get media_credentials_secretMissing;
+
   /// Network Sources: delete saved host confirmation body
   ///
   /// In en, this message translates to:
@@ -88847,6 +88967,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not check right now'**
   String get media_info_checkUnavailable;
+
+  /// Photo info, Check now: the source answered only that this device is not signed in to it (a shared album without its password here, or a host that refused the saved credentials)
+  ///
+  /// In en, this message translates to:
+  /// **'Password missing or not accepted'**
+  String get media_info_checkNeedsPassword;
 
   /// Confirmation shown after queueing an upload
   ///
@@ -98168,6 +98294,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in'**
   String get settings_setUpDevice_item_signInAction;
+
+  /// Set up this device card: a synced photo subscription (shared album) needs its password, which never syncs
+  ///
+  /// In en, this message translates to:
+  /// **'The photo album {name} needs its password on this device.'**
+  String settings_setUpDevice_item_subscriptionPassword(String name);
+
+  /// No description provided for @settings_setUpDevice_item_enterPasswordAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password'**
+  String get settings_setUpDevice_item_enterPasswordAction;
 
   /// Button on a card item that opens Photos and videos to reconnect
   ///

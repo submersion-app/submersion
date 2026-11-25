@@ -188,6 +188,16 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     return KeyEventResult.ignored;
   }
 
+  /// Switches this video to its original file: the player is let go and
+  /// reopened from the original, which [resolvedFilePathProvider] fetches
+  /// once the choice is set. The viewer's loading state covers the download.
+  void _playOriginal() {
+    ref.read(playVideoOriginalProvider(widget.item.id).notifier).state = true;
+    _release();
+    setState(() {});
+    _initializeVideo();
+  }
+
   Future<void> _initializeVideo() async {
     final generation = ++_loadGeneration;
     // Gone, or swiped away and released while this load was in flight.
@@ -329,6 +339,14 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   Widget build(BuildContext context) {
+    // Watched on every build, not only where the button shows: this page is
+    // what keeps the choice alive while the overlay is hidden, tag mode is
+    // on, or the page sits next to the current one (the viewer's galleries
+    // keep a neighbour built with allowImplicitScrolling). Paged further
+    // away, the page is disposed and the conversion plays again.
+    final playingOriginal = ref.watch(
+      playVideoOriginalProvider(widget.item.id),
+    );
     final resolved = _resolvedFor;
     if (widget.isCurrent && resolved != null) {
       ref.listen(videoPlaybackProvider(resolved), (_, _) {});
@@ -488,6 +506,26 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                         ),
                       ),
                     ),
+            ),
+
+          // A shared album's video plays its smaller conversion; the
+          // original is one tap away. Gone once chosen, and in tag mode.
+          if (widget.isCurrent &&
+              (!widget.fullscreen || widget.showOverlay) &&
+              !widget.people.active &&
+              hasPlayableOriginal(widget.item) &&
+              !playingOriginal)
+            // Below the viewer's top bar (close, lock, info, share), which
+            // draws over this page.
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
+              right: 16,
+              child: FilledButton.tonalIcon(
+                key: const Key('videoPlayOriginal'),
+                icon: const Icon(Icons.high_quality_outlined),
+                label: Text(context.l10n.media_viewer_playOriginal),
+                onPressed: _playOriginal,
+              ),
             ),
 
           // Fullscreen's controls bar, at the bottom edge.

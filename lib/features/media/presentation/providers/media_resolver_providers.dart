@@ -27,6 +27,7 @@ import 'package:submersion/features/media/data/services/pdf_thumbnail_service.da
 import 'package:submersion/features/media/data/services/subscription_poller.dart';
 import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -183,6 +184,7 @@ final manifestEntryResolverProvider = Provider<HttpUrlMediaResolver>(
   (ref) => HttpUrlMediaResolver(
     sourceType: MediaSourceType.manifestEntry,
     networkUrlResolver: ref.watch(networkUrlResolverProvider),
+    headersFor: ref.watch(networkCredentialsServiceProvider).headersFor,
   ),
 );
 
@@ -201,6 +203,7 @@ final networkUrlMediaResolverProvider = Provider<HttpUrlMediaResolver>(
   (ref) => HttpUrlMediaResolver(
     sourceType: MediaSourceType.networkUrl,
     networkUrlResolver: ref.watch(networkUrlResolverProvider),
+    headersFor: ref.watch(networkCredentialsServiceProvider).headersFor,
   ),
 );
 
@@ -287,10 +290,15 @@ final androidUriUsageProvider = FutureProvider<int>(
 /// [_NetworkCredentialsAdapter] below bridges the two with a single
 /// `?? const {}` so 3b stays loosely coupled to 3a's exact signatures.
 final manifestFetchServiceProvider = Provider<ManifestFetchService>((ref) {
+  final credentials = ref.watch(networkCredentialsServiceProvider);
+  final client = ref.watch(httpClientProvider);
   return ManifestFetchService(
-    client: ref.watch(httpClientProvider),
-    credentials: _NetworkCredentialsAdapter(
-      ref.watch(networkCredentialsServiceProvider),
+    client: client,
+    credentials: _NetworkCredentialsAdapter(credentials),
+    synologyAlbums: SynologyAlbumSource(
+      client: client,
+      sessions: ref.watch(synologyShareSessionsProvider),
+      passwordFor: credentials.synologySharePassword,
     ),
   );
 });

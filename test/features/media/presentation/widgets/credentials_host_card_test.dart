@@ -30,6 +30,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/credentials_host_card.dart';
 
@@ -44,6 +46,24 @@ class _FakeCredentialsService implements NetworkCredentialsService {
 
   @override
   Future<List<NetworkCredentialHost>> list() async => hosts;
+
+  /// Hosts whose secret this device lacks (a restored backup).
+  final Set<String> withoutSecret = <String>{};
+
+  @override
+  Future<bool> hasSecret(String hostname) async =>
+      !withoutSecret.contains(hostname);
+
+  /// What [headersFor] answers: a share session's headers, or none when
+  /// the share refused the saved password.
+  Map<String, String>? shareHeaders;
+  final List<Uri> headerLookups = <Uri>[];
+
+  @override
+  Future<Map<String, String>?> headersFor(Uri uri) async {
+    headerLookups.add(uri);
+    return shareHeaders;
+  }
 
   @override
   Future<void> delete(String id) async {
@@ -130,6 +150,51 @@ void main() {
     expect(find.text('private.example.com'), findsOneWidget);
   });
 
+  testWidgets('marks a host whose password this device lacks', (tester) async {
+    final creds = _FakeCredentialsService([
+      _h('1', 'photos.example.com'),
+      _h('2', 'restored.example.com'),
+    ])..withoutSecret.add('restored.example.com');
+    await tester.pumpWidget(_wrap(const CredentialsHostCard(), creds: creds));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('savedHostSecretMissing')), findsOneWidget);
+    expect(find.text('Password missing on this device'), findsOneWidget);
+    expect(find.byIcon(Icons.key_off_outlined), findsOneWidget);
+  });
+
+  testWidgets('a shared album password row is named after its album', (
+    tester,
+  ) async {
+    const key = 'nas.example.com:5001/mo/sharing/code1';
+    final creds = _FakeCredentialsService([
+      _h('1', key, authType: 'synologyShare'),
+      _h('2', 'plain.example.com'),
+    ]);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          networkCredentialsServiceProvider.overrideWithValue(creds),
+          savedHostAlbumNamesProvider.overrideWith(
+            (ref) async => {key: 'Dives'},
+          ),
+        ],
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: const Scaffold(body: CredentialsHostCard()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dives'), findsOneWidget);
+    // The link stays, under the name.
+    expect(find.byKey(const Key('savedHostLink')), findsOneWidget);
+    expect(find.text(key), findsOneWidget);
+    // A row without an album keeps its hostname as title, no link line.
+    expect(find.text('plain.example.com'), findsOneWidget);
+  });
+
   testWidgets('renders empty-state ListTile when no hosts saved', (
     tester,
   ) async {
@@ -182,6 +247,86 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Credentials OK for photos.example.com'), findsOneWidget);
+  });
+
+  group('Test credentials on a shared album row', () {
+    const key = 'nas.example.com:5001/mo/sharing/code1';
+
+    Future<void> runTest(
+      WidgetTester tester,
+      _FakeCredentialsService creds,
+    ) async {
+      // The share's web page loads whatever the password: a page fetch
+      // would always say OK.
+      final resolver = _StubResolver(
+        NetworkBytesOk(
+          bytes: Uint8List(0),
+          contentType: 'text/html',
+          finalUrl: 'https://$key/',
+        ),
+      );
+      await tester.pumpWidget(
+        _wrap(const CredentialsHostCard(), creds: creds, resolver: resolver),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Test credentials'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a refused password fails', (tester) async {
+      final creds = _FakeCredentialsService([
+        _h('1', key, authType: 'synologyShare'),
+      ]);
+      await runTest(tester, creds);
+      expect(find.text('Credentials failed for $key'), findsOneWidget);
+      expect(creds.headerLookups.single.toString(), 'https://$key');
+    });
+
+    testWidgets('a share behind /photo is tested through its own link', (
+      tester,
+    ) async {
+      final creds = _FakeCredentialsService([
+        _h('1', key, authType: 'synologyShare'),
+      ])..shareHeaders = {'Cookie': 'sharing_sid=s'};
+      final link = SynologyShareLink.tryParseShareUrl(
+        'https://nas.example.com:5001/photo/mo/sharing/code1',
+      )!;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            networkCredentialsServiceProvider.overrideWithValue(creds),
+            savedHostShareLinksProvider.overrideWith(
+              (ref) async => {key: link},
+            ),
+          ],
+          child: localizedMaterialApp(
+            locale: const Locale('en'),
+            home: const Scaffold(body: CredentialsHostCard()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Test credentials'));
+      await tester.pumpAndSettle();
+
+      expect(
+        creds.headerLookups.single.toString(),
+        'https://nas.example.com:5001/photo/mo/sharing/code1',
+      );
+      expect(find.text('Credentials OK for $key'), findsOneWidget);
+    });
+
+    testWidgets('an accepted password passes', (tester) async {
+      final creds = _FakeCredentialsService([
+        _h('1', key, authType: 'synologyShare'),
+      ])..shareHeaders = {'Cookie': 'sharing_sid=s'};
+      await runTest(tester, creds);
+      expect(find.text('Credentials OK for $key'), findsOneWidget);
+    });
   });
 
   testWidgets(

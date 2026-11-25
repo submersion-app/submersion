@@ -19878,6 +19878,93 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => '播放原始视频';
+
+  @override
+  String get media_viewer_playMotion => '播放动态';
+
+  @override
+  String get media_viewer_motionUnplayable => '此设备无法播放这张照片的动态';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 个照片订阅无法更新，其中包括“$name”：$error',
+      one: '无法更新照片订阅“$name”：$error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => '打开';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 分钟',
+      one: '1 分钟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 小时',
+      one: '1 小时',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天',
+      one: '1 天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => '共享密码';
+
+  @override
+  String get media_sharePassword_needed => '此 Synology Photos 共享需要密码。';
+
+  @override
+  String get media_sharePassword_rejected => '共享未接受该密码。请重新输入。';
+
+  @override
+  String get media_sharePassword_field => '密码';
+
+  @override
+  String get media_sharePassword_save => '保存并获取';
+
+  @override
+  String get media_sharePassword_keychainNote => '密码保存在此设备的钥匙串中，从不同步。';
+
+  @override
+  String get media_sharePassword_formSave => '保存密码并获取';
+
+  @override
+  String get media_pollInterval_checkEvery => '检查间隔';
+
+  @override
+  String get media_sharePassword_rejectedStatus => '共享未接受已保存的密码。';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => '播放或暂停视频';
 
   @override
@@ -27672,6 +27759,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataHealth_media_transfersPaused => '照片传输已暂停';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return '照片订阅 $name 需要密码';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return '照片订阅 $name 无法更新';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -49055,6 +49152,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing => '此设备上缺少密码';
+
+  @override
   String get media_credentials_deleteBody =>
       '将删除已保存的凭据。通过此主机关联的项目会显示“需要登录”，直到您重新添加凭据。';
 
@@ -53237,6 +53337,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => '目前无法检查';
+
+  @override
+  String get media_info_checkNeedsPassword => '缺少密码或密码被拒绝';
 
   @override
   String get media_info_backupQueued => '已加入上传队列';
@@ -58878,6 +58981,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => '登录';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return '照片相册 $name 在此设备上需要密码。';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => '输入密码';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => '重新连接';

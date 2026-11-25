@@ -20804,6 +20804,99 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Origineel afspelen';
+
+  @override
+  String get media_viewer_playMotion => 'Beweging afspelen';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Dit apparaat kan de beweging van deze foto niet afspelen';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto-abonnementen konden niet worden bijgewerkt, waaronder \"$name\": $error',
+      one: 'Foto-abonnement \"$name\" kon niet worden bijgewerkt: $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Openen';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minuten',
+      one: '1 minuut',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uur',
+      one: '1 uur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dagen',
+      one: '1 dag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Wachtwoord van de share';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Deze Synology Photos-share heeft zijn wachtwoord nodig.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'De share heeft het wachtwoord niet geaccepteerd. Voer het opnieuw in.';
+
+  @override
+  String get media_sharePassword_field => 'Wachtwoord';
+
+  @override
+  String get media_sharePassword_save => 'Opslaan en ophalen';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Het wordt bewaard in de sleutelhanger van dit apparaat en nooit gesynchroniseerd.';
+
+  @override
+  String get media_sharePassword_formSave => 'Wachtwoord opslaan en ophalen';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Controleren elke';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'De share heeft het opgeslagen wachtwoord niet geaccepteerd.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Video afspelen of pauzeren';
 
@@ -29190,6 +29283,16 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataHealth_media_transfersPaused =>
       'Fotooverdrachten zijn gepauzeerd';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'Foto-abonnement $name heeft zijn wachtwoord nodig';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Foto-abonnement $name kon niet worden bijgewerkt';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -51928,6 +52031,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Wachtwoord ontbreekt op dit apparaat';
+
+  @override
   String get media_credentials_deleteBody =>
       'Verwijdert de opgeslagen inloggegevens. Items die via deze host zijn gekoppeld, tonen ‘Log in om te bekijken’ totdat je ze opnieuw toevoegt.';
 
@@ -56438,6 +56545,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => 'Kon nu niet controleren';
+
+  @override
+  String get media_info_checkNeedsPassword =>
+      'Wachtwoord ontbreekt of is geweigerd';
 
   @override
   String get media_info_backupQueued => 'In wachtrij voor upload';
@@ -62359,6 +62470,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Inloggen';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'Het fotoalbum $name heeft op dit apparaat zijn wachtwoord nodig.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Wachtwoord invoeren';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Opnieuw verbinden';

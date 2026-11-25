@@ -20933,6 +20933,99 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Riproduci originale';
+
+  @override
+  String get media_viewer_playMotion => 'Riproduci movimento';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Questo dispositivo non può riprodurre il movimento di questa foto';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Impossibile aggiornare $count abbonamenti foto, tra cui \"$name\": $error',
+      one: 'Impossibile aggiornare l’abbonamento foto \"$name\": $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Apri';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minuti',
+      one: '1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ore',
+      one: '1 ora',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giorni',
+      one: '1 giorno',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Password della condivisione';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Questa condivisione di Synology Photos richiede la sua password.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'La condivisione non ha accettato la password. Inseriscila di nuovo.';
+
+  @override
+  String get media_sharePassword_field => 'Password';
+
+  @override
+  String get media_sharePassword_save => 'Salva e recupera';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Viene conservata nel portachiavi di questo dispositivo e non viene mai sincronizzata.';
+
+  @override
+  String get media_sharePassword_formSave => 'Salva la password e recupera';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Controlla ogni';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'La condivisione non ha accettato la password salvata.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Riproduci o metti in pausa il video';
 
@@ -29385,6 +29478,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataHealth_media_transfersPaused =>
       'I trasferimenti delle foto sono in pausa';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'L\'abbonamento foto $name richiede la sua password';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Impossibile aggiornare l\'abbonamento foto $name';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -52270,6 +52373,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Password mancante su questo dispositivo';
+
+  @override
   String get media_credentials_deleteBody =>
       'Rimuove le credenziali salvate. Gli elementi collegati tramite questo host mostreranno «Accedi per visualizzare» finché non li aggiungi di nuovo.';
 
@@ -56791,6 +56898,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => 'Impossibile verificare ora';
+
+  @override
+  String get media_info_checkNeedsPassword => 'Password mancante o rifiutata';
 
   @override
   String get media_info_backupQueued => 'In coda per il caricamento';
@@ -62746,6 +62856,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'Accedi';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'L\'album foto $name richiede la sua password su questo dispositivo.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Inserisci password';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => 'Ricollega';

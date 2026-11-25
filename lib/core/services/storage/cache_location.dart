@@ -15,6 +15,7 @@ const _mediaCacheDir = 'media_cache';
 const _mediaPoolDirs = ['thumbs', 'originals', 'renditions'];
 const _videoThumbnailsDir = 'video_thumbnails';
 const _pdfThumbnailsDir = 'pdf_thumbnails';
+const _networkVideosDir = 'network_videos';
 
 /// Where this device keeps what it can make or fetch again, as against what
 /// it is still working on.
@@ -56,6 +57,11 @@ class CacheLocation {
   Directory get videoThumbnails => _in(_regenerableBase, _videoThumbnailsDir);
 
   Directory get pdfThumbnails => _in(_regenerableBase, _pdfThumbnailsDir);
+
+  /// Videos downloaded from a network source (a shared album, a video link)
+  /// so the player can open them as files: a player cannot send the
+  /// session a share wants. Regenerable, and bounded by its own cache.
+  Directory get networkVideos => _in(_regenerableBase, _networkVideosDir);
 
   Directory _in(Directory base, String name) =>
       Directory(p.join(base.path, name));
