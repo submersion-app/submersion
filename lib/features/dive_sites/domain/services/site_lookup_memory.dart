@@ -33,8 +33,8 @@ class SiteLookupNote {
   /// [found], or null when there is nothing to remember: no coordinates, or
   /// no field that is empty on the site because OpenStreetMap had nothing.
   ///
-  /// A field counts only when it is empty on the site *and* in [found]. One
-  /// the lookup did answer but that was not written (a library site this
+  /// A field counts only when it is empty on the site *and* in [found]. A
+  /// field the lookup did answer but that was not written (a library site this
   /// profile may not edit, say) is not OpenStreetMap's gap, and a body of
   /// water whose lookup failed was never really asked.
   static SiteLookupNote? of(DiveSite site, PlaceLookup found) {

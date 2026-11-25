@@ -122,7 +122,7 @@ Future<void> showSiteLocationBackfillFlow(
   if (confirmed != true || !context.mounted) return;
 
   // No reset here: start() is the only guard against overlapping runs.
-  final run = notifier.start(mode, targets: candidates);
+  final run = notifier.start(mode, from: found);
   await showDialog<void>(
     context: context,
     barrierDismissible: false,

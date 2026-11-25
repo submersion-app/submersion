@@ -39,6 +39,32 @@ class _MapLocationService implements LocationService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Runs [onFirstLookup] during the first lookup, to model an edit that
+/// lands while a request is in flight.
+class _MovingLocationService extends _MapLocationService {
+  _MovingLocationService(super.answers, this.onFirstLookup);
+
+  final Future<void> Function() onFirstLookup;
+  var _moved = false;
+
+  @override
+  Future<PlaceLookup> reverseGeocode(
+    double latitude,
+    double longitude, {
+    required String languageCode,
+  }) async {
+    if (!_moved) {
+      _moved = true;
+      await onFirstLookup();
+    }
+    return super.reverseGeocode(
+      latitude,
+      longitude,
+      languageCode: languageCode,
+    );
+  }
+}
+
 /// Holds notes in memory and counts writes.
 class _FakeMemory implements SiteLookupMemory {
   Map<String, SiteLookupNote> notes = {};
@@ -511,6 +537,30 @@ void main() {
       );
       expect((await next(memory)).sites.map((s) => s.id), ['empty']);
     });
+
+    test(
+      'a site that moved while its lookup was in flight is not noted',
+      () async {
+        await seed();
+        final memory = _FakeMemory();
+        // A sync moves the empty site while OpenStreetMap is being asked
+        // about its old coordinates.
+        final location = _MovingLocationService(answers, () async {
+          final empty = (await sites.getSiteById('empty'))!;
+          await sites.updateSite(
+            empty.copyWith(location: const GeoPoint(46.0, 7.0)),
+          );
+        });
+
+        await service(
+          location,
+          memory: memory,
+        ).run(onProgress: (_, _) {}, isCancelled: () => false);
+
+        expect(memory.notes.containsKey('empty'), isFalse);
+        expect(memory.notes.containsKey('partial'), isTrue);
+      },
+    );
 
     test('a cancelled run keeps what it learned', () async {
       await seed();

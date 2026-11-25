@@ -33,9 +33,18 @@ class BackfillSummary {
 /// The sites a run would look up, and how many more it leaves out because
 /// an earlier lookup already found nothing for their empty fields.
 class BackfillCandidates {
-  const BackfillCandidates({required this.sites, this.alreadyLookedUp = 0});
+  const BackfillCandidates({
+    required this.sites,
+    this.alreadyLookedUp = 0,
+    this.diverId,
+  });
 
   final List<DiveSite> sites;
+
+  /// The diver the sites were listed for. A run started from this list
+  /// keeps its notes under this diver, even if the active profile changes
+  /// while the confirmation is open.
+  final String? diverId;
 
   /// Sites with empty fields that a [SiteLocationLookupMode.fillMissing]
   /// run skips: OpenStreetMap had nothing for them at these coordinates
@@ -123,7 +132,11 @@ class SiteLocationBackfillService {
       sites.add(site);
     }
     await _dropNotesForMissingSites(notes, all);
-    return BackfillCandidates(sites: sites, alreadyLookedUp: alreadyLookedUp);
+    return BackfillCandidates(
+      sites: sites,
+      alreadyLookedUp: alreadyLookedUp,
+      diverId: diverId,
+    );
   }
 
   Future<Map<String, SiteLookupNote>> _readNotes() async {
@@ -191,8 +204,10 @@ class SiteLocationBackfillService {
   );
 
   /// [notes] with what the lookup that just answered [found] for [siteId]
-  /// left empty: OpenStreetMap has nothing for those fields at this place.
-  /// The same map comes back, unchanged, when there is nothing new to note.
+  /// at [asked] left empty: OpenStreetMap has nothing for those fields at
+  /// this place. The same map comes back, unchanged, when there is nothing
+  /// new to note, or when the site moved while the lookup was in flight (a
+  /// sync, another edit): the answer is about [asked], not where it is now.
   ///
   /// A lookup that found nothing at all leaves the notes alone: the web
   /// geocoder answers an empty result for a failure it could not classify
@@ -201,12 +216,20 @@ class SiteLocationBackfillService {
   /// logged rather than counted against the lookup.
   Future<Map<String, SiteLookupNote>> _noted(
     String siteId,
+    GeoPoint asked,
     PlaceLookup found,
     Map<String, SiteLookupNote> notes,
   ) async {
     if (found.isEmpty) return notes;
     try {
       final after = await _sites.getSiteById(siteId);
+      final now = after?.location;
+      if (after != null &&
+          (now == null ||
+              now.latitude != asked.latitude ||
+              now.longitude != asked.longitude)) {
+        return notes;
+      }
       final note = after == null ? null : SiteLookupNote.of(after, found);
       if (note == null) {
         if (!notes.containsKey(siteId)) return notes;
@@ -282,7 +305,7 @@ class SiteLocationBackfillService {
           } else {
             unchanged++;
           }
-          notes = await _noted(site.id, lookup, notes);
+          notes = await _noted(site.id, point, lookup, notes);
         }
       } catch (e, stackTrace) {
         _log.warning(

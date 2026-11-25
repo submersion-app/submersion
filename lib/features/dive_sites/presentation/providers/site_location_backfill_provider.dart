@@ -2,7 +2,6 @@ import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/data/services/prefs_site_lookup_memory.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -68,20 +67,22 @@ class SiteLocationBackfillNotifier extends StateNotifier<BackfillState> {
     return _service(mode, diverId).candidates(diverId: diverId);
   }
 
-  /// Starts a run unless one is already running. [targets] are the sites to
-  /// look up, from an earlier [findCandidates] call; without them the run
-  /// lists the candidates itself.
+  /// Starts a run unless one is already running. [from] is an earlier
+  /// [findCandidates] result: the run looks up exactly those sites and
+  /// keeps its notes under the diver they were listed for, even if the
+  /// active profile changed since. Without it the run lists the candidates
+  /// itself, for the current diver.
   Future<void> start(
     SiteLocationLookupMode mode, {
-    List<DiveSite>? targets,
+    BackfillCandidates? from,
   }) async {
     if (state is BackfillRunning) return;
     _cancelRequested = false;
     state = BackfillRunning(mode: mode, done: 0, total: 0);
-    final diverId = await _diverId();
+    final diverId = from == null ? await _diverId() : from.diverId;
     final summary = await _service(mode, diverId).run(
       diverId: diverId,
-      targets: targets,
+      targets: from?.sites,
       onProgress: (done, total) {
         if (mounted) {
           state = BackfillRunning(mode: mode, done: done, total: total);

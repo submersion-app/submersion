@@ -44,11 +44,11 @@ class _ScriptedBackfill extends StateNotifier<BackfillState>
   @override
   Future<void> start(
     SiteLocationLookupMode mode, {
-    List<DiveSite>? targets,
+    BackfillCandidates? from,
   }) async {
     startCalls++;
     startedWith = mode;
-    startedTargets = targets;
+    startedTargets = from?.sites;
     for (final s in script) {
       await Future<void>.delayed(stepDelay);
       state = s;
