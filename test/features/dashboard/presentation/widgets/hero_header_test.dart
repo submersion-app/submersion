@@ -674,4 +674,82 @@ void main() {
       expect(find.text('207'), findsNothing);
     });
   });
+
+  // A pull to refresh reloads the dive statistics, which careerTotalsProvider
+  // depends on: the banner keeps the last totals while the new ones load
+  // rather than blanking them.
+  group('keeps its totals while they reload', () {
+    Future<Completer<DiveStatistics>> pumpThenReload(
+      WidgetTester tester,
+      double width,
+    ) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      final stats = DiveStatistics(
+        totalDives: 248,
+        totalTimeSeconds: 744120,
+        maxDepth: 40,
+        avgMaxDepth: 20,
+        totalSites: 63,
+      );
+      var builds = 0;
+      final reload = Completer<DiveStatistics>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) => builds++ == 0 ? Future.value(stats) : reload.future,
+            ),
+            homeCountriesVisitedProvider.overrideWith((ref) async => 9),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      ProviderScope.containerOf(
+        tester.element(find.byType(HeroHeader)),
+      ).invalidate(diveStatisticsProvider);
+      for (int i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      return reload;
+    }
+
+    testWidgets('desktop quiet stats stay during a reload', (tester) async {
+      final reload = await pumpThenReload(tester, 1300);
+      expect(find.text('248'), findsOneWidget);
+      expect(find.text('63'), findsOneWidget);
+      reload.complete(
+        DiveStatistics(
+          totalDives: 249,
+          totalTimeSeconds: 747120,
+          maxDepth: 40,
+          avgMaxDepth: 20,
+          totalSites: 63,
+        ),
+      );
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.text('249'), findsOneWidget);
+    });
+
+    testWidgets('phone headline stays during a reload', (tester) async {
+      await pumpThenReload(tester, 500);
+      expect(find.textContaining('248 dives logged'), findsOneWidget);
+      expect(find.text('Loading your dive stats...'), findsNothing);
+    });
+  });
 }

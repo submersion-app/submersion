@@ -91,6 +91,7 @@ Future<void> _pump(
         }),
       ].cast(),
       child: MaterialApp.router(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,

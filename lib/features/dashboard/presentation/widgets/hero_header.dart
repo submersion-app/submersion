@@ -94,7 +94,10 @@ class HeroHeader extends ConsumerWidget {
                     if (!isDesktop) ...[
                       const SizedBox(height: 4),
                       // Headline stats (phone)
+                      // A reload (pull to refresh) keeps the last totals
+                      // on screen rather than flashing the loading line.
                       careerAsync.when(
+                        skipLoadingOnReload: true,
                         data: (career) {
                           final screenWidth = MediaQuery.sizeOf(context).width;
                           final isNarrow = screenWidth < 600;
@@ -215,17 +218,16 @@ class _QuietStats extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final careerAsync = ref.watch(careerTotalsProvider);
-    final career = careerAsync.valueOrNull;
+    // `value`, not the `valueOrNull` polyfill: a pull to refresh reloads the
+    // dive statistics these totals depend on, and the polyfill reads null
+    // for that reload, which would blank the stats until it lands.
+    final career = ref.watch(careerTotalsProvider).value;
     if (career == null || career.combinedDives == 0) {
       return const SizedBox.shrink();
     }
     // Sites stay logged-only: the prior-experience offset records dives and
     // time, not the distinct sites behind them.
-    final totalSites = ref
-        .watch(diveStatisticsProvider)
-        .valueOrNull
-        ?.totalSites;
+    final totalSites = ref.watch(diveStatisticsProvider).value?.totalSites;
     final countries = ref.watch(homeCountriesVisitedProvider).value ?? 0;
     final hours = formatHomeHours(career.combinedTimeSeconds);
 
