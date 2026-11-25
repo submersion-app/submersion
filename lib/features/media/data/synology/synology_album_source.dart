@@ -200,14 +200,24 @@ class SynologyAlbumSource {
     );
   }
 
-  /// Whether two listings name the same items in the same order.
+  /// Whether two listings name the same items, in any order. Items that tie
+  /// on the share's sort key (a burst taken in one second) may come back in
+  /// another order on each read; only an item doubled, added or missing is
+  /// a change.
   static bool _sameItems(List<Object?> a, List<Object?> b) {
     if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (_idOf(a[i]) != _idOf(b[i])) return false;
+    final idsA = _sortedIds(a);
+    final idsB = _sortedIds(b);
+    for (var i = 0; i < idsA.length; i++) {
+      if (idsA[i] != idsB[i]) return false;
     }
     return true;
   }
+
+  /// The ids of [items] as sortable text, sorted; an item without an id
+  /// counts as an empty one, so two such reads still compare equal.
+  static List<String> _sortedIds(List<Object?> items) =>
+      [for (final item in items) '${_idOf(item) ?? ''}']..sort();
 
   static Object? _idOf(Object? item) =>
       item is Map<String, Object?> ? item['id'] : null;

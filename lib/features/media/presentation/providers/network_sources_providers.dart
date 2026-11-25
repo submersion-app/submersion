@@ -96,6 +96,29 @@ final savedHostAlbumNamesProvider = FutureProvider<Map<String, String>>((
   }
 });
 
+/// The share link each saved share password row stands for, keyed by the
+/// row's hostname ([NetworkCredentialsService.synologyShareKey]), from the
+/// subscription that reads the share. The key drops the share's path
+/// prefix (`/photo` behind some reverse proxies), and the subscription's
+/// own link keeps it. Empty when the subscriptions cannot be read.
+final savedHostShareLinksProvider =
+    FutureProvider<Map<String, SynologyShareLink>>((ref) async {
+      try {
+        final repository = ref.watch(manifestSubscriptionRepositoryProvider);
+        ref.invalidateSelfWhen(repository.watchSubscriptionsChanges());
+        final links = [
+          for (final s in await repository.listAll())
+            SynologyShareLink.tryParseShareUrl(s.manifestUrl),
+        ].nonNulls;
+        return {
+          for (final link in links)
+            NetworkCredentialsService.synologyShareKey(link): link,
+        };
+      } on Object {
+        return const {};
+      }
+    });
+
 /// Whether this device holds the secret of the saved host row named by the
 /// argument; see [NetworkCredentialsService.hasSecret]. Recomputed with the
 /// saved hosts, so saving a password clears the mark. A keychain that cannot

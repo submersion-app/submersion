@@ -30,6 +30,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/credentials_host_card.dart';
@@ -281,6 +282,42 @@ void main() {
       await runTest(tester, creds);
       expect(find.text('Credentials failed for $key'), findsOneWidget);
       expect(creds.headerLookups.single.toString(), 'https://$key');
+    });
+
+    testWidgets('a share behind /photo is tested through its own link', (
+      tester,
+    ) async {
+      final creds = _FakeCredentialsService([
+        _h('1', key, authType: 'synologyShare'),
+      ])..shareHeaders = {'Cookie': 'sharing_sid=s'};
+      final link = SynologyShareLink.tryParseShareUrl(
+        'https://nas.example.com:5001/photo/mo/sharing/code1',
+      )!;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            networkCredentialsServiceProvider.overrideWithValue(creds),
+            savedHostShareLinksProvider.overrideWith(
+              (ref) async => {key: link},
+            ),
+          ],
+          child: localizedMaterialApp(
+            locale: const Locale('en'),
+            home: const Scaffold(body: CredentialsHostCard()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Test credentials'));
+      await tester.pumpAndSettle();
+
+      expect(
+        creds.headerLookups.single.toString(),
+        'https://nas.example.com:5001/photo/mo/sharing/code1',
+      );
+      expect(find.text('Credentials OK for $key'), findsOneWidget);
     });
 
     testWidgets('an accepted password passes', (tester) async {

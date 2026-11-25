@@ -32,11 +32,27 @@ void main() {
     final sessions = container.read(synologyShareSessionsProvider);
 
     final first = await sessions.sessionFor(link, 'secret');
-    expect(container.read(networkHeadersEpochProvider), 0);
+    expect(container.read(networkHeadersEpochProvider).serial, 0);
 
     // Another device's login ended it; the next request logs in again.
     sessions.invalidate(link, first);
     await sessions.sessionFor(link, 'secret');
-    expect(container.read(networkHeadersEpochProvider), 1);
+    final change = container.read(networkHeadersEpochProvider);
+    expect(change.serial, 1);
+    // Only this NAS's images went stale.
+    expect(change.host, 'nas.example.com');
+    expect(
+      change.affects(
+        'https://nas.example.com:5001/mo/sharing/webapi/entry.cgi?id=1',
+      ),
+      isTrue,
+    );
+    expect(change.affects('https://photos.example.org/a.jpg'), isFalse);
+  });
+
+  test('a changed secret makes every host stale', () {
+    const change = NetworkHeadersChange(3);
+    expect(change.affects('https://photos.example.org/a.jpg'), isTrue);
+    expect(change.affects(null), isTrue);
   });
 }

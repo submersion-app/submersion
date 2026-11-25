@@ -302,19 +302,44 @@ final Provider<NetworkCredentialsService> networkCredentialsServiceProvider =
           // Through the container: this provider's own ref cannot invalidate
           // something that depends on it.
           if (!ref.mounted) return;
-          _refreshNetworkHeaders(ref.container);
+          _refreshNetworkHeaders(ref.container, host: null);
         },
       ),
     );
 
-/// Bumped whenever request headers handed out earlier may have gone stale:
-/// a saved secret changed, or a share's session was replaced. Views that
-/// resolved a network image with those headers listen and resolve again.
-final networkHeadersEpochProvider = StateProvider<int>((ref) => 0);
+/// Request headers handed out earlier that may have gone stale: those of
+/// one host when a share's session was replaced, or of every host when a
+/// saved secret changed (rare, and the user's own doing).
+class NetworkHeadersChange {
+  const NetworkHeadersChange(this.serial, {this.host});
 
-void _refreshNetworkHeaders(ProviderContainer container) {
+  /// Moves on every change, so listeners hear each one.
+  final int serial;
+
+  /// The host whose headers went stale; null for every host.
+  final String? host;
+
+  /// Whether a view showing [url] holds headers this change made stale.
+  bool affects(String? url) {
+    final stale = host;
+    if (stale == null) return true;
+    return url != null && Uri.tryParse(url)?.host == stale;
+  }
+}
+
+/// The latest [NetworkHeadersChange]. Views that resolved a network image
+/// with headers listen and resolve again when it concerns them.
+final networkHeadersEpochProvider = StateProvider<NetworkHeadersChange>(
+  (ref) => const NetworkHeadersChange(0),
+);
+
+void _refreshNetworkHeaders(
+  ProviderContainer container, {
+  required String? host,
+}) {
   container.invalidate(networkThumbnailHeadersProvider);
-  container.read(networkHeadersEpochProvider.notifier).state++;
+  final epoch = container.read(networkHeadersEpochProvider.notifier);
+  epoch.state = NetworkHeadersChange(epoch.state.serial + 1, host: host);
 }
 
 /// The one set of Synology Photos share sessions for the app. One instance
@@ -325,9 +350,9 @@ final synologyShareSessionsProvider = Provider<SynologyShareSessions>(
     client: ref.watch(httpClientProvider),
     // A renewed session ends the old one: headers already on screen carry
     // a dead session cookie until they are asked for again.
-    onSessionChanged: () {
+    onSessionChanged: (link) {
       if (!ref.mounted) return;
-      _refreshNetworkHeaders(ref.container);
+      _refreshNetworkHeaders(ref.container, host: link.origin.host);
     },
   ),
 );

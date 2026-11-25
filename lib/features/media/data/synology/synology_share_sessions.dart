@@ -25,7 +25,7 @@ class SynologyShareSessions {
     DateTime Function()? now,
     this.validateEvery = const Duration(minutes: 2),
     this.requestTimeout = kSynologyRequestTimeout,
-    void Function()? onSessionChanged,
+    void Function(SynologyShareLink link)? onSessionChanged,
   }) : _client = client,
        _now = now ?? DateTime.now,
        _onSessionChanged = onSessionChanged;
@@ -38,10 +38,10 @@ class SynologyShareSessions {
   /// login every image of the share waits on.
   final Duration requestTimeout;
 
-  /// Called when a share's session is replaced by a new one. The old
+  /// Called with the share whose session was replaced by a new one. The old
   /// session is dead from then on (a login ends the previous one), so
   /// headers already handed out must be asked for again.
-  final void Function()? _onSessionChanged;
+  final void Function(SynologyShareLink link)? _onSessionChanged;
 
   /// How often [headersFor] checks that its session is still accepted.
   /// Image requests cannot see Synology's JSON error (the image widget only
@@ -193,7 +193,7 @@ class SynologyShareSessions {
     // password change) makes the headers built on the earlier one stale.
     final earlier = _lastSids[link.key];
     _lastSids[link.key] = sid;
-    if (earlier != null && earlier != sid) _onSessionChanged?.call();
+    if (earlier != null && earlier != sid) _onSessionChanged?.call(link);
     return session;
   }
 

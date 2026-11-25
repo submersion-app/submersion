@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
@@ -26,11 +27,19 @@ class NetworkVideoCache {
     required Future<Map<String, String>?> Function(Uri uri) headersFor,
     this.maxBytes = 2 * 1024 * 1024 * 1024,
     this.stallTimeout = const Duration(seconds: 60),
-  }) : _client = client,
+    @visibleForTesting
+    Future<bool> Function(File photo, File clip) cutMotionClip =
+        extractMotionVideoFile,
+  }) : _cutClip = cutMotionClip,
+       _client = client,
        _directory = directory,
        _headersFor = headersFor;
 
   final http.Client _client;
+
+  /// Writes the clip of the motion photo in its first file to its second;
+  /// [extractMotionVideoFile] outside tests.
+  final Future<bool> Function(File photo, File clip) _cutClip;
   final Future<Directory> Function() _directory;
   final Future<Map<String, String>?> Function(Uri uri) _headersFor;
 
@@ -191,7 +200,7 @@ class NetworkVideoCache {
       // Cut beside its name and moved in, like a downloaded video: a write
       // cut short must not leave a truncated clip that the check above
       // would serve from then on.
-      if (!await extractMotionVideoFile(source, part)) {
+      if (!await _cutClip(source, part)) {
         _log.info('No motion video in the photo from ${url.host}');
         return null;
       }

@@ -183,7 +183,10 @@ void main() {
     final watched = SynologyShareSessions(
       client: MockClient(share.handle),
       now: () => now,
-      onSessionChanged: () => changes++,
+      onSessionChanged: (link) {
+        expect(link.code, 'code1');
+        changes++;
+      },
     );
     final first = await watched.sessionFor(_link, 'secret');
     expect(changes, 0);

@@ -11,6 +11,18 @@ import 'package:submersion/features/media/presentation/providers/network_sources
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
 
+/// The keychain refused a share password [resolveSharePassword] was saving,
+/// told apart from its other failures (reading the subscription, polling)
+/// so a caller can say "save failed" only when a save failed.
+class SharePasswordSaveException implements Exception {
+  const SharePasswordSaveException(this.cause);
+
+  final Object cause;
+
+  @override
+  String toString() => '$cause';
+}
+
 /// Asks for a shared album's password while its subscription's last poll
 /// says it wants one, saves each answer for that share and polls again,
 /// until the poll gets past the password or the user cancels.
@@ -51,13 +63,17 @@ Future<bool> resolveSharePassword(
       rejected: error == kSynologyPasswordRejectedMessage,
     );
     if (password == null) break;
-    await credentials.save(
-      hostname: NetworkCredentialsService.synologyShareKey(share),
-      authType: kSynologyShareAuthType,
-      password: password,
-      // No display name: the row is named after its album where one
-      // reads the share, and a stored label would stay in one language.
-    );
+    try {
+      await credentials.save(
+        hostname: NetworkCredentialsService.synologyShareKey(share),
+        authType: kSynologyShareAuthType,
+        password: password,
+        // No display name: the row is named after its album where one
+        // reads the share, and a stored label would stay in one language.
+      );
+    } catch (e) {
+      throw SharePasswordSaveException(e);
+    }
     // The Saved hosts list reads the store once; show the new row.
     container.invalidate(savedHostsProvider);
     polled = await poller.pollNow(subscriptionId, clock.now().toUtc());

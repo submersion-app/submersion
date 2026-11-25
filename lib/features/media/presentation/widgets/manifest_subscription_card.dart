@@ -267,9 +267,12 @@ class _SubscriptionTile extends ConsumerWidget {
       );
     } catch (e) {
       if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.media_manifest_pollError('$e'))),
-      );
+      // In place of the "Polling" message, not queued behind it.
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(l10n.media_manifest_pollError('$e'))),
+        );
     }
   }
 

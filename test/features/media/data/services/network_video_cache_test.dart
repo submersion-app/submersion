@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/features/media/data/services/motion_photo.dart';
 import 'package:submersion/features/media/data/services/network_video_cache.dart';
 
 void main() {
@@ -230,19 +229,30 @@ void main() {
       expect(requests, hasLength(1));
     });
 
-    test('a clip that cannot be put in place leaves nothing behind', () async {
-      // Something already sits at the clip's name (here a folder), so the
-      // write cannot finish: no half-written clip may stay to be served.
-      final videos = Directory(p.join(dir.path, 'videos'));
-      final key = 'motion-${sha1.convert(utf8.encode(photo.toString()))}';
-      await Directory(p.join(videos.path, '$key.mp4')).create(recursive: true);
-      final c = cache((_) async => jpeg(file));
+    test('a clip cut short is never served as a clip', () async {
+      var cuts = 0;
+      final c = NetworkVideoCache(
+        client: MockClient((_) async => jpeg(file)),
+        directory: () async => Directory(p.join(dir.path, 'videos')),
+        headersFor: (_) async => null,
+        cutMotionClip: (photo, clip) async {
+          cuts++;
+          if (cuts == 1) {
+            // Half the clip written, then the write fails.
+            await clip.writeAsBytes([1, 2, 3]);
+            throw const FileSystemException('disk full');
+          }
+          return extractMotionVideoFile(photo, clip);
+        },
+      );
+
       expect(await c.motionClipFor(photo), isNull);
-      final left = [
-        for (final e in videos.listSync())
-          if (e is File) p.basename(e.path),
-      ];
-      expect(left, isEmpty);
+      // The next play cuts the clip again instead of serving the half one.
+      final path = await c.motionClipFor(photo);
+      expect(await File(path!).readAsBytes(), clip);
+      expect(cuts, 2);
+      final left = Directory(p.join(dir.path, 'videos')).listSync();
+      expect(left.where((e) => e.path.endsWith('.part')), isEmpty);
     });
 
     test('a photo without a clip gives no file', () async {

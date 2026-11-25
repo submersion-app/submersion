@@ -350,6 +350,25 @@ void main() {
     ]);
   });
 
+  test('the same items in another order are no change', () async {
+    final items = [for (var i = 1; i <= 5; i++) _photo(i, time: 1)];
+    final album = _FakeAlbum(items);
+    var reads = 0;
+    // A burst taken in one second: the share orders the tied items
+    // differently on the second read.
+    album.onList = (offset) {
+      if (offset == 0) reads++;
+      if (reads < 2) return null;
+      final reversed = items.reversed.toList();
+      return _ok({'list': reversed.skip(offset).take(2).toList()});
+    };
+    final outcome = await _source(album, pageSize: 2).fetch(_link);
+    expect(outcome, isA<ManifestFetchSuccess>());
+    expect((outcome as ManifestFetchSuccess).parsed.entries, hasLength(5));
+    // Read twice, not three times: the two reads agreed.
+    expect(album.listedOffsets, [0, 2, 4, 0, 2, 4]);
+  });
+
   test('an album that keeps changing fails instead of guessing', () async {
     final album = _FakeAlbum([for (var i = 1; i <= 5; i++) _photo(i, time: i)]);
     var reads = 0;

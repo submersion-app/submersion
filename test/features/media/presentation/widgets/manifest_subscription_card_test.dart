@@ -149,6 +149,10 @@ class _ScriptedPoller implements SubscriptionPoller {
 }
 
 class _FakeCredentials implements NetworkCredentialsService {
+  _FakeCredentials({this.saveError});
+
+  /// Thrown by [save], standing in for a keychain that refuses the write.
+  final Object? saveError;
   final List<({String hostname, String authType, String? password})> saves = [];
 
   @override
@@ -160,6 +164,8 @@ class _FakeCredentials implements NetworkCredentialsService {
     String? token,
     String? displayName,
   }) async {
+    final error = saveError;
+    if (error != null) throw error;
     saves.add((hostname: hostname, authType: authType, password: password));
   }
 
@@ -348,6 +354,33 @@ void main() {
       ]);
       expect(poller.calls, ['1', '1']);
       expect(field, findsNothing);
+    });
+
+    testWidgets('a refused save is reported as one, and nothing polls', (
+      tester,
+    ) async {
+      final repo = _FakeRepo([_sub('1', manifestUrl: shareUrl)]);
+      final poller = _ScriptedPoller(repo, [kSynologyPasswordMissingMessage]);
+      final creds = _FakeCredentials(saveError: StateError('keychain locked'));
+      await tester.pumpWidget(
+        _wrap(
+          const ManifestSubscriptionCard(),
+          repo: repo,
+          poller: poller,
+          credentials: creds,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tapPollNow(tester);
+
+      await tester.enterText(field, 'pw');
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+
+      // The cause reaches the diver, not a wrapper's name.
+      expect(find.textContaining('keychain locked'), findsOneWidget);
+      expect(find.textContaining('SharePasswordSaveException'), findsNothing);
+      expect(poller.calls, ['1']);
     });
 
     testWidgets('a saved password refreshes the Saved hosts list', (

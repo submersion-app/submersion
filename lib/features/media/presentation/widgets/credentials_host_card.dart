@@ -176,6 +176,15 @@ class _HostTile extends ConsumerWidget {
     }
   }
 
+  /// The share this password row opens. The subscription that reads it
+  /// keeps a path prefix (`/photo`) the row's key drops, so its link wins;
+  /// without one, the link is rebuilt from the key.
+  Future<SynologyShareLink?> _shareLink(WidgetRef ref) async {
+    final links = await ref.read(savedHostShareLinksProvider.future);
+    return links[host.hostname] ??
+        SynologyShareLink.tryParseShareUrl('https://${host.hostname}');
+  }
+
   Future<void> _testCredentials(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final resolver = ref.read(networkUrlResolverProvider);
@@ -183,7 +192,7 @@ class _HostTile extends ConsumerWidget {
     try {
       final bool ok;
       final share = host.authType == kSynologyShareAuthType
-          ? SynologyShareLink.tryParseShareUrl('https://${host.hostname}')
+          ? await _shareLink(ref)
           : null;
       if (share != null) {
         // A share's web page loads whether or not the password is right;

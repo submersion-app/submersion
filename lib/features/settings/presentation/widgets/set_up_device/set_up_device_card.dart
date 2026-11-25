@@ -197,11 +197,16 @@ class SetUpDeviceCard extends ConsumerWidget {
     final l10n = context.l10n;
     try {
       await resolveSharePassword(context, ref, subscriptionId: id);
-    } catch (e) {
-      // The keychain refused the password, or the poll could not start: the
-      // item stays, and the diver hears why instead of a tap doing nothing.
+    } on SharePasswordSaveException catch (e) {
+      // The keychain refused the password: the item stays, and the diver
+      // hears why instead of a tap doing nothing.
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.media_credentials_saveError('$e'))),
+        SnackBar(content: Text(l10n.media_credentials_saveError('${e.cause}'))),
+      );
+    } catch (_) {
+      // The subscription could not be read: nothing was saved.
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.common_error_tryAgain)),
       );
     }
     container.invalidate(pendingSetupItemsProvider);
