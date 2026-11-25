@@ -138,23 +138,31 @@ void main() {
   ) async {
     // Hovering a tagged line switches the right axis to that line's metric
     // for the hover alone, repainting the plot only (issue #2228 follow-up);
-    // the caption has to switch with it.
-    await pumpChart(tester, rightAxis: ProfileRightAxisMetric.meanDepth);
-    expect(captionText(tester, ProfileAxisCaptions.rightKey), 'Mean m');
+    // the caption has to switch with it. The axis shows temperature; the mean
+    // depth line is drawn too, and the pointer sits right on it.
+    await pumpChart(tester);
+    ProviderScope.containerOf(
+      tester.element(find.byType(DiveProfileChart)),
+    ).read(profileLegendProvider.notifier).toggleMeanDepth();
+    await tester.pumpAndSettle();
+    expect(captionText(tester, ProfileAxisCaptions.rightKey), '°C');
 
-    // Half way through the dive, near the top of the plot: far from the 30 m
-    // depth line, so the temperature line is the nearest tagged one. The
-    // first move over the plot is fl_chart's enter event; the second hovers.
+    // Half way through the dive the mean depth is 8 m (the depth line is at
+    // 30 m), on an axis padded to 33 m. The first move over the plot is
+    // fl_chart's enter event; the second hovers.
     final chart = tester.getRect(find.byType(LineChart).first);
+    final plotTop = chart.top + 1;
+    final plotBottom = chart.bottom - (14 + 22 + 1);
+    final y = plotTop + 8 / 33 * (plotBottom - plotTop);
     final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
     await mouse.addPointer(location: chart.centerLeft + const Offset(-5, 0));
     addTearDown(mouse.removePointer);
-    for (final y in [chart.top + 4, chart.top + 6]) {
-      await mouse.moveTo(Offset(chart.center.dx, y));
+    for (final dy in [-1.0, 0.0]) {
+      await mouse.moveTo(Offset(chart.center.dx, y + dy));
       await tester.pump();
     }
 
-    // The axis itself switched (temperature ticks, not the depth scale)...
+    // The axis itself switched to the depth scale mean depth reads on...
     expect(
       find
           .byType(SideTitleWidget)
@@ -162,10 +170,10 @@ void main() {
           .map((e) => e.widget as SideTitleWidget)
           .where((w) => w.meta.axisSide == AxisSide.right)
           .map((w) => (w.child as Text).data),
-      contains('22.0'),
+      contains('20'),
     );
     // ...and the caption with it.
-    expect(captionText(tester, ProfileAxisCaptions.rightKey), '°C');
+    expect(captionText(tester, ProfileAxisCaptions.rightKey), 'Mean m');
   });
 
   testWidgets('tapping the right caption opens the right axis menu', (

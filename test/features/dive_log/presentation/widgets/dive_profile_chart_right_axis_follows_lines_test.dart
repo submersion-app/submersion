@@ -12,6 +12,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_axis_captions.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -87,8 +88,14 @@ int _rightTickCount(WidgetTester tester) => tester
     .where((t) => t.meta.axisSide == AxisSide.right)
     .length;
 
-final _temperatureAxis = find.text('Temp (°C)');
-final _pressureAxis = find.text('Press (bar)');
+/// The right axis's caption reading [text] (issue #5013): the unit, named
+/// when another axis shares it, so tank pressure reads "Press bar".
+Finder _rightCaption(String text) => find.byWidgetPredicate(
+  (w) => w is Text && w.key == ProfileAxisCaptions.rightKey && w.data == text,
+);
+
+final _temperatureAxis = _rightCaption('°C');
+final _pressureAxis = _rightCaption('Press bar');
 
 void main() {
   testWidgets('the temperature line on keeps the temperature axis', (
