@@ -533,6 +533,24 @@ void main() {
       );
     });
 
+    for (final width in [320.0, 390.0, 1280.0]) {
+      testWidgets('banner mode: no overflow at text scale 2, $width wide', (
+        tester,
+      ) async {
+        await pumpHome(
+          tester,
+          width: width,
+          textScale: 2,
+          settings: const AppSettings(
+            homeHeaderStylePhone: 'banner',
+            homeHeaderStyleWide: 'banner',
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.byType(HeroHeader), findsOneWidget);
+      });
+    }
+
     testWidgets('banner page order: demo card, banner, row, panels', (
       tester,
     ) async {

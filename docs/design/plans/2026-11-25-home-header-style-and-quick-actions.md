@@ -29,7 +29,7 @@
 2. The Quick Actions card at text scale 2 on a 320 pt phone: no overflow; the card must fit its row height. (Task 6 test `quick actions card fits at text scale 2`.)
 3. Banner mode with the gauges failing to load: the pinned row shows the retry chip, and tapping it reloads. (Task 4 test `banner row shows retry chip on gauge error`.)
 4. A diver whose stored layout predates this change switches Quick Actions on: it appears directly after Key numbers, not at the end. (Task 6 test `upgraded layout slots quick actions after key numbers`.)
-5. Banner mode with no diver row (fresh install, or the diver failed to load): the avatar slot collapses and the greeting reads "Good morning!" with no name gap. (Task 3 test `avatar collapses when no diver`.)
+5. Banner mode with no diver row (fresh install, or the diver failed to load): the avatar slot collapses and the greeting keeps the original fallback, "Good morning, Diver!". (Task 3 test `avatar collapses when no diver`.)
 
 ---
 
@@ -156,7 +156,7 @@ Behaviour: `final style = homeHeaderStyleFor(ref.watch(settingsProvider), homeWi
 - Consumes: Task 2 strings.
 - Produces:
   - `HomePanelType.quickActions`, declared directly after `keyNumbers`
-  - `HomePanelHeight.extraTall`, appended last to the enum (row height is the max by index), base 340.0 in `homeRowHeight`
+  - `HomePanelHeight.extraTall`, appended last to the enum (row height is the max by index), base 392.0 in `homeRowHeight` (measured: touch platforms pad each button to 48 pt)
   - `homePanelSpec(quickActions) == HomePanelSpec(HomePanelWidth.sList, HomePanelHeight.extraTall)`
   - `homePanelLabel(..., quickActions) == l10n.dashboard_quickActions_sectionTitle`
   - `class QuickActionsCard extends StatelessWidget`, as restored, filling its slot (`Card` margin kept; the column's buttons as before)
