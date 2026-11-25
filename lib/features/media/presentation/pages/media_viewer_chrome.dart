@@ -28,7 +28,7 @@ extension _ViewerChrome on _MediaViewerPageState {
       // controls, so the other callbacks keep the viewer's context and ref,
       // which a callback still running after it has gone (Go to dive, past
       // the discard question) needs.
-      builder: (_, toolbarRef, _) {
+      builder: (toolbarContext, toolbarRef, _) {
         final labels = marineLifeLabelsAction(
           toolbarRef,
           currentItem,
@@ -118,6 +118,10 @@ extension _ViewerChrome on _MediaViewerPageState {
           marineLifeLabelsOn: labels.on,
           marineLifeRing: labels.ring,
           marineLifeTone: labels.tone,
+          marineLifeLabel: switch (labels.status) {
+            final status? => labelsButtonLabel(toolbarContext.l10n, status),
+            null => null,
+          },
         );
       },
     );

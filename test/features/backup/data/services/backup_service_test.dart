@@ -1699,6 +1699,93 @@ void main() {
     });
 
     group('getValidatedBackupHistory', () {
+      group('after the app container moves', () {
+        // iOS moves the app container across updates and restores, so a
+        // record can hold an old absolute path to a backup that is still in
+        // the default folder at a new one. Issue #4973's private-folder
+        // cleanup made pruning such records costly: the files then show as
+        // unrecognized and become deletable.
+        late Directory defaultFolder;
+
+        setUp(() async {
+          defaultFolder = Directory(
+            p.join(_isolatedTempDir.path, 'Submersion', 'Backups'),
+          );
+          await defaultFolder.create(recursive: true);
+        });
+
+        tearDown(() async {
+          if (defaultFolder.existsSync()) {
+            await defaultFolder.delete(recursive: true);
+          }
+        });
+
+        BackupRecord localRecord(String id, String localPath) => BackupRecord(
+          id: id,
+          filename: p.basename(localPath),
+          timestamp: DateTime(2026, 9, 1),
+          sizeBytes: 1000,
+          location: BackupLocation.local,
+          diveCount: 5,
+          siteCount: 2,
+          localPath: localPath,
+        );
+
+        test('repoints a default-folder record to its moved file', () async {
+          const name = 'submersion_backup_2026-09-01_120000__dabc.db';
+          await File(p.join(defaultFolder.path, name)).writeAsString('data');
+          const oldPath =
+              '/var/mobile/Containers/Data/Application/OLD/Documents/'
+              'Submersion/Backups/$name';
+          await preferences.addRecord(localRecord('moved', oldPath));
+
+          final history = await BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          ).getValidatedBackupHistory();
+
+          expect(history.single.localPath, p.join(defaultFolder.path, name));
+          // Persisted, so the next scan matches the record by full path.
+          expect(
+            preferences.getHistory().single.localPath,
+            p.join(defaultFolder.path, name),
+          );
+        });
+
+        test('still prunes a moved record whose file is gone', () async {
+          await preferences.addRecord(
+            localRecord(
+              'gone',
+              '/old/container/Documents/Submersion/Backups/missing.db',
+            ),
+          );
+
+          final history = await BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          ).getValidatedBackupHistory();
+
+          expect(history, isEmpty);
+        });
+
+        test('does not repoint a record from another folder', () async {
+          // Only the default folder moves with the container. A custom
+          // folder's record pointing at a same-named file is left alone.
+          const name = 'submersion_backup_2026-09-01_120000__dabc.db';
+          await File(p.join(defaultFolder.path, name)).writeAsString('data');
+          await preferences.addRecord(
+            localRecord('custom', '/Volumes/Share/Dives/$name'),
+          );
+
+          final history = await BackupService(
+            dbAdapter: fakeDb,
+            preferences: preferences,
+          ).getValidatedBackupHistory();
+
+          expect(history, isEmpty);
+        });
+      });
+
       test(
         'removes records where local file is gone and no cloud backup',
         () async {

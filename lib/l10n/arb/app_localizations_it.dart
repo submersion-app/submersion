@@ -12808,6 +12808,69 @@ class AppLocalizationsIt extends AppLocalizations {
       'La ricerca della località non è disponibile. Controlla la connessione e riprova.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'Alcuni campi possono restare vuoti: OpenStreetMap spesso non ha uno specchio d\'acqua per una piscina, un cenote o una cava, né una città per un sito al largo.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Altri $count siti sono già stati cercati e OpenStreetMap non aveva altro da aggiungere.',
+      one:
+          'Un altro sito è già stato cercato e OpenStreetMap non aveva altro da aggiungere.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count siti hanno ancora dati di località vuoti, ma OpenStreetMap non aveva altro da aggiungere. Spostando un sito o svuotando uno dei suoi campi, verrà proposto di nuovo.',
+      one:
+          '1 sito ha ancora dati di località vuoti, ma OpenStreetMap non aveva altro da aggiungere. Spostando il sito o svuotando uno dei suoi campi, verrà proposto di nuovo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count siti aggiornati.',
+      one: '1 sito aggiornato.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'OpenStreetMap non aveva nulla da aggiungere per $count siti.',
+      one: 'OpenStreetMap non aveva nulla da aggiungere per 1 sito.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ricerche non riuscite.',
+      one: '1 ricerca non riuscita.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames =>
       'Aggiorna i nomi dei luoghi';
 
@@ -19998,12 +20061,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Scollegare $count elementi?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return 'Scollegare $_temp0?';
   }
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Scollegare $count elementi?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return 'Scollegare $_temp0?';
   }
 
   @override
@@ -20139,7 +20214,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Scollegare $count elementi?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return 'Scollegare $_temp0?';
   }
 
   @override
@@ -20325,6 +20406,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Per aggiungere un feed di foto, usa Importa nella schermata Media.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Per aggiungere file o link, usa Importa nella schermata Media.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Per aggiungere link, usa Importa nella schermata Media.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Cancella';
@@ -20840,6 +20933,99 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Riproduci originale';
+
+  @override
+  String get media_viewer_playMotion => 'Riproduci movimento';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Questo dispositivo non può riprodurre il movimento di questa foto';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Impossibile aggiornare $count abbonamenti foto, tra cui \"$name\": $error',
+      one: 'Impossibile aggiornare l’abbonamento foto \"$name\": $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Apri';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minuti',
+      one: '1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ore',
+      one: '1 ora',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giorni',
+      one: '1 giorno',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Password della condivisione';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Questa condivisione di Synology Photos richiede la sua password.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'La condivisione non ha accettato la password. Inseriscila di nuovo.';
+
+  @override
+  String get media_sharePassword_field => 'Password';
+
+  @override
+  String get media_sharePassword_save => 'Salva e recupera';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Viene conservata nel portachiavi di questo dispositivo e non viene mai sincronizzata.';
+
+  @override
+  String get media_sharePassword_formSave => 'Salva la password e recupera';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Controlla ogni';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'La condivisione non ha accettato la password salvata.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Riproduci o metti in pausa il video';
 
@@ -21118,6 +21304,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_sources_neverScanned => 'Mai scansionata';
 
   @override
+  String get media_sources_removeFolderTitle =>
+      'Smettere di monitorare questa cartella?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion dimentica i file trovati in $folder, quindi non cercherà più lì le foto mancanti. Nessuna foto o file viene eliminato.';
+  }
+
+  @override
   String get media_source_gallery => 'Libreria foto';
 
   @override
@@ -21162,6 +21357,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_smartAlbum_delete => 'Elimina album';
+
+  @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Eliminare \"$name\"?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Viene eliminato solo il filtro salvato. Nessuna foto o video cambia.';
 
   @override
   String get media_smartAlbum_deleteFailed => 'Impossibile eliminare l\'album';
@@ -21364,6 +21568,49 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Cerca immersioni';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return 'Spostare $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Gli elementi passano a $dive e lasciano l\'immersione in cui si trovano ora, se c\'è.',
+      one:
+          'L\'elemento passa a $dive e lascia l\'immersione in cui si trova ora, se c\'è.',
+    );
+    return '$_temp0 I collegamenti al sito e all\'attrezzatura restano invariati.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Sposta';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Un\'immersione di questo spostamento è aperta in modifica. Salvala, annullala o bloccala, poi riprova.';
+
+  @override
+  String get media_library_moveFailed => 'Impossibile spostare gli elementi';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Impossibile scollegare gli elementi';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Sposta in un\'immersione';
@@ -22946,18 +23193,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Coordinate copiate negli appunti';
 
   @override
-  String get diveDetailSection_weights_name => 'Zavorra';
+  String get diveDetailSection_weights_name => 'Zavorra e assetto';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Ripartizione pesi, peso totale';
+      'Zavorra portata, assetto durante l\'immersione, zavorra per la prossima volta, zavorra sganciabile';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Assetto';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Assetto durante l\'immersione, zavorra per la prossima volta, zavorra sganciabile';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -29238,6 +29481,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataHealth_media_transfersPaused =>
       'I trasferimenti delle foto sono in pausa';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'L\'abbonamento foto $name richiede la sua password';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Impossibile aggiornare l\'abbonamento foto $name';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -45438,6 +45691,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ricaricamento in coda';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Sostituire la copia a piena qualità?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'L\'originale conservato nel tuo spazio di archiviazione viene sostituito da una copia $level. La foto su questo dispositivo viene mantenuta.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Sostituisci';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Installa ffmpeg per abilitare la compressione video. Fino ad allora vengono caricati gli originali.';
 
@@ -48839,34 +49104,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Pesce chirurgo chiaro con sei barre verticali nere, spesso visto brucare in grandi banchi sui pianori corallini indo-pacifici.';
 
   @override
-  String get species_great_hammerhead_name => 'Squalo martello smerlato';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Squalo inconfondibile con la testa a martello dal bordo smerlato, forma grandi banchi presso montagne sottomarine e isole al largo.';
-
-  @override
-  String get species_wobbegong_name => 'Wobbegong maculato';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Squalo tappeto piatto e ben mimetizzato, con lobi frangiati attorno alla bocca, presente nelle scogliere temperate australiane.';
-
-  @override
-  String get species_manta_ray_name => 'Manta di barriera';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Gigante aggraziato con un\'apertura alare fino a 5 m, frequenta le stazioni di pulizia e si nutre di plancton nelle barriere indo-pacifiche.';
-
-  @override
-  String get species_oceanic_manta_name => 'Manta oceanica';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'La più grande specie di razza, con apertura alare superiore ai 7 m, incontrata presso montagne sottomarine al largo e stazioni di pulizia.';
-
-  @override
   String get species_undulated_moray_name => 'Murena ondulata';
 
   @override
@@ -52166,6 +52403,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Password mancante su questo dispositivo';
+
+  @override
   String get media_credentials_deleteBody =>
       'Rimuove le credenziali salvate. Gli elementi collegati tramite questo host mostreranno «Accedi per visualizzare» finché non li aggiungi di nuovo.';
 
@@ -55268,6 +55509,29 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile eliminare la revisione del profilo.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'Rimuovi questa fonte';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'Salva o annulla le modifiche per eliminare il profilo.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Salva o annulla le modifiche per eliminare il profilo o rimuovere questa fonte.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'Elimina profilo completo elimina solo le revisioni del profilo della fonte principale.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'Questa è l\'unica revisione del profilo dell\'immersione, quindi non può essere eliminata.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Impossibile caricare le revisioni del profilo, quindi al momento non se ne può eliminare nessuna.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Salvato prima della cronologia delle revisioni; non collegato a un computer';
 
@@ -56023,6 +56287,38 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Analizzato in parte, $count trovati',
+      one: 'Analizzato in parte, $count trovato',
+      zero: 'Analizzato in parte, niente trovato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed =>
+      'Etichette delle specie: non analizzato';
+
+  @override
+  String get media_labels_buttonAnalysing =>
+      'Etichette delle specie: analisi in corso';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'Etichette delle specie: analizzato in parte';
+
+  @override
+  String get media_labels_buttonOutdated =>
+      'Etichette delle specie: non aggiornato';
+
+  @override
+  String get media_labels_buttonAnalysed =>
+      'Etichette delle specie: analizzato';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -56632,6 +56928,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => 'Impossibile verificare ora';
+
+  @override
+  String get media_info_checkNeedsPassword => 'Password mancante o rifiutata';
 
   @override
   String get media_info_backupQueued => 'In coda per il caricamento';
@@ -58821,6 +59120,23 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get backup_unrecognized_explanation =>
       'Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Qui può essere eliminato solo un file scritto da questo dispositivo: qualsiasi altro potrebbe essere l\'unica copia di un altro dispositivo.';
+
+  @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Questi file si trovano nella cartella dei backup ma non nella cronologia dei backup di questo dispositivo. Questa cartella è riservata a Submersion su questo dispositivo, quindi nessun altro dispositivo usa questi file e ognuno di essi può essere eliminato qui.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count file selezionati potrebbero essere stati creati da un altro dispositivo, da un\'installazione precedente o da una versione meno recente di Submersion. Se contengono immersioni che non hai altrove, quelle immersioni andranno perse.',
+      one:
+          'Un file selezionato potrebbe essere stato creato da un altro dispositivo, da un\'installazione precedente o da una versione meno recente di Submersion. Se contiene immersioni che non hai altrove, quelle immersioni andranno perse.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty =>
@@ -62572,6 +62888,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Accedi';
 
   @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'L\'album foto $name richiede la sua password su questo dispositivo.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'Inserisci password';
+
+  @override
   String get settings_setUpDevice_item_reconnectAction => 'Ricollega';
 
   @override
@@ -63398,6 +63723,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Bombole duplicate rimosse';
+
+  @override
+  String get changeLog_label_moveMedia => 'Spostato in un\'altra immersione';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Scollegato dalla libreria';
+
+  @override
+  String get changeLog_label_removeGearPhotos =>
+      'Foto dell\'attrezzatura rimosse';
 
   @override
   String get changeLog_label_updatePlannedDives =>
@@ -66107,4 +66442,103 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Scegli i numeri mostrati in cima alla Home. Un numero che non ha ancora nulla da mostrare viene omesso.';
+
+  @override
+  String get dashboard_greeting_morning => 'Buongiorno';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Buon pomeriggio';
+
+  @override
+  String get dashboard_greeting_evening => 'Buonasera';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 immersione registrata';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count immersioni registrate';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 immersione';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count immersioni';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Pronti a esplorare le profondità?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours ore sott\'acqua';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'Caricamento statistiche immersioni...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes minuti sott\'acqua';
+  }
+
+  @override
+  String get dashboard_hero_noDives =>
+      'Pronto a registrare la tua prima immersione?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Subacqueo';
+
+  @override
+  String get dashboard_hero_statDives => 'immersioni';
+
+  @override
+  String get dashboard_hero_statHours => 'ore';
+
+  @override
+  String get dashboard_hero_statSites => 'siti';
+
+  @override
+  String get dashboard_hero_statCountries => 'paesi';
+
+  @override
+  String get dashboard_semantics_greetingBanner =>
+      'Banner di benvenuto della dashboard';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Azioni rapide';
+
+  @override
+  String get dashboard_quickActions_insights => 'Analisi';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Intestazione';
+
+  @override
+  String get settings_homeHeader_phone => 'Larghezza telefono';
+
+  @override
+  String get settings_homeHeader_wide => 'Schermi più ampi';
+
+  @override
+  String get settings_homeHeader_compact => 'Compatta';
+
+  @override
+  String get settings_homeHeader_banner => 'Banner';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.';
 }

@@ -8,8 +8,10 @@ enum BackupOwnership {
   /// record is gone.
   thisDevice,
 
-  /// Written by a different device. Never offer to delete it: in a shared
-  /// backup folder this may be that device's only copy.
+  /// Written by a different device. Never offer to delete it from a folder
+  /// that may be shared: there it may be that device's only copy. The one
+  /// exception is the app-private default folder, where no other device can
+  /// have written it (see `UnrecognizedBackup.isReclaimable`).
   otherDevice,
 
   /// No attribution in the name. Every backup written before attribution
@@ -111,7 +113,8 @@ String? backupDeviceTagFromFilename(String filename) {
 ///
 /// Deliberately conservative: anything that is not provably this device's is
 /// [BackupOwnership.otherDevice] or [BackupOwnership.unattributed], and
-/// neither may be offered for deletion. The cost of a false
+/// neither may be offered for deletion outside the app-private default
+/// folder. The cost of a false
 /// [BackupOwnership.thisDevice] is destroying someone's only backup; the cost
 /// of a false negative is a file the user tidies up themselves.
 BackupOwnership classifyBackupFile({

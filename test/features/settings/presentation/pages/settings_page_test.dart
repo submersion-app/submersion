@@ -48,7 +48,6 @@ import 'package:submersion/features/settings/presentation/widgets/settings_list_
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
@@ -84,9 +83,9 @@ class _RecordingBackfill extends StateNotifier<BackfillState>
   final List<SiteLocationLookupMode> counted = [];
 
   @override
-  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+  Future<BackfillCandidates> findCandidates(SiteLocationLookupMode mode) async {
     counted.add(mode);
-    return const [];
+    return const BackfillCandidates(sites: []);
   }
 
   @override
@@ -457,6 +456,14 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setHiddenHomeKeyNumbers(Set<String> hidden) async =>
       state = state.copyWith(hiddenHomeKeyNumbers: hidden);
+
+  @override
+  Future<void> setHomeHeaderStyle({
+    required bool phone,
+    required String style,
+  }) async => state = phone
+      ? state.copyWith(homeHeaderStylePhone: style)
+      : state.copyWith(homeHeaderStyleWide: style);
 
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {

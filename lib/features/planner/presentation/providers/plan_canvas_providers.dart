@@ -9,6 +9,7 @@ import 'package:submersion/features/insights/data/repositories/insights_reposito
 import 'package:submersion/features/insights/domain/role_consumption.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/planner/data/services/plan_engine_settings.dart';
+import 'package:submersion/features/planner/domain/entities/contingency_selection.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -124,11 +125,17 @@ class CanvasMarker {
   final String label;
   final int durationSeconds;
 
+  /// A stop held only for the gas switch made there (see
+  /// [PlanStop.isGasSwitchOnly]), so stop tags compare it with the other
+  /// plan's switch stop and not with a deco stop at the same depth.
+  final bool isGasSwitchOnly;
+
   const CanvasMarker(
     this.timeSeconds,
     this.depth,
     this.label, {
     this.durationSeconds = 0,
+    this.isGasSwitchOnly = false,
   });
 }
 
@@ -260,6 +267,7 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
         stop.depthMeters,
         '',
         durationSeconds: stop.durationSeconds,
+        isGasSwitchOnly: stop.isGasSwitchOnly,
       ),
     );
     stretches.add((
@@ -374,6 +382,7 @@ PlanCanvasSeries buildCanvasSeries({
         stop.depthMeters,
         '',
         durationSeconds: stop.durationSeconds,
+        isGasSwitchOnly: stop.isGasSwitchOnly,
       ),
     );
   }
@@ -439,86 +448,107 @@ final planCanLengthenProvider = Provider<bool>((ref) {
   return ContingencyService(config: config).canLengthen(plan);
 });
 
-/// Which deviation is ghosted on the chart ('deeper'|'longer'|'both'; null =
-/// none). Mutually exclusive with [selectedLostGasTankIdProvider] -- only one
-/// contingency can be previewed at a time.
-final selectedDeviationProvider =
-    NotifierProvider<SelectedDeviationNotifier, String?>(
-      SelectedDeviationNotifier.new,
+/// Which contingency toggles are on; see [selectedContingencyProvider].
+final contingencySelectionProvider =
+    NotifierProvider<ContingencySelectionNotifier, ContingencySelection>(
+      ContingencySelectionNotifier.new,
     );
 
-/// Holds [selectedDeviationProvider]'s key.
-class SelectedDeviationNotifier extends Notifier<String?> {
+/// Holds [contingencySelectionProvider]'s toggles.
+class ContingencySelectionNotifier extends Notifier<ContingencySelection> {
+  (String, domain.PlanMode, int)? _planKey;
+
   @override
-  String? build() {
-    // Rebuilt when the plan gains or loses its bottom. A time preview goes
-    // with the bottom, wherever the plan was edited from: left in place it
-    // would come back on its own once a bottom is added again (#4849). Done
-    // as a rebuild rather than a listener that writes state, so it is safe
-    // when the first read comes from a widget mid-build.
+  ContingencySelection build() {
+    // Rebuilt rather than written from a listener, so it is safe when the
+    // first read comes from a widget mid-build. Another plan, a reopened one
+    // (same id, new load) or another mode starts clean; +time goes with the
+    // bottom so it cannot return on its own once a bottom is added again
+    // (#4849).
+    final plan = ref.watch(divePlanNotifierProvider);
+    final planKey = (
+      plan.id,
+      plan.mode,
+      ref.read(divePlanNotifierProvider.notifier).loadCount,
+    );
     final canLengthen = ref.watch(planCanLengthenProvider);
-    final previous = stateOrNull;
-    return canLengthen || previous == 'deeper' ? previous : null;
+    final samePlan = _planKey == null || _planKey == planKey;
+    _planKey = planKey;
+    final previous = samePlan
+        ? stateOrNull ?? ContingencySelection.none
+        : ContingencySelection.none;
+    return !canLengthen && previous.longer
+        ? previous.copyWith(longer: false)
+        : previous;
   }
 
-  /// Ghosts the deviation [key] ('deeper' | 'longer' | 'both'), or none.
-  void select(String? key) => state = key;
+  void toggleDeeper() => state = state.copyWith(deeper: !state.deeper);
+
+  void toggleLonger() => state = state.copyWith(longer: !state.longer);
+
+  /// Whether [tankId] can be toggled: always off again, and on only while
+  /// a cylinder would still be left to breathe.
+  bool canToggleLostGas(String tankId) {
+    if (state.lostTankIds.contains(tankId)) return true;
+    final losable = {for (final t in ref.read(planLosableTanksProvider)) t.id};
+    if (!losable.contains(tankId)) return false;
+    final lost = state.lostTankIds.where(losable.contains).length;
+    return ref.read(divePlanNotifierProvider).tanks.length - lost > 1;
+  }
+
+  void toggleLostGas(String tankId) {
+    if (!canToggleLostGas(tankId)) return;
+    final ids = Set<String>.from(state.lostTankIds);
+    if (!ids.add(tankId)) ids.remove(tankId);
+    state = state.copyWith(lostTankIds: ids);
+  }
+
+  /// Sets +depth / +time to the slate deviation [key] ('deeper' | 'longer'
+  /// | 'both'), or turns both off for null, leaving the lost gases as they
+  /// are.
+  void selectDeviation(String? key) => state = state.copyWith(
+    deeper: key == 'deeper' || key == 'both',
+    longer: key == 'longer' || key == 'both',
+  );
+
+  void clear() => state = ContingencySelection.none;
 }
 
-/// Which carried cylinder is being marked lost and previewed; null = none.
-/// Mutually exclusive with [selectedDeviationProvider].
-final selectedLostGasTankIdProvider = StateProvider<String?>((_) => null);
+/// The carried cylinders that can be toggled lost, in plan order: empty for
+/// loop plans and plans without segments (see [ContingencyService.isLosable]).
+final planLosableTanksProvider = Provider<List<DiveTank>>((ref) {
+  final plan = divePlanFromState(ref.watch(divePlanNotifierProvider));
+  if (plan.mode != domain.PlanMode.oc || plan.segments.isEmpty) {
+    return const [];
+  }
+  final service = ContingencyService(
+    config: ref.watch(planEngineConfigProvider),
+  );
+  return [
+    for (final tank in const TankRoleResolver().apply(plan).tanks)
+      if (service.isLosable(tank)) tank,
+  ];
+});
 
-/// The variant plan + outcome for whichever contingency is currently
-/// selected (a deviation or a lost-gas tank); null when neither is selected,
-/// meaning every consumer should fall back to the live [planOutcomeProvider].
-/// Losing a deco/stage/travel gas changes the whole deco schedule -- not just
-/// the chart ghost -- so this is the single source both the ghost series and
-/// the headline stats read from, keeping them in sync and to a single engine
-/// run per selection.
-///
-/// It is also null when a selection has gone stale -- the tank was removed,
-/// stopped being losable (its role changed, or its travel-gas flag was
-/// cleared), or the deviation cannot be applied -- so consumers must gate on
-/// this rather than on the raw selection providers, which still hold the id.
-/// [lostTank] is the cylinder being dropped, non-null only for a lost-gas
-/// selection, so a label can name it without re-deriving whether the
-/// selection is still valid.
-final selectedContingencyProvider =
-    Provider<
-      ({domain.DivePlan plan, PlanOutcome outcome, DiveTank? lostTank})?
-    >((ref) {
-      final deviationKey = ref.watch(selectedDeviationProvider);
-      final lostGasTankId = ref.watch(selectedLostGasTankIdProvider);
-      if (deviationKey == null && lostGasTankId == null) return null;
+/// The toggled contingencies combined, the one source the ghost series and
+/// the headline stats read. Null when nothing applicable is toggled (stale
+/// ids included), so consumers gate on this, not on the raw selection.
+final selectedContingencyProvider = Provider<CombinedContingencyOutcome?>((
+  ref,
+) {
+  final selection = ref.watch(contingencySelectionProvider);
+  if (selection.isEmpty) return null;
 
-      final state = ref.watch(divePlanNotifierProvider);
-      final config = ref.watch(planEngineConfigProvider);
-      final service = ContingencyService(config: config);
-      final plan = divePlanFromState(state);
-      final startState = startStateForPlan(state, config: config);
-
-      if (deviationKey != null) {
-        final deviation = service.deviationFor(
-          plan,
-          deviationKey,
-          startState: startState,
-        );
-        if (deviation == null) return null;
-        return (
-          plan: deviation.plan,
-          outcome: deviation.outcome,
-          lostTank: null,
-        );
-      }
-      final lost = service.lostGasFor(
-        plan,
-        lostGasTankId!,
-        startState: startState,
-      );
-      if (lost == null) return null;
-      return (plan: lost.plan, outcome: lost.outcome, lostTank: lost.tank);
-    });
+  final state = ref.watch(divePlanNotifierProvider);
+  final config = ref.watch(planEngineConfigProvider);
+  return ContingencyService(config: config).contingencyFor(
+    divePlanFromState(state),
+    deeper: selection.deeper,
+    longer: selection.longer,
+    lostTankIds: selection.lostTankIds,
+    startState: startStateForPlan(state, config: config),
+  );
+});
 
 /// Chart series for the selected contingency, drawn as a ghost overlay.
 final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {

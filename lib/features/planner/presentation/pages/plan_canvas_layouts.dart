@@ -227,8 +227,17 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
   Widget _phonePlanChart() {
     return Stack(
       children: [
-        const Positioned.fill(
-          child: Padding(padding: EdgeInsets.all(8), child: PlanProfileChart()),
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            // The readouts list the stops; the chart tags them only when
+            // that list has no room for even one row.
+            child: Consumer(
+              builder: (context, ref, _) => PlanProfileChart(
+                showStopTags: !ref.watch(phoneStopListFitsProvider),
+              ),
+            ),
+          ),
         ),
         PlanChartReadouts(
           onIssuesTap: () =>

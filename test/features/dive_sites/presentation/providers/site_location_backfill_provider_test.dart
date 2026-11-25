@@ -8,6 +8,7 @@ import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/prefs_site_lookup_memory.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
@@ -104,7 +105,44 @@ void main() {
     final found = await notifier.findCandidates(
       SiteLocationLookupMode.fillMissing,
     );
-    expect(found, hasLength(2));
+    expect(found.sites, hasLength(2));
+  });
+
+  test('a finished run is remembered on this device, so the sites it could '
+      'not complete are not offered again (issue #4992)', () async {
+    final notifier = container.read(siteLocationBackfillProvider.notifier);
+    // Each lookup answers country and town only, so region and body of
+    // water stay empty on both sites.
+    await runToCompletion(notifier.start(SiteLocationLookupMode.fillMissing));
+
+    final next = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
+    );
+    expect(next.sites, isEmpty);
+    expect(next.alreadyLookedUp, 2);
+  });
+
+  test('a run keeps its notes under the diver its sites were listed for, '
+      'even if the profile changed since (issue #4992)', () async {
+    final notifier = container.read(siteLocationBackfillProvider.notifier);
+    final listed = await notifier.findCandidates(
+      SiteLocationLookupMode.fillMissing,
+    );
+    final forOldProfile = BackfillCandidates(
+      sites: listed.sites,
+      diverId: 'old-profile',
+    );
+
+    await runToCompletion(
+      notifier.start(SiteLocationLookupMode.fillMissing, from: forOldProfile),
+    );
+
+    final prefs = container.read(sharedPreferencesProvider);
+    expect(
+      prefs.getString(PrefsSiteLookupMemory.keyFor('old-profile')),
+      isNotNull,
+    );
+    expect(prefs.getString(PrefsSiteLookupMemory.keyFor(null)), isNull);
   });
 
   test('reports progress while running and finishes with a summary', () async {
@@ -206,8 +244,8 @@ void main() {
       SiteLocationLookupMode.refreshAll,
     );
 
-    expect(filling, hasLength(2));
-    expect(refreshing, hasLength(3));
+    expect(filling.sites, hasLength(2));
+    expect(refreshing.sites, hasLength(3));
   });
 
   test('a started run looks up only the candidates it was handed', () async {
@@ -222,7 +260,7 @@ void main() {
 
     final run = notifier.start(
       SiteLocationLookupMode.fillMissing,
-      targets: candidates,
+      from: candidates,
     );
     while (location.gates.isEmpty) {
       await tick();

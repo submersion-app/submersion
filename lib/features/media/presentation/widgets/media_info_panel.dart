@@ -24,9 +24,11 @@ import 'package:submersion/features/media/presentation/providers/media_provenanc
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_tags_section.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
+import 'package:submersion/features/media/presentation/widgets/share_password_flow.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -531,21 +533,46 @@ class _CheckNowButtonState extends ConsumerState<_CheckNowButton> {
     final l10n = context.l10n;
     setState(() => _busy = true);
     try {
-      final result = await ref
-          .read(mediaItemVerifierProvider)
-          .verify(widget.item);
+      final verifier = ref.read(mediaItemVerifierProvider);
+      var result = await verifier.verify(widget.item);
       // The sheet can be dismissed while the check runs. ref after dispose
       // throws, and there is no one left to show a snack bar to.
       if (!mounted) return;
+      // A shared album's photo that cannot be checked for want of the
+      // album's password: ask for it, save it, poll the album, check again.
+      // Once only, so a refused password ends in the message, not a loop.
+      // Other hosts that refuse the saved sign-in have no such flow.
+      final subscriptionId = widget.item.subscriptionId;
+      final url = Uri.tryParse(widget.item.url ?? '');
+      if (result == VerifyResult.unauthenticated &&
+          subscriptionId != null &&
+          url != null &&
+          SynologyShareLink.tryParseApiUri(url) != null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.media_info_checkNeedsPassword)),
+        );
+        await resolveSharePassword(
+          context,
+          ref,
+          subscriptionId: subscriptionId,
+          askFirst: true,
+        );
+        if (!mounted) return;
+        messenger.hideCurrentSnackBar();
+        result = await verifier.verify(widget.item);
+        if (!mounted) return;
+      }
       final message = switch (result) {
         VerifyResult.available => l10n.media_info_checkFound,
         VerifyResult.notFound => l10n.media_info_checkMissing,
+        // Said as such, so the diver knows the photo is fine and the
+        // password is what to fix (a shared album, a host's sign-in).
+        VerifyResult.unauthenticated => l10n.media_info_checkNeedsPassword,
         // Everything below is a reachability problem, not data loss, and the
         // wording has to match what the verifier actually did: none of these
         // move the orphan flag, so "Source is missing" would tell the user
         // their photo is gone over a revoked permission, a disconnected
         // Lightroom account, or a file that lives on their other machine.
-        VerifyResult.unauthenticated ||
         VerifyResult.fromOtherDevice ||
         VerifyResult.transientError ||
         VerifyResult.volumeOffline ||

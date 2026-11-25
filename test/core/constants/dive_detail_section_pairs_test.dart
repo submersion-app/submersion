@@ -17,13 +17,12 @@ void main() {
   });
 
   group('kDiveDetailSectionPairs', () {
-    test('pairs the six card pairs, left half first', () {
+    test('pairs the five card pairs, left half first', () {
       expect(kDiveDetailSectionPairs.map((p) => (p.left, p.right)), [
         (DiveDetailSectionId.decoStatus, DiveDetailSectionId.tissueLoading),
         (DiveDetailSectionId.tanks, DiveDetailSectionId.sacSegments),
         (DiveDetailSectionId.details, DiveDetailSectionId.environment),
         (DiveDetailSectionId.surfaceGps, DiveDetailSectionId.tide),
-        (DiveDetailSectionId.weights, DiveDetailSectionId.buoyancy),
         (DiveDetailSectionId.buddies, DiveDetailSectionId.signatures),
       ]);
     });
@@ -108,15 +107,13 @@ void main() {
         diveDetailSectionPairFor(DiveDetailSectionId.sacSegments)?.left,
         DiveDetailSectionId.tanks,
       );
-      expect(
-        diveDetailSectionPairFor(DiveDetailSectionId.buoyancy)?.left,
-        DiveDetailSectionId.weights,
-      );
     });
 
     test('returns null for a section that never pairs', () {
       expect(diveDetailSectionPairFor(DiveDetailSectionId.altitude), isNull);
       expect(diveDetailSectionPairFor(DiveDetailSectionId.navTrack), isNull);
+      // Weights and buoyancy are one full-width card (issue #5005).
+      expect(diveDetailSectionPairFor(DiveDetailSectionId.weights), isNull);
     });
   });
 }

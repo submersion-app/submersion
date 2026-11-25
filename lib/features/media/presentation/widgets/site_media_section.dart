@@ -167,6 +167,8 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   }
 
   /// Bulk Set category (issue #1039): one category for every checked item.
+  /// In the open card it is held in the site's sitting until Save (issue
+  /// #4527); a locked page does not offer it.
   Future<BulkActionOutcome> _setCategoryForSelected(
     BuildContext context,
   ) async {
@@ -174,6 +176,19 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
     final choice = await showSiteCategoryPicker(context);
     if (choice == null || !context.mounted) return BulkActionOutcome.cancelled;
+    final editing = widget.editing;
+    if (editing != null) {
+      // The rows as stored, so a category set back to its stored one
+      // holds nothing.
+      final stored = ref.read(mediaForSiteProvider(widget.siteId)).value;
+      setCategoryInSitting(editing, [
+        for (final m in stored ?? const <MediaItem>[])
+          if (ids.contains(m.id)) m,
+      ], choice.category);
+      return BulkActionOutcome.completed;
+    }
+    // The card closed while the picker was up: read only now.
+    if (_readOnly) return BulkActionOutcome.cancelled;
     try {
       // The count of rows actually changed: an id unlinked while the
       // picker was open is skipped and must not be reported as updated.
@@ -348,12 +363,13 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                           ),
                       onInvoke: () => _unlinkSelected(context, selectionMedia),
                     ),
-                  BulkAction(
-                    id: 'setCategory',
-                    icon: Icons.label_outline,
-                    label: context.l10n.media_siteAttachment_setCategory,
-                    onInvoke: () => _setCategoryForSelected(context),
-                  ),
+                  if (!_readOnly)
+                    BulkAction(
+                      id: 'setCategory',
+                      icon: Icons.label_outline,
+                      label: context.l10n.media_siteAttachment_setCategory,
+                      onInvoke: () => _setCategoryForSelected(context),
+                    ),
                   if (!_editsInPlace)
                     BulkAction(
                       id: 'editDetails',

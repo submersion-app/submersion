@@ -422,6 +422,7 @@ final exempt = <String, String>{
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollNotModified',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollSuccess',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:setActive',
+    'lib/features/media/data/repositories/manifest_subscription_repository.dart:setPollInterval',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:updateUrlAndDisplayName',
     'lib/features/media/data/repositories/media_repair_log_repository.dart:record',
     'lib/features/media/data/repositories/media_repository.dart:clearRemoteCompressed',

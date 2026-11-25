@@ -29,7 +29,10 @@
 //   [MediaItem].
 import 'dart:ui' show Size;
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
+import 'package:submersion/features/media/data/synology/synology_api.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
@@ -58,11 +61,19 @@ class HttpUrlMediaResolver implements MediaSourceResolver {
   HttpUrlMediaResolver({
     required MediaSourceType sourceType,
     required NetworkUrlResolver networkUrlResolver,
+    Future<Map<String, String>?> Function(Uri uri)? headersFor,
   }) : _sourceType = sourceType,
-       _networkUrlResolver = networkUrlResolver;
+       _networkUrlResolver = networkUrlResolver,
+       _headersFor = headersFor;
 
   final MediaSourceType _sourceType;
   final NetworkUrlResolver _networkUrlResolver;
+
+  /// Request headers for an image URL (saved credentials, or a Synology
+  /// share session). `cached_network_image` sends only the headers handed
+  /// to it, so without this the image view would fetch anonymously.
+  final Future<Map<String, String>?> Function(Uri uri)? _headersFor;
+  final _log = LoggerService.forClass(HttpUrlMediaResolver);
 
   @override
   MediaSourceType get sourceType => _sourceType;
@@ -91,14 +102,43 @@ class HttpUrlMediaResolver implements MediaSourceResolver {
     // [ServedFrom] records the byte transport, not the link provenance, so
     // both source types this resolver serves stamp the same value. What
     // distinguishes them stays on [MediaItem.sourceType].
-    return NetworkData(url: uri, servedFrom: ServedFrom.networkUrl);
+    return _networkData(uri);
   }
 
   @override
   Future<MediaSourceData> resolveThumbnail(
     MediaItem item, {
     required Size target,
-  }) => resolve(item);
+  }) async {
+    final raw = item.url;
+    final uri = raw == null ? null : Uri.tryParse(raw);
+    // A Synology share renders small versions itself: a grid tile loads
+    // about 50 KB instead of a multi-megabyte original.
+    final thumbnail = uri == null
+        ? null
+        : SynologyShareLink.thumbnailFor(uri, SynologyThumbnailSize.m);
+    if (thumbnail != null) return _networkData(thumbnail);
+    return resolve(item);
+  }
+
+  Future<NetworkData> _networkData(Uri uri) async {
+    Map<String, String>? headers;
+    final lookup = _headersFor;
+    if (lookup != null) {
+      try {
+        headers = await lookup(uri);
+      } catch (e) {
+        // Headers are optional for painting: without them the host answers
+        // with its own error, which the image widget already renders.
+        _log.warning('Header lookup failed for ${uri.host}: $e');
+      }
+    }
+    return NetworkData(
+      url: uri,
+      headers: headers ?? const {},
+      servedFrom: ServedFrom.networkUrl,
+    );
+  }
 
   @override
   Future<VerifyResult> verify(MediaItem item) async {
@@ -106,6 +146,22 @@ class HttpUrlMediaResolver implements MediaSourceResolver {
     if (raw == null || raw.isEmpty) return VerifyResult.notFound;
     final uri = Uri.tryParse(raw);
     if (uri == null) return VerifyResult.notFound;
+    // A share this device holds no session for (no password saved, or the
+    // saved one refused) answers only with an error, which says nothing about
+    // the photo. Said as such, the caller can ask for the password.
+    final lookup = _headersFor;
+    if (lookup != null && SynologyShareLink.tryParseApiUri(uri) != null) {
+      Map<String, String>? headers;
+      try {
+        headers = await lookup(uri);
+      } catch (e) {
+        _log.warning('Header lookup failed for ${uri.host}: $e');
+        return VerifyResult.transientError;
+      }
+      if (headers == null || headers.isEmpty) {
+        return VerifyResult.unauthenticated;
+      }
+    }
     // A small range fetch is enough to confirm the entry is reachable
     // without pulling the whole asset. The Phase 3a resolver already
     // collapses 3xx redirects and surfaces 401s as
@@ -114,6 +170,14 @@ class HttpUrlMediaResolver implements MediaSourceResolver {
       uri,
       extraHeaders: const {'Range': 'bytes=0-0'},
     );
+    // A Synology share answers every error, a deleted item included, as
+    // HTTP 200 with a JSON body. That proves nothing either way: the
+    // poller's diff, not this check, orphans rows that left the album.
+    if (result is NetworkBytesOk &&
+        SynologyShareLink.tryParseApiUri(uri) != null &&
+        isSynologyJsonResponse(result.contentType)) {
+      return VerifyResult.transientError;
+    }
     if (result is NetworkBytesOk) return VerifyResult.available;
     if (result is NetworkBytesUnauthenticated) {
       return VerifyResult.unauthenticated;

@@ -20,7 +20,12 @@ class SetUpPendingItems extends StatelessWidget {
     required this.onSignIn,
     required this.onReconnect,
     required this.onDismiss,
+    this.onEnterPassword,
   });
+
+  /// Asks for a shared album's password (subscriptionPassword items). Null
+  /// opens the item's page instead.
+  final Future<void> Function(PendingSetupItem item)? onEnterPassword;
 
   final List<PendingSetupItem> items;
 
@@ -44,6 +49,7 @@ class SetUpPendingItems extends StatelessWidget {
               SetupItemKind.mediaStoreAttach => Icons.cloud_upload_outlined,
               SetupItemKind.mediaStoreReconnect => Icons.sync_problem_outlined,
               SetupItemKind.accountSignIn => Icons.account_circle_outlined,
+              SetupItemKind.subscriptionPassword => Icons.key_outlined,
             }),
             title: Text(switch (item.kind) {
               SetupItemKind.mediaStoreAttach =>
@@ -51,6 +57,8 @@ class SetUpPendingItems extends StatelessWidget {
               SetupItemKind.mediaStoreReconnect =>
                 l10n.settings_setUpDevice_item_reconnect(item.label),
               SetupItemKind.accountSignIn => _signInLine(l10n, item),
+              SetupItemKind.subscriptionPassword =>
+                l10n.settings_setUpDevice_item_subscriptionPassword(item.label),
             }),
             // The action sits on its own line, never in trailing, where a
             // translated label would squeeze the sentence (#2717).
@@ -69,6 +77,17 @@ class SetUpPendingItems extends StatelessWidget {
               SetupItemKind.accountSignIn => TileSubtitleAction(
                 label: l10n.settings_setUpDevice_item_signInAction,
                 onPressed: () => onSignIn(item),
+              ),
+              SetupItemKind.subscriptionPassword => TileSubtitleAction(
+                label: l10n.settings_setUpDevice_item_enterPasswordAction,
+                onPressed: () {
+                  final enter = onEnterPassword;
+                  if (enter == null) {
+                    onOpen(item.route);
+                  } else {
+                    enter(item);
+                  }
+                },
               ),
             },
             trailing: IconButton(

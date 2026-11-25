@@ -11,11 +11,23 @@ import 'package:submersion/core/services/accounts/account_provider_registry.dart
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 
 /// What a device still needs to set up to match the library's synced
 /// configuration (program spec section 6).
-enum SetupItemKind { mediaStoreAttach, mediaStoreReconnect, accountSignIn }
+enum SetupItemKind {
+  mediaStoreAttach,
+  mediaStoreReconnect,
+  accountSignIn,
+
+  /// A photo subscription (a shared album) wants its password on this
+  /// device: passwords stay in the device keychain and never sync, so every
+  /// device enters it once.
+  subscriptionPassword,
+}
 
 /// One actionable "finish setting up this device" entry. [key] is stable
 /// per underlying object so per-device dismissals stick.
@@ -44,6 +56,9 @@ class PendingSetupItem {
   /// store descriptor, connector) - the card just navigates.
   final String route;
 
+  /// For subscriptionPassword: the subscription that wants it.
+  final String? subscriptionId;
+
   /// The diver dismissed this prompt on this device. Only sign-ins are kept
   /// once dismissed: the card hides them, but the account still needs a
   /// sign-in, and the Settings > Data accounts row must keep saying so.
@@ -57,6 +72,7 @@ class PendingSetupItem {
     this.accountKind,
     this.accountId,
     this.usages = const {},
+    this.subscriptionId,
     this.dismissed = false,
   });
 }
@@ -72,10 +88,12 @@ class PendingSetupService {
     MediaStoreAttachState? attachState,
     SyncRepository? syncRepository,
     AccountUsageService? usage,
+    ManifestSubscriptionRepository? subscriptions,
     required AccountProviderRegistry registry,
   }) : _prefs = prefs,
        _accounts = accounts ?? ConnectedAccountsRepository(),
        _stores = stores ?? MediaStoresRepository(),
+       _subscriptions = subscriptions ?? ManifestSubscriptionRepository(),
        // Same prefs instance as the dismissal store: one source of truth,
        // and overridden prefs in tests govern the attach state too.
        _attachState = attachState ?? MediaStoreAttachState(prefs: prefs),
@@ -94,6 +112,7 @@ class PendingSetupService {
   final SharedPreferences _prefs;
   final ConnectedAccountsRepository _accounts;
   final MediaStoresRepository _stores;
+  final ManifestSubscriptionRepository _subscriptions;
   final MediaStoreAttachState _attachState;
   final AccountProviderRegistry _registry;
   late final AccountUsageService _usage;
@@ -182,7 +201,38 @@ class PendingSetupService {
         ),
       );
     }
+
+    items.addAll(await _subscriptionPasswordItems());
     return items;
+  }
+
+  /// Shared albums whose last poll on this device wanted a password, none
+  /// saved here or the saved one refused. Whether a share needs one at all
+  /// only the server knows (an open share needs none), so the poll's answer
+  /// decides; the launch poll gives one shortly after a new device starts.
+  ///
+  /// A subscriptions table that cannot be read yields nothing: the other
+  /// items must not fail with it.
+  Future<List<PendingSetupItem>> _subscriptionPasswordItems() async {
+    final List<ManifestSubscription> subs;
+    try {
+      subs = await _subscriptions.listAllActive();
+    } on Object {
+      return const [];
+    }
+    return [
+      for (final s in subs)
+        if (synologyNeedsPassword(s.lastError) &&
+            SynologyShareLink.tryParseShareUrl(s.manifestUrl) != null &&
+            !_isDismissed('subscription_password_${s.id}'))
+          PendingSetupItem(
+            kind: SetupItemKind.subscriptionPassword,
+            key: 'subscription_password_${s.id}',
+            label: s.label,
+            route: '/settings/media-sources/network-sources',
+            subscriptionId: s.id,
+          ),
+    ];
   }
 
   /// The settings page that can actually sign this account in, from what

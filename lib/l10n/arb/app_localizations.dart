@@ -20261,6 +20261,42 @@ abstract class AppLocalizations {
   /// **'Location lookup is unavailable. Check your connection and try again.'**
   String get diveSites_backfill_offline;
 
+  /// No description provided for @diveSites_backfill_confirm_mayStayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Some fields may stay empty: OpenStreetMap often has no body of water for a pool, cenote or quarry, and no town for a site offshore.'**
+  String get diveSites_backfill_confirm_mayStayEmpty;
+
+  /// No description provided for @diveSites_backfill_confirm_alreadyLookedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 other site was looked up before and OpenStreetMap had nothing more for it.} other{{count} other sites were looked up before and OpenStreetMap had nothing more for them.}}'**
+  String diveSites_backfill_confirm_alreadyLookedUp(int count);
+
+  /// No description provided for @diveSites_backfill_nothingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site still has empty location details, but OpenStreetMap had nothing more for it. Moving the site or clearing one of its fields offers it again.} other{{count} sites still have empty location details, but OpenStreetMap had nothing more for them. Moving a site or clearing one of its fields offers it again.}}'**
+  String diveSites_backfill_nothingNew(int count);
+
+  /// No description provided for @diveSites_backfill_summary_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated 1 site.} other{Updated {count} sites.}}'**
+  String diveSites_backfill_summary_updated(int count);
+
+  /// No description provided for @diveSites_backfill_summary_nothingToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{OpenStreetMap had nothing to add for 1 site.} other{OpenStreetMap had nothing to add for {count} sites.}}'**
+  String diveSites_backfill_summary_nothingToAdd(int count);
+
+  /// No description provided for @diveSites_backfill_summary_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 lookup failed.} other{{count} lookups failed.}}'**
+  String diveSites_backfill_summary_failed(int count);
+
   /// No description provided for @diveSites_list_menu_refreshPlaceNames.
   ///
   /// In en, this message translates to:
@@ -31727,13 +31763,13 @@ abstract class AppLocalizations {
   /// No description provided for @media_diveMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_diveMediaSection_unlinkSelectedTitle(int count);
 
   /// Title of the library unlink confirmation dialog
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_library_unlinkConfirmTitle(int count);
 
   /// Site page unlink failure snackbar
@@ -31937,7 +31973,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_siteMediaSection_unlinkSelectedTitle(int count);
 
   /// Site page unlink confirmation body
@@ -32155,6 +32191,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'URL'**
   String get media_photoPicker_tab_url;
+
+  /// No description provided for @media_photoPicker_feedElsewhereHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add a feed of photos, use Import on the Media screen.'**
+  String get media_photoPicker_feedElsewhereHint;
+
+  /// No description provided for @media_photoPicker_galleryOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add files or links, use Import on the Media screen.'**
+  String get media_photoPicker_galleryOnlyHint;
+
+  /// No description provided for @media_photoPicker_galleryOnlyLinksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add links, use Import on the Media screen.'**
+  String get media_photoPicker_galleryOnlyLinksHint;
 
   /// No description provided for @media_photoPicker_clearSelectionButton.
   ///
@@ -32829,6 +32883,108 @@ abstract class AppLocalizations {
   /// **'{current} / {total}'**
   String media_photoViewer_pageIndicator(Object current, Object total);
 
+  /// Video viewer button: a shared album video plays as a smaller conversion; this plays the original file instead
+  ///
+  /// In en, this message translates to:
+  /// **'Play original'**
+  String get media_viewer_playOriginal;
+
+  /// Photo viewer button: plays the short video a motion photo carries
+  ///
+  /// In en, this message translates to:
+  /// **'Play motion'**
+  String get media_viewer_playMotion;
+
+  /// Photo viewer: the motion photo's video cannot be decoded here (for example HEVC on a Windows PC without the HEVC extension)
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot play the motion of this photo'**
+  String get media_viewer_motionUnplayable;
+
+  /// Media library banner: one or more photo subscriptions failed their last poll; name is the first one's name, error its last error
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Photo subscription \"{name}\" could not be updated: {error}} other{{count} photo subscriptions could not be updated, among them \"{name}\": {error}}}'**
+  String media_subscriptionBanner_message(int count, String name, String error);
+
+  /// Media library banner action: opens the network sources settings
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get media_subscriptionBanner_open;
+
+  /// Poll interval choice for a photo subscription, in minutes
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String media_pollInterval_minutes(int count);
+
+  /// Poll interval choice for a photo subscription, in hours
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String media_pollInterval_hours(int count);
+
+  /// Poll interval choice for a photo subscription, in days
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String media_pollInterval_days(int count);
+
+  /// Title of the dialog asking for a Synology Photos shared album's password
+  ///
+  /// In en, this message translates to:
+  /// **'Share password'**
+  String get media_sharePassword_title;
+
+  /// A Synology Photos shared album asks for its password
+  ///
+  /// In en, this message translates to:
+  /// **'This Synology Photos share needs its password.'**
+  String get media_sharePassword_needed;
+
+  /// A Synology Photos shared album refused the password entered
+  ///
+  /// In en, this message translates to:
+  /// **'The share did not accept the password. Enter it again.'**
+  String get media_sharePassword_rejected;
+
+  /// Label of the password field for a shared album
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get media_sharePassword_field;
+
+  /// Dialog button: saves the shared album's password and fetches the album again
+  ///
+  /// In en, this message translates to:
+  /// **'Save and fetch'**
+  String get media_sharePassword_save;
+
+  /// Where a shared album's password is kept
+  ///
+  /// In en, this message translates to:
+  /// **'It is kept in this device\'s keychain and never synced.'**
+  String get media_sharePassword_keychainNote;
+
+  /// Manifest import button: saves the shared album's password and fetches the album
+  ///
+  /// In en, this message translates to:
+  /// **'Save password and fetch'**
+  String get media_sharePassword_formSave;
+
+  /// Label of the poll interval choice in a photo subscription's edit dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Check every'**
+  String get media_pollInterval_checkEvery;
+
+  /// Status where a photo subscription's error is shown (banner, card): the shared album refused the saved password
+  ///
+  /// In en, this message translates to:
+  /// **'The share did not accept the saved password.'**
+  String get media_sharePassword_rejectedStatus;
+
   /// No description provided for @media_photoViewer_playPauseVideoLabel.
   ///
   /// In en, this message translates to:
@@ -33303,6 +33459,18 @@ abstract class AppLocalizations {
   /// **'Never scanned'**
   String get media_sources_neverScanned;
 
+  /// No description provided for @media_sources_removeFolderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop watching this folder?'**
+  String get media_sources_removeFolderTitle;
+
+  /// No description provided for @media_sources_removeFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion forgets the files it found in {folder}, so missing photos are no longer looked for there. No photo or file is deleted.'**
+  String media_sources_removeFolderBody(String folder);
+
   /// Source type name
   ///
   /// In en, this message translates to:
@@ -33392,6 +33560,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete album'**
   String get media_smartAlbum_delete;
+
+  /// Title of the confirmation before a smart album (a saved filter) is deleted from the Load album list. name is the album's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String media_smartAlbum_deleteConfirmTitle(String name);
+
+  /// Body of the smart album delete confirmation: only the saved filter goes, no photo or video changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the saved filter goes. No photos or videos change.'**
+  String get media_smartAlbum_deleteConfirmBody;
 
   /// Filter bar: the smart album delete did not go through
   ///
@@ -33728,6 +33908,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search dives'**
   String get media_divePicker_search;
+
+  /// Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {count, plural, =1{{count} item} other{{count} items}}?'**
+  String media_library_moveConfirmTitle(int count);
+
+  /// Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The item moves to {dive}, off any dive it is on now.} other{The items move to {dive}, off any dive they are on now.}} Site and gear links stay as they are.'**
+  String media_library_moveConfirmBody(int count, String dive);
+
+  /// The Move to dive confirmation's button that moves the photos and videos.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get media_library_moveConfirmAction;
+
+  /// Shown when Move to dive is refused because the picked dive, or a dive the selected photos are on, is unlocked for editing on its page. Nothing is moved.
+  ///
+  /// In en, this message translates to:
+  /// **'A dive in this move is open for editing. Save, cancel or lock it, then try again.'**
+  String get media_library_moveDiveOpenHint;
+
+  /// Shown when Move to dive could not write. Nothing moved, and the selection stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not move the items'**
+  String get media_library_moveFailed;
+
+  /// Shown when the media library's Unlink could not write. The selection stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not unlink the items'**
+  String get media_library_unlinkFailed;
+
+  /// How the Move to dive confirmation names the picked dive: its number and name (label, such as '#42 Blue Hole'), then its date. Use the language's own list separator.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {date}'**
+  String media_library_moveDiveName(String label, String date);
 
   /// Library selection action: reassign media to a dive
   ///
@@ -36162,13 +36384,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_weights_name.
   ///
   /// In en, this message translates to:
-  /// **'Weights'**
+  /// **'Weights and buoyancy'**
   String get diveDetailSection_weights_name;
 
   /// No description provided for @diveDetailSection_weights_description.
   ///
   /// In en, this message translates to:
-  /// **'Weight breakdown, total weight'**
+  /// **'Weights carried, buoyancy through the dive, lead for next time, ditchable weight'**
   String get diveDetailSection_weights_description;
 
   /// No description provided for @diveDetailSection_buoyancy_name.
@@ -36176,12 +36398,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buoyancy'**
   String get diveDetailSection_buoyancy_name;
-
-  /// No description provided for @diveDetailSection_buoyancy_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Buoyancy through the dive, lead for next time, ditchable weight'**
-  String get diveDetailSection_buoyancy_description;
 
   /// No description provided for @buoyancy_verdictBuoyant.
   ///
@@ -46385,6 +46601,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photo transfers are paused'**
   String get dataHealth_media_transfersPaused;
+
+  /// Settings > Data health: a photo subscription (shared album) cannot be read on this device until its password is entered
+  ///
+  /// In en, this message translates to:
+  /// **'Photo subscription {name} needs its password'**
+  String dataHealth_media_subscriptionPassword(String name);
+
+  /// Settings > Data health: the last poll of a photo subscription (shared album, photo feed) failed
+  ///
+  /// In en, this message translates to:
+  /// **'Photo subscription {name} could not be updated'**
+  String dataHealth_media_subscriptionFailing(String name);
 
   /// No description provided for @dataHealth_facts_dives.
   ///
@@ -70907,6 +71135,24 @@ abstract class AppLocalizations {
   /// **'Re-upload queued'**
   String get settings_mediaStorage_quality_reuploadQueued;
 
+  /// No description provided for @settings_mediaStorage_quality_downgradeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the full-quality copy?'**
+  String get settings_mediaStorage_quality_downgradeTitle;
+
+  /// No description provided for @settings_mediaStorage_quality_downgradeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The original kept in your storage is replaced with a {level} copy. The photo on this device is kept.'**
+  String settings_mediaStorage_quality_downgradeBody(String level);
+
+  /// No description provided for @settings_mediaStorage_quality_downgradeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get settings_mediaStorage_quality_downgradeConfirm;
+
   /// No description provided for @settings_mediaStorage_quality_linuxFfmpegHint.
   ///
   /// In en, this message translates to:
@@ -76829,54 +77075,6 @@ abstract class AppLocalizations {
   /// **'Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats.'**
   String get species_convict_tang_desc;
 
-  /// No description provided for @species_great_hammerhead_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Scalloped Hammerhead'**
-  String get species_great_hammerhead_name;
-
-  /// No description provided for @species_great_hammerhead_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands.'**
-  String get species_great_hammerhead_desc;
-
-  /// No description provided for @species_wobbegong_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Spotted Wobbegong'**
-  String get species_wobbegong_name;
-
-  /// No description provided for @species_wobbegong_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs.'**
-  String get species_wobbegong_desc;
-
-  /// No description provided for @species_manta_ray_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Reef Manta Ray'**
-  String get species_manta_ray_name;
-
-  /// No description provided for @species_manta_ray_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs.'**
-  String get species_manta_ray_desc;
-
-  /// No description provided for @species_oceanic_manta_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Oceanic Manta Ray'**
-  String get species_oceanic_manta_name;
-
-  /// No description provided for @species_oceanic_manta_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations.'**
-  String get species_oceanic_manta_desc;
-
   /// No description provided for @species_undulated_moray_name.
   ///
   /// In en, this message translates to:
@@ -82379,6 +82577,12 @@ abstract class AppLocalizations {
   /// **'Auth: {authType}'**
   String media_credentials_authLabel(String authType);
 
+  /// Saved hosts list: the row exists (for example from a backup) but this device holds no password for it
+  ///
+  /// In en, this message translates to:
+  /// **'Password missing on this device'**
+  String get media_credentials_secretMissing;
+
   /// Network Sources: delete saved host confirmation body
   ///
   /// In en, this message translates to:
@@ -86740,6 +86944,42 @@ abstract class AppLocalizations {
   /// **'Could not delete the profile revision.'**
   String get diveLog_profileEditor_deleteProfile_failed;
 
+  /// No description provided for @diveLog_profileEditor_removeSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove This Source'**
+  String get diveLog_profileEditor_removeSource;
+
+  /// No description provided for @diveLog_profileEditor_unsavedEditsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save or undo your edits to delete the profile.'**
+  String get diveLog_profileEditor_unsavedEditsHint;
+
+  /// No description provided for @diveLog_profileEditor_unsavedEditsHintWithSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Save or undo your edits to delete the profile or remove this source.'**
+  String get diveLog_profileEditor_unsavedEditsHintWithSource;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_notPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Entire Profile only deletes revisions of the primary source\'s profile.'**
+  String get diveLog_profileEditor_deleteProfile_notPrimary;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_onlyRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the dive\'s only profile revision, so it can\'t be deleted.'**
+  String get diveLog_profileEditor_deleteProfile_onlyRevision;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_historyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the profile revisions, so none can be deleted now.'**
+  String get diveLog_profileEditor_deleteProfile_historyFailed;
+
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
   ///
   /// In en, this message translates to:
@@ -87799,6 +88039,42 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}'**
   String media_labels_statusFound(int count);
 
+  /// Labels menu status line for a photo or video analysed only in part, such as a video scanned part way (issue #4958), with how many animals were found so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Partly analysed, nothing found} =1{Partly analysed, {count} found} other{Partly analysed, {count} found}}'**
+  String media_labels_statusPartlyFound(int count);
+
+  /// Tooltip of the viewer's species labels button while the item on screen is not analysed; the icon is drawn plain (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: not analysed'**
+  String get media_labels_buttonNotAnalysed;
+
+  /// Tooltip of the viewer's species labels button while the item on screen is being analysed; the icon is drawn in the theme colour (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: analysing'**
+  String get media_labels_buttonAnalysing;
+
+  /// Tooltip of the viewer's species labels button while the item on screen is analysed only in part; the icon is drawn amber (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: partly analysed'**
+  String get media_labels_buttonPartlyAnalysed;
+
+  /// Tooltip of the viewer's species labels button when the item on screen was analysed in full, but by an older model, for another place, or with its crops not on this device; the icon is drawn amber and Analyse brings it up to date (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: out of date'**
+  String get media_labels_buttonOutdated;
+
+  /// Tooltip of the viewer's species labels button once the item on screen is analysed; the icon is drawn green (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: analysed'**
+  String get media_labels_buttonAnalysed;
+
   /// Brief message after the diver asks for a photo or video to be analysed and it finds animals it cannot name, so no name label is drawn (issue #4872).
   ///
   /// In en, this message translates to:
@@ -88739,6 +89015,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not check right now'**
   String get media_info_checkUnavailable;
+
+  /// Photo info, Check now: the source answered only that this device is not signed in to it (a shared album without its password here, or a host that refused the saved credentials)
+  ///
+  /// In en, this message translates to:
+  /// **'Password missing or not accepted'**
+  String get media_info_checkNeedsPassword;
 
   /// Confirmation shown after queueing an upload
   ///
@@ -92157,6 +92439,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These files are in your backups folder but not in this device\'s backup history. Only a file this device wrote can be deleted here: anything else may be another device\'s only copy.'**
   String get backup_unrecognized_explanation;
+
+  /// No description provided for @backup_unrecognized_explanation_appPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'These files are in your backups folder but not in this device\'s backup history. This folder is private to Submersion on this device, so no other device uses these files and any of them can be deleted here.'**
+  String get backup_unrecognized_explanation_appPrivate;
+
+  /// No description provided for @backup_unrecognized_confirm_foreignWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One selected file may have been made by another device, an earlier install or an older version of Submersion. If it holds dives you do not have anywhere else, those dives will be lost.} other{{count} selected files may have been made by another device, an earlier install or an older version of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.}}'**
+  String backup_unrecognized_confirm_foreignWarning(int count);
 
   /// No description provided for @backup_unrecognized_empty.
   ///
@@ -98049,6 +98343,18 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get settings_setUpDevice_item_signInAction;
 
+  /// Set up this device card: a synced photo subscription (shared album) needs its password, which never syncs
+  ///
+  /// In en, this message translates to:
+  /// **'The photo album {name} needs its password on this device.'**
+  String settings_setUpDevice_item_subscriptionPassword(String name);
+
+  /// No description provided for @settings_setUpDevice_item_enterPasswordAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password'**
+  String get settings_setUpDevice_item_enterPasswordAction;
+
   /// Button on a card item that opens Photos and videos to reconnect
   ///
   /// In en, this message translates to:
@@ -99269,6 +99575,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
+
+  /// Change log entry title for the media library's Move to dive, which moves the selected photos and videos onto another dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to another dive'**
+  String get changeLog_label_moveMedia;
+
+  /// Change log entry title for the media library's Unlink, which removes the selected photos and videos from the library (never the original files).
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked from the library'**
+  String get changeLog_label_unlinkMedia;
+
+  /// Change log entry title for the Media screen's Gear tab Remove, which takes the selected photos off their gear items.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed gear photos'**
+  String get changeLog_label_removeGearPhotos;
 
   /// Change log entry title for the planner's Create / Update planned dives, which writes a plan's dives into the log as planned entries.
   ///
@@ -103447,6 +103771,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.'**
   String get settings_homeKeyNumbers_description;
+
+  /// No description provided for @dashboard_greeting_morning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get dashboard_greeting_morning;
+
+  /// No description provided for @dashboard_greeting_afternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get dashboard_greeting_afternoon;
+
+  /// No description provided for @dashboard_greeting_evening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get dashboard_greeting_evening;
+
+  /// No description provided for @dashboard_greeting_withName.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, {name}!'**
+  String dashboard_greeting_withName(Object greeting, Object name);
+
+  /// No description provided for @dashboard_greeting_withoutName.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}!'**
+  String dashboard_greeting_withoutName(Object greeting);
+
+  /// No description provided for @dashboard_hero_divesLoggedOne.
+  ///
+  /// In en, this message translates to:
+  /// **'1 dive logged'**
+  String get dashboard_hero_divesLoggedOne;
+
+  /// No description provided for @dashboard_hero_divesLoggedOther.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives logged'**
+  String dashboard_hero_divesLoggedOther(Object count);
+
+  /// No description provided for @dashboard_hero_divesTotalOne.
+  ///
+  /// In en, this message translates to:
+  /// **'1 dive'**
+  String get dashboard_hero_divesTotalOne;
+
+  /// No description provided for @dashboard_hero_divesTotalOther.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives'**
+  String dashboard_hero_divesTotalOther(Object count);
+
+  /// No description provided for @dashboard_hero_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to explore the depths?'**
+  String get dashboard_hero_error;
+
+  /// No description provided for @dashboard_hero_hoursUnderwater.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours underwater'**
+  String dashboard_hero_hoursUnderwater(Object hours);
+
+  /// No description provided for @dashboard_hero_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your dive stats...'**
+  String get dashboard_hero_loading;
+
+  /// No description provided for @dashboard_hero_minutesUnderwater.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes underwater'**
+  String dashboard_hero_minutesUnderwater(Object minutes);
+
+  /// No description provided for @dashboard_hero_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to log your first dive?'**
+  String get dashboard_hero_noDives;
+
+  /// No description provided for @dashboard_hero_diverFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver'**
+  String get dashboard_hero_diverFallbackName;
+
+  /// No description provided for @dashboard_hero_statDives.
+  ///
+  /// In en, this message translates to:
+  /// **'dives'**
+  String get dashboard_hero_statDives;
+
+  /// No description provided for @dashboard_hero_statHours.
+  ///
+  /// In en, this message translates to:
+  /// **'hours'**
+  String get dashboard_hero_statHours;
+
+  /// No description provided for @dashboard_hero_statSites.
+  ///
+  /// In en, this message translates to:
+  /// **'sites'**
+  String get dashboard_hero_statSites;
+
+  /// No description provided for @dashboard_hero_statCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'countries'**
+  String get dashboard_hero_statCountries;
+
+  /// No description provided for @dashboard_semantics_greetingBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard greeting banner'**
+  String get dashboard_semantics_greetingBanner;
+
+  /// No description provided for @dashboard_quickActions_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get dashboard_quickActions_sectionTitle;
+
+  /// No description provided for @dashboard_quickActions_insights.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get dashboard_quickActions_insights;
+
+  /// Settings > Home: heading of the choice between the compact header bar and the welcome banner
+  ///
+  /// In en, this message translates to:
+  /// **'Header'**
+  String get settings_homeHeader_sectionTitle;
+
+  /// Settings > Home: row label for the header used at phone width
+  ///
+  /// In en, this message translates to:
+  /// **'Phone width'**
+  String get settings_homeHeader_phone;
+
+  /// Settings > Home: row label for the header used on tablet and desktop widths
+  ///
+  /// In en, this message translates to:
+  /// **'Wider screens'**
+  String get settings_homeHeader_wide;
+
+  /// Option name: the slim header bar
+  ///
+  /// In en, this message translates to:
+  /// **'Compact'**
+  String get settings_homeHeader_compact;
+
+  /// Option name: the welcome banner
+  ///
+  /// In en, this message translates to:
+  /// **'Banner'**
+  String get settings_homeHeader_banner;
+
+  /// Settings > Home: explains the two header options
+  ///
+  /// In en, this message translates to:
+  /// **'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.'**
+  String get settings_homeHeader_description;
 }
 
 class _AppLocalizationsDelegate

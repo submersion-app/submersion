@@ -50,9 +50,11 @@ The Dashboard is the **Home** screen. To choose what it shows, open **Settings >
 
 ![Home screen settings with the layout picker and the panel list, with drag handles and switches](images/how-to/customize-display/04-home-screen.png)
 
+**Pick a header.** Under **Header**, choose **Compact** (a slim bar with the status lights) or **Banner** (the welcome banner with your dive totals) for **Phone width** and for **Wider screens**.
+
 **Pick a layout.** Under **Layout**, choose **Balanced**, **Ready**, **Trends** or **Logbook** as a starting point.
 
-**Choose and order the panels.** Under **Panels**, turn a panel's switch off to hide it, and drag the handle beside a panel to move it up or down. Some panels, such as **On this day** and **Recent media**, hide themselves while they have nothing to show. Tap **Key numbers** to choose the numbers in the row at the top.
+**Choose and order the panels.** Under **Panels**, turn a panel's switch off to hide it, and drag the handle beside a panel to move it up or down. Some panels, such as **On this day** and **Recent media**, hide themselves while they have nothing to show. **Quick Actions**, large buttons for logging and planning dives, starts switched off. Tap **Key numbers** to choose the numbers in the row at the top.
 
 **Choose the status lights.** The lights in the Dashboard's header, such as **No-fly timer** and **Gear service**, each have a switch under **Status chips**. A safety warning, such as gear that is overdue for service, still shows even if you hid its light.
 
@@ -108,7 +110,7 @@ If you sync between devices (see [Set Up Sync, Backups and Photos](how-to-sync-b
 |-----|-----|
 | Colour theme | Light or dark |
 | Units, time and date format | Display size |
-| Dive list layout, fields and card colours | Dashboard layout, panels and status lights |
+| Dive list layout, fields and card colours | Dashboard header, layout, panels and status lights |
 | | Navigation order and labels |
 
 ## If something goes wrong

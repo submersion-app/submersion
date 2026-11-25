@@ -374,6 +374,57 @@ void main() {
       expect(result.country, isNull);
       expect(result.region, isNull);
       expect(result.locality, isNull);
+      expect(
+        result.addressUnknown,
+        isTrue,
+        reason: 'a broken answer is not "nothing here" (#4992)',
+      );
+    });
+
+    test('an unable-to-geocode answer is a real, empty answer', () async {
+      final server = FakeNominatim(
+        body: jsonEncode({'error': 'Unable to geocode'}),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(36.0143, -5.6044, languageCode: 'en'),
+      );
+
+      expect(result.isEmpty, isTrue);
+      expect(result.addressUnknown, isFalse);
+      expect(result.networkFailed, isFalse);
+    });
+
+    test('a request that stalls times out instead of hanging (#4992)', () {
+      fakeAsync((async) {
+        // Built inside the fake zone, so its timers run on the fake clock.
+        LocationService.throttle = NominatimThrottle(minimumGap: Duration.zero);
+        final server = FakeNominatim(
+          body: jsonEncode({
+            'address': {'country': 'Switzerland'},
+          }),
+          hangFor: (uri) => uri.queryParameters['layer'] != 'natural',
+        );
+        PlaceLookup? result;
+        server
+            .run(() => service.reverseGeocode(47.0, 8.4, languageCode: 'en'))
+            .then((r) => result = r);
+
+        async.elapse(
+          LocationService.requestTimeout - const Duration(seconds: 1),
+        );
+        expect(result, isNull, reason: 'still waiting on the address');
+
+        async.elapse(const Duration(seconds: 2));
+        expect(result, isNotNull);
+        expect(result!.addressUnknown, isTrue);
+        expect(result!.country, isNull);
+        expect(
+          server.forcedCloseCount,
+          1,
+          reason: 'the stalled request is aborted, not left holding a socket',
+        );
+      });
     });
 
     test('closes the HttpClient even when the body fails to parse', () async {
@@ -831,6 +882,11 @@ void main() {
       expect(result.locality, 'Weggis');
       expect(result.bodyOfWater, 'Lake Lucerne');
       expect(server.requestedUris, hasLength(2));
+      expect(
+        server.forcedCloseCount,
+        0,
+        reason: 'answered requests close gently',
+      );
       expect(server.requestedUris.last.queryParameters['layer'], 'natural');
     });
 
@@ -912,6 +968,25 @@ void main() {
       expect(result.country, 'Switzerland');
       expect(result.bodyOfWater, isNull);
       expect(result.networkFailed, isFalse);
+      expect(
+        result.bodyOfWaterUnknown,
+        isTrue,
+        reason: 'a refused natural layer is not "no water here" (#4992)',
+      );
+    });
+
+    test('a natural layer that answers no water is a real answer', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(address()),
+        bodyFor: (uri) => natural(uri, {'error': 'Unable to geocode'}),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(47.027631, 8.400640, languageCode: 'en'),
+      );
+
+      expect(result.bodyOfWater, isNull);
+      expect(result.bodyOfWaterUnknown, isFalse);
     });
 
     test('a failing natural-layer request keeps the address result', () async {
@@ -934,6 +1009,7 @@ void main() {
       expect(result.locality, 'Weggis');
       expect(result.bodyOfWater, isNull);
       expect(result.networkFailed, isFalse);
+      expect(result.bodyOfWaterUnknown, isTrue);
     });
 
     test(

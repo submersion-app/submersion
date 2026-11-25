@@ -8,7 +8,10 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
 import 'package:submersion/features/settings/data/data_facts_repository.dart';
@@ -164,10 +167,50 @@ final sharedLibrariesHealthProvider = Provider.autoDispose<FeatureHealth>((
         lightroom++;
       case SetupItemKind.accountSignIn:
         break;
+      // Reported through the subscriptions' own finding, on the Network
+      // sources row, not as unfinished store or Lightroom setup.
+      case SetupItemKind.subscriptionPassword:
+        break;
     }
   }
   return (store: store, lightroom: lightroom);
 }
+
+/// What the media health rules need about photo subscriptions: how many are
+/// active, and the first one whose last poll here wanted a password or
+/// failed otherwise. The errors are this device's, so a password entered
+/// on another device does not clear them here.
+///
+/// A subscriptions table that cannot be read counts as none: the health of
+/// photos must not fail with it.
+final mediaSubscriptionHealthProvider =
+    FutureProvider.autoDispose<
+      ({int count, String? needingPassword, String? failing})
+    >((ref) async {
+      try {
+        final repo = ref.watch(manifestSubscriptionRepositoryProvider);
+        ref.invalidateSelfWhen(repo.watchSubscriptionsChanges());
+        final subs = await repo.listAllActive();
+        String? needingPassword;
+        String? failing;
+        for (final s in subs) {
+          final error = s.lastError;
+          if (error == null || error.isEmpty) continue;
+          if (synologyNeedsPassword(error)) {
+            needingPassword ??= s.label;
+          } else {
+            failing ??= s.label;
+          }
+        }
+        return (
+          count: subs.length,
+          needingPassword: needingPassword,
+          failing: failing,
+        );
+      } on Object {
+        return (count: 0, needingPassword: null, failing: null);
+      }
+    });
 
 final mediaHealthInputsProvider = FutureProvider.autoDispose<MediaHealthInputs>(
   (ref) async {
@@ -201,7 +244,13 @@ final mediaHealthInputsProvider = FutureProvider.autoDispose<MediaHealthInputs>(
       }
     }
     final setUp = countMediaSetupItems(items);
+    final subscriptions = await ref.watch(
+      mediaSubscriptionHealthProvider.future,
+    );
     return MediaHealthInputs(
+      subscriptionCount: subscriptions.count,
+      subscriptionNeedingPassword: subscriptions.needingPassword,
+      subscriptionFailing: subscriptions.failing,
       storeAttachedHere: attached,
       storeAnnounced: store != null,
       lightroomConnected: lightroom == LightroomDeviceStatus.connected,

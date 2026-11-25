@@ -198,6 +198,7 @@ class NetworkFetchPipeline {
               height: Value(entry?.height ?? result?.height),
               durationSeconds: Value(entry?.durationSeconds),
               caption: Value(entry?.caption),
+              originalFilename: Value(entry?.filename),
               isOrphaned: Value(media.failed),
               lastVerifiedAt: Value(media.failed ? null : nowMillis),
               createdAt: nowMillis,
@@ -331,17 +332,20 @@ class _FillSpec {
   _FillSpec({required this.uri}) : entry = null, skipExtract = false;
 
   /// The extractor populates `takenAt`, `width`, `height`, and `lat`/`lon`.
-  /// The skip is safe iff the manifest already provided all of those;
-  /// partial prefill still goes through extraction, with manifest fields
-  /// winning at insert time.
+  /// The skip is safe iff the manifest already provided all of those, or
+  /// declared itself complete ([ManifestEntry.metadataComplete]): a source
+  /// that never has GPS would otherwise download every original. Partial
+  /// prefill still goes through extraction, with manifest fields winning at
+  /// insert time.
   _FillSpec.fromManifest({required this.uri, required ManifestEntry entry})
     : entry = entry,
       skipExtract =
-          entry.takenAt != null &&
-          entry.width != null &&
-          entry.height != null &&
-          entry.latitude != null &&
-          entry.longitude != null;
+          entry.metadataComplete ||
+          (entry.takenAt != null &&
+              entry.width != null &&
+              entry.height != null &&
+              entry.latitude != null &&
+              entry.longitude != null);
 
   final Uri uri;
   final ManifestEntry? entry;

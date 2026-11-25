@@ -108,6 +108,12 @@ change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
 
 - Use agents proactively
 - Anything displaying units should respect the active diver's unit settings
+- Build every screen for the whole range of divers it serves: a new diver
+  with 5 dives and an experienced one with 15,000, a 6 m reef dive and a deep
+  trimix dive with stops from 40 m and more. Check lists, charts, labels and
+  layouts at both ends (few and many items, short and long values, phone and
+  desktop width) before calling UI work done. A view that only works for the
+  typical case is not finished.
 - Design records live under `docs/design/`: specs in `docs/design/specs/`,
   implementation plans in `docs/design/plans/`, investigation write-ups in
   `docs/design/findings/`. This overrides the superpowers skills' default

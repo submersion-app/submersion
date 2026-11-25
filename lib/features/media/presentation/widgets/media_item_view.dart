@@ -14,6 +14,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_tile_image_memo.dart';
+import 'package:submersion/features/media/presentation/providers/network_headers_refresh.dart';
 import 'package:submersion/features/media/presentation/widgets/color_corrected.dart';
 import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
 import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
@@ -315,12 +316,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
           failure: data is UnavailableData ? data.kind : null,
           storeFallbackUsed: resolution.storeFallbackUsed,
         );
-    // A thumbnail found again in the cache was served without looking at
-    // the original, so it proves nothing about whether the original is
-    // still there. Reconciling on it would clear the orphan flag of every
-    // missing photo that still has a thumbnail. The resolver checks the
-    // original itself, off this path, and reports what it finds.
-    if (!(data is FileData && data.originUntouched)) {
+    // A cached thumbnail proves nothing about the original, and a network
+    // resolution fetches nothing at all, so neither may reconcile: that would
+    // clear the orphan flag of a missing photo. The resolver, the poll and the
+    // network scan check the source themselves.
+    if (!(data is FileData && data.originUntouched) && data is! NetworkData) {
       _reconcileOrphanState(resolution.nativeFailure);
     }
     return resolution;
@@ -539,6 +539,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.resolveAgainWhenHeadersStale(widget.item, _retry);
     final memo = ref.watch(mediaTileImageMemoProvider);
     return FutureBuilder<_Resolution>(
       future: _future,

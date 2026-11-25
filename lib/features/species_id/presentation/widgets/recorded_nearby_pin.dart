@@ -19,6 +19,7 @@ class RecordedNearbyPin extends ConsumerWidget {
     required this.request,
     required this.gbifKey,
     this.catalogId,
+    this.size = 16,
   });
 
   /// The dive or photo whose list is read.
@@ -30,6 +31,9 @@ class RecordedNearbyPin extends ConsumerWidget {
   /// The suggestion's catalogue id, which still matches when its key is a
   /// synonym of the key the list holds.
   final String? catalogId;
+
+  /// The pin's size, the chip's icon size.
+  final double size;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +48,7 @@ class RecordedNearbyPin extends ConsumerWidget {
       child: Icon(
         Icons.place_outlined,
         key: const ValueKey('recorded_nearby_pin'),
-        size: 16,
+        size: size,
         color: DefaultTextStyle.of(context).style.color,
         semanticLabel: context.l10n.reef_species_recordedNearby,
       ),

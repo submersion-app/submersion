@@ -186,4 +186,47 @@ void main() {
       });
     }
   });
+
+  group('quick actions (issue #5003)', () {
+    test('quick actions hidden in every preset', () {
+      for (final preset in HomeLayoutPreset.values) {
+        expect(
+          homePresetPanels(preset),
+          isNot(contains(HomePanelType.quickActions)),
+          reason: preset.name,
+        );
+        expect(
+          homeLayoutForPreset(preset).hidden,
+          contains(HomePanelType.quickActions),
+          reason: preset.name,
+        );
+      }
+    });
+
+    test('upgraded layout slots quick actions after key numbers', () {
+      final stored = homeLayoutForPreset(HomeLayoutPreset.balanced).order
+          .where((p) => p != HomePanelType.quickActions)
+          .map((p) => p.name)
+          .toList();
+      final layout = resolveHomeLayout(
+        storedOrder: stored,
+        storedHidden: const {},
+        legacyHiddenCards: const {},
+      );
+      final keys = layout.order.indexOf(HomePanelType.keyNumbers);
+      expect(layout.order[keys + 1], HomePanelType.quickActions);
+      expect(layout.hidden, contains(HomePanelType.quickActions));
+      expect(layout.visible, isNot(contains(HomePanelType.quickActions)));
+    });
+
+    test('an old Home that hid the quickActions card does not matter', () {
+      // The retired card shared the name; the new panel is hidden anyway.
+      final layout = resolveHomeLayout(
+        storedOrder: null,
+        storedHidden: null,
+        legacyHiddenCards: const {},
+      );
+      expect(layout.hidden, contains(HomePanelType.quickActions));
+    });
+  });
 }

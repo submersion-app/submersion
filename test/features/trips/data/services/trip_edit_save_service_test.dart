@@ -236,6 +236,21 @@ void main() {
     expect((await stored()).parentTripId, 'p1');
   });
 
+  // The larger trip may not be on this device yet: a sync can deliver a
+  // side trip first. A Save that leaves the parent alone keeps it (#4941).
+  test('a parent not on this device yet survives a notes Save', () async {
+    await db.customStatement(
+      "UPDATE trips SET parent_trip_id = 'not-synced-yet' WHERE id = 't1'",
+    );
+    final session = EditSession(await stored())..set(tripNotesField, 'Edited');
+
+    await save(session);
+
+    final after = await stored();
+    expect(after.notes, 'Edited');
+    expect(after.parentTripId, 'not-synced-yet');
+  });
+
   test('clearing the return flight stores null', () async {
     final session = EditSession(await stored())
       ..set(tripReturnFlightField, null);

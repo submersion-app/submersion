@@ -9,6 +9,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 
 import 'global_state_snapshot.dart';
 import 'global_test_defaults.dart';
@@ -50,6 +51,17 @@ void main() {
     expect(GlobalStateSnapshot.take().changedSince(before), [
       'QualityScanScheduler.enabled',
       'canShareFiles',
+    ]);
+  });
+
+  test('letting vision engines find ONNX Runtime is reported', () {
+    final before = GlobalStateSnapshot.take();
+    addTearDown(applyGlobalTestDefaults);
+
+    OnnxVisionEngine.debugLibraryLoadsOverride = null;
+
+    expect(GlobalStateSnapshot.take().changedSince(before), [
+      'OnnxVisionEngine.debugLibraryLoadsOverride',
     ]);
   });
 

@@ -12,6 +12,7 @@ double homeRowHeight(HomePanelHeight height, BuildContext context) {
     HomePanelHeight.short => 96.0,
     HomePanelHeight.medium => 180.0,
     HomePanelHeight.tall => 260.0,
+    HomePanelHeight.extraTall => 392.0,
   };
   final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6);
   return base * scale;

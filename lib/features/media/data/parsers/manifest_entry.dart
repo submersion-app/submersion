@@ -47,6 +47,18 @@ class ManifestEntry extends Equatable {
   /// the resolver re-derives from MIME type if absent.
   final String? mediaType;
 
+  /// The publisher states it has supplied everything it knows about this
+  /// entry, so the fetch pipeline must not download the bytes to look for
+  /// more. Without it, an entry skips extraction only when it carries
+  /// `takenAt`, size AND GPS; a source that never has GPS (Synology Photos
+  /// shares) would otherwise download every original on the first import.
+  final bool metadataComplete;
+
+  /// The original file name, when the source knows it. Named in the import
+  /// review and stored as the row's original file name; unlike [caption] it
+  /// is not a user-facing caption.
+  final String? filename;
+
   const ManifestEntry({
     required this.entryKey,
     required this.url,
@@ -59,6 +71,8 @@ class ManifestEntry extends Equatable {
     this.height,
     this.durationSeconds,
     this.mediaType,
+    this.metadataComplete = false,
+    this.filename,
   });
 
   @override
@@ -74,6 +88,8 @@ class ManifestEntry extends Equatable {
     height,
     durationSeconds,
     mediaType,
+    metadataComplete,
+    filename,
   ];
 
   @override

@@ -108,6 +108,13 @@ CurrencyPref rebuildCurrencyPref(
   countedDiveModes: identical(modes, _keep)
       ? p.countedDiveModes
       : modes as List<DiveMode>?,
+  // A mapping left alone stays as unreadable as it was; a new one is the
+  // diver's own (issue #4942).
+  unreadableMapping:
+      identical(types, _keep) && identical(modes, _keep) && p.unreadableMapping,
+  storedMapping: identical(types, _keep) && identical(modes, _keep)
+      ? p.storedMapping
+      : null,
   muted: muted ?? p.muted,
   createdAt: p.createdAt,
   updatedAt: p.updatedAt,
@@ -140,8 +147,11 @@ CurrencyPref _currentPref(
       ),
       lapse: inherited.lapseDaysOverride,
       lead: inherited.leadDaysOverride,
-      types: inherited.countedDiveTypeIds,
-      modes: inherited.countedDiveModes,
+      // A mapping this build cannot read would decode to "any dive"; the
+      // copy inherits the rule's mapping instead, as the engine already
+      // applied it (issue #4942).
+      types: inherited.unreadableMapping ? null : inherited.countedDiveTypeIds,
+      modes: inherited.unreadableMapping ? null : inherited.countedDiveModes,
     );
   }
   return CurrencyPref(
@@ -174,9 +184,16 @@ bool sameCurrencyPrefValues(CurrencyPref a, CurrencyPref b) =>
     a.ruleId == b.ruleId &&
     a.lapseDaysOverride == b.lapseDaysOverride &&
     a.leadDaysOverride == b.leadDaysOverride &&
+    _sameMapping(a, b) &&
+    a.muted == b.muted;
+
+/// Whether [a] and [b] count the same dives. A mapping re-picked over one
+/// this build cannot read differs even when it decodes the same, because
+/// the diver chose it (issue #4942).
+bool _sameMapping(CurrencyPref a, CurrencyPref b) =>
     _sameList(a.countedDiveTypeIds, b.countedDiveTypeIds) &&
     _sameList(a.countedDiveModes, b.countedDiveModes) &&
-    a.muted == b.muted;
+    a.unreadableMapping == b.unreadableMapping;
 
 bool _sameList<E>(List<E>? a, List<E>? b) =>
     a == null || b == null ? a == b : listEquals(a, b);
@@ -228,6 +245,7 @@ void holdCurrencyPrefs(
   final baseline = currencyPrefsFor(group, stored, (p) => p, now: at);
   final next = currencyPrefsFor(group, current, change, now: at);
   final released = <CurrencyPrefKey>[];
+  final mappingEdited = <CurrencyPrefKey>{};
   for (var i = 0; i < next.length; i++) {
     final key = _keyOf(next[i]);
     if (sameCurrencyPrefValues(next[i], baseline[i])) {
@@ -235,6 +253,7 @@ void holdCurrencyPrefs(
       released.add(key);
     } else {
       held[key] = next[i];
+      if (!_sameMapping(next[i], baseline[i])) mappingEdited.add(key);
     }
   }
   // Kept before the held changes notify, so what they redraw reads it.
@@ -248,7 +267,10 @@ void holdCurrencyPrefs(
     session.holdChange(
       _heldKey(key),
       cardId: _currency,
-      write: () => CertificationCurrencyRepository().upsertPref(pref),
+      write: () => CertificationCurrencyRepository().upsertPref(
+        pref,
+        mappingEdited: mappingEdited.contains(key),
+      ),
     );
   }
 }

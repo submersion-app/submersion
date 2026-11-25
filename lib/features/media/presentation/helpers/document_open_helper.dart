@@ -29,32 +29,27 @@ class DocumentOpenHelper {
   /// Route a tapped document: PDFs to the in-app viewer, everything else
   /// to the platform (desktop-open vs mobile-share duality).
   ///
-  /// [editableSiteId] names the site a PDF is attached to when its viewer
-  /// may offer Edit details (issue #1039); dive and equipment callers leave
-  /// it null. With [attachmentLock], a site page that edits in place (issue
-  /// #4527, phase 2), the attachment opens under its own lock.
+  /// [editableSiteId] names the site a document is attached to, whose
+  /// details (issue #1039) are then edited under the attachment's own lock
+  /// (issue #4527); dive and equipment callers leave it null.
   static Future<void> open(
     BuildContext context,
     WidgetRef ref,
     MediaItem item, {
     String? editableSiteId,
-    bool attachmentLock = false,
   }) async {
     if (item.isPdf) {
       await Navigator.of(context).push(
         MaterialPageRoute(
           fullscreenDialog: true,
-          builder: (_) => DocumentViewerPage(
-            item: item,
-            editableSiteId: editableSiteId,
-            attachmentLock: attachmentLock,
-          ),
+          builder: (_) =>
+              DocumentViewerPage(item: item, editableSiteId: editableSiteId),
         ),
       );
       return;
     }
     // A document with no viewer opens its details, under the lock.
-    if (attachmentLock && editableSiteId != null) {
+    if (editableSiteId != null) {
       await Navigator.of(context).push(
         MaterialPageRoute(
           fullscreenDialog: true,

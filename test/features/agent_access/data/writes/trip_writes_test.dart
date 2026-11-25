@@ -177,6 +177,35 @@ void main() {
     }
   });
 
+  // The larger trip may not be on this device yet: a sync can deliver a
+  // side trip first. An edit that leaves the parent alone keeps it, and
+  // naming the stored parent again is no change to refuse (issue #4941).
+  test('an edit that keeps a parent not on this device keeps it', () async {
+    final side = await created({});
+    await db.customStatement(
+      "UPDATE trips SET parent_trip_id = 'not-synced-yet' WHERE id = ?",
+      [side],
+    );
+
+    await h.run([
+      updateOp('trips', side, {'name': 'Egypt'}),
+    ]);
+    final plan = await h.preview([
+      updateOp('trips', side, {
+        'notes': 'Reefs',
+        'parent_trip_id': 'not-synced-yet',
+      }),
+    ]);
+    expect(plan.items.single.block, isNull);
+    await h.apply(plan);
+
+    final doc = (await h.one('trips', side))!;
+    expect(
+      [doc['name'], doc['notes'], doc['parent_trip_id']],
+      ['Egypt', 'Reefs', 'not-synced-yet'],
+    );
+  });
+
   test('assigning a dive stretches the trip, listed', () async {
     final id = await created({
       'start_date': '2024-03-15',

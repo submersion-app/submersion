@@ -126,6 +126,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setHomeChipEnabled('depth', false),
     n.setHomePanelLayout(order: const ['keyNumbers'], hidden: const {}),
     n.setHiddenHomeKeyNumbers(const {'dives'}),
+    n.setHomeHeaderStyle(phone: true, style: 'banner'),
     n.setSafetyRuleEnabled(SafetyRuleId.values.first, false),
     n.setConditionEngineEnabled(!d.conditionEngineEnabled),
     n.setConditionRuleEnabled(ConditionRuleId.values.first, false),

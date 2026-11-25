@@ -15,13 +15,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/database.dart'
+    show NetworkCredentialHost;
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/presentation/providers/manifest_tab_providers.dart';
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_mode_panel.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Test-only [ManifestTabNotifier] that seeds an arbitrary state so the
 /// panel can be rendered in any branch without driving it through the
@@ -64,7 +70,12 @@ void main() {
             (ref) => _SeededManifestTabNotifier(seed, fetchService: stub),
           ),
       ],
-      child: const MaterialApp(home: Scaffold(body: ManifestModePanel())),
+      child: const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: ManifestModePanel()),
+      ),
     );
   }
 
@@ -244,7 +255,12 @@ void main() {
             ),
             manifestTabProvider.overrideWith((ref) => notifier),
           ],
-          child: const MaterialApp(home: Scaffold(body: ManifestModePanel())),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: ManifestModePanel()),
+          ),
         ),
       );
       await tester.tap(find.byType(Checkbox));
@@ -268,7 +284,12 @@ void main() {
             ),
             manifestTabProvider.overrideWith((ref) => notifier),
           ],
-          child: const MaterialApp(home: Scaffold(body: ManifestModePanel())),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: ManifestModePanel()),
+          ),
         ),
       );
       await tester.enterText(
@@ -350,5 +371,139 @@ void main() {
       );
       expect(importBtn.onPressed, isNotNull);
     });
+
+    testWidgets('a saved share password refreshes the Saved hosts list', (
+      tester,
+    ) async {
+      const stub = _StubFetcher();
+      final creds = _FakeCredentials();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            manifestFetchServiceProvider.overrideWithValue(stub),
+            networkCredentialsServiceProvider.overrideWithValue(creds),
+            manifestTabProvider.overrideWith(
+              (ref) => _SeededManifestTabNotifier(
+                const ManifestTabError(
+                  url: 'https://nas.example.com:5001/mo/sharing/code1',
+                  message: 'needs its password',
+                  unauthorized: true,
+                ),
+                fetchService: stub,
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Column(
+                children: [
+                  const Expanded(child: ManifestModePanel()),
+                  // Stands in for the Saved hosts card on the same page.
+                  Consumer(
+                    builder: (context, ref, _) {
+                      ref.watch(savedHostsProvider);
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(creds.listCalls, 1);
+
+      await tester.enterText(
+        find.byKey(const Key('synologySharePassword')),
+        'pw',
+      );
+      await tester.tap(find.byKey(const Key('synologySharePasswordSave')));
+      await tester.pumpAndSettle();
+
+      expect(creds.saved, ['nas.example.com:5001/mo/sharing/code1']);
+      expect(creds.listCalls, 2);
+    });
+
+    testWidgets('a password the keychain refuses is reported', (tester) async {
+      const stub = _StubFetcher();
+      final creds = _FakeCredentials(saveError: StateError('keychain locked'));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            manifestFetchServiceProvider.overrideWithValue(stub),
+            networkCredentialsServiceProvider.overrideWithValue(creds),
+            manifestTabProvider.overrideWith(
+              (ref) => _SeededManifestTabNotifier(
+                const ManifestTabError(
+                  url: 'https://nas.example.com:5001/mo/sharing/code1',
+                  message: 'needs its password',
+                  unauthorized: true,
+                ),
+                fetchService: stub,
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: ManifestModePanel()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('synologySharePassword')),
+        'pw',
+      );
+      await tester.tap(find.byKey(const Key('synologySharePasswordSave')));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Save failed'), findsOneWidget);
+      expect(find.textContaining('keychain locked'), findsOneWidget);
+      // The form is usable again.
+      final save = tester.widget<FilledButton>(
+        find.byKey(const Key('synologySharePasswordSave')),
+      );
+      expect(save.onPressed, isNotNull);
+    });
   });
+}
+
+class _FakeCredentials implements NetworkCredentialsService {
+  _FakeCredentials({this.saveError});
+
+  /// Thrown by [save], standing in for a keychain that refuses the write.
+  final Object? saveError;
+  final List<String> saved = [];
+  int listCalls = 0;
+
+  @override
+  Future<void> save({
+    required String hostname,
+    required String authType,
+    String? username,
+    String? password,
+    String? token,
+    String? displayName,
+  }) async {
+    final error = saveError;
+    if (error != null) throw error;
+    saved.add(hostname);
+  }
+
+  @override
+  Future<List<NetworkCredentialHost>> list() async {
+    listCalls++;
+    return const [];
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} not stubbed');
 }

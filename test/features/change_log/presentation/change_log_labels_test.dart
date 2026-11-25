@@ -362,4 +362,19 @@ void main() {
       expect(subtitle, endsWith(l.changeLog_thisDevice));
     });
   });
+
+  test('the media library bulk actions read as themselves', () {
+    expect(
+      changeLogStoredLabel(l, ChangeLogLabels.moveMedia),
+      'Moved to another dive',
+    );
+    expect(
+      changeLogStoredLabel(l, ChangeLogLabels.unlinkMedia),
+      'Unlinked from the library',
+    );
+    expect(
+      changeLogStoredLabel(l, ChangeLogLabels.removeGearPhotos),
+      'Removed gear photos',
+    );
+  });
 }

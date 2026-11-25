@@ -185,6 +185,8 @@ class SettingsKeys {
   static const String homePanelOrder = 'home_panel_order';
   static const String hiddenHomePanels = 'hidden_home_panels';
   static const String hiddenHomeKeyNumbers = 'hidden_home_key_numbers';
+  static const String homeHeaderStylePhone = 'home_header_style_phone';
+  static const String homeHeaderStyleWide = 'home_header_style_wide';
 
   // Whether profile-chart metric overlays follow the visible depth window
   // when zoomed. Per-diver since v262; see [pscrRatio].
@@ -820,6 +822,14 @@ class AppSettings implements UnitFormatterSettings {
   /// the default set. Device-local, not per-diver.
   final Set<String>? hiddenHomeKeyNumbers;
 
+  /// Home's header at phone width (HomeHeaderStyle.name), or null when never
+  /// set, which reads as compact. Device-local, not per-diver.
+  final String? homeHeaderStylePhone;
+
+  /// Home's header on tablet and desktop widths (HomeHeaderStyle.name), or
+  /// null when never set, which reads as compact. Device-local, not per-diver.
+  final String? homeHeaderStyleWide;
+
   /// Whether the dive profile chart's secondary-axis metric overlays (NDL,
   /// ppO2, GF, ...) follow the visible depth window when zoomed instead of
   /// magnifying with the depth axis and scrolling out of view. Per-diver
@@ -1061,6 +1071,8 @@ class AppSettings implements UnitFormatterSettings {
     this.homePanelOrder,
     this.hiddenHomePanels,
     this.hiddenHomeKeyNumbers,
+    this.homeHeaderStylePhone,
+    this.homeHeaderStyleWide,
     this.profileMetricsFollowViewport = false,
     this.o2CellUnit = O2CellUnit.ppO2,
     this.counterdiffusionShowAll = false,
@@ -1312,6 +1324,8 @@ class AppSettings implements UnitFormatterSettings {
     List<String>? homePanelOrder,
     Set<String>? hiddenHomePanels,
     Set<String>? hiddenHomeKeyNumbers,
+    String? homeHeaderStylePhone,
+    String? homeHeaderStyleWide,
     bool? profileMetricsFollowViewport,
     O2CellUnit? o2CellUnit,
     bool? counterdiffusionShowAll,
@@ -1597,6 +1611,8 @@ class AppSettings implements UnitFormatterSettings {
       homePanelOrder: homePanelOrder ?? this.homePanelOrder,
       hiddenHomePanels: hiddenHomePanels ?? this.hiddenHomePanels,
       hiddenHomeKeyNumbers: hiddenHomeKeyNumbers ?? this.hiddenHomeKeyNumbers,
+      homeHeaderStylePhone: homeHeaderStylePhone ?? this.homeHeaderStylePhone,
+      homeHeaderStyleWide: homeHeaderStyleWide ?? this.homeHeaderStyleWide,
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
       o2CellUnit: o2CellUnit ?? this.o2CellUnit,
@@ -1866,6 +1882,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     homePanelOrder: state.homePanelOrder,
     hiddenHomePanels: state.hiddenHomePanels,
     hiddenHomeKeyNumbers: state.hiddenHomeKeyNumbers,
+    homeHeaderStylePhone: state.homeHeaderStylePhone,
+    homeHeaderStyleWide: state.homeHeaderStyleWide,
     o2CellUnit: state.o2CellUnit,
     counterdiffusionShowAll: state.counterdiffusionShowAll,
     perdixOverlayEnabled: state.perdixOverlayEnabled,
@@ -1935,6 +1953,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final hiddenHomeKeyNumbers = readList(
       SettingsKeys.hiddenHomeKeyNumbers,
     )?.toSet();
+    String? readString(String key) {
+      try {
+        return prefs.getString(key);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final homeHeaderStylePhone = readString(SettingsKeys.homeHeaderStylePhone);
+    final homeHeaderStyleWide = readString(SettingsKeys.homeHeaderStyleWide);
     // Since v262 the pSCR ratio and "metrics follow viewport" are per-diver
     // (synced, issue #2948). These prefs are the store while no diver
     // exists, and the value a diver row that has never held one adopts.
@@ -1969,6 +1997,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         homePanelOrder: homePanelOrder,
         hiddenHomePanels: hiddenHomePanels,
         hiddenHomeKeyNumbers: hiddenHomeKeyNumbers,
+        homeHeaderStylePhone: homeHeaderStylePhone,
+        homeHeaderStyleWide: homeHeaderStyleWide,
         pscrRatio: pscrRatioPref ?? 100.0,
         profileMetricsFollowViewport: followViewportPref ?? false,
         o2CellUnit: o2CellUnit,
@@ -2042,6 +2072,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       homePanelOrder: homePanelOrder,
       hiddenHomePanels: hiddenHomePanels,
       hiddenHomeKeyNumbers: hiddenHomeKeyNumbers,
+      homeHeaderStylePhone: homeHeaderStylePhone,
+      homeHeaderStyleWide: homeHeaderStyleWide,
       o2CellUnit: o2CellUnit,
       counterdiffusionShowAll: counterdiffusionShowAll,
       perdixOverlayEnabled: perdixOverlayEnabled,
@@ -2137,6 +2169,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
             SettingsKeys.hiddenHomeKeyNumbers,
             hiddenTiles.toList()..sort(),
           );
+        }
+        final headerPhone = state.homeHeaderStylePhone;
+        if (headerPhone != null) {
+          await prefs.setString(SettingsKeys.homeHeaderStylePhone, headerPhone);
+        }
+        final headerWide = state.homeHeaderStyleWide;
+        if (headerWide != null) {
+          await prefs.setString(SettingsKeys.homeHeaderStyleWide, headerWide);
         }
         await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
         await prefs.setBool(
@@ -2790,6 +2830,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           s.copyWith(homePanelOrder: orderCopy, hiddenHomePanels: hiddenCopy),
     );
   }
+
+  /// Persist Home's header style (HomeHeaderStyle.name) for phone width
+  /// when [phone], otherwise for tablet and desktop widths.
+  Future<void> setHomeHeaderStyle({
+    required bool phone,
+    required String style,
+  }) => _update(
+    (s) => phone
+        ? s.copyWith(homeHeaderStylePhone: style)
+        : s.copyWith(homeHeaderStyleWide: style),
+  );
 
   /// Persist the key number tiles switched off (HomeKeyNumber.name values).
   Future<void> setHiddenHomeKeyNumbers(Set<String> hidden) {

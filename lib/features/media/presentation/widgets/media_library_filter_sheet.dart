@@ -10,6 +10,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_smart_album.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
@@ -285,7 +286,9 @@ class _MediaLibraryFilterSheetState
                   icon: const Icon(Icons.delete_outline, size: 18),
                   tooltip: context.l10n.media_smartAlbum_delete,
                   onPressed: () async {
-                    Navigator.of(sheetContext).pop();
+                    // Asked over the list, so Cancel leaves the diver in it.
+                    if (!await _confirmDeleteAlbum(album)) return;
+                    if (sheetContext.mounted) Navigator.of(sheetContext).pop();
                     await _deleteAlbum(album.id);
                   },
                 ),
@@ -312,6 +315,34 @@ class _MediaLibraryFilterSheetState
         ),
       ),
     );
+  }
+
+  /// Asks before an album is deleted, naming it (issue #4527): a saved
+  /// filter is configuration, but a delete has no Undo.
+  Future<bool> _confirmDeleteAlbum(MediaSmartAlbum album) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        key: const ValueKey('smart_album_delete_confirm'),
+        title: Text(l10n.media_smartAlbum_deleteConfirmTitle(album.name)),
+        content: Text(l10n.media_smartAlbum_deleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            child: Text(l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true && mounted;
   }
 
   /// Awaited rather than fired and forgotten: an unawaited repository call

@@ -82,6 +82,9 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
         l.changeLog_label_removeDuplicateCylinders,
       ChangeLogLabels.updatePlannedDives =>
         l.changeLog_label_updatePlannedDives,
+      ChangeLogLabels.moveMedia => l.changeLog_label_moveMedia,
+      ChangeLogLabels.unlinkMedia => l.changeLog_label_unlinkMedia,
+      ChangeLogLabels.removeGearPhotos => l.changeLog_label_removeGearPhotos,
       _ => label,
     };
 

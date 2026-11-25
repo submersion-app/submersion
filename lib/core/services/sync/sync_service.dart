@@ -4011,6 +4011,8 @@ class SyncService {
         }
       }
     }
+    // Before anything fills a key the peer left out (issue #4954).
+    await _serializer.noteIncomingRows(entityType, records);
     records = await _keepLibrarySiteLinks(entityType, records);
     records = await _keepLibraryMembershipKeys(entityType, records);
 
@@ -4884,6 +4886,7 @@ class SyncService {
   /// derives the same result from the same rows.
   Future<void> _applyConflictRow(String entityType, Map<String, dynamic> row) =>
       _serializer.applyInDeferredFkTransaction(() async {
+        await _serializer.noteIncomingRows(entityType, [row]);
         await _serializer.upsertRecord(entityType, row);
         await _serializer.repairAfterRowWrite(entityType);
       });
@@ -5743,6 +5746,10 @@ class SyncService {
       }
     }
 
+    // The holds describe the copy being replaced (issue #4954). None is left
+    // for the rows written here to settle, so this adopt notes none of them.
+    await _serializer.discardHeldReferences();
+
     // Upsert every restored record.
     for (final entry in restored.entries) {
       for (final record in entry.value.values) {
@@ -5903,6 +5910,9 @@ class SyncService {
       if (inboundOnlyLegacyEntities.containsKey(entity)) continue;
       await _serializer.deleteAllRecords(entity);
     }
+    // The holds describe the copy being replaced (issue #4954). None is left
+    // for the rows written here to settle, so this adopt notes none of them.
+    await _serializer.discardHeldReferences();
 
     // Batched upsert of a table's rows (skipping null-id rows, matching the
     // in-memory path). Batching is the throughput lever: a large adopt is

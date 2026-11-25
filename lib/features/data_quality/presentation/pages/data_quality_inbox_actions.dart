@@ -12,6 +12,7 @@ import 'package:submersion/features/data_quality/presentation/widgets/dive_ident
 import 'package:submersion/features/data_quality/presentation/widgets/duplicate_cylinder_dialogs.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/duplicate_cylinders_sheet.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/refresh_after_source_removal.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/remove_source_flow.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -33,7 +34,9 @@ void rescanDives(List<String> diveIds) {
 
 /// Removes a source a Conflicting sources finding names, through the flow
 /// the dive page shares: the removal resolves the finding, its Undo reopens
-/// it, and both rescan the dive.
+/// it, and both rescan the dive and refresh what shows it, as the dive
+/// page's menu does, so a dive page left open under the inbox stops showing
+/// the source that is gone (issue #4972).
 Future<void> runRemoveSource(
   BuildContext context,
   WidgetRef ref, {
@@ -43,13 +46,18 @@ Future<void> runRemoveSource(
   required String? sourceName,
 }) {
   final findings = ref.read(qualityFindingsRepositoryProvider);
+  final container = ProviderScope.containerOf(context, listen: false);
   return removeSourceWithUndo(
     context,
     ref,
     diveId: diveId,
     sourceId: sourceId,
     sourceName: sourceName,
-    afterChange: () => rescanDives([diveId]),
+    afterChange: () => refreshAfterSourceRemoval(
+      container,
+      diveId: diveId,
+      sourceId: sourceId,
+    ),
     onRemoved: () => findings.setStatus(finding.id, QualityStatus.resolved),
     onUndone: () => findings.setStatus(finding.id, QualityStatus.open),
   );

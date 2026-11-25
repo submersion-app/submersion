@@ -130,6 +130,58 @@ void main() {
       expect(rule.diveModesJson, '["ccr"]');
     });
 
+    // Issue #4942: values this build cannot read travel raw while the lists
+    // still say the same, and are replaced once they change.
+    test('stored scope arrays are kept until the lists change', () {
+      final rule = CurrencyRule(
+        id: 'r1',
+        name: 'Club rule',
+        clockKind: CurrencyClockKind.activity,
+        levels: const [CertificationLevel.cave],
+        lapseDays: 200,
+        leadDays: 30,
+        storedScope: (
+          agencies: '["agencyFromTheFuture"]',
+          levels: '["cave","levelFromTheFuture"]',
+          types: '[]',
+          modes: '["modeFromTheFuture"]',
+        ),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      expect(rule.agenciesJson, '["agencyFromTheFuture"]');
+      expect(rule.levelsJson, '["cave","levelFromTheFuture"]');
+      expect(rule.diveModesJson, '["modeFromTheFuture"]');
+
+      final edited = rule.copyWith(
+        agencies: const [CertificationAgency.padi],
+        countedDiveTypeIds: const ['boat'],
+      );
+      expect(edited.agenciesJson, '["padi"]');
+      expect(edited.levelsJson, '["cave","levelFromTheFuture"]');
+      expect(edited.diveTypesJson, '["boat"]');
+      expect(edited.diveModesJson, '[]');
+    });
+
+    test('a pref whose mapping cannot be read inherits and keeps it', () {
+      final pref = CurrencyPref(
+        id: 'p1',
+        certificationId: 'c1',
+        ruleId: 'cave_currency',
+        countedDiveModes: const [],
+        unreadableMapping: true,
+        storedMapping: (types: null, modes: '["modeFromTheFuture"]'),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      expect(pref.inheritsMapping, isTrue);
+      expect(pref.mappingJson.modes, '["modeFromTheFuture"]');
+      expect(pref.copyWith(countedDiveTypeIds: const ['boat']).mappingJson, (
+        types: '["boat"]',
+        modes: '[]',
+      ));
+    });
+
     test('a pref tells inheriting apart from any-dive-counts', () {
       // NULL inherits the rule's mapping; an empty list is the diver saying
       // "any dive counts". Collapsing the two silently changes a rule.

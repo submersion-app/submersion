@@ -185,6 +185,44 @@ void main() {
     expect(rules.single.name, 'Club check-out');
   });
 
+  // Issue #4942: the dialog only holds the scope this build could decode, and
+  // an unreadable one decodes to "any". A name edit must not save that back.
+  testWidgets('a name edit keeps an unreadable scope as stored', (
+    tester,
+  ) async {
+    tall(tester);
+    await repo.createRule(club());
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE certification_currency_rules SET "
+      "applicable_agencies = '[\"agencyFromTheFuture\"]', "
+      "counted_dive_modes = '[\"modeFromTheFuture\"]' WHERE id = 'club'",
+    );
+    await tester.pumpWidget(page());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Edit rule'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name'),
+      'Club check-out',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final row = await tester.runAsync(
+      () => DatabaseService.instance.database
+          .customSelect(
+            'SELECT name, applicable_agencies, counted_dive_modes '
+            "FROM certification_currency_rules WHERE id = 'club'",
+          )
+          .getSingle(),
+    );
+    expect(row!.read<String>('name'), 'Club check-out');
+    expect(row.read<String>('applicable_agencies'), '["agencyFromTheFuture"]');
+    expect(row.read<String>('counted_dive_modes'), '["modeFromTheFuture"]');
+    expect((await custom()).single.unreadableScope, isTrue);
+  });
+
   testWidgets('deleting a custom rule restores the built-in it replaced', (
     tester,
   ) async {

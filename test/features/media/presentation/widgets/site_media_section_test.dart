@@ -666,9 +666,10 @@ void main() {
 
   // An attachment's details are its own record's, edited under its own
   // lock where the site page edits in place (issue #4527, phase 2): the
-  // card's single Edit details goes; the bulk Set category stays.
-  testWidgets('on a page that edits in place Edit details is gone, Set '
-      'category stays', (tester) async {
+  // card's single Edit details goes. A locked page writes nothing, so the
+  // bulk Set category goes too, as Unlink does (media library, plan 2).
+  testWidgets('a locked site page offers neither Edit details nor Set '
+      'category', (tester) async {
     final controller = RecordEditController<DiveSite>(onSave: (_) async {});
     addTearDown(controller.dispose);
     await tester.pumpWidget(
@@ -696,7 +697,7 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('selection_action_setCategory')),
-      findsOneWidget,
+      findsNothing,
     );
   });
 

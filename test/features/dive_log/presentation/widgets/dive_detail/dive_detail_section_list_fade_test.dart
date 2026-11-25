@@ -25,12 +25,20 @@ class _Settings extends StateNotifier<AppSettings> implements SettingsNotifier {
 void main() {
   final dive = createTestDiveWithBottomTime().copyWith(
     tanks: const [DiveTank(id: 't1', volume: 12.0, startPressure: 200)],
+    profile: [
+      for (var i = 0; i <= 10; i++)
+        DiveProfilePoint(timestamp: i * 60, depth: i < 5 ? i * 4.0 : 18.0),
+    ],
+    weightAmount: 6,
   );
 
   setUp(() async => setUpTestDatabase());
   tearDown(() async => tearDownTestDatabase());
 
-  Widget harness({RecordEditController<Dive>? controller}) {
+  Widget harness({
+    RecordEditController<Dive>? controller,
+    DiveDetailSectionId visible = DiveDetailSectionId.decoStatus,
+  }) {
     final list = sectionListFor(dive);
     return ProviderScope(
       overrides: [
@@ -39,10 +47,7 @@ void main() {
             AppSettings(
               diveDetailSections: [
                 for (final id in DiveDetailSectionId.values)
-                  DiveDetailSectionConfig(
-                    id: id,
-                    visible: id == DiveDetailSectionId.buoyancy,
-                  ),
+                  DiveDetailSectionConfig(id: id, visible: id == visible),
               ],
             ),
           ),
@@ -63,7 +68,7 @@ void main() {
     );
   }
 
-  test('the five calculated and two imported cards, and no other', () {
+  test('the four calculated and two imported cards, and no other', () {
     expect(
       {
         for (final id in DiveDetailSectionId.values)
@@ -74,7 +79,6 @@ void main() {
         DiveDetailSectionId.tissueLoading: RecordCardFadeReason.calculated,
         DiveDetailSectionId.sacSegments: RecordCardFadeReason.calculated,
         DiveDetailSectionId.tide: RecordCardFadeReason.calculated,
-        DiveDetailSectionId.buoyancy: RecordCardFadeReason.calculated,
         DiveDetailSectionId.health: RecordCardFadeReason.imported,
         DiveDetailSectionId.surfaceGps: RecordCardFadeReason.imported,
       },
@@ -103,7 +107,7 @@ void main() {
       addTearDown(controller.dispose);
       await tester.pumpWidget(harness(controller: controller));
       await tester.pumpAndSettle();
-      final section = find.byKey(const ValueKey('diveSection_buoyancy'));
+      final section = find.byKey(const ValueKey('diveSection_decoStatus'));
       expect(section, findsOneWidget);
       final before = tester.getRect(section);
       expect(find.text('Calculated'), findsNothing);
@@ -115,4 +119,24 @@ void main() {
       expect(tester.getRect(section), before);
     },
   );
+
+  testWidgets('unlocked: the Weights and buoyancy card does not fade', (
+    tester,
+  ) async {
+    // It holds the weights editor, so it is not a calculated card even
+    // though the buoyancy model inside it is (issue #5005).
+    final controller = RecordEditController<Dive>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      harness(controller: controller, visible: DiveDetailSectionId.weights),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('diveSection_weights')), findsOneWidget);
+
+    controller.unlock(dive);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Calculated'), findsNothing);
+    expect(find.byType(RecordCardFade<Dive>), findsNothing);
+  });
 }

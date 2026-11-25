@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
@@ -120,6 +122,10 @@ void main() {
           accountProviderRegistryProvider.overrideWithValue(
             AccountProviderRegistry(const []),
           ),
+          // The Network sources row marks itself from the media health.
+          mediaHealthProvider.overrideWithValue(
+            pickHealth(DataFeature.media, const []),
+          ),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -164,6 +170,10 @@ void main() {
           ),
           accountProviderRegistryProvider.overrideWithValue(
             AccountProviderRegistry(const []),
+          ),
+          // The Network sources row marks itself from the media health.
+          mediaHealthProvider.overrideWithValue(
+            pickHealth(DataFeature.media, const []),
           ),
           mediaTagBadgesProvider.overrideWith(
             (ref) => MediaTagBadgesNotifier(prefs),
