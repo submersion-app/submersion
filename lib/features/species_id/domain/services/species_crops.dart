@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 
 /// The identifications whose crops show what [speciesId] looks like on one
@@ -11,15 +13,14 @@ List<MediaIdentification> cropsOfSpecies(
   Iterable<MediaIdentification> all,
   String speciesId,
 ) {
-  final crops = [
-    for (final i in all)
-      if (i.decision == IdentificationDecision.accepted &&
-          i.decidedSpeciesId == speciesId &&
-          !i.isPending)
-        i,
-  ];
+  final crops = all.where(
+    (i) =>
+        i.decision == IdentificationDecision.accepted &&
+        i.decidedSpeciesId == speciesId &&
+        !i.isPending,
+  );
   final video = crops.isNotEmpty && crops.every((i) => i.isTrack);
-  crops.sort(
+  return crops.sorted(
     video
         ? (a, b) => a.startMs!.compareTo(b.startMs!)
         : (a, b) {
@@ -27,5 +28,4 @@ List<MediaIdentification> cropsOfSpecies(
             return byX != 0 ? byX : a.box.y.compareTo(b.box.y);
           },
   );
-  return crops;
 }
