@@ -21,6 +21,7 @@ import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
 import 'package:submersion/core/presentation/widgets/startup_restore_card.dart';
 import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/core/theme/brand_typography.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/restore_journal.dart';
@@ -767,6 +768,10 @@ void main() {
 
       // Should show splash with Submersion text
       expect(find.text('Submersion'), findsOneWidget);
+      // Issue #5014: the name under the icon is set in the logo's font.
+      final name = tester.widget<Text>(find.text('Submersion'));
+      expect(name.style?.fontFamily, BrandTypography.wordmarkFamily);
+      expect(name.style?.fontWeight, BrandTypography.wordmarkWeight);
       expect(find.byKey(const ValueKey('splash')), findsOneWidget);
       expect(find.byKey(const ValueKey('error')), findsNothing);
       // No migration progress shown
