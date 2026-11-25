@@ -174,7 +174,7 @@ banner reads.
   dive planner), Swap with a buddy (only where the device has the radios),
   Insights (outlined, goes to Insights), Tracks (outlined, goes to Tracks),
   Emergency card (outlined, opens the emergency card).
-- Listed in the panel list in Settings > Home with its name and icon like
+- Listed in the panel list in Settings > Home by its name like
   every panel; its provider-free build means hiding it costs nothing.
 
 ## Strings
