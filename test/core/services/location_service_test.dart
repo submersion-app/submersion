@@ -912,6 +912,25 @@ void main() {
       expect(result.country, 'Switzerland');
       expect(result.bodyOfWater, isNull);
       expect(result.networkFailed, isFalse);
+      expect(
+        result.bodyOfWaterUnknown,
+        isTrue,
+        reason: 'a refused natural layer is not "no water here" (#4992)',
+      );
+    });
+
+    test('a natural layer that answers no water is a real answer', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(address()),
+        bodyFor: (uri) => natural(uri, {'error': 'Unable to geocode'}),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(47.027631, 8.400640, languageCode: 'en'),
+      );
+
+      expect(result.bodyOfWater, isNull);
+      expect(result.bodyOfWaterUnknown, isFalse);
     });
 
     test('a failing natural-layer request keeps the address result', () async {
@@ -934,6 +953,7 @@ void main() {
       expect(result.locality, 'Weggis');
       expect(result.bodyOfWater, isNull);
       expect(result.networkFailed, isFalse);
+      expect(result.bodyOfWaterUnknown, isTrue);
     });
 
     test(

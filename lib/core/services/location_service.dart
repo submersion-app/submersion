@@ -465,10 +465,14 @@ class LocationService {
     String languageCode,
   ) async {
     final water = await _lookupBodyOfWater(latitude, longitude, languageCode);
-    return water == null ? address : address.copyWith(bodyOfWater: water);
+    if (water.failed) return address.copyWith(bodyOfWaterUnknown: true);
+    final name = water.name;
+    return name == null ? address : address.copyWith(bodyOfWater: name);
   }
 
-  /// Best-effort: any failure here leaves the address result untouched.
+  /// Best-effort: any failure here leaves the address result untouched, and
+  /// is reported as `failed` so a caller can tell "no water here" from "the
+  /// natural layer could not be asked" (issue #4992).
   ///
   /// The bundled ocean and sea table answers first. OpenStreetMap has no
   /// ocean or sea polygons at all, so the natural layer used to answer
@@ -481,7 +485,7 @@ class LocationService {
   /// Inland and coastal fresh water is the other way round: lakes, quarries
   /// and fjord interiors are not in the IHO table, and the natural layer
   /// names them well, so a miss there falls through to the network.
-  Future<String?> _lookupBodyOfWater(
+  Future<({String? name, bool failed})> _lookupBodyOfWater(
     double latitude,
     double longitude,
     String languageCode,
@@ -490,7 +494,7 @@ class LocationService {
     final sea = index?.nameAt(latitude, longitude, languageCode: languageCode);
     if (sea != null) {
       _log.info('Sea area table: $sea');
-      return sea;
+      return (name: sea, failed: false);
     }
 
     try {
@@ -500,10 +504,10 @@ class LocationService {
       );
       final water = bodyOfWaterFromNaturalFeature(json);
       _log.info('Natural layer: ${water ?? 'no water feature'}');
-      return water;
+      return (name: water, failed: false);
     } catch (e) {
       _log.warning('Body of water lookup failed: $e');
-      return null;
+      return (name: null, failed: true);
     }
   }
 

@@ -398,30 +398,34 @@ void main() {
       region: 'Lucerne',
       locality: 'Weggis',
     );
+    // The partial site already has country and region; the lookup finds
+    // nothing more, so town and body of water stay blank.
+    const sameAsStored = PlaceLookup(country: 'Switzerland', region: 'Lucerne');
+    const answers = {'47.0,8.4': noWater, '47.1,8.5': sameAsStored};
 
     Future<BackfillSummary> fill(
       _FakeMemory memory, [
-      Map<String, PlaceLookup> answers = const {},
+      Map<String, PlaceLookup> scripted = answers,
     ]) => service(
-      _MapLocationService(answers),
+      _MapLocationService(scripted),
       memory: memory,
     ).run(onProgress: (_, _) {}, isCancelled: () => false);
+
+    Future<BackfillCandidates> next(_FakeMemory memory) =>
+        service(_MapLocationService({}), memory: memory).candidates();
 
     test('a site whose blanks the lookup could not fill is not offered '
         'again', () async {
       await seed();
       final memory = _FakeMemory();
 
-      final first = await fill(memory, {'47.0,8.4': noWater});
+      final first = await fill(memory);
       expect(first.updated, 1, reason: 'empty gained country, region, town');
-      expect(first.unchanged, 1, reason: 'partial: nothing found');
+      expect(first.unchanged, 1, reason: 'partial: nothing new found');
 
-      final next = await service(
-        _MapLocationService({}),
-        memory: memory,
-      ).candidates();
-      expect(next.sites, isEmpty);
-      expect(next.alreadyLookedUp, 2);
+      final again = await next(memory);
+      expect(again.sites, isEmpty);
+      expect(again.alreadyLookedUp, 2);
       expect(memory.notes['empty']!.blank, {SiteLocationField.bodyOfWater});
       expect(memory.notes['partial']!.blank, {
         SiteLocationField.city,
@@ -439,12 +443,9 @@ void main() {
         moved.copyWith(location: const GeoPoint(47.15, 8.55)),
       );
 
-      final next = await service(
-        _MapLocationService({}),
-        memory: memory,
-      ).candidates();
-      expect(next.sites.map((s) => s.id), ['partial']);
-      expect(next.alreadyLookedUp, 1);
+      final again = await next(memory);
+      expect(again.sites.map((s) => s.id), ['partial']);
+      expect(again.alreadyLookedUp, 1);
     });
 
     test('a field cleared since the lookup offers the site again', () async {
@@ -455,17 +456,14 @@ void main() {
       final partial = (await sites.getSiteById('partial'))!;
       await sites.updateSite(partial.copyWith(region: ''));
 
-      final next = await service(
-        _MapLocationService({}),
-        memory: memory,
-      ).candidates();
-      expect(next.sites.map((s) => s.id), ['partial']);
+      final again = await next(memory);
+      expect(again.sites.map((s) => s.id), ['partial']);
     });
 
     test('a site filled completely leaves no note', () async {
       await seed();
       final memory = _FakeMemory();
-      await fill(memory, {'47.0,8.4': weggis});
+      await fill(memory, {'47.0,8.4': weggis, '47.1,8.5': sameAsStored});
       expect(memory.notes.containsKey('empty'), isFalse);
       expect(memory.notes.containsKey('partial'), isTrue);
     });
@@ -474,17 +472,44 @@ void main() {
       await seed();
       final memory = _FakeMemory();
       await service(
-        _MapLocationService({}, throwOn: '47.0,8.4'),
+        _MapLocationService(answers, throwOn: '47.0,8.4'),
         memory: memory,
       ).run(onProgress: (_, _) {}, isCancelled: () => false);
       expect(memory.notes.keys, ['partial']);
 
       final offline = _FakeMemory();
       await service(
-        _MapLocationService({}, offline: true),
+        _MapLocationService(answers, offline: true),
         memory: offline,
       ).run(onProgress: (_, _) {}, isCancelled: () => false);
       expect(offline.notes, isEmpty);
+    });
+
+    test('a lookup that found nothing at all is not remembered', () async {
+      // The web geocoder answers an empty result for a failure it cannot
+      // classify (a broken response, a TLS error); noting it would hide the
+      // site from every later run.
+      await seed();
+      final memory = _FakeMemory();
+      final summary = await fill(memory, const {});
+      expect(summary.unchanged, 2);
+      expect(memory.notes, isEmpty);
+      expect((await next(memory)).sites, hasLength(2));
+    });
+
+    test('a body of water whose own lookup failed is asked again', () async {
+      await seed();
+      final memory = _FakeMemory();
+      await fill(memory, {
+        '47.0,8.4': noWater.copyWith(bodyOfWaterUnknown: true),
+        '47.1,8.5': sameAsStored,
+      });
+      expect(
+        memory.notes.containsKey('empty'),
+        isFalse,
+        reason: 'the only blank left is the one that was never asked',
+      );
+      expect((await next(memory)).sites.map((s) => s.id), ['empty']);
     });
 
     test('a cancelled run keeps what it learned', () async {
@@ -492,7 +517,7 @@ void main() {
       final memory = _FakeMemory();
       var calls = 0;
       await service(
-        _MapLocationService({}),
+        _MapLocationService(answers),
         memory: memory,
       ).run(onProgress: (_, _) {}, isCancelled: () => calls++ >= 1);
       expect(memory.notes, hasLength(1));
@@ -526,11 +551,11 @@ void main() {
           ),
         };
 
-      await service(_MapLocationService({}), memory: memory).candidates();
+      await next(memory);
       expect(memory.notes.containsKey('gone'), isFalse);
     });
 
-    test('a note covers a site only at the same place with no new blank', () {
+    group('SiteLookupNote', () {
       const site = DiveSite(
         id: 's',
         name: 'S',
@@ -538,15 +563,44 @@ void main() {
         region: 'b',
         location: GeoPoint(1, 2),
       );
-      final note = SiteLookupNote.of(site)!;
-      expect(note.covers(site), isTrue);
-      expect(note.covers(site.copyWith(city: 'c')), isTrue);
-      expect(note.covers(site.copyWith(region: ' ')), isFalse);
-      expect(
-        note.covers(site.copyWith(location: const GeoPoint(1, 2.1))),
-        isFalse,
-      );
-      expect(SiteLookupNote.of(const DiveSite(id: 'x', name: 'x')), isNull);
+
+      test('covers a site only at the same place with no new blank', () {
+        final note = SiteLookupNote.of(site, const PlaceLookup(country: 'a'))!;
+        expect(note.covers(site), isTrue);
+        expect(note.covers(site.copyWith(city: 'c')), isTrue);
+        expect(note.covers(site.copyWith(region: ' ')), isFalse);
+        expect(
+          note.covers(site.copyWith(location: const GeoPoint(1, 2.1))),
+          isFalse,
+        );
+      });
+
+      test('leaves out a field the lookup answered but that was not '
+          'written', () {
+        // A library site this profile may not edit keeps its blank town,
+        // though OpenStreetMap named one: that is not OpenStreetMap's gap.
+        final note = SiteLookupNote.of(
+          site,
+          const PlaceLookup(country: 'a', locality: 'Weggis'),
+        )!;
+        expect(note.blank, {SiteLocationField.bodyOfWater});
+        expect(note.covers(site), isFalse);
+      });
+
+      test('is null without coordinates or without an unanswered blank', () {
+        const found = PlaceLookup(country: 'a');
+        expect(
+          SiteLookupNote.of(const DiveSite(id: 'x', name: 'x'), found),
+          isNull,
+        );
+        expect(
+          SiteLookupNote.of(
+            site,
+            const PlaceLookup(locality: 'c', bodyOfWater: 'd'),
+          ),
+          isNull,
+        );
+      });
     });
   });
 }

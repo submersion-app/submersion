@@ -87,13 +87,14 @@ void main() {
     _ScriptedBackfill notifier, {
     SiteLocationLookupMode mode = SiteLocationLookupMode.fillMissing,
     String placeNameLanguage = 'en',
+    Locale locale = const Locale('en'),
   }) => ProviderScope(
     overrides: [
       siteLocationBackfillProvider.overrideWith((_) => notifier),
       settingsProvider.overrideWith((_) => _FixedSettings(placeNameLanguage)),
     ],
     child: MaterialApp(
-      locale: const Locale('en'),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -232,6 +233,30 @@ void main() {
       );
       expect(find.text('Fill in missing location details?'), findsNothing);
       expect(notifier.startCalls, 0);
+    });
+
+    testWidgets('Japanese runs the summary sentences together', (tester) async {
+      final notifier = _ScriptedBackfill(
+        candidates: 3,
+        script: const [
+          BackfillFinished(
+            BackfillSummary(total: 3, updated: 1, unchanged: 2, failed: 0),
+          ),
+        ],
+      );
+      await tester.pumpWidget(host(notifier, locale: const Locale('ja')));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          '1件のサイトを更新しました。'
+          '2件のサイトはOpenStreetMapに追加できる情報がありませんでした。',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a run that fills nothing says OpenStreetMap had nothing', (

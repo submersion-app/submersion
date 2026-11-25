@@ -1,3 +1,4 @@
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// The location fields a lookup can fill, by the names a [SiteLookupNote]
@@ -28,12 +29,21 @@ class SiteLookupNote {
     required this.blank,
   });
 
-  /// The note for [site] as it stands after a lookup, or null when there is
-  /// nothing to remember: no coordinates, or every field filled.
-  static SiteLookupNote? of(DiveSite site) {
+  /// The note for [site] as it stands after the lookup that answered
+  /// [found], or null when there is nothing to remember: no coordinates, or
+  /// no field that is empty on the site because OpenStreetMap had nothing.
+  ///
+  /// A field counts only when it is empty on the site *and* in [found]. One
+  /// the lookup did answer but that was not written (a library site this
+  /// profile may not edit, say) is not OpenStreetMap's gap, and a body of
+  /// water whose lookup failed was never really asked.
+  static SiteLookupNote? of(DiveSite site, PlaceLookup found) {
     final point = site.location;
     if (point == null) return null;
-    final blank = blankLocationFields(site);
+    final blank = {
+      for (final field in blankLocationFields(site))
+        if (_unanswered(field, found)) field,
+    };
     if (blank.isEmpty) return null;
     return SiteLookupNote(
       latitude: point.latitude,
@@ -41,6 +51,15 @@ class SiteLookupNote {
       blank: blank,
     );
   }
+
+  static bool _unanswered(SiteLocationField field, PlaceLookup found) =>
+      switch (field) {
+        SiteLocationField.country => _isBlank(found.country),
+        SiteLocationField.region => _isBlank(found.region),
+        SiteLocationField.city => _isBlank(found.locality),
+        SiteLocationField.bodyOfWater =>
+          _isBlank(found.bodyOfWater) && !found.bodyOfWaterUnknown,
+      };
 
   final double latitude;
   final double longitude;

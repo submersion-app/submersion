@@ -1,5 +1,6 @@
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
@@ -189,28 +190,40 @@ class SiteLocationBackfillService {
     ),
   );
 
-  /// Records in [notes] what the lookup that just answered for [siteId]
+  /// [notes] with what the lookup that just answered [found] for [siteId]
   /// left empty: OpenStreetMap has nothing for those fields at this place.
-  /// Returns whether [notes] changed. A failure here only costs the note,
-  /// so it is logged rather than counted against the lookup.
-  Future<bool> _noteLookup(
+  /// The same map comes back, unchanged, when there is nothing new to note.
+  ///
+  /// A lookup that found nothing at all leaves the notes alone: the web
+  /// geocoder answers an empty result for a failure it could not classify
+  /// (a broken response, a TLS error), and noting that would hide the site
+  /// from every later run. A failure here only costs the note, so it is
+  /// logged rather than counted against the lookup.
+  Future<Map<String, SiteLookupNote>> _noted(
     String siteId,
+    PlaceLookup found,
     Map<String, SiteLookupNote> notes,
   ) async {
+    if (found.isEmpty) return notes;
     try {
       final after = await _sites.getSiteById(siteId);
-      final note = after == null ? null : SiteLookupNote.of(after);
-      if (note == null) return notes.remove(siteId) != null;
-      if (notes[siteId] == note) return false;
-      notes[siteId] = note;
-      return true;
+      final note = after == null ? null : SiteLookupNote.of(after, found);
+      if (note == null) {
+        if (!notes.containsKey(siteId)) return notes;
+        return {
+          for (final entry in notes.entries)
+            if (entry.key != siteId) entry.key: entry.value,
+        };
+      }
+      if (notes[siteId] == note) return notes;
+      return {...notes, siteId: note};
     } catch (e, stackTrace) {
       _log.warning(
         'Could not note the lookup for site $siteId',
         error: e,
         stackTrace: stackTrace,
       );
-      return false;
+      return notes;
     }
   }
 
@@ -226,13 +239,13 @@ class SiteLocationBackfillService {
     var unchanged = 0;
     var failed = 0;
     var done = 0;
-    final notes = await _readNotes();
-    var notesChanged = false;
+    final stored = await _readNotes();
+    var notes = stored;
     onProgress(done, total);
 
     for (final site in sites) {
       if (isCancelled()) {
-        if (notesChanged) await _writeNotes(notes);
+        if (!identical(notes, stored)) await _writeNotes(notes);
         return BackfillSummary(
           total: total,
           updated: updated,
@@ -269,7 +282,7 @@ class SiteLocationBackfillService {
           } else {
             unchanged++;
           }
-          notesChanged = await _noteLookup(site.id, notes) || notesChanged;
+          notes = await _noted(site.id, lookup, notes);
         }
       } catch (e, stackTrace) {
         _log.warning(
@@ -283,7 +296,7 @@ class SiteLocationBackfillService {
       onProgress(done, total);
     }
 
-    if (notesChanged) await _writeNotes(notes);
+    if (!identical(notes, stored)) await _writeNotes(notes);
     return BackfillSummary(
       total: total,
       updated: updated,
