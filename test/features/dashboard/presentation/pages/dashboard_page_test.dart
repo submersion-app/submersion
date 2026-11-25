@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
@@ -550,6 +551,34 @@ void main() {
         expect(find.byType(HeroHeader), findsOneWidget);
       });
     }
+
+    // The ocean animates on a 30 fps timer; scrolled away under the pinned
+    // row it would keep an idle Home producing frames for nothing.
+    testWidgets('the banner animation pauses while scrolled away', (
+      tester,
+    ) async {
+      await pumpHome(tester, width: 390, height: 800, settings: phoneBanner);
+      bool ticking() => TickerMode.valuesOf(
+        tester.element(find.byType(OceanBackground, skipOffstage: false)),
+      ).enabled;
+      expect(ticking(), isTrue);
+
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, -600),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(ticking(), isFalse);
+
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, 600),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(ticking(), isTrue);
+    });
 
     testWidgets('banner page order: demo card, banner, row, panels', (
       tester,

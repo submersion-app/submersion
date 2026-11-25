@@ -31,9 +31,10 @@ class QuickActionsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            // Self-sizing (no Expanded): this card must lay out correctly
-            // both directly in the dashboard's unbounded scroll column
-            // (phone, 1-column) and inside a grid row (desktop).
+            // Self-sizing (no Expanded): the card sits in Home's fixed
+            // extraTall row at every width, which is sized to hold the six
+            // buttons on touch platforms; on desktop, where buttons are
+            // shorter, the space left over stays at the bottom.
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -750,6 +751,79 @@ void main() {
       await pumpThenReload(tester, 500);
       expect(find.textContaining('248 dives logged'), findsOneWidget);
       expect(find.text('Loading your dive stats...'), findsNothing);
+    });
+  });
+
+  group('greeting and layout (issue #5003)', () {
+    Future<void> pumpBanner(
+      WidgetTester tester, {
+      required double width,
+      String name = 'Alex Morgan',
+    }) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 15000,
+                totalTimeSeconds: 15000 * 3000,
+                maxDepth: 120,
+                avgMaxDepth: 30,
+                totalSites: 900,
+              ),
+            ),
+            currentDiverProvider.overrideWith(
+              (ref) async => Diver(
+                id: '1',
+                name: name,
+                createdAt: DateTime(2026, 1, 1),
+                updatedAt: DateTime(2026, 1, 1),
+              ),
+            ),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    for (final (hour, greeting) in [
+      (9, 'Good morning'),
+      (15, 'Good afternoon'),
+      (20, 'Good evening'),
+    ]) {
+      testWidgets('the greeting follows the clock at $hour:00', (tester) async {
+        await withClock(Clock.fixed(DateTime(2026, 11, 25, hour)), () async {
+          await pumpBanner(tester, width: 500);
+        });
+        expect(find.text('$greeting, Alex!'), findsOneWidget);
+      });
+    }
+
+    testWidgets('a long first name and 15,000 dives fit a 320 phone', (
+      tester,
+    ) async {
+      await pumpBanner(
+        tester,
+        width: 320,
+        name: 'Bartholomew-Maximilian Featherstonehaugh-Cholmondeley',
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('Bartholomew'), findsOneWidget);
+      expect(find.textContaining('15000 dives logged'), findsOneWidget);
     });
   });
 }

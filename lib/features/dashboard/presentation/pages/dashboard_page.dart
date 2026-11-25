@@ -35,6 +35,7 @@ import 'package:submersion/features/dashboard/presentation/widgets/hero_header.d
 import 'package:submersion/features/dashboard/presentation/widgets/home_banner_row.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/pause_when_scrolled_away.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
@@ -170,10 +171,14 @@ class DashboardPage extends ConsumerWidget {
                     // Demo mode's way out heads the page (issue #4436).
                     const SliverToBoxAdapter(child: DemoModeDashboardCard()),
                     if (banner) ...[
+                      // Its ocean stops animating once it has scrolled
+                      // away under the pinned row.
                       const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
-                          child: HeroHeader(),
+                        child: PauseWhenScrolledAway(
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+                            child: HeroHeader(),
+                          ),
                         ),
                       ),
                       const SliverPersistentHeader(

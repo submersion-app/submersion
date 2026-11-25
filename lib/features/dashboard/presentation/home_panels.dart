@@ -1,10 +1,10 @@
 /// Every panel the Home dashboard can show.
 ///
 /// [name] is the stable id stored in the diver's panel order and hidden set,
-/// so a value is never renamed. The seven names shared with the retired
-/// `HomeCardType` (waitingForDownload, preDive, activeCourses, recentDives,
-/// photoRibbon, recentSitesMap, onThisDay) are kept exactly: the first run of
-/// the new Home reads the old hidden-card set by these names.
+/// so a value is never renamed. The eight names shared with the retired
+/// `HomeCardType` (quickActions, waitingForDownload, preDive, activeCourses,
+/// recentDives, photoRibbon, recentSitesMap, onThisDay) are kept exactly: the
+/// first run of the new Home reads the old hidden-card set by these names.
 enum HomePanelType {
   keyNumbers,
 

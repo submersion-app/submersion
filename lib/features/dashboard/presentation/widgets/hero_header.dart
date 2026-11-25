@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
@@ -52,8 +53,10 @@ class HeroHeader extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Greeting
+                    // Greeting. A reload (a diver switch) keeps the last
+                    // name, as the avatar beside it keeps the last diver.
                     diverAsync.when(
+                      skipLoadingOnReload: true,
                       data: (diver) {
                         final greeting = _getGreeting(context);
                         final name =
@@ -145,7 +148,7 @@ class HeroHeader extends ConsumerWidget {
   }
 
   String _getGreeting(BuildContext context) {
-    final hour = DateTime.now().hour;
+    final hour = clock.now().hour;
     if (hour < 12) return context.l10n.dashboard_greeting_morning;
     if (hour < 17) return context.l10n.dashboard_greeting_afternoon;
     return context.l10n.dashboard_greeting_evening;
@@ -176,7 +179,7 @@ class HeroHeader extends ConsumerWidget {
     final parts = <String>[];
 
     // "N dives logged" would misdescribe a total that includes the diver's
-    // prior offset -- those dives are precisely the ones NOT logged in-app, and
+    // prior offset: those dives are precisely the ones NOT logged in-app, and
     // the Insights breakdown reserves "logged" for the in-app count. Divers
     // without prior experience keep the original copy.
     final String diveText;
@@ -211,8 +214,8 @@ class HeroHeader extends ConsumerWidget {
 }
 
 /// Subdued lifetime stats for the desktop hero: regular weight, reduced
-/// opacity, hairline dividers -- present but never louder than the
-/// greeting.
+/// opacity and hairline dividers, so they are present but never louder than
+/// the greeting.
 class _QuietStats extends ConsumerWidget {
   const _QuietStats();
 

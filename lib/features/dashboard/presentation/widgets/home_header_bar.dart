@@ -118,7 +118,9 @@ class HomeHeaderBar extends ConsumerWidget {
             // The lights take the room up to the switcher. On a phone they
             // sit in the strip below instead.
             Expanded(
-              child: phone ? const SizedBox() : homeWideLights(context, ref),
+              child: phone
+                  ? const SizedBox()
+                  : _wideLights(context, ref, lights, retry: retry),
             ),
             // A rule with space each side parts the lights from the diver
             // and the logo, so the last pill never runs into the switcher
@@ -158,7 +160,23 @@ enum _QuickAction { logDive, planDive, swap, emergency }
 /// load, nothing while they load. Shared with the banner's row.
 Widget homeWideLights(BuildContext context, WidgetRef ref) {
   final lights = _watchLights(context, ref);
-  if (ref.watch(dashboardGaugesProvider).hasError && lights == null) {
+  return _wideLights(
+    context,
+    ref,
+    lights,
+    retry: ref.watch(dashboardGaugesProvider).hasError && lights == null,
+  );
+}
+
+/// [homeWideLights] from lights the caller has already built, so the compact
+/// bar, which needs them for its divider too, builds them once.
+Widget _wideLights(
+  BuildContext context,
+  WidgetRef ref,
+  List<HomeStatusLight>? lights, {
+  required bool retry,
+}) {
+  if (retry) {
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: HomeLightChip(_retryLight(context, ref), dense: true),

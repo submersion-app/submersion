@@ -20,6 +20,7 @@ void main() {
         'photoRibbon',
         'recentSitesMap',
         'onThisDay',
+        'quickActions',
       ]),
     );
   });
