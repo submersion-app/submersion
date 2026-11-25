@@ -96,6 +96,35 @@ void main() {
     expect(await c.motionClipFor(url), isNull);
   });
 
+  test('a download that stops sending fails and is tried again', () async {
+    var attempts = 0;
+    final c = NetworkVideoCache(
+      client: MockClient.streaming((request, _) async {
+        attempts++;
+        // The first answer sends a few bytes and then nothing, ever.
+        final body = attempts == 1
+            ? (StreamController<List<int>>()..add([1, 2, 3])).stream
+            : Stream.value(List.filled(10, 7));
+        return http.StreamedResponse(
+          body,
+          200,
+          headers: {'content-type': 'video/mp4'},
+        );
+      }),
+      directory: () async => Directory(p.join(dir.path, 'videos')),
+      headersFor: (_) async => null,
+      stallTimeout: const Duration(milliseconds: 50),
+    );
+
+    expect(await c.fileFor(url), isNull);
+    // Not joined to the stuck download: a second open fetches again.
+    final path = await c.fileFor(url);
+    expect(await File(path!).length(), 10);
+    expect(attempts, 2);
+    final videos = Directory(p.join(dir.path, 'videos')).listSync();
+    expect(videos.where((e) => e.path.endsWith('.part')), isEmpty);
+  });
+
   test('a failed transfer leaves nothing behind', () async {
     final c = cache((_) async => throw http.ClientException('down'));
     expect(await c.fileFor(url), isNull);

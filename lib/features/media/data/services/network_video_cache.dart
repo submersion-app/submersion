@@ -25,6 +25,7 @@ class NetworkVideoCache {
     required Future<Directory> Function() directory,
     required Future<Map<String, String>?> Function(Uri uri) headersFor,
     this.maxBytes = 2 * 1024 * 1024 * 1024,
+    this.stallTimeout = const Duration(seconds: 60),
   }) : _client = client,
        _directory = directory,
        _headersFor = headersFor;
@@ -38,6 +39,19 @@ class NetworkVideoCache {
   /// is larger, and goes on the next download like any other file.
   /// Refusing it instead would leave a long video unplayable.
   final int maxBytes;
+
+  /// How long a request may wait for its answer, or a download for its next
+  /// bytes, before it counts as failed. A server that stops sending would
+  /// otherwise hold the viewer's loading state forever, and every later
+  /// open of the same video would join that stuck download.
+  final Duration stallTimeout;
+
+  Future<http.StreamedResponse> _send(http.Request request) =>
+      _client.send(request).timeout(stallTimeout);
+
+  /// [response]'s body, failing once no bytes arrive for [stallTimeout].
+  Stream<List<int>> _body(http.StreamedResponse response) =>
+      response.stream.timeout(stallTimeout);
 
   final _log = LoggerService.forClass(NetworkVideoCache);
   final Map<String, Future<String?>> _downloads = {};
@@ -99,7 +113,7 @@ class NetworkVideoCache {
   Future<bool?> _probeMotion(Uri url) async {
     try {
       final headers = await _headersFor(url) ?? const <String, String>{};
-      final response = await _client.send(
+      final response = await _send(
         http.Request('GET', url)
           ..headers.addAll(headers)
           ..headers['Range'] = 'bytes=0-${kMotionPhotoProbeBytes - 1}',
@@ -109,11 +123,11 @@ class NetworkVideoCache {
           response.statusCode >= 300 ||
           type.contains('json') ||
           type.contains('html')) {
-        await response.stream.drain<void>();
+        await _body(response).drain<void>();
         return null;
       }
       final head = BytesBuilder(copy: false);
-      await for (final chunk in response.stream) {
+      await for (final chunk in _body(response)) {
         head.add(chunk);
         if (head.length >= kMotionPhotoProbeBytes) break;
       }
@@ -152,7 +166,7 @@ class NetworkVideoCache {
     final source = File('${target.path}.photo.part');
     try {
       final headers = await _headersFor(url) ?? const <String, String>{};
-      final response = await _client.send(
+      final response = await _send(
         http.Request('GET', url)..headers.addAll(headers),
       );
       final type = response.headers['content-type'] ?? '';
@@ -160,7 +174,7 @@ class NetworkVideoCache {
           response.statusCode >= 300 ||
           type.contains('json') ||
           type.contains('html')) {
-        await response.stream.drain<void>();
+        await _body(response).drain<void>();
         _log.warning(
           'Motion photo download refused for ${url.host}: '
           'HTTP ${response.statusCode}, $type',
@@ -170,7 +184,7 @@ class NetworkVideoCache {
       await dir.create(recursive: true);
       final sink = source.openWrite();
       try {
-        await response.stream.pipe(sink);
+        await _body(response).pipe(sink);
       } finally {
         await sink.close();
       }
@@ -216,7 +230,7 @@ class NetworkVideoCache {
     final part = File('${target.path}.part');
     try {
       final headers = await _headersFor(url) ?? const <String, String>{};
-      final response = await _client.send(
+      final response = await _send(
         http.Request('GET', url)..headers.addAll(headers),
       );
       final type = response.headers['content-type'] ?? '';
@@ -226,7 +240,7 @@ class NetworkVideoCache {
           response.statusCode >= 300 ||
           type.contains('json') ||
           type.contains('html')) {
-        await response.stream.drain<void>();
+        await _body(response).drain<void>();
         _log.warning(
           'Video download refused for ${url.host}: '
           'HTTP ${response.statusCode}, $type',
@@ -235,7 +249,7 @@ class NetworkVideoCache {
       }
       final sink = part.openWrite();
       try {
-        await response.stream.pipe(sink);
+        await _body(response).pipe(sink);
       } finally {
         await sink.close();
       }
