@@ -206,6 +206,42 @@ void main() {
     ]);
   });
 
+  test('a bailout stop held only for a gas switch says so on its marker', () {
+    final bailout = BailoutOutcome(
+      points: [_worstCase()],
+      worstCase: _worstCase(),
+      availableLiters: 1200,
+      ccrRows: const [],
+      worstCaseRows: const [],
+      ocStops: const [
+        PlanStop(
+          depthMeters: 21,
+          durationSeconds: 30,
+          gasFO2: 0.50,
+          gasFHe: 0.0,
+          tankId: 'deco',
+          arrivalRuntimeSeconds: 660,
+          isGasSwitchOnly: true,
+        ),
+        PlanStop(
+          depthMeters: 21,
+          durationSeconds: 120,
+          gasFO2: 0.50,
+          gasFHe: 0.0,
+          tankId: 'deco',
+          arrivalRuntimeSeconds: 690,
+        ),
+      ],
+      bailoutTanks: const [],
+      bailoutTankUsages: const [],
+      ceilingTrace: const [],
+    );
+
+    final series = buildBailoutCanvasSeries(bailout);
+
+    expect(series.stopLabels.map((m) => m.isGasSwitchOnly), [true, false]);
+  });
+
   test('no CCR rows and no stops yields a single surface point', () {
     final bailout = BailoutOutcome(
       points: [_worstCase()],

@@ -125,11 +125,17 @@ class CanvasMarker {
   final String label;
   final int durationSeconds;
 
+  /// A stop held only for the gas switch made there (see
+  /// [PlanStop.isGasSwitchOnly]), so stop tags compare it with the other
+  /// plan's switch stop and not with a deco stop at the same depth.
+  final bool isGasSwitchOnly;
+
   const CanvasMarker(
     this.timeSeconds,
     this.depth,
     this.label, {
     this.durationSeconds = 0,
+    this.isGasSwitchOnly = false,
   });
 }
 
@@ -261,6 +267,7 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
         stop.depthMeters,
         '',
         durationSeconds: stop.durationSeconds,
+        isGasSwitchOnly: stop.isGasSwitchOnly,
       ),
     );
     stretches.add((
@@ -375,6 +382,7 @@ PlanCanvasSeries buildCanvasSeries({
         stop.depthMeters,
         '',
         durationSeconds: stop.durationSeconds,
+        isGasSwitchOnly: stop.isGasSwitchOnly,
       ),
     );
   }

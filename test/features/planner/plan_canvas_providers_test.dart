@@ -316,6 +316,32 @@ void main() {
     }
   });
 
+  test('stop markers say which stops are held only for a gas switch', () {
+    final container = _container();
+    container.read(divePlanNotifierProvider.notifier)
+      ..addSimplePlan(maxDepth: 33.0, bottomTimeMinutes: 25)
+      ..addTank(
+        const DiveTank(
+          id: 'ean50',
+          name: 'EAN50',
+          volume: 11.1,
+          startPressure: 207,
+          gasMix: GasMix(o2: 50),
+          role: TankRole.deco,
+        ),
+      )
+      ..updateGasOptions(gasSwitchStopSeconds: 60);
+    final outcome = container.read(planOutcomeProvider);
+    final series = container.read(planCanvasSeriesProvider);
+
+    // Stop tags pair a switch stop with the other plan's switch stop.
+    expect(outcome.stops.any((s) => s.isGasSwitchOnly), isTrue);
+    expect(
+      series.stopLabels.map((m) => m.isGasSwitchOnly),
+      outcome.stops.map((s) => s.isGasSwitchOnly),
+    );
+  });
+
   test('a switch set inside a folded leg is marked where it happens', () {
     const air = GasMix();
     final plan = domain.DivePlan(
