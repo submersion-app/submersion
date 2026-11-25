@@ -6,6 +6,8 @@ library;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
@@ -39,7 +41,12 @@ final _tankPressures = {
   ],
 };
 
-Future<void> _pumpChart(WidgetTester tester, AppSettings settings) async {
+Future<void> _pumpChart(
+  WidgetTester tester,
+  AppSettings settings, {
+  List<List<double?>>? o2SensorCurves,
+  List<List<int?>>? o2CellMvCurves,
+}) async {
   tester.view.physicalSize = const Size(1800, 1000);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -59,6 +66,8 @@ Future<void> _pumpChart(WidgetTester tester, AppSettings settings) async {
             child: DiveProfileChart(
               profile: _profile,
               tankPressures: _tankPressures,
+              o2SensorCurves: o2SensorCurves,
+              o2CellMvCurves: o2CellMvCurves,
             ),
           ),
         ),
@@ -138,5 +147,46 @@ void main() {
 
     expect(_pressureAxis, findsNothing);
     expect(_rightTickCount(tester), 0);
+  });
+
+  group('O2 cells', () {
+    // Two cells, logged both as ppO2 and as raw millivolts.
+    final ppO2 = List<List<double?>>.generate(2, (_) => List.filled(41, 1.2));
+    final mv = List<List<int?>>.generate(2, (_) => List.filled(41, 45));
+    final cellsAxis = find.text('Cells');
+
+    AppSettings cellsOnly(O2CellUnit unit) => AppSettings(
+      defaultShowTemperature: false,
+      defaultShowPressure: false,
+      defaultShowO2CellMv: true,
+      o2CellUnit: unit,
+      defaultRightAxisMetric: ProfileRightAxisMetric.o2CellMv,
+    );
+
+    testWidgets('cells drawn in millivolts hold the millivolt axis', (
+      tester,
+    ) async {
+      await _pumpChart(
+        tester,
+        cellsOnly(O2CellUnit.millivolts),
+        o2SensorCurves: ppO2,
+        o2CellMvCurves: mv,
+      );
+
+      expect(cellsAxis, findsOneWidget);
+    });
+
+    testWidgets('cells drawn in ppO2 leave no millivolt axis', (tester) async {
+      // The cells sit on the ppO2 scale then, so a millivolt axis would
+      // label no line on the chart.
+      await _pumpChart(
+        tester,
+        cellsOnly(O2CellUnit.ppO2),
+        o2SensorCurves: ppO2,
+        o2CellMvCurves: mv,
+      );
+
+      expect(cellsAxis, findsNothing);
+    });
   });
 }

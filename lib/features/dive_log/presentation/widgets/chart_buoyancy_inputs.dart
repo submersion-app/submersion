@@ -12,8 +12,9 @@ typedef ChartBuoyancyInputs = ({bool available, List<double?>? curve});
 /// The buoyancy inputs for [diveId]'s chart, which draws [drawn].
 ///
 /// Whether the line can be offered comes from the dive alone. The simulation
-/// is watched only while the line is on: the dashboard's recent-dive preview renders on the app's first frame and
-/// must not run the model for a line nobody asked for.
+/// is watched only while the line is on: the dashboard's recent-dive preview
+/// renders on the app's first frame and must not run the model for a line
+/// nobody asked for.
 ChartBuoyancyInputs watchChartBuoyancy(
   WidgetRef ref,
   String diveId,
