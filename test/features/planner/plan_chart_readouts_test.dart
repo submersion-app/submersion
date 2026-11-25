@@ -103,7 +103,7 @@ void main() {
     );
     final list = tester.widget<PlanStopList>(find.byType(PlanStopList));
     expect(list.tags, isNotEmpty);
-    expect(list.tags, container.read(planReadoutStopTagsProvider));
+    expect(list.tags, container.read(planChartStopTagsProvider));
     final cns = find.byWidgetPredicate(
       (w) => w is Text && (w.data ?? '').startsWith('CNS'),
     );

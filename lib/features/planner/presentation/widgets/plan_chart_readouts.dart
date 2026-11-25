@@ -42,7 +42,7 @@ class PlanChartReadouts extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = ref.watch(activePlanOutcomeProvider);
     final cnsThreshold = ref.watch(cnsWarningThresholdProvider);
-    final stopTags = ref.watch(planReadoutStopTagsProvider);
+    final stopTags = ref.watch(planChartStopTagsProvider);
     final bottomClearance = bottomClearanceFor(
       MediaQuery.textScalerOf(context),
     );

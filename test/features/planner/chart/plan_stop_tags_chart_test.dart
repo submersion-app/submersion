@@ -9,7 +9,6 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
-import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
@@ -120,17 +119,9 @@ void main() {
       isNot(orderedEquals(ghost.stopLabels.map(stop))),
     );
     expect(painter.stopTags.every((t) => t.change == null && !t.isNew), isTrue);
-
-    // The phone readouts' TTS, Deco and CNS still describe the loop plan's
-    // preview, so the stops listed under them are the preview's too, not
-    // the bailout picture's.
-    expect(
-      container.read(planReadoutStopTagsProvider).map((t) => stop(t.marker)),
-      orderedEquals(ghost.stopLabels.map(stop)),
-    );
   });
 
-  testWidgets('in the Bailout view the phone readouts list the plan\'s stops', (
+  testWidgets('in the Bailout view the phone readouts list the bailout stops', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -181,19 +172,19 @@ void main() {
         .widget<PlanStopList>(find.byType(PlanStopList))
         .tags
         .map((t) => stop(t.marker));
-    // TTS, Deco and CNS above the list describe the loop plan, so the list
-    // does too, not the bailout ascent the chart draws.
+    // As the chart draws it (#4981): the bailout picture's stops, not the
+    // loop plan's.
     expect(
       listed,
       orderedEquals(
-        container.read(planLiveCanvasSeriesProvider).stopLabels.map(stop),
+        container.read(planCanvasSeriesProvider).stopLabels.map(stop),
       ),
     );
     expect(
       listed,
       isNot(
         orderedEquals(
-          container.read(planCanvasSeriesProvider).stopLabels.map(stop),
+          container.read(planLiveCanvasSeriesProvider).stopLabels.map(stop),
         ),
       ),
     );
