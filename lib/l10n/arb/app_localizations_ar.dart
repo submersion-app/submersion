@@ -12994,6 +12994,90 @@ class AppLocalizationsAr extends AppLocalizations {
       'البحث عن الموقع غير متاح. تحقق من الاتصال وحاول مرة أخرى.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'قد تبقى بعض الحقول فارغة: غالبًا لا يعرف OpenStreetMap مسطحًا مائيًا لمسبح أو سينوت أو محجر، ولا بلدة لموقع في عرض البحر.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'تم البحث عن $count موقع غوص آخر من قبل ولم يكن لدى OpenStreetMap المزيد عنها.',
+      many:
+          'تم البحث عن $count موقع غوص آخر من قبل ولم يكن لدى OpenStreetMap المزيد عنها.',
+      few:
+          'تم البحث عن $count مواقع غوص أخرى من قبل ولم يكن لدى OpenStreetMap المزيد عنها.',
+      two:
+          'تم البحث عن موقعي غوص آخرين من قبل ولم يكن لدى OpenStreetMap المزيد عنهما.',
+      one:
+          'تم البحث عن موقع غوص آخر من قبل ولم يكن لدى OpenStreetMap المزيد عنه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'لا يزال $count موقع غوص ينقصها بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنها. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+      many:
+          'لا يزال $count موقع غوص ينقصها بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنها. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+      few:
+          'لا تزال $count مواقع غوص ينقصها بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنها. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+      two:
+          'لا يزال موقعا غوص ينقصهما بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنهما. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+      one:
+          'لا يزال موقع غوص واحد ينقصه بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنه. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count موقع غوص.',
+      many: 'تم تحديث $count موقع غوص.',
+      few: 'تم تحديث $count مواقع غوص.',
+      two: 'تم تحديث موقعي غوص.',
+      one: 'تم تحديث موقع غوص واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لم يكن لدى OpenStreetMap ما يضيفه لـ $count موقع غوص.',
+      many: 'لم يكن لدى OpenStreetMap ما يضيفه لـ $count موقع غوص.',
+      few: 'لم يكن لدى OpenStreetMap ما يضيفه لـ $count مواقع غوص.',
+      two: 'لم يكن لدى OpenStreetMap ما يضيفه لموقعي غوص.',
+      one: 'لم يكن لدى OpenStreetMap ما يضيفه لموقع غوص واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشلت $count عملية بحث.',
+      many: 'فشلت $count عملية بحث.',
+      few: 'فشلت $count عمليات بحث.',
+      two: 'فشل بحثان.',
+      one: 'فشل بحث واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'تحديث أسماء الأماكن';
 
   @override

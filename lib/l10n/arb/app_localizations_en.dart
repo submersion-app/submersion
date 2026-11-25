@@ -12608,6 +12608,69 @@ class AppLocalizationsEn extends AppLocalizations {
       'Location lookup is unavailable. Check your connection and try again.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'Some fields may stay empty: OpenStreetMap often has no body of water for a pool, cenote or quarry, and no town for a site offshore.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count other sites were looked up before and OpenStreetMap had nothing more for them.',
+      one:
+          '1 other site was looked up before and OpenStreetMap had nothing more for it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count sites still have empty location details, but OpenStreetMap had nothing more for them. Moving a site or clearing one of its fields offers it again.',
+      one:
+          '1 site still has empty location details, but OpenStreetMap had nothing more for it. Moving the site or clearing one of its fields offers it again.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated $count sites.',
+      one: 'Updated 1 site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'OpenStreetMap had nothing to add for $count sites.',
+      one: 'OpenStreetMap had nothing to add for 1 site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lookups failed.',
+      one: '1 lookup failed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'Refresh place names';
 
   @override

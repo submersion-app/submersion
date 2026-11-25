@@ -12805,6 +12805,70 @@ class AppLocalizationsEs extends AppLocalizations {
       'La consulta de ubicación no está disponible. Comprueba tu conexión e inténtalo de nuevo.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'Algunos campos pueden quedar vacíos: OpenStreetMap a menudo no tiene masa de agua para una piscina, un cenote o una cantera, ni localidad para un punto en mar abierto.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Otros $count puntos de buceo ya se consultaron y OpenStreetMap no tenía nada más para ellos.',
+      one:
+          'Otro punto de buceo ya se consultó y OpenStreetMap no tenía nada más para él.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count puntos de buceo todavía tienen datos de ubicación vacíos, pero OpenStreetMap no tenía nada más para ellos. Si mueves un punto o vacías uno de sus campos, se volverá a ofrecer.',
+      one:
+          '1 punto de buceo todavía tiene datos de ubicación vacíos, pero OpenStreetMap no tenía nada más para él. Si lo mueves o vacías uno de sus campos, se volverá a ofrecer.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count puntos de buceo actualizados.',
+      one: '1 punto de buceo actualizado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'OpenStreetMap no tenía nada que añadir para $count puntos de buceo.',
+      one: 'OpenStreetMap no tenía nada que añadir para 1 punto de buceo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count consultas fallaron.',
+      one: '1 consulta falló.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames =>
       'Actualizar los nombres de lugares';
 
