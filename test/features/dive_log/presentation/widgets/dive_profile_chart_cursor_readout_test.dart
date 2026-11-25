@@ -394,8 +394,12 @@ void main() {
     // The lead-in vertex is at t=0 and depth 0: the top-left of the plot, not
     // its centre, since this profile descends left to right.
     final plot = tester.getRect(find.byType(LineChart).first);
+    // One pixel inside the plot's left edge, after the depth axis gutter.
     final gesture = await tester.startGesture(
-      Offset(plot.left + 50, plot.top + 15),
+      Offset(
+        plot.left + DiveProfileChart.plotLeftInset(plot.width) + 1,
+        plot.top + 15,
+      ),
     );
     await tester.pump(const Duration(milliseconds: 600));
     await gesture.moveBy(const Offset(1, 0));
