@@ -589,8 +589,8 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
             hostname: NetworkCredentialsService.synologyShareKey(widget.share),
             authType: kSynologyShareAuthType,
             password: password,
-            // TODO(media): l10n
-            displayName: 'Synology Photos share',
+            // No display name: the row is named after its album where one
+            // reads the share, and a stored label would stay in one language.
           );
       if (!mounted) return;
       // The Saved hosts list reads the store once; show the new row.

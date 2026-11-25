@@ -55,8 +55,8 @@ Future<bool> resolveSharePassword(
       hostname: NetworkCredentialsService.synologyShareKey(share),
       authType: kSynologyShareAuthType,
       password: password,
-      // TODO(media): l10n
-      displayName: 'Synology Photos share',
+      // No display name: the row is named after its album where one
+      // reads the share, and a stored label would stay in one language.
     );
     // The Saved hosts list reads the store once; show the new row.
     container.invalidate(savedHostsProvider);
