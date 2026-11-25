@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/brand_typography.dart';
+
 /// The "About Submersion" dialog: Flutter's AboutDialog layout, with the
 /// build date directly under the version (issue #4365).
 ///
@@ -7,7 +9,8 @@ import 'package:flutter/material.dart';
 /// and always sets it 18px below the version; a date placed there read as
 /// detached from the version it describes. This keeps the rest of that
 /// layout as it was, including the space above [children], and puts the date
-/// right under the version in the quieter style the About pane uses.
+/// right under the version in the quieter style the About pane uses. The
+/// name is set in the logo's font (issue #5014).
 class SubmersionAboutDialog extends StatelessWidget {
   const SubmersionAboutDialog({
     super.key,
@@ -51,7 +54,9 @@ class SubmersionAboutDialog extends StatelessWidget {
                     children: [
                       Text(
                         applicationName,
-                        style: theme.textTheme.headlineSmall,
+                        style: BrandTypography.wordmark(
+                          theme.textTheme.headlineSmall,
+                        ),
                       ),
                       Text(
                         applicationVersion,
