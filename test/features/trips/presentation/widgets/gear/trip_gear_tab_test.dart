@@ -438,21 +438,21 @@ void main() {
     expect(find.textContaining('database is locked'), findsNothing);
   });
 
-  testWidgets('a failed read of the bags says so instead of spinning', (
+  testWidgets('a failed read of the bags still shows the gear, loose', (
     tester,
   ) async {
     await pumpTab(
       tester,
       gear: const [
         EquipmentItem(id: 'bag', name: 'Roller bag', type: EquipmentType.bag),
+        bcd,
       ],
       bagError: StateError('database is locked'),
     );
     expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
+    expect(find.text('Roller bag'), findsOneWidget);
+    expect(find.text('Hollis wing'), findsOneWidget);
+    expect(find.text('Something went wrong. Please try again.'), findsNothing);
   });
 
   testWidgets('an owned cylinder\'s service clock reads on its slot and '

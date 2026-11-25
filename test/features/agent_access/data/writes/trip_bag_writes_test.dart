@@ -129,6 +129,13 @@ void main() {
     expect(plan.items, isEmpty);
   });
 
+  test('an empty bag is the same as leaving it out', () async {
+    final plan = await h.preview([
+      update(bags: {'duffel': <String>[]}),
+    ]);
+    expect(plan.items, isEmpty);
+  });
+
   test('gear packed in the same change can go straight into a bag', () async {
     await item('torch', 'light');
     await h.run([

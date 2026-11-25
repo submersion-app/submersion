@@ -57,7 +57,7 @@ class TripWrites extends WritableEntry {
       key: const FieldCodec.integer(min: 1, max: 100000, nullable: true),
     'divers_sharing_cylinders': const FieldCodec.integer(min: 1, max: 100),
     'parent_trip_id': const FieldCodec.reference('trips', nullable: true),
-    'bag_contents': const FieldCodec.idLists(maxItems: 500),
+    'bag_contents': const FieldCodec.idLists(maxItems: 500, dropEmpty: true),
   };
 
   @override

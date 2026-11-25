@@ -73,13 +73,12 @@ class TripGearTab extends ConsumerWidget {
     final assignments = tripPackingBags(gear).isEmpty
         ? const AsyncData(<String, String>{})
         : ref.watch(tripBagAssignmentsProvider(trip.id));
-    final bagIds = assignments.value;
+    // Bags that cannot be read leave the gear loose rather than hiding it.
+    final bagIds =
+        assignments.value ??
+        (assignments.hasError ? const <String, String>{} : null);
     if (bagIds == null) {
-      return Center(
-        child: assignments.hasError
-            ? Text(l10n.common_error_tryAgain)
-            : const CircularProgressIndicator.adaptive(),
-      );
+      return const Center(child: CircularProgressIndicator.adaptive());
     }
     return _buildGear(context, ref, gear: gear, states: states, bagIds: bagIds);
   }
@@ -221,10 +220,13 @@ class TripGearTab extends ConsumerWidget {
       final bagItems = contents[bagIds[item.id]];
       (bagItems ?? loose).add(item);
     }
-    final (packed: nonslottedGear, :unslottedTanks) = splitTripGear(
-      loose,
-      slots,
-    );
+    final nonslottedGear = splitTripGear(loose, slots).packed;
+    // A tank off the board is offered to it wherever it is packed, in a bag
+    // or loose.
+    final unslottedTanks = splitTripGear([
+      for (final item in gear)
+        if (item.type != EquipmentType.bag) item,
+    ], slots).unslottedTanks;
     final slottedIds = {for (final slot in slots) ?slot.equipmentId};
     final packed = [
       ...nonslottedGear,

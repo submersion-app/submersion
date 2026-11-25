@@ -285,7 +285,9 @@ Future<int?> _apply(
       final choice = await pickTripBag(context, bags);
       if (choice == null || !context.mounted) return null;
       bagId = choice.bagId;
-      chosePackingLocation = true;
+      // A tank goes in a bag as packed gear; left loose it goes on the board
+      // only, as with no bag to choose.
+      chosePackingLocation = bagId != null;
     }
     final slotted = {
       for (final s in slots)

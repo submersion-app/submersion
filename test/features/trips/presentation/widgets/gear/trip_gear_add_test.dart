@@ -158,9 +158,29 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Roller bag').last);
     await tester.pumpAndSettle();
+    // In a bag and still off the board, the tank is still offered to it.
+    expect(find.byKey(const Key('trip-gear-putOnBoard-tk')), findsOneWidget);
     await h.save();
 
     expect(h.packs.assigned, [('t1', 'tk', 'bag')]);
+  });
+
+  testWidgets('a tank added with no bag goes on the board only', (
+    tester,
+  ) async {
+    const bag = EquipmentItem(
+      id: 'bag',
+      name: 'Roller bag',
+      type: EquipmentType.bag,
+    );
+    final h = await pumpTab(tester, gear: [bag], active: [tank], editing: true);
+    await openPicker(tester);
+    await tickAndAdd(tester, ['Faber 12']);
+    await tester.tap(find.text('Unassigned'));
+    await tester.pumpAndSettle();
+
+    expect(h.heldPacked, ['bag']);
+    expect([for (final s in h.heldSlots) s.equipmentId], ['tk']);
   });
 
   group('From my equipment picks several (#4205)', () {

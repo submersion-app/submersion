@@ -10,6 +10,9 @@ class TripBagContents {
   final EquipmentItem bag;
   final List<EquipmentItem> items;
 
+  TripBagContents copyWith({EquipmentItem? bag, List<EquipmentItem>? items}) =>
+      TripBagContents(bag: bag ?? this.bag, items: items ?? this.items);
+
   Iterable<EquipmentItem> get _weighed => [bag, ...items];
 
   static double? _weight(EquipmentItem item) {
