@@ -135,6 +135,21 @@ void main() {
     expect(find.text('Afficher tous les animaux'), findsOneWidget);
     expect(find.text('Masquer les étiquettes'), findsOneWidget);
     expect(find.text('Toute la vie'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('at a large text size on a phone the Analyse row wraps', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(360, 640)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await open(tester);
+    expect(find.text('Analyse again'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a mode picked is the one in force', (tester) async {
