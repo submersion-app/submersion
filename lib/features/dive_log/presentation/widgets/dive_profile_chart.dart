@@ -57,6 +57,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor
 import 'package:submersion/features/dive_log/presentation/widgets/partial_pressure_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_metric_labels.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_tick_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_label.dart';
@@ -8149,24 +8150,60 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ),
       );
 
-  /// Get the effective right axis metric using the fallback chain
+  /// The right-axis metric for [preferred]: it while its line is drawn, else
+  /// another drawn line's, else none (issue #5012, see
+  /// [resolveRightAxisMetric]).
   ProfileRightAxisMetric? _getEffectiveRightAxisMetric(
     ProfileRightAxisMetric preferred,
-  ) {
-    // First, check if the preferred metric has data
-    if (_hasDataForMetric(preferred)) {
-      return preferred;
-    }
+  ) => resolveRightAxisMetric(preferred, isDrawn: _isMetricLineDrawn);
 
-    // Fall back through the priority chain
-    for (final fallback in ProfileRightAxisMetric.fallbackPriority) {
-      if (_hasDataForMetric(fallback)) {
-        return fallback;
-      }
-    }
+  /// Whether [metric]'s line is on the chart: toggled on, after
+  /// [DiveProfileChart.depthAndPressureOnly] has had its say, and with data.
+  /// Read from build and from gesture callbacks alike, so it uses the toggles
+  /// [build] synced rather than watching the legend.
+  bool _isMetricLineDrawn(ProfileRightAxisMetric metric) {
+    final toggledOn = switch (metric) {
+      ProfileRightAxisMetric.temperature => _showTemperature,
+      ProfileRightAxisMetric.pressure => _anyTankPressureLineShown,
+      ProfileRightAxisMetric.heartRate => _showHeartRate,
+      ProfileRightAxisMetric.sac => _showSac,
+      ProfileRightAxisMetric.ascentRate => _showAscentRateLine,
+      ProfileRightAxisMetric.ndl => _showNdl,
+      ProfileRightAxisMetric.ppO2 => _showPpO2,
+      ProfileRightAxisMetric.ppN2 => _showPpN2,
+      ProfileRightAxisMetric.ppHe => _showPpHe,
+      ProfileRightAxisMetric.gasDensity => _showDensity,
+      ProfileRightAxisMetric.gf => _showGf,
+      ProfileRightAxisMetric.surfaceGf => _showSurfaceGf,
+      ProfileRightAxisMetric.meanDepth => _showMeanDepth,
+      ProfileRightAxisMetric.tts => _showTts,
+      ProfileRightAxisMetric.cns => _showCns,
+      ProfileRightAxisMetric.otu => _showOtu,
+      // The cells are drawn in one unit at a time; in ppO2 they sit on the
+      // ppO2 scale, not this millivolt one.
+      ProfileRightAxisMetric.o2CellMv =>
+        _showO2Cells && _effectiveO2CellUnit == O2CellUnit.millivolts,
+      ProfileRightAxisMetric.gtr => _showGtr,
+      ProfileRightAxisMetric.buoyancy => _showBuoyancy,
+      ProfileRightAxisMetric.aveloBuoyancy => _showAveloBuoyancy,
+      ProfileRightAxisMetric.aveloGasRemaining => _showAveloGasRemaining,
+      ProfileRightAxisMetric.computerRmv => _showComputerRmv,
+    };
+    return toggledOn && _hasDataForMetric(metric);
+  }
 
-    // No metric has data
-    return null;
+  /// Whether any tank's pressure line is drawn, by the same per-tank and
+  /// per-computer rules [_buildMultiTankPressureLines] draws them by.
+  bool get _anyTankPressureLineShown {
+    final tanks = widget.tankPressures;
+    if (tanks == null) return false;
+    final computerIds = _tankComputerIds();
+    return tanks.entries.any(
+      (tank) =>
+          tank.value.isNotEmpty &&
+          (_showTankPressure[tank.key] ?? _showPressure) &&
+          _isComputerVisible(computerIds[tank.key]),
+    );
   }
 
   /// Memo for the o2CellMv case of [_getMetricRange], keyed by curve-list
