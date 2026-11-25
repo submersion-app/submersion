@@ -395,6 +395,33 @@ void main() {
       expect(result.networkFailed, isFalse);
     });
 
+    test('a request that stalls times out instead of hanging (#4992)', () {
+      fakeAsync((async) {
+        // Built inside the fake zone, so its timers run on the fake clock.
+        LocationService.throttle = NominatimThrottle(minimumGap: Duration.zero);
+        final server = FakeNominatim(
+          body: jsonEncode({
+            'address': {'country': 'Switzerland'},
+          }),
+          hangFor: (uri) => uri.queryParameters['layer'] != 'natural',
+        );
+        PlaceLookup? result;
+        server
+            .run(() => service.reverseGeocode(47.0, 8.4, languageCode: 'en'))
+            .then((r) => result = r);
+
+        async.elapse(
+          LocationService.requestTimeout - const Duration(seconds: 1),
+        );
+        expect(result, isNull, reason: 'still waiting on the address');
+
+        async.elapse(const Duration(seconds: 2));
+        expect(result, isNotNull);
+        expect(result!.addressUnknown, isTrue);
+        expect(result!.country, isNull);
+      });
+    });
+
     test('closes the HttpClient even when the body fails to parse', () async {
       final server = FakeNominatim(body: 'not json');
 

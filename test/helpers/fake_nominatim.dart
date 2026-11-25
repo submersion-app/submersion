@@ -22,6 +22,7 @@ class FakeNominatim {
     this.body = '{}',
     this.bodyFor,
     this.statusFor,
+    this.hangFor,
   });
 
   final int statusCode;
@@ -32,6 +33,10 @@ class FakeNominatim {
 
   /// When set, wins over [statusCode] for the given request.
   final int? Function(Uri uri)? statusFor;
+
+  /// When it answers true, the request is sent but no response ever comes,
+  /// like a connection that stalls after the request goes out.
+  final bool Function(Uri uri)? hangFor;
 
   String bodyForUri(Uri uri) => bodyFor?.call(uri) ?? body;
   int statusForUri(Uri uri) => statusFor?.call(uri) ?? statusCode;
@@ -102,6 +107,9 @@ class FakeHttpClientRequest implements HttpClientRequest {
   @override
   Future<HttpClientResponse> close() async {
     _server.requestHeaders.add((headers as FakeHttpHeaders).values);
+    if (_server.hangFor?.call(uri) ?? false) {
+      return Completer<HttpClientResponse>().future;
+    }
     return FakeHttpClientResponse(
       _server.statusForUri(uri),
       _server.bodyForUri(uri),

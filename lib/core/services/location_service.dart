@@ -514,9 +514,16 @@ class LocationService {
     }
   }
 
+  /// How long one Nominatim request may take, connecting and answering
+  /// alike. A bare `HttpClient` has no timeout, so a connection that stalls
+  /// after the request is sent would hang a bulk lookup on one site, past
+  /// the reach of its Cancel button, which is only checked between sites.
+  static const Duration requestTimeout = Duration(seconds: 20);
+
   /// One Nominatim GET, decoded. Throws [_NominatimStatusException] on a
   /// non-200 status and lets socket errors propagate, so callers can tell
-  /// "offline" and "refused" from "nothing there". The client is closed in a
+  /// "offline" and "refused" from "nothing there"; a request that outlives
+  /// [requestTimeout] throws a [TimeoutException]. The client is closed in a
   /// finally so its sockets are released even when the body or the JSON
   /// decode throws.
   Future<Map<String, dynamic>> _fetchNominatimJson(
@@ -524,16 +531,19 @@ class LocationService {
     String languageCode,
   ) async {
     await throttle.wait();
-    final client = HttpClient();
+    final client = HttpClient()..connectionTimeout = requestTimeout;
     client.userAgent = 'Submersion Dive Log App';
     try {
       final request = await client.getUrl(url);
       request.headers.set('Accept-Language', languageCode);
-      final response = await request.close();
+      final response = await request.close().timeout(requestTimeout);
       if (response.statusCode != 200) {
         throw _NominatimStatusException(response.statusCode);
       }
-      final body = await response.transform(utf8.decoder).join();
+      final body = await response
+          .transform(utf8.decoder)
+          .join()
+          .timeout(requestTimeout);
       return jsonDecode(body) as Map<String, dynamic>;
     } finally {
       client.close();
