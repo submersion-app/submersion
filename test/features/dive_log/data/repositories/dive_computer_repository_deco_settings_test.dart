@@ -115,6 +115,32 @@ void main() {
     },
   );
 
+  // Values the diver set by hand (issue #4909) stay through a re-import, as
+  // they do through a re-parse.
+  test(
+    'a re-import of the primary keeps a gradient factor set by hand',
+    () async {
+      final diveId = await importWith(fromComputer: computerId, forceNew: true);
+      await db.customStatement(
+        "UPDATE dives SET gradient_factor_low = 40, hand_set_fields = "
+        "'[\"gradientFactorLow\"]' WHERE id = ?",
+        [diveId],
+      );
+      await repository.clearSourceAndProfiles(
+        diveId: diveId,
+        computerId: computerId,
+      );
+
+      final reimportedId = await importWith(fromComputer: computerId);
+
+      expect(reimportedId, diveId);
+      final dive = await storedDive(diveId);
+      expect(dive.gradientFactorLow, 40);
+      expect(dive.gradientFactorHigh, 70);
+      expect(dive.handSetFields, '["gradientFactorLow"]');
+    },
+  );
+
   test('a download taking the primary role from a UDDF source keeps the deco '
       'settings that source stored when it reports none', () async {
     // A UDDF import writes the dive with its settings and a summary-only

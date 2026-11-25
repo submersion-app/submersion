@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
@@ -44,21 +46,107 @@ class IdentificationCleanup {
 
   /// Identifications whose media row is gone, with their crops and
   /// embeddings: deletions applied by sync, and deletes held for undo that
-  /// were never undone. Returns how many media items were cleared.
+  /// were never undone. Then the crop files and embeddings of single
+  /// identifications a peer deleted that sync's hook missed (issue #4890).
+  /// Returns how many media items were cleared.
   ///
   /// Removed here only, never tombstoned (issue #4876): every device sweeps
   /// its own copies, and a tombstone from a sweep that saw a delete still
   /// held for undo would outrank the undo's republish on every device.
   Future<int> sweepOrphans() async {
+    var cleared = 0;
     try {
       final orphans = await _identifications.orphanMediaIds(
         deviceId: await _deviceId(),
       );
       if (orphans.isNotEmpty) await _purge(orphans, publish: false);
-      return orphans.length;
+      cleared = orphans.length;
     } on Object catch (e) {
       _log.debug('Could not sweep orphaned identifications', error: e);
-      return 0;
+    }
+    try {
+      await _sweepDeletedLeftovers();
+    } on Object catch (e) {
+      _log.debug('Could not sweep deleted identifications\' crops', error: e);
+    }
+    return cleared;
+  }
+
+  /// From sync, once an apply has ended: [deleted] are identifications a
+  /// peer's tombstones deleted here (issue #4890), say a newer model run on
+  /// another device replacing this one's. Their crop files and embeddings
+  /// stay on this device unless removed here. Only ids whose row is gone
+  /// are: the apply may have rolled back. No tombstone is asked for, since
+  /// sync saw each row here, and its delete can commit with the log of its
+  /// tombstone failed. Never throws; the launch sweep picks up what is
+  /// left.
+  Future<void> onDeletedBySync(
+    List<({String mediaId, String id})> deleted,
+  ) async {
+    if (deleted.isEmpty) return;
+    try {
+      final gone = await _identifications.goneAmong([
+        for (final d in deleted) d.id,
+      ]);
+      final byMedia = deleted
+          .where((d) => gone.contains(d.id))
+          .groupListsBy((d) => d.mediaId);
+      await _removeLeftovers({
+        for (final MapEntry(key: mediaId, value: rows) in byMedia.entries)
+          mediaId: [for (final d in rows) d.id],
+      });
+    } on Object catch (e) {
+      _log.debug(
+        'Could not remove what deleted identifications left',
+        error: e,
+      );
+    }
+  }
+
+  /// The crop files and embeddings of identifications this logbook has
+  /// deleted (issue #4890): what a sync's hook missed, by a crash or a
+  /// failure. The crops folder is shared by every logbook on the device, so
+  /// only files of this logbook's photos whose id it holds a tombstone
+  /// for, and only while the sync keeps that tombstone: at least 30 days,
+  /// and until every peer has acknowledged it. A restored copy of this
+  /// logbook shares its photos and ids, and is treated as this logbook, as
+  /// every delete of a crop here is.
+  /// Embeddings with no file behind them are left to the local cache
+  /// sweep.
+  Future<void> _sweepDeletedLeftovers() async {
+    final onDisk = await _crops.fileIds();
+    if (onDisk.isEmpty) return;
+    // Only this logbook's photos: sync logs a peer's tombstone even for an
+    // identification that was never here (issue #4890).
+    final here = await _identifications.mediaHereAmong(onDisk.keys);
+    final files = {
+      for (final MapEntry(key: mediaId, value: ids) in onDisk.entries)
+        if (here.contains(mediaId)) mediaId: ids,
+    };
+    if (files.isEmpty) return;
+    final gone = await _identifications.deletedAmong(
+      files.values.expand((ids) => ids),
+    );
+    if (gone.isEmpty) return;
+    await _removeLeftovers({
+      for (final MapEntry(key: mediaId, value: ids) in files.entries)
+        if (ids.any(gone.contains))
+          mediaId: [
+            for (final id in ids)
+              if (gone.contains(id)) id,
+          ],
+    });
+  }
+
+  /// Files first, then the embeddings, which no sync carries either.
+  Future<void> _removeLeftovers(Map<String, List<String>> byMedia) async {
+    if (byMedia.isEmpty) return;
+    try {
+      for (final MapEntry(key: mediaId, value: ids) in byMedia.entries) {
+        await _crops.deleteFiles(mediaId, ids);
+      }
+    } finally {
+      await _embeddings.delete([for (final ids in byMedia.values) ...ids]);
     }
   }
 

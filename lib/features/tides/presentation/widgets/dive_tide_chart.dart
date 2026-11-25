@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/text/join_sentences.dart';
 import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/number_display.dart';
@@ -85,21 +86,24 @@ class DiveTideChart extends StatelessWidget {
 
     final summary = window.extremes.isEmpty
         ? l10n.tides_noExtremesData
-        : window.extremes
-              .map(
-                (extreme) => l10n.tides_semantic_extremeItem(
-                  extreme.type == TideExtremeType.high
-                      ? l10n.tides_label_high
-                      : l10n.tides_label_low,
-                  timeOf(extreme.time),
-                  formatFixedForDisplay(
-                    DepthUnit.meters.convert(extreme.heightMeters, depthUnit),
-                    1,
+        : joinSentences(
+            window.extremes
+                .map(
+                  (extreme) => l10n.tides_semantic_extremeItem(
+                    extreme.type == TideExtremeType.high
+                        ? l10n.tides_label_high
+                        : l10n.tides_label_low,
+                    timeOf(extreme.time),
+                    formatFixedForDisplay(
+                      DepthUnit.meters.convert(extreme.heightMeters, depthUnit),
+                      1,
+                    ),
+                    depthUnit.symbol,
                   ),
-                  depthUnit.symbol,
-                ),
-              )
-              .join('. ');
+                )
+                .toList(),
+            l10n.localeName,
+          );
 
     return Semantics(
       label: l10n.tides_semantic_tideChart(summary),

@@ -24,6 +24,7 @@ abstract final class PlaceNameLanguage {
     'ar',
     'he',
     'zh',
+    'ja',
   ];
 
   /// A supported code, or [defaultCode] for anything else: null, blank, or a

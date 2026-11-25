@@ -67,7 +67,7 @@ class CertificationCurrencyRepository {
             id: Value(id),
             diverId: Value(rule.diverId),
             name: Value(rule.name),
-            clockKind: Value(rule.clockKind.name),
+            clockKind: Value(rule.clockKindJson),
             applicableAgencies: Value(rule.agenciesJson),
             applicableLevels: Value(rule.levelsJson),
             lapseDays: Value(rule.lapseDays),
@@ -101,24 +101,84 @@ class CertificationCurrencyRepository {
       throw StateError('Built-in currency rules cannot be edited');
     }
     final nowMs = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(
-      _db.certificationCurrencyRules,
-    )..where((t) => t.id.equals(rule.id) & t.isBuiltIn.equals(false))).write(
-      CertificationCurrencyRulesCompanion(
-        diverId: Value(rule.diverId),
-        name: Value(rule.name),
-        clockKind: Value(rule.clockKind.name),
-        applicableAgencies: Value(rule.agenciesJson),
-        applicableLevels: Value(rule.levelsJson),
-        lapseDays: Value(rule.lapseDays),
-        leadDays: Value(rule.leadDays),
-        countedDiveTypeIds: Value(rule.diveTypesJson),
-        countedDiveModes: Value(rule.diveModesJson),
-        advisoryText: Value(rule.advisoryText),
-        supersedesRuleId: Value(rule.supersedesRuleId),
-        updatedAt: Value(nowMs),
-      ),
-    );
+    // One transaction, so a sync apply between the read and the write
+    // cannot be overwritten with the scope read before it.
+    await _db.transaction(() async {
+      final stored = await (_db.select(
+        _db.certificationCurrencyRules,
+      )..where((t) => t.id.equals(rule.id))).getSingleOrNull();
+      // A scope the edit leaves alone is written back as stored, readable or
+      // not (issue #4942).
+      String scope(
+        String Function(CurrencyRuleRow row) column,
+        String next,
+        List<String> Function(String raw) names,
+      ) => CurrencyScopeCodec.keepIfUnchanged(
+        stored: stored == null ? null : column(stored),
+        next: next,
+        names: names,
+      );
+      // The dive types and modes are one mapping, kept as stored only when
+      // neither half changed. A change of clock is a change to it too: the
+      // dialog shows and saves the mapping for the new clock (empty for a
+      // date clock, which never reads it), so it is written as given. That
+      // lets a rule whose mapping this build cannot read be repaired by
+      // changing its clock either way. A rule that keeps its clock keeps its
+      // stored mapping like any other unchanged column.
+      final clockChanged =
+          stored != null &&
+          CurrencyClockKind.parse(stored.clockKind) != rule.clockKind;
+      // "As given" is the lists themselves: the JSON getters would hand back
+      // a rule's own stored arrays while the lists decode the same.
+      final mapping = clockChanged
+          ? rule.encodedMapping
+          : CurrencyScopeCodec.keepMappingIfUnchanged(
+              stored: stored == null
+                  ? null
+                  : (
+                      types: stored.countedDiveTypeIds,
+                      modes: stored.countedDiveModes,
+                    ),
+              next: (types: rule.diveTypesJson, modes: rule.diveModesJson),
+            );
+      // A clock kind this build does not know reads as activity; an edit
+      // that leaves the clock alone writes the stored kind back.
+      final clockKind =
+          stored != null &&
+              CurrencyClockKind.parse(stored.clockKind) == rule.clockKind
+          ? stored.clockKind
+          : rule.clockKind.name;
+      await (_db.update(
+        _db.certificationCurrencyRules,
+      )..where((t) => t.id.equals(rule.id) & t.isBuiltIn.equals(false))).write(
+        CertificationCurrencyRulesCompanion(
+          diverId: Value(rule.diverId),
+          name: Value(rule.name),
+          clockKind: Value(clockKind),
+          applicableAgencies: Value(
+            scope(
+              (r) => r.applicableAgencies,
+              rule.agenciesJson,
+              CurrencyScopeCodec.agencyNames,
+            ),
+          ),
+          applicableLevels: Value(
+            scope(
+              (r) => r.applicableLevels,
+              rule.levelsJson,
+              CurrencyScopeCodec.levelNames,
+            ),
+          ),
+          lapseDays: Value(rule.lapseDays),
+          leadDays: Value(rule.leadDays),
+          countedDiveTypeIds: Value(mapping.types!),
+          countedDiveModes: Value(mapping.modes!),
+          advisoryText: Value(rule.advisoryText),
+          supersedesRuleId: Value(rule.supersedesRuleId),
+          updatedAt: Value(nowMs),
+        ),
+      );
+    });
     await _syncRepository.markRecordPending(
       entityType: rulesEntity,
       recordId: rule.id,
@@ -162,56 +222,81 @@ class CertificationCurrencyRepository {
   /// Writes [pref] by full value, inserting or replacing the row with its
   /// id. A null field is written as null, which is how a pref goes back to
   /// inheriting the rule.
-  Future<CurrencyPref> upsertPref(CurrencyPref pref) async {
+  ///
+  /// The dive-type and dive-mode mapping is one answer to "which dives
+  /// count". A save that leaves both halves' values alone writes them back
+  /// as stored, readable or not, so a mute toggle cannot turn a mapping this
+  /// build cannot read into "any dive"; a save that changes either writes
+  /// both as given (issue #4942). Pass [mappingEdited] when the diver set
+  /// the mapping: over a stored mapping this build cannot read, what they
+  /// chose is written even when it decodes to the same values.
+  Future<CurrencyPref> upsertPref(
+    CurrencyPref pref, {
+    bool mappingEdited = false,
+  }) async {
     final id = pref.id.isEmpty ? _uuid.v4() : pref.id;
     final now = DateTime.now();
     final nowMs = now.millisecondsSinceEpoch;
-    final existing = await (_db.select(
-      _db.certificationCurrencyPrefs,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
-    final createdAtMs = existing?.createdAt ?? nowMs;
-    await _db
-        .into(_db.certificationCurrencyPrefs)
-        .insertOnConflictUpdate(
-          CertificationCurrencyPrefsCompanion(
-            id: Value(id),
-            certificationId: Value(pref.certificationId),
-            ruleId: Value(pref.ruleId),
-            lapseDaysOverride: Value(pref.lapseDaysOverride),
-            leadDaysOverride: Value(pref.leadDaysOverride),
-            countedDiveTypeIds: Value(
-              pref.countedDiveTypeIds == null
-                  ? null
-                  : CurrencyScopeCodec.encode(pref.countedDiveTypeIds!),
+    // One transaction, so a sync apply between the read and the write
+    // cannot be overwritten with the mapping read before it.
+    final written = await _db.transaction(() async {
+      final existing = await (_db.select(
+        _db.certificationCurrencyPrefs,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      final createdAtMs = existing?.createdAt ?? nowMs;
+      final stored = existing == null
+          ? null
+          : (
+              types: existing.countedDiveTypeIds,
+              modes: existing.countedDiveModes,
+            );
+      // What the diver set is the lists themselves: the pref's mappingJson
+      // would hand back its own stored arrays while the lists decode the
+      // same.
+      final mapping =
+          mappingEdited &&
+              stored != null &&
+              !CurrencyScopeCodec.isReadableMapping(stored)
+          ? pref.encodedMapping
+          : CurrencyScopeCodec.keepMappingIfUnchanged(
+              stored: stored,
+              next: pref.mappingJson,
+            );
+      await _db
+          .into(_db.certificationCurrencyPrefs)
+          .insertOnConflictUpdate(
+            CertificationCurrencyPrefsCompanion(
+              id: Value(id),
+              certificationId: Value(pref.certificationId),
+              ruleId: Value(pref.ruleId),
+              lapseDaysOverride: Value(pref.lapseDaysOverride),
+              leadDaysOverride: Value(pref.leadDaysOverride),
+              countedDiveTypeIds: Value(mapping.types),
+              countedDiveModes: Value(mapping.modes),
+              muted: Value(pref.muted),
+              createdAt: Value(createdAtMs),
+              updatedAt: Value(nowMs),
             ),
-            countedDiveModes: Value(
-              pref.countedDiveModes == null
-                  ? null
-                  : CurrencyScopeCodec.encode([
-                      for (final m in pref.countedDiveModes!) m.name,
-                    ]),
-            ),
-            muted: Value(pref.muted),
-            createdAt: Value(createdAtMs),
-            updatedAt: Value(nowMs),
-          ),
-        );
+          );
+      return (createdAtMs: createdAtMs, mapping: mapping);
+    });
     await _syncRepository.markRecordPending(
       entityType: prefsEntity,
       recordId: id,
       localUpdatedAt: nowMs,
     );
     SyncEventBus.notifyLocalChange();
-    return CurrencyPref(
+    // The pref as written, so a caller reading it sees a kept mapping this
+    // build cannot read as such, not as the "any dive" it decodes to.
+    return _prefOf(
       id: id,
       certificationId: pref.certificationId,
       ruleId: pref.ruleId,
       lapseDaysOverride: pref.lapseDaysOverride,
       leadDaysOverride: pref.leadDaysOverride,
-      countedDiveTypeIds: pref.countedDiveTypeIds,
-      countedDiveModes: pref.countedDiveModes,
+      mapping: written.mapping,
       muted: pref.muted,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(createdAtMs),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(written.createdAtMs),
       updatedAt: now,
     );
   }
@@ -328,25 +413,58 @@ class CertificationCurrencyRepository {
         !CurrencyScopeCodec.isReadableLevels(row.applicableLevels) ||
         !CurrencyScopeCodec.isReadableStrings(row.countedDiveTypeIds) ||
         !CurrencyScopeCodec.isReadableModes(row.countedDiveModes),
+    storedClockKind: row.clockKind,
+    storedScope: (
+      agencies: row.applicableAgencies,
+      levels: row.applicableLevels,
+      types: row.countedDiveTypeIds,
+      modes: row.countedDiveModes,
+    ),
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
   );
 
-  CurrencyPref _mapPref(CurrencyPrefRow row) => CurrencyPref(
+  CurrencyPref _mapPref(CurrencyPrefRow row) => _prefOf(
     id: row.id,
     certificationId: row.certificationId,
     ruleId: row.ruleId,
     lapseDaysOverride: row.lapseDaysOverride,
     leadDaysOverride: row.leadDaysOverride,
-    countedDiveTypeIds: row.countedDiveTypeIds == null
-        ? null
-        : CurrencyScopeCodec.decodeStrings(row.countedDiveTypeIds!),
-    countedDiveModes: row.countedDiveModes == null
-        ? null
-        : CurrencyScopeCodec.decodeModes(row.countedDiveModes!),
+    mapping: (types: row.countedDiveTypeIds, modes: row.countedDiveModes),
     muted: row.muted,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+  );
+
+  /// A pref holding [mapping] as stored: decoded, flagged when this build
+  /// cannot read it, and carried raw so a save or backup keeps it.
+  static CurrencyPref _prefOf({
+    required String id,
+    required String certificationId,
+    required String ruleId,
+    required int? lapseDaysOverride,
+    required int? leadDaysOverride,
+    required CurrencyMappingJson mapping,
+    required bool muted,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) => CurrencyPref(
+    id: id,
+    certificationId: certificationId,
+    ruleId: ruleId,
+    lapseDaysOverride: lapseDaysOverride,
+    leadDaysOverride: leadDaysOverride,
+    countedDiveTypeIds: mapping.types == null
+        ? null
+        : CurrencyScopeCodec.decodeStrings(mapping.types!),
+    countedDiveModes: mapping.modes == null
+        ? null
+        : CurrencyScopeCodec.decodeModes(mapping.modes!),
+    unreadableMapping: !CurrencyScopeCodec.isReadableMapping(mapping),
+    storedMapping: mapping,
+    muted: muted,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
   );
 
   CurrencyEvent _mapEvent(CurrencyEventRow row) => CurrencyEvent(

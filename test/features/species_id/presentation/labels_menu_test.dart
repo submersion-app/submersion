@@ -10,6 +10,7 @@ import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/labels_menu.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
@@ -149,7 +150,7 @@ void main() {
       'from the start', (tester) async {
     await open(tester, state: MediaAnalysisState.partial, found: 0);
     expect(find.text('Analyse'), findsOneWidget);
-    expect(find.text('Nothing found'), findsOneWidget);
+    expect(find.text('Partly analysed, nothing found'), findsOneWidget);
     await tester.tap(entry('analyse'));
     await tester.pumpAndSettle();
     expect(service.byHand, [true]);
@@ -170,6 +171,19 @@ void main() {
       tester.widget<PopupMenuItem<Object>>(entry('analyse')).enabled,
       isFalse,
     );
+  });
+
+  testWidgets('part analysed, the status says so with what was found '
+      '(issue #4958)', (tester) async {
+    await open(tester, state: MediaAnalysisState.partial, found: 3);
+    expect(find.text('Partly analysed, 3 found'), findsOneWidget);
+  });
+
+  testWidgets('out of date, the status says what was found, not that it '
+      'stopped part way (issue #4958)', (tester) async {
+    await open(tester, state: MediaAnalysisState.outdated, found: 3);
+    expect(find.text('3 found'), findsOneWidget);
+    expect(find.text('Analyse'), findsOneWidget);
   });
 
   testWidgets('with no model the status says so and the action waits', (
@@ -243,15 +257,32 @@ void main() {
 
   group('the toolbar action', () {
     /// What the toolbar's labels action is on [item].
-    Future<({bool offered, bool on, ToolbarRing? ring})> action(
+    Future<
+      ({
+        bool offered,
+        bool on,
+        ToolbarRing? ring,
+        ToolbarTone? tone,
+        String? label,
+      })
+    >
+    action(
       WidgetTester tester,
       MediaItem item, {
       bool busy = false,
       double? progress,
       LabelMode mode = LabelMode.names,
+      MediaAnalysisState state = MediaAnalysisState.analysed,
     }) async {
       final overrides = await getBaseOverrides();
-      ({bool offered, bool on, ToolbarRing? ring})? result;
+      ({
+        bool offered,
+        bool on,
+        ToolbarRing? ring,
+        ToolbarTone? tone,
+        String? label,
+      })?
+      result;
       await tester.pumpWidget(
         testApp(
           overrides: [
@@ -262,9 +293,7 @@ void main() {
             ),
             mediaAnalysisStatusProvider(
               AnalysisTarget(item, null),
-            ).overrideWith(
-              (ref) async => (state: MediaAnalysisState.analysed, found: 0),
-            ),
+            ).overrideWith((ref) async => (state: state, found: 0)),
             mediaIdentificationBusyProvider(
               item.id,
             ).overrideWith((ref) => Stream.value(busy)),
@@ -275,10 +304,15 @@ void main() {
           child: Consumer(
             builder: (context, ref, _) {
               final labels = marineLifeLabelsAction(ref, item, null);
+              final status = labels.status;
               result = (
                 offered: labels.onPressed != null,
                 on: labels.on,
                 ring: labels.ring,
+                tone: labels.tone,
+                label: status == null
+                    ? null
+                    : labelsButtonLabel(context.l10n, status),
               );
               return const SizedBox.shrink();
             },
@@ -321,18 +355,123 @@ void main() {
       expect(ring!.value, isNull);
     });
 
-    for (final (mode, tinted) in [
+    // On draws a fish, off a struck fish (issue #4926).
+    for (final (mode, on) in [
       (LabelMode.names, true),
       (LabelMode.allLife, true),
       (LabelMode.off, false),
     ]) {
-      testWidgets('tints the icon in ${mode.name}: $tinted', (tester) async {
+      testWidgets('reads labels as on in ${mode.name}: $on', (tester) async {
         expect(
           (await action(tester, testMediaItem(id: 'p1'), mode: mode)).on,
-          tinted,
+          on,
         );
       });
     }
+
+    // Its colour says how far analysis has got (issue #4926).
+    for (final (state, tone) in [
+      (MediaAnalysisState.notAnalysed, null),
+      (MediaAnalysisState.noModel, null),
+      (MediaAnalysisState.partial, ToolbarTone.warn),
+      (MediaAnalysisState.outdated, ToolbarTone.warn),
+      (MediaAnalysisState.analysed, ToolbarTone.ok),
+      (MediaAnalysisState.foundNoModel, ToolbarTone.ok),
+      (MediaAnalysisState.partFoundNoModel, ToolbarTone.warn),
+    ]) {
+      testWidgets('colours the icon for ${state.name}: ${tone?.name}', (
+        tester,
+      ) async {
+        expect(
+          (await action(tester, testMediaItem(id: 'p1'), state: state)).tone,
+          tone,
+        );
+      });
+    }
+
+    // Its tooltip says what the colour means (issue #4958).
+    for (final (state, label) in [
+      (MediaAnalysisState.notAnalysed, 'Species labels: not analysed'),
+      (MediaAnalysisState.noModel, 'Species labels: not analysed'),
+      (MediaAnalysisState.partial, 'Species labels: partly analysed'),
+      (MediaAnalysisState.outdated, 'Species labels: out of date'),
+      (MediaAnalysisState.analysed, 'Species labels: analysed'),
+      (MediaAnalysisState.foundNoModel, 'Species labels: analysed'),
+      (MediaAnalysisState.partFoundNoModel, 'Species labels: partly analysed'),
+    ]) {
+      testWidgets('names the state for ${state.name}: $label', (tester) async {
+        expect(
+          (await action(tester, testMediaItem(id: 'p1'), state: state)).label,
+          label,
+        );
+      });
+    }
+
+    testWidgets('names the state as analysing while it is analysed', (
+      tester,
+    ) async {
+      expect(
+        (await action(
+          tester,
+          testMediaItem(id: 'p1'),
+          busy: true,
+          state: MediaAnalysisState.partial,
+        )).label,
+        'Species labels: analysing',
+      );
+    });
+
+    testWidgets('colours the icon as under way while it is analysed', (
+      tester,
+    ) async {
+      expect(
+        (await action(
+          tester,
+          testMediaItem(id: 'p1'),
+          busy: true,
+          state: MediaAnalysisState.notAnalysed,
+        )).tone,
+        ToolbarTone.active,
+      );
+    });
+
+    testWidgets('changes colour when the status does', (tester) async {
+      final item = testMediaItem(id: 'p1');
+      final status = mediaAnalysisStatusProvider(AnalysisTarget(item, null));
+      var stored = MediaAnalysisState.notAnalysed;
+      ToolbarTone? tone;
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            mediaIdentificationServiceProvider.overrideWithValue(service),
+            status.overrideWith((ref) async => (state: stored, found: 0)),
+            mediaIdentificationBusyProvider(
+              item.id,
+            ).overrideWith((ref) => Stream.value(false)),
+            mediaIdentificationProgressProvider(
+              item.id,
+            ).overrideWith((ref) => Stream.value(null)),
+          ],
+          child: Consumer(
+            key: const ValueKey('labels_action_host'),
+            builder: (context, ref, _) {
+              tone = marineLifeLabelsAction(ref, item, null).tone;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tone, isNull);
+      stored = MediaAnalysisState.analysed;
+      ProviderScope.containerOf(
+        tester.element(find.byKey(const ValueKey('labels_action_host'))),
+      ).invalidate(status);
+      await tester.pumpAndSettle();
+      expect(tone, ToolbarTone.ok);
+    });
 
     testWidgets('is offered on a photo', (tester) async {
       expect(await offered(tester, testMediaItem(id: 'p1')), isTrue);

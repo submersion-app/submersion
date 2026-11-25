@@ -15,6 +15,7 @@ class UnrecognizedBackup {
     required this.modified,
     required this.ownership,
     this.note,
+    this.inAppPrivateFolder = false,
   });
 
   final String path;
@@ -25,18 +26,30 @@ class UnrecognizedBackup {
   /// The note stamped into the file, when it is a readable plaintext backup.
   final String? note;
 
+  /// Whether the file was listed from a folder only this app can write to.
+  ///
+  /// See `BackupsFolder.isAppPrivate`.
+  final bool inAppPrivateFolder;
+
   String get filename => p.basename(path);
 
-  /// Only a file this device provably wrote may be deleted.
+  /// Whether the file is not provably this device's own.
+  bool get isForeign => ownership != BackupOwnership.thisDevice;
+
+  /// A file this device provably wrote may be deleted, and so may anything in
+  /// a folder private to this app.
   ///
-  /// A file from another device may be its only copy, and an unattributed one
-  /// predates attribution entirely, so neither can be told apart from a
-  /// forgotten local backup by anything but its name.
-  bool get isReclaimable => ownership == BackupOwnership.thisDevice;
+  /// In a folder that may be shared, a file from another device may be its only
+  /// copy, and an unattributed one predates attribution entirely, so neither
+  /// can be told apart from a forgotten local backup by anything but its name.
+  /// In the app-private default folder no other device can have written it,
+  /// and nothing but this page can ever remove it (issue #4973).
+  bool get isReclaimable => !isForeign || inAppPrivateFolder;
 }
 
 /// Finds backup files the history has lost track of, and reclaims the ones
-/// that are provably this device's.
+/// that are provably this device's, or any of them in a folder private to
+/// this app.
 ///
 /// `pruneOldBackups` and the pre-migration prune both work off the
 /// SharedPreferences history, and `getValidatedBackupHistory` drops records
@@ -56,10 +69,12 @@ class OrphanedBackupScan {
     required Future<Set<String>> Function() knownPaths,
     required Future<String> Function() thisDeviceId,
     Future<String?> Function(String path) readNote = readBackupNote,
+    bool appPrivateFolder = false,
   }) : _backupsDirectory = backupsDirectory,
        _knownPaths = knownPaths,
        _thisDeviceId = thisDeviceId,
-       _readNote = readNote;
+       _readNote = readNote,
+       _appPrivateFolder = appPrivateFolder;
 
   /// Null when the location cannot be enumerated: an Android SAF location is a
   /// content:// tree URI with no Directory behind it.
@@ -69,6 +84,10 @@ class OrphanedBackupScan {
 
   /// Reads a file's embedded note; never throws (see [readBackupNote]).
   final Future<String?> Function(String path) _readNote;
+
+  /// Whether the directory is private to this app, so that no other device can
+  /// have written into it. Lifts the ownership restriction, never the others.
+  final bool _appPrivateFolder;
   final _log = LoggerService.forClass(OrphanedBackupScan);
 
   static const String _prefix = 'submersion_backup_';
@@ -80,7 +99,7 @@ class OrphanedBackupScan {
     final directory = Directory(directoryPath);
     if (!await directory.exists()) return const [];
 
-    final known = await _knownPaths();
+    final known = _KnownBackups(await _knownPaths());
     final deviceId = await _thisDeviceId();
     final found = <UnrecognizedBackup>[];
 
@@ -88,7 +107,7 @@ class OrphanedBackupScan {
       if (entity is! File) continue;
       final name = p.basename(entity.path);
       if (!_isBackupFile(name)) continue;
-      if (known.contains(entity.path)) continue;
+      if (known.covers(entity.path)) continue;
 
       try {
         final stat = await entity.stat();
@@ -102,6 +121,7 @@ class OrphanedBackupScan {
               thisDeviceId: deviceId,
             ),
             note: await _readNote(entity.path),
+            inAppPrivateFolder: _appPrivateFolder,
           ),
         );
       } on FileSystemException {
@@ -115,8 +135,10 @@ class OrphanedBackupScan {
 
   /// Deletes the reclaimable entries in [candidates], returning bytes freed.
   ///
-  /// Decides for itself which entries it may delete, from the filename and the
-  /// live device id, rather than reading [UnrecognizedBackup.isReclaimable].
+  /// Decides for itself which entries it may delete, from the filename, the
+  /// live device id, a fresh read of the history and whether this scan's own
+  /// folder is private to the app, rather than reading
+  /// [UnrecognizedBackup.isReclaimable].
   /// That field was computed when the directory was listed, so re-reading it
   /// would only re-consult this class's own earlier answer: it cannot catch a
   /// caller that built an entry some other way, and it cannot notice the device
@@ -142,10 +164,15 @@ class OrphanedBackupScan {
     if (directoryPath == null) return 0;
     final directory = p.canonicalize(directoryPath);
     final deviceId = await _thisDeviceId();
+    // Re-read, like the device id: a selection built before a backup finished
+    // recording its file can name that file, and once the history holds it the
+    // file is no longer forgotten, whatever the listing said.
+    final known = _KnownBackups(await _knownPaths());
 
     var bytes = 0;
     for (final candidate in candidates) {
-      if (!_mayDelete(candidate.path, directory, deviceId)) {
+      if (known.covers(candidate.path) ||
+          !_mayDelete(candidate.path, directory, deviceId)) {
         _log.warning('Refused to reclaim ${candidate.filename}');
         continue;
       }
@@ -164,11 +191,18 @@ class OrphanedBackupScan {
     return bytes;
   }
 
-  /// Whether [path] is a backup in [directory] that this device wrote.
-  static bool _mayDelete(String path, String directory, String deviceId) {
+  /// Whether [path] is a backup in [directory] that this device wrote, or any
+  /// backup there when [directory] is private to this app.
+  ///
+  /// The privacy comes from this scan's own folder, not from
+  /// [UnrecognizedBackup.inAppPrivateFolder], for the same reason the device id
+  /// is re-read: an entry listed from the private default folder must not keep
+  /// its permission once the diver has pointed backups at a shared one.
+  bool _mayDelete(String path, String directory, String deviceId) {
     final name = p.basename(path);
     if (!_isBackupFile(name)) return false;
     if (p.canonicalize(p.dirname(path)) != directory) return false;
+    if (_appPrivateFolder) return true;
     return classifyBackupFile(filename: name, thisDeviceId: deviceId) ==
         BackupOwnership.thisDevice;
   }
@@ -186,4 +220,34 @@ class OrphanedBackupScan {
     final extension = p.extension(name);
     return extension == '.db' || extension == BackupCrypto.fileExtension;
   }
+}
+
+/// The backups the history accounts for, matched by full path or by name.
+///
+/// A recorded path is absolute, and an absolute path into the app's own
+/// storage is not stable: iOS moves the app's container (and so every path
+/// into it) across updates and restores, while the files move with it. A
+/// record left holding the old path still describes the file at the new one,
+/// and matching on the full path alone would list that file as forgotten. In
+/// the app-private folder, where ownership no longer guards a delete, it would
+/// then be offered for deletion although the history still records it.
+///
+/// `BackupService.getValidatedBackupHistory` repoints such a record to the
+/// moved file rather than pruning it, but only once the Backups page loads.
+/// Until then the raw history still holds the old path, and this name match
+/// is what keeps the file accounted for.
+///
+/// A backup name carries its timestamp and device tag, so a name match is the
+/// same backup. Matching on it too can only make the scan list, and reclaim
+/// delete, fewer files.
+class _KnownBackups {
+  _KnownBackups(Set<String> paths)
+    : _paths = paths,
+      _names = {for (final path in paths) p.basename(path)};
+
+  final Set<String> _paths;
+  final Set<String> _names;
+
+  bool covers(String path) =>
+      _paths.contains(path) || _names.contains(p.basename(path));
 }

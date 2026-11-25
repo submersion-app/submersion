@@ -13,6 +13,7 @@ import 'app_localizations_fr.dart';
 import 'app_localizations_he.dart';
 import 'app_localizations_hu.dart';
 import 'app_localizations_it.dart';
+import 'app_localizations_ja.dart';
 import 'app_localizations_nl.dart';
 import 'app_localizations_pt.dart';
 import 'app_localizations_zh.dart';
@@ -111,6 +112,7 @@ abstract class AppLocalizations {
     Locale('he'),
     Locale('hu'),
     Locale('it'),
+    Locale('ja'),
     Locale('nl'),
     Locale('pt'),
     Locale('zh'),
@@ -7886,6 +7888,12 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get checklists_template_descriptionLabel;
 
+  /// Message shown when a checklist template opened for editing has been deleted, as the editor opens or at Save.
+  ///
+  /// In en, this message translates to:
+  /// **'This template no longer exists.'**
+  String get checklists_template_edit_notFound;
+
   /// No description provided for @checklists_template_itemsHeader.
   ///
   /// In en, this message translates to:
@@ -8041,6 +8049,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a name'**
   String get preDive_edit_nameRequired;
+
+  /// Message shown when a pre-dive checklist template opened for editing has been deleted, as the editor opens or at Save.
+  ///
+  /// In en, this message translates to:
+  /// **'This checklist no longer exists.'**
+  String get preDive_edit_notFound;
 
   /// No description provided for @preDive_item_title.
   ///
@@ -21860,6 +21874,12 @@ abstract class AppLocalizations {
   /// **'Name *'**
   String get divers_edit_nameLabel;
 
+  /// No description provided for @divers_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This diver no longer exists.'**
+  String get divers_edit_notFound;
+
   /// No description provided for @divers_edit_notesLabel.
   ///
   /// In en, this message translates to:
@@ -26076,6 +26096,12 @@ abstract class AppLocalizations {
   /// **'Cylinder configurations'**
   String get cylinderConfigs_title;
 
+  /// No description provided for @cylinderConfigs_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This configuration no longer exists.'**
+  String get cylinderConfigs_edit_notFound;
+
   /// No description provided for @cylinderConfigs_empty.
   ///
   /// In en, this message translates to:
@@ -28862,17 +28888,17 @@ abstract class AppLocalizations {
   /// **'at'**
   String get formatter_connector_at;
 
-  /// Connector word for date ranges with no end, e.g. 'From Jan 15'
+  /// A date range with no end, e.g. 'From Jan 15'. The language puts the date where its word order needs it.
   ///
   /// In en, this message translates to:
-  /// **'From'**
-  String get formatter_connector_from;
+  /// **'From {date}'**
+  String formatter_dateRange_from(String date);
 
-  /// Connector word for date ranges with no start, e.g. 'Until Jan 20'
+  /// A date range with no start, e.g. 'Until Jan 20'. The language puts the date where its word order needs it.
   ///
   /// In en, this message translates to:
-  /// **'Until'**
-  String get formatter_connector_until;
+  /// **'Until {date}'**
+  String formatter_dateRange_until(String date);
 
   /// No description provided for @gas_air_description.
   ///
@@ -31701,13 +31727,13 @@ abstract class AppLocalizations {
   /// No description provided for @media_diveMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_diveMediaSection_unlinkSelectedTitle(int count);
 
   /// Title of the library unlink confirmation dialog
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_library_unlinkConfirmTitle(int count);
 
   /// Site page unlink failure snackbar
@@ -31818,18 +31844,6 @@ abstract class AppLocalizations {
   /// **'{category} ({count})'**
   String media_siteAttachment_groupHeading(String category, int count);
 
-  /// No description provided for @media_siteAttachment_moreOptions.
-  ///
-  /// In en, this message translates to:
-  /// **'More options'**
-  String get media_siteAttachment_moreOptions;
-
-  /// Page count badge on a large PDF card
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{{count} page} other{{count} pages}}'**
-  String media_siteAttachment_pageCount(int count);
-
   /// Edit details save failure
   ///
   /// In en, this message translates to:
@@ -31923,7 +31937,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlink {count} items?'**
+  /// **'Unlink {count, plural, =1{{count} item} other{{count} items}}?'**
   String media_siteMediaSection_unlinkSelectedTitle(int count);
 
   /// Site page unlink confirmation body
@@ -32141,6 +32155,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'URL'**
   String get media_photoPicker_tab_url;
+
+  /// No description provided for @media_photoPicker_feedElsewhereHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add a feed of photos, use Import on the Media screen.'**
+  String get media_photoPicker_feedElsewhereHint;
+
+  /// No description provided for @media_photoPicker_galleryOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add files or links, use Import on the Media screen.'**
+  String get media_photoPicker_galleryOnlyHint;
+
+  /// No description provided for @media_photoPicker_galleryOnlyLinksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To add links, use Import on the Media screen.'**
+  String get media_photoPicker_galleryOnlyLinksHint;
 
   /// No description provided for @media_photoPicker_clearSelectionButton.
   ///
@@ -33391,6 +33423,18 @@ abstract class AppLocalizations {
   /// **'Never scanned'**
   String get media_sources_neverScanned;
 
+  /// No description provided for @media_sources_removeFolderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop watching this folder?'**
+  String get media_sources_removeFolderTitle;
+
+  /// No description provided for @media_sources_removeFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion forgets the files it found in {folder}, so missing photos are no longer looked for there. No photo or file is deleted.'**
+  String media_sources_removeFolderBody(String folder);
+
   /// Source type name
   ///
   /// In en, this message translates to:
@@ -33480,6 +33524,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete album'**
   String get media_smartAlbum_delete;
+
+  /// Title of the confirmation before a smart album (a saved filter) is deleted from the Load album list. name is the album's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String media_smartAlbum_deleteConfirmTitle(String name);
+
+  /// Body of the smart album delete confirmation: only the saved filter goes, no photo or video changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the saved filter goes. No photos or videos change.'**
+  String get media_smartAlbum_deleteConfirmBody;
 
   /// Filter bar: the smart album delete did not go through
   ///
@@ -33816,6 +33872,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search dives'**
   String get media_divePicker_search;
+
+  /// Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {count, plural, =1{{count} item} other{{count} items}}?'**
+  String media_library_moveConfirmTitle(int count);
+
+  /// Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The item moves to {dive}, off any dive it is on now.} other{The items move to {dive}, off any dive they are on now.}} Site and gear links stay as they are.'**
+  String media_library_moveConfirmBody(int count, String dive);
+
+  /// The Move to dive confirmation's button that moves the photos and videos.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get media_library_moveConfirmAction;
+
+  /// Shown when Move to dive is refused because the picked dive, or a dive the selected photos are on, is unlocked for editing on its page. Nothing is moved.
+  ///
+  /// In en, this message translates to:
+  /// **'A dive in this move is open for editing. Save, cancel or lock it, then try again.'**
+  String get media_library_moveDiveOpenHint;
+
+  /// Shown when Move to dive could not write. Nothing moved, and the selection stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not move the items'**
+  String get media_library_moveFailed;
+
+  /// Shown when the media library's Unlink could not write. The selection stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not unlink the items'**
+  String get media_library_unlinkFailed;
+
+  /// How the Move to dive confirmation names the picked dive: its number and name (label, such as '#42 Blue Hole'), then its date. Use the language's own list separator.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {date}'**
+  String media_library_moveDiveName(String label, String date);
 
   /// Library selection action: reassign media to a dive
   ///
@@ -41055,6 +41153,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas switches edited by hand'**
   String get settings_conflict_field_gasSwitchesEdited;
+
+  /// Sync conflict field: the dive values the diver set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Values set by hand'**
+  String get settings_conflict_field_handSetFields;
 
   /// No description provided for @settings_conflict_field_mediaTimeOffsetSeconds.
   ///
@@ -62743,6 +62847,12 @@ abstract class AppLocalizations {
   /// **'Combined dives that kept their profile: {count}'**
   String reparseBatch_resultProfilesPreserved(int count);
 
+  /// Bulk re-parse: dives that kept values the diver set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives that kept values you set by hand: {count}'**
+  String reparseBatch_resultHandSetKept(int count);
+
   /// Bulk re-parse (issue #224)
   ///
   /// In en, this message translates to:
@@ -62784,6 +62894,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Selected dives without raw data (skipped): {count}'**
   String reparseBatch_confirmSkipped(int count);
+
+  /// Bulk re-parse confirmation: values set by hand are kept (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Values you set by hand are kept.'**
+  String get reparseBatch_confirmHandSetKept;
 
   /// Bulk re-parse (issue #224)
   ///
@@ -63015,6 +63131,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resync from original file'**
   String get diveLog_detail_menu_resyncImportedFile;
+
+  /// Re-parse of one dive: title of the dialog listing values set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse this dive?'**
+  String get handSetReview_reparseTitle;
+
+  /// Resync of one dive: title of the dialog listing values set by hand (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Resync this dive?'**
+  String get handSetReview_resyncTitle;
+
+  /// Dialog listing values the diver set by hand that a re-parse or resync would change (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'You set these values by hand, and the new reading differs. Keep yours or replace each one.'**
+  String get handSetReview_message;
+
+  /// The diver's own value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Yours: {value}'**
+  String handSetReview_yours(String value);
+
+  /// The dive computer's value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Computer: {value}'**
+  String handSetReview_fromComputer(String value);
+
+  /// The imported file's value in the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'File: {value}'**
+  String handSetReview_fromFile(String value);
+
+  /// Keep the diver's value (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get handSetReview_keep;
+
+  /// Replace the diver's value with the new reading (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get handSetReview_replace;
+
+  /// Button that runs a resync after the hand-set values dialog (issue #4909)
+  ///
+  /// In en, this message translates to:
+  /// **'Resync'**
+  String get handSetReview_resyncAction;
 
   /// Snackbar shown after a successful resync
   ///
@@ -63905,6 +64075,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete entry'**
   String get bodyWeight_deleteTooltip;
+
+  /// No description provided for @bodyWeight_deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this measurement?'**
+  String get bodyWeight_deleteConfirmTitle;
+
+  /// Body of the question asked before a body-weight entry is deleted. {weight} is the weight in the diver's units, such as 176.4 lbs; {date} is the date it was measured.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} on {date} will be deleted. This cannot be undone.'**
+  String bodyWeight_deleteConfirmBody(String weight, String date);
 
   /// No description provided for @bodyWeight_heightLabel.
   ///
@@ -68230,12 +68412,6 @@ abstract class AppLocalizations {
   /// **'What would help next time (optional)'**
   String get incidentEdit_lessonsLearned;
 
-  /// No description provided for @incidentEdit_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get incidentEdit_save;
-
   /// No description provided for @incidentEdit_privacyNote.
   ///
   /// In en, this message translates to:
@@ -70880,6 +71056,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Re-upload queued'**
   String get settings_mediaStorage_quality_reuploadQueued;
+
+  /// No description provided for @settings_mediaStorage_quality_downgradeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the full-quality copy?'**
+  String get settings_mediaStorage_quality_downgradeTitle;
+
+  /// No description provided for @settings_mediaStorage_quality_downgradeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The original kept in your storage is replaced with a {level} copy. The photo on this device is kept.'**
+  String settings_mediaStorage_quality_downgradeBody(String level);
+
+  /// No description provided for @settings_mediaStorage_quality_downgradeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get settings_mediaStorage_quality_downgradeConfirm;
 
   /// No description provided for @settings_mediaStorage_quality_linuxFfmpegHint.
   ///
@@ -76802,54 +76996,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats.'**
   String get species_convict_tang_desc;
-
-  /// No description provided for @species_great_hammerhead_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Scalloped Hammerhead'**
-  String get species_great_hammerhead_name;
-
-  /// No description provided for @species_great_hammerhead_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands.'**
-  String get species_great_hammerhead_desc;
-
-  /// No description provided for @species_wobbegong_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Spotted Wobbegong'**
-  String get species_wobbegong_name;
-
-  /// No description provided for @species_wobbegong_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs.'**
-  String get species_wobbegong_desc;
-
-  /// No description provided for @species_manta_ray_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Reef Manta Ray'**
-  String get species_manta_ray_name;
-
-  /// No description provided for @species_manta_ray_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs.'**
-  String get species_manta_ray_desc;
-
-  /// No description provided for @species_oceanic_manta_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Oceanic Manta Ray'**
-  String get species_oceanic_manta_name;
-
-  /// No description provided for @species_oceanic_manta_desc.
-  ///
-  /// In en, this message translates to:
-  /// **'The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations.'**
-  String get species_oceanic_manta_desc;
 
   /// No description provided for @species_undulated_moray_name.
   ///
@@ -86720,6 +86866,42 @@ abstract class AppLocalizations {
   /// **'Could not delete the profile revision.'**
   String get diveLog_profileEditor_deleteProfile_failed;
 
+  /// No description provided for @diveLog_profileEditor_removeSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove This Source'**
+  String get diveLog_profileEditor_removeSource;
+
+  /// No description provided for @diveLog_profileEditor_unsavedEditsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save or undo your edits to delete the profile.'**
+  String get diveLog_profileEditor_unsavedEditsHint;
+
+  /// No description provided for @diveLog_profileEditor_unsavedEditsHintWithSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Save or undo your edits to delete the profile or remove this source.'**
+  String get diveLog_profileEditor_unsavedEditsHintWithSource;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_notPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Entire Profile only deletes revisions of the primary source\'s profile.'**
+  String get diveLog_profileEditor_deleteProfile_notPrimary;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_onlyRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the dive\'s only profile revision, so it can\'t be deleted.'**
+  String get diveLog_profileEditor_deleteProfile_onlyRevision;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_historyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the profile revisions, so none can be deleted now.'**
+  String get diveLog_profileEditor_deleteProfile_historyFailed;
+
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
   ///
   /// In en, this message translates to:
@@ -87778,6 +87960,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}'**
   String media_labels_statusFound(int count);
+
+  /// Labels menu status line for a photo or video analysed only in part, such as a video scanned part way (issue #4958), with how many animals were found so far.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Partly analysed, nothing found} =1{Partly analysed, {count} found} other{Partly analysed, {count} found}}'**
+  String media_labels_statusPartlyFound(int count);
+
+  /// Tooltip of the viewer's species labels button while the item on screen is not analysed; the icon is drawn plain (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: not analysed'**
+  String get media_labels_buttonNotAnalysed;
+
+  /// Tooltip of the viewer's species labels button while the item on screen is being analysed; the icon is drawn in the theme colour (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: analysing'**
+  String get media_labels_buttonAnalysing;
+
+  /// Tooltip of the viewer's species labels button while the item on screen is analysed only in part; the icon is drawn amber (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: partly analysed'**
+  String get media_labels_buttonPartlyAnalysed;
+
+  /// Tooltip of the viewer's species labels button when the item on screen was analysed in full, but by an older model, for another place, or with its crops not on this device; the icon is drawn amber and Analyse brings it up to date (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: out of date'**
+  String get media_labels_buttonOutdated;
+
+  /// Tooltip of the viewer's species labels button once the item on screen is analysed; the icon is drawn green (issue #4958).
+  ///
+  /// In en, this message translates to:
+  /// **'Species labels: analysed'**
+  String get media_labels_buttonAnalysed;
 
   /// Brief message after the diver asks for a photo or video to be analysed and it finds animals it cannot name, so no name label is drawn (issue #4872).
   ///
@@ -91844,6 +92062,12 @@ abstract class AppLocalizations {
   /// **'Edit transmitter'**
   String get transmitters_edit_title;
 
+  /// No description provided for @transmitters_edit_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This transmitter key no longer exists.'**
+  String get transmitters_edit_notFound;
+
   /// No description provided for @transmitters_new_title.
   ///
   /// In en, this message translates to:
@@ -92137,6 +92361,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These files are in your backups folder but not in this device\'s backup history. Only a file this device wrote can be deleted here: anything else may be another device\'s only copy.'**
   String get backup_unrecognized_explanation;
+
+  /// No description provided for @backup_unrecognized_explanation_appPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'These files are in your backups folder but not in this device\'s backup history. This folder is private to Submersion on this device, so no other device uses these files and any of them can be deleted here.'**
+  String get backup_unrecognized_explanation_appPrivate;
+
+  /// No description provided for @backup_unrecognized_confirm_foreignWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One selected file may have been made by another device, an earlier install or an older version of Submersion. If it holds dives you do not have anywhere else, those dives will be lost.} other{{count} selected files may have been made by another device, an earlier install or an older version of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.}}'**
+  String backup_unrecognized_confirm_foreignWarning(int count);
 
   /// No description provided for @backup_unrecognized_empty.
   ///
@@ -96389,6 +96625,12 @@ abstract class AppLocalizations {
   /// **'Add at least one action.'**
   String get rules_edit_noActions;
 
+  /// Shown when Save finds the rule was deleted while it was being edited
+  ///
+  /// In en, this message translates to:
+  /// **'This rule no longer exists.'**
+  String get rules_edit_notFound;
+
   /// Search field hint of the action picker
   ///
   /// In en, this message translates to:
@@ -99255,6 +99497,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
+
+  /// Change log entry title for the media library's Move to dive, which moves the selected photos and videos onto another dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to another dive'**
+  String get changeLog_label_moveMedia;
+
+  /// Change log entry title for the media library's Unlink, which removes the selected photos and videos from the library (never the original files).
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked from the library'**
+  String get changeLog_label_unlinkMedia;
+
+  /// Change log entry title for the Media screen's Gear tab Remove, which takes the selected photos off their gear items.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed gear photos'**
+  String get changeLog_label_removeGearPhotos;
 
   /// Change log entry title for the planner's Create / Update planned dives, which writes a plan's dives into the log as planned entries.
   ///
@@ -103032,6 +103292,12 @@ abstract class AppLocalizations {
   /// **'{change} vs previous 10'**
   String dashboard_key_vsPrevious(String change);
 
+  /// No description provided for @dashboard_key_now.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get dashboard_key_now;
+
   /// No description provided for @dashboard_key_lastYear.
   ///
   /// In en, this message translates to:
@@ -103055,6 +103321,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{dives, plural, =1{1 dive} other{{dives} dives}} · {days, plural, =1{1 day} other{{days} days}}'**
   String dashboard_panel_activitySummary(int dives, int days);
+
+  /// No description provided for @dashboard_panel_recentOutings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent outings'**
+  String get dashboard_panel_recentOutings;
+
+  /// No description provided for @dashboard_outings_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{outings, plural, =1{1 outing} other{{outings} outings}} · {dives, plural, =1{1 dive} other{{dives} dives}}'**
+  String dashboard_outings_summary(int outings, int dives);
+
+  /// No description provided for @dashboard_outings_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String dashboard_outings_dives(int count);
+
+  /// No description provided for @dashboard_outings_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'{depth} max'**
+  String dashboard_outings_maxDepth(String depth);
+
+  /// No description provided for @dashboard_outings_species.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species} other{{count} species}}'**
+  String dashboard_outings_species(int count);
+
+  /// No description provided for @dashboard_outings_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your outings will show here once you log a dive'**
+  String get dashboard_outings_empty;
+
+  /// No description provided for @dashboard_outings_unnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get dashboard_outings_unnamed;
 
   /// No description provided for @dashboard_panel_divesPerMonth.
   ///
@@ -103374,6 +103682,12 @@ abstract class AppLocalizations {
   /// **'Activity calendar'**
   String get settings_homePanels_activityCalendar;
 
+  /// No description provided for @settings_homePanels_recentOutings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent outings'**
+  String get settings_homePanels_recentOutings;
+
   /// No description provided for @settings_homeKeyNumbers_description.
   ///
   /// In en, this message translates to:
@@ -103400,6 +103714,7 @@ class _AppLocalizationsDelegate
     'he',
     'hu',
     'it',
+    'ja',
     'nl',
     'pt',
     'zh',
@@ -103428,6 +103743,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsHu();
     case 'it':
       return AppLocalizationsIt();
+    case 'ja':
+      return AppLocalizationsJa();
     case 'nl':
       return AppLocalizationsNl();
     case 'pt':

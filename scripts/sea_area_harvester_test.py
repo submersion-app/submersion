@@ -218,6 +218,9 @@ class TranslationTest(unittest.TestCase):
             untranslated, [], f"areas shipped with no translations: {untranslated}"
         )
 
+    def test_japanese_names_are_fetched(self):
+        self.assertIn("ja", sea_area_harvester.TRANSLATION_LANGUAGES)
+
     def test_english_is_not_fetched_because_the_name_is_the_fallback(self):
         self.assertNotIn("en", sea_area_harvester.TRANSLATION_LANGUAGES)
 

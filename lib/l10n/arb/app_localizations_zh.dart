@@ -4836,6 +4836,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_template_descriptionLabel => '描述';
 
   @override
+  String get checklists_template_edit_notFound => '此模板已不存在。';
+
+  @override
   String get checklists_template_itemsHeader => '事项';
 
   @override
@@ -4925,6 +4928,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => '请输入名称';
+
+  @override
+  String get preDive_edit_notFound => '此检查清单已不存在。';
 
   @override
   String get preDive_item_title => '标题';
@@ -13158,6 +13164,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_nameLabel => '名称 *';
 
   @override
+  String get divers_edit_notFound => '该潜水员已不存在。';
+
+  @override
   String get divers_edit_notesLabel => '备注';
 
   @override
@@ -15539,6 +15548,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_title => '气瓶配置';
 
   @override
+  String get cylinderConfigs_edit_notFound => '此配置已不存在。';
+
+  @override
   String get cylinderConfigs_empty => '尚无配置';
 
   @override
@@ -17274,10 +17286,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get formatter_connector_at => '于';
 
   @override
-  String get formatter_connector_from => '从';
+  String formatter_dateRange_from(String date) {
+    return '从 $date';
+  }
 
   @override
-  String get formatter_connector_until => '至';
+  String formatter_dateRange_until(String date) {
+    return '至 $date';
+  }
 
   @override
   String get gas_air_description => '标准空气 (21% O2)';
@@ -19064,19 +19080,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => '更多选项';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 页',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return '无法保存：$error';
   }
@@ -19325,6 +19328,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint => '要添加照片源，请在媒体页面使用导入。';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint => '要添加文件或链接，请在媒体页面使用导入。';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint => '要添加链接，请在媒体页面使用导入。';
 
   @override
   String get media_photoPicker_clearSelectionButton => '清除';
@@ -20153,6 +20165,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_sources_neverScanned => '从未扫描';
 
   @override
+  String get media_sources_removeFolderTitle => '停止监视此文件夹？';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion 将忘记在 $folder 中找到的文件，不再在那里查找缺失的照片。不会删除任何照片或文件。';
+  }
+
+  @override
   String get media_source_gallery => '照片图库';
 
   @override
@@ -20196,6 +20216,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_smartAlbum_delete => '删除相册';
+
+  @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '删除“$name”？';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody => '只会删除已保存的筛选条件，照片和视频不受影响。';
 
   @override
   String get media_smartAlbum_deleteFailed => '无法删除相册';
@@ -20394,6 +20422,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_divePicker_search => '搜索潜水';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '移动 $count 个项目？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将移至 $dive，并离开当前所在的潜水（如有）。',
+    );
+    return '$_temp0潜点和装备的关联保持不变。';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => '移动';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      '此次移动涉及的一次潜水正在编辑中。请先保存、取消或锁定它，然后重试。';
+
+  @override
+  String get media_library_moveFailed => '无法移动这些项目';
+
+  @override
+  String get media_library_unlinkFailed => '无法取消关联这些项目';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label，$date';
+  }
 
   @override
   String get media_library_moveToDive => '移至潜水';
@@ -24656,6 +24722,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_gasSwitchesEdited => '气体切换已手动编辑';
+
+  @override
+  String get settings_conflict_field_handSetFields => '手动设置的数值';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds => '媒体时间平移';
@@ -37734,6 +37803,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return '保留了手动设置数值的潜水:$count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => '失败的潜水';
 
   @override
@@ -37759,6 +37833,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return '所选潜水中没有原始数据的(将跳过):$count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept => '你手动设置的数值会被保留。';
 
   @override
   String get reparseBatch_noneWithRawData => '所选潜水均没有可重新解析的原始数据。';
@@ -37910,6 +37987,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_resyncImportedFile => '从原始文件重新同步';
+
+  @override
+  String get handSetReview_reparseTitle => '重新解析这次潜水?';
+
+  @override
+  String get handSetReview_resyncTitle => '重新同步这次潜水?';
+
+  @override
+  String get handSetReview_message => '这些数值是你手动设置的,新读取的数值与之不同。保留你的数值,或逐个替换。';
+
+  @override
+  String handSetReview_yours(String value) {
+    return '你的:$value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return '电脑:$value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return '文件:$value';
+  }
+
+  @override
+  String get handSetReview_keep => '保留';
+
+  @override
+  String get handSetReview_replace => '替换';
+
+  @override
+  String get handSetReview_resyncAction => '重新同步';
 
   @override
   String get diveLog_detail_resyncSuccess => '潜水记录已根据原始文件更新';
@@ -38562,6 +38672,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => '删除条目';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => '删除此测量记录？';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$date 的 $weight 将被删除。此操作无法撤销。';
+  }
 
   @override
   String get bodyWeight_heightLabel => '身高（厘米）';
@@ -40896,9 +41014,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get incidentEdit_lessonsLearned => '下次怎样会更好(可选)';
 
   @override
-  String get incidentEdit_save => '保存';
-
-  @override
   String get incidentEdit_privacyNote =>
       '未遂事件报告在你的设备之间同步并包含在备份中,但绝不会包含在导出或共享的日志页面中。';
 
@@ -42778,6 +42893,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => '重新上传已加入队列';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle => '替换全画质副本？';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return '存储中的原图将被替换为$level副本。此设备上的照片会保留。';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => '替换';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
@@ -46009,31 +46135,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get species_convict_tang_desc =>
       '体色浅淡的刺尾鱼，体侧有六道黑色竖带，常成大群在印度洋至太平洋的礁坪上啃食藻类。';
-
-  @override
-  String get species_great_hammerhead_name => '路氏双髻鲨';
-
-  @override
-  String get species_great_hammerhead_desc => '头部呈扇贝状锤形的独特鲨鱼，会在海山和离岸岛屿附近结成大群。';
-
-  @override
-  String get species_wobbegong_name => '斑纹须鲨';
-
-  @override
-  String get species_wobbegong_desc => '体形扁平、伪装出色的须鲨，口部周围有流苏状皮瓣，见于澳大利亚的温带礁区。';
-
-  @override
-  String get species_manta_ray_name => '珊瑚礁蝠鲼';
-
-  @override
-  String get species_manta_ray_desc =>
-      '姿态优雅的巨型鳐类，翼展可达 5 米，会造访清洁站并在印度洋至太平洋的礁区滤食浮游生物。';
-
-  @override
-  String get species_oceanic_manta_name => '大洋蝠鲼';
-
-  @override
-  String get species_oceanic_manta_desc => '体型最大的鳐类，翼展超过 7 米，常在离岸海山和清洁站遇见。';
 
   @override
   String get species_undulated_moray_name => '波纹裸胸鳝';
@@ -51856,6 +51957,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_deleteProfile_failed => '无法删除剖面版本。';
 
   @override
+  String get diveLog_profileEditor_removeSource => '移除此数据源';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint => '请先保存或撤销你的更改，才能删除剖面。';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      '请先保存或撤销你的更改，才能删除剖面或移除此数据源。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      '“删除整个轮廓”只会删除主数据源轮廓的版本。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      '这是该潜水唯一的剖面版本，因此无法删除。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      '无法加载剖面版本，因此目前无法删除。';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint => '保存于版本历史之前；未关联潜水电脑';
 
   @override
@@ -52540,6 +52663,32 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '部分已分析，发现 $count 个',
+      zero: '部分已分析，未发现任何内容',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => '物种标签：未分析';
+
+  @override
+  String get media_labels_buttonAnalysing => '物种标签：正在分析';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed => '物种标签：部分已分析';
+
+  @override
+  String get media_labels_buttonOutdated => '物种标签：已过时';
+
+  @override
+  String get media_labels_buttonAnalysed => '物种标签：已分析';
 
   @override
   String media_labels_foundNoneNamed(int count) {
@@ -54985,6 +55134,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transmitters_edit_title => '编辑发射器';
 
   @override
+  String get transmitters_edit_notFound => '此发射器标识已不存在。';
+
+  @override
   String get transmitters_new_title => '新发射器';
 
   @override
@@ -55171,6 +55323,23 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get backup_unrecognized_explanation =>
       '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此处只能删除本设备写入的文件：其他文件可能是另一台设备的唯一副本。';
+
+  @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      '这些文件位于您的备份文件夹中，但不在本设备的备份历史记录内。此文件夹在本设备上仅供 Submersion 使用，因此其他设备不会使用这些文件，此处可以删除其中任何文件。';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '所选的 $count 个文件可能由另一台设备、之前的安装或旧版本的 Submersion 创建。如果其中包含您在其他地方没有的潜水记录，这些记录将会丢失。',
+      one:
+          '所选的 1 个文件可能由另一台设备、之前的安装或旧版本的 Submersion 创建。如果其中包含您在其他地方没有的潜水记录，这些记录将会丢失。',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty => '没有无法识别的备份文件。';
@@ -57511,6 +57680,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_edit_noActions => '请至少添加一个操作。';
 
   @override
+  String get rules_edit_notFound => '此规则已不存在。';
+
+  @override
   String get rules_picker_search => '搜索操作';
 
   @override
@@ -59532,6 +59704,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
+
+  @override
+  String get changeLog_label_moveMedia => '已移至另一次潜水';
+
+  @override
+  String get changeLog_label_unlinkMedia => '已从媒体库取消关联';
+
+  @override
+  String get changeLog_label_removeGearPhotos => '已移除装备照片';
 
   @override
   String get changeLog_label_updatePlannedDives => '已更新计划潜水';
@@ -61732,6 +61913,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => '现在';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return '去年 $value';
   }
@@ -61750,6 +61934,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String dashboard_panel_activitySummary(int dives, int days) {
     return '$dives 次潜水 · $days 天';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => '近期潜水行程';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    return '$outings 次行程 · $dives 次潜水';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    return '$count 次潜水';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '最深 $depth';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    return '$count 个物种';
+  }
+
+  @override
+  String get dashboard_outings_empty => '记录潜水后，你的行程会显示在这里';
+
+  @override
+  String get dashboard_outings_unnamed => '潜水';
 
   @override
   String get dashboard_panel_divesPerMonth => '每月潜水';
@@ -61937,6 +62150,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => '活动日历';
+
+  @override
+  String get settings_homePanels_recentOutings => '近期潜水行程';
 
   @override
   String get settings_homeKeyNumbers_description =>

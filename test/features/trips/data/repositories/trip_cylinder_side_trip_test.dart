@@ -142,6 +142,25 @@ void main() {
     expect(await linkOf('t2'), slotY);
   });
 
+  // A sync race can leave the larger trip briefly a side trip itself. An
+  // edit to the side trip that leaves its parent alone keeps the parent and
+  // its dives' links to the larger trip's cylinders (issue #4941).
+  test('an edit that keeps the parent keeps its slot links', () async {
+    await diveWithTank('d1', 't1', tripId: side.id, cylinderId: slotX);
+    final asia = await trips.createTrip(trip('Asia'));
+    await db.customStatement(
+      'UPDATE trips SET parent_trip_id = ? WHERE id = ?',
+      [asia.id, parent.id],
+    );
+    final stored = (await trips.getTripById(side.id))!;
+
+    await trips.updateTrip(stored.copyWith(notes: 'Mantas'));
+
+    expect((await trips.getTripById(side.id))!.parentTripId, parent.id);
+    expect(await linkOf('t1'), slotX);
+    expect(await pendingCountFor('diveTanks', 't1'), 0);
+  });
+
   test("the larger trip's gaps take in side-trip tanks on no slot", () async {
     await diveWithTank('d1', 't1', tripId: side.id, cylinderId: slotY);
     await db

@@ -23,9 +23,11 @@ class _GatedBatch implements ReparseBatchService {
     this.failing = const {},
     this.errors = const {},
     this.profilesPreserved = 0,
+    this.handSetKept = 0,
   }) : gates = [for (var i = 0; i < count; i++) Completer<void>()];
 
   final int profilesPreserved;
+  final int handSetKept;
 
   final List<Completer<void>> gates;
   final Set<String> failing;
@@ -69,6 +71,7 @@ class _GatedBatch implements ReparseBatchService {
       notProcessed: notProcessed,
       profilesPreserved: profilesPreserved,
       failures: failures,
+      handSetKept: handSetKept,
     );
   }
 
@@ -320,5 +323,39 @@ void main() {
       find.text('Combined dives that kept their profile: 1'),
       findsOneWidget,
     );
+  });
+
+  // Values the diver set by hand (issue #4909).
+  testWidgets('says how many dives kept values set by hand', (tester) async {
+    batch = _GatedBatch(2, handSetKept: 1);
+    await pumpHost(tester, ['d1', 'd2']);
+    batch
+      ..release(0)
+      ..release(1);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Dives that kept values you set by hand: 1'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the confirmation says values set by hand are kept', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => confirmBatchReparse(context, count: 3),
+            child: const Text('Ask'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Ask'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Values you set by hand are kept.'), findsOneWidget);
   });
 }

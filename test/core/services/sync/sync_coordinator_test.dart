@@ -134,6 +134,72 @@ void main() {
     expect(log, ['holder', 'holder-end', 'late']);
   });
 
+  // A test's tearDown resets the coordinator while a turn the test started
+  // may still be running. When that turn ends, it must not count against the
+  // turns of the next test, which share the isolate (issue #4900).
+  group('a turn still running at reset', () {
+    test('ending after a new turn starts leaves the new one busy', () async {
+      final stale = Completer<void>();
+      final leftover = SyncCoordinator.run(() => stale.future);
+      SyncCoordinator.reset();
+
+      final hold = Completer<void>();
+      final running = SyncCoordinator.run(() => hold.future);
+      stale.complete();
+      await leftover;
+
+      expect(SyncCoordinator.busy, isTrue);
+      hold.complete();
+      await running;
+      expect(SyncCoordinator.busy, isFalse);
+    });
+
+    test('ending before a new turn starts leaves the new one busy', () async {
+      final stale = Completer<void>();
+      final leftover = SyncCoordinator.run(() => stale.future);
+      SyncCoordinator.reset();
+      stale.complete();
+      await leftover;
+      expect(SyncCoordinator.busy, isFalse);
+
+      final hold = Completer<void>();
+      final running = SyncCoordinator.run(() => hold.future);
+      expect(SyncCoordinator.busy, isTrue);
+      hold.complete();
+      await running;
+      expect(SyncCoordinator.busy, isFalse);
+    });
+
+    test(
+      'a turn queued behind it does not count against the next either',
+      () async {
+        final stale = Completer<void>();
+        final leftover = SyncCoordinator.run(() => stale.future);
+        final queued = SyncCoordinator.run(() async {});
+        SyncCoordinator.reset();
+
+        final hold = Completer<void>();
+        final running = SyncCoordinator.run(() => hold.future);
+        stale.complete();
+        await Future.wait([leftover, queued]);
+
+        expect(SyncCoordinator.busy, isTrue);
+        hold.complete();
+        await running;
+        expect(SyncCoordinator.busy, isFalse);
+      },
+    );
+
+    test('a quietGuard taken before it stays false after it', () async {
+      final guard = SyncCoordinator.quietGuard();
+      await SyncCoordinator.run(() async {});
+      SyncCoordinator.reset();
+      // The next test starts as many syncs as had started when the guard
+      // was taken, none of them still running.
+      expect(guard(), isFalse, reason: 'a reset is not a quiet period');
+    });
+  });
+
   test('an idle queue does not wait on the zone of its last turn', () async {
     fakeAsync((async) {
       unawaited(SyncCoordinator.run(() async {}));

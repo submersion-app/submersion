@@ -1,9 +1,11 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   // These assertions are formatted by intl, which resolves against
@@ -32,6 +34,32 @@ void main() {
   const dayFirst = UnitFormatter(
     AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
   );
+
+  // #4833: the open end of a range takes the language's own word order;
+  // Japanese puts the date first.
+  group('formatDateRange with one end open', () {
+    final date = DateTime(2024, 5, 3);
+    final en = lookupAppLocalizations(const Locale('en'));
+    final ja = lookupAppLocalizations(const Locale('ja'));
+
+    test('English names the end before the date', () {
+      final shown = monthFirst.formatDate(date);
+      expect(monthFirst.formatDateRange(date, null, l10n: en), 'From $shown');
+      expect(monthFirst.formatDateRange(null, date, l10n: en), 'Until $shown');
+    });
+
+    test('Japanese puts the date first', () {
+      final shown = monthFirst.formatDate(date);
+      expect(
+        monthFirst.formatDateRange(date, null, l10n: ja),
+        '$shown\u304b\u3089',
+      );
+      expect(
+        monthFirst.formatDateRange(null, date, l10n: ja),
+        '$shown\u307e\u3067',
+      );
+    });
+  });
 
   group('formatMonthDayWithYear', () {
     // The list tiles compare against "now", so pin the reference year to keep

@@ -30,14 +30,12 @@ import 'package:submersion/features/trips/presentation/widgets/overview/trip_pre
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_page_body.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_cards.dart';
-import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_new_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_sitting_host.dart';
@@ -316,37 +314,35 @@ class _TripDetailContent extends ConsumerWidget {
     final trip = shown;
     // One layout for every trip type (#2845): the tab row under the "Shared
     // by" banner, embedded under the master-detail header or in a Scaffold.
-    // Who the trip is shared with is changed on its header block (#3766,
-    // issue #4527).
+    // The header block, with who the trip is shared with (#3766, issue
+    // #4527), is on the Overview with the rest of the trip summary, so the
+    // tabs start right under the banners (issue #4927).
     final slots = host._slots(trip, stored);
-    final banners = [
-      SharedByBanner(
-        kind: SharedItemKind.trip,
-        itemId: trip.id,
-        ownerId: trip.diverId,
-      ),
-      // A side trip names its larger trip (issue #3658).
-      PartOfTripLink(
-        tripId: trip.id,
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-      ),
-    ];
     final body = TripCardSlotsScope(
       slots: slots,
-      child: TripPageBody(
-        above: banners,
-        // The header block, on every tab: the trip's values nothing else
-        // shows, and its editor (issue #4527).
-        header: slots.frame(TripCardId.header, TripHeaderRows(trip: trip)),
-        below: TripDetailTabs(
-          tripWithStats: tripWithStats,
-          controller: host.tabController,
-          storySelection: host._storySelection,
-          // The day's note is its Day plan, opened where it is, unlocking
-          // first when locked.
-          onEditDayNote: (day) => host._openCard(TripCardId.notes, trip),
-        ),
-        headerOpen: host._headerEditorOpen,
+      child: Column(
+        children: [
+          SharedByBanner(
+            kind: SharedItemKind.trip,
+            itemId: trip.id,
+            ownerId: trip.diverId,
+          ),
+          // A side trip names its larger trip (issue #3658).
+          PartOfTripLink(
+            tripId: trip.id,
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          ),
+          Expanded(
+            child: TripDetailTabs(
+              tripWithStats: tripWithStats,
+              controller: host.tabController,
+              storySelection: host._storySelection,
+              // The day's note is its Day plan, opened where it is,
+              // unlocking first when locked.
+              onEditDayNote: (day) => host._openCard(TripCardId.notes, trip),
+            ),
+          ),
+        ],
       ),
     );
 

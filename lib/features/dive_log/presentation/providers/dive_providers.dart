@@ -255,6 +255,18 @@ final diveSourceRemovalServiceProvider = Provider<DiveSourceRemovalService>(
   (ref) => DiveSourceRemovalService(),
 );
 
+/// Whether a source shares its dive computer with another source of its
+/// dive, which Remove source refuses (issue #4972). Asks the removal
+/// service, which reads the raw source rows: [diveDataSourcesProvider]
+/// collapses rows sharing a merge slot into one display source, so a check
+/// over that list can miss the sibling.
+final sourceSharesComputerProvider = FutureProvider.autoDispose
+    .family<bool, ({String diveId, String sourceId})>(
+      (ref, key) => ref
+          .watch(diveSourceRemovalServiceProvider)
+          .sharesComputer(diveId: key.diveId, sourceId: key.sourceId),
+    );
+
 /// Separate-a-combined-dive service singleton (inverse of combine).
 final diveUncombineServiceProvider = Provider<DiveUncombineService>((ref) {
   return DiveUncombineService(ref.watch(diveRepositoryProvider));

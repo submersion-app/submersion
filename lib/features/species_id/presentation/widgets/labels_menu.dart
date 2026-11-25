@@ -23,12 +23,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the viewer's toolbar needs for the marine life labels action
 /// (issue #4825): what a tap does (null when [item] is not looked at on
-/// this device), whether labels are drawn, and the ring while it is being
-/// analysed. Read while the toolbar builds, so it follows them.
+/// this device), whether labels are drawn, the ring while it is being
+/// analysed, and how far analysis has got, as the icon's colour (issue
+/// #4926) and, through [labelsButtonLabel], its tooltip (issue #4958).
+/// Read while the toolbar builds, so it follows them.
 ///
 /// [showing] says whether [item] is still the one on screen in the viewer
 /// still open; a notice on what an Analyse found waits for it.
-({void Function(BuildContext anchor)? onPressed, bool on, ToolbarRing? ring})
+({
+  void Function(BuildContext anchor)? onPressed,
+  bool on,
+  ToolbarRing? ring,
+  ToolbarTone? tone,
+  LabelsButtonStatus? status,
+})
 marineLifeLabelsAction(
   WidgetRef ref,
   MediaItem item,
@@ -44,18 +52,23 @@ marineLifeLabelsAction(
               item.sourceType != MediaSourceType.serviceConnector &&
               videoLabelsShown(defaultTargetPlatform)));
   final on = ref.watch(labelModeNotifierProvider) != LabelMode.off;
-  if (!applies) return (onPressed: null, on: on, ring: null);
-  // Kept read while the toolbar shows, so the menu opens on what is known.
-  // Listened to, not watched: the toolbar shows none of it, and it reloads
-  // on every write to the logbook's identifications.
-  ref.listen(
-    mediaAnalysisStatusProvider(AnalysisTarget(item, location)),
-    (_, _) {},
+  if (!applies) {
+    return (onPressed: null, on: on, ring: null, tone: null, status: null);
+  }
+  // Kept read while the toolbar shows, so the menu opens on what is known,
+  // and the icon's colour follows it. Only the state is watched: the status
+  // reloads on every write to the logbook's identifications, and a reload
+  // that leaves the state as it was rebuilds nothing.
+  final state = ref.watch(
+    mediaAnalysisStatusProvider(
+      AnalysisTarget(item, location),
+    ).select((status) => status.value?.state),
   );
   final busy = ref.watch(mediaIdentificationBusyProvider(item.id)).value;
   final progress = ref
       .watch(mediaIdentificationProgressProvider(item.id))
       .value;
+  final status = labelsButtonStatus(state: state, busy: busy ?? false);
   return (
     onPressed: (anchor) => unawaited(
       showMarineLifeLabelsMenu(
@@ -69,8 +82,28 @@ marineLifeLabelsAction(
     on: on,
     // A video fills its ring as it is scanned; a photo's spins.
     ring: busy ?? false ? ToolbarRing(progress) : null,
+    tone: switch (status) {
+      LabelsButtonStatus.notAnalysed => null,
+      LabelsButtonStatus.analysing => ToolbarTone.active,
+      // Both still have work for Analyse to do.
+      LabelsButtonStatus.partial ||
+      LabelsButtonStatus.outdated => ToolbarTone.warn,
+      LabelsButtonStatus.analysed => ToolbarTone.ok,
+    },
+    status: status,
   );
 }
+
+/// The labels button's tooltip for [status] (issue #4958): its name and
+/// how far analysis has got, which its colour shows without saying.
+String labelsButtonLabel(AppLocalizations l10n, LabelsButtonStatus status) =>
+    switch (status) {
+      LabelsButtonStatus.notAnalysed => l10n.media_labels_buttonNotAnalysed,
+      LabelsButtonStatus.analysing => l10n.media_labels_buttonAnalysing,
+      LabelsButtonStatus.partial => l10n.media_labels_buttonPartlyAnalysed,
+      LabelsButtonStatus.outdated => l10n.media_labels_buttonOutdated,
+      LabelsButtonStatus.analysed => l10n.media_labels_buttonAnalysed,
+    };
 
 enum _Pick { names, allLife, off, analyse }
 
@@ -312,4 +345,7 @@ String _statusText(
     ).format(model.progress ?? 0),
   ),
   LabelsStatusLine.found => l10n.media_labels_statusFound(model.found),
+  LabelsStatusLine.partlyFound => l10n.media_labels_statusPartlyFound(
+    model.found,
+  ),
 };

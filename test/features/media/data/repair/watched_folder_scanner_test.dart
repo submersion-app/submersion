@@ -6,7 +6,9 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/features/change_log/data/services/change_log_settler.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/watched_folder_repository.dart';
@@ -17,6 +19,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
+import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -175,6 +178,24 @@ void main() {
       final repaired = (await repo.getMediaById('m1'))!;
       expect(repaired.localPath, p.join(root.path, 'a.jpg'));
       expect(repaired.isOrphaned, isFalse);
+    });
+
+    // The daily pass and Media, Sources, Scan now both run this scanner:
+    // relinks no one reviewed are not the diver's change (issue #4527).
+    test('an auto-applied relink files under automatic', () async {
+      final hash = await writeFile('a.jpg', 'aaaa');
+      await seedMissing('m1', hash);
+      final missing = (await repo.getMediaById('m1'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+
+      await scanner(missing: () => [missing]).scan(now: DateTime(2026, 6, 12));
+
+      await ChangeLogSettler(db).settle();
+      final op = (await db.select(db.changeLogOperations).get()).single;
+      expect(op.source, ChangeLogSource.automatic.name);
+      expect(op.label, ChangeLogLabels.mediaRepair);
     });
 
     test('a missing row with no hash match is left alone', () async {

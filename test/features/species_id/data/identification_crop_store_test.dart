@@ -98,8 +98,86 @@ void main() {
     expect(await store.sizeBytes(), 0);
   });
 
+  test('crop files are listed by media, without the analysed mark or a '
+      'half-written crop (issue #4890)', () async {
+    await store.write('m1', 'i1', jpeg);
+    await store.write('m1', 'i2', jpeg);
+    await store.write('m2', 'i3', jpeg);
+    await store.markAnalysed('m1');
+    await store.markAnalysed('m3');
+    await File(
+      p.join((await store.root()).path, 'm2', 'i4.jpg.tmp'),
+    ).writeAsBytes(jpeg);
+
+    final listed = await store.fileIds();
+
+    expect(listed.keys, unorderedEquals(['m1', 'm2']));
+    expect(listed['m1'], unorderedEquals(['i1', 'i2']));
+    expect(listed['m2'], ['i3']);
+  });
+
+  test('a crop another cleanup removes mid-way does not stop the rest '
+      '(issue #4890)', () async {
+    final racing = _RacingStore(supportPath: () async => support.path);
+    addTearDown(racing.dispose);
+    await racing.write('m1', 'i2', jpeg);
+
+    await expectLater(racing.deleteFiles('m1', ['gone', 'i2']), completes);
+
+    expect(await racing.allPresent('m1', ['i2']), isFalse);
+  });
+
+  test('a folder that cannot be read lists no crops', () async {
+    expect(
+      await IdentificationCropStore.cropIdsIn(
+        Directory(p.join(support.path, 'never-made')),
+      ),
+      isEmpty,
+    );
+  });
+
+  test('deleting crop files removes only those, announced once', () async {
+    await store.write('m1', 'i1', jpeg);
+    await store.write('m1', 'i2', jpeg);
+    final seen = <String>[];
+    final sub = store.watchChanges().listen(seen.add);
+    addTearDown(sub.cancel);
+
+    await store.deleteFiles('m1', ['i1', 'absent']);
+    await store.deleteFiles('m1', ['absent']);
+    await pumpEventQueue();
+
+    expect(await store.allPresent('m1', ['i1']), isFalse);
+    expect(await store.allPresent('m1', ['i2']), isTrue);
+    expect(seen, ['m1']);
+  });
+
   test('an id that could leave the folder is refused', () async {
     expect(() => store.fileFor('..', 'i1'), throwsArgumentError);
     expect(() => store.fileFor('m1', p.join('a', 'b')), throwsArgumentError);
   });
+}
+
+/// A store whose crop `gone` is removed by another cleanup between the
+/// check that it exists and its delete.
+class _RacingStore extends IdentificationCropStore {
+  _RacingStore({required super.supportPath});
+
+  @override
+  Future<File> fileFor(String mediaId, String identificationId) async =>
+      identificationId == 'gone'
+      ? _VanishedFile()
+      : super.fileFor(mediaId, identificationId);
+}
+
+class _VanishedFile extends Fake implements File {
+  @override
+  String get path => 'gone.jpg';
+
+  @override
+  Future<bool> exists() async => true;
+
+  @override
+  Future<FileSystemEntity> delete({bool recursive = false}) =>
+      Future.error(PathNotFoundException(path, const OSError('gone', 2)));
 }

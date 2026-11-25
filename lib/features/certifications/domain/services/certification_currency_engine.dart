@@ -241,8 +241,11 @@ _Anchor? _activityAnchor(
   DiveActivityIndex activity,
   int lapse,
 ) {
-  final types = pref?.countedDiveTypeIds ?? rule.countedDiveTypeIds;
-  final modes = pref?.countedDiveModes ?? rule.countedDiveModes;
+  // A card mapping this build cannot read decodes to "any dive"; the rule's
+  // own mapping applies instead (issue #4942).
+  final mapping = pref == null || pref.unreadableMapping ? null : pref;
+  final types = mapping?.countedDiveTypeIds ?? rule.countedDiveTypeIds;
+  final modes = mapping?.countedDiveModes ?? rule.countedDiveModes;
   final anyDive = types.isEmpty && modes.isEmpty;
   final DateTime? lastDive = anyDive
       ? activity.lastDiveAt

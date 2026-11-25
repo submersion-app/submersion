@@ -54,6 +54,7 @@ class JustifiedMediaTable {
     required Int32List cellSections,
     required Int32List slots,
     required Int32List sectionFirstTile,
+    Int32List? spanStarts,
   }) : _sections = sections,
        _tops = tops,
        _lefts = lefts,
@@ -61,7 +62,8 @@ class JustifiedMediaTable {
        _heights = heights,
        _cellSections = cellSections,
        _slots = slots,
-       _sectionFirstTile = sectionFirstTile;
+       _sectionFirstTile = sectionFirstTile,
+       _spanStarts = spanStarts;
 
   /// Lays [sections] out across [paneWidth], with [inset] on each side of the
   /// thumbnails and [gap] between them, across and down.
@@ -138,6 +140,57 @@ class JustifiedMediaTable {
     );
   }
 
+  /// One group's cells at the [rects] already worked out for them, in
+  /// reading order, so their tops never decrease (issue #4786). [ratios] are
+  /// the cells' shapes, kept to compare tables. A cell may span rows: a row
+  /// beside it still counts it as showing (see [minCellAt]).
+  factory JustifiedMediaTable.placed({
+    required List<Rect> rects,
+    required List<double> ratios,
+    required double paneWidth,
+    required double targetHeight,
+  }) {
+    assert(rects.length == ratios.length, 'one ratio per rect');
+    final count = rects.length;
+    final tops = Float64List(count);
+    final lefts = Float64List(count);
+    final widths = Float64List(count);
+    final heights = Float64List(count);
+    final slots = Int32List(count);
+    final spanStarts = Int32List(count);
+    // Cells still showing at the current top, so a row beside a tall cell
+    // starts at that cell.
+    final open = <int>[];
+    var extent = 0.0;
+    for (var i = 0; i < count; i++) {
+      final rect = rects[i];
+      assert(i == 0 || rect.top >= rects[i - 1].top, 'cells in reading order');
+      tops[i] = rect.top;
+      lefts[i] = rect.left;
+      widths[i] = rect.width;
+      heights[i] = rect.height;
+      slots[i] = i;
+      open.removeWhere((cell) => rects[cell].bottom <= rect.top);
+      spanStarts[i] = open.isEmpty ? i : math.min(open.reduce(math.min), i);
+      open.add(i);
+      extent = math.max(extent, rect.bottom);
+    }
+    return JustifiedMediaTable._(
+      paneWidth: paneWidth,
+      targetHeight: targetHeight,
+      totalExtent: extent,
+      sections: [JustifiedSection(headerExtents: const [], ratios: ratios)],
+      tops: tops,
+      lefts: lefts,
+      widths: widths,
+      heights: heights,
+      cellSections: Int32List(count),
+      slots: slots,
+      sectionFirstTile: Int32List(1),
+      spanStarts: spanStarts,
+    );
+  }
+
   final double paneWidth;
   final double targetHeight;
   final double totalExtent;
@@ -153,6 +206,10 @@ class JustifiedMediaTable {
 
   /// The cell of each group's first thumbnail.
   final Int32List _sectionFirstTile;
+
+  /// For a table with cells that span rows, the first cell still showing
+  /// where each cell starts; null when every cell is one row tall.
+  final Int32List? _spanStarts;
 
   static int _headerSlot(int header) => -1 - header;
 
@@ -199,14 +256,15 @@ class JustifiedMediaTable {
     return low;
   }
 
-  /// The first cell of the row at [offset].
+  /// The first cell of the row at [offset], or of a cell from a row above
+  /// that still spans it.
   int minCellAt(double offset) {
     if (cellCount == 0) return 0;
     var cell = _lastStartingBy(offset);
     while (cell > 0 && _tops[cell - 1] == _tops[cell]) {
       cell--;
     }
-    return cell;
+    return _spanStarts?[cell] ?? cell;
   }
 
   /// The last cell of the row at [offset].

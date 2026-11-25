@@ -361,4 +361,51 @@ void main() {
       expect(await create(readBack: () async => null), 'as created');
     });
   });
+
+  group('relabelRecordSitting', () {
+    test(
+      'a sitting relabelled in its body is labelled with the new id',
+      () async {
+        await runRecordSitting<void>(
+          table: 'dive_sites',
+          recordId: 'a',
+          changedCardIds: const [],
+          body: () async {
+            await writeName('Pond');
+            await relabelRecordSitting(table: 'dive_sites', recordId: 's1');
+          },
+        );
+
+        final ops = await operations();
+        expect(ops, hasLength(1));
+        expect(ops.single['label'], 'record_edit:dive_sites:s1:');
+        expect(await name(), 'Pond');
+      },
+    );
+
+    test('a relabelled sitting that throws leaves no operation', () async {
+      await expectLater(
+        runRecordSitting<void>(
+          table: 'dive_sites',
+          recordId: 'a',
+          changedCardIds: const [],
+          body: () async {
+            await writeName('Pond');
+            await relabelRecordSitting(table: 'dive_sites', recordId: 's1');
+            throw StateError('refused');
+          },
+        ),
+        throwsStateError,
+      );
+
+      expect(await operations(), isEmpty);
+      expect(await name(), 'Lake');
+    });
+
+    test('relabelling outside a sitting does nothing', () async {
+      await relabelRecordSitting(table: 'dive_sites', recordId: 's1');
+
+      expect(await operations(), isEmpty);
+    });
+  });
 }

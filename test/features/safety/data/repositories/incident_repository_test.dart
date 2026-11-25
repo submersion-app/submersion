@@ -1,9 +1,12 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/database.dart' hide Incident;
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
+import 'package:submersion/features/safety/domain/entities/incident_changes.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -64,8 +67,9 @@ void main() {
     expect(listed.single.occurredAt, when);
     expect(listed.single.occurredAt.isUtc, isTrue);
 
-    await repo.updateIncident(
-      created.copyWith(severity: IncidentSeverity.serious),
+    await repo.applyIncidentChanges(
+      created.id,
+      const IncidentChanges(severity: IncidentSeverity.serious),
     );
     expect(
       (await repo.getIncidentById(created.id))!.severity,
@@ -190,7 +194,10 @@ void main() {
         narrative: 'n',
         equipmentId: 'reg',
       );
-      await repo.updateIncident(created.copyWith(clearEquipmentId: true));
+      await repo.applyIncidentChanges(
+        created.id,
+        const IncidentChanges(equipmentId: (value: null)),
+      );
       expect((await repo.getIncidentById(created.id))!.equipmentId, isNull);
     });
 
@@ -207,6 +214,112 @@ void main() {
       final stored = await repo.getIncidentById(created.id);
       expect(stored, isNotNull);
       expect(stored!.equipmentId, isNull);
+    });
+  });
+
+  group('the editor\'s writes (issue #4527, phase 4)', () {
+    final changeLog = ChangeLogRepository();
+
+    Future<Incident> stored() => repo.createIncident(
+      occurredAt: when,
+      category: IncidentCategory.gasSupply,
+      severity: IncidentSeverity.moderate,
+      narrative: 'Free-flow at 18 m.',
+      contributingFactors: 'Cold water.',
+      lessonsLearned: 'Service the reg.',
+    );
+
+    test('createIncident writes the report under the id it is given', () async {
+      final created = await repo.createIncident(
+        id: 'given-id',
+        occurredAt: when,
+        category: IncidentCategory.other,
+        severity: IncidentSeverity.minor,
+        narrative: 'Lost my buddy.',
+      );
+      expect(created.id, 'given-id');
+      expect(
+        (await repo.getIncidentById('given-id'))!.narrative,
+        'Lost my buddy.',
+      );
+    });
+
+    test('applyIncidentChanges writes only the fields it is given', () async {
+      final incident = await stored();
+      final wrote = await repo.applyIncidentChanges(
+        incident.id,
+        const IncidentChanges(severity: IncidentSeverity.serious),
+      );
+      expect(wrote, isTrue);
+      final back = (await repo.getIncidentById(incident.id))!;
+      expect(back.severity, IncidentSeverity.serious);
+      expect(back.category, IncidentCategory.gasSupply);
+      expect(back.narrative, 'Free-flow at 18 m.');
+      expect(back.lessonsLearned, 'Service the reg.');
+      expect(back.occurredAt, when);
+      expect(
+        back.updatedAt.isAfter(incident.updatedAt) ||
+            back.updatedAt == incident.updatedAt,
+        isTrue,
+      );
+    });
+
+    test('applyIncidentChanges can clear the item and the lessons', () async {
+      await insertDiver('me');
+      final incident = await stored();
+      await repo.applyIncidentChanges(
+        incident.id,
+        const IncidentChanges(
+          narrative: 'Free-flow at 20 m.',
+          lessonsLearned: (value: null),
+          equipmentId: (value: null),
+        ),
+      );
+      final back = (await repo.getIncidentById(incident.id))!;
+      expect(back.narrative, 'Free-flow at 20 m.');
+      expect(back.lessonsLearned, isNull);
+      expect(back.contributingFactors, 'Cold water.');
+    });
+
+    test('applyIncidentChanges writes the dive link', () async {
+      await insertDive('d1');
+      final incident = await stored();
+      await repo.applyIncidentChanges(
+        incident.id,
+        const IncidentChanges(diveId: (value: 'd1')),
+      );
+      expect((await repo.getIncidentById(incident.id))!.diveId, 'd1');
+    });
+
+    test(
+      'applyIncidentChanges on a report that is gone writes nothing',
+      () async {
+        final incident = await stored();
+        await repo.deleteIncident(incident.id);
+        final wrote = await repo.applyIncidentChanges(
+          incident.id,
+          const IncidentChanges(severity: IncidentSeverity.serious),
+        );
+        expect(wrote, isFalse);
+        expect(await repo.getIncidentById(incident.id), isNull);
+      },
+    );
+
+    test('deleteIncident is one operation labelled deleted record', () async {
+      final incident = await stored();
+      await changeLog.settleAll();
+      await db.customStatement('DELETE FROM change_log_operations');
+
+      await repo.deleteIncident(incident.id);
+
+      await changeLog.settleAll();
+      final rows = await db
+          .customSelect('SELECT label FROM change_log_operations')
+          .get();
+      expect(
+        [for (final r in rows) r.read<String?>('label')],
+        [ChangeLogLabels.deletedRecord],
+      );
     });
   });
 }

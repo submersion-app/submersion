@@ -3,6 +3,7 @@ import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
@@ -66,7 +67,13 @@ class DiveEditSaveService {
       read: () => _diveRepo.getDiveById(diveId),
       apply: apply,
       write: (stored, merged) async {
+        final rowBefore = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingle();
         await _diveRepo.updateDive(merged);
+        // The computer-written values this sitting changed are the diver's
+        // from now on: a re-parse or resync keeps them (issue #4909).
+        await markHandSetChanges(_db, [rowBefore]);
         // Only a save that touched the trip moves its dates: a dive saved
         // for something else leaves a trip it sits outside of alone, so a
         // date the diver set by hand is never reopened.

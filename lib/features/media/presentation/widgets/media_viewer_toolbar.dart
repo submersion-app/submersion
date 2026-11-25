@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -32,6 +33,37 @@ class ToolbarRing {
   final double? value;
 }
 
+/// A state colour for a toolbar icon (issue #4926), named for what it means
+/// rather than given as a colour, so it is drawn in one that reads on the
+/// surface under it: the viewer's dark bar, the pale editing bar, or the
+/// overflow menu.
+enum ToolbarTone {
+  /// Work under way: the theme's primary colour.
+  active,
+
+  /// Started but not finished: amber.
+  warn,
+
+  /// Done: green.
+  ok,
+}
+
+/// The colour [tone] is drawn in, [onDarkBar] when on the viewer's own bar,
+/// which is dark over any photo in either theme; null for no tone.
+Color? toolbarToneColor(
+  BuildContext context,
+  ToolbarTone? tone, {
+  required bool onDarkBar,
+}) {
+  if (tone == null) return null;
+  final palette = onDarkBar ? StatusColors.dark : StatusColors.of(context);
+  return switch (tone) {
+    ToolbarTone.active => Theme.of(context).colorScheme.primary,
+    ToolbarTone.warn => palette.warn.accent,
+    ToolbarTone.ok => palette.ok.accent,
+  };
+}
+
 /// One toolbar action, described as data so the toolbar can show it as an
 /// icon or move it into the overflow menu without knowing what it does.
 @immutable
@@ -43,6 +75,7 @@ class MediaViewerAction {
     required this.priority,
     required this.onPressed,
     this.iconColor,
+    this.tone,
     this.disabledReason,
     this.ring,
   });
@@ -63,6 +96,10 @@ class MediaViewerAction {
 
   /// Tint for state (the Perdix toggle when on); null uses the default.
   final Color? iconColor;
+
+  /// A state the icon is tinted for, in colours that suit where it is
+  /// drawn; [iconColor], when set, wins.
+  final ToolbarTone? tone;
 
   /// Why the action cannot be used now; non-null draws it disabled, with
   /// this as its tooltip and as a line under it in the overflow menu.
@@ -162,6 +199,8 @@ class MediaViewerToolbar extends ConsumerWidget {
     this.onMarineLifeLabels,
     this.marineLifeLabelsOn = true,
     this.marineLifeRing,
+    this.marineLifeTone,
+    this.marineLifeLabel,
   });
 
   final MediaItem item;
@@ -225,11 +264,20 @@ class MediaViewerToolbar extends ConsumerWidget {
   /// tapped; null hides the action.
   final void Function(BuildContext anchor)? onMarineLifeLabels;
 
-  /// Whether labels are drawn (tints the icon).
+  /// Whether labels are drawn: a fish when they are, a struck fish when
+  /// they are off (issue #4926).
   final bool marineLifeLabelsOn;
+
+  /// How far analysis of the item on screen has got, as the labels icon's
+  /// colour (issue #4926); null leaves it plain.
+  final ToolbarTone? marineLifeTone;
 
   /// The item on screen is being analysed: a ring round the labels icon.
   final ToolbarRing? marineLifeRing;
+
+  /// The labels action's tooltip and overflow-menu text, naming how far
+  /// analysis has got (issue #4958); null uses the action's plain name.
+  final String? marineLifeLabel;
 
   /// [readOnly] drops every action that changes the media or its links:
   /// a browser views and shares, and nothing more (issue #4121).
@@ -311,12 +359,10 @@ class MediaViewerToolbar extends ConsumerWidget {
       if (onMarineLifeLabels != null)
         MediaViewerAction(
           id: 'marine_life_labels',
-          icon: MdiIcons.fish,
-          label: l10n.media_labels_action,
+          icon: marineLifeLabelsOn ? MdiIcons.fish : MdiIcons.fishOff,
+          label: marineLifeLabel ?? l10n.media_labels_action,
           priority: 2,
-          iconColor: marineLifeLabelsOn
-              ? Theme.of(context).colorScheme.primary
-              : null,
+          tone: marineLifeTone,
           ring: marineLifeRing,
           onPressed: (anchor) => onMarineLifeLabels!(anchor),
         ),
@@ -421,7 +467,12 @@ class MediaViewerToolbar extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    ...toolbarActionButtons(context, split, Colors.white),
+                    ...toolbarActionButtons(
+                      context,
+                      split,
+                      Colors.white,
+                      onDarkBar: true,
+                    ),
                   ],
                 );
               },
@@ -476,11 +527,15 @@ class MediaViewerToolbar extends ConsumerWidget {
 /// The icons in [split] that fit, then the overflow menu holding the rest,
 /// for the viewer's toolbar and for the editing bars (issue #4527). [color]
 /// tints icons with no state colour of their own; null takes the bar's.
+/// [onDarkBar] says the icons sit on the viewer's dark bar, so a
+/// [MediaViewerAction.tone] takes the colours that read there; the menu
+/// is the theme's own surface either way.
 List<Widget> toolbarActionButtons(
   BuildContext context,
   ToolbarActionSplit split,
-  Color? color,
-) => [
+  Color? color, {
+  bool onDarkBar = false,
+}) => [
   for (final action in split.visible)
     // Builder so the anchor context is the button itself: findRenderObject
     // from it descends to the IconButton.
@@ -490,7 +545,10 @@ List<Widget> toolbarActionButtons(
         icon: _withRing(
           Icon(
             action.icon,
-            color: action.iconColor ?? color,
+            color:
+                action.iconColor ??
+                toolbarToneColor(context, action.tone, onDarkBar: onDarkBar) ??
+                color,
             semanticLabel: action.disabledReason == null ? null : action.label,
           ),
           action.ring,
@@ -516,7 +574,16 @@ List<Widget> toolbarActionButtons(
               enabled: action.disabledReason == null,
               child: Row(
                 children: [
-                  Icon(action.icon, color: action.iconColor),
+                  Icon(
+                    action.icon,
+                    color:
+                        action.iconColor ??
+                        toolbarToneColor(
+                          context,
+                          action.tone,
+                          onDarkBar: false,
+                        ),
+                  ),
                   const SizedBox(width: 12),
                   Flexible(
                     child: Column(

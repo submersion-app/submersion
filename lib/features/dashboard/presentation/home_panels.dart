@@ -11,6 +11,7 @@ enum HomePanelType {
   preDive,
   activeCourses,
   activityCalendar,
+  recentOutings,
   gearService,
   comingDue,
   nextTrip,
@@ -96,6 +97,10 @@ HomePanelSpec homePanelSpec(HomePanelType type) => switch (type) {
   HomePanelType.activityCalendar => const HomePanelSpec(
     HomePanelWidth.l,
     HomePanelHeight.medium,
+  ),
+  HomePanelType.recentOutings => const HomePanelSpec(
+    HomePanelWidth.l,
+    HomePanelHeight.tall,
   ),
   HomePanelType.gearService => const HomePanelSpec(
     HomePanelWidth.sList,

@@ -5127,6 +5127,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'Beschreibung';
 
   @override
+  String get checklists_template_edit_notFound =>
+      'Diese Vorlage existiert nicht mehr.';
+
+  @override
   String get checklists_template_itemsHeader => 'Einträge';
 
   @override
@@ -5220,6 +5224,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => 'Namen eingeben';
+
+  @override
+  String get preDive_edit_notFound => 'Diese Checkliste existiert nicht mehr.';
 
   @override
   String get preDive_item_title => 'Titel';
@@ -13848,6 +13855,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divers_edit_nameLabel => 'Name *';
 
   @override
+  String get divers_edit_notFound => 'Diesen Taucher gibt es nicht mehr.';
+
+  @override
   String get divers_edit_notesLabel => 'Notizen';
 
   @override
@@ -16284,6 +16294,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cylinderConfigs_title => 'Flaschenkonfigurationen';
 
   @override
+  String get cylinderConfigs_edit_notFound =>
+      'Diese Konfiguration existiert nicht mehr.';
+
+  @override
   String get cylinderConfigs_empty => 'Noch keine Konfigurationen';
 
   @override
@@ -18130,10 +18144,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get formatter_connector_at => 'um';
 
   @override
-  String get formatter_connector_from => 'Von';
+  String formatter_dateRange_from(String date) {
+    return 'Von $date';
+  }
 
   @override
-  String get formatter_connector_until => 'Bis';
+  String formatter_dateRange_until(String date) {
+    return 'Bis $date';
+  }
 
   @override
   String get gas_air_description => 'Standardluft (21% O2)';
@@ -19953,12 +19971,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return '$count Elemente trennen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '$count Element',
+    );
+    return '$_temp0 trennen?';
   }
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return '$count Elemente trennen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '$count Element',
+    );
+    return '$_temp0 trennen?';
   }
 
   @override
@@ -20031,20 +20061,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'Weitere Optionen';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Seiten',
-      one: '$count Seite',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return 'Speichern fehlgeschlagen: $error';
   }
@@ -20108,7 +20124,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return '$count Elemente trennen?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '$count Element',
+    );
+    return '$_temp0 trennen?';
   }
 
   @override
@@ -20299,6 +20321,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Um einen Foto-Feed hinzuzufügen, verwende Importieren im Bereich Medien.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Um Dateien oder Links hinzuzufügen, verwende Importieren im Bereich Medien.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Um Links hinzuzufügen, verwende Importieren im Bereich Medien.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Löschen';
@@ -21186,6 +21220,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_sources_neverScanned => 'Noch nie gescannt';
 
   @override
+  String get media_sources_removeFolderTitle =>
+      'Diesen Ordner nicht mehr überwachen?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion vergisst die Dateien, die es in $folder gefunden hat, und sucht dort nicht mehr nach fehlenden Fotos. Es wird kein Foto und keine Datei gelöscht.';
+  }
+
+  @override
   String get media_source_gallery => 'Fotomediathek';
 
   @override
@@ -21230,6 +21273,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_smartAlbum_delete => 'Album löschen';
+
+  @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '„$name“ löschen?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Nur der gespeicherte Filter wird entfernt. Fotos und Videos bleiben unverändert.';
 
   @override
   String get media_smartAlbum_deleteFailed =>
@@ -21432,6 +21484,50 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Tauchgänge durchsuchen';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '$count Element',
+    );
+    return '$_temp0 verschieben?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Die Elemente werden zu $dive verschoben und verlassen den Tauchgang, zu dem sie jetzt gehören.',
+      one:
+          'Das Element wird zu $dive verschoben und verlässt den Tauchgang, zu dem es jetzt gehört.',
+    );
+    return '$_temp0 Verknüpfungen mit Tauchplatz und Ausrüstung bleiben bestehen.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Verschieben';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Ein Tauchgang in dieser Verschiebung ist zur Bearbeitung geöffnet. Speichere, verwirf oder sperre ihn und versuche es dann erneut.';
+
+  @override
+  String get media_library_moveFailed =>
+      'Die Elemente konnten nicht verschoben werden';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Die Elemente konnten nicht getrennt werden';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Zu Tauchgang verschieben';
@@ -26046,6 +26142,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gaswechsel von Hand bearbeitet';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'Von Hand gesetzte Werte';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -40044,6 +40143,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'Tauchgänge mit behaltenen, von Hand gesetzten Werten: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'Fehlgeschlagene Tauchgänge';
 
   @override
@@ -40069,6 +40173,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'Ausgewählte Tauchgänge ohne Rohdaten (übersprungen): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'Von Hand gesetzte Werte bleiben erhalten.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40234,6 +40342,41 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'Erneut aus Originaldatei synchronisieren';
+
+  @override
+  String get handSetReview_reparseTitle => 'Diesen Tauchgang neu auswerten?';
+
+  @override
+  String get handSetReview_resyncTitle =>
+      'Diesen Tauchgang erneut synchronisieren?';
+
+  @override
+  String get handSetReview_message =>
+      'Diese Werte hast du von Hand gesetzt, und die neue Auswertung weicht ab. Behalte deine Werte oder ersetze jeden einzeln.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'Deiner: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'Computer: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'Datei: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'Behalten';
+
+  @override
+  String get handSetReview_replace => 'Ersetzen';
+
+  @override
+  String get handSetReview_resyncAction => 'Synchronisieren';
 
   @override
   String get diveLog_detail_resyncSuccess =>
@@ -40961,6 +41104,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'Eintrag löschen';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'Diese Messung löschen?';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return '$weight vom $date wird gelöscht. Das lässt sich nicht rückgängig machen.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'Größe (cm)';
@@ -43387,9 +43538,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Was beim nächsten Mal helfen würde (optional)';
 
   @override
-  String get incidentEdit_save => 'Speichern';
-
-  @override
   String get incidentEdit_privacyNote =>
       'Beinahe-Unfall-Berichte synchronisieren sich zwischen deinen Geräten und sind in Backups enthalten, aber niemals in Exporten oder geteilten Logbuchseiten.';
 
@@ -45358,6 +45506,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Erneuter Upload in Warteschlange';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Kopie in voller Qualität ersetzen?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'Das in deinem Speicher abgelegte Original wird durch eine Kopie in der Stufe $level ersetzt. Das Foto auf diesem Gerät bleibt erhalten.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Ersetzen';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
@@ -48743,34 +48903,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get species_convict_tang_desc =>
       'Heller Doktorfisch mit sechs senkrechten schwarzen Binden, oft in großen Schwärmen beim Weiden auf den Riffdächern des Indopazifiks.';
-
-  @override
-  String get species_great_hammerhead_name => 'Bogenstirn-Hammerhai';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Markanter Hai mit gebogenem hammerförmigem Kopf, der an Seebergen und vorgelagerten Inseln große Schulen bildet.';
-
-  @override
-  String get species_wobbegong_name => 'Gefleckter Teppichhai';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Flacher, gut getarnter Teppichhai mit Hautfransen rund um das Maul, an den gemäßigten Riffen Australiens.';
-
-  @override
-  String get species_manta_ray_name => 'Riffmanta';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Anmutiger Riese mit bis zu 5 m Spannweite, der Putzerstationen aufsucht und an Riffen des Indopazifiks Plankton frisst.';
-
-  @override
-  String get species_oceanic_manta_name => 'Riesenmanta';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'Die größte Rochenart mit über 7 m Spannweite, an vorgelagerten Seebergen und Putzerstationen anzutreffen.';
 
   @override
   String get species_undulated_moray_name => 'Wellenlinien-Muräne';
@@ -55157,6 +55289,29 @@ class AppLocalizationsDe extends AppLocalizations {
       'Profilrevision konnte nicht gelöscht werden.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'Diese Quelle entfernen';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'Speichere deine Änderungen oder mach sie rückgängig, um das Profil zu löschen.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Speichere deine Änderungen oder mach sie rückgängig, um das Profil zu löschen oder diese Quelle zu entfernen.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      '„Gesamtes Profil löschen“ löscht nur Revisionen des Profils der primären Quelle.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'Dies ist die einzige Profilrevision des Tauchgangs, daher kann sie nicht gelöscht werden.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Die Profilrevisionen konnten nicht geladen werden, daher kann gerade keine gelöscht werden.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Vor der Revisionshistorie gespeichert; mit keinem Tauchcomputer verknüpft';
 
@@ -55918,6 +56073,36 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Teilweise analysiert, $count gefunden',
+      one: 'Teilweise analysiert, $count gefunden',
+      zero: 'Teilweise analysiert, nichts gefunden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed =>
+      'Arten-Beschriftungen: nicht analysiert';
+
+  @override
+  String get media_labels_buttonAnalysing =>
+      'Arten-Beschriftungen: wird analysiert';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'Arten-Beschriftungen: teilweise analysiert';
+
+  @override
+  String get media_labels_buttonOutdated => 'Arten-Beschriftungen: veraltet';
+
+  @override
+  String get media_labels_buttonAnalysed => 'Arten-Beschriftungen: analysiert';
 
   @override
   String media_labels_foundNoneNamed(int count) {
@@ -58517,6 +58702,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transmitters_edit_title => 'Sender bearbeiten';
 
   @override
+  String get transmitters_edit_notFound =>
+      'Dieser Senderschlüssel existiert nicht mehr.';
+
+  @override
   String get transmitters_new_title => 'Neuer Sender';
 
   @override
@@ -58718,6 +58907,23 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get backup_unrecognized_explanation =>
       'Diese Dateien liegen in deinem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Hier kann nur eine von diesem Gerät geschriebene Datei gelöscht werden: alles andere könnte die einzige Kopie eines anderen Geräts sein.';
+
+  @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Diese Dateien liegen in deinem Sicherungsordner, stehen aber nicht im Sicherungsverlauf dieses Geräts. Dieser Ordner gehört auf diesem Gerät allein Submersion, daher nutzt kein anderes Gerät diese Dateien, und jede davon kann hier gelöscht werden.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count ausgewählte Dateien stammen möglicherweise von einem anderen Gerät, einer früheren Installation oder einer älteren Version von Submersion. Wenn sie Tauchgänge enthalten, die du nirgendwo sonst hast, gehen diese Tauchgänge verloren.',
+      one:
+          'Eine ausgewählte Datei stammt möglicherweise von einem anderen Gerät, einer früheren Installation oder einer älteren Version von Submersion. Wenn sie Tauchgänge enthält, die du nirgendwo sonst hast, gehen diese Tauchgänge verloren.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty =>
@@ -61133,6 +61339,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rules_edit_noActions => 'Füge mindestens eine Aktion hinzu.';
 
   @override
+  String get rules_edit_notFound => 'Diese Regel existiert nicht mehr.';
+
+  @override
   String get rules_picker_search => 'Aktionen suchen';
 
   @override
@@ -63293,6 +63502,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Doppelte Flaschen entfernt';
+
+  @override
+  String get changeLog_label_moveMedia =>
+      'Zu einem anderen Tauchgang verschoben';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Aus der Mediathek getrennt';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Ausrüstungsfotos entfernt';
 
   @override
   String get changeLog_label_updatePlannedDives =>
@@ -65695,6 +65914,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'jetzt';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'Letztes Jahr $value';
   }
@@ -65725,6 +65947,60 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'Letzte Tauchausflüge';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings Ausflüge',
+      one: '1 Ausflug',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth max.';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Arten',
+      one: '1 Art',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty =>
+      'Ausflüge erscheinen hier, sobald ein Tauchgang erfasst ist';
+
+  @override
+  String get dashboard_outings_unnamed => 'Tauchgänge';
 
   @override
   String get dashboard_panel_divesPerMonth => 'Tauchgänge pro Monat';
@@ -65934,6 +66210,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'Aktivitätskalender';
+
+  @override
+  String get settings_homePanels_recentOutings => 'Letzte Tauchausflüge';
 
   @override
   String get settings_homeKeyNumbers_description =>

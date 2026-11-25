@@ -1,118 +1,121 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
-import '../../../../helpers/mock_providers.dart';
-
-class _CapturingNotifier extends StateNotifier<AsyncValue<List<Diver>>>
-    implements DiverListNotifier {
-  _CapturingNotifier(List<Diver> divers) : super(AsyncValue.data(divers));
-
-  Diver? updated;
-
-  @override
-  Future<Diver> addDiver(Diver diver) async => diver;
-
-  @override
-  Future<void> updateDiver(Diver diver) async => updated = diver;
-
-  @override
-  Future<void> refresh() async {}
-
-  @override
-  Future<DeleteDiverResult> deleteDiver(String id) async =>
-      const DeleteDiverResult(reassignedTripsCount: 0, reassignedSitesCount: 0);
-
-  @override
-  Future<void> setAsDefault(String id) async {}
-}
+import '../../../../helpers/test_database.dart';
+import 'diver_profile_harness.dart';
 
 void main() {
-  final now = DateTime.now();
+  late AppDatabase db;
 
-  Diver makeDiver({String notes = ''}) {
-    return Diver(
-      id: 'diver-1',
-      name: 'Alice Alpha',
-      createdAt: now,
-      updatedAt: now,
-      notes: notes,
-    );
+  setUp(() async {
+    db = await setUpTestDatabase();
+  });
+  tearDown(tearDownTestDatabase);
+
+  Future<void> pump(WidgetTester tester, {String notes = ''}) async {
+    await seedDiver(profileDiver(notes: notes));
+    await pumpProfilePage(tester, path: 'notes', page: const NotesEditPage());
   }
 
-  Future<_CapturingNotifier> pump(WidgetTester tester, Diver diver) async {
-    tester.view.physicalSize = const Size(800, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    final notifier = _CapturingNotifier([diver]);
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          ...overrides,
-          currentDiverProvider.overrideWith((_) async => diver),
-          diverListNotifierProvider.overrideWith((_) => notifier),
-        ],
-        child: const MaterialApp(
-          locale: Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: NotesEditPage(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    return notifier;
+  Future<void> typeNotes(WidgetTester tester, String text) async {
+    await tester.enterText(find.byType(TextField), text);
+    await tester.pump();
   }
+
+  Future<String> savedNotes() async => (await storedDiver('diver-1'))!.notes;
 
   testWidgets('populates the notes field from the existing diver', (
     tester,
   ) async {
-    final notifier = await pump(
-      tester,
-      makeDiver(notes: 'Prefers early morning boat dives'),
-    );
+    await pump(tester, notes: 'Prefers early morning boat dives');
 
-    expect(find.widgetWithText(AppBar, 'Notes'), findsOneWidget);
+    expect(find.text('Notes'), findsWidgets);
     expect(find.text('Save'), findsOneWidget);
     expect(find.text('Prefers early morning boat dives'), findsOneWidget);
-    expect(notifier.updated, isNull);
+    expect(await sittings(db), isEmpty);
   });
 
   testWidgets('saving persists the trimmed notes onto the diver', (
     tester,
   ) async {
-    final notifier = await pump(tester, makeDiver());
+    await pump(tester);
 
-    await tester.enterText(
-      find.byType(TextField),
-      '  Nitrox refresher due in spring  ',
-    );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+    await typeNotes(tester, '  Nitrox refresher due in spring  ');
+    await tapBar(tester, 'Save');
 
-    expect(notifier.updated, isNotNull);
-    expect(notifier.updated!.notes, 'Nitrox refresher due in spring');
-    expect(notifier.updated!.id, 'diver-1');
+    expect(await savedNotes(), 'Nitrox refresher due in spring');
   });
 
   testWidgets('clearing existing notes persists an empty string', (
     tester,
   ) async {
-    final notifier = await pump(tester, makeDiver(notes: 'Old note'));
+    await pump(tester, notes: 'Old note');
 
-    await tester.enterText(find.byType(TextField), '');
-    await tester.tap(find.text('Save'));
+    await typeNotes(tester, '');
+    await tapBar(tester, 'Save');
+
+    expect(await savedNotes(), isEmpty);
+  });
+
+  testWidgets('the bar is the tinted Cancel and Save bar, with no back arrow', (
+    tester,
+  ) async {
+    await pump(tester);
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.byType(BackButton), findsNothing);
+  });
+
+  testWidgets('an untouched page has Save disabled and Back asks nothing', (
+    tester,
+  ) async {
+    await pump(tester, notes: 'Old note');
+
+    expect(barAction(tester, 'Save').onPressed, isNull);
+    await back(tester);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('Hub'), findsOneWidget);
+  });
+
+  testWidgets('Back after a change asks; Discard returns to the hub', (
+    tester,
+  ) async {
+    await pump(tester);
+    await typeNotes(tester, 'New note');
+
+    await back(tester);
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
 
-    expect(notifier.updated, isNotNull);
-    expect(notifier.updated!.notes, isEmpty);
+    expect(find.text('Hub'), findsOneWidget);
+    expect(await savedNotes(), isEmpty);
+  });
+
+  testWidgets('Save writes one change log operation labelled with the diver', (
+    tester,
+  ) async {
+    await pump(tester);
+    await typeNotes(tester, 'New note');
+    await tapBar(tester, 'Save');
+
+    final written = await sittings(db);
+    expect(written, hasLength(1));
+    expect(written.single.table, 'divers');
+    expect(written.single.id, 'diver-1');
+  });
+
+  testWidgets('notes typed back to the stored text are no change', (
+    tester,
+  ) async {
+    await pump(tester, notes: 'Old note');
+
+    await typeNotes(tester, 'Old notes');
+    expect(barAction(tester, 'Save').onPressed, isNotNull);
+    await typeNotes(tester, 'Old note');
+    expect(barAction(tester, 'Save').onPressed, isNull);
   });
 }

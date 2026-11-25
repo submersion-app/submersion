@@ -81,4 +81,20 @@ void main() {
       'were shared with.',
     );
   });
+
+  // #4833: Japanese sentences join with 。, not a Latin ". ".
+  test('Japanese joins its sentences with 。', () {
+    final ja = lookupAppLocalizations(const Locale('ja'));
+    final text = deleteDiverSnackbarText(
+      ja,
+      const DeleteDiverResult(
+        reassignedTripsCount: 0,
+        reassignedSitesCount: 0,
+        keptEquipmentCount: 3,
+        keptEquipmentHeirNames: ['Tom'],
+      ),
+    );
+    expect(text, startsWith('${ja.settings_profileHub_deleted}。'));
+    expect(text, isNot(contains('. ')));
+  });
 }

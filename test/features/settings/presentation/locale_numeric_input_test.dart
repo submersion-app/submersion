@@ -4,10 +4,8 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -25,6 +23,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
 import '../../../helpers/test_database.dart';
+import 'pages/diver_profile_harness.dart';
 
 /// Locale-aware numeric input for the settings, weight, checklist and pre-dive
 /// editors (#1091).
@@ -158,6 +157,11 @@ void main() {
   group('pre-dive template value bounds', () {
     final now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
 
+    // Save runs in one transaction and change log operation, so it needs a
+    // database even with the fake repository.
+    setUp(setUpTestDatabase);
+    tearDown(tearDownTestDatabase);
+
     PreDiveChecklistTemplateItem valueItem({
       double? valueMin,
       double? valueMax,
@@ -208,7 +212,8 @@ void main() {
       );
       await pumpPage(tester, repo);
 
-      // Open the item, change nothing, accept, save the template.
+      // Open the item, change nothing, accept: the template is unchanged,
+      // so Save stays disabled and nothing rewrites 12.5.
       await tester.tap(find.text('Start pressure'));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(TextFormField, '12,5'), findsOneWidget);
@@ -217,8 +222,8 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(repo.savedItems!.single.valueMin, 12.5);
-      expect(repo.savedItems!.single.valueMax, 220.5);
+      expect(repo.savedItems, isNull);
+      expect(find.byType(PreDiveTemplateEditPage), findsOneWidget);
     });
 
     testWidgets('a comma decimal typed under fr reaches the item', (
@@ -303,77 +308,55 @@ void main() {
   });
 
   group('prior experience', () {
-    final now = DateTime(2026, 1, 1);
+    setUp(() async {
+      await setUpTestDatabase();
+    });
+    tearDown(tearDownTestDatabase);
 
-    Future<_CapturingDiverNotifier> pumpPage(
-      WidgetTester tester,
-      Diver diver,
-    ) async {
-      tester.view.physicalSize = const Size(800, 2400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final notifier = _CapturingDiverNotifier([diver]);
-      final base = await getBaseOverrides();
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: [
-            ...base,
-            currentDiverProvider.overrideWith((_) async => diver),
-            diverListNotifierProvider.overrideWith((_) => notifier),
-          ],
-          child: const PriorExperienceEditPage(),
-        ),
+    Future<void> pumpPage(WidgetTester tester, Diver diver) async {
+      await seedDiver(diver);
+      await pumpProfilePage(
+        tester,
+        path: 'prior',
+        page: const PriorExperienceEditPage(),
       );
-      await tester.pumpAndSettle();
-      return notifier;
     }
 
-    testWidgets('an untouched save keeps a four-digit dive count under de', (
-      tester,
-    ) async {
-      Intl.defaultLocale = 'de';
-      final notifier = await pumpPage(
-        tester,
-        Diver(
-          id: 'diver-1',
-          name: 'Alice Alpha',
-          createdAt: now,
-          updatedAt: now,
-          priorDiveCount: 1250,
-          priorDiveTimeSeconds: 2 * 3600 + 30 * 60,
-        ),
-      );
+    Future<Diver> saved() async => (await storedDiver('diver-1'))!;
 
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
+    // The page writes only the fields that changed (issue #4527, phase 4),
+    // so an untouched count is never read back from its grouped text; a
+    // change elsewhere must still leave it as stored.
+    testWidgets(
+      'an untouched four-digit dive count under de survives another change',
+      (tester) async {
+        Intl.defaultLocale = 'de';
+        await pumpPage(
+          tester,
+          profileDiver(
+            priorDiveCount: 1250,
+            priorDiveTimeSeconds: 2 * 3600 + 30 * 60,
+          ),
+        );
+        expect(barAction(tester, 'Save').onPressed, isNull);
 
-      expect(notifier.updated!.priorDiveCount, 1250);
-      expect(notifier.updated!.priorDiveTimeSeconds, 2 * 3600 + 30 * 60);
-    });
+        await typeInto(tester, 'Minutes', '45');
+        await tapBar(tester, 'Save');
+
+        final diver = await saved();
+        expect(diver.priorDiveCount, 1250);
+        expect(diver.priorDiveTimeSeconds, 2 * 3600 + 45 * 60);
+      },
+    );
 
     testWidgets('a grouped dive count is accepted under de', (tester) async {
       Intl.defaultLocale = 'de';
-      final notifier = await pumpPage(
-        tester,
-        Diver(
-          id: 'diver-1',
-          name: 'Alice Alpha',
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
+      await pumpPage(tester, profileDiver());
 
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Prior dives'),
-        '1.250',
-      );
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
+      await typeInto(tester, 'Prior dives', '1.250');
+      await tapBar(tester, 'Save');
 
-      expect(notifier.updated!.priorDiveCount, 1250);
+      expect((await saved()).priorDiveCount, 1250);
     });
   });
 }
@@ -421,29 +404,4 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// Captures the diver handed to updateDiver so the saved totals can be
-/// asserted without a database.
-class _CapturingDiverNotifier extends StateNotifier<AsyncValue<List<Diver>>>
-    implements DiverListNotifier {
-  _CapturingDiverNotifier(List<Diver> divers) : super(AsyncValue.data(divers));
-
-  Diver? updated;
-
-  @override
-  Future<Diver> addDiver(Diver diver) async => diver;
-
-  @override
-  Future<void> updateDiver(Diver diver) async => updated = diver;
-
-  @override
-  Future<void> refresh() async {}
-
-  @override
-  Future<DeleteDiverResult> deleteDiver(String id) async =>
-      const DeleteDiverResult(reassignedTripsCount: 0, reassignedSitesCount: 0);
-
-  @override
-  Future<void> setAsDefault(String id) async {}
 }

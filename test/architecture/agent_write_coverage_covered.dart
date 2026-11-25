@@ -636,12 +636,13 @@ final covered = <String, String>{
     'lib/features/dive_sites/data/repositories/site_feature_repository.dart:'
             '$method':
         'site_features',
-  for (final method in const [
-    'createIncident',
-    'updateIncident',
-    'deleteIncident',
-  ])
+  for (final method in const ['createIncident', 'deleteIncident'])
     '$safety/incident_repository.dart:$method': 'incidents',
+  // The near-miss editor's Save (issue #4527, phase 4) and the writer's
+  // update (#4924): the columns a change names, plus the check-in link a
+  // move to another item drops, so a link a read gives as none is never
+  // written back.
+  '$safety/incident_repository.dart:applyIncidentChanges': 'incidents',
   // An item's delete takes it off its incidents.
   '$safety/incident_repository.dart:unlinkFromDeletedEquipment': 'equipment',
   for (final method in const ['createChamber', 'deleteChamber'])

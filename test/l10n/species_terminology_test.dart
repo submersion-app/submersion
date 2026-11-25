@@ -35,6 +35,12 @@ void main() {
     l10n.connections_caption_reef,
     l10n.connections_preset_life,
     l10n.media_labels_action,
+    // The same button's tooltips, naming how far analysis has got.
+    l10n.media_labels_buttonNotAnalysed,
+    l10n.media_labels_buttonAnalysing,
+    l10n.media_labels_buttonPartlyAnalysed,
+    l10n.media_labels_buttonOutdated,
+    l10n.media_labels_buttonAnalysed,
   ];
 
   /// The wording each locale used for the old "marine life" term. Every entry
@@ -51,6 +57,7 @@ void main() {
     'ar': ['البحرية'],
     'he': ['ימי'],
     'zh': ['海洋生物'],
+    'ja': ['海洋生物'],
   };
 
   test('the English species surfaces use the Species term', () {

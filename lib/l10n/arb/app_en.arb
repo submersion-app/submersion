@@ -3159,6 +3159,10 @@
   "checklists_template_nameLabel": "Name",
   "checklists_template_nameRequired": "Name is required",
   "checklists_template_descriptionLabel": "Description",
+  "checklists_template_edit_notFound": "This template no longer exists.",
+  "@checklists_template_edit_notFound": {
+    "description": "Message shown when a checklist template opened for editing has been deleted, as the editor opens or at Save."
+  },
   "checklists_template_itemsHeader": "Items",
   "checklists_template_addItem": "Add item",
   "sectionEditor_addSection": "Add section",
@@ -3206,6 +3210,10 @@
   "preDive_edit_strictOrderHelp": "Items must be completed top to bottom",
   "preDive_edit_addItem": "Add item",
   "preDive_edit_nameRequired": "Enter a name",
+  "preDive_edit_notFound": "This checklist no longer exists.",
+  "@preDive_edit_notFound": {
+    "description": "Message shown when a pre-dive checklist template opened for editing has been deleted, as the editor opens or at Save."
+  },
   "preDive_item_title": "Title",
   "preDive_item_section": "Section",
   "preDive_item_notes": "Notes",
@@ -8506,6 +8514,7 @@
   "divers_edit_medicationsLabel": "Medications",
   "divers_edit_nameError": "Name is required",
   "divers_edit_nameLabel": "Name *",
+  "divers_edit_notFound": "This diver no longer exists.",
   "divers_edit_notesLabel": "Notes",
   "divers_edit_phoneLabel": "Phone",
   "divers_edit_primaryContactTitle": "Primary Contact",
@@ -9779,6 +9788,7 @@
     }
   },
   "cylinderConfigs_title": "Cylinder configurations",
+  "cylinderConfigs_edit_notFound": "This configuration no longer exists.",
   "cylinderConfigs_empty": "No configurations yet",
   "cylinderConfigs_emptyBody": "Save a diluent and bailout setup once, then apply it to any dive.",
   "cylinderConfigs_new": "New configuration",
@@ -10980,16 +10990,26 @@
     }
   },
   "formatter_connector_at": "at",
-  "formatter_connector_from": "From",
-  "formatter_connector_until": "Until",
+  "formatter_dateRange_from": "From {date}",
+  "formatter_dateRange_until": "Until {date}",
   "@formatter_connector_at": {
     "description": "Connector word between date and time, e.g. 'Jan 15 at 2:30 PM'"
   },
-  "@formatter_connector_from": {
-    "description": "Connector word for date ranges with no end, e.g. 'From Jan 15'"
+  "@formatter_dateRange_from": {
+    "description": "A date range with no end, e.g. 'From Jan 15'. The language puts the date where its word order needs it.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
-  "@formatter_connector_until": {
-    "description": "Connector word for date ranges with no start, e.g. 'Until Jan 20'"
+  "@formatter_dateRange_until": {
+    "description": "A date range with no start, e.g. 'Until Jan 20'. The language puts the date where its word order needs it.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "gas_air_description": "Standard air (21% O2)",
   "gas_air_displayName": "Air",
@@ -12144,8 +12164,8 @@
   "media_diveMediaSection_unlinkButton": "Unlink",
   "media_diveMediaSection_unlinkSelectedButton": "Unlink {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.",
-  "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
-  "media_library_unlinkConfirmTitle": "Unlink {count} items?",
+  "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
+  "media_library_unlinkConfirmTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkError": "Failed to unlink: {error}",
   "media_library_unlinkConfirmBody": "They leave your library, along with their cloud copies and thumbnails. Your original files are not affected. This cannot be undone.",
   "media_library_unlinkMetadataNote": "{count,plural, =1{1 of these has a caption or favorite saved in Submersion, and those details are lost.} other{{count} of these have a caption or favorite saved in Submersion, and those details are lost.}}",
@@ -12198,9 +12218,6 @@
   "media_siteAttachment_editDetails": "Edit details",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "@media_siteAttachment_groupHeading": {"description": "Site media group heading", "placeholders": {"category": {"type": "String"}, "count": {"type": "int"}}},
-  "media_siteAttachment_moreOptions": "More options",
-  "media_siteAttachment_pageCount": "{count, plural, one{{count} page} other{{count} pages}}",
-  "@media_siteAttachment_pageCount": {"description": "Page count badge on a large PDF card", "placeholders": {"count": {"type": "int"}}},
   "media_siteAttachment_saveError": "Couldn't save: {error}",
   "@media_siteAttachment_saveError": {"description": "Edit details save failure", "placeholders": {"error": {"type": "Object"}}},
   "media_siteAttachment_setCategory": "Set category",
@@ -12220,7 +12237,7 @@
   "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
   "media_siteDivePhotos_showAll": "Show all",
   "media_siteDivePhotos_showLess": "Show less",
-  "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
+  "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkSelectedContent": "Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.",
   "@media_siteMediaSection_unlinkSelectedContent": {
     "description": "Site page unlink confirmation body",
@@ -12289,6 +12306,9 @@
   "media_photoPicker_tab_gallery": "Gallery",
   "media_photoPicker_tab_files": "Files",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "To add a feed of photos, use Import on the Media screen.",
+  "media_photoPicker_galleryOnlyHint": "To add files or links, use Import on the Media screen.",
+  "media_photoPicker_galleryOnlyLinksHint": "To add links, use Import on the Media screen.",
   "media_photoPicker_clearSelectionButton": "Clear",
   "media_photoPicker_closeTooltip": "Close photo picker",
   "media_photoPicker_doneButton": "Done",
@@ -13017,6 +13037,15 @@
   "@media_sources_neverScanned": {
     "description": "Sources section: a root with no scan yet"
   },
+  "media_sources_removeFolderTitle": "Stop watching this folder?",
+  "media_sources_removeFolderBody": "Submersion forgets the files it found in {folder}, so missing photos are no longer looked for there. No photo or file is deleted.",
+  "@media_sources_removeFolderBody": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "media_source_gallery": "Photo library",
   "@media_source_gallery": {
     "description": "Source type name"
@@ -13076,6 +13105,19 @@
   "media_smartAlbum_delete": "Delete album",
   "@media_smartAlbum_delete": {
     "description": "Filter bar: remove a smart album"
+  },
+  "media_smartAlbum_deleteConfirmTitle": "Delete \"{name}\"?",
+  "@media_smartAlbum_deleteConfirmTitle": {
+    "description": "Title of the confirmation before a smart album (a saved filter) is deleted from the Load album list. name is the album's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "media_smartAlbum_deleteConfirmBody": "Only the saved filter goes. No photos or videos change.",
+  "@media_smartAlbum_deleteConfirmBody": {
+    "description": "Body of the smart album delete confirmation: only the saved filter goes, no photo or video changes."
   },
   "media_smartAlbum_deleteFailed": "Could not delete album",
   "@media_smartAlbum_deleteFailed": {
@@ -13375,6 +13417,55 @@
   "media_divePicker_search": "Search dives",
   "@media_divePicker_search": {
     "description": "Search hint in the dive picker sheet"
+  },
+  "media_library_moveConfirmTitle": "Move {count, plural, =1{{count} item} other{{count} items}}?",
+  "@media_library_moveConfirmTitle": {
+    "description": "Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_moveConfirmBody": "{count, plural, =1{The item moves to {dive}, off any dive it is on now.} other{The items move to {dive}, off any dive they are on now.}} Site and gear links stay as they are.",
+  "@media_library_moveConfirmBody": {
+    "description": "Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "media_library_moveConfirmAction": "Move",
+  "@media_library_moveConfirmAction": {
+    "description": "The Move to dive confirmation's button that moves the photos and videos."
+  },
+  "media_library_moveDiveOpenHint": "A dive in this move is open for editing. Save, cancel or lock it, then try again.",
+  "@media_library_moveDiveOpenHint": {
+    "description": "Shown when Move to dive is refused because the picked dive, or a dive the selected photos are on, is unlocked for editing on its page. Nothing is moved."
+  },
+  "media_library_moveFailed": "Could not move the items",
+  "@media_library_moveFailed": {
+    "description": "Shown when Move to dive could not write. Nothing moved, and the selection stays."
+  },
+  "media_library_unlinkFailed": "Could not unlink the items",
+  "@media_library_unlinkFailed": {
+    "description": "Shown when the media library's Unlink could not write. The selection stays."
+  },
+  "media_library_moveDiveName": "{label}, {date}",
+  "@media_library_moveDiveName": {
+    "description": "How the Move to dive confirmation names the picked dive: its number and name (label, such as '#42 Blue Hole'), then its date. Use the language's own list separator.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "media_library_moveToDive": "Move to dive",
   "@media_library_moveToDive": {
@@ -15959,6 +16050,8 @@
   "settings_conflict_field_evidence": "Evidence",
   "settings_conflict_field_evidenceFingerprint": "Evidence fingerprint",
   "settings_conflict_field_gasSwitchesEdited": "Gas switches edited by hand",
+  "settings_conflict_field_handSetFields": "Values set by hand",
+  "@settings_conflict_field_handSetFields": {"description": "Sync conflict field: the dive values the diver set by hand (issue #4909)"},
   "settings_conflict_field_mediaTimeOffsetSeconds": "Media time shift",
   "settings_conflict_field_excludedFromGasStats": "Left out of gas statistics",
   "settings_conflict_field_excludedFromStats": "Left out of statistics",
@@ -24190,6 +24283,8 @@
   "@reparseBatch_resultSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_resultProfilesPreserved": "Combined dives that kept their profile: {count}",
   "@reparseBatch_resultProfilesPreserved": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultHandSetKept": "Dives that kept values you set by hand: {count}",
+  "@reparseBatch_resultHandSetKept": {"description": "Bulk re-parse: dives that kept values the diver set by hand (issue #4909)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_failedListHeader": "Failed dives",
   "@reparseBatch_failedListHeader": {"description": "Bulk re-parse (issue #224)"},
   "reparseBatch_failedDiveTitle": "Dive #{number}",
@@ -24204,6 +24299,8 @@
   "@reparseBatch_confirmMessage": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_confirmSkipped": "Selected dives without raw data (skipped): {count}",
   "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_confirmHandSetKept": "Values you set by hand are kept.",
+  "@reparseBatch_confirmHandSetKept": {"description": "Bulk re-parse confirmation: values set by hand are kept (issue #4909)"},
   "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
   "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
   "diveLog_selection_tooltip_fetchConditions": "Fetch Conditions",
@@ -24331,6 +24428,24 @@
   "@diveLog_detail_menu_resyncImportedFile": {
     "description": "Menu item to re-parse a file-imported dive from its originally stored file"
   },
+  "handSetReview_reparseTitle": "Re-parse this dive?",
+  "@handSetReview_reparseTitle": {"description": "Re-parse of one dive: title of the dialog listing values set by hand (issue #4909)"},
+  "handSetReview_resyncTitle": "Resync this dive?",
+  "@handSetReview_resyncTitle": {"description": "Resync of one dive: title of the dialog listing values set by hand (issue #4909)"},
+  "handSetReview_message": "You set these values by hand, and the new reading differs. Keep yours or replace each one.",
+  "@handSetReview_message": {"description": "Dialog listing values the diver set by hand that a re-parse or resync would change (issue #4909)"},
+  "handSetReview_yours": "Yours: {value}",
+  "@handSetReview_yours": {"description": "The diver's own value in the hand-set values dialog (issue #4909)", "placeholders": {"value": {"type": "String"}}},
+  "handSetReview_fromComputer": "Computer: {value}",
+  "@handSetReview_fromComputer": {"description": "The dive computer's value in the hand-set values dialog (issue #4909)", "placeholders": {"value": {"type": "String"}}},
+  "handSetReview_fromFile": "File: {value}",
+  "@handSetReview_fromFile": {"description": "The imported file's value in the hand-set values dialog (issue #4909)", "placeholders": {"value": {"type": "String"}}},
+  "handSetReview_keep": "Keep",
+  "@handSetReview_keep": {"description": "Keep the diver's value (issue #4909)"},
+  "handSetReview_replace": "Replace",
+  "@handSetReview_replace": {"description": "Replace the diver's value with the new reading (issue #4909)"},
+  "handSetReview_resyncAction": "Resync",
+  "@handSetReview_resyncAction": {"description": "Button that runs a resync after the hand-set values dialog (issue #4909)"},
   "diveLog_detail_resyncSuccess": "Dive updated from the original file",
   "@diveLog_detail_resyncSuccess": {
     "description": "Snackbar shown after a successful resync"
@@ -25086,6 +25201,9 @@
   "bodyWeight_addEntry": "Add measurement",
   "bodyWeight_dateLabel": "Date",
   "bodyWeight_deleteTooltip": "Delete entry",
+  "bodyWeight_deleteConfirmTitle": "Delete this measurement?",
+  "bodyWeight_deleteConfirmBody": "{weight} on {date} will be deleted. This cannot be undone.",
+  "@bodyWeight_deleteConfirmBody": {"description": "Body of the question asked before a body-weight entry is deleted. {weight} is the weight in the diver's units, such as 176.4 lbs; {date} is the date it was measured.", "placeholders": {"weight": {"type": "String"}, "date": {"type": "String"}}},
   "bodyWeight_heightLabel": "Height (cm)",
   "bodyWeight_heightFeetLabel": "Height (ft)",
   "bodyWeight_heightInchesLabel": "Inches",
@@ -26435,7 +26553,6 @@
   "incidentEdit_narrative_required": "Describe what happened",
   "incidentEdit_contributingFactors": "What contributed (optional)",
   "incidentEdit_lessonsLearned": "What would help next time (optional)",
-  "incidentEdit_save": "Save",
   "incidentEdit_privacyNote": "Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.",
   "incidentEdit_equipment": "Equipment involved",
   "incidentEdit_equipment_none": "None",
@@ -28087,6 +28204,16 @@
   "settings_mediaStorage_quality_small": "Small",
   "settings_mediaStorage_quality_caveat": "With a compression level set, full-resolution originals are not uploaded — they remain only on this device.",
   "settings_mediaStorage_quality_reuploadQueued": "Re-upload queued",
+  "settings_mediaStorage_quality_downgradeTitle": "Replace the full-quality copy?",
+  "settings_mediaStorage_quality_downgradeBody": "The original kept in your storage is replaced with a {level} copy. The photo on this device is kept.",
+  "@settings_mediaStorage_quality_downgradeBody": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_mediaStorage_quality_downgradeConfirm": "Replace",
   "settings_mediaStorage_quality_linuxFfmpegHint": "Install ffmpeg to enable video compression. Originals are uploaded until then.",
   "settings_mediaStorage_quality_saveFailed": "Could not save the upload quality. Try again.",
   "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it.",
@@ -29294,14 +29421,6 @@
   "species_french_grunt_desc": "Small yellow-striped grunt that forms dense resting schools on Caribbean reefs during daylight hours.",
   "species_convict_tang_name": "Convict Tang",
   "species_convict_tang_desc": "Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats.",
-  "species_great_hammerhead_name": "Scalloped Hammerhead",
-  "species_great_hammerhead_desc": "Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands.",
-  "species_wobbegong_name": "Spotted Wobbegong",
-  "species_wobbegong_desc": "Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs.",
-  "species_manta_ray_name": "Reef Manta Ray",
-  "species_manta_ray_desc": "Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs.",
-  "species_oceanic_manta_name": "Oceanic Manta Ray",
-  "species_oceanic_manta_desc": "The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations.",
   "species_undulated_moray_name": "Undulated Moray Eel",
   "species_undulated_moray_desc": "Yellowish-green moray with dark wavy markings, commonly seen hunting on Indo-Pacific reefs at night.",
   "species_whitemouth_moray_name": "Whitemouth Moray Eel",
@@ -32553,6 +32672,12 @@
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "This profile was imported from a dive computer and likely contains the original source data.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "Delete Permanently Now",
   "diveLog_profileEditor_deleteProfile_failed": "Could not delete the profile revision.",
+  "diveLog_profileEditor_removeSource": "Remove This Source",
+  "diveLog_profileEditor_unsavedEditsHint": "Save or undo your edits to delete the profile.",
+  "diveLog_profileEditor_unsavedEditsHintWithSource": "Save or undo your edits to delete the profile or remove this source.",
+  "diveLog_profileEditor_deleteProfile_notPrimary": "Delete Entire Profile only deletes revisions of the primary source's profile.",
+  "diveLog_profileEditor_deleteProfile_onlyRevision": "This is the dive's only profile revision, so it can't be deleted.",
+  "diveLog_profileEditor_deleteProfile_historyFailed": "Couldn't load the profile revisions, so none can be deleted now.",
   "diveLog_profileEditor_revisionLegacyHint": "Saved before revision history; not linked to a computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
@@ -33462,6 +33587,18 @@
   "@media_labels_statusAnalysingPercent": {"placeholders": {"percent": {"type": "String"}}},
   "media_labels_statusFound": "{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}",
   "@media_labels_statusFound": {"placeholders": {"count": {"type": "int"}}},
+  "media_labels_statusPartlyFound": "{count, plural, =0{Partly analysed, nothing found} =1{Partly analysed, {count} found} other{Partly analysed, {count} found}}",
+  "@media_labels_statusPartlyFound": {"description": "Labels menu status line for a photo or video analysed only in part, such as a video scanned part way (issue #4958), with how many animals were found so far.", "placeholders": {"count": {"type": "int"}}},
+  "media_labels_buttonNotAnalysed": "Species labels: not analysed",
+  "@media_labels_buttonNotAnalysed": {"description": "Tooltip of the viewer's species labels button while the item on screen is not analysed; the icon is drawn plain (issue #4958)."},
+  "media_labels_buttonAnalysing": "Species labels: analysing",
+  "@media_labels_buttonAnalysing": {"description": "Tooltip of the viewer's species labels button while the item on screen is being analysed; the icon is drawn in the theme colour (issue #4958)."},
+  "media_labels_buttonPartlyAnalysed": "Species labels: partly analysed",
+  "@media_labels_buttonPartlyAnalysed": {"description": "Tooltip of the viewer's species labels button while the item on screen is analysed only in part; the icon is drawn amber (issue #4958)."},
+  "media_labels_buttonOutdated": "Species labels: out of date",
+  "@media_labels_buttonOutdated": {"description": "Tooltip of the viewer's species labels button when the item on screen was analysed in full, but by an older model, for another place, or with its crops not on this device; the icon is drawn amber and Analyse brings it up to date (issue #4958)."},
+  "media_labels_buttonAnalysed": "Species labels: analysed",
+  "@media_labels_buttonAnalysed": {"description": "Tooltip of the viewer's species labels button once the item on screen is analysed; the icon is drawn green (issue #4958)."},
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} found, none named} other{{count} found, none named}}",
   "@media_labels_foundNoneNamed": {"description": "Brief message after the diver asks for a photo or video to be analysed and it finds animals it cannot name, so no name label is drawn (issue #4872).", "placeholders": {"count": {"type": "int"}}},
   "media_labels_showAllLife": "Show all life",
@@ -34971,6 +35108,7 @@
     }
   },
   "transmitters_edit_title": "Edit transmitter",
+  "transmitters_edit_notFound": "This transmitter key no longer exists.",
   "transmitters_new_title": "New transmitter",
   "transmitters_field_serial": "Transmitter serial",
   "transmitters_field_computer": "Dive computer (when no serial is reported)",
@@ -35092,6 +35230,9 @@
   },
   "backup_unrecognized_appBar_title": "Unrecognized Backups",
   "backup_unrecognized_explanation": "These files are in your backups folder but not in this device's backup history. Only a file this device wrote can be deleted here: anything else may be another device's only copy.",
+  "backup_unrecognized_explanation_appPrivate": "These files are in your backups folder but not in this device's backup history. This folder is private to Submersion on this device, so no other device uses these files and any of them can be deleted here.",
+  "backup_unrecognized_confirm_foreignWarning": "{count, plural, =1{One selected file may have been made by another device, an earlier install or an older version of Submersion. If it holds dives you do not have anywhere else, those dives will be lost.} other{{count} selected files may have been made by another device, an earlier install or an older version of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.}}",
+  "@backup_unrecognized_confirm_foreignWarning": { "placeholders": { "count": { "type": "int" } } },
   "backup_unrecognized_empty": "No unrecognized backup files.",
   "backup_unrecognized_loadFailed": "Could not read the backups folder.",
   "backup_unrecognized_unavailable": "This device cannot list the backup folder you chose, so unrecognized files cannot be found.",
@@ -36586,6 +36727,8 @@
   "@rules_edit_addAction": {"description": "Button that adds an action to a rule"},
   "rules_edit_noActions": "Add at least one action.",
   "@rules_edit_noActions": {"description": "Shown when a rule has no actions yet"},
+  "rules_edit_notFound": "This rule no longer exists.",
+  "@rules_edit_notFound": {"description": "Shown when Save finds the rule was deleted while it was being edited"},
   "rules_picker_search": "Search actions",
   "@rules_picker_search": {"description": "Search field hint of the action picker"},
   "rules_picker_set": "Set {field}",
@@ -37472,6 +37615,18 @@
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
   },
+  "changeLog_label_moveMedia": "Moved to another dive",
+  "@changeLog_label_moveMedia": {
+    "description": "Change log entry title for the media library's Move to dive, which moves the selected photos and videos onto another dive."
+  },
+  "changeLog_label_unlinkMedia": "Unlinked from the library",
+  "@changeLog_label_unlinkMedia": {
+    "description": "Change log entry title for the media library's Unlink, which removes the selected photos and videos from the library (never the original files)."
+  },
+  "changeLog_label_removeGearPhotos": "Removed gear photos",
+  "@changeLog_label_removeGearPhotos": {
+    "description": "Change log entry title for the Media screen's Gear tab Remove, which takes the selected photos off their gear items."
+  },
   "changeLog_label_updatePlannedDives": "Updated planned dives",
   "@changeLog_label_updatePlannedDives": {
     "description": "Change log entry title for the planner's Create / Update planned dives, which writes a plan's dives into the log as planned entries."
@@ -38250,6 +38405,7 @@
   "@dashboard_key_daysUnit": {"placeholders": {"count": {"type": "int"}}},
   "dashboard_key_vsPrevious": "{change} vs previous 10",
   "@dashboard_key_vsPrevious": {"placeholders": {"change": {"type": "String"}}},
+  "dashboard_key_now": "now",
   "dashboard_key_lastYear": "Last year {value}",
   "@dashboard_key_lastYear": {"placeholders": {"value": {"type": "String"}}},
   "dashboard_key_tripChecklist": "checklist {done}/{total} · {name}",
@@ -38258,6 +38414,17 @@
   "@dashboard_panel_activity": {"placeholders": {"months": {"type": "int"}}},
   "dashboard_panel_activitySummary": "{dives, plural, =1{1 dive} other{{dives} dives}} · {days, plural, =1{1 day} other{{days} days}}",
   "@dashboard_panel_activitySummary": {"placeholders": {"dives": {"type": "int"}, "days": {"type": "int"}}},
+  "dashboard_panel_recentOutings": "Recent outings",
+  "dashboard_outings_summary": "{outings, plural, =1{1 outing} other{{outings} outings}} · {dives, plural, =1{1 dive} other{{dives} dives}}",
+  "@dashboard_outings_summary": {"placeholders": {"outings": {"type": "int"}, "dives": {"type": "int"}}},
+  "dashboard_outings_dives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@dashboard_outings_dives": {"placeholders": {"count": {"type": "int"}}},
+  "dashboard_outings_maxDepth": "{depth} max",
+  "@dashboard_outings_maxDepth": {"placeholders": {"depth": {"type": "String"}}},
+  "dashboard_outings_species": "{count, plural, =1{1 species} other{{count} species}}",
+  "@dashboard_outings_species": {"placeholders": {"count": {"type": "int"}}},
+  "dashboard_outings_empty": "Your outings will show here once you log a dive",
+  "dashboard_outings_unnamed": "Dives",
   "dashboard_panel_divesPerMonth": "Dives per month",
   "dashboard_panel_sacTrend": "SAC trend",
   "dashboard_panel_rmvTrend": "RMV trend",
@@ -38321,5 +38488,6 @@
   "settings_homePanels_keyNumbersCount": "{shown} of {total}",
   "@settings_homePanels_keyNumbersCount": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}},
   "settings_homePanels_activityCalendar": "Activity calendar",
+  "settings_homePanels_recentOutings": "Recent outings",
   "settings_homeKeyNumbers_description": "Choose the numbers shown at the top of Home. A number with nothing to show yet is left out."
 }

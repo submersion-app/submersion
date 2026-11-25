@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/network/platform_http_client.dart';
 import 'package:submersion/core/platform/host_platform.dart';
@@ -219,7 +220,7 @@ class TileCacheService {
       );
     } else {
       final cacheDir = await getApplicationCacheDirectory();
-      final tileCacheDir = Directory('${cacheDir.path}/fmtc_tiles');
+      final tileCacheDir = Directory(p.join(cacheDir.path, 'fmtc_tiles'));
       if (!await tileCacheDir.exists()) {
         await tileCacheDir.create(recursive: true);
       }

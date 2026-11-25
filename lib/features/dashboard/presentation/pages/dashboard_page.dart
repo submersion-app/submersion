@@ -21,6 +21,7 @@ import 'package:submersion/features/dashboard/presentation/panels/latest_profile
 import 'package:submersion/features/dashboard/presentation/panels/latest_vs_average_panel.dart';
 import 'package:submersion/features/dashboard/presentation/panels/next_trip_panel.dart';
 import 'package:submersion/features/dashboard/presentation/panels/ranking_panels.dart';
+import 'package:submersion/features/dashboard/presentation/panels/recent_outings_panel.dart';
 import 'package:submersion/features/dashboard/presentation/panels/recent_dives_panel.dart';
 import 'package:submersion/features/dashboard/presentation/panels/sac_trend_panel.dart';
 import 'package:submersion/features/dashboard/presentation/panels/species_seen_panel.dart';
@@ -201,6 +202,7 @@ class DashboardPage extends ConsumerWidget {
     HomePanelType.preDive => const PreDivePanel(),
     HomePanelType.activeCourses => const ActiveCoursePanel(),
     HomePanelType.activityCalendar => const ActivityCalendarPanel(),
+    HomePanelType.recentOutings => const RecentOutingsPanel(),
     HomePanelType.gearService => const GearServicePanel(),
     HomePanelType.comingDue => const ComingDuePanel(),
     HomePanelType.nextTrip => const NextTripPanel(),

@@ -323,6 +323,31 @@ void main() {
       }
     });
 
+    // Values the diver set by hand (issue #4909): a mark follows its value.
+    test('each half keeps the marks of the values it took', () async {
+      final mergedId = await mergeTwoImports();
+      final before = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(mergedId))).getSingle();
+      await db.customStatement(
+        "UPDATE dives SET hand_set_fields = '[\"diveMode\",\"runtime\"]' "
+        'WHERE id = ?',
+        [mergedId],
+      );
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      Future<Dive> row(String id) =>
+          (db.select(db.dives)..where((t) => t.id.equals(id))).getSingle();
+      final restored = await row(restoredId);
+      final kept = await row(mergedId);
+      // The mode came across unchanged; each half's runtime is its own.
+      expect(restored.runtime, isNot(before.runtime));
+      expect(restored.handSetFields, '["diveMode"]');
+      expect(kept.runtime, isNot(before.runtime));
+      expect(kept.handSetFields, '["diveMode"]');
+    });
+
     test('leaves the logbook entry on the surviving dive', () async {
       // The confirmation dialog promises buddies, tags, equipment, media,
       // notes and the dive number stay put. Restored dives are created by

@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
@@ -32,7 +33,8 @@ class _WriteFault extends ReparseService {
   final String failingSource;
 
   @override
-  Future<({bool profilePreserved})> applyParsedUpdate({
+  Future<({bool profilePreserved, List<HandSetChange> handSetKept})>
+  applyParsedUpdate({
     required String diveId,
     required String sourceRowId,
     required pigeon.ParsedDive parsed,
@@ -42,6 +44,7 @@ class _WriteFault extends ReparseService {
     required String? libdivecomputerVersion,
     Uint8List? rawData,
     Uint8List? rawFingerprint,
+    Iterable<HandSetChange> replaceHandSet = const [],
   }) {
     if (sourceRowId == failingSource) throw StateError('disk full');
     return super.applyParsedUpdate(
@@ -54,6 +57,7 @@ class _WriteFault extends ReparseService {
       libdivecomputerVersion: libdivecomputerVersion,
       rawData: rawData,
       rawFingerprint: rawFingerprint,
+      replaceHandSet: replaceHandSet,
     );
   }
 }
@@ -63,7 +67,8 @@ class _CombinedDives extends ReparseService {
   _CombinedDives({required super.db});
 
   @override
-  Future<({bool profilePreserved})> applyParsedUpdate({
+  Future<({bool profilePreserved, List<HandSetChange> handSetKept})>
+  applyParsedUpdate({
     required String diveId,
     required String sourceRowId,
     required pigeon.ParsedDive parsed,
@@ -73,7 +78,8 @@ class _CombinedDives extends ReparseService {
     required String? libdivecomputerVersion,
     Uint8List? rawData,
     Uint8List? rawFingerprint,
-  }) async => (profilePreserved: true);
+    Iterable<HandSetChange> replaceHandSet = const [],
+  }) async => (profilePreserved: true, handSetKept: const <HandSetChange>[]);
 }
 
 void main() {
@@ -408,6 +414,103 @@ void main() {
       final operations = await db.select(db.changeLogOperations).get();
       expect(operations, hasLength(1));
       expect(operations.single.label, ChangeLogLabels.reparse);
+    });
+  });
+
+  // Values the diver set by hand (issue #4909): the parse gives 18 degrees.
+  group('values set by hand', () {
+    Future<void> markWaterTemp(String diveId, double temp) =>
+        db.customStatement(
+          'UPDATE dives SET water_temp = ?, '
+          "hand_set_fields = '[\"waterTemp\"]' WHERE id = ?",
+          [temp, diveId],
+        );
+
+    Future<double?> waterTemp(String diveId) async => (await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingle()).waterTemp;
+
+    test('a run keeps them and counts the dives that kept one', () async {
+      for (final id in ['d1', 'd2', 'd3']) {
+        await addDive(id);
+        await addSource(id: 's$id', diveId: id);
+      }
+      await markWaterTemp('d1', 24);
+      // The diver's value is the parse's: nothing kept against it.
+      await markWaterTemp('d2', 18);
+
+      final result = await batch.run(['d1', 'd2', 'd3'], parseFn: okParse);
+
+      expect(result.succeeded, 3);
+      expect(result.handSetKept, 1);
+      expect(await waterTemp('d1'), 24);
+      expect(await waterTemp('d3'), 18);
+    });
+
+    test('the single-dive preview lists them and writes nothing', () async {
+      await addDive('d1');
+      await addSource(id: 's1', diveId: 'd1');
+      await markWaterTemp('d1', 24);
+
+      final changes = await batch.previewSingleDive('d1', parseFn: okParse);
+
+      expect(
+        [for (final c in changes) (c.field, c.storedValue, c.parsedValue)],
+        [(HandSetField.waterTemp, 24.0, 18.0)],
+      );
+      expect(await lastParsedAt('s1'), isNull);
+    });
+
+    test('the preview of a dive with nothing marked parses nothing', () async {
+      await addDive('d1');
+      await addSource(id: 's1', diveId: 'd1');
+
+      var parses = 0;
+      final changes = await batch.previewSingleDive(
+        'd1',
+        parseFn: (vendor, product, model, raw) {
+          parses++;
+          return okParse(vendor, product, model, raw);
+        },
+      );
+
+      expect(changes, isEmpty);
+      expect(parses, 0);
+    });
+
+    test('the preview of a dive that fails to parse is empty', () async {
+      await addDive('d1');
+      await addSource(id: 's1', diveId: 'd1');
+      await markWaterTemp('d1', 24);
+
+      final changes = await batch.previewSingleDive(
+        'd1',
+        parseFn: (_, _, _, _) async => throw StateError('bad bytes'),
+      );
+
+      expect(changes, isEmpty);
+    });
+
+    test('a single-dive re-parse takes the parse where the diver chose '
+        'it', () async {
+      await addDive('d1');
+      await addSource(id: 's1', diveId: 'd1');
+      await markWaterTemp('d1', 24);
+
+      final result = await batch.reparseSingleDive(
+        'd1',
+        parseFn: okParse,
+        replaceHandSet: const [
+          HandSetChange(
+            field: HandSetField.waterTemp,
+            storedValue: 24.0,
+            parsedValue: 18.0,
+          ),
+        ],
+      );
+
+      expect(result.errors, isEmpty);
+      expect(await waterTemp('d1'), 18);
     });
   });
 

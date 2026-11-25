@@ -24,6 +24,7 @@ void main() {
     'pt',
     'hu',
     'zh',
+    'ja',
     'ar',
     'he',
   ];

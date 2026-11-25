@@ -244,14 +244,36 @@ void main() {
     expect(find.byKey(const Key('reconnect-choose-account')), findsNothing);
   });
 
-  testWidgets('stopping keeps nothing attached and closes', (tester) async {
+  // Stop keeping copies asks first, as in Photos and videos, Advanced
+  // (issue #4527, media library decision 3).
+  testWidgets('stopping asks, then keeps nothing attached and closes', (
+    tester,
+  ) async {
     final fake = await _open(tester, const [ReconnectNoMarker()]);
 
     await tester.tap(find.byKey(const Key('reconnect-detach')));
     await tester.pumpAndSettle();
+    expect(fake.detachCalls, 0);
+    await tester.tap(find.byKey(const Key('media-s3-disconnect-confirm')));
+    await tester.pumpAndSettle();
 
     expect(fake.detachCalls, 1);
     expect(find.byKey(const Key('reconnect-detach')), findsNothing);
+  });
+
+  testWidgets('Cancel on Stop keeping copies detaches nothing and keeps the '
+      'choices', (tester) async {
+    final fake = await _open(tester, const [ReconnectNoMarker()]);
+
+    await tester.tap(find.byKey(const Key('reconnect-detach')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(fake.detachCalls, 0);
+    final detach = find.byKey(const Key('reconnect-detach'));
+    expect(detach, findsOneWidget);
+    expect(tester.widget<ListTile>(detach).enabled, isTrue);
   });
 
   // Code review: a sheet dragged away while the attach runs must not pop
@@ -283,6 +305,8 @@ void main() {
     fake.detachFailure = StateError('keychain locked');
 
     await tester.tap(find.byKey(const Key('reconnect-detach')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('media-s3-disconnect-confirm')));
     await tester.pumpAndSettle();
 
     expect(find.text('Bad state: keychain locked'), findsOneWidget);

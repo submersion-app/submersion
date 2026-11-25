@@ -320,5 +320,12 @@ extension RungsFromV340 on AppDatabase {
     // its rows. The floor rises to 381 (see minimumCompatibleSchemaVersion).
     if (from < 381) await _assertIdentificationSyncSchema();
     if (from < 381) await reportProgress();
+
+    // v382 (issue #4909): dives.hand_set_fields, the computer-written values
+    // the diver set by hand. Nullable with no backfill, so only edits saved
+    // after the update are marked; re-asserted in beforeOpen. The floor does
+    // not move.
+    if (from < 382) await _assertDiveHandSetFieldsColumn();
+    if (from < 382) await reportProgress();
   }
 }

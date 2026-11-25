@@ -193,8 +193,9 @@ class PlanResultsSheet extends ConsumerWidget {
       state.id,
     );
     final lostGas = planResultView(ref.watch(planLostGasProvider), state.id);
-    final selectedDeviation = ref.watch(selectedDeviationProvider);
-    final selectedLostGasTankId = ref.watch(selectedLostGasTankIdProvider);
+    final selection = ref.watch(contingencySelectionProvider);
+    final selectedDeviation = selection.deviationKey;
+    final selectionNotifier = ref.read(contingencySelectionProvider.notifier);
     final collapsedKeys = ref.watch(collapsedContingencyKeysProvider);
     final theme = Theme.of(context);
 
@@ -204,27 +205,12 @@ class PlanResultsSheet extends ConsumerWidget {
       ref.read(collapsedContingencyKeysProvider.notifier).state = next;
     }
 
-    void toggleDeviation(String key) {
-      final isSelected = selectedDeviation == key;
-      ref
-          .read(selectedDeviationProvider.notifier)
-          .select(isSelected ? null : key);
-      // Only one contingency ghost/preview can be active at a time.
-      if (!isSelected) {
-        ref.read(selectedLostGasTankIdProvider.notifier).state = null;
-      }
-    }
-
-    void toggleLostGas(String tankId) {
-      final isSelected = selectedLostGasTankId == tankId;
-      ref.read(selectedLostGasTankIdProvider.notifier).state = isSelected
-          ? null
-          : tankId;
-      // Only one contingency ghost/preview can be active at a time.
-      if (!isSelected) {
-        ref.read(selectedDeviationProvider.notifier).select(null);
-      }
-    }
+    // A row sets the same toggles as the chart chips: a deviation row sets
+    // +depth / +time to its own variant (the "both" row turns both on), and
+    // the lost gases stay as they are.
+    void toggleDeviation(String key) => selectionNotifier.selectDeviation(
+      selectedDeviation == key ? null : key,
+    );
 
     String deviationLabel(String key) {
       // The plan's own deviation, else the diver's Settings default (#3552).
@@ -295,8 +281,8 @@ class PlanResultsSheet extends ConsumerWidget {
           label: context.l10n.plannerCanvas_contingency_lostGas(
             lost.tank.gasMix.name,
           ),
-          selected: selectedLostGasTankId == lost.tank.id,
-          onSelect: () => toggleLostGas(lost.tank.id),
+          selected: selection.lostTankIds.contains(lost.tank.id),
+          onSelect: () => selectionNotifier.toggleLostGas(lost.tank.id),
           outcome: lost.outcome,
         ),
     ];

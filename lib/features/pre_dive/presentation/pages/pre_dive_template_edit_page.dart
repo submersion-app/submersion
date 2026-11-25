@@ -2,18 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
-import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart'
-    as domain;
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_editable_item.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_item_dialog.dart';
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_draft.dart';
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_save.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 import 'package:submersion/shared/widgets/section_list_editor.dart';
 
 /// Create/edit page for a pre-dive checklist template and its items.
+///
+/// An editor with no read page (issue #4527, phase 4): a user template
+/// opens on the shared Cancel and Save bar, asks before its changes are
+/// left behind, and writes the template, its sections and its items in one
+/// transaction and one History entry. A built-in template opens as a
+/// viewer: the plain bar, a back arrow and no Save, with no sitting.
 class PreDiveTemplateEditPage extends ConsumerStatefulWidget {
   final String? templateId;
 
@@ -27,7 +34,10 @@ class PreDiveTemplateEditPage extends ConsumerStatefulWidget {
 }
 
 class _PreDiveTemplateEditPageState
-    extends ConsumerState<PreDiveTemplateEditPage> {
+    extends ConsumerState<PreDiveTemplateEditPage>
+    with RecordEditorHost<PreDiveTemplateEditPage, PreDiveTemplateDraft> {
+  static final _log = LoggerService.forClass(PreDiveTemplateEditPage);
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -35,8 +45,25 @@ class _PreDiveTemplateEditPageState
   bool _strictOrder = false;
   List<EditablePreDiveItem> _items = [];
   List<EditablePreDiveSection> _sections = [];
-  PreDiveChecklistTemplate? _existing;
-  bool _loading = false;
+
+  /// Section titles being typed, by section id: the section editor renames
+  /// a section only when its title field lets go, and a title being typed
+  /// is already a change.
+  final Map<String, String> _typedTitles = {};
+
+  /// [_sections] as shown, with each title being typed as the rename it
+  /// will become: trimmed, and the title it had when typed blank.
+  List<EditablePreDiveSection> get _shownSections => [
+    for (final section in _sections)
+      switch (_typedTitles[section.id]?.trim()) {
+        final typed? when typed.isNotEmpty => section.copyWith(title: typed),
+        _ => section,
+      },
+  ];
+  bool _loaded = false;
+
+  /// The loaded template is a built-in, which this page only shows.
+  bool _builtIn = false;
 
   /// Built-ins reach this page as viewers: the list opens them so a diver
   /// can read what a default checks before cloning it. Everything that would
@@ -45,7 +72,7 @@ class _PreDiveTemplateEditPageState
   ///
   /// False until [_load] lands, so read [_editable] rather than `!_readOnly`
   /// for anything that offers editing.
-  bool get _readOnly => _existing?.isBuiltIn ?? false;
+  bool get _readOnly => _builtIn;
 
   /// Whether the editing chrome may be shown yet.
   ///
@@ -55,30 +82,60 @@ class _PreDiveTemplateEditPageState
   /// first frame and then withdrew them the instant a built-in resolved.
   /// Waiting is the claim that can only be upgraded, never retracted.
   ///
-  /// A brand new template has nothing to fetch, so it is editable at once.
-  bool get _editable => !_loading && !_readOnly;
+  /// It follows what was loaded, not the sitting: the sitting ends as the
+  /// page leaves (a Save, a discard, a change of diver), and the title must
+  /// not turn to "View" on the way out. A brand new template has nothing to
+  /// fetch, so it is editable at once.
+  bool get _editable => _loaded && !_builtIn;
 
   @override
   void initState() {
     super.initState();
-    if (widget.isEditing) _load();
+    _nameController.addListener(editorChanged);
+    _descriptionController.addListener(editorChanged);
+    _categoryController.addListener(editorChanged);
+    if (widget.isEditing) {
+      _load();
+    } else {
+      // A new template opens on its empty form, so the first frame shows
+      // the Cancel and Save bar.
+      _loaded = true;
+      openEditor();
+    }
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
     final repository = ref.read(preDiveTemplateRepositoryProvider);
-    final template = await repository.getTemplateById(widget.templateId!);
-    final items = await repository.getItemsForTemplate(widget.templateId!);
-    final sections = await repository.getSectionsForTemplate(
-      widget.templateId!,
-    );
+    final id = widget.templateId!;
+    final PreDiveChecklistTemplate? template;
+    final List<PreDiveChecklistTemplateItem> items;
+    final List<PreDiveChecklistTemplateSection> sections;
+    try {
+      template = await repository.getTemplateById(id);
+      items = await repository.getItemsForTemplate(id);
+      sections = await repository.getSectionsForTemplate(id);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Loading pre-dive template $id failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _leaveUnopened(context.l10n.recordEdit_loadFailed);
+      return;
+    }
     if (!mounted) return;
+    // A stale link, or a template deleted on another device: there is
+    // nothing to show, and saving the empty form would make a new one.
+    if (template == null) {
+      _leaveUnopened(context.l10n.preDive_edit_notFound);
+      return;
+    }
     setState(() {
-      _existing = template;
-      _nameController.text = template?.name ?? '';
-      _descriptionController.text = template?.description ?? '';
-      _categoryController.text = template?.category ?? '';
-      _strictOrder = template?.strictOrder ?? false;
+      _builtIn = template!.isBuiltIn;
+      _nameController.text = template.name;
+      _descriptionController.text = template.description;
+      _categoryController.text = template.category ?? '';
+      _strictOrder = template.strictOrder;
       _sections = [
         for (final section in sections)
           EditablePreDiveSection(id: section.id, title: section.title),
@@ -103,16 +160,33 @@ class _PreDiveTemplateEditPageState
             updatedAt: item.updatedAt,
           ),
       ];
-      _loading = false;
+      _loaded = true;
     });
+    // A built-in can only be read: no sitting, so the plain bar stays.
+    if (!_builtIn) openEditor();
+  }
+
+  /// Says [message] and leaves a template that could not be opened.
+  void _leaveUnopened(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+    leaveEditor();
   }
 
   @override
   void dispose() {
+    disposeEditor();
     _nameController.dispose();
     _descriptionController.dispose();
     _categoryController.dispose();
     super.dispose();
+  }
+
+  /// Changes the form and hands it to the sitting.
+  void _change(VoidCallback change) {
+    setState(change);
+    editorChanged();
   }
 
   Future<void> _addOrEditItem({EditablePreDiveItem? item}) async {
@@ -122,11 +196,13 @@ class _PreDiveTemplateEditPageState
         item: item,
         defaultSortOrder: _items.length,
         siblings: _items,
-        sections: _sections,
+        // A title being typed commits only once the dialog takes the
+        // focus: offer the titles as shown.
+        sections: _shownSections,
       ),
     );
-    if (result == null) return;
-    setState(() {
+    if (result == null || !mounted) return;
+    _change(() {
       if (item == null) {
         _items = [..._items, result];
       } else {
@@ -138,8 +214,8 @@ class _PreDiveTemplateEditPageState
     });
   }
 
-  /// Whether [item] is a linearity item whose source sorts after it in
-  /// [_items], the same list order [_save] passes to the repository.
+  /// Whether [item] is a linearity item whose source sorts after it in the
+  /// order shown, the order Save writes ([writePreDiveTemplate]).
   ///
   /// Deliberately not gated on strict order. Strict order makes the trap
   /// unavoidable, because the runner will not let the diver reach the air
@@ -163,7 +239,7 @@ class _PreDiveTemplateEditPageState
 
   /// [_items] in the order the editor shows them: each section's items in
   /// section order, then the unsectioned ones (a dangling sectionId counts
-  /// as unsectioned, as it does on screen). [_save] assigns sortOrder from
+  /// as unsectioned, as it does on screen). Save assigns sortOrder from
   /// this order, so a strict-order session enforces the order the diver
   /// saw rather than the order items happened to be added in.
   List<EditablePreDiveItem> _itemsInDisplayOrder() {
@@ -196,7 +272,7 @@ class _PreDiveTemplateEditPageState
     ];
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    setState(() {
+    _change(() {
       _items = [
         for (final i in _items)
           if (!removedIds.contains(i.id))
@@ -213,77 +289,48 @@ class _PreDiveTemplateEditPageState
     }
   }
 
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    final repository = ref.read(preDiveTemplateRepositoryProvider);
-    final navigator = Navigator.of(context);
-    final category = _categoryController.text.trim();
-    String templateId;
-    if (_existing == null) {
-      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-      final created = await repository.createTemplate(
-        PreDiveChecklistTemplate(
-          id: '',
-          diverId: diverId,
-          name: _nameController.text.trim(),
-          description: _descriptionController.text.trim(),
-          category: category.isEmpty ? null : category,
-          strictOrder: _strictOrder,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      );
-      templateId = created.id;
-    } else {
-      await repository.updateTemplate(
-        _existing!.copyWith(
-          name: _nameController.text.trim(),
-          description: _descriptionController.text.trim(),
-          category: category.isEmpty ? null : category,
-          strictOrder: _strictOrder,
-        ),
-      );
-      templateId = _existing!.id;
-    }
+  @override
+  String get editorTable => 'pre_dive_checklist_templates';
 
-    // Sections must exist before the items referencing them are (re)inserted
-    // -- saveItems satisfies a foreign key, not a dangling draft id.
-    await repository.saveSections(templateId, [
-      for (final section in _sections)
-        domain.PreDiveChecklistTemplateSection(
-          id: section.id,
-          templateId: templateId,
-          title: section.title,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-    ]);
+  @override
+  String? get editorStoredId => widget.templateId;
 
-    // sortOrder reassigned from list position at save time.
-    final ordered = _itemsInDisplayOrder();
-    await repository.saveItems(templateId, [
-      for (var i = 0; i < ordered.length; i++)
-        PreDiveChecklistTemplateItem(
-          id: ordered[i].id,
-          templateId: templateId,
-          sectionId: ordered[i].sectionId,
-          title: ordered[i].title,
-          notes: ordered[i].notes,
-          sortOrder: i,
-          itemType: ordered[i].itemType,
-          valueLabel: ordered[i].valueLabel,
-          valueUnit: ordered[i].valueUnit,
-          valueMin: ordered[i].valueMin,
-          valueMax: ordered[i].valueMax,
-          isRequired: ordered[i].isRequired,
-          equipmentId: ordered[i].equipmentId,
-          sourceItemId: ordered[i].sourceItemId,
-          createdAt: ordered[i].createdAt,
-          updatedAt: ordered[i].updatedAt,
-        ),
-    ]);
-    if (mounted) navigator.pop();
-  }
+  @override
+  String? get editorLeaveLocation => '/pre-dive-checklists';
+
+  /// The edit title once a template that can be edited has loaded (see
+  /// [_editable]): while one loads, and for a built-in, the page claims no
+  /// editing, and it keeps the title as it leaves.
+  @override
+  String editorTitle(BuildContext context) => !widget.isEditing
+      ? context.l10n.preDive_edit_titleNew
+      : _editable
+      ? context.l10n.preDive_edit_titleEdit
+      : context.l10n.preDive_edit_titleView;
+
+  @override
+  PreDiveTemplateDraft readEditorDraft() => preDiveTemplateDraft(
+    name: _nameController.text,
+    description: _descriptionController.text,
+    category: _categoryController.text,
+    strictOrder: _strictOrder,
+    sections: _shownSections,
+    itemsInDisplayOrder: _itemsInDisplayOrder(),
+  );
+
+  @override
+  bool validateEditor() => _formKey.currentState?.validate() ?? false;
+
+  @override
+  Future<void> writeEditor(String recordId) => writePreDiveTemplate(
+    repository: ref.read(preDiveTemplateRepositoryProvider),
+    templateId: recordId,
+    diverId: editorDiverId,
+    draft: readEditorDraft(),
+    start: editorCreating ? null : editorStartDraft,
+    sections: _shownSections,
+    itemsInDisplayOrder: _itemsInDisplayOrder(),
+  );
 
   String _typeLabel(BuildContext context, PreDiveItemType type) {
     return switch (type) {
@@ -300,21 +347,9 @@ class _PreDiveTemplateEditPageState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          !widget.isEditing
-              ? l10n.preDive_edit_titleNew
-              : _editable
-              ? l10n.preDive_edit_titleEdit
-              : l10n.preDive_edit_titleView,
-        ),
-        actions: [
-          if (_editable)
-            AppBarTextAction(label: l10n.common_action_save, onPressed: _save),
-        ],
-      ),
-      body: _loading
+    return editorScaffold(
+      context,
+      body: !_loaded
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
@@ -365,7 +400,7 @@ class _PreDiveTemplateEditPageState
                     value: _strictOrder,
                     onChanged: _readOnly
                         ? null
-                        : (value) => setState(() => _strictOrder = value),
+                        : (value) => _change(() => _strictOrder = value),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -445,15 +480,20 @@ class _PreDiveTemplateEditPageState
       noSectionLabel: l10n.sectionEditor_noSection,
       readOnly: _readOnly,
       onAddSection: (title) async {
-        setState(() {
+        _change(() {
           _sections = [
             ..._sections,
             EditablePreDiveSection(id: const Uuid().v4(), title: title),
           ];
         });
       },
+      onTitleChanged: (id, text) {
+        _typedTitles[id] = text;
+        editorChanged();
+      },
       onRenameSection: (id, title) async {
-        setState(() {
+        _typedTitles.remove(id);
+        _change(() {
           _sections = [
             for (final s in _sections)
               if (s.id == id) s.copyWith(title: title) else s,
@@ -461,13 +501,14 @@ class _PreDiveTemplateEditPageState
         });
       },
       onReorderSections: (orderedIds) async {
-        setState(() {
+        _change(() {
           final byId = {for (final s in _sections) s.id: s};
           _sections = [for (final id in orderedIds) byId[id]!];
         });
       },
       onDeleteSection: (id, {moveItemsToSectionId}) async {
-        setState(() {
+        _typedTitles.remove(id);
+        _change(() {
           if (moveItemsToSectionId != null) {
             _items = [
               for (final i in _items)
@@ -489,7 +530,7 @@ class _PreDiveTemplateEditPageState
         }
       },
       onMoveItem: (itemId, targetSectionId, orderedIds) async {
-        setState(() {
+        _change(() {
           final byId = {for (final i in _items) i.id: i};
           _items = [
             for (final id in orderedIds)

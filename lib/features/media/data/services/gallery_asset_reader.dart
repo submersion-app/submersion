@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:photo_manager/photo_manager.dart';
 
-import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 
 /// Byte reads and existence checks against the platform photo library, keyed
 /// by the LOCAL asset id `AssetResolutionService` resolved.
@@ -34,6 +34,28 @@ abstract class GalleryAssetReader {
   Future<bool> originIsLocal(String assetId);
 }
 
+/// Asset [assetId]'s original through [reader]: the file the library keeps
+/// where it keeps one, else its bytes, or null when it cannot be read.
+///
+/// The one place that chooses between the two, so every reader of an
+/// original (the gallery resolver, the library search) holds to
+/// [GalleryAssetReader.originalsAsFiles]. Never both: where originals are
+/// files the bytes are that file read back, so a failed export would only
+/// be tried again.
+Future<MediaSourceData?> readGalleryOriginal(
+  GalleryAssetReader reader,
+  String assetId,
+) async {
+  if (reader.originalsAsFiles) {
+    final file = await reader.originFile(assetId);
+    if (file == null) return null;
+    return FileData(file: file, servedFrom: ServedFrom.platformGallery);
+  }
+  final bytes = await reader.originBytes(assetId);
+  if (bytes == null) return null;
+  return BytesData(bytes: bytes, servedFrom: ServedFrom.platformGallery);
+}
+
 /// Production reader over photo_manager. Exercised on iOS, macOS and Android
 /// hosts only.
 // coverage:ignore-start
@@ -47,12 +69,22 @@ class PhotoManagerAssetReader implements GalleryAssetReader {
     return asset.originBytes;
   }
 
+  /// Files on every platform photo_manager serves (Apple platforms and
+  /// Android; it reads nothing elsewhere, either way).
+  ///
   /// On iOS and macOS photo_manager reads an original by exporting it to a
   /// file and reading that back, and it reuses the export while it lasts, so
-  /// handing over the file costs nothing more. On Android the bytes cross
-  /// the platform channel instead, and a file would be a new copy on disk.
+  /// handing over the file costs nothing more.
+  ///
+  /// On Android the bytes are the whole original read into one array, copied
+  /// again into the platform channel and once more into Dart. A dive video
+  /// read that way ran the app out of memory while staging its upload, and
+  /// photo_manager's catch does not reach an OutOfMemoryError, so the app
+  /// died at every launch that resumed the upload (issue #4999). Its file
+  /// read streams the original into the app's cache instead, the same cache
+  /// the video player already reads from.
   @override
-  bool get originalsAsFiles => HostPlatform.isApple;
+  bool get originalsAsFiles => true;
 
   @override
   Future<File?> originFile(String assetId) async {

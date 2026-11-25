@@ -5236,6 +5236,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_template_descriptionLabel => 'الوصف';
 
   @override
+  String get checklists_template_edit_notFound => 'لم يعد هذا القالب موجودًا.';
+
+  @override
   String get checklists_template_itemsHeader => 'العناصر';
 
   @override
@@ -5330,6 +5333,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preDive_edit_nameRequired => 'أدخل اسمًا';
+
+  @override
+  String get preDive_edit_notFound => 'لم تعد قائمة التحقق هذه موجودة.';
 
   @override
   String get preDive_item_title => 'العنوان';
@@ -14056,6 +14062,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_nameLabel => 'الاسم *';
 
   @override
+  String get divers_edit_notFound => 'لم يعد هذا الغواص موجودًا.';
+
+  @override
   String get divers_edit_notesLabel => 'ملاحظات';
 
   @override
@@ -16517,6 +16526,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cylinderConfigs_title => 'إعدادات الأسطوانات';
 
   @override
+  String get cylinderConfigs_edit_notFound => 'لم يعد هذا الإعداد موجودًا.';
+
+  @override
   String get cylinderConfigs_empty => 'لا توجد إعدادات بعد';
 
   @override
@@ -18431,10 +18443,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formatter_connector_at => 'عند';
 
   @override
-  String get formatter_connector_from => 'من';
+  String formatter_dateRange_from(String date) {
+    return 'من $date';
+  }
 
   @override
-  String get formatter_connector_until => 'حتى';
+  String formatter_dateRange_until(String date) {
+    return 'حتى $date';
+  }
 
   @override
   String get gas_air_description => 'هواء قياسي (21% O2)';
@@ -20273,12 +20289,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
@@ -20357,24 +20391,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_siteAttachment_moreOptions => 'خيارات إضافية';
-
-  @override
-  String media_siteAttachment_pageCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count صفحة',
-      many: '$count صفحة',
-      few: '$count صفحات',
-      two: '$count صفحتان',
-      one: '$count صفحة',
-      zero: '$count صفحة',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String media_siteAttachment_saveError(Object error) {
     return 'تعذر الحفظ: $error';
   }
@@ -20442,7 +20458,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
@@ -20647,6 +20672,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'لإضافة موجز صور، استخدم استيراد في شاشة الوسائط.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'لإضافة ملفات أو روابط، استخدم استيراد في شاشة الوسائط.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'لإضافة روابط، استخدم استيراد في شاشة الوسائط.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'مسح';
@@ -21563,6 +21600,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_sources_neverScanned => 'لم يتم الفحص مطلقًا';
 
   @override
+  String get media_sources_removeFolderTitle => 'إيقاف مراقبة هذا المجلد؟';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'ينسى Submersion الملفات التي وجدها في $folder، فلن يُبحث هناك بعد الآن عن الصور المفقودة. لا يُحذف أي صورة أو ملف.';
+  }
+
+  @override
   String get media_source_gallery => 'مكتبة الصور';
 
   @override
@@ -21606,6 +21651,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_smartAlbum_delete => 'حذف الألبوم';
+
+  @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'يُحذف عامل التصفية المحفوظ فقط. لا تتغير أي صور أو مقاطع فيديو.';
 
   @override
   String get media_smartAlbum_deleteFailed => 'تعذّر حذف الألبوم';
@@ -21809,6 +21863,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'البحث في الغطسات';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'نقل $_temp0؟';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      many: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      few: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      two: 'ينتقل العنصران إلى $dive ويغادران أي غطسة هما عليها الآن.',
+      one: 'ينتقل العنصر إلى $dive ويغادر أي غطسة هو عليها الآن.',
+    );
+    return '$_temp0 تبقى روابط الموقع والمعدات كما هي.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'نقل';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'إحدى الغطسات في هذا النقل مفتوحة للتعديل. احفظها أو ألغِ التعديل أو اقفلها، ثم حاول مرة أخرى.';
+
+  @override
+  String get media_library_moveFailed => 'تعذّر نقل العناصر';
+
+  @override
+  String get media_library_unlinkFailed => 'تعذّر إلغاء ربط العناصر';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label، $date';
+  }
 
   @override
   String get media_library_moveToDive => 'نقل إلى غطسة';
@@ -26439,6 +26539,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'تبديلات الغاز معدّلة يدويًا';
+
+  @override
+  String get settings_conflict_field_handSetFields => 'قيم معدّلة يدويًا';
 
   @override
   String get settings_conflict_field_mediaTimeOffsetSeconds =>
@@ -40659,6 +40762,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String reparseBatch_resultHandSetKept(int count) {
+    return 'غطسات احتفظت بقيم عيّنتها يدويًا: $count';
+  }
+
+  @override
   String get reparseBatch_failedListHeader => 'الغطسات التي فشلت';
 
   @override
@@ -40684,6 +40792,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String reparseBatch_confirmSkipped(int count) {
     return 'غطسات محددة بلا بيانات أولية (سيتم تخطيها): $count';
   }
+
+  @override
+  String get reparseBatch_confirmHandSetKept =>
+      'يتم الاحتفاظ بالقيم التي عيّنتها يدويًا.';
 
   @override
   String get reparseBatch_noneWithRawData =>
@@ -40853,6 +40965,40 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_detail_menu_resyncImportedFile =>
       'إعادة المزامنة من الملف الأصلي';
+
+  @override
+  String get handSetReview_reparseTitle => 'إعادة تحليل هذه الغطسة؟';
+
+  @override
+  String get handSetReview_resyncTitle => 'إعادة مزامنة هذه الغطسة؟';
+
+  @override
+  String get handSetReview_message =>
+      'لقد عيّنت هذه القيم يدويًا، والقراءة الجديدة مختلفة. احتفظ بقيمك أو استبدل كل واحدة منها.';
+
+  @override
+  String handSetReview_yours(String value) {
+    return 'قيمتك: $value';
+  }
+
+  @override
+  String handSetReview_fromComputer(String value) {
+    return 'الحاسوب: $value';
+  }
+
+  @override
+  String handSetReview_fromFile(String value) {
+    return 'الملف: $value';
+  }
+
+  @override
+  String get handSetReview_keep => 'احتفظ';
+
+  @override
+  String get handSetReview_replace => 'استبدل';
+
+  @override
+  String get handSetReview_resyncAction => 'إعادة المزامنة';
 
   @override
   String get diveLog_detail_resyncSuccess => 'تم تحديث الغطسة من الملف الأصلي';
@@ -41637,6 +41783,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bodyWeight_deleteTooltip => 'حذف الإدخال';
+
+  @override
+  String get bodyWeight_deleteConfirmTitle => 'حذف هذا القياس؟';
+
+  @override
+  String bodyWeight_deleteConfirmBody(String weight, String date) {
+    return 'سيُحذف القياس $weight بتاريخ $date. لا يمكن التراجع عن ذلك.';
+  }
 
   @override
   String get bodyWeight_heightLabel => 'الطول (سم)';
@@ -44034,9 +44188,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'ما الذي سيساعد المرة القادمة (اختياري)';
 
   @override
-  String get incidentEdit_save => 'حفظ';
-
-  @override
   String get incidentEdit_privacyNote =>
       'تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.';
 
@@ -46107,6 +46258,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'تمت إضافة إعادة الرفع إلى قائمة الانتظار';
+
+  @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'استبدال النسخة بالجودة الكاملة؟';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'تُستبدل النسخة الأصلية المحفوظة في مساحة التخزين بنسخة $level. تبقى الصورة على هذا الجهاز.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'استبدال';
 
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
@@ -49521,34 +49684,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get species_convict_tang_desc =>
       'سمكة جراح فاتحة اللون بستة أشرطة عمودية سوداء، تُشاهد غالبًا وهي ترعى في أسراب كبيرة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
-
-  @override
-  String get species_great_hammerhead_name => 'قرش المطرقة المسنن';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'قرش مميز برأس مطرقي مسنن الحواف، يشكّل أسرابًا كبيرة عند الجبال البحرية والجزر البعيدة عن الساحل.';
-
-  @override
-  String get species_wobbegong_name => 'قرش السجاد المرقّط';
-
-  @override
-  String get species_wobbegong_desc =>
-      'قرش سجاد مسطح جيد التمويه بفصوص مهدّبة حول الفم، يوجد في الشعاب المعتدلة بأستراليا.';
-
-  @override
-  String get species_manta_ray_name => 'شفنين المانتا الشعابي';
-
-  @override
-  String get species_manta_ray_desc =>
-      'عملاق رشيق يبلغ باع جناحيه خمسة أمتار، يزور محطات التنظيف ويتغذى على العوالق في شعاب المحيطين الهندي والهادئ.';
-
-  @override
-  String get species_oceanic_manta_name => 'شفنين المانتا المحيطي';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'أكبر أنواع الشفنين ويتجاوز باع جناحيه سبعة أمتار، ويُصادَف عند الجبال البحرية البعيدة عن الساحل ومحطات التنظيف.';
 
   @override
   String get species_undulated_moray_name => 'ثعبان البحر المورَي المتموّج';
@@ -56092,6 +56227,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر حذف مراجعة الملف الشخصي.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'إزالة هذا المصدر';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'احفظ تعديلاتك أو تراجع عنها لحذف الملف.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'احفظ تعديلاتك أو تراجع عنها لحذف الملف أو إزالة هذا المصدر.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'يحذف «حذف الملف الكامل» مراجعات ملف المصدر الأساسي فقط.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'هذه هي المراجعة الوحيدة لملف الغوصة، لذا لا يمكن حذفها.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'تعذر تحميل مراجعات الملف، لذا لا يمكن حذف أي منها الآن.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص';
 
@@ -56853,6 +57011,37 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حُلِّل جزئيًا، عُثر على $count',
+      many: 'حُلِّل جزئيًا، عُثر على $count',
+      few: 'حُلِّل جزئيًا، عُثر على $count',
+      two: 'حُلِّل جزئيًا، عُثر على اثنين',
+      one: 'حُلِّل جزئيًا، عُثر على واحد',
+      zero: 'حُلِّل جزئيًا، لم يُعثر على شيء',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => 'تسميات الأنواع: لم يُحلَّل';
+
+  @override
+  String get media_labels_buttonAnalysing => 'تسميات الأنواع: جارٍ التحليل';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'تسميات الأنواع: حُلِّل جزئيًا';
+
+  @override
+  String get media_labels_buttonOutdated => 'تسميات الأنواع: غير محدَّث';
+
+  @override
+  String get media_labels_buttonAnalysed => 'تسميات الأنواع: حُلِّل';
 
   @override
   String media_labels_foundNoneNamed(int count) {
@@ -59468,6 +59657,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_edit_title => 'تعديل جهاز الإرسال';
 
   @override
+  String get transmitters_edit_notFound =>
+      'لم يعد مفتاح جهاز الإرسال هذا موجودًا.';
+
+  @override
   String get transmitters_new_title => 'جهاز إرسال جديد';
 
   @override
@@ -59671,6 +59864,29 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get backup_unrecognized_explanation =>
       'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.';
+
+  @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. هذا المجلد خاص بتطبيق Submersion على هذا الجهاز، لذا لا يستخدم أي جهاز آخر هذه الملفات ويمكن حذف أي منها هنا.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ربما أنشأ $count ملف محدد جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+      many:
+          'ربما أنشأ $count ملفًا محددًا جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+      few:
+          'ربما أنشأ $count ملفات محددة جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+      two:
+          'ربما أنشأ ملفين محددين جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانا يحتويان على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+      one:
+          'ربما أنشأ ملفًا محددًا واحدًا جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كان يحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty =>
@@ -62095,6 +62311,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rules_edit_noActions => 'أضف إجراءً واحدًا على الأقل.';
 
   @override
+  String get rules_edit_notFound => 'لم تعد هذه القاعدة موجودة.';
+
+  @override
   String get rules_picker_search => 'البحث في الإجراءات';
 
   @override
@@ -64374,6 +64593,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'إزالة الأسطوانات المكررة';
+
+  @override
+  String get changeLog_label_moveMedia => 'نُقلت إلى غطسة أخرى';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'أُلغي الربط من المكتبة';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'أُزيلت صور المعدات';
 
   @override
   String get changeLog_label_updatePlannedDives => 'تم تحديث الغطسات المخططة';
@@ -66796,6 +67024,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get dashboard_key_now => 'الآن';
+
+  @override
   String dashboard_key_lastYear(String value) {
     return 'العام الماضي $value';
   }
@@ -66832,6 +67063,71 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0 · $_temp1';
   }
+
+  @override
+  String get dashboard_panel_recentOutings => 'رحلات الغوص الأخيرة';
+
+  @override
+  String dashboard_outings_summary(int outings, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      outings,
+      locale: localeName,
+      other: '$outings رحلة',
+      many: '$outings رحلة',
+      few: '$outings رحلات',
+      two: 'رحلتان',
+      one: 'رحلة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة',
+      many: '$dives غطسة',
+      few: '$dives غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String dashboard_outings_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_outings_maxDepth(String depth) {
+    return '$depth كحد أقصى';
+  }
+
+  @override
+  String dashboard_outings_species(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_outings_empty => 'ستظهر رحلاتك هنا بمجرد تسجيل غطسة';
+
+  @override
+  String get dashboard_outings_unnamed => 'غطسات';
 
   @override
   String get dashboard_panel_divesPerMonth => 'الغطسات شهريًا';
@@ -67050,6 +67346,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_homePanels_activityCalendar => 'تقويم النشاط';
+
+  @override
+  String get settings_homePanels_recentOutings => 'رحلات الغوص الأخيرة';
 
   @override
   String get settings_homeKeyNumbers_description =>

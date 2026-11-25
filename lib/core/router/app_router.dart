@@ -167,6 +167,7 @@ import 'package:submersion/features/settings/presentation/pages/storage_settings
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/new_diver_page.dart';
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/emergency_contacts_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
@@ -191,7 +192,7 @@ import 'package:submersion/features/tank_presets/presentation/pages/tank_presets
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
-import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_routes.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_item_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
@@ -846,6 +847,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newCylinderConfig',
+                    // An editor with no read page (issue #4527, phase 4).
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => CylinderConfigEditPage(
                       equipmentId: state.uri.queryParameters['equipmentId'],
                     ),
@@ -853,6 +856,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':configId',
                     name: 'cylinderConfigEdit',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => CylinderConfigEditPage(
                       configId: state.pathParameters['configId'],
                     ),
@@ -901,25 +905,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       scannedTag: scannedTagFrom(state.extra),
                     ),
                   ),
-                  // A Transmitter item's setup (issue #3676): add a key, or
-                  // edit one; role and cylinder go onto every key.
-                  GoRoute(
-                    path: 'transmitter',
-                    name: 'transmitterSetup',
-                    builder: (context, state) => TransmitterEditPage(
-                      equipmentId: state.pathParameters['equipmentId']!,
-                    ),
-                    routes: [
-                      GoRoute(
-                        path: ':transmitterId',
-                        name: 'transmitterKeyEdit',
-                        builder: (context, state) => TransmitterEditPage(
-                          equipmentId: state.pathParameters['equipmentId']!,
-                          transmitterId: state.pathParameters['transmitterId'],
-                        ),
-                      ),
-                    ],
-                  ),
+                  ...transmitterEditRoutes(),
                   // Any other gear's tag page (issue #2652).
                   GoRoute(
                     path: 'gear-passport',
@@ -1506,6 +1492,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'incidentNew',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => IncidentEditPage(
                   diveId: state.uri.queryParameters['diveId'],
                   observationId: state.uri.queryParameters['observationId'],
@@ -1514,6 +1501,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':incidentId',
                 name: 'incidentEdit',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => IncidentEditPage(
                   incidentId: state.pathParameters['incidentId'],
                 ),
@@ -1996,17 +1984,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newDiverProfile',
-                    builder: (context, state) =>
-                        const PersonalInfoEditPage(isNewDiver: true),
+                    onExit: confirmLeaveRecordSitting,
+                    builder: (context, state) => const NewDiverPage(),
                   ),
                   GoRoute(
                     path: 'personal',
                     name: 'editPersonalInfo',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const PersonalInfoEditPage(),
                   ),
                   GoRoute(
                     path: 'emergency',
                     name: 'editEmergencyContacts',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) =>
                         const EmergencyContactsEditPage(),
                   ),
@@ -2018,6 +2008,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'add-chamber',
                         name: 'addChamber',
+                        onExit: confirmLeaveRecordSitting,
                         builder: (context, state) => const AddChamberPage(),
                       ),
                       GoRoute(
@@ -2031,6 +2022,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'medical',
                     name: 'editMedicalInfo',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const MedicalInfoEditPage(),
                   ),
                   GoRoute(
@@ -2043,11 +2035,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'notes',
                     name: 'editNotes',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const NotesEditPage(),
                   ),
                   GoRoute(
                     path: 'prior',
                     name: 'editPriorExperience',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) =>
                         const PriorExperienceEditPage(),
                   ),
@@ -2120,6 +2114,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/rules/new',
             name: 'ruleNew',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) => const RuleEditPage(),
           ),
           GoRoute(
@@ -2142,6 +2137,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/rules/:id',
             name: 'ruleEdit',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 RuleEditPage(ruleId: state.pathParameters['id']),
           ),
@@ -2228,11 +2224,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newChecklistTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const ChecklistTemplateEditPage(),
               ),
               GoRoute(
                 path: ':templateId/edit',
                 name: 'editChecklistTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => ChecklistTemplateEditPage(
                   templateId: state.pathParameters['templateId'],
                 ),
@@ -2249,11 +2247,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newPreDiveTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const PreDiveTemplateEditPage(),
               ),
               GoRoute(
                 path: ':templateId/edit',
                 name: 'editPreDiveTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => PreDiveTemplateEditPage(
                   templateId: state.pathParameters['templateId'],
                 ),

@@ -12,10 +12,19 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import '../support/media_widget_harness.dart';
 
 class _RecordingUnlink extends MediaUnlinkService {
-  _RecordingUnlink(this.calls)
+  _RecordingUnlink(this.calls, [this.labelled])
     : super(repository: MediaRepository(), deleteMedia: (_) async {});
 
   final List<List<String>> calls;
+
+  /// The calls that came through the Gear tab's labelled Remove.
+  final List<List<String>>? labelled;
+
+  @override
+  Future<EquipmentUnlinkOutcome> removeGearPhotos(List<String> mediaIds) {
+    labelled?.add(mediaIds);
+    return unlinkFromEquipment(mediaIds);
+  }
 
   @override
   Future<EquipmentUnlinkOutcome> unlinkFromEquipment(
@@ -48,6 +57,7 @@ void main() {
     Object? error,
     List<GearPhotoGroup> data = const [],
     List<List<String>>? unlinkCalls,
+    List<List<String>>? labelledCalls,
     void Function(String)? onOpenItem,
   }) => mediaTestApp(
     overrides: [
@@ -57,7 +67,7 @@ void main() {
       }),
       if (unlinkCalls != null)
         mediaUnlinkServiceProvider.overrideWithValue(
-          _RecordingUnlink(unlinkCalls),
+          _RecordingUnlink(unlinkCalls, labelledCalls),
         ),
     ],
     home: Scaffold(body: GearGalleryView(onOpenItem: onOpenItem)),
@@ -142,6 +152,31 @@ void main() {
 
     expect(calls, [
       ['m2'],
+    ]);
+  });
+
+  // One labelled entry in History (issue #4527, media library plan 1).
+  testWidgets('Remove goes through the gear tab\'s labelled remove', (
+    tester,
+  ) async {
+    final calls = <List<String>>[];
+    final labelled = <List<String>>[];
+    await tester.pumpWidget(
+      await host(data: groups, unlinkCalls: calls, labelledCalls: labelled),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(MediaThumbnailTile).at(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('selection_action_remove')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Remove'));
+    await tester.pumpAndSettle();
+
+    expect(labelled, [
+      ['m1'],
     ]);
   });
 

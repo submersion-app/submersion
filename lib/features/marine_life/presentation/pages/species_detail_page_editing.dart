@@ -177,7 +177,6 @@ mixin _SpeciesDetailPageEditing
         fullscreenDialog: true,
         builder: (_) => SpeciesTagPickerPage(
           speciesId: widget.speciesId,
-          chooseOnly: true,
           alreadyChosen: {for (final m in heldSpeciesTags(session)) m.id},
         ),
       ),

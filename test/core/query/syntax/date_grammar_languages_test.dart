@@ -148,5 +148,11 @@ void main() {
       expect(read('2018年13月', 'zh'), isNull);
       expect(read('2018年2月30日', 'zh'), isNull);
     });
+
+    // Japanese writes dates with the same marks (#4833).
+    test('Japanese reads the same marks', () {
+      expectDay('2018年10月14日', 'ja', DateTime(2018, 10, 14));
+      expectMonth('2018年10月', 'ja', 2018, 10);
+    });
   });
 }

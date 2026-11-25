@@ -57,6 +57,19 @@ class CurrencyRule extends Equatable {
   /// row). Decoding it would read as "any" and widen the rule, so the
   /// engine matches such a rule to nothing.
   final bool unreadableScope;
+
+  /// The scope arrays exactly as stored, set when the rule is read from the
+  /// database or a backup; null for a rule built in memory. The JSON
+  /// getters write them back while the lists above still hold the same
+  /// values, so a value this build cannot read survives a save, a backup
+  /// and a restore (issue #4942). A storage detail, so not part of
+  /// equality.
+  final CurrencyScopeJson? storedScope;
+
+  /// The clock kind exactly as stored, which may name one this build does
+  /// not know ([clockKind] then reads activity). [clockKindJson] writes it
+  /// back while [clockKind] is unchanged. Not part of equality.
+  final String? storedClockKind;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -76,6 +89,8 @@ class CurrencyRule extends Equatable {
     this.supersedesRuleId,
     this.isBuiltIn = false,
     this.unreadableScope = false,
+    this.storedScope,
+    this.storedClockKind,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -96,6 +111,8 @@ class CurrencyRule extends Equatable {
     String? supersedesRuleId,
     bool? isBuiltIn,
     bool? unreadableScope,
+    CurrencyScopeJson? storedScope,
+    String? storedClockKind,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => CurrencyRule(
@@ -114,18 +131,50 @@ class CurrencyRule extends Equatable {
     supersedesRuleId: supersedesRuleId ?? this.supersedesRuleId,
     isBuiltIn: isBuiltIn ?? this.isBuiltIn,
     unreadableScope: unreadableScope ?? this.unreadableScope,
+    storedScope: storedScope ?? this.storedScope,
+    storedClockKind: storedClockKind ?? this.storedClockKind,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
 
-  /// Scope arrays as they are stored.
-  String get agenciesJson =>
-      CurrencyScopeCodec.encode([for (final a in agencies) a.name]);
-  String get levelsJson =>
-      CurrencyScopeCodec.encode([for (final l in levels) l.name]);
-  String get diveTypesJson => CurrencyScopeCodec.encode(countedDiveTypeIds);
-  String get diveModesJson =>
-      CurrencyScopeCodec.encode([for (final m in countedDiveModes) m.name]);
+  /// The clock kind as it is stored: [storedClockKind] while it still reads
+  /// as [clockKind], else [clockKind]'s name.
+  String get clockKindJson =>
+      storedClockKind != null &&
+          CurrencyClockKind.parse(storedClockKind!) == clockKind
+      ? storedClockKind!
+      : clockKind.name;
+
+  /// Scope arrays as they are stored: [storedScope]'s while the lists hold
+  /// the same values, else the lists encoded.
+  String get agenciesJson => CurrencyScopeCodec.keepIfUnchanged(
+    stored: storedScope?.agencies,
+    next: CurrencyScopeCodec.encode([for (final a in agencies) a.name]),
+    names: CurrencyScopeCodec.agencyNames,
+  );
+  String get levelsJson => CurrencyScopeCodec.keepIfUnchanged(
+    stored: storedScope?.levels,
+    next: CurrencyScopeCodec.encode([for (final l in levels) l.name]),
+    names: CurrencyScopeCodec.levelNames,
+  );
+  String get diveTypesJson => _mappingJson.types!;
+  String get diveModesJson => _mappingJson.modes!;
+
+  CurrencyMappingJson get _mappingJson =>
+      CurrencyScopeCodec.keepMappingIfUnchanged(
+        stored: storedScope == null
+            ? null
+            : (types: storedScope!.types, modes: storedScope!.modes),
+        next: encodedMapping,
+      );
+
+  /// The mapping lists encoded, whatever is stored: as an edit set them.
+  CurrencyMappingJson get encodedMapping => (
+    types: CurrencyScopeCodec.encode(countedDiveTypeIds),
+    modes: CurrencyScopeCodec.encode([
+      for (final m in countedDiveModes) m.name,
+    ]),
+  );
 
   @override
   List<Object?> get props => [

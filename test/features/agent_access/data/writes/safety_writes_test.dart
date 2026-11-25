@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -13,13 +14,23 @@ void main() {
   late AppDatabase db;
   late ChildWriteHarness h;
 
+  /// The items each apply asked to work the condition findings out for.
+  late List<Set<String>> refreshed;
+
   Future<String> make(String entity, Map<String, Object?> values) async =>
       (await h.run([createOp(entity, values)])).created.single.id;
 
   setUp(() async {
     db = await setUpTestDatabase();
     addTearDown(SyncCoordinator.reset);
-    h = ChildWriteHarness(db);
+    refreshed = [];
+    h = ChildWriteHarness(
+      db,
+      catalog: (repositories) => WriteCatalog(
+        repositories,
+        refreshFindings: (ids) => refreshed.add(ids.toSet()),
+      ),
+    );
     await h.seed();
     await db
         .into(db.equipment)
@@ -88,6 +99,107 @@ void main() {
     for (final item in plan.items) {
       expect(item.block!.reason, BlockReason.invalidValue);
     }
+  });
+
+  // Issue #4924: a read gives a check-in link that does not stand just now
+  // as none, and an update that wrote that read back erased the stored link.
+  group('a check-in link that does not stand', () {
+    late String checkIn;
+    late String report;
+
+    Future<Incident> stored() => (db.select(
+      db.incidents,
+    )..where((t) => t.id.equals(report))).getSingle();
+
+    setUp(() async {
+      checkIn = await make('equipment_observations', {
+        'equipment_id': 'reg',
+        'status': 'issue',
+      });
+      report = await make('incidents', {
+        'narrative': 'Free flow',
+        'occurred_time': '2024-03-14T09:40:00Z',
+        'equipment_id': 'reg',
+        'observation_id': checkIn,
+      });
+      // The check-in goes OK as a peer below v338 saves it: the link stops
+      // standing, and stays stored so it can stand again.
+      await (db.update(db.equipmentObservations)
+            ..where((t) => t.id.equals(checkIn)))
+          .write(const EquipmentObservationsCompanion(status: Value('ok')));
+    });
+
+    test('stays stored through an update that leaves it out', () async {
+      await h.run([
+        updateOp('incidents', report, {'severity': 'moderate'}),
+      ]);
+
+      final row = await stored();
+      expect([row.severity, row.observationId], ['moderate', checkIn]);
+    });
+
+    test(
+      'stands again with its check-in, then clears when named as none',
+      () async {
+        await h.run([
+          updateOp('incidents', report, {'severity': 'moderate'}),
+        ]);
+        await (db.update(
+          db.equipmentObservations,
+        )..where((t) => t.id.equals(checkIn))).write(
+          const EquipmentObservationsCompanion(status: Value('issue')),
+        );
+        expect((await h.one('incidents', report))!['observation_id'], checkIn);
+
+        await h.run([
+          updateOp('incidents', report, {'observation_id': null}),
+        ]);
+
+        expect((await stored()).observationId, isNull);
+      },
+    );
+
+    // The agent's view shows the link as none, so naming none is no change,
+    // even beside a field that does change: the planner drops it.
+    test('stays stored when named as none beside another change', () async {
+      await h.run([
+        updateOp('incidents', report, {
+          'severity': 'moderate',
+          'observation_id': null,
+        }),
+      ]);
+
+      final row = await stored();
+      expect([row.severity, row.observationId], ['moderate', checkIn]);
+    });
+
+    test('goes with a move to another item, as in the editor; both items '
+        'have their findings worked out again', () async {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'bcd',
+              name: 'BCD',
+              type: 'bcd',
+              createdAt: kSeedTime,
+              updatedAt: kSeedTime,
+              diverId: const Value(kDiverA),
+            ),
+          );
+
+      refreshed.clear();
+
+      await h.run([
+        updateOp('incidents', report, {'equipment_id': 'bcd'}),
+      ]);
+
+      final row = await stored();
+      expect([row.equipmentId, row.observationId], ['bcd', null]);
+      expect(refreshed, [
+        {'reg', 'bcd'},
+      ]);
+    });
   });
 
   test('a chamber is added and deleted; a built-in is refused', () async {

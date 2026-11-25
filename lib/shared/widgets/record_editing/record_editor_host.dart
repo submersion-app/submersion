@@ -13,8 +13,13 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_editor_menu.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
+
+export 'package:submersion/shared/widgets/record_editing/record_editor_menu.dart'
+    show RecordEditorOperation;
 
 final _log = LoggerService.forClass(RecordEditorHost);
 
@@ -62,6 +67,13 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   /// whatever the check showed.
   bool validateEditor();
 
+  /// Whether the form, as it reads now, may be saved at all: a rule with
+  /// no name or no action may not. Save is enabled only while this holds
+  /// and something has changed, and Cmd or Ctrl+S does nothing otherwise.
+  /// True by default. Read on every build of the bar, so the editor
+  /// rebuilds when its answer changes.
+  bool get editorCanSave => true;
+
   /// Writes the record [recordId], inside the sitting's transaction and
   /// change log operation. Throws when nothing could be written: the whole
   /// Save then fails, and the page stays with every value.
@@ -76,6 +88,23 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   /// back to (the editor's list); null stays. Every editor is opened over
   /// its list, so this is only a fallback.
   String? get editorLeaveLocation => null;
+
+  /// The whole-record operations in the bar's menu (decision 3), such as a
+  /// transmitter's Remove key. None by default; a new record never shows
+  /// them, as there is nothing stored for them to act on.
+  List<RecordEditorOperation> editorOperations(BuildContext context) =>
+      const [];
+
+  /// What a committed Save hands back to the page that pushed the editor,
+  /// read after [afterEditorSaved]: the Transmitter card offers its Apply
+  /// from it. Back, Cancel and every other way of leaving hand back null.
+  Object? get editorSavedResult => null;
+
+  /// Told of a Save whose write threw, before anything is shown. True when
+  /// the editor has shown the failure in its own form (a duplicate serial
+  /// under its field), so no snackbar is needed. The page stays with every
+  /// value either way.
+  bool editorSaveFailed(Object error) => false;
 
   // What the host provides.
 
@@ -190,7 +219,13 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
 
   /// Starts the sitting on the form as it reads now. Call once the form is
   /// filled: after the record has loaded, or at once for a new record.
-  void openEditor() {
+  ///
+  /// With [from], the record before its seed (a new configuration's unit, a
+  /// key prefilled with its item's serial), the sitting opens on [from] and
+  /// the form as it reads now is its first change, so Save is enabled at
+  /// once (pattern: seeds are changes). A [from] equal to the form is no
+  /// change.
+  void openEditor({D? from}) {
     if (_opened || _leaving || !mounted) return;
     _opened = true;
     // Another diver became active while the record loaded: it is not the
@@ -203,7 +238,8 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
       setState(() {});
       return;
     }
-    editorController.unlock(readEditorDraft());
+    editorController.unlock(from ?? readEditorDraft());
+    if (from != null) editorChanged();
   }
 
   /// Hands the form as it reads now to the sitting. Call on every change
@@ -219,7 +255,7 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   Future<void> saveEditor() async {
     if (_saving || _leaving || !editorOpen) return;
     final controller = editorController;
-    if (!controller.isDirty || controller.isBusy) return;
+    if (!controller.isDirty || controller.isBusy || !editorCanSave) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     // The bar shows the save from here: the wait for the diver below is
@@ -277,7 +313,7 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
           stackTrace: stackTrace,
         );
       }
-      _pop();
+      _pop(editorSavedResult);
       return;
     }
     // The diver changed while the save ran (the change was not acted on
@@ -296,6 +332,8 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     }
     final error = controller.saveError;
     if (error == null) return;
+    // The editor shows this one in its own form.
+    if (editorSaveFailed(error)) return;
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -340,21 +378,54 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
   bool _isAnotherDiver(String? diverId) =>
       _diverAtOpen != null && diverId != _diverAtOpen;
 
-  /// Leaves the page now, once: for an editor whose record could not be
-  /// opened (gone, or failed to load) as for a finished one.
+  /// Leaves the page, once: for an editor whose record could not be opened
+  /// (gone, or failed to load) as for a finished one. A page whose route is
+  /// still coming in leaves as soon as it has.
   void leaveEditor() {
     if (_leaving || !mounted) return;
     _leaving = true;
     _pop();
   }
 
-  /// Leaves the page: back to the page under it, or, with none (never the
-  /// case in the app, where every editor is opened over its list), to
-  /// [editorLeaveLocation] when there is one.
-  void _pop() {
+  /// Runs [operation] from the bar's menu through the operation gate, and
+  /// leaves once it has written: the record it acted on is gone or changed
+  /// under the editor.
+  Future<void> _runOperation(RecordEditorOperation operation) async {
+    if (_leaving || _saving || !editorOpen) return;
+    var wrote = false;
+    await recordOperationRunnerOf(
+      editorController,
+      record: '$editorTable $editorRecordId',
+    )(() async => wrote = await operation.run());
+    if (wrote) leaveEditor();
+  }
+
+  /// Leaves the page: back to the page under it, handing it [result], or,
+  /// with none (never the case in the app, where every editor is opened
+  /// over its list), to [editorLeaveLocation] when there is one.
+  ///
+  /// A page whose route is still coming in (a record that turned out to be
+  /// missing, found while the page was pushed) leaves once it has: a route
+  /// is not popped in the middle of its push.
+  void _pop([Object? result]) {
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation != null && animation.status != AnimationStatus.completed) {
+      void settled(AnimationStatus status) {
+        if (status != AnimationStatus.completed) return;
+        animation.removeStatusListener(settled);
+        // The navigator marks the push done just after its animation ends,
+        // within the same frame: the page leaves once the frame is drawn.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _pop(result);
+        });
+      }
+
+      animation.addStatusListener(settled);
+      return;
+    }
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
-      navigator.pop();
+      navigator.pop(result);
       return;
     }
     final location = editorLeaveLocation;
@@ -402,16 +473,27 @@ mixin RecordEditorHost<W extends ConsumerStatefulWidget, D>
     }
     _leaveIfEnded(context);
     final controller = editorController;
+    final operations = editorCreating
+        ? const <RecordEditorOperation>[]
+        : editorOperations(context);
     return RecordEditLeaveGuard<D>(
       controller: controller,
       child: Scaffold(
         appBar: RecordEditBar(
           title: editorTitle(context),
-          canSave: controller.isDirty,
+          canSave: controller.isDirty && editorCanSave,
           isSaving: controller.isSaving || _saving,
           isBusy: controller.isOperating,
           onCancel: cancelEditor,
           onSave: saveEditor,
+          actions: [
+            if (operations.isNotEmpty)
+              RecordEditorMenu(
+                controller: controller,
+                operations: operations,
+                onSelected: _runOperation,
+              ),
+          ],
         ),
         body: RecordEditScope<D>(controller: controller, child: body),
       ),

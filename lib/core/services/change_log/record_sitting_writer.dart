@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart' show Variable;
+
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -41,6 +43,37 @@ Future<R> runRecordSitting<R>({
     return result;
   }),
 );
+
+/// Labels the running sitting with [recordId] of [table], in place of the
+/// record it opened with. Call it inside [runRecordSitting]'s body when the
+/// write lands on another row than the one the sitting was opened for: a
+/// transmitter key saved over the unclaimed downloaded key that held its
+/// serial is written under that key's id (issue #4527, phase 4). The label
+/// is part of the sitting's transaction, so a sitting that fails keeps
+/// none of it. Does nothing outside a sitting.
+Future<void> relabelRecordSitting({
+  required String table,
+  required String recordId,
+  Iterable<String> changedCardIds = const [],
+}) async {
+  final operationId = ChangeLogScope.currentOperationId;
+  final db = DatabaseService.instance.databaseOrNull;
+  if (operationId == null || db == null) return;
+  await db.customUpdate(
+    'UPDATE change_log_operations SET label = ? WHERE id = ?',
+    variables: [
+      Variable<String>(
+        RecordEditLabel.encode(
+          table: table,
+          id: recordId,
+          cardIds: changedCardIds,
+        ),
+      ),
+      Variable<String>(operationId),
+    ],
+    updates: {db.changeLogOperations},
+  );
+}
 
 /// Creates the record [recordId] of [table], a new record's sitting (issue
 /// #4527, phase 3, plan 11), inside [runRecordSitting].

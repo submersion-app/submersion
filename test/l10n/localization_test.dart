@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/app.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -9,7 +11,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('AppLocalizations delegate', () {
-    test('loads all 11 supported locales without error', () async {
+    test('loads all 12 supported locales without error', () async {
       for (final locale in AppLocalizations.supportedLocales) {
         final l10n = await AppLocalizations.delegate.load(locale);
         expect(l10n, isNotNull);
@@ -17,8 +19,8 @@ void main() {
       }
     });
 
-    test('supports exactly 11 locales', () {
-      expect(AppLocalizations.supportedLocales.length, 11);
+    test('supports exactly 12 locales', () {
+      expect(AppLocalizations.supportedLocales.length, 12);
       final codes = AppLocalizations.supportedLocales
           .map((l) => l.languageCode)
           .toSet();
@@ -36,6 +38,7 @@ void main() {
           'he',
           'hu',
           'zh',
+          'ja',
         ]),
       );
     });
@@ -57,8 +60,8 @@ void main() {
 
     test('formatter connectors are English', () {
       expect(l10n.formatter_connector_at, 'at');
-      expect(l10n.formatter_connector_from, 'From');
-      expect(l10n.formatter_connector_until, 'Until');
+      expect(l10n.formatter_dateRange_from('Jan 15'), 'From Jan 15');
+      expect(l10n.formatter_dateRange_until('Jan 20'), 'Until Jan 20');
     });
   });
 
@@ -80,6 +83,7 @@ void main() {
       'he',
       'hu',
       'zh',
+      'ja',
     ]) {
       test('$code has translated common_action_save', () async {
         final l10n = await AppLocalizations.delegate.load(Locale(code));
@@ -264,6 +268,7 @@ void main() {
       'he',
       'hu',
       'zh',
+      'ja',
     ]) {
       test('$code has all dropTarget_ strings', () async {
         final l10n = await AppLocalizations.delegate.load(Locale(code));
@@ -274,6 +279,19 @@ void main() {
         expect(l10n.dropTarget_error_readFailed, isNotEmpty);
       });
     }
+  });
+
+  // Issue #4833: Japanese dates and numbers come from intl's ja locale.
+  group('Japanese formatting', () {
+    setUpAll(() => initializeDateFormatting('ja'));
+
+    test('a date reads year, month and day with their marks', () {
+      expect(DateFormat.yMMMd('ja').format(DateTime(2024, 5, 3)), '2024年5月3日');
+    });
+
+    test('a decimal number groups thousands with a comma', () {
+      expect(NumberFormat.decimalPattern('ja').format(1234.5), '1,234.5');
+    });
   });
 
   group('RTL text direction', () {

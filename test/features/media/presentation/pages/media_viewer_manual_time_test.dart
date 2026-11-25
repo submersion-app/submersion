@@ -22,6 +22,7 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 /// Issue #1090: the viewer's bottom overlay used to print the raw elapsed
 /// offset (`+1879:28`, `+-5554653:32`) for a capture time far outside the
@@ -83,6 +84,11 @@ final _dive = domain.Dive(
 );
 
 void main() {
+  // The page is built inside runAsync, so the viewer's wait before it asks
+  // for marine life analysis runs on real time, and on a Linux runner the
+  // labels ring then outlasts a pumpAndSettle (issue #4949).
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
 
   setUp(() async {

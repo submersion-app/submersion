@@ -281,6 +281,38 @@ void main() {
       expect(s.found, 1);
     });
 
+    test('no model, with a video another device scanned only part way, '
+        'says it is part analysed (issue #4926)', () async {
+      installed = null;
+      marineLifeIdEnabled = false;
+      marineLifeLabelsShown = true;
+      await repository.storeRun(
+        videoRun(mediaId: 'v1').copyWith(analysedBy: () => 'laptop'),
+        insert: [identification('a', mediaId: 'v1')],
+        deleteIds: const [],
+      );
+      final s = await status(item('v1', type: MediaType.video));
+      expect(s.state, MediaAnalysisState.partFoundNoModel);
+      expect(s.found, 1);
+    });
+
+    test('no model, with a video another device scanned to the end, says '
+        'what was found (issue #4926)', () async {
+      installed = null;
+      marineLifeIdEnabled = false;
+      marineLifeLabelsShown = true;
+      await repository.storeRun(
+        videoRun(
+          mediaId: 'v1',
+          scannedMs: 25000,
+        ).copyWith(analysedBy: () => 'laptop'),
+        insert: [identification('a', mediaId: 'v1')],
+        deleteIds: const [],
+      );
+      final s = await status(item('v1', type: MediaType.video));
+      expect(s.state, MediaAnalysisState.foundNoModel);
+    });
+
     test('where no model can run, an item with no results is not analysed, '
         'not missing a model (issue #4876)', () async {
       installed = null;
@@ -330,13 +362,29 @@ void main() {
       expect(s.found, 1);
     });
 
-    test('partial when another pack analysed it', () async {
+    test('out of date, not part analysed, when another pack analysed it '
+        '(issue #4958)', () async {
       await repository.storeRun(
         currentRun('m1').copyWith(packVersion: 'older'),
         insert: const [],
         deleteIds: const [],
       );
-      expect((await status(item('m1'))).state, MediaAnalysisState.partial);
+      expect((await status(item('m1'))).state, MediaAnalysisState.outdated);
+    });
+
+    test('a video scanned to its end by another pack is out of date, not '
+        'part analysed (issue #4958)', () async {
+      final video = item('v1', type: MediaType.video);
+      await repository.storeRun(
+        currentRun('v1', video: true).copyWith(
+          packVersion: 'older',
+          scannedMs: () => 25000,
+          videoDurationMs: () => 25000,
+        ),
+        insert: const [],
+        deleteIds: const [],
+      );
+      expect((await status(video)).state, MediaAnalysisState.outdated);
     });
 
     test(

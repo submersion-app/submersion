@@ -18,12 +18,15 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_o
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
+import 'package:submersion/features/safety/domain/entities/incident_changes.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/test_database.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 /// Records the create/update/delete calls the edit form makes and loads a
 /// fixed result (or throws) for `getIncidentById`, so every page path can be
@@ -36,7 +39,7 @@ class _FakeIncidentRepository extends IncidentRepository {
   final Object? writeError;
 
   Incident? created;
-  Incident? updated;
+  IncidentChanges? changes;
   String? deletedId;
 
   @override
@@ -47,6 +50,7 @@ class _FakeIncidentRepository extends IncidentRepository {
 
   @override
   Future<Incident> createIncident({
+    String? id,
     required DateTime occurredAt,
     required IncidentCategory category,
     required IncidentSeverity severity,
@@ -60,7 +64,7 @@ class _FakeIncidentRepository extends IncidentRepository {
   }) async {
     if (writeError != null) throw writeError!;
     final incident = Incident(
-      id: 'created-id',
+      id: id ?? 'created-id',
       diverId: diverId,
       diveId: diveId,
       equipmentId: equipmentId,
@@ -79,8 +83,10 @@ class _FakeIncidentRepository extends IncidentRepository {
   }
 
   @override
-  Future<void> updateIncident(Incident incident) async {
-    updated = incident;
+  Future<bool> applyIncidentChanges(String id, IncidentChanges changes) async {
+    if (writeError != null) throw writeError!;
+    this.changes = changes;
+    return result != null;
   }
 
   @override
@@ -121,6 +127,10 @@ class _HeldCheckIn extends EquipmentObservationRepository {
 }
 
 void main() {
+  // Save runs in one transaction, so the editor needs a database.
+  setUp(() async => setUpTestDatabase());
+  tearDown(tearDownTestDatabase);
+
   Incident existingIncident() => Incident(
     id: 'i1',
     occurredAt: DateTime.utc(2026, 7, 10),
@@ -149,6 +159,14 @@ void main() {
       ),
     ],
   );
+
+  /// Delete is in the bar's menu (issue #4527, phase 4).
+  Future<void> openDeleteFromMenu(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('recordEditorMenu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('incident_delete')));
+    await tester.pumpAndSettle();
+  }
 
   void useTallSurface(WidgetTester tester) {
     // Tall surface so the whole form (incl. the Save button below the fold in a
@@ -214,6 +232,7 @@ void main() {
           incidentRepositoryProvider.overrideWithValue(
             _FakeIncidentRepository(),
           ),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         ],
         child: localizedMaterialApp(
           locale: const Locale('en'),
@@ -223,9 +242,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Save a new report with the (required) narrative left blank.
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-    await tester.pump();
+    // Save a new report with the (required) narrative left blank, after
+    // writing something else so there is a change to save.
+    await tester.enterText(find.byType(TextFormField).at(1), 'Cold water.');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.pumpAndSettle();
 
     expect(find.text('Describe what happened'), findsOneWidget);
   });
@@ -248,17 +270,18 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).first, 'Lost a fin');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Something went wrong. Please try again.'),
+      find.text("Couldn't save your changes. Nothing was changed."),
       findsOneWidget,
     );
     expect(find.text('Lost a fin'), findsOneWidget);
     expect(find.text('LIST'), findsNothing);
-    final save = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Save'),
+    final save = tester.widget<AppBarTextAction>(
+      find.widgetWithText(AppBarTextAction, 'Save'),
     );
     expect(save.onPressed, isNotNull);
   });
@@ -283,7 +306,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pump();
 
     router.pop();
@@ -309,9 +332,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Edit title, delete affordance, and the record's fields are populated.
+    // Edit title, the menu holding Delete, and the record's fields.
     expect(find.text('Edit near-miss'), findsOneWidget);
-    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    expect(find.byKey(const ValueKey('recordEditorMenu')), findsOneWidget);
     expect(
       find.text('Free-flow at 18 m; switched to buddy octo.'),
       findsOneWidget,
@@ -320,16 +343,17 @@ void main() {
     expect(find.text('Service the reg.'), findsOneWidget);
   });
 
-  testWidgets('editing and saving calls updateIncident and pops', (
-    tester,
-  ) async {
+  testWidgets('editing and saving writes the changes and pops', (tester) async {
     useTallSurface(tester);
     final repo = _FakeIncidentRepository(result: existingIncident());
 
     await tester.pumpWidget(
       testAppRouter(
         locale: const Locale('en'),
-        overrides: [incidentRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          incidentRepositoryProvider.overrideWithValue(repo),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
         router: routerFor(const IncidentEditPage(incidentId: 'i1')),
       ),
     );
@@ -341,12 +365,12 @@ void main() {
     await tester.tap(find.text('Serious'));
     await tester.pump();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pumpAndSettle();
 
-    expect(repo.updated, isNotNull);
-    expect(repo.updated!.category, IncidentCategory.equipment);
-    expect(repo.updated!.severity, IncidentSeverity.serious);
+    expect(repo.changes, isNotNull);
+    expect(repo.changes!.category, IncidentCategory.equipment);
+    expect(repo.changes!.severity, IncidentSeverity.serious);
     expect(repo.created, isNull);
     // Popped back to the list route.
     expect(find.text('LIST'), findsOneWidget);
@@ -381,7 +405,7 @@ void main() {
         find.byType(TextFormField).first,
         'Ran low on gas on the safety stop.',
       );
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
       await tester.pumpAndSettle();
 
       expect(repo.created, isNotNull);
@@ -390,7 +414,7 @@ void main() {
       expect(repo.created!.diveId, 'dive-9');
       // The default occurred-at is a timezone-stable wall-clock UTC date.
       expect(repo.created!.occurredAt.isUtc, isTrue);
-      expect(repo.updated, isNull);
+      expect(repo.changes, isNull);
       expect(find.text('LIST'), findsOneWidget);
     },
   );
@@ -410,8 +434,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
+    await openDeleteFromMenu(tester);
     expect(find.text('Delete this near-miss report?'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
@@ -442,7 +465,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(DatePickerDialog), findsOneWidget);
 
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.text('Cancel'),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.byType(DatePickerDialog), findsNothing);
   });
@@ -462,11 +490,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
+    await openDeleteFromMenu(tester);
 
     // Dismiss via Cancel: nothing is deleted and the form stays put.
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Cancel'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(repo.deletedId, isNull);
@@ -540,7 +572,7 @@ void main() {
         find.byType(TextFormField).first,
         'Second stage free-flowed at depth.',
       );
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
       await tester.pumpAndSettle();
       expect(repo.created!.equipmentId, 'reg');
       expect(repo.created!.category, IncidentCategory.equipment);
@@ -616,7 +648,7 @@ void main() {
       find.byType(TextFormField).first,
       'Tank valve stuck half open.',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pumpAndSettle();
     expect(repo.created!.equipmentId, 'cyl');
   });
@@ -704,7 +736,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Jet Fins'));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
       await tester.pumpAndSettle();
       expect(requests, [
         {'reg', 'fins'},
@@ -713,8 +745,7 @@ void main() {
 
     testWidgets('deleting an incident refreshes its item', (tester) async {
       await openSaved(tester);
-      await tester.tap(find.byIcon(Icons.delete_outline));
-      await tester.pumpAndSettle();
+      await openDeleteFromMenu(tester);
       await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
       await tester.pumpAndSettle();
       expect(requests, [

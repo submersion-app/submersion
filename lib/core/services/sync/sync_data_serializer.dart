@@ -23,6 +23,9 @@ import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
+import 'package:submersion/core/services/sync/held_reference_schema.dart';
+import 'package:submersion/core/services/sync/held_reference_store.dart';
+import 'package:submersion/core/services/sync/held_references.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/sync_json_weight.dart';
@@ -1870,6 +1873,12 @@ class SyncDataSerializer {
       final tables = _baseTables;
       // Library sites and their children stay out of the base (issue #2567).
       final librarySites = await librarySiteIds();
+      // A link this device still holds goes out as the value it held (issue
+      // #4954), never as the repair's null.
+      final heldLinks = await HeldReferenceStore(
+        _db,
+        entityTypeOf: _entityTypeForTable,
+      ).exportFilter();
       for (var t = 0; t < tables.length; t++) {
         final spec = tables[t];
         if (t > 0) await writeData(',');
@@ -1884,6 +1893,8 @@ class SyncDataSerializer {
         final factClockKeys = [
           for (final g in SyncFactGroups.of(spec.key)) g.clockKey,
         ];
+
+        final heldTable = heldLinks.isEmpty ? null : _tableNameFor(spec.key);
 
         Future<void> emit(Map<String, dynamic> row) async {
           if (librarySites.isNotEmpty) {
@@ -1907,7 +1918,11 @@ class SyncDataSerializer {
           }
           // Device-local columns never leave this device, in a base as in a
           // changeset (issue #2947).
-          await writeData(jsonEncode(withoutDeviceLocalColumns(spec.key, row)));
+          final local = withoutDeviceLocalColumns(spec.key, row);
+          final wire = heldTable == null
+              ? local
+              : heldLinks.withHeldValues(heldTable, local);
+          await writeData(jsonEncode(wire));
         }
 
         if (spec.table != null) {
@@ -2560,12 +2575,65 @@ class SyncDataSerializer {
   Future<SyncData> _buildSyncData(
     String? hlcSince, {
     bool childrenByOwnClock = false,
-  }) => _withLibrarySiteIdsMemo(
-    () => _buildSyncDataUnmemoised(
-      hlcSince,
-      childrenByOwnClock: childrenByOwnClock,
+  }) async => _withHeldLinks(
+    await _withLibrarySiteIdsMemo(
+      () => _buildSyncDataUnmemoised(
+        hlcSince,
+        childrenByOwnClock: childrenByOwnClock,
+      ),
     ),
   );
+
+  /// The wire entity type whose rows live in the SQL table [table], or null
+  /// for a table that does not sync. Read by the held references to match
+  /// tombstones, which are keyed by entity type.
+  String? _entityTypeForTable(String table) => (_entityTypesByTable ??= {
+    for (final type in const SyncData().toJson().keys.toList().reversed)
+      ?_tableNameFor(type): type,
+  })[table];
+
+  static Map<String, String>? _entityTypesByTable;
+
+  /// The SQL table behind the wire key [entityType], or null for a key with
+  /// no table of its own.
+  String? _tableNameFor(String entityType) {
+    try {
+      return _syncTableFor(entityType).actualTableName;
+    } on ArgumentError {
+      return null;
+    }
+  }
+
+  /// [data] with each link this device still holds carrying the value it
+  /// held (issue #4954). A held link is cleared here only because its parent
+  /// has not arrived yet; sending that null would clear it on every device.
+  /// Sending the held value (rather than leaving the column out) also gives
+  /// the link to a device that has never had the row: it keeps the link, or
+  /// holds it in turn until the parent reaches it.
+  Future<SyncData> _withHeldLinks(SyncData data) async {
+    final filter = await HeldReferenceStore(
+      _db,
+      entityTypeOf: _entityTypeForTable,
+    ).exportFilter();
+    if (filter.isEmpty) return data;
+    final json = data.toJson();
+    var changed = false;
+    final stripped = <String, dynamic>{};
+    for (final entry in json.entries) {
+      final table = _tableNameFor(entry.key);
+      final rows = entry.value;
+      if (table == null || !filter.covers(table) || rows is! List) {
+        stripped[entry.key] = rows;
+        continue;
+      }
+      changed = true;
+      stripped[entry.key] = [
+        for (final row in rows)
+          filter.withHeldValues(table, row as Map<String, dynamic>),
+      ];
+    }
+    return changed ? SyncData.fromJson(stripped) : data;
+  }
 
   Future<SyncData> _buildSyncDataUnmemoised(
     String? hlcSince, {
@@ -3379,12 +3447,54 @@ class SyncDataSerializer {
   Future<T> applyInDeferredFkTransaction<T>(Future<T> Function() body) async {
     return _db.transaction(() async {
       await _db.customStatement('PRAGMA defer_foreign_keys = ON');
+      // Notes from an apply that rolled back describe writes that never
+      // landed.
+      _incomingCopies = IncomingCopies.none;
       return await body();
     });
   }
 
+  /// Forgets every held reference (issue #4954). A replace of the whole
+  /// library calls this: the holds describe the copy it discards, and one
+  /// put back afterwards would bring a row the replacement removed back into
+  /// the new library.
+  Future<void> discardHeldReferences() async {
+    _incomingCopies = IncomingCopies.none;
+    await HeldReferenceStore(_db).discard();
+  }
+
+  /// The peers' copies of held rows seen since the last repair (issue
+  /// #4954). Filled by [noteIncomingRows], read and cleared by the repair.
+  var _incomingCopies = IncomingCopies.none;
+
+  /// Notes which columns each peer row in [records] carries, for the rows
+  /// whose links this device holds, before a merge or adopt overlays them
+  /// onto the local rows (issue #4954). A held link is let go only when a
+  /// copy that carried its column wins; a copy that left the column out (a
+  /// peer whose build does not know it) keeps it held. Every apply path that
+  /// merges into an existing library calls this with the rows as the payload
+  /// carried them; a replace-adopt discards the holds instead.
+  Future<void> noteIncomingRows(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (records.isEmpty) return;
+    final table = _tableNameFor(entityType);
+    if (table == null) return;
+    _incomingCopies =
+        await HeldReferenceStore(
+          _db,
+          entityTypeOf: _entityTypeForTable,
+        ).noteIncoming(_incomingCopies, table, [
+          for (final record in records) withCurrentWireKeys(entityType, record),
+        ]);
+  }
+
   /// Repairs every foreign key left dangling after a sync apply: a nullable
   /// reference is cleared; a non-nullable orphan is deleted (a manual cascade).
+  /// Unless the parent is known deleted, each change is held and undone once
+  /// the parent arrives, and a held link goes out in this device's exports
+  /// as the value it held (issue #4954; see held_references.dart).
   /// Applying a remote deletion of a parent can leave a local row pointing at
   /// it via a non-cascading FK, which would otherwise fail the deferred-FK
   /// COMMIT and abort the whole sync. Must run inside
@@ -3412,7 +3522,11 @@ class SyncDataSerializer {
     final dangling = await _db
         .customSelect('PRAGMA foreign_key_check("$table")')
         .get();
-    if (dangling.isNotEmpty) await _repairDanglingReferences();
+    // A restored orphan can itself name a parent that is still missing, so
+    // a restore that put rows back runs the whole repair after it.
+    if (dangling.isNotEmpty || await _restoreHeldReferences()) {
+      await _repairDanglingReferences();
+    }
     await _rederivePeerValues(writtenEntityType: entityType);
   }
 
@@ -3526,12 +3640,68 @@ class SyncDataSerializer {
     }
   }
 
+  /// Gives back the held rows whose parents arrived (issue #4954), without
+  /// running the whole-database foreign key check. True when it put back a
+  /// held orphan, whose rows the full repair must then check.
+  Future<bool> _restoreHeldReferences() async {
+    final store = HeldReferenceStore(_db, entityTypeOf: _entityTypeForTable);
+    final loaded = await store.load();
+    if (loaded.isEmpty) {
+      _incomingCopies = IncomingCopies.none;
+      return false;
+    }
+    final held = await _restoreArrived(store, loaded);
+    await store.save(held, previous: loaded);
+    // An orphan that left the hold was put back or dropped; either way the
+    // full check after it is cheap next to a failed commit.
+    return loaded.orphans.keys.any((id) => !held.orphans.containsKey(id));
+  }
+
+  /// [HeldReferenceStore.restoreArrived], announcing the tables it wrote.
+  Future<HeldReferences> _restoreArrived(
+    HeldReferenceStore store,
+    HeldReferences held,
+  ) async {
+    final restored = await store.restoreArrived(held, _incomingCopies);
+    _incomingCopies = IncomingCopies.none;
+    if (restored.tables.isNotEmpty) {
+      _log.info(
+        'Sync repair: restored held references in '
+        '${(restored.tables.toList()..sort()).join(', ')}',
+      );
+      // A dive's children tick the dives a watcher reads them through, as
+      // every other write of them does (see [_tickDivesForChild]).
+      final ticksDives = diveChildEntitiesThatTickDives.any(
+        (type) => restored.tables.contains(_tableNameFor(type)),
+      );
+      _db.notifyUpdates({
+        for (final table in restored.tables)
+          TableUpdate(table, kind: UpdateKind.insert),
+        for (final table in restored.tables)
+          TableUpdate(table, kind: UpdateKind.update),
+        if (ticksDives) TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
+      });
+    }
+    return restored.held;
+  }
+
+  /// Clears or deletes every row left naming a missing parent, holding each
+  /// change so it can be undone once that parent arrives (issue #4954): the
+  /// parent can come from another peer, applied in its own transaction or a
+  /// later pull. First gives back whatever an earlier repair held whose
+  /// parent has arrived since.
   Future<void> _repairDanglingReferences() async {
+    final store = HeldReferenceStore(_db, entityTypeOf: _entityTypeForTable);
+    final loaded = await store.load();
+    var held = await _restoreArrived(store, loaded);
     for (var pass = 0; pass < 5; pass++) {
       final violations = await _db
           .customSelect('PRAGMA foreign_key_check')
           .get();
-      if (violations.isEmpty) return;
+      if (violations.isEmpty) {
+        await store.save(held, previous: loaded);
+        return;
+      }
 
       for (final v in violations) {
         final table = v.read<String>('table');
@@ -3539,12 +3709,9 @@ class SyncDataSerializer {
         if (rowid == null) continue; // WITHOUT ROWID tables: not in sync schema
         final fkid = v.read<int>('fkid');
 
-        final fkList = await _db
-            .customSelect('PRAGMA foreign_key_list("$table")')
-            .get();
-        final fk = fkList.where((f) => f.read<int>('id') == fkid).toList();
-        if (fk.isEmpty) continue;
-        final column = fk.first.read<String>('from');
+        final fk = await heldForeignKey(_db, table, fkid);
+        if (fk == null) continue;
+        final column = fk.from;
 
         final info = await _db
             .customSelect('PRAGMA table_info("$table")')
@@ -3558,12 +3725,14 @@ class SyncDataSerializer {
           _log.warning(
             'Sync repair: deleting orphaned $table row (no parent for "$column")',
           );
+          held = await store.holdOrphan(held, table, rowid, fk);
           await _db.customStatement('DELETE FROM "$table" WHERE rowid = ?', [
             rowid,
           ]);
           _db.notifyUpdates({TableUpdate(table, kind: UpdateKind.delete)});
         } else {
           _log.warning('Sync repair: clearing dangling $table."$column"');
+          held = await store.holdLink(held, table, rowid, fk);
           await _db.customStatement(
             'UPDATE "$table" SET "$column" = NULL WHERE rowid = ?',
             [rowid],

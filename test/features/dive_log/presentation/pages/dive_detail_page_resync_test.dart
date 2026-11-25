@@ -11,6 +11,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -27,17 +28,32 @@ class _FakeDiveResyncOrchestrator extends DiveResyncOrchestrator {
     required super.db,
     required this.outcome,
     this.gate,
+    this.handSetChanges = const [],
   });
 
   final DiveResyncOutcome outcome;
+
+  /// What the preview reports the resync would replace (issue #4909).
+  final List<HandSetChange> handSetChanges;
+
+  /// The fields each resync was told to replace.
+  final replacedFields = <Set<HandSetField>>[];
 
   /// Holds the resync open until completed.
   final Completer<void>? gate;
   final resyncedDiveIds = <String>[];
 
   @override
-  Future<DiveResyncOutcome> resync(String diveId) async {
+  Future<List<HandSetChange>> previewHandSetChanges(String diveId) async =>
+      handSetChanges;
+
+  @override
+  Future<DiveResyncOutcome> resync(
+    String diveId, {
+    Iterable<HandSetChange> replaceHandSet = const [],
+  }) async {
     resyncedDiveIds.add(diveId);
+    replacedFields.add({for (final c in replaceHandSet) c.field});
     await gate?.future;
     return outcome;
   }
@@ -51,7 +67,14 @@ class _ThrowingDiveResyncOrchestrator extends DiveResyncOrchestrator {
   _ThrowingDiveResyncOrchestrator({required super.db});
 
   @override
-  Future<DiveResyncOutcome> resync(String diveId) {
+  Future<List<HandSetChange>> previewHandSetChanges(String diveId) async =>
+      const [];
+
+  @override
+  Future<DiveResyncOutcome> resync(
+    String diveId, {
+    Iterable<HandSetChange> replaceHandSet = const [],
+  }) {
     throw const FormatException('truncated UDDF payload');
   }
 }
@@ -144,11 +167,13 @@ void main() {
     bool embedded = false,
     Locale locale = const Locale('en'),
     Completer<void>? gate,
+    List<HandSetChange> handSetChanges = const [],
   }) async {
     final orchestrator = _FakeDiveResyncOrchestrator(
       db: db,
       outcome: outcome,
       gate: gate,
+      handSetChanges: handSetChanges,
     );
     await pumpWithOrchestrator(
       tester,
@@ -169,6 +194,36 @@ void main() {
     await tester.tap(find.byIcon(Icons.sync).last);
     await tester.pumpAndSettle();
   }
+
+  // Values the diver set by hand (issue #4909): the file says 18.2 m where
+  // the diver corrected the depth to 19 m.
+  testWidgets('values set by hand are listed and kept unless replaced', (
+    tester,
+  ) async {
+    final orchestrator = await pumpDetail(
+      tester,
+      handSetChanges: const [
+        HandSetChange(
+          field: HandSetField.maxDepth,
+          storedValue: 19.0,
+          parsedValue: 18.2,
+        ),
+      ],
+    );
+
+    await tapResync(tester);
+
+    expect(find.text('Resync this dive?'), findsOneWidget);
+    expect(find.textContaining('Yours: 19'), findsOneWidget);
+    expect(find.textContaining('File: 18.2'), findsOneWidget);
+    expect(orchestrator.resyncedDiveIds, isEmpty);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Resync'));
+    await tester.pumpAndSettle();
+
+    expect(orchestrator.replacedFields, [<HandSetField>{}]);
+    expect(find.text('Dive updated from the original file'), findsOneWidget);
+  });
 
   testWidgets('leaving while it runs still refreshes the dive', (tester) async {
     // The list reads this dive too, so the refresh must not depend on the

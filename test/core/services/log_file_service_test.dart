@@ -30,7 +30,7 @@ void main() {
       );
       await service.writeLine(entry.toLogLine());
 
-      final logFile = File('${tempDir.path}/submersion.log');
+      final logFile = File(p.join(tempDir.path, 'submersion.log'));
       expect(logFile.existsSync(), isTrue);
 
       final content = await logFile.readAsString();
@@ -57,7 +57,9 @@ void main() {
         ).toLogLine(),
       );
 
-      final lines = await File('${tempDir.path}/submersion.log').readAsLines();
+      final lines = await File(
+        p.join(tempDir.path, 'submersion.log'),
+      ).readAsLines();
       expect(lines.length, 2);
       expect(lines[0], contains('First'));
       expect(lines[1], contains('Second'));
@@ -92,7 +94,7 @@ void main() {
     test('readEntries skips malformed lines', () async {
       await service.initialize();
 
-      final logFile = File('${tempDir.path}/submersion.log');
+      final logFile = File(p.join(tempDir.path, 'submersion.log'));
       await logFile.writeAsString(
         '[2026-03-27T14:00:00.000] [BLE] [INFO] Good line\n'
         'this is garbage\n'
@@ -125,13 +127,13 @@ void main() {
 
       await service.clearLog();
 
-      final logFile = File('${tempDir.path}/submersion.log');
+      final logFile = File(p.join(tempDir.path, 'submersion.log'));
       expect(logFile.existsSync(), isFalse);
     });
 
     test('logFilePath returns correct path', () async {
       await service.initialize();
-      expect(service.logFilePath, '${tempDir.path}/submersion.log');
+      expect(service.logFilePath, p.join(tempDir.path, 'submersion.log'));
     });
 
     test('rotates file when exceeding max size', () async {
@@ -154,7 +156,7 @@ void main() {
         );
       }
 
-      final logFile = File('${tempDir.path}/submersion.log');
+      final logFile = File(p.join(tempDir.path, 'submersion.log'));
       final size = await logFile.length();
 
       // After rotation, file should be roughly half of max or less
@@ -299,18 +301,32 @@ void main() {
           ),
         );
       });
+
+      test('readLines throws StateError if not initialized', () async {
+        expect(
+          () => service.readLines(),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('initialize()'),
+            ),
+          ),
+        );
+      });
     });
 
     test('writeLine silently swallows IOException', () async {
       await service.initialize();
 
-      // Make the log directory a file so writes will fail with an IOException
-      final logFile = File('${tempDir.path}/submersion.log');
+      // Put a directory where the log file goes so writes fail with an
+      // IOException
+      final logFile = File(p.join(tempDir.path, 'submersion.log'));
       await logFile.writeAsString('existing content\n');
       // Delete log file and replace path with a directory so File.writeAsString
       // throws an IOException (cannot write to a path that is a directory).
       await logFile.delete();
-      await Directory('${tempDir.path}/submersion.log').create();
+      await Directory(p.join(tempDir.path, 'submersion.log')).create();
 
       // Should not throw even though writing will fail
       await expectLater(service.writeLine('this should not crash'), completes);

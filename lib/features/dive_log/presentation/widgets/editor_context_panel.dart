@@ -8,7 +8,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Renders different controls based on the current [EditorMode]:
 /// - Select: range shift/delete/smooth operations
 /// - Smooth: window size selection and apply buttons
-/// - Cleanup: detect and remove outlier controls, trim, and profile deletion
+/// - Cleanup: detect and remove outlier controls, trim, profile deletion,
+///   and removal of the source being edited
 /// - Draw: waypoint management and profile generation
 class EditorContextPanel extends StatefulWidget {
   final EditorMode mode;
@@ -19,6 +20,18 @@ class EditorContextPanel extends StatefulWidget {
   final VoidCallback? onDeleteProfile;
   final bool canDeleteProfile;
 
+  /// Why Delete Entire Profile is disabled, shown under the Cleanup buttons
+  /// (issue #4972). Null when it is enabled or the reason is not known yet.
+  final String? deleteProfileHint;
+
+  /// Whether Cleanup offers Remove This Source: only for a source of a dive
+  /// with more than one, which the removal can take away (issue #4972).
+  final bool showRemoveSource;
+
+  /// Removes the source being edited. Null disables the button, as while
+  /// the session has unsaved edits.
+  final VoidCallback? onRemoveSource;
+
   const EditorContextPanel({
     super.key,
     required this.mode,
@@ -28,6 +41,9 @@ class EditorContextPanel extends StatefulWidget {
     this.hasWaypoints = false,
     this.onDeleteProfile,
     this.canDeleteProfile = false,
+    this.deleteProfileHint,
+    this.showRemoveSource = false,
+    this.onRemoveSource,
   });
 
   @override
@@ -227,7 +243,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           ],
         ),
         const SizedBox(height: 12),
-        // Four buttons do not fit one line on a phone, so they wrap.
+        // The buttons do not fit one line on a phone, so they wrap.
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -262,8 +278,32 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
                 context.l10n.diveLog_profileEditor_deleteProfile_title,
               ),
             ),
+            if (widget.showRemoveSource)
+              // Permanent, like Delete Entire Profile, so it reads as
+              // destructive rather than as one of the sample tools.
+              FilledButton.tonalIcon(
+                onPressed: widget.onRemoveSource,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                  foregroundColor: Theme.of(
+                    context,
+                  ).colorScheme.onErrorContainer,
+                ),
+                icon: const Icon(Icons.remove_circle_outline, size: 18),
+                label: Text(context.l10n.diveLog_profileEditor_removeSource),
+              ),
           ],
         ),
+        if (widget.deleteProfileHint case final hint?)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              hint,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         if (count > 0)
           Padding(
             padding: const EdgeInsets.only(top: 8),

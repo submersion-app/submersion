@@ -23,6 +23,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 void main() {
   late AppDatabase db;
@@ -137,7 +138,9 @@ void main() {
   }
 
   Future<void> save(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    // The bar's Save enables on the frame after an edit.
+    await tester.pump();
+    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
     await tester.pumpAndSettle();
   }
 
@@ -618,6 +621,38 @@ void main() {
 
       final stored = await observations.getForDive('d1');
       expect((await saved()).observationId, stored.single.id);
+    });
+
+    testWidgets('a check-in added from the picker survives Cancel', (
+      tester,
+    ) async {
+      // Created at once, as every record made from a picker is (issue
+      // #4527): discarding the report does not take it back.
+      await pumpPage(tester, const IncidentEditPage(diveId: 'd1'));
+      await pickGear(tester, 'Apeks XTX');
+      await tester.tap(find.text('Gear check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(SimpleDialogOption, 'Add check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Add check-in'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Issue'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Free flow'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save').last);
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(400, 20));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('home'), findsOneWidget);
+      expect(await incidents.getIncidents(), isEmpty);
+      expect(await observations.getForDive('d1'), hasLength(1));
     });
   });
 

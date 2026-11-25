@@ -42,16 +42,11 @@ void main() {
   Future<void> pumpDocument(
     WidgetTester tester, {
     String? editableSiteId = 's1',
-    bool attachmentLock = true,
     bool browser = false,
     bool pushed = false,
   }) async {
     final item = await stored(tester);
-    final page = DocumentViewerPage(
-      item: item,
-      editableSiteId: editableSiteId,
-      attachmentLock: attachmentLock,
-    );
+    final page = DocumentViewerPage(item: item, editableSiteId: editableSiteId);
     await pumpViewerApp(
       tester,
       pushed ? pushedFrom(page) : page,
@@ -250,13 +245,7 @@ void main() {
     );
     await pumpViewerApp(
       tester,
-      pushedFrom(
-        DocumentViewerPage(
-          item: item,
-          editableSiteId: 's1',
-          attachmentLock: true,
-        ),
-      ),
+      pushedFrom(DocumentViewerPage(item: item, editableSiteId: 's1')),
     );
 
     await openPushed(tester);
@@ -264,16 +253,6 @@ void main() {
 
     expect(find.byType(DocumentViewerPage), findsNothing);
     expect(find.text('This document was removed.'), findsOneWidget);
-  });
-
-  testWidgets('without attachmentLock a removed document leaves the viewer '
-      'as before', (tester) async {
-    await pumpDocument(tester, pushed: true, attachmentLock: false);
-
-    await removeDocument(tester);
-
-    expect(find.byType(DocumentViewerPage), findsOneWidget);
-    expect(find.text('This document was removed.'), findsNothing);
   });
 
   testWidgets('opened from a dive it offers no lock', (tester) async {
@@ -289,12 +268,5 @@ void main() {
 
     expect(find.byKey(unlockKey), findsNothing);
     expect(find.byTooltip('Edit details'), findsNothing);
-  });
-
-  testWidgets('without attachmentLock it is today\'s viewer', (tester) async {
-    await pumpDocument(tester, attachmentLock: false);
-
-    expect(find.byKey(unlockKey), findsNothing);
-    expect(find.byTooltip('Edit details'), findsOneWidget);
   });
 }

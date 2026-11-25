@@ -7,6 +7,7 @@ import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
+import 'package:submersion/features/safety/domain/entities/incident_changes.dart';
 
 /// Incidents a diver logs, through the repository the incident page uses.
 /// An incident can name the dive, the gear and the check-in that flagged
@@ -120,37 +121,42 @@ class IncidentWrites extends WritableEntry {
     return incident.id;
   }
 
+  /// Writes only the fields the change names, on the report as stored. A
+  /// read gives a check-in link that does not stand just now as none, so
+  /// writing a read back would erase a link the change never named (#4924).
+  /// A move to another item that names no link drops the stored one, as the
+  /// near-miss editor does; [refuse] lets such a move through only when the
+  /// link does not stand.
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
     final current = await _incident(id);
     final v = update.values;
-    T? kept<T>(String key, T? held) => v.containsKey(key) ? v[key] as T? : held;
-    final next = Incident(
-      id: id,
-      diverId: current.diverId,
-      diveId: kept('dive_id', current.diveId),
-      equipmentId: kept('equipment_id', current.equipmentId),
-      observationId: kept('observation_id', current.observationId),
-      occurredAt: v['occurred_time'] as DateTime? ?? current.occurredAt,
+    ({String? value})? given(String key) =>
+        v.containsKey(key) ? (value: v[key] as String?) : null;
+    final item = given('equipment_id');
+    final itemMoved = item != null && item.value != current.equipmentId;
+    final changes = IncidentChanges(
+      occurredAt: v['occurred_time'] as DateTime?,
       category: switch (v['category']) {
         final String c => IncidentCategory.values.byName(c),
-        _ => current.category,
+        _ => null,
       },
       severity: switch (v['severity']) {
         final String s => IncidentSeverity.values.byName(s),
-        _ => current.severity,
+        _ => null,
       },
-      narrative: v['narrative'] as String? ?? current.narrative,
-      contributingFactors: kept(
-        'contributing_factors',
-        current.contributingFactors,
-      ),
-      lessonsLearned: kept('lessons_learned', current.lessonsLearned),
-      createdAt: current.createdAt,
-      updatedAt: current.updatedAt,
+      narrative: v['narrative'] as String?,
+      contributingFactors: given('contributing_factors'),
+      lessonsLearned: given('lessons_learned'),
+      equipmentId: item,
+      diveId: given('dive_id'),
+      observationId:
+          given('observation_id') ?? (itemMoved ? (value: null) : null),
     );
-    await _r.incidents.updateIncident(next);
-    _touchedItems.addAll([?current.equipmentId, ?next.equipmentId]);
+    if (!await _r.incidents.applyIncidentChanges(id, changes)) {
+      throw _gone(id);
+    }
+    _touchedItems.addAll([?current.equipmentId, if (item != null) ?item.value]);
   }
 
   @override
@@ -171,12 +177,13 @@ class IncidentWrites extends WritableEntry {
   }
 
   Future<Incident> _incident(String id) async =>
-      await _r.incidents.getIncidentById(id) ??
-      (throw AgentToolException(
-        AgentToolErrorCode.writeRefused,
-        'Incident $id no longer exists.',
-        details: {'id': id},
-      ));
+      await _r.incidents.getIncidentById(id) ?? (throw _gone(id));
+
+  AgentToolException _gone(String id) => AgentToolException(
+    AgentToolErrorCode.writeRefused,
+    'Incident $id no longer exists.',
+    details: {'id': id},
+  );
 }
 
 /// A two-letter country code, upper-cased as the chamber form keeps it.

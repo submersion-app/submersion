@@ -50,7 +50,7 @@ void main() {
     });
 
     test('a language the app does not have reads as English', () {
-      Intl.defaultLocale = 'ja';
+      Intl.defaultLocale = 'ko';
 
       expect(formatBytes(1536), '1.5 KB');
     });

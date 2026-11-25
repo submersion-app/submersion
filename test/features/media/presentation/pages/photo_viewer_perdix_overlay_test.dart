@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 /// The Perdix face defaults to the top-right corner, which is where the
 /// viewer's toolbar keeps its action buttons. Those buttons are mounted in the
@@ -21,6 +22,11 @@ import '../../../../helpers/test_database.dart';
 /// dragged out of the corner by its most natural grab points. The page keeps
 /// the face out of that band entirely.
 void main() {
+  // The page is built inside runAsync, so the viewer's wait before it asks
+  // for marine life analysis runs on real time, and on a Linux runner the
+  // labels ring then outlasts a pumpAndSettle (issue #4949).
+  turnOffMarineLifeIdForEachTest();
+
   late SharedPreferences prefs;
 
   setUp(() async {

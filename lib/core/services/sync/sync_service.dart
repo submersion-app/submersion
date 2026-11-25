@@ -186,6 +186,10 @@ typedef NearbyApplyResult = ({
   int recordsFailed,
 });
 
+/// A marine life identification a peer's tombstone deleted here, with the
+/// media it was on: its crop file is kept under that media (issue #4890).
+typedef DeletedIdentification = ({String mediaId, String id});
+
 /// Sync progress information
 class SyncProgress {
   final SyncPhase phase;
@@ -296,6 +300,18 @@ class SyncService {
   /// Optional: most tests build the service without one.
   final Future<void> Function(MediaResolutionHints hints)?
   _onMediaResolutionHints;
+
+  /// Told which identifications a peer's tombstones deleted, once the
+  /// apply that deleted them has ended, so the files and cache rows this
+  /// device keeps for them go too (issue #4890). Told after a rollback as
+  /// well, and whether or not the tombstone was logged: it must act only on
+  /// ids whose row is gone. Optional: most tests build the service without
+  /// one.
+  final Future<void> Function(List<DeletedIdentification> deleted)?
+  _onIdentificationsDeleted;
+
+  /// What the running apply has deleted for [_onIdentificationsDeleted].
+  final List<DeletedIdentification> _deletedIdentifications = [];
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -363,6 +379,8 @@ class SyncService {
     PeerDeviceNameStore? peerNames,
     PeerSyncSnapshotStore? peerSnapshots,
     Future<void> Function(MediaResolutionHints hints)? onMediaResolutionHints,
+    Future<void> Function(List<DeletedIdentification> deleted)?
+    onIdentificationsDeleted,
   }) : _syncRepository = syncRepository,
        _eventScopeApplier = EventScopeTombstoneApplier(
          syncRepository: syncRepository,
@@ -375,6 +393,7 @@ class SyncService {
        _peerNames = peerNames,
        _peerSnapshots = peerSnapshots,
        _onMediaResolutionHints = onMediaResolutionHints,
+       _onIdentificationsDeleted = onIdentificationsDeleted,
        _localizations = localizations ?? _englishLocalizations;
 
   /// Set a callback to receive progress updates during sync
@@ -1456,30 +1475,35 @@ class SyncService {
     // courseId points at a course in the same payload) fail immediately and
     // the affected rows never reach the receiving DB. See
     // docs/design/findings/2026-06-02-icloud-sync-diagnosis.md.
-    return ChangeLogScope.run(
-      DatabaseService.instance.databaseOrNull,
-      source: ChangeLogSource.sync,
-      deviceId: remotePayload.deviceId,
-      lease: kChangeLogLongLease,
-      body: () => _serializer.applyInDeferredFkTransaction(() async {
-        final result = await _applyRemotePayloadInner(
-          remotePayload,
-          localLastSync,
-        );
-        await _repairLegacyPeerRows(
-          touchedDiveIds: {
-            for (final dive in remotePayload.data.dives) ?dive['id'] as String?,
-            for (final source in remotePayload.data.diveDataSources)
-              ?source['diveId'] as String?,
-            // A series row can arrive alone, and the duplicate-series repair
-            // reads only the dives named here (issue #4847).
-            for (final series in remotePayload.data.diveProfileSeries)
-              ?series['diveId'] as String?,
-          },
-        );
-        return result;
-      }),
-    );
+    try {
+      return await ChangeLogScope.run(
+        DatabaseService.instance.databaseOrNull,
+        source: ChangeLogSource.sync,
+        deviceId: remotePayload.deviceId,
+        lease: kChangeLogLongLease,
+        body: () => _serializer.applyInDeferredFkTransaction(() async {
+          final result = await _applyRemotePayloadInner(
+            remotePayload,
+            localLastSync,
+          );
+          await _repairLegacyPeerRows(
+            touchedDiveIds: {
+              for (final dive in remotePayload.data.dives)
+                ?dive['id'] as String?,
+              for (final source in remotePayload.data.diveDataSources)
+                ?source['diveId'] as String?,
+              // A series row can arrive alone, and the duplicate-series
+              // repair reads only the dives named here (issue #4847).
+              for (final series in remotePayload.data.diveProfileSeries)
+                ?series['diveId'] as String?,
+            },
+          );
+          return result;
+        }),
+      );
+    } finally {
+      await _handOnDeletedIdentifications();
+    }
   }
 
   /// Runs the data rungs over what was just applied, because this database
@@ -2396,23 +2420,27 @@ class SyncService {
     );
 
     final db = DatabaseService.instance.databaseOrNull;
-    if (localLastSync == null && !await _hasOwnLibrary(db)) {
-      return ChangeLogScope.suppressed(
+    try {
+      if (localLastSync == null && !await _hasOwnLibrary(db)) {
+        return await ChangeLogScope.suppressed(
+          db,
+          label: ChangeLogLabels.libraryAdopted,
+          source: ChangeLogSource.sync,
+          summaryCount: (result) => result.recordsApplied,
+          lease: kChangeLogLongLease,
+          body: apply,
+        );
+      }
+      return await ChangeLogScope.run(
         db,
-        label: ChangeLogLabels.libraryAdopted,
         source: ChangeLogSource.sync,
-        summaryCount: (result) => result.recordsApplied,
+        deviceId: peerDeviceId,
         lease: kChangeLogLongLease,
         body: apply,
       );
+    } finally {
+      await _handOnDeletedIdentifications();
     }
-    return ChangeLogScope.run(
-      db,
-      source: ChangeLogSource.sync,
-      deviceId: peerDeviceId,
-      lease: kChangeLogLongLease,
-      body: apply,
-    );
   }
 
   /// Whether this device holds any dives yet. A new device's profile row is
@@ -2877,6 +2905,41 @@ class SyncService {
     }
   }
 
+  /// Remembers an identification a tombstone just deleted, for
+  /// [_handOnDeletedIdentifications]. Only a row that was here: its crop
+  /// file is found by its media.
+  void _noteDeletedIdentification(
+    String entityType,
+    Map<String, dynamic>? local,
+  ) {
+    if (entityType != 'mediaIdentifications') return;
+    final mediaId = local?['mediaId'];
+    final id = local?['id'];
+    if (mediaId is String && id is String) {
+      _deletedIdentifications.add((mediaId: mediaId, id: id));
+    }
+  }
+
+  /// Hands what an apply deleted to [_onIdentificationsDeleted], once the
+  /// apply has ended: inside it, the rows are not yet committed, and a
+  /// read from outside its transaction would wait on it. Never throws: the
+  /// launch sweep picks up anything left behind.
+  Future<void> _handOnDeletedIdentifications() async {
+    if (_deletedIdentifications.isEmpty) return;
+    final deleted = List<DeletedIdentification>.of(_deletedIdentifications);
+    _deletedIdentifications.clear();
+    final onDeleted = _onIdentificationsDeleted;
+    if (onDeleted == null) return;
+    try {
+      await onDeleted(deleted);
+    } on Object catch (e) {
+      _log.warning(
+        'Could not remove what ${deleted.length} deleted identifications '
+        'left on this device: $e',
+      );
+    }
+  }
+
   Future<_MergeResult> _applyRemoteDeletions(
     Map<String, List<SyncDeletion>> deletions,
     int? lastSyncMs,
@@ -2963,6 +3026,9 @@ class SyncService {
           if (clockOrdered) {
             if (localHlc.compareTo(deletionHlc) <= 0) {
               await _serializer.deleteRecord(entityType, recordId);
+              // Before the log: a log that fails is caught below, and the
+              // delete still commits.
+              _noteDeletedIdentification(entityType, local);
               await _syncRepository.logDeletionIfMissing(
                 entityType: entityType,
                 recordId: recordId,
@@ -3039,6 +3105,7 @@ class SyncService {
           }
 
           await _serializer.deleteRecord(entityType, recordId);
+          _noteDeletedIdentification(entityType, local);
           await _syncRepository.logDeletionIfMissing(
             entityType: entityType,
             recordId: recordId,
@@ -3944,6 +4011,8 @@ class SyncService {
         }
       }
     }
+    // Before anything fills a key the peer left out (issue #4954).
+    await _serializer.noteIncomingRows(entityType, records);
     records = await _keepLibrarySiteLinks(entityType, records);
     records = await _keepLibraryMembershipKeys(entityType, records);
 
@@ -4748,18 +4817,30 @@ class SyncService {
           // references before COMMIT, as _applyRemoteDeletions does. The
           // repaired rows are not marked pending: every peer applying this
           // tombstone runs the same repair.
-          await _serializer.applyInDeferredFkTransaction(() async {
-            await _serializer.deleteRecord(entityType, recordId);
-            await _serializer.repairDanglingForeignKeys();
-            await _syncRepository.logDeletionIfMissing(
-              entityType: entityType,
-              recordId: recordId,
-              deletedAt: deletedAt ?? DateTime.now().millisecondsSinceEpoch,
-              originHlc: remoteData['hlc'] is String
-                  ? remoteData['hlc'] as String
-                  : null,
-            );
-          });
+          try {
+            await _serializer.applyInDeferredFkTransaction(() async {
+              // Only an identification's row is needed, for its media; other
+              // rows can carry large blobs.
+              final local = entityType == 'mediaIdentifications'
+                  ? await _serializer.fetchRecord(entityType, recordId)
+                  : null;
+              await _serializer.deleteRecord(entityType, recordId);
+              await _serializer.repairDanglingForeignKeys();
+              await _syncRepository.logDeletionIfMissing(
+                entityType: entityType,
+                recordId: recordId,
+                deletedAt: deletedAt ?? DateTime.now().millisecondsSinceEpoch,
+                originHlc: remoteData['hlc'] is String
+                    ? remoteData['hlc'] as String
+                    : null,
+              );
+              _noteDeletedIdentification(entityType, local);
+            });
+          } finally {
+            // An identification's crop file and embedding go too, as when
+            // the tombstone applied with no conflict (issue #4890).
+            await _handOnDeletedIdentifications();
+          }
         } else {
           // keepRemote overwrites the local row. For HLC-bearing entities the
           // upsert uses `.toCompanion(false)`, so a cross-version remote map
@@ -4805,6 +4886,7 @@ class SyncService {
   /// derives the same result from the same rows.
   Future<void> _applyConflictRow(String entityType, Map<String, dynamic> row) =>
       _serializer.applyInDeferredFkTransaction(() async {
+        await _serializer.noteIncomingRows(entityType, [row]);
         await _serializer.upsertRecord(entityType, row);
         await _serializer.repairAfterRowWrite(entityType);
       });
@@ -5664,6 +5746,10 @@ class SyncService {
       }
     }
 
+    // The holds describe the copy being replaced (issue #4954). None is left
+    // for the rows written here to settle, so this adopt notes none of them.
+    await _serializer.discardHeldReferences();
+
     // Upsert every restored record.
     for (final entry in restored.entries) {
       for (final record in entry.value.values) {
@@ -5824,6 +5910,9 @@ class SyncService {
       if (inboundOnlyLegacyEntities.containsKey(entity)) continue;
       await _serializer.deleteAllRecords(entity);
     }
+    // The holds describe the copy being replaced (issue #4954). None is left
+    // for the rows written here to settle, so this adopt notes none of them.
+    await _serializer.discardHeldReferences();
 
     // Batched upsert of a table's rows (skipping null-id rows, matching the
     // in-memory path). Batching is the throughput lever: a large adopt is

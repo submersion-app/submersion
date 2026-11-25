@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -29,7 +28,13 @@ import 'package:submersion/features/transmitters/presentation/providers/transmit
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_key_remove_dialog.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_after_save.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_draft.dart';
+import 'package:submersion/features/transmitters/presentation/widgets/transmitter_field_note.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_saved.dart';
+import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
@@ -59,11 +64,11 @@ class TransmitterEditPage extends ConsumerStatefulWidget {
       _TransmitterEditPageState();
 }
 
-class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
+class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage>
+    with RecordEditorHost<TransmitterEditPage, TransmitterKeyDraft> {
   static final _log = LoggerService.forClass(TransmitterEditPage);
 
   final _formKey = GlobalKey<FormState>();
-  final _uuid = const Uuid();
 
   final _serialController = TextEditingController();
   final _channelController = TextEditingController();
@@ -89,18 +94,31 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   String _itemName = '';
   String? _itemSerial;
   Transmitter? _existing;
-  bool _loading = false;
+  bool _loaded = false;
   String? _keyError;
   String? _duplicateError;
+
+  /// What the last Save wrote, for the work that follows its commit.
+  TransmitterKeyWrite? _written;
+  bool _offerApply = false;
 
   @override
   void initState() {
     super.initState();
+    for (final controller in [
+      _serialController,
+      _channelController,
+      _volumeController,
+      _workingPressureController,
+    ]) {
+      controller.addListener(editorChanged);
+    }
     _load();
   }
 
   @override
   void dispose() {
+    disposeEditor();
     _serialController.dispose();
     _channelController.dispose();
     _volumeController.dispose();
@@ -109,23 +127,35 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
     final repo = ref.read(transmitterRepositoryProvider);
-    final item = await ref.read(
-      equipmentItemProvider(widget.equipmentId).future,
-    );
-    final keys = await repo.getForEquipment(widget.equipmentId);
-    final editing = widget.transmitterId == null
-        ? null
-        : await repo.getById(widget.transmitterId!);
+    final EquipmentItem? item;
+    final List<Transmitter> keys;
+    final Transmitter? editing;
+    try {
+      item = await ref.read(equipmentItemProvider(widget.equipmentId).future);
+      keys = await repo.getForEquipment(widget.equipmentId);
+      editing = widget.transmitterId == null
+          ? null
+          : await repo.getById(widget.transmitterId!);
+    } catch (e, stackTrace) {
+      _log.warning('Loading the key failed', error: e, stackTrace: stackTrace);
+      if (mounted) _leaveUnopened(context.l10n.recordEdit_loadFailed);
+      return;
+    }
     if (!mounted) return;
+    // A stale link, or a key removed on another device: there is nothing
+    // to edit, so say so and go back to the item.
+    if (widget.transmitterId != null && editing == null) {
+      _leaveUnopened(context.l10n.transmitters_edit_notFound);
+      return;
+    }
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
     // A new key starts from the setup the item's keys already share.
     final setup = editing ?? keys.firstOrNull;
     setState(() {
       _existing = editing;
-      _loading = false;
+      _loaded = true;
       _itemName = item?.name ?? '';
       _itemSerial = normalizeTransmitterSerial(item?.serialNumber);
       if (editing != null) {
@@ -151,11 +181,57 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         );
       }
     });
+    // A new key starts from the item's serial and the setup its keys
+    // share, and a downloaded key not yet set up from what the download
+    // registered: seeds, so either can be saved as it opens.
+    if (editing == null) {
+      openEditor(from: blankTransmitterKeyDraft);
+    } else if (!editing.isConfigured) {
+      openEditor(from: _draft(configured: false));
+    } else {
+      openEditor();
+    }
     final cylinderId = setup?.equipmentId;
-    if (cylinderId != null) {
+    if (cylinderId == null) return;
+    try {
       final gear = await ref.read(equipmentItemProvider(cylinderId).future);
       if (mounted) setState(() => _equipmentName = gear?.name);
+    } catch (e, stackTrace) {
+      // Only the cylinder's name: the key opens without it.
+      _log.warning(
+        'Reading the cylinder failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
+  }
+
+  /// Says [message] and leaves a key that could not be opened.
+  void _leaveUnopened(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+    leaveEditor();
+  }
+
+  /// The form as it reads now.
+  TransmitterKeyDraft _draft({bool configured = true}) => (
+    serial: _serialController.text,
+    computerId: _computerId,
+    channel: _channelController.text,
+    role: _role,
+    cylinderId: _equipmentId,
+    presetName: _presetName,
+    volume: _volumeController.text,
+    pressure: _workingPressureController.text,
+    material: _material,
+    configured: configured,
+  );
+
+  /// Changes the form and hands it to the sitting.
+  void _change(VoidCallback change) {
+    setState(change);
+    editorChanged();
   }
 
   /// Show liters or cubic feet (gas capacity at working pressure), and bar or
@@ -167,11 +243,15 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     double? workingPressureBar,
   ) {
     if (volumeL != null) {
-      final cuft = workingPressureBar != null
-          ? volumeL * workingPressureBar / 28.3168
-          : null;
-      _volumeController.text =
-          settings.volumeUnit == VolumeUnit.cubicFeet && cuft != null
+      // With no working pressure, at the one the app assumes for a tank
+      // with none, as the key's Save reads it back.
+      final cuft =
+          volumeL *
+          (workingPressureBar != null && workingPressureBar > 0
+              ? workingPressureBar
+              : assumedWorkingPressureBar) /
+          28.3168;
+      _volumeController.text = settings.volumeUnit == VolumeUnit.cubicFeet
           ? formatRoundedForInput(cuft, 1)
           // A small bottle keeps two decimals, as the tank editor does: a
           // 0.85 L argon bottle must not save as 0.9 (issue #4243).
@@ -189,7 +269,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
 
   void _applyPreset(TankPresetEntity preset) {
     final settings = ref.read(settingsProvider);
-    setState(() {
+    _change(() {
       _presetName = preset.name;
       _material = preset.material;
       _missingSizeHint = false;
@@ -204,7 +284,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
 
   Future<void> _applyGear(EquipmentItem item) async {
     final settings = ref.read(settingsProvider);
-    setState(() {
+    _change(() {
       _equipmentId = item.id;
       _equipmentName = item.name;
       if (item.tankMaterial != null) _material = item.tankMaterial;
@@ -253,7 +333,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       // the lookup ran; a late answer must not overwrite either.
       if (!mounted || _roleTouched || _equipmentId != item.id) return;
     }
-    setState(() {
+    _change(() {
       _role = role;
       _roleFieldGeneration++;
     });
@@ -284,193 +364,144 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     );
   }
 
-  Future<void> _save() async {
-    final l10n = context.l10n;
+  @override
+  String get editorTable => 'transmitters';
+
+  @override
+  String? get editorStoredId => widget.transmitterId;
+
+  @override
+  String? get editorLeaveLocation => '/equipment/${widget.equipmentId}';
+
+  @override
+  String editorTitle(BuildContext context) => widget.isEditing
+      ? context.l10n.transmitters_edit_title
+      : context.l10n.transmitters_new_title;
+
+  @override
+  TransmitterKeyDraft readEditorDraft() => _draft();
+
+  @override
+  bool validateEditor() {
     setState(() {
       _keyError = null;
       _duplicateError = null;
     });
     // Field errors first: an unreadable channel is a typo to fix, not a
     // missing key, and used to save as no channel at all (#1900).
-    if (!_formKey.currentState!.validate()) return;
-    final serialText = _serialController.text.trim();
-    final channel = _validatedNumber(_channelController)?.toInt();
-    final hasChannel = _computerId != null && channel != null && channel >= 1;
-    if (serialText.isEmpty && !hasChannel) {
-      setState(() => _keyError = l10n.transmitters_validation_key);
-      return;
+    if (!_formKey.currentState!.validate()) return false;
+    if (!transmitterDraftNamesKey(_draft())) {
+      setState(() => _keyError = context.l10n.transmitters_validation_key);
+      return false;
     }
+    return true;
+  }
 
-    final settings = ref.read(settingsProvider);
-    final units = UnitFormatter(settings);
-    final pressureDisplay = _validatedNumber(_workingPressureController);
-    final workingPressureBar = pressureDisplay == null
-        ? null
-        : units.pressureToBar(pressureDisplay);
-    final volumeDisplay = _validatedNumber(_volumeController);
-    double? volumeL;
-    if (volumeDisplay != null) {
-      volumeL =
-          settings.volumeUnit == VolumeUnit.cubicFeet &&
-              workingPressureBar != null &&
-              workingPressureBar > 0
-          ? (volumeDisplay * 28.3168) / workingPressureBar
-          : volumeDisplay;
-    }
-
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    final now = DateTime.now();
-    final entry = Transmitter(
-      id: _existing?.id ?? _uuid.v4(),
-      diverId: _existing?.diverId ?? diverId,
-      transmitterSerial: serialText.isEmpty ? null : serialText,
-      diveComputerId: hasChannel ? _computerId : null,
-      channelIndex: hasChannel ? channel - 1 : null,
-      label: _itemName,
-      role: _role,
-      volumeL: volumeL,
-      workingPressureBar: workingPressureBar,
-      material: _material,
-      presetName: _presetName,
-      equipmentId: _equipmentId,
-      transmitterEquipmentId: widget.equipmentId,
-      isConfigured: true,
-      createdAt: _existing?.createdAt ?? now,
-      updatedAt: now,
-    );
-
+  /// The key, then the setup of every other key behind the item (role and
+  /// cylinder are the transmitter's, so each takes them and is marked
+  /// configured), in the sitting's one transaction.
+  @override
+  Future<void> writeEditor(String recordId) async {
     final repo = ref.read(transmitterRepositoryProvider);
-    final Transmitter saved;
-    try {
-      saved = await saveTransmitterKey(
-        entry,
-        isNew: _existing == null,
-        repository: repo,
-      );
-      // Role and cylinder are the transmitter's, so every other key behind
-      // the item takes them too, and each is marked configured.
-      await repo.saveSetup(
-        widget.equipmentId,
-        role: _role,
-        cylinderId: _equipmentId,
-        volumeL: volumeL,
-        workingPressureBar: workingPressureBar,
-        material: _material,
-        presetName: _presetName,
-        exceptKeyId: saved.id,
-      );
-      // The dropout findings read serials through the transmitter link and
-      // are stored, read without the engine, so the item refreshes now.
-      scheduleConditionFindingsRefresh({widget.equipmentId});
-    } on TransmitterConflictException catch (e) {
-      setState(
-        () => _duplicateError = l10n.transmitters_validation_duplicate(
-          e.existing.label,
-        ),
-      );
-      return;
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${l10n.common_label_error}: $e')));
-      return;
+    final settings = ref.read(settingsProvider);
+    Transmitter? stored;
+    if (!editorCreating) {
+      // The key as stored now: what the diver left alone keeps it.
+      stored = await repo.getById(recordId);
+      if (stored == null) {
+        throw RecordSittingRefusal((l10n) => l10n.transmitters_edit_notFound);
+      }
+    } else if (editorDiverId == null) {
+      throw StateError('A new transmitter key needs an active diver');
     }
-    final tookOverKey = saved.id != entry.id;
-    // Outside the save's try: the entry is already written. An item with no
-    // serial of its own takes the key's, as an item created from a serial
-    // does (issue #3676); one it already has is never overwritten.
-    final keySerial = normalizeTransmitterSerial(serialText);
-    if (keySerial != null && _itemSerial == null) {
-      await _fillItemSerial(keySerial);
+    final entry = transmitterKeyToSave(
+      draft: _draft(),
+      start: stored == null ? null : editorStartDraft,
+      stored: stored,
+      id: recordId,
+      diverId: editorDiverId,
+      itemId: widget.equipmentId,
+      itemName: _itemName,
+      settings: settings,
+      now: DateTime.now(),
+    );
+    final write = await writeTransmitterKey(
+      entry,
+      isNew: stored == null,
+      repository: repo,
+    );
+    final saved = write.saved;
+    // A takeover saves over the unclaimed key's row: the sitting names the
+    // key it wrote.
+    if (saved.id != recordId) {
+      await relabelRecordSitting(table: editorTable, recordId: saved.id);
     }
-    if (!mounted) return;
+    await repo.saveSetup(
+      widget.equipmentId,
+      role: saved.role,
+      cylinderId: saved.equipmentId,
+      volumeL: saved.volumeL,
+      workingPressureBar: saved.workingPressureBar,
+      material: saved.material,
+      presetName: saved.presetName,
+      exceptKeyId: saved.id,
+    );
+    _written = write;
     // The first setup after a download is the moment the diver most wants
-    // the dives already imported fixed too, so offer the retroactive apply
-    // once here (spec section 5). Edits never apply automatically.
-    final offerApply =
-        _existing == null || !_existing!.isConfigured || tookOverKey;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.transmitters_saved),
-        persist: false,
-        action: !offerApply
-            ? null
-            : SnackBarAction(
-                label: l10n.transmitters_action_apply,
-                onPressed: () async {
-                  // The setup went onto every key of the item, so every
-                  // key's dives are filled, not just this one's.
-                  var tanks = 0;
-                  var dives = 0;
-                  try {
-                    for (final key in await repo.getForEquipment(
-                      widget.equipmentId,
-                    )) {
-                      final result = await repo.applyToExistingDives(key);
-                      tanks += result.tanksUpdated;
-                      dives += result.divesUpdated;
-                    }
-                  } catch (e) {
-                    // The page is gone, so the messenger is the only place
-                    // left to say the apply did not happen.
-                    messenger.showSnackBar(
-                      SnackBar(content: Text('${l10n.common_label_error}: $e')),
-                    );
-                    return;
-                  }
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.transmitters_apply_done(tanks, dives)),
-                    ),
-                  );
-                },
-              ),
+    // the dives already imported fixed too, so the item page offers the
+    // retroactive apply once (spec section 5). Edits never apply on their
+    // own.
+    _offerApply =
+        stored == null || !stored.isConfigured || write.tookOver != null;
+  }
+
+  @override
+  bool editorSaveFailed(Object error) {
+    if (error is! TransmitterConflictException) return false;
+    setState(
+      () => _duplicateError = context.l10n.transmitters_validation_duplicate(
+        error.existing.label,
       ),
     );
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go('/');
-    }
+    return true;
   }
 
-  /// Writes [serial] onto the item, which had none at load. Through the list
-  /// notifier, as the equipment editor saves, so the lists refresh. The item
-  /// is read afresh, not from the copy read at load: a sync, or the fold of a
-  /// placeholder, may have given it a serial since, which stays, and the
-  /// write must not put back fields they changed. A failure is reported and
-  /// swallowed: the key is already saved.
-  Future<void> _fillItemSerial(String serial) async {
-    try {
-      final gear = await ref
-          .read(equipmentRepositoryProvider)
-          .getEquipmentById(widget.equipmentId);
-      if (gear == null ||
-          normalizeTransmitterSerial(gear.serialNumber) != null) {
-        return;
-      }
-      await ref
-          .read(equipmentListNotifierProvider.notifier)
-          .updateEquipment(gear.copyWith(serialNumber: serial));
-    } catch (e, stackTrace) {
-      _log.warning(
-        'Could not copy the serial onto the transmitter item',
-        error: e,
-        stackTrace: stackTrace,
-      );
-    }
+  @override
+  Object? get editorSavedResult => TransmitterKeySaved(offerApply: _offerApply);
+
+  @override
+  void afterEditorSaved(ScaffoldMessengerState messenger) {
+    final written = _written;
+    if (written == null) return;
+    // Read now: the work below runs on after the page has gone.
+    final keySerial = normalizeTransmitterSerial(
+      written.saved.transmitterSerial,
+    );
+    unawaited(
+      afterTransmitterKeySaved(
+        written,
+        equipmentId: widget.equipmentId,
+        // An item with no serial of its own takes the key's, as an item
+        // created from a serial does (issue #3676); one it already has is
+        // never overwritten.
+        serialForItem: _itemSerial == null ? keySerial : null,
+        equipment: ref.read(equipmentRepositoryProvider),
+        equipmentList: ref.read(equipmentListNotifierProvider.notifier),
+      ),
+    );
   }
 
-  /// A field's number once the form has validated. Blank is "not set";
-  /// unreadable text cannot reach here.
-  static double? _validatedNumber(TextEditingController controller) =>
-      switch (readNumber(controller.text)) {
-        NumberValue(:final value) => value,
-        NumberBlank() => null,
-        NumberInvalid() => null, // unreachable: validate() ran first
-      };
+  @override
+  List<RecordEditorOperation> editorOperations(BuildContext context) => [
+    if (_existing != null)
+      RecordEditorOperation(
+        key: const ValueKey('transmitter_remove_key'),
+        icon: Icons.delete_outline,
+        label: context.l10n.transmitters_key_remove,
+        run: _removeKey,
+        destructive: true,
+      ),
+  ];
 
   String? _positive(String? text) => numberValidator(
     context,
@@ -485,26 +516,9 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     final presets = ref.watch(tankPresetsProvider);
     final computers = ref.watch(allDiveComputersProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.isEditing
-              ? l10n.transmitters_edit_title
-              : l10n.transmitters_new_title,
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/'),
-          tooltip: l10n.common_action_close,
-        ),
-        actions: [
-          AppBarTextAction(
-            label: l10n.common_action_save,
-            onPressed: _loading ? null : _save,
-          ),
-        ],
-      ),
-      body: _loading
+    return editorScaffold(
+      context,
+      body: !_loaded
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
@@ -549,7 +563,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                                 ),
                               ),
                             ],
-                            onChanged: (id) => setState(() => _computerId = id),
+                            onChanged: (id) => _change(() => _computerId = id),
                           ),
                         ),
                       ),
@@ -583,13 +597,13 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                           child: Text(role.localizedName(l10n)),
                         ),
                     ],
-                    onChanged: (role) => setState(() {
+                    onChanged: (role) => _change(() {
                       _role = role ?? _role;
                       _roleTouched = true;
                     }),
                   ),
                   const SizedBox(height: 16),
-                  _FieldNote(l10n.transmitters_field_gear_subtitle),
+                  TransmitterFieldNote(l10n.transmitters_field_gear_subtitle),
                   ListTile(
                     key: const Key('transmitter_gear'),
                     contentPadding: EdgeInsets.zero,
@@ -601,7 +615,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                         ? const Icon(Icons.chevron_right)
                         : IconButton(
                             icon: const Icon(Icons.clear),
-                            onPressed: () => setState(() {
+                            onPressed: () => _change(() {
                               _equipmentId = null;
                               _equipmentName = null;
                               _missingSizeHint = false;
@@ -654,7 +668,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                           if (p != null) {
                             _applyPreset(p);
                           } else {
-                            setState(() => _presetName = null);
+                            _change(() => _presetName = null);
                           }
                         },
                       );
@@ -679,7 +693,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                             decimal: true,
                           ),
                           validator: _positive,
-                          onChanged: (_) => setState(() {
+                          onChanged: (_) => _change(() {
                             _presetName = null;
                             _missingSizeHint = false;
                           }),
@@ -696,7 +710,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                           ),
                           keyboardType: TextInputType.number,
                           validator: _positive,
-                          onChanged: (_) => setState(() {
+                          onChanged: (_) => _change(() {
                             _presetName = null;
                             _missingSizeHint = false;
                           }),
@@ -705,7 +719,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                     ],
                   ),
                   if (_missingSizeHint)
-                    _FieldNote(
+                    TransmitterFieldNote(
                       l10n.transmitters_hint_missingSize,
                       key: const Key('transmitter_missing_size_hint'),
                       padding: const EdgeInsets.only(top: 4, bottom: 16),
@@ -729,23 +743,8 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                           child: Text(m.localizedName(l10n)),
                         ),
                     ],
-                    onChanged: (m) => setState(() => _material = m),
+                    onChanged: (m) => _change(() => _material = m),
                   ),
-                  if (_existing != null) ...[
-                    const SizedBox(height: 24),
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: TextButton.icon(
-                        key: const Key('transmitter_remove_key'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.error,
-                        ),
-                        onPressed: _confirmRemoveKey,
-                        icon: const Icon(Icons.delete_outline),
-                        label: Text(l10n.transmitters_key_remove),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -754,55 +753,25 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
 
   /// Removes the key being edited, alone (issue #3676): a wrong channel or
   /// a mistyped serial goes without the item, its other keys or its gear
-  /// history. Deleting the whole transmitter is the item's delete.
-  Future<void> _confirmRemoveKey() async {
+  /// history. Deleting the whole transmitter is the item's delete. Answers
+  /// whether it removed the key; the page then leaves.
+  Future<bool> _removeKey() async {
     final existing = _existing;
-    if (existing == null) return;
+    if (existing == null) return false;
     final confirmed = await confirmRemoveTransmitterKey(context);
-    if (!confirmed || !mounted) return;
+    if (!confirmed || !mounted) return false;
     try {
       await ref.read(transmitterRepositoryProvider).delete(existing.id);
       // The dropout findings read the item's serials through its keys.
       scheduleConditionFindingsRefresh({widget.equipmentId});
+      return true;
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${context.l10n.common_label_error}: $e')),
-      );
-      return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${context.l10n.common_label_error}: $e')),
+        );
+      }
+      return false;
     }
-    if (!mounted) return;
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go('/');
-    }
-  }
-}
-
-/// Muted explanatory line beside a field: the shared FormCaption style,
-/// without its overline indent, since these sit flush with the fields.
-class _FieldNote extends StatelessWidget {
-  const _FieldNote(
-    this.text, {
-    super.key,
-    this.padding = const EdgeInsets.only(bottom: 2),
-  });
-
-  final String text;
-  final EdgeInsets padding;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: padding,
-      child: Text(
-        text,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
   }
 }

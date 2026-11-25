@@ -219,15 +219,17 @@ class TripRepository {
       await _db.transaction(() async {
         // Checked inside the write's transaction, which Drift runs one at a
         // time: two saves racing to link a pair of trips each see the
-        // other's link and cannot both write one (issue #3658).
+        // other's link and cannot both write one (issue #3658). A parent
+        // the save leaves as stored is kept unchecked (issue #4941).
+        final current = await (_db.select(
+          _db.trips,
+        )..where((t) => t.id.equals(trip.id))).getSingleOrNull();
         final parentTripId = await writableParentId(
           _db,
           tripId: trip.id,
           parentId: trip.parentTripId,
+          storedParentId: current?.parentTripId,
         );
-        final current = await (_db.select(
-          _db.trips,
-        )..where((t) => t.id.equals(trip.id))).getSingleOrNull();
         final parentChanged =
             current != null && current.parentTripId != parentTripId;
         await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
