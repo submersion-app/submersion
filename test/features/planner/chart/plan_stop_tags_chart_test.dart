@@ -9,8 +9,11 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_stop_list.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/planner_results.dart';
@@ -117,6 +120,83 @@ void main() {
       isNot(orderedEquals(ghost.stopLabels.map(stop))),
     );
     expect(painter.stopTags.every((t) => t.change == null && !t.isNew), isTrue);
+
+    // The phone readouts' TTS, Deco and CNS still describe the loop plan's
+    // preview, so the stops listed under them are the preview's too, not
+    // the bailout picture's.
+    expect(
+      container.read(planReadoutStopTagsProvider).map((t) => stop(t.marker)),
+      orderedEquals(ghost.stopLabels.map(stop)),
+    );
+  });
+
+  testWidgets('in the Bailout view the phone readouts list the plan\'s stops', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...plannerResultsInline(),
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        child: SizedBox(
+          width: 400,
+          height: 400,
+          child: Stack(
+            children: [
+              const Positioned.fill(child: SizedBox()),
+              PlanChartReadouts(onIssuesTap: () {}),
+            ],
+          ),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanChartReadouts)),
+    );
+    container.read(divePlanNotifierProvider.notifier)
+      ..addSimplePlan(maxDepth: 30, bottomTimeMinutes: 25)
+      ..updateMode(domain.PlanMode.ccr)
+      ..addTank(
+        const DiveTank(
+          id: 'bo',
+          volume: 11.1,
+          startPressure: 207,
+          gasMix: GasMix(o2: 32),
+          role: TankRole.bailout,
+        ),
+      );
+    await tester.pumpAndSettle();
+    // The chart beside the readouts keeps the bailout picture computed.
+    final chart = container.listen(planCanvasSeriesProvider, (_, _) {});
+    addTearDown(chart.close);
+    container.read(chartDisplayModeProvider.notifier).state =
+        ChartDisplayMode.bailout;
+    await tester.pumpAndSettle();
+    expect(container.read(planChartBailoutProvider).picture, isNotNull);
+
+    (double, double, int) stop(CanvasMarker m) =>
+        (m.timeSeconds, m.depth, m.durationSeconds);
+    final listed = tester
+        .widget<PlanStopList>(find.byType(PlanStopList))
+        .tags
+        .map((t) => stop(t.marker));
+    // TTS, Deco and CNS above the list describe the loop plan, so the list
+    // does too, not the bailout ascent the chart draws.
+    expect(
+      listed,
+      orderedEquals(
+        container.read(planLiveCanvasSeriesProvider).stopLabels.map(stop),
+      ),
+    );
+    expect(
+      listed,
+      isNot(
+        orderedEquals(
+          container.read(planCanvasSeriesProvider).stopLabels.map(stop),
+        ),
+      ),
+    );
   });
 
   testWidgets('a previewed contingency moves the stop tags onto its profile', (

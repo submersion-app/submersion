@@ -30,6 +30,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_stop_list.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
@@ -102,6 +103,32 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(BackButton), findsNothing);
+  });
+
+  testWidgets('a phone chart too short for the stop list tags its stops', (
+    tester,
+  ) async {
+    // 30% of a short body clamps the chart to its 160 dp floor, where a deco
+    // plan's issues pill leaves the readouts no room for a stop row.
+    await setSize(tester, const Size(420, 560));
+    await tester.pumpWidget(harness());
+    ProviderScope.containerOf(tester.element(find.byType(PlanCanvasPage)))
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 50, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PlanStopList), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(PlanStopList)).height,
+      0,
+      reason: 'no stop row fits',
+    );
+    expect(
+      tester
+          .widget<PlanProfileChart>(find.byType(PlanProfileChart))
+          .showStopTags,
+      isTrue,
+    );
   });
 
   testWidgets('phone layout shows chart, readouts, tab deck, no chip rows', (

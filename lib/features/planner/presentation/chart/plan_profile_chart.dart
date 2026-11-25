@@ -19,6 +19,7 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_palett
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_top_readouts.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_issue_marker_layer.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_plot_clipper.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_worst_case_marker_layer.dart';
@@ -689,7 +690,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                         // While the axes are frozen the plan can outgrow
                         // them; keep it inside the plot until they refit.
                         child: ClipRect(
-                          clipper: _PlotClipper(geometry.plotRect),
+                          clipper: PlanPlotClipper(geometry.plotRect),
                           clipBehavior: frozen == null
                               ? Clip.none
                               : Clip.hardEdge,
@@ -738,7 +739,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                 // handle on the plot edge (a surface
                                 // waypoint) whole.
                                 child: ClipRect(
-                                  clipper: _PlotClipper(
+                                  clipper: PlanPlotClipper(
                                     geometry.plotRect.inflate(8),
                                   ),
                                   clipBehavior: frozen == null
@@ -791,16 +792,4 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       },
     );
   }
-}
-
-class _PlotClipper extends CustomClipper<Rect> {
-  const _PlotClipper(this.plot);
-
-  final Rect plot;
-
-  @override
-  Rect getClip(Size size) => plot;
-
-  @override
-  bool shouldReclip(_PlotClipper oldClipper) => oldClipper.plot != plot;
 }

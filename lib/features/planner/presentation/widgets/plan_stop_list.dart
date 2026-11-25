@@ -1,9 +1,11 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/planner/presentation/chart/plan_chart_palette.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
+import 'package:submersion/features/planner/presentation/widgets/overscroll_handoff.dart';
 
 /// The plan's stops as a list, for the phone chart's readouts where tags on
 /// the profile would cover each other (#4981). The shallowest stop is on
@@ -16,6 +18,8 @@ class PlanStopList extends StatefulWidget {
     required this.tags,
     required this.formatDepth,
     this.bottomReserve = 0,
+    this.topGap = 0,
+    this.onFitChanged,
   });
 
   /// In time order, deepest first, as [planStopTags] gives them.
@@ -27,6 +31,15 @@ class PlanStopList extends StatefulWidget {
   /// shows nothing when not even one row fits.
   final double bottomReserve;
 
+  /// Space above the list's divider. Part of the list, so it goes when the
+  /// list does.
+  final double topGap;
+
+  /// Told, after the frame, whether at least one row fits, each time that
+  /// changes, so the chart can tag its stops itself when the list cannot
+  /// show them.
+  final ValueChanged<bool>? onFitChanged;
+
   static const visibleRows = 6;
 
   @override
@@ -34,11 +47,25 @@ class PlanStopList extends StatefulWidget {
 }
 
 class _PlanStopListState extends State<PlanStopList> {
-  final _controller = ScrollController();
+  // Not kept in page storage: a list shown again opens at the shallow end.
+  final _controller = ScrollController(keepScrollOffset: false);
+  final _handoff = OverscrollHandoff();
   ScrollMetrics? _metrics;
+  bool? _reportedFit;
+
+  @override
+  void didUpdateWidget(PlanStopList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A new stop set (an edit, a preview toggled) opens at the shallow end
+    // as the first one did, not at the offset the old set was scrolled to.
+    if (!listEquals(oldWidget.tags, widget.tags) && _controller.hasClients) {
+      _controller.jumpTo(0);
+    }
+  }
 
   @override
   void dispose() {
+    _handoff.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -57,15 +84,16 @@ class _PlanStopListState extends State<PlanStopList> {
     }
   }
 
-  /// Passes a swipe past either end of the list on to the page, so the
-  /// list never traps the finger.
-  bool _forwardOverscroll(OverscrollNotification n) {
-    if (n.dragDetails == null || n.depth != 0) return false;
-    Scrollable.maybeOf(
-      context,
-      axis: Axis.vertical,
-    )?.position.pointerScroll(n.overscroll);
-    return false;
+  /// Reports [fits] once the frame is laid out: the listener rebuilds
+  /// widgets outside this one.
+  void _reportFit(bool fits) {
+    if (fits == _reportedFit) return;
+    _reportedFit = fits;
+    final onFitChanged = widget.onFitChanged;
+    if (onFitChanged == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _reportedFit == fits) onFitChanged(fits);
+    });
   }
 
   @override
@@ -82,7 +110,9 @@ class _PlanStopListState extends State<PlanStopList> {
     );
     final hasChanges = tags.any((t) => t.change != null);
 
-    Widget cell(Widget child, Alignment alignment) => SizedBox(
+    // Start and end, not left and right: the table runs right to left in
+    // Arabic and Hebrew, and the scrollbar moves to the left with it.
+    Widget cell(Widget child, AlignmentGeometry alignment) => SizedBox(
       height: rowHeight,
       child: Align(alignment: alignment, child: child),
     );
@@ -96,24 +126,24 @@ class _PlanStopListState extends State<PlanStopList> {
         children: [
           cell(
             Text(widget.formatDepth(tag.marker.depth), style: rowStyle),
-            Alignment.centerRight,
+            AlignmentDirectional.centerEnd,
           ),
           cell(
             Padding(
-              padding: const EdgeInsets.only(left: 6),
+              padding: const EdgeInsetsDirectional.only(start: 6),
               child: Text(
-                "${tag.marker.durationSeconds ~/ 60}'",
+                planStopDurationText(tag.marker.durationSeconds),
                 style: rowStyle,
               ),
             ),
-            Alignment.centerRight,
+            AlignmentDirectional.centerEnd,
           ),
           if (hasChanges)
             cell(
               change == null
                   ? const SizedBox.shrink()
                   : Padding(
-                      padding: const EdgeInsets.only(left: 5),
+                      padding: const EdgeInsetsDirectional.only(start: 5),
                       child: Text(
                         change,
                         style: style?.copyWith(
@@ -121,7 +151,7 @@ class _PlanStopListState extends State<PlanStopList> {
                         ),
                       ),
                     ),
-              Alignment.centerLeft,
+              AlignmentDirectional.centerStart,
             ),
         ],
       );
@@ -129,7 +159,7 @@ class _PlanStopListState extends State<PlanStopList> {
 
     final table = Padding(
       // Room for the scrollbar.
-      padding: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsetsDirectional.only(end: 6),
       child: Table(
         defaultColumnWidth: const IntrinsicColumnWidth(),
         children: [for (final tag in tags.reversed) row(tag)],
@@ -141,12 +171,17 @@ class _PlanStopListState extends State<PlanStopList> {
     // The divider above the rows and the gap under it.
     const topInset = 4.0;
     return LayoutBuilder(
-      builder: (context, constraints) {
+      builder: (_, constraints) {
         final viewport = math.min(
-          constraints.maxHeight - topInset - widget.bottomReserve,
+          constraints.maxHeight -
+              widget.topGap -
+              topInset -
+              widget.bottomReserve,
           rowHeight * PlanStopList.visibleRows,
         );
-        if (viewport < rowHeight) return const SizedBox.shrink();
+        final fits = viewport >= rowHeight;
+        _reportFit(fits);
+        if (!fits) return const SizedBox.shrink();
         // Known from the row count, so the first frame already gets
         // the pointers and the fade right.
         final scrollable = contentHeight > viewport + 0.5;
@@ -154,29 +189,32 @@ class _PlanStopListState extends State<PlanStopList> {
         final hiddenBelow = scrollable && !_atEnd(_metrics);
         // A list that fits leaves the chart under it to the chart: its
         // waypoints, scrub and double-tap.
-        return IgnorePointer(
-          ignoring: !scrollable,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: theme.colorScheme.outlineVariant),
+        return Padding(
+          padding: EdgeInsets.only(top: widget.topGap),
+          child: IgnorePointer(
+            ignoring: !scrollable,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
               ),
-            ),
-            child: Container(
-              height: math.min(viewport, contentHeight) + topInset,
-              padding: const EdgeInsets.only(top: topInset),
-              child: NotificationListener<ScrollMetricsNotification>(
-                onNotification: (n) {
-                  _track(n.metrics);
-                  return false;
-                },
-                child: NotificationListener<ScrollUpdateNotification>(
+              child: Container(
+                height: math.min(viewport, contentHeight) + topInset,
+                padding: const EdgeInsets.only(top: topInset),
+                child: NotificationListener<ScrollNotification>(
                   onNotification: (n) {
-                    _track(n.metrics);
+                    if (n is ScrollUpdateNotification) _track(n.metrics);
+                    // A swipe past either end goes on to the page, so the
+                    // list never traps the finger.
+                    _handoff.handle(n, context);
                     return false;
                   },
-                  child: NotificationListener<OverscrollNotification>(
-                    onNotification: _forwardOverscroll,
+                  child: NotificationListener<ScrollMetricsNotification>(
+                    onNotification: (n) {
+                      _track(n.metrics);
+                      return false;
+                    },
                     child: RawScrollbar(
                       controller: _controller,
                       thumbVisibility: scrollable,

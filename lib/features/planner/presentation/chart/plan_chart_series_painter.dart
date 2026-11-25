@@ -103,10 +103,12 @@ class PlanChartSeriesPainter extends CustomPainter {
           labelStyle.copyWith(color: palette.meanDepthLine),
           textDirection,
         );
-        label.paint(
-          canvas,
-          Offset(plot.right - label.width - 4, y - label.height - 2),
-        );
+        label
+          ..paint(
+            canvas,
+            Offset(plot.right - label.width - 4, y - label.height - 2),
+          )
+          ..dispose();
       }
 
       // The profile line.
@@ -158,7 +160,9 @@ class PlanChartSeriesPainter extends CustomPainter {
       );
       final pill = RRect.fromRectAndRadius(pills[i], const Radius.circular(8));
       canvas.drawRRect(pill, Paint()..color = palette.gasFlagBackground);
-      label.paint(canvas, Offset(pill.left + 6, pill.top + 3));
+      label
+        ..paint(canvas, Offset(pill.left + 6, pill.top + 3))
+        ..dispose();
     }
 
     // Stop tags with collision avoidance. A change against the base plan
@@ -236,6 +240,9 @@ class PlanChartSeriesPainter extends CustomPainter {
         );
         pill(pills.main, main, warn: stopTags[i].isNew);
         if (change != null) pill(pills.change!, change, warn: true);
+        // Each holds a native paragraph; let it go now rather than at GC.
+        main.dispose();
+        change?.dispose();
       }
     }
   }

@@ -46,7 +46,7 @@ void main() {
     final bottom = tester.getTopLeft(find.text('9m')).dy;
     expect(top, lessThan(middle));
     expect(middle, lessThan(bottom));
-    expect(find.text("3'"), findsOneWidget);
+    expect(find.text('3′'), findsOneWidget);
   });
 
   testWidgets('a changed stop shows its change, a new one the warning colour', (
@@ -296,5 +296,196 @@ void main() {
     expect(await heightWith(100), 100 - 48);
     // Less than one row left: nothing rather than a sliver.
     expect(await heightWith(60), 0);
+  });
+
+  Future<void> pumpIn(
+    WidgetTester tester,
+    TextDirection direction,
+    List<PlanStopTag> tags,
+  ) => tester.pumpWidget(
+    MaterialApp(
+      home: Directionality(
+        textDirection: direction,
+        child: Scaffold(
+          body: Center(
+            child: PlanStopList(tags: tags, formatDepth: _metres),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  testWidgets('depth and minutes keep their gap left to right', (tester) async {
+    await pumpIn(tester, TextDirection.ltr, _tags([(21, 3)]));
+
+    expect(
+      tester.getTopLeft(find.text('3′')).dx -
+          tester.getTopRight(find.text('21m')).dx,
+      greaterThanOrEqualTo(6),
+    );
+  });
+
+  testWidgets('right to left, the columns keep their gaps and the scrollbar '
+      'its room on the left', (tester) async {
+    final changed = [
+      const PlanStopTag(
+        marker: CanvasMarker(2000, 21, '', durationSeconds: 180),
+        label: '',
+        change: '+2',
+      ),
+      for (final tag in _tags([
+        for (var d = 18; d >= 3; d -= 3) (d.toDouble(), 1),
+      ]))
+        tag,
+    ];
+    await pumpIn(tester, TextDirection.rtl, changed);
+
+    // Depth on the right, then minutes, then the change, each apart.
+    expect(
+      tester.getTopLeft(find.text('21m')).dx -
+          tester.getTopRight(find.text('3′')).dx,
+      greaterThanOrEqualTo(6),
+    );
+    expect(
+      tester.getTopLeft(find.text('3′')).dx -
+          tester.getTopRight(find.text('+2')).dx,
+      greaterThanOrEqualTo(5),
+    );
+    // The scrollbar draws on the left, so the room for it is there.
+    final list = tester.getRect(find.byType(PlanStopList));
+    final table = tester.getRect(find.byType(Table));
+    expect(table.left - list.left, 6);
+    expect(table.right, list.right);
+  });
+
+  testWidgets('the gap above the list goes with it', (tester) async {
+    final stops = _tags([for (var d = 42; d >= 3; d -= 3) (d.toDouble(), 1)]);
+    Future<double> heightWith(double maxHeight, {double gap = 0}) async {
+      await tester.pumpWidget(
+        _host(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            child: PlanStopList(tags: stops, formatDepth: _metres, topGap: gap),
+          ),
+        ),
+      );
+      return tester.getSize(find.byType(PlanStopList)).height;
+    }
+
+    expect(await heightWith(200, gap: 3), await heightWith(200) + 3);
+    // Not even a row fits: no list, and no gap left behind.
+    expect(await heightWith(24, gap: 3), 0);
+  });
+
+  testWidgets('it says whether a row fits, after the frame', (tester) async {
+    final reports = <bool>[];
+    final stops = _tags([for (var d = 42; d >= 3; d -= 3) (d.toDouble(), 1)]);
+    Future<void> pumpAt(double maxHeight) async {
+      await tester.pumpWidget(
+        _host(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            child: PlanStopList(
+              tags: stops,
+              formatDepth: _metres,
+              bottomReserve: 48,
+              onFitChanged: reports.add,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    await pumpAt(100);
+    await pumpAt(120);
+    await pumpAt(60);
+    await pumpAt(100);
+
+    // Only the changes: room, none, room again.
+    expect(reports, [true, false, true]);
+  });
+
+  testWidgets('a flick past the end carries the page on after the finger '
+      'lifts', (tester) async {
+    final page = ScrollController();
+    addTearDown(page.dispose);
+    final stops = [for (var d = 42; d >= 3; d -= 3) (d.toDouble(), 1)];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            controller: page,
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: PlanStopList(tags: _tags(stops), formatDepth: _metres),
+              ),
+              const SizedBox(height: 4000),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.fling(find.byType(PlanStopList), const Offset(0, -300), 3000);
+    await tester.pump();
+    final atRelease = page.offset;
+    expect(atRelease, greaterThan(0));
+    await tester.pumpAndSettle();
+    expect(page.offset, greaterThan(atRelease));
+  });
+
+  testWidgets('a page that takes no drags is not moved', (tester) async {
+    final page = ScrollController();
+    addTearDown(page.dispose);
+    final stops = [for (var d = 42; d >= 3; d -= 3) (d.toDouble(), 1)];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            controller: page,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: PlanStopList(tags: _tags(stops), formatDepth: _metres),
+              ),
+              const SizedBox(height: 2000),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.drag(find.byType(PlanStopList), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    expect(page.offset, 0);
+  });
+
+  testWidgets('a new stop set opens at the shallow end, the same one keeps '
+      'its place', (tester) async {
+    final deep = _tags([for (var d = 42; d >= 3; d -= 3) (d.toDouble(), 1)]);
+    final deeper = _tags([for (var d = 45; d >= 3; d -= 3) (d.toDouble(), 2)]);
+    Future<void> show(List<PlanStopTag> tags) => tester.pumpWidget(
+      _host(PlanStopList(tags: tags, formatDepth: _metres)),
+    );
+    ScrollPosition position() =>
+        tester.state<ScrollableState>(find.byType(Scrollable)).position;
+
+    await show(deep);
+    await tester.drag(find.byType(PlanStopList), const Offset(0, -60));
+    await tester.pumpAndSettle();
+    final scrolled = position().pixels;
+    expect(scrolled, greaterThan(0));
+
+    // The same stops rebuilt (an unrelated rebuild of the readouts).
+    await show([...deep]);
+    expect(position().pixels, scrolled);
+
+    // A preview toggled or the plan edited.
+    await show(deeper);
+    await tester.pumpAndSettle();
+    expect(position().pixels, 0);
   });
 }
