@@ -20114,6 +20114,95 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'オリジナルを再生';
+
+  @override
+  String get media_viewer_playMotion => 'モーションを再生';
+
+  @override
+  String get media_viewer_motionUnplayable => 'このデバイスではこの写真のモーションを再生できません';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の写真の購読を更新できませんでした（「$name」など）：$error',
+      one: '写真の購読「$name」を更新できませんでした：$error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => '開く';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count分',
+      one: '$count分',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count時間',
+      one: '$count時間',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count日',
+      one: '$count日',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => '共有パスワード';
+
+  @override
+  String get media_sharePassword_needed => 'このSynology Photosの共有にはパスワードが必要です。';
+
+  @override
+  String get media_sharePassword_rejected =>
+      '共有がパスワードを受け付けませんでした。もう一度入力してください。';
+
+  @override
+  String get media_sharePassword_field => 'パスワード';
+
+  @override
+  String get media_sharePassword_save => '保存して取得';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'このデバイスのキーチェーンに保存され、同期されることはありません。';
+
+  @override
+  String get media_sharePassword_formSave => 'パスワードを保存して取得';
+
+  @override
+  String get media_pollInterval_checkEvery => '確認の間隔';
+
+  @override
+  String get media_sharePassword_rejectedStatus => '共有が保存済みのパスワードを受け付けませんでした。';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => '動画を再生または一時停止';
 
   @override
@@ -28049,6 +28138,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get dataHealth_media_transfersPaused => '写真の転送を一時停止中';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return '写真の購読$nameにはパスワードが必要です';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return '写真の購読$nameを更新できませんでした';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -50120,6 +50219,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing => 'このデバイスにパスワードがありません';
+
+  @override
   String get media_credentials_deleteBody =>
       '保存された認証情報を削除します。このホスト経由でリンクされた項目は、再追加するまで「サインインが必要です」と表示されます。';
 
@@ -54416,6 +54518,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => '現在は確認できません';
+
+  @override
+  String get media_info_checkNeedsPassword => 'パスワードがないか、受け付けられませんでした';
 
   @override
   String get media_info_backupQueued => 'アップロード待ちに追加しました';
@@ -60131,6 +60236,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_item_signInAction => 'サインイン';
+
+  @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return '写真アルバム$nameには、このデバイスでパスワードが必要です。';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => 'パスワードを入力';
 
   @override
   String get settings_setUpDevice_item_reconnectAction => '再接続';
