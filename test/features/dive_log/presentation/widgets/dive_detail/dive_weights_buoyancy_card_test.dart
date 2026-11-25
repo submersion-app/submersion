@@ -179,4 +179,53 @@ void main() {
     expect(find.byTooltip('What if?'), findsOneWidget);
     expect(tester.getSize(header).height, locked);
   });
+
+  testWidgets('many weights with long names fit a phone and total them', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final many = weighted.copyWith(
+      weights: [
+        for (var i = 0; i < 10; i++)
+          DiveWeight(
+            id: 'm$i',
+            diveId: 'd1',
+            weightType: WeightType.integrated,
+            amountKg: 1.5,
+            label: 'Left rear pocket of the travel harness number $i',
+          ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          buoyancyTwinProvider(
+            'd1',
+          ).overrideWith((ref) async => buoyancyOutcome(leadKg: 15)),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: DiveWeightsBuoyancyCard(
+                dive: many,
+                stored: many,
+                showWeights: true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('1.5 kg'), findsNWidgets(10));
+    expect(find.text('15.0 kg'), findsWidgets);
+    expect(find.text('Total:'), findsOneWidget);
+  });
 }
