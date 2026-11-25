@@ -24,11 +24,24 @@ class SynologyShareSessions {
     required http.Client client,
     DateTime Function()? now,
     this.validateEvery = const Duration(minutes: 2),
+    this.requestTimeout = kSynologyRequestTimeout,
+    void Function()? onSessionChanged,
   }) : _client = client,
-       _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now,
+       _onSessionChanged = onSessionChanged;
 
   final http.Client _client;
   final DateTime Function() _now;
+
+  /// How long a login or a validation waits for the share. A NAS that
+  /// accepts the connection and never answers would otherwise hold the one
+  /// login every image of the share waits on.
+  final Duration requestTimeout;
+
+  /// Called when a share's session is replaced by a new one. The old
+  /// session is dead from then on (a login ends the previous one), so
+  /// headers already handed out must be asked for again.
+  final void Function()? _onSessionChanged;
 
   /// How often [headersFor] checks that its session is still accepted.
   /// Image requests cannot see Synology's JSON error (the image widget only
@@ -40,6 +53,10 @@ class SynologyShareSessions {
   final Map<String, _Session> _sessions = {};
   final Map<String, Future<_Session>> _logins = {};
   final Map<String, Future<void>> _probes = {};
+
+  /// The last session id opened for each share, kept after [invalidate]
+  /// drops the session, so the login replacing it is known as a renewal.
+  final Map<String, String> _lastSids = {};
 
   /// The last password each share refused, and when. See [sessionFor].
   final Map<String, ({String password, DateTime at})> _refused = {};
@@ -120,16 +137,18 @@ class SynologyShareSessions {
   Future<_Session> _doLogin(SynologyShareLink link, String password) async {
     final http.Response response;
     try {
-      response = await _client.post(
-        link.apiUri,
-        body: {
-          'api': 'SYNO.Core.Sharing.Login',
-          'method': 'login',
-          'version': '1',
-          'sharing_id': link.code,
-          'password': password,
-        },
-      );
+      response = await _client
+          .post(
+            link.apiUri,
+            body: {
+              'api': 'SYNO.Core.Sharing.Login',
+              'method': 'login',
+              'version': '1',
+              'sharing_id': link.code,
+              'password': password,
+            },
+          )
+          .timeout(requestTimeout);
     } catch (e) {
       throw SynologyShareException(
         SynologyShareErrorKind.unreachable,
@@ -170,6 +189,11 @@ class SynologyShareSessions {
     final session = _Session(sid: sid, password: password, validatedAt: _now());
     _sessions[link.key] = session;
     _refused.remove(link.key);
+    // A first session replaces nothing; any later one (after a drop, or a
+    // password change) makes the headers built on the earlier one stale.
+    final earlier = _lastSids[link.key];
+    _lastSids[link.key] = sid;
+    if (earlier != null && earlier != sid) _onSessionChanged?.call();
     return session;
   }
 
@@ -190,18 +214,20 @@ class SynologyShareSessions {
 
   Future<void> _doProbe(SynologyShareLink link, _Session session) async {
     try {
-      final response = await _client.post(
-        link.apiUri,
-        headers: sessionHeaders(link, session.sid),
-        body: {
-          'api': 'SYNO.Foto.Browse.Item',
-          'method': 'list',
-          'version': '1',
-          'offset': '0',
-          'limit': '1',
-          'passphrase': link.code,
-        },
-      );
+      final response = await _client
+          .post(
+            link.apiUri,
+            headers: sessionHeaders(link, session.sid),
+            body: {
+              'api': 'SYNO.Foto.Browse.Item',
+              'method': 'list',
+              'version': '1',
+              'offset': '0',
+              'limit': '1',
+              'passphrase': link.code,
+            },
+          )
+          .timeout(requestTimeout);
       decodeSynologyEnvelope(response);
     } on SynologyShareException catch (e) {
       if (e.kind == SynologyShareErrorKind.noSession) {

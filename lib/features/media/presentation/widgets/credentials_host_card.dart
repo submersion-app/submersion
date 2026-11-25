@@ -26,7 +26,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -177,12 +179,24 @@ class _HostTile extends ConsumerWidget {
   Future<void> _testCredentials(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final resolver = ref.read(networkUrlResolverProvider);
+    final credentials = ref.read(networkCredentialsServiceProvider);
     try {
-      final result = await resolver.fetch(
-        Uri.parse('https://${host.hostname}/'),
-      );
+      final bool ok;
+      final share = host.authType == kSynologyShareAuthType
+          ? SynologyShareLink.tryParseShareUrl('https://${host.hostname}')
+          : null;
+      if (share != null) {
+        // A share's web page loads whether or not the password is right;
+        // only a session opened with it says the password works.
+        final headers = await credentials.headersFor(share.shareUri);
+        ok = headers != null && headers.isNotEmpty;
+      } else {
+        final result = await resolver.fetch(
+          Uri.parse('https://${host.hostname}/'),
+        );
+        ok = result is NetworkBytesOk;
+      }
       if (!context.mounted) return;
-      final ok = result is NetworkBytesOk;
       messenger.showSnackBar(
         SnackBar(
           content: Text(

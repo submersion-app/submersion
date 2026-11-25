@@ -546,7 +546,8 @@ class _SubscribeRow extends StatelessWidget {
 }
 
 /// Asks for a Synology Photos share's password when fetching its link was
-/// refused, saves it for the NAS host and fetches again.
+/// refused, saves it for this share (each share has its own) and fetches
+/// again.
 class _SynologyPasswordForm extends ConsumerStatefulWidget {
   const _SynologyPasswordForm({
     required this.url,
@@ -578,6 +579,8 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
   Future<void> _save() async {
     final password = _password.text;
     if (password.isEmpty || _saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     setState(() => _saving = true);
     try {
       await ref
@@ -593,6 +596,12 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
       // The Saved hosts list reads the store once; show the new row.
       ref.invalidate(savedHostsProvider);
       await ref.read(manifestTabProvider.notifier).fetch(widget.url);
+    } catch (e) {
+      // A keychain that refuses the write: say so, or the button simply
+      // comes back and the share still asks for its password.
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.media_credentials_saveError('$e'))),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }

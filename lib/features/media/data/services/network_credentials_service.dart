@@ -137,9 +137,11 @@ class NetworkCredentialsService {
   /// credentials) and returns `null` rather than letting the exception
   /// propagate into network fetches and break URL/manifest imports.
   ///
-  /// A host holding a Synology share password answers with the share's
-  /// session headers, and only for that share's URLs: see
-  /// [_synologyHeaders].
+  /// A Synology share URL answers with the share's session headers: see
+  /// [_synologyHeaders]. A refused password yields `null`, but a share that
+  /// cannot be reached or answers unexpectedly throws
+  /// [SynologyShareException], so a caller can tell "offline" from "no
+  /// password" and must catch it.
   Future<Map<String, String>?> headersFor(Uri uri) async {
     final share = SynologyShareLink.tryParseAny(uri);
     if (share != null) {

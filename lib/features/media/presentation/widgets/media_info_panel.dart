@@ -24,6 +24,7 @@ import 'package:submersion/features/media/presentation/providers/media_provenanc
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_tags_section.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
@@ -540,8 +541,13 @@ class _CheckNowButtonState extends ConsumerState<_CheckNowButton> {
       // A shared album's photo that cannot be checked for want of the
       // album's password: ask for it, save it, poll the album, check again.
       // Once only, so a refused password ends in the message, not a loop.
+      // Other hosts that refuse the saved sign-in have no such flow.
       final subscriptionId = widget.item.subscriptionId;
-      if (result == VerifyResult.unauthenticated && subscriptionId != null) {
+      final url = Uri.tryParse(widget.item.url ?? '');
+      if (result == VerifyResult.unauthenticated &&
+          subscriptionId != null &&
+          url != null &&
+          SynologyShareLink.tryParseApiUri(url) != null) {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.media_info_checkNeedsPassword)),
         );

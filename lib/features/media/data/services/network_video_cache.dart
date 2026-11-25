@@ -145,6 +145,7 @@ class NetworkVideoCache {
     if (await target.exists() && await target.length() > 0) {
       return target.path;
     }
+    final part = File('${target.path}.part');
     try {
       final headers = await _headersFor(url) ?? const <String, String>{};
       final response = await _client.send(
@@ -169,7 +170,11 @@ class NetworkVideoCache {
         return null;
       }
       await dir.create(recursive: true);
-      await target.writeAsBytes(clip, flush: true);
+      // Written beside its name and moved in, like a downloaded video: a
+      // write cut short must not leave a truncated clip that the check above
+      // would serve from then on.
+      await part.writeAsBytes(clip, flush: true);
+      await part.rename(target.path);
       await _evict(dir, keep: target.path);
       return target.path;
     } catch (e, st) {
@@ -177,6 +182,9 @@ class NetworkVideoCache {
         'Motion photo download failed for ${url.host}: $e',
         stackTrace: st,
       );
+      try {
+        if (await part.exists()) await part.delete();
+      } catch (_) {}
       return null;
     }
   }

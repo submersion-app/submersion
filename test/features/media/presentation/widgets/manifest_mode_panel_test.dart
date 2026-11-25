@@ -427,10 +427,59 @@ void main() {
       expect(creds.saved, ['nas.example.com:5001/mo/sharing/code1']);
       expect(creds.listCalls, 2);
     });
+
+    testWidgets('a password the keychain refuses is reported', (tester) async {
+      const stub = _StubFetcher();
+      final creds = _FakeCredentials(saveError: StateError('keychain locked'));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            manifestFetchServiceProvider.overrideWithValue(stub),
+            networkCredentialsServiceProvider.overrideWithValue(creds),
+            manifestTabProvider.overrideWith(
+              (ref) => _SeededManifestTabNotifier(
+                const ManifestTabError(
+                  url: 'https://nas.example.com:5001/mo/sharing/code1',
+                  message: 'needs its password',
+                  unauthorized: true,
+                ),
+                fetchService: stub,
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: ManifestModePanel()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('synologySharePassword')),
+        'pw',
+      );
+      await tester.tap(find.byKey(const Key('synologySharePasswordSave')));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Save failed'), findsOneWidget);
+      expect(find.textContaining('keychain locked'), findsOneWidget);
+      // The form is usable again.
+      final save = tester.widget<FilledButton>(
+        find.byKey(const Key('synologySharePasswordSave')),
+      );
+      expect(save.onPressed, isNotNull);
+    });
   });
 }
 
 class _FakeCredentials implements NetworkCredentialsService {
+  _FakeCredentials({this.saveError});
+
+  /// Thrown by [save], standing in for a keychain that refuses the write.
+  final Object? saveError;
   final List<String> saved = [];
   int listCalls = 0;
 
@@ -443,6 +492,8 @@ class _FakeCredentials implements NetworkCredentialsService {
     String? token,
     String? displayName,
   }) async {
+    final error = saveError;
+    if (error != null) throw error;
     saved.add(hostname);
   }
 

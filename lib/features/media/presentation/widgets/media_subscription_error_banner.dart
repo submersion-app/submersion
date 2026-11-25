@@ -27,7 +27,9 @@ class MediaSubscriptionErrorBanner extends ConsumerWidget {
     if (failing.isEmpty) return const SizedBox.shrink();
     final colors = Theme.of(context).colorScheme;
     final first = failing.first;
-    final name = first.displayName ?? first.manifestUrl;
+    // The same name health and setup use: an empty display name counts as
+    // none, and the link is shown without its scheme.
+    final name = first.label;
     final l10n = context.l10n;
     final text = l10n.media_subscriptionBanner_message(
       failing.length,

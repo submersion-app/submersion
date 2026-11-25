@@ -260,6 +260,28 @@ class ManifestSubscriptionRepository {
     }
   }
 
+  /// Writes this device's polling state for [id], creating the row when it
+  /// is missing. Only [createSubscription] inserts one, so a subscription
+  /// that arrived by sync (or was created before the row existed) has none,
+  /// and a plain UPDATE would drop every poll outcome on that device: no
+  /// recorded error, so no password prompt or health mark, and no next poll
+  /// time, so every scheduler cycle would poll it again. A subscription
+  /// deleted meanwhile gets no row.
+  Future<void> _writeState(String id, MediaSubscriptionStateCompanion values) =>
+      _db.transaction(() async {
+        final updated = await (_db.update(
+          _db.mediaSubscriptionState,
+        )..where((t) => t.subscriptionId.equals(id))).write(values);
+        if (updated > 0) return;
+        final subscription = await (_db.select(
+          _db.mediaSubscriptions,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        if (subscription == null) return;
+        await _db
+            .into(_db.mediaSubscriptionState)
+            .insert(values.copyWith(subscriptionId: Value(id)));
+      });
+
   Future<void> recordPollSuccess(
     String id, {
     required int pollIntervalSeconds,
@@ -270,9 +292,8 @@ class ManifestSubscriptionRepository {
     try {
       final nowMs = now.millisecondsSinceEpoch;
       final next = now.add(Duration(seconds: pollIntervalSeconds));
-      await (_db.update(
-        _db.mediaSubscriptionState,
-      )..where((t) => t.subscriptionId.equals(id))).write(
+      await _writeState(
+        id,
         MediaSubscriptionStateCompanion(
           lastPolledAt: Value(nowMs),
           nextPollAt: Value(next.millisecondsSinceEpoch),
@@ -296,9 +317,8 @@ class ManifestSubscriptionRepository {
     try {
       final nowMs = now.millisecondsSinceEpoch;
       final next = now.add(Duration(seconds: pollIntervalSeconds));
-      await (_db.update(
-        _db.mediaSubscriptionState,
-      )..where((t) => t.subscriptionId.equals(id))).write(
+      await _writeState(
+        id,
         MediaSubscriptionStateCompanion(
           lastPolledAt: Value(nowMs),
           nextPollAt: Value(next.millisecondsSinceEpoch),
@@ -330,9 +350,8 @@ class ManifestSubscriptionRepository {
     try {
       final delay = _failureBackoff(pollIntervalSeconds);
       final nowMs = now.millisecondsSinceEpoch;
-      await (_db.update(
-        _db.mediaSubscriptionState,
-      )..where((t) => t.subscriptionId.equals(id))).write(
+      await _writeState(
+        id,
         MediaSubscriptionStateCompanion(
           lastError: Value(error),
           lastErrorAt: Value(nowMs),

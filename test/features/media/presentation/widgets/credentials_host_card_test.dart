@@ -53,6 +53,17 @@ class _FakeCredentialsService implements NetworkCredentialsService {
   Future<bool> hasSecret(String hostname) async =>
       !withoutSecret.contains(hostname);
 
+  /// What [headersFor] answers: a share session's headers, or none when
+  /// the share refused the saved password.
+  Map<String, String>? shareHeaders;
+  final List<Uri> headerLookups = <Uri>[];
+
+  @override
+  Future<Map<String, String>?> headersFor(Uri uri) async {
+    headerLookups.add(uri);
+    return shareHeaders;
+  }
+
   @override
   Future<void> delete(String id) async {
     deletedIds.add(id);
@@ -235,6 +246,50 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Credentials OK for photos.example.com'), findsOneWidget);
+  });
+
+  group('Test credentials on a shared album row', () {
+    const key = 'nas.example.com:5001/mo/sharing/code1';
+
+    Future<void> runTest(
+      WidgetTester tester,
+      _FakeCredentialsService creds,
+    ) async {
+      // The share's web page loads whatever the password: a page fetch
+      // would always say OK.
+      final resolver = _StubResolver(
+        NetworkBytesOk(
+          bytes: Uint8List(0),
+          contentType: 'text/html',
+          finalUrl: 'https://$key/',
+        ),
+      );
+      await tester.pumpWidget(
+        _wrap(const CredentialsHostCard(), creds: creds, resolver: resolver),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Test credentials'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a refused password fails', (tester) async {
+      final creds = _FakeCredentialsService([
+        _h('1', key, authType: 'synologyShare'),
+      ]);
+      await runTest(tester, creds);
+      expect(find.text('Credentials failed for $key'), findsOneWidget);
+      expect(creds.headerLookups.single.toString(), 'https://$key');
+    });
+
+    testWidgets('an accepted password passes', (tester) async {
+      final creds = _FakeCredentialsService([
+        _h('1', key, authType: 'synologyShare'),
+      ])..shareHeaders = {'Cookie': 'sharing_sid=s'};
+      await runTest(tester, creds);
+      expect(find.text('Credentials OK for $key'), findsOneWidget);
+    });
   });
 
   testWidgets(

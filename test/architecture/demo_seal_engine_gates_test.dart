@@ -233,6 +233,14 @@ const _gates = <(String, String, String, _Kind)>[
     _Kind.ensure,
   ),
   // Media coming in or going to a store.
+  // Photo subscriptions polled on a timer (the app root starts the
+  // scheduler): a quiet gate, the cycle simply returns.
+  (
+    'lib/features/media/data/services/subscription_poller.dart',
+    'Future<int> pollAllDue(',
+    'mediaImport',
+    _Kind.quiet,
+  ),
   (
     'lib/features/media/data/services/media_import_service.dart',
     ' importLocalFileForDive(',

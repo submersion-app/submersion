@@ -193,7 +193,17 @@ class SetUpDeviceCard extends ConsumerWidget {
       return;
     }
     final container = ProviderScope.containerOf(context, listen: false);
-    await resolveSharePassword(context, ref, subscriptionId: id);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    try {
+      await resolveSharePassword(context, ref, subscriptionId: id);
+    } catch (e) {
+      // The keychain refused the password, or the poll could not start: the
+      // item stays, and the diver hears why instead of a tap doing nothing.
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.media_credentials_saveError('$e'))),
+      );
+    }
     container.invalidate(pendingSetupItemsProvider);
   }
 

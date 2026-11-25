@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -319,7 +320,79 @@ void main() {
                 as ManifestFetchSuccess)
             .parsed;
     expect(parsed.entries, hasLength(5));
-    expect(album.listedOffsets, [0, 2, 4]);
+    // A listing over several pages is read twice, to see it held still.
+    expect(album.listedOffsets, [0, 2, 4, 0, 2, 4]);
+  });
+
+  test('a page shifted mid-listing is read again, never doubled', () async {
+    final items = [for (var i = 1; i <= 5; i++) _photo(i, time: i)];
+    final album = _FakeAlbum(items);
+    var shifted = false;
+    // The first read of offset 2 sees the album one item later: item 2
+    // again, and item 4 never listed.
+    album.onList = (offset) {
+      if (offset != 2 || shifted) return null;
+      shifted = true;
+      return _ok({
+        'list': [items[1], items[2]],
+      });
+    };
+    final parsed =
+        ((await _source(album, pageSize: 2).fetch(_link))
+                as ManifestFetchSuccess)
+            .parsed;
+    expect(parsed.entries.map((e) => e.entryKey).toList(), [
+      't1-s5000',
+      't2-s5000',
+      't3-s5000',
+      't4-s5000',
+      't5-s5000',
+    ]);
+  });
+
+  test('an album that keeps changing fails instead of guessing', () async {
+    final album = _FakeAlbum([for (var i = 1; i <= 5; i++) _photo(i, time: i)]);
+    var reads = 0;
+    album.onList = (offset) {
+      if (offset != 4) return null;
+      reads++;
+      return _ok({
+        'list': [_photo(100 + reads, time: 100 + reads)],
+      });
+    };
+    final outcome = await _source(album, pageSize: 2).fetch(_link);
+    expect(outcome, isA<ManifestFetchFailure>());
+    expect(
+      (outcome as ManifestFetchFailure).message,
+      contains('kept changing'),
+    );
+  });
+
+  test('items listed twice are kept once', () async {
+    final album = _FakeAlbum([_photo(1, time: 1), _photo(1, time: 1)]);
+    final parsed =
+        ((await _source(album).fetch(_link)) as ManifestFetchSuccess).parsed;
+    expect(parsed.entries.map((e) => e.entryKey), ['t1-s5000']);
+  });
+
+  test('a share that never answers fails as unreachable', () async {
+    final hang = Completer<http.Response>();
+    final album = _FakeAlbum([_photo(1)]);
+    final client = MockClient((request) {
+      if (request.bodyFields['api'] == 'SYNO.Foto.Browse.Item') {
+        return hang.future;
+      }
+      return album.handle(request);
+    });
+    final source = SynologyAlbumSource(
+      client: client,
+      sessions: SynologyShareSessions(client: client),
+      passwordFor: (_) async => 'secret',
+      requestTimeout: const Duration(milliseconds: 50),
+    );
+    final outcome = await source.fetch(_link);
+    expect(outcome, isA<ManifestFetchFailure>());
+    expect((outcome as ManifestFetchFailure).message, contains('reach'));
   });
 
   test('a failing page fails the whole fetch, never a partial list', () async {
@@ -369,6 +442,23 @@ void main() {
   });
 
   group('a changed list format fails the fetch instead of emptying it', () {
+    test('videos with nothing to play are no sign of a new format', () async {
+      // A view-only share before Synology converted its videos: they parse,
+      // they just cannot be played here yet.
+      final parsed =
+          ((await _source(
+                    _FakeAlbum([
+                      _photo(1),
+                      _photo(8, type: 'video', time: 8, cacheKey: '8_1'),
+                      _photo(9, type: 'video', time: 9, cacheKey: '9_1'),
+                    ], privacyType: 'public-view'),
+                  ).fetch(_link))
+                  as ManifestFetchSuccess)
+              .parsed;
+      expect(parsed.entries.map((e) => e.mediaType), ['photo']);
+      expect(parsed.warnings, hasLength(2));
+    });
+
     test('items with no known type', () async {
       final album = _FakeAlbum([
         {..._photo(1), 'type': 'image'},

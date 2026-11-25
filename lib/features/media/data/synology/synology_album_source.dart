@@ -37,6 +37,7 @@ class SynologyAlbumSource {
     required Future<String?> Function(SynologyShareLink link) passwordFor,
     this.pageSize = 1000,
     this.maxPages = 100,
+    this.requestTimeout = kSynologyRequestTimeout,
   }) : _client = client,
        _sessions = sessions,
        _passwordFor = passwordFor;
@@ -51,6 +52,10 @@ class SynologyAlbumSource {
   /// Upper bound on listing calls, so a server that never returns a short
   /// page cannot keep the poller busy forever.
   final int maxPages;
+
+  /// How long one call may take. A share that never answers fails the
+  /// fetch as unreachable instead of holding the poll cycle forever.
+  final Duration requestTimeout;
 
   final _log = LoggerService.forClass(SynologyAlbumSource);
 
@@ -117,33 +122,25 @@ class SynologyAlbumSource {
         : null;
     final downloadsAllowed = _downloadsAllowed(albumInfo);
 
-    final items = <Object?>[];
-    for (var page = 0; page < maxPages; page++) {
-      final data = await _call(link, sid, {
-        'api': 'SYNO.Foto.Browse.Item',
-        'method': 'list',
-        'version': '1',
-        'offset': '${page * pageSize}',
-        'limit': '$pageSize',
-        'passphrase': link.code,
-        'additional': '["thumbnail","resolution","video_meta","video_convert"]',
-      });
-      final list = data['list'];
-      if (list is! List<Object?>) {
-        throw const SynologyShareException(
-          SynologyShareErrorKind.unexpected,
-          'The share sent no item list',
-        );
-      }
-      items.addAll(list);
-      if (list.length < pageSize) break;
-      if (page == maxPages - 1) {
-        throw const SynologyShareException(
-          SynologyShareErrorKind.unexpected,
-          'The album is larger than this client reads',
-        );
+    // A listing that spans pages is read by offset, so an item added or
+    // removed while it is read shifts the later pages: one item listed
+    // twice, or one never listed, which the poller would mark missing on
+    // every device. Such a listing is read again until two reads agree.
+    var listing = await _listItems(link, sid);
+    if (listing.pages > 1) {
+      for (var attempt = 1; ; attempt++) {
+        final again = await _listItems(link, sid);
+        if (_sameItems(listing.items, again.items)) break;
+        if (attempt == _maxListingAttempts) {
+          throw const SynologyShareException(
+            SynologyShareErrorKind.unexpected,
+            'The album kept changing while it was read',
+          );
+        }
+        listing = again;
       }
     }
+    final items = _uniqueById(listing.items);
 
     final mapped = synologyEntriesFrom(
       items,
@@ -167,6 +164,64 @@ class SynologyAlbumSource {
     );
   }
 
+  /// How many times a multi-page listing is read again before a share that
+  /// keeps changing fails the fetch.
+  static const _maxListingAttempts = 3;
+
+  /// Every item of the album, page by page, and how many pages it took.
+  Future<({List<Object?> items, int pages})> _listItems(
+    SynologyShareLink link,
+    String sid,
+  ) async {
+    final items = <Object?>[];
+    for (var page = 0; page < maxPages; page++) {
+      final data = await _call(link, sid, {
+        'api': 'SYNO.Foto.Browse.Item',
+        'method': 'list',
+        'version': '1',
+        'offset': '${page * pageSize}',
+        'limit': '$pageSize',
+        'passphrase': link.code,
+        'additional': '["thumbnail","resolution","video_meta","video_convert"]',
+      });
+      final list = data['list'];
+      if (list is! List<Object?>) {
+        throw const SynologyShareException(
+          SynologyShareErrorKind.unexpected,
+          'The share sent no item list',
+        );
+      }
+      items.addAll(list);
+      if (list.length < pageSize) return (items: items, pages: page + 1);
+    }
+    throw const SynologyShareException(
+      SynologyShareErrorKind.unexpected,
+      'The album is larger than this client reads',
+    );
+  }
+
+  /// Whether two listings name the same items in the same order.
+  static bool _sameItems(List<Object?> a, List<Object?> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (_idOf(a[i]) != _idOf(b[i])) return false;
+    }
+    return true;
+  }
+
+  static Object? _idOf(Object? item) =>
+      item is Map<String, Object?> ? item['id'] : null;
+
+  /// [items] with each Synology id kept once. Items without an id stay, so
+  /// the mapping still reports them as malformed.
+  static List<Object?> _uniqueById(List<Object?> items) {
+    final seen = <Object>{};
+    return [
+      for (final item in items)
+        if (_idOf(item) == null || seen.add(_idOf(item)!)) item,
+    ];
+  }
+
   /// One authenticated API call. Throws [_SessionLost] when the share no
   /// longer accepts [sid], and [SynologyShareException] for anything else.
   Future<Map<String, Object?>> _call(
@@ -176,11 +231,13 @@ class SynologyAlbumSource {
   ) async {
     final http.Response response;
     try {
-      response = await _client.post(
-        link.apiUri,
-        headers: SynologyShareSessions.sessionHeaders(link, sid),
-        body: form,
-      );
+      response = await _client
+          .post(
+            link.apiUri,
+            headers: SynologyShareSessions.sessionHeaders(link, sid),
+            body: form,
+          )
+          .timeout(requestTimeout);
     } catch (e) {
       throw SynologyShareException(
         SynologyShareErrorKind.unreachable,
@@ -213,11 +270,14 @@ class SynologyAlbumSource {
 }
 
 /// Entries mapped from a share's item list, plus a warning per item skipped
-/// because it was malformed. Item types this client does not import are
-/// skipped silently.
+/// because it was malformed or has nothing to play. Item types this client
+/// does not import are skipped silently. [unplayable] counts the videos
+/// skipped because the share offers no conversion and no download: they
+/// read fine, so they say nothing about the list's format.
 typedef SynologyMappedEntries = ({
   List<ManifestEntry> entries,
   List<String> warnings,
+  int unplayable,
 });
 
 /// Why [items] look like a list this client no longer understands, or null
@@ -242,13 +302,16 @@ String? synologyFormatProblem(
     return 'Album format not recognised: none of ${items.length} items has a '
         'known type (seen: ${seen.isEmpty ? 'no objects' : seen})';
   }
-  // Every imported type counts: they are all read the same way.
-  if (typed > 0 && mapped.entries.length * 2 < typed) {
+  // Every imported type counts: they are all read the same way. Videos
+  // that parsed but have nothing to play here (a view-only share before
+  // Synology converted them) are not unreadable and are left out.
+  final readable = typed - mapped.unplayable;
+  if (readable > 0 && mapped.entries.length * 2 < readable) {
     final first = mapped.warnings.isEmpty
         ? ''
         : ' First: ${mapped.warnings.first}';
     return 'Album format not recognised: only ${mapped.entries.length} of '
-        '$typed items could be read.$first';
+        '$readable items could be read.$first';
   }
   return null;
 }
@@ -305,9 +368,11 @@ SynologyMappedEntries synologyEntriesFrom(
   }
 
   final urls = <_Photo, Uri>{};
+  var unplayable = 0;
   for (final photo in photos) {
     final url = _urlFor(photo, link, downloadsAllowed);
     if (url == null) {
+      unplayable++;
       warnings.add('video ${photo.id}: no conversion to play and no downloads');
     } else {
       urls[photo] = url;
@@ -335,7 +400,7 @@ SynologyMappedEntries synologyEntriesFrom(
           filename: photo.filename,
         ),
   ];
-  return (entries: entries, warnings: warnings);
+  return (entries: entries, warnings: warnings, unplayable: unplayable);
 }
 
 /// Where an item's row points:

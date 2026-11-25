@@ -2,6 +2,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+/// How long one request to a share may take before it counts as
+/// unreachable. Listing a large album page is the slowest call observed.
+const Duration kSynologyRequestTimeout = Duration(seconds: 60);
+
 /// Error code Synology answers when a request carries no valid session.
 const int kSynologyNoSession = 119;
 

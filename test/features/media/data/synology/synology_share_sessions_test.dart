@@ -178,6 +178,42 @@ void main() {
     expect(share.logins, 2);
   });
 
+  test('a renewed session is announced, a first one is not', () async {
+    var changes = 0;
+    final watched = SynologyShareSessions(
+      client: MockClient(share.handle),
+      now: () => now,
+      onSessionChanged: () => changes++,
+    );
+    final first = await watched.sessionFor(_link, 'secret');
+    expect(changes, 0);
+    // Dropped (another device logged in), then opened again: headers built
+    // on the first session are dead now.
+    watched.invalidate(_link, first);
+    expect(await watched.sessionFor(_link, 'secret'), 'sid-2');
+    expect(changes, 1);
+    // Reused, nothing changes.
+    await watched.sessionFor(_link, 'secret');
+    expect(changes, 1);
+  });
+
+  test('a login that never answers is unreachable', () async {
+    final stalled = SynologyShareSessions(
+      client: MockClient((_) => Completer<http.Response>().future),
+      requestTimeout: const Duration(milliseconds: 50),
+    );
+    await expectLater(
+      stalled.sessionFor(_link, 'secret'),
+      throwsA(
+        isA<SynologyShareException>().having(
+          (e) => e.kind,
+          'kind',
+          SynologyShareErrorKind.unreachable,
+        ),
+      ),
+    );
+  });
+
   test('a transport failure is unreachable', () async {
     final failing = SynologyShareSessions(
       client: MockClient((_) async => throw http.ClientException('down')),

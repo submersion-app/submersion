@@ -1,6 +1,7 @@
 # Synology Photos shared album as a manifest subscription
 
-Prototype design. Not yet tied to an issue.
+Design for issue #4907. Started as a prototype; sections 9 to 11 record
+what the prototype test added.
 
 ## Goal
 
@@ -124,6 +125,10 @@ Login errors are mapped to a typed `SynologyShareException` with a kind
 - Pages through `SYNO.Foto.Browse.Item list` (1000 per page). **Any failing
   page fails the whole fetch.** A partial list would read to the poller as
   "these entries vanished" and flag them orphaned on every device.
+  A listing over more than one page is read again until two reads list the
+  same items (at most three tries), because a photo added or removed while
+  the pages are read shifts the later pages: an item listed twice, or one
+  never listed. Items are kept once per Synology id.
 - Maps each `photo` item to a `ManifestEntry`:
   `url` = original download URL (with `id` and `cache_key` as extra
   parameters), `takenAt` = `time` as wall-clock UTC, `width`/`height` from
@@ -137,8 +142,8 @@ Login errors are mapped to a typed `SynologyShareException` with a kind
   keys stay unique per subscription (the unique index would otherwise reject
   the insert). The poller's patch step updates `url` when the id or
   `cache_key` changes, so a moved photo keeps its row.
-- Videos and other types (`live`) are skipped in this prototype (see Open
-  points).
+- Videos and live photos are imported as described in section 11; any other
+  item type is skipped.
 - On error 119 it invalidates the session and retries once.
 - Returns the same `ManifestFetchOutcome` the feed parsers produce, so the
   poller and the manifest panel need no Synology branch. A missing or wrong
@@ -305,7 +310,9 @@ unfinished setup:
   so Settings > Data and the Network sources rows carry the mark. Every
   failing subscription is reported, not only missing passwords, so a
   changed feed format does not go unnoticed. Subscriptions are named by
-  display name or host, never by URL.
+  display name, else by their link without the scheme (the host alone left
+  two albums on one NAS indistinguishable). That name is shown on this
+  device only; logs name subscriptions by id, never by link.
 - **Saved hosts:** a row whose secret this device's keychain lacks (a
   restored backup) is marked "Password missing on this device".
 - **Check now on a photo:** a share URL this device holds no session for

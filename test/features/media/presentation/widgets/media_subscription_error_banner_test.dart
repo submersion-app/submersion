@@ -14,13 +14,15 @@ ManifestSubscription _sub(
   String id, {
   String? lastError,
   bool isActive = true,
+  bool named = true,
+  String? displayName,
 }) {
   final epoch = DateTime.utc(2026, 4, 28);
   return ManifestSubscription(
     id: id,
     manifestUrl: 'https://example.com/feed-$id',
     format: ManifestFormat.json,
-    displayName: 'Album $id',
+    displayName: named ? 'Album $id' : displayName,
     pollIntervalSeconds: 86400,
     isActive: isActive,
     createdAt: epoch,
@@ -87,6 +89,18 @@ void main() {
     expect(find.textContaining('"Album 2"'), findsOneWidget);
     expect(find.textContaining('Album format not recognised'), findsOneWidget);
     expect(find.text('Open'), findsOneWidget);
+  });
+
+  testWidgets('an unnamed subscription is named by its link, no scheme', (
+    tester,
+  ) async {
+    for (final name in [null, '']) {
+      await _pump(tester, [
+        _sub('3', lastError: 'x', named: false, displayName: name),
+      ]);
+      expect(find.textContaining('"example.com/feed-3"'), findsOneWidget);
+      expect(find.textContaining('https://'), findsNothing);
+    }
   });
 
   testWidgets('counts several failing subscriptions', (tester) async {

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -197,6 +199,21 @@ void main() {
       expect(await File(path!).readAsBytes(), clip);
       expect(await c.motionClipFor(photo), path);
       expect(requests, hasLength(1));
+    });
+
+    test('a clip that cannot be put in place leaves nothing behind', () async {
+      // Something already sits at the clip's name (here a folder), so the
+      // write cannot finish: no half-written clip may stay to be served.
+      final videos = Directory(p.join(dir.path, 'videos'));
+      final key = 'motion-${sha1.convert(utf8.encode(photo.toString()))}';
+      await Directory(p.join(videos.path, '$key.mp4')).create(recursive: true);
+      final c = cache((_) async => jpeg(file));
+      expect(await c.motionClipFor(photo), isNull);
+      final left = [
+        for (final e in videos.listSync())
+          if (e is File) p.basename(e.path),
+      ];
+      expect(left, isEmpty);
     });
 
     test('a photo without a clip gives no file', () async {

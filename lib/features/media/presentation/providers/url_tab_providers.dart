@@ -302,16 +302,34 @@ final Provider<NetworkCredentialsService> networkCredentialsServiceProvider =
           // Through the container: this provider's own ref cannot invalidate
           // something that depends on it.
           if (!ref.mounted) return;
-          ref.container.invalidate(networkThumbnailHeadersProvider);
+          _refreshNetworkHeaders(ref.container);
         },
       ),
     );
+
+/// Bumped whenever request headers handed out earlier may have gone stale:
+/// a saved secret changed, or a share's session was replaced. Views that
+/// resolved a network image with those headers listen and resolve again.
+final networkHeadersEpochProvider = StateProvider<int>((ref) => 0);
+
+void _refreshNetworkHeaders(ProviderContainer container) {
+  container.invalidate(networkThumbnailHeadersProvider);
+  container.read(networkHeadersEpochProvider.notifier).state++;
+}
 
 /// The one set of Synology Photos share sessions for the app. One instance
 /// matters: every login to a share ends the session the previous one opened,
 /// so two holders would keep knocking each other out.
 final synologyShareSessionsProvider = Provider<SynologyShareSessions>(
-  (ref) => SynologyShareSessions(client: ref.watch(httpClientProvider)),
+  (ref) => SynologyShareSessions(
+    client: ref.watch(httpClientProvider),
+    // A renewed session ends the old one: headers already on screen carry
+    // a dead session cookie until they are asked for again.
+    onSessionChanged: () {
+      if (!ref.mounted) return;
+      _refreshNetworkHeaders(ref.container);
+    },
+  ),
 );
 
 /// Headers for painting [url]: `null` when its host has no saved credentials.
