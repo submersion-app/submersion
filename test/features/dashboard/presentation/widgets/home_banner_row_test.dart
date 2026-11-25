@@ -7,7 +7,6 @@ import 'package:submersion/features/dashboard/presentation/providers/gauge_provi
 import 'package:submersion/features/dashboard/presentation/widgets/home_banner_row.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_light_chip.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/home_status_lights.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
