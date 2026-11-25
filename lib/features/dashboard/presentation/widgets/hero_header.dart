@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dashboard/presentation/panels/key_numbers_panel.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_diver_avatar.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
@@ -43,7 +44,8 @@ class HeroHeader extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Empty with one profile; brings its own gap otherwise.
+              // Collapses only when there is no diver to show; brings its own
+              // gap otherwise.
               const HeroDiverAvatar(),
               Expanded(
                 child: Column(
@@ -189,10 +191,13 @@ class HeroHeader extends ConsumerWidget {
     final totalTimeSeconds = career.combinedTimeSeconds;
     final hours = totalTimeSeconds / 3600;
     if (hours >= 1) {
-      final hoursStr = hours < 10
-          ? hours.toStringAsFixed(1)
-          : hours.round().toString();
-      parts.add(context.l10n.dashboard_hero_hoursUnderwater(hoursStr));
+      // As the Key numbers tile counts them, so banner mode never shows two
+      // different totals on one screen.
+      parts.add(
+        context.l10n.dashboard_hero_hoursUnderwater(
+          formatHomeHours(totalTimeSeconds),
+        ),
+      );
     } else if (totalTimeSeconds > 0) {
       final minutes = totalTimeSeconds ~/ 60;
       parts.add(context.l10n.dashboard_hero_minutesUnderwater(minutes));
@@ -222,11 +227,11 @@ class _QuietStats extends ConsumerWidget {
         .valueOrNull
         ?.totalSites;
     final countries = ref.watch(homeCountriesVisitedProvider).value ?? 0;
-    final hours = (career.combinedTimeSeconds / 3600).round();
+    final hours = formatHomeHours(career.combinedTimeSeconds);
 
     final items = <(String, String)>[
       ('${career.combinedDives}', context.l10n.dashboard_hero_statDives),
-      ('$hours', context.l10n.dashboard_hero_statHours),
+      (hours, context.l10n.dashboard_hero_statHours),
       if (totalSites != null)
         ('$totalSites', context.l10n.dashboard_hero_statSites),
       if (countries > 0)

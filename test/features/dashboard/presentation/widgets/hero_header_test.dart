@@ -623,4 +623,55 @@ void main() {
       expect(find.text('Ready to explore the depths?'), findsOneWidget);
     });
   });
+
+  // Issue #5003: banner mode sits right above the Key numbers tile, which
+  // counts whole hours down; the banner must show the same number.
+  group('hours agree with the Key numbers tile', () {
+    Future<void> pumpWith(WidgetTester tester, double width) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 248,
+                // 206.7 hours: Key numbers shows 206.
+                totalTimeSeconds: 744120,
+                maxDepth: 40,
+                avgMaxDepth: 20,
+                totalSites: 63,
+              ),
+            ),
+            homeCountriesVisitedProvider.overrideWith((ref) async => 9),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    testWidgets('phone headline counts whole hours down', (tester) async {
+      await pumpWith(tester, 500);
+      expect(find.textContaining('206 hours underwater'), findsOneWidget);
+    });
+
+    testWidgets('desktop quiet stats count whole hours down', (tester) async {
+      await pumpWith(tester, 1300);
+      expect(find.text('206'), findsOneWidget);
+      expect(find.text('207'), findsNothing);
+    });
+  });
 }
