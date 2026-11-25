@@ -114,7 +114,8 @@ void main() {
     expect(times.whereType<int>().last, greaterThan(0));
 
     // Left of the plot (the depth axis gutter), then its very first pixel.
-    for (final x in [rect.left + 2, rect.left + 49]) {
+    final plotLeft = rect.left + DiveProfileChart.plotLeftInset(rect.width);
+    for (final x in [rect.left + 2, plotLeft]) {
       await mouse.moveTo(Offset(x, rect.center.dy));
       await tester.pump();
       expect(times.last, 0, reason: 'hover at x=$x');

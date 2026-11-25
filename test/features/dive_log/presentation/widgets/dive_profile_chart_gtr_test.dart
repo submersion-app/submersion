@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_axis_captions.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -135,7 +136,10 @@ void main() {
           .setRightAxisMetric(ProfileRightAxisMetric.gtr);
       await tester.pumpAndSettle();
 
-      expect(find.text('GTR (min)'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(ProfileAxisCaptions.rightKey)).data,
+        'min',
+      );
     });
   });
 
