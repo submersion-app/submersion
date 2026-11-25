@@ -158,7 +158,9 @@ phone and computer you use (see [Multi-Device Sync](multi-device-sync.md)).
 
 ### Home
 
-**Home** under **Sections** sets up the Dashboard: a **Layout** to start from
+**Home** under **Sections** sets up the Dashboard: the **Header** for phone
+width and for wider screens (the slim **Compact** bar or the welcome
+**Banner**), a **Layout** to start from
 (Balanced, Ready, Trends or Logbook), which **Panels** appear and in what order
 (drag to reorder), the numbers in **Key numbers**, and which **Status chips**
 show in the header. **Reset to default** returns to the Balanced layout. See

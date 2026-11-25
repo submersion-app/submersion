@@ -66020,4 +66020,102 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Válaszd ki a Kezdőlap tetején látható számokat. Az a szám, amelyhez még nincs adat, kimarad.';
+
+  @override
+  String get dashboard_greeting_morning => 'Jó reggelt';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Jó délutánt';
+
+  @override
+  String get dashboard_greeting_evening => 'Jó estét';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 merülés rögzítve';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count merülés rögzítve';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 merülés';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count merülés';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Kész felfedezni a mélységet?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours óra víz alatt';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'Merülési statisztikák betöltése...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes perc víz alatt';
+  }
+
+  @override
+  String get dashboard_hero_noDives => 'Kész rögzíteni az első merülését?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Búvár';
+
+  @override
+  String get dashboard_hero_statDives => 'merülés';
+
+  @override
+  String get dashboard_hero_statHours => 'óra';
+
+  @override
+  String get dashboard_hero_statSites => 'helyszín';
+
+  @override
+  String get dashboard_hero_statCountries => 'ország';
+
+  @override
+  String get dashboard_semantics_greetingBanner =>
+      'Irányítópult üdvözlő banner';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Gyors műveletek';
+
+  @override
+  String get dashboard_quickActions_insights => 'Elemzések';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Fejléc';
+
+  @override
+  String get settings_homeHeader_phone => 'Telefonszélesség';
+
+  @override
+  String get settings_homeHeader_wide => 'Szélesebb képernyők';
+
+  @override
+  String get settings_homeHeader_compact => 'Kompakt';
+
+  @override
+  String get settings_homeHeader_banner => 'Szalag';
+
+  @override
+  String get settings_homeHeader_description =>
+      'A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.';
 }

@@ -66382,4 +66382,104 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Escolha os números exibidos no topo do Início. Um número que ainda não tem nada a mostrar é omitido.';
+
+  @override
+  String get dashboard_greeting_morning => 'Bom dia';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Boa tarde';
+
+  @override
+  String get dashboard_greeting_evening => 'Boa noite';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 mergulho registrado';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count mergulhos registrados';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 mergulho';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count mergulhos';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Pronto para explorar as profundezas?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours horas submerso';
+  }
+
+  @override
+  String get dashboard_hero_loading =>
+      'Carregando suas estatísticas de mergulho...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes minutos submerso';
+  }
+
+  @override
+  String get dashboard_hero_noDives =>
+      'Pronto para registrar seu primeiro mergulho?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Mergulhador';
+
+  @override
+  String get dashboard_hero_statDives => 'mergulhos';
+
+  @override
+  String get dashboard_hero_statHours => 'horas';
+
+  @override
+  String get dashboard_hero_statSites => 'locais';
+
+  @override
+  String get dashboard_hero_statCountries => 'países';
+
+  @override
+  String get dashboard_semantics_greetingBanner =>
+      'Banner de saudação do painel';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Ações Rápidas';
+
+  @override
+  String get dashboard_quickActions_insights => 'Análises';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Cabeçalho';
+
+  @override
+  String get settings_homeHeader_phone => 'Largura de telefone';
+
+  @override
+  String get settings_homeHeader_wide => 'Telas mais largas';
+
+  @override
+  String get settings_homeHeader_compact => 'Compacto';
+
+  @override
+  String get settings_homeHeader_banner => 'Faixa';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo.';
 }

@@ -66276,4 +66276,103 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Wähle die Zahlen oben auf der Startseite. Eine Zahl, für die es noch nichts gibt, wird ausgelassen.';
+
+  @override
+  String get dashboard_greeting_morning => 'Guten Morgen';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Guten Nachmittag';
+
+  @override
+  String get dashboard_greeting_evening => 'Guten Abend';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 Tauchgang protokolliert';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count Tauchgänge protokolliert';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 Tauchgang';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count Tauchgänge';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Bereit, die Tiefen zu erkunden?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours Stunden unter Wasser';
+  }
+
+  @override
+  String get dashboard_hero_loading =>
+      'Deine Tauchstatistiken werden geladen...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes Minuten unter Wasser';
+  }
+
+  @override
+  String get dashboard_hero_noDives =>
+      'Bereit, deinen ersten Tauchgang zu protokollieren?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Taucher';
+
+  @override
+  String get dashboard_hero_statDives => 'Tauchgänge';
+
+  @override
+  String get dashboard_hero_statHours => 'Stunden';
+
+  @override
+  String get dashboard_hero_statSites => 'Tauchplätze';
+
+  @override
+  String get dashboard_hero_statCountries => 'Länder';
+
+  @override
+  String get dashboard_semantics_greetingBanner => 'Dashboard-Begrüßung';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Schnellaktionen';
+
+  @override
+  String get dashboard_quickActions_insights => 'Einblicke';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Kopfzeile';
+
+  @override
+  String get settings_homeHeader_phone => 'Telefonbreite';
+
+  @override
+  String get settings_homeHeader_wide => 'Breitere Bildschirme';
+
+  @override
+  String get settings_homeHeader_compact => 'Kompakt';
+
+  @override
+  String get settings_homeHeader_banner => 'Banner';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert.';
 }

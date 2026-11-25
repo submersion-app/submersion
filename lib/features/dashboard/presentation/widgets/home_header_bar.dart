@@ -93,21 +93,6 @@ class HomeHeaderBar extends ConsumerWidget {
     // (or the retry pill) in the row.
     final divided = !phone && (retry || (lights?.isNotEmpty ?? false));
 
-    Widget lightsRow() {
-      if (retry) {
-        return Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: HomeLightChip(_retryLight(context, ref), dense: true),
-        );
-      }
-      if (lights == null) return const SizedBox.shrink();
-      return HomeLightsScroller(
-        children: [
-          for (final light in lights) HomeLightChip(light, dense: true),
-        ],
-      );
-    }
-
     return Material(
       color: theme.colorScheme.surface,
       child: Container(
@@ -128,11 +113,15 @@ class HomeHeaderBar extends ConsumerWidget {
           children: [
             // The quick actions open from the bar's leading edge (the right
             // in a right-to-left language).
-            const _QuickActionsMenu(),
+            const HomeQuickActionsMenu(),
             const SizedBox(width: 4),
             // The lights take the room up to the switcher. On a phone they
             // sit in the strip below instead.
-            Expanded(child: phone ? const SizedBox() : lightsRow()),
+            Expanded(
+              child: phone
+                  ? const SizedBox()
+                  : _wideLights(context, ref, lights, retry: retry),
+            ),
             // A rule with space each side parts the lights from the diver
             // and the logo, so the last pill never runs into the switcher
             // (issue #4920).
@@ -166,11 +155,101 @@ class HomeHeaderBar extends ConsumerWidget {
 
 enum _QuickAction { logDive, planDive, swap, emergency }
 
+/// Every light in one scrolling line, dense, as the bar shows them from
+/// tablet width up: the retry light in their place when the gauges fail to
+/// load, nothing while they load. Shared with the banner's row.
+Widget homeWideLights(BuildContext context, WidgetRef ref) {
+  final lights = _watchLights(context, ref);
+  return _wideLights(
+    context,
+    ref,
+    lights,
+    retry: ref.watch(dashboardGaugesProvider).hasError && lights == null,
+  );
+}
+
+/// [homeWideLights] from lights the caller has already built, so the compact
+/// bar, which needs them for its divider too, builds them once.
+Widget _wideLights(
+  BuildContext context,
+  WidgetRef ref,
+  List<HomeStatusLight>? lights, {
+  required bool retry,
+}) {
+  if (retry) {
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: HomeLightChip(_retryLight(context, ref), dense: true),
+    );
+  }
+  if (lights == null) return const SizedBox.shrink();
+  return HomeLightsScroller(
+    children: [for (final light in lights) HomeLightChip(light, dense: true)],
+  );
+}
+
+/// The phone's short form of the lights: every amber or red light by name,
+/// then one pill counting the quiet ones, which opens them all. Empty while
+/// the gauges load or when every light is hidden. Shared with the banner's
+/// row.
+List<Widget> homePhoneLightChips(BuildContext context, WidgetRef ref) {
+  final l10n = context.l10n;
+  final gaugesAsync = ref.watch(dashboardGaugesProvider);
+  final lights = _watchLights(context, ref);
+  if (lights == null) {
+    return [
+      if (gaugesAsync.hasError)
+        HomeLightChip(_retryLight(context, ref), dense: true),
+    ];
+  }
+  final split = splitForPhone(lights);
+  return [
+    for (final light in split.attention) HomeLightChip(light, dense: true),
+    // Nothing to vouch for when every light is hidden.
+    if (lights.isNotEmpty && (split.clear > 0 || split.attention.isEmpty))
+      HomeLightChip(
+        HomeStatusLight(
+          icon: Icons.check_circle_outline,
+          label: split.attention.isEmpty
+              ? l10n.dashboard_header_allClear
+              : l10n.dashboard_header_clearCount(split.clear),
+          tone: HomeLightTone.ok,
+          onTap: () => _showAllLights(context),
+        ),
+        dense: true,
+      ),
+  ];
+}
+
+void _showAllLights(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.dashboard_header_statusTitle,
+              style: Theme.of(sheetContext).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            const HomeStatusLightsWrap(),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 /// The + button, which opens every quick action: logging and planning a
 /// dive first, then the buddy swap (where the device has the radios for it)
 /// and the emergency card.
-class _QuickActionsMenu extends ConsumerWidget {
-  const _QuickActionsMenu();
+class HomeQuickActionsMenu extends ConsumerWidget {
+  const HomeQuickActionsMenu({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -352,35 +431,8 @@ class HomeStatusStrip extends ConsumerWidget {
     if (homeWidthTierOf(context) != HomeWidthTier.phone) {
       return const SizedBox.shrink();
     }
-    final l10n = context.l10n;
     final theme = Theme.of(context);
-    final gaugesAsync = ref.watch(dashboardGaugesProvider);
-    final lights = _watchLights(context, ref);
-    final List<Widget> children;
-    if (lights == null) {
-      children = [
-        if (gaugesAsync.hasError)
-          HomeLightChip(_retryLight(context, ref), dense: true),
-      ];
-    } else {
-      final split = splitForPhone(lights);
-      children = [
-        for (final light in split.attention) HomeLightChip(light, dense: true),
-        // Nothing to vouch for when every light is hidden.
-        if (lights.isNotEmpty && (split.clear > 0 || split.attention.isEmpty))
-          HomeLightChip(
-            HomeStatusLight(
-              icon: Icons.check_circle_outline,
-              label: split.attention.isEmpty
-                  ? l10n.dashboard_header_allClear
-                  : l10n.dashboard_header_clearCount(split.clear),
-              tone: HomeLightTone.ok,
-              onTap: () => _showAllLights(context),
-            ),
-            dense: true,
-          ),
-      ];
-    }
+    final children = homePhoneLightChips(context, ref);
     // Loading, or every light hidden: no empty bordered bar under the header.
     if (children.isEmpty) return const SizedBox.shrink();
     // No vertical padding: each pill's 44-point tap target already spaces
@@ -395,30 +447,6 @@ class HomeStatusStrip extends ConsumerWidget {
         ),
       ),
       child: HomeLightsScroller(children: children),
-    );
-  }
-
-  void _showAllLights(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.l10n.dashboard_header_statusTitle,
-                style: Theme.of(sheetContext).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              const HomeStatusLightsWrap(),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

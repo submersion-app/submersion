@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dashboard/presentation/home_header_style.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/home_presets.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
@@ -27,6 +28,7 @@ Future<MockSettingsNotifier> _pump(
   AppSettings? initial,
   Widget page = const HomeAppearancePage(),
   double width = 800,
+  double textScale = 1,
 }) async {
   tester.view.physicalSize = Size(width, 900);
   tester.view.devicePixelRatio = 1;
@@ -41,6 +43,12 @@ Future<MockSettingsNotifier> _pump(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: page,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
       ),
     ),
   );
@@ -275,5 +283,64 @@ void main() {
       isNot(contains('deepestThisYear')),
     );
     expect(notifier.state.hiddenHomeKeyNumbers, contains('avgDepth'));
+  });
+
+  group('header choice (issue #5003)', () {
+    const phoneKey = ValueKey('home-header-phone');
+    const wideKey = ValueKey('home-header-wide');
+
+    Set<HomeHeaderStyle> selected(WidgetTester tester, Key key) => tester
+        .widget<SegmentedButton<HomeHeaderStyle>>(find.byKey(key))
+        .selected;
+
+    testWidgets('header section shows both rows on Compact by default', (
+      tester,
+    ) async {
+      await _pump(tester);
+      expect(find.text('Header'), findsOneWidget);
+      expect(find.text('Phone width'), findsOneWidget);
+      expect(find.text('Wider screens'), findsOneWidget);
+      expect(selected(tester, phoneKey), {HomeHeaderStyle.compact});
+      expect(selected(tester, wideKey), {HomeHeaderStyle.compact});
+    });
+
+    testWidgets('a stored choice shows as selected', (tester) async {
+      await _pump(
+        tester,
+        initial: const AppSettings(homeHeaderStyleWide: 'banner'),
+      );
+      expect(selected(tester, phoneKey), {HomeHeaderStyle.compact});
+      expect(selected(tester, wideKey), {HomeHeaderStyle.banner});
+    });
+
+    testWidgets('tapping Banner on the phone row saves the phone key only', (
+      tester,
+    ) async {
+      final notifier = await _pump(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(phoneKey),
+          matching: find.text('Banner'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(notifier.state.homeHeaderStylePhone, 'banner');
+      expect(notifier.state.homeHeaderStyleWide, isNull);
+    });
+
+    testWidgets('no overflow at 320 wide and text scale 2', (tester) async {
+      await _pump(tester, width: 320, textScale: 2);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('quick actions listed in the panel list, switched off', (
+      tester,
+    ) async {
+      await _pump(tester);
+      final toggle = find.byKey(const Key('homePanelToggle_quickActions'));
+      await tester.scrollUntilVisible(toggle, 100);
+      expect(find.text('Quick Actions'), findsOneWidget);
+      expect(tester.widget<Switch>(toggle).value, isFalse);
+    });
   });
 }

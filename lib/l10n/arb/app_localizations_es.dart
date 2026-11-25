@@ -66450,4 +66450,103 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Elige las cifras que aparecen arriba en Inicio. Una cifra que aún no tiene nada que mostrar se omite.';
+
+  @override
+  String get dashboard_greeting_morning => 'Buenos días';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Buenas tardes';
+
+  @override
+  String get dashboard_greeting_evening => 'Buenas noches';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '¡$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '¡$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 inmersión registrada';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count inmersiones registradas';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 inmersión';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count inmersiones';
+  }
+
+  @override
+  String get dashboard_hero_error => '¿Listo para explorar las profundidades?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours horas bajo el agua';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'Cargando tus estadísticas de buceo...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes minutos bajo el agua';
+  }
+
+  @override
+  String get dashboard_hero_noDives =>
+      '¿Listo para registrar tu primera inmersión?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Buzo';
+
+  @override
+  String get dashboard_hero_statDives => 'inmersiones';
+
+  @override
+  String get dashboard_hero_statHours => 'horas';
+
+  @override
+  String get dashboard_hero_statSites => 'sitios';
+
+  @override
+  String get dashboard_hero_statCountries => 'países';
+
+  @override
+  String get dashboard_semantics_greetingBanner =>
+      'Banner de bienvenida del panel';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Acciones rápidas';
+
+  @override
+  String get dashboard_quickActions_insights => 'Análisis';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Encabezado';
+
+  @override
+  String get settings_homeHeader_phone => 'Ancho de teléfono';
+
+  @override
+  String get settings_homeHeader_wide => 'Pantallas más anchas';
+
+  @override
+  String get settings_homeHeader_compact => 'Compacto';
+
+  @override
+  String get settings_homeHeader_banner => 'Banner';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo.';
 }

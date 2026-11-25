@@ -66412,4 +66412,103 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Scegli i numeri mostrati in cima alla Home. Un numero che non ha ancora nulla da mostrare viene omesso.';
+
+  @override
+  String get dashboard_greeting_morning => 'Buongiorno';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Buon pomeriggio';
+
+  @override
+  String get dashboard_greeting_evening => 'Buonasera';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 immersione registrata';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count immersioni registrate';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 immersione';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count immersioni';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Pronti a esplorare le profondità?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours ore sott\'acqua';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'Caricamento statistiche immersioni...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes minuti sott\'acqua';
+  }
+
+  @override
+  String get dashboard_hero_noDives =>
+      'Pronto a registrare la tua prima immersione?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Subacqueo';
+
+  @override
+  String get dashboard_hero_statDives => 'immersioni';
+
+  @override
+  String get dashboard_hero_statHours => 'ore';
+
+  @override
+  String get dashboard_hero_statSites => 'siti';
+
+  @override
+  String get dashboard_hero_statCountries => 'paesi';
+
+  @override
+  String get dashboard_semantics_greetingBanner =>
+      'Banner di benvenuto della dashboard';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Azioni rapide';
+
+  @override
+  String get dashboard_quickActions_insights => 'Analisi';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Intestazione';
+
+  @override
+  String get settings_homeHeader_phone => 'Larghezza telefono';
+
+  @override
+  String get settings_homeHeader_wide => 'Schermi più ampi';
+
+  @override
+  String get settings_homeHeader_compact => 'Compatta';
+
+  @override
+  String get settings_homeHeader_banner => 'Banner';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.';
 }

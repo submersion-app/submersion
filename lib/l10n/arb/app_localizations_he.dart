@@ -65057,4 +65057,101 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'בחר את המספרים שיוצגו בראש מסך הבית. מספר שעדיין אין לו מה להציג מושמט.';
+
+  @override
+  String get dashboard_greeting_morning => 'בוקר טוב';
+
+  @override
+  String get dashboard_greeting_afternoon => 'צהריים טובים';
+
+  @override
+  String get dashboard_greeting_evening => 'ערב טוב';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => 'צלילה אחת רשומה';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count צלילות רשומות';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => 'צלילה אחת';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count צלילות';
+  }
+
+  @override
+  String get dashboard_hero_error => 'מוכן לחקור את המעמקים?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours שעות מתחת למים';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'טוען את נתוני הצלילה שלך...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes דקות מתחת למים';
+  }
+
+  @override
+  String get dashboard_hero_noDives => 'מוכן לרשום את הצלילה הראשונה?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'צוללן';
+
+  @override
+  String get dashboard_hero_statDives => 'צלילות';
+
+  @override
+  String get dashboard_hero_statHours => 'שעות';
+
+  @override
+  String get dashboard_hero_statSites => 'אתרים';
+
+  @override
+  String get dashboard_hero_statCountries => 'מדינות';
+
+  @override
+  String get dashboard_semantics_greetingBanner => 'באנר ברכה בלוח המחוונים';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'פעולות מהירות';
+
+  @override
+  String get dashboard_quickActions_insights => 'תובנות';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'כותרת';
+
+  @override
+  String get settings_homeHeader_phone => 'רוחב טלפון';
+
+  @override
+  String get settings_homeHeader_wide => 'מסכים רחבים יותר';
+
+  @override
+  String get settings_homeHeader_compact => 'דחוס';
+
+  @override
+  String get settings_homeHeader_banner => 'באנר';
+
+  @override
+  String get settings_homeHeader_description =>
+      'דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.';
 }

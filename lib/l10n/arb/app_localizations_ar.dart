@@ -67433,4 +67433,101 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'اختر الأرقام المعروضة أعلى الشاشة الرئيسية. يُحذف الرقم الذي ليس لديه ما يعرضه بعد.';
+
+  @override
+  String get dashboard_greeting_morning => 'صباح الخير';
+
+  @override
+  String get dashboard_greeting_afternoon => 'مساء الخير';
+
+  @override
+  String get dashboard_greeting_evening => 'مساء الخير';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting، $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => 'غوصة واحدة مسجلة';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count غوصات مسجلة';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => 'غوصة واحدة';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count غوصات';
+  }
+
+  @override
+  String get dashboard_hero_error => 'هل أنت مستعد لاستكشاف الأعماق؟';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours ساعات تحت الماء';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'جارٍ تحميل إحصائيات الغوص...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes دقائق تحت الماء';
+  }
+
+  @override
+  String get dashboard_hero_noDives => 'هل أنت مستعد لتسجيل أول غوصة؟';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'غواص';
+
+  @override
+  String get dashboard_hero_statDives => 'غطسات';
+
+  @override
+  String get dashboard_hero_statHours => 'ساعات';
+
+  @override
+  String get dashboard_hero_statSites => 'مواقع';
+
+  @override
+  String get dashboard_hero_statCountries => 'دول';
+
+  @override
+  String get dashboard_semantics_greetingBanner => 'شعار ترحيب لوحة التحكم';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'إجراءات سريعة';
+
+  @override
+  String get dashboard_quickActions_insights => 'الرؤى';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'الترويسة';
+
+  @override
+  String get settings_homeHeader_phone => 'عرض الهاتف';
+
+  @override
+  String get settings_homeHeader_wide => 'الشاشات الأعرض';
+
+  @override
+  String get settings_homeHeader_compact => 'مضغوط';
+
+  @override
+  String get settings_homeHeader_banner => 'لافتة';
+
+  @override
+  String get settings_homeHeader_description =>
+      'المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.';
 }
