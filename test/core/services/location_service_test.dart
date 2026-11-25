@@ -419,6 +419,11 @@ void main() {
         expect(result, isNotNull);
         expect(result!.addressUnknown, isTrue);
         expect(result!.country, isNull);
+        expect(
+          server.forcedCloseCount,
+          1,
+          reason: 'the stalled request is aborted, not left holding a socket',
+        );
       });
     });
 
@@ -877,6 +882,11 @@ void main() {
       expect(result.locality, 'Weggis');
       expect(result.bodyOfWater, 'Lake Lucerne');
       expect(server.requestedUris, hasLength(2));
+      expect(
+        server.forcedCloseCount,
+        0,
+        reason: 'answered requests close gently',
+      );
       expect(server.requestedUris.last.queryParameters['layer'], 'natural');
     });
 

@@ -45,6 +45,9 @@ class FakeNominatim {
   final List<Map<String, String>> requestHeaders = <Map<String, String>>[];
   int clientCloseCount = 0;
 
+  /// Closes that aborted outstanding requests (`close(force: true)`).
+  int forcedCloseCount = 0;
+
   Uri get lastUri => requestedUris.last;
   Map<String, String> get lastHeaders => requestHeaders.last;
 
@@ -71,7 +74,10 @@ class FakeHttpClient implements HttpClient {
   }
 
   @override
-  void close({bool force = false}) => _server.clientCloseCount++;
+  void close({bool force = false}) {
+    _server.clientCloseCount++;
+    if (force) _server.forcedCloseCount++;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

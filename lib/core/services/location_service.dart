@@ -525,7 +525,9 @@ class LocationService {
   /// "offline" and "refused" from "nothing there"; a request that outlives
   /// [requestTimeout] throws a [TimeoutException]. The client is closed in a
   /// finally so its sockets are released even when the body or the JSON
-  /// decode throws.
+  /// decode throws. On any failure it is closed with force: a plain close
+  /// lets an outstanding request run on, so a stalled connection that just
+  /// timed out would keep its socket open until the server gave up.
   Future<Map<String, dynamic>> _fetchNominatimJson(
     Uri url,
     String languageCode,
@@ -533,6 +535,7 @@ class LocationService {
     await throttle.wait();
     final client = HttpClient()..connectionTimeout = requestTimeout;
     client.userAgent = 'Submersion Dive Log App';
+    var answered = false;
     try {
       final request = await client.getUrl(url);
       request.headers.set('Accept-Language', languageCode);
@@ -544,9 +547,11 @@ class LocationService {
           .transform(utf8.decoder)
           .join()
           .timeout(requestTimeout);
-      return jsonDecode(body) as Map<String, dynamic>;
+      final json = jsonDecode(body) as Map<String, dynamic>;
+      answered = true;
+      return json;
     } finally {
-      client.close();
+      client.close(force: !answered);
     }
   }
 
