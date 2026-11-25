@@ -459,6 +459,14 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(hiddenHomeKeyNumbers: hidden);
 
   @override
+  Future<void> setHomeHeaderStyle({
+    required bool phone,
+    required String style,
+  }) async => state = phone
+      ? state.copyWith(homeHeaderStylePhone: style)
+      : state.copyWith(homeHeaderStyleWide: style);
+
+  @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
     final rules = {...state.safetyReviewDisabledRules};
     if (enabled) {
