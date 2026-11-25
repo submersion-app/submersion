@@ -20,6 +20,20 @@ Widget app({List<dynamic>? overrides, WidgetBuilder? body}) {
         ),
       ),
       GoRoute(
+        path: '/planning/dive-planner',
+        builder: (context, state) => const Scaffold(body: Text('PLANNER-PAGE')),
+      ),
+      GoRoute(
+        path: '/insights',
+        builder: (context, state) =>
+            const Scaffold(body: Text('INSIGHTS-PAGE')),
+      ),
+      GoRoute(
+        path: '/settings/diver-profile/emergency-card',
+        builder: (context, state) =>
+            const Scaffold(body: Text('EMERGENCY-PAGE')),
+      ),
+      GoRoute(
         path: '/tracks',
         builder: (context, state) => const Scaffold(body: Text('TRACKS-PAGE')),
       ),
@@ -145,4 +159,26 @@ void main() {
       },
     );
   }
+
+  for (final (label, page) in [
+    ('Plan Dive', 'PLANNER-PAGE'),
+    ('Insights', 'INSIGHTS-PAGE'),
+    ('Emergency card', 'EMERGENCY-PAGE'),
+  ]) {
+    testWidgets('$label opens its page', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      expect(find.text(page), findsOneWidget);
+    });
+  }
+
+  testWidgets('Log Dive offers the ways to add a dive', (tester) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Log Dive'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+  });
 }
