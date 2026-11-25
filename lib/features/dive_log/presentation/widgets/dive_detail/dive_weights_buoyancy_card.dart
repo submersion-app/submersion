@@ -39,7 +39,9 @@ class DiveWeightsBuoyancyCard extends ConsumerWidget {
   static const double _leadingWidth = 32;
 
   /// The pencil and its gap, and the unsaved-changes dot beside the title,
-  /// drawn while the dive is unlocked.
+  /// drawn while the dive is unlocked. Reserved while locked too, so that
+  /// unlocking never changes which form the What if? button takes: the title
+  /// would rewrap and the row change height under the diver's finger.
   static const double _pencilWidth = 48;
 
   /// The least the title keeps before the What if? button gives up its
@@ -54,7 +56,6 @@ class DiveWeightsBuoyancyCard extends ConsumerWidget {
     final outcome = ref.watch(buoyancyTwinProvider(stored.id)).value;
     final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
-    final unlocked = RecordCardFrameScope.maybeOf(context) != null;
 
     return Card(
       child: Padding(
@@ -64,10 +65,7 @@ class DiveWeightsBuoyancyCard extends ConsumerWidget {
           children: [
             LayoutBuilder(
               builder: (context, constraints) {
-                final room =
-                    _leadingWidth +
-                    _minTitleWidth +
-                    (unlocked ? _pencilWidth : 0);
+                const room = _leadingWidth + _minTitleWidth + _pencilWidth;
                 return RecordCardHeader(
                   title: context.l10n.diveDetailSection_weights_name,
                   leading: Icon(Icons.waves, color: theme.colorScheme.primary),

@@ -160,4 +160,23 @@ void main() {
 
     expect(find.text('What if?'), findsOneWidget);
   });
+
+  testWidgets('unlocking does not change the title row height', (tester) async {
+    // Wide enough for the label beside the title and icon alone, too narrow
+    // once the pencil's room is counted.
+    await tester.binding.setSurfaceSize(const Size(400, 2000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final header = find.byType(RecordCardHeader);
+
+    await pump(tester, outcome: buoyancyOutcome());
+    // The pencil's room is kept while locked, so the button already takes
+    // the form it keeps once unlocked.
+    expect(find.text('What if?'), findsNothing);
+    expect(find.byTooltip('What if?'), findsOneWidget);
+    final locked = tester.getSize(header).height;
+
+    await pump(tester, outcome: buoyancyOutcome(), unlocked: true);
+    expect(find.byTooltip('What if?'), findsOneWidget);
+    expect(tester.getSize(header).height, locked);
+  });
 }
