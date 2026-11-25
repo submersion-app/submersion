@@ -233,6 +233,30 @@ String rightAxisLabel(
   }
 }
 
+/// The right axis's unit alone (e.g. "bar", "°C"), for the caption above the
+/// chart's right tick column (issue #5013). A metric with no unit falls back
+/// to its short name, so the caption never goes blank.
+String rightAxisUnitCaption(
+  ProfileRightAxisMetric metric,
+  UnitFormatter units,
+  AppLocalizations l10n,
+) {
+  final perMin = l10n.units_profileMetric_min;
+  return switch (metric) {
+    ProfileRightAxisMetric.temperature => units.temperatureSymbol,
+    ProfileRightAxisMetric.pressure => units.pressureSymbol,
+    ProfileRightAxisMetric.meanDepth => units.depthSymbol,
+    ProfileRightAxisMetric.sac => '${units.pressureSymbol}/$perMin',
+    ProfileRightAxisMetric.ascentRate => '${units.depthSymbol}/$perMin',
+    ProfileRightAxisMetric.buoyancy ||
+    ProfileRightAxisMetric.aveloBuoyancy => units.weightSymbol,
+    ProfileRightAxisMetric.computerRmv => units.rmvSymbol,
+    _ =>
+      profileMetricUnitSuffix(l10n, metric) ??
+          profileMetricShortName(l10n, metric),
+  };
+}
+
 /// Localized display name for a right-axis metric.
 ///
 /// [ProfileRightAxisMetric.displayName] is a hardcoded English literal baked
