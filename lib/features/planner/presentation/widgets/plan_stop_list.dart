@@ -146,6 +146,9 @@ class _PlanStopListState extends State<PlanStopList> {
                       padding: const EdgeInsetsDirectional.only(start: 5),
                       child: Text(
                         change,
+                        // A signed number: laid out right to left, its sign
+                        // would move to its far end and read 2+.
+                        textDirection: TextDirection.ltr,
                         style: style?.copyWith(
                           color: palette.stopTagChangeText,
                         ),

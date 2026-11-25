@@ -351,6 +351,11 @@ void main() {
           tester.getTopRight(find.text('+2')).dx,
       greaterThanOrEqualTo(5),
     );
+    // The sign stays in front of the number, +2 and not 2+.
+    expect(
+      tester.widget<Text>(find.text('+2')).textDirection,
+      TextDirection.ltr,
+    );
     // The scrollbar draws on the left, so the room for it is there.
     final list = tester.getRect(find.byType(PlanStopList));
     final table = tester.getRect(find.byType(Table));

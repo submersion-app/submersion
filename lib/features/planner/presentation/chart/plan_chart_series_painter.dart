@@ -187,7 +187,9 @@ class PlanChartSeriesPainter extends CustomPainter {
                 : layoutLabel(
                     tag.change!,
                     tagStyle.copyWith(color: palette.stopTagChangeText),
-                    textDirection,
+                    // A signed number keeps its sign in front in every
+                    // locale; right to left it would read 2+.
+                    TextDirection.ltr,
                   ),
           ),
       ];
