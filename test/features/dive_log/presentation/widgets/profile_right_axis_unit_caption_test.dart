@@ -59,6 +59,16 @@ void main() {
     expect(caption(ProfileRightAxisMetric.gf, metric), 'GF%');
   });
 
+  test('only a symbol unit counts as carried by the short name', () {
+    // "GF%" already says percent; an abbreviation that merely ends in the
+    // letters of its unit ("Atlm" for a depth in m) does not say metres.
+    expect(shortNameCarriesUnit('GF%', '%'), isTrue);
+    expect(shortNameCarriesUnit('Temp°C', '°C'), isTrue);
+    expect(shortNameCarriesUnit('Atlm', 'm'), isFalse);
+    expect(shortNameCarriesUnit('Xmin', 'min'), isFalse);
+    expect(shortNameCarriesUnit('CNS', '%'), isFalse);
+  });
+
   test('a metric without a unit falls back to its short name', () {
     expect(caption(ProfileRightAxisMetric.otu, metric), 'OTU');
     expect(caption(ProfileRightAxisMetric.o2CellMv, metric), 'Cells');

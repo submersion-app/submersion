@@ -46,6 +46,7 @@
 **Interfaces:**
 - Produces: `String rightAxisUnitCaption(ProfileRightAxisMetric metric, UnitFormatter units, AppLocalizations l10n)` returning the unit alone: `temperature` gives `units.temperatureSymbol`; `pressure` gives `units.pressureSymbol`; `meanDepth` gives `units.depthSymbol`; `sac` gives `'${units.pressureSymbol}/${l10n.units_profileMetric_min}'`; `ascentRate` gives `'${units.depthSymbol}/${l10n.units_profileMetric_min}'`; `buoyancy` and `aveloBuoyancy` give `units.weightSymbol`; `computerRmv` gives `units.rmvSymbol`; any other metric gives `profileMetricUnitSuffix(l10n, metric) ?? profileMetricShortName(l10n, metric)`.
 - `rightAxisLabel` is deleted once Task 2 removes its only caller.
+- Superseded after review: the caption now adds the metric's short name when its unit is shared with another right-axis metric or the depth axis ("ppO2 bar", "Mean m"); see the spec's Design, item 1.
 
 - [ ] **Step 1: Write the failing tests**: `metric units give bare symbols` (temperature `°C`, pressure `bar`, sac `bar/min`, ascentRate `m/min` with metric settings), `imperial units` (pressure `psi`, meanDepth `ft`), `a metric without a unit falls back to its short name` (pick a metric whose `profileMetricUnitSuffix` is null and expect `profileMetricShortName` for it).
 - [ ] **Step 2:** Run `flutter test test/features/dive_log/presentation/widgets/profile_right_axis_unit_caption_test.dart`; expect failure (undefined function).

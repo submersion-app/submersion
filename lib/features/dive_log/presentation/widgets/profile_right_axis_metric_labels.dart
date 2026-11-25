@@ -216,7 +216,7 @@ String rightAxisUnitCaption(
 ) {
   final name = profileMetricShortName(l10n, metric);
   final unit = _rightAxisUnit(metric, units, l10n);
-  if (unit == null || name.endsWith(unit)) return name;
+  if (unit == null || shortNameCarriesUnit(name, unit)) return name;
   final shared =
       unit == units.depthSymbol ||
       ProfileRightAxisMetric.values.any(
@@ -225,6 +225,15 @@ String rightAxisUnitCaption(
       );
   return shared ? '$name $unit' : unit;
 }
+
+/// Whether the short [name] already shows [unit] ("GF%"), so the caption
+/// needs no unit after it. Only a unit that starts with a symbol counts: a
+/// name that merely ends in a letter unit's letters (an abbreviation ending
+/// in "m" for a depth in metres) does not say the unit.
+bool shortNameCarriesUnit(String name, String unit) =>
+    unit.isNotEmpty &&
+    !RegExp(r'^\p{L}', unicode: true).hasMatch(unit) &&
+    name.endsWith(unit);
 
 /// The unit [metric] reads in, or null for a metric without one.
 String? _rightAxisUnit(
