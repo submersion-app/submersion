@@ -43,6 +43,7 @@ void main() {
     AppSettings settings = const AppSettings(),
     bool temperature = true,
     ProfileRightAxisMetric? rightAxis = ProfileRightAxisMetric.temperature,
+    TextDirection textDirection = TextDirection.ltr,
   }) async {
     tester.view.physicalSize = Size(width + 100, 600);
     tester.view.devicePixelRatio = 1;
@@ -62,9 +63,12 @@ void main() {
               alignment: Alignment.topLeft,
               child: SizedBox(
                 width: width,
-                child: DiveProfileChart(
-                  profile: _profile(temperature: temperature),
-                  meanDepthCurve: List.generate(41, (i) => i * 0.4),
+                child: Directionality(
+                  textDirection: textDirection,
+                  child: DiveProfileChart(
+                    profile: _profile(temperature: temperature),
+                    meanDepthCurve: List.generate(41, (i) => i * 0.4),
+                  ),
                 ),
               ),
             ),
@@ -149,6 +153,18 @@ void main() {
     expect(right.right, closeTo(chart.right, 0.5));
     final plot = tester.getRect(find.byType(LineChart).first);
     expect(left.bottom, lessThanOrEqualTo(plot.top));
+  });
+
+  testWidgets('captions keep their sides in a right-to-left language', (
+    tester,
+  ) async {
+    // fl_chart never mirrors its axes, so neither may their captions.
+    await pumpChart(tester, textDirection: TextDirection.rtl);
+    final chart = tester.getRect(find.byType(DiveProfileChart));
+    final left = tester.getRect(find.byKey(ProfileAxisCaptions.leftKey));
+    final right = tester.getRect(find.byKey(ProfileAxisCaptions.rightKey));
+    expect(left.left, closeTo(chart.left, 0.5));
+    expect(right.right, closeTo(chart.right, 0.5));
   });
 
   test('plot insets drop the axis-name strip', () {

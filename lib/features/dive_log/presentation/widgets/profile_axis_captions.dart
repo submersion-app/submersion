@@ -47,6 +47,9 @@ class ProfileAxisCaptions extends StatelessWidget {
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
+            // The labelled tap target over the right axis is the accessible
+            // control for this; a second, unlabelled one would read as "°C".
+            excludeFromSemantics: true,
             onTap: onTap,
             child: rightText,
           ),
@@ -54,6 +57,9 @@ class ProfileAxisCaptions extends StatelessWidget {
       }
     }
     return Row(
+      // fl_chart never mirrors its axes, so the captions keep their sides in
+      // a right-to-left language too.
+      textDirection: TextDirection.ltr,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Flexible(
