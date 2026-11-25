@@ -35307,18 +35307,6 @@ abstract class AppLocalizations {
   /// **'Bailout'**
   String get plannerCanvas_chartMode_bailout;
 
-  /// No description provided for @plannerCanvas_chartMode_ccr.
-  ///
-  /// In en, this message translates to:
-  /// **'CCR'**
-  String get plannerCanvas_chartMode_ccr;
-
-  /// No description provided for @plannerCanvas_chartMode_scr.
-  ///
-  /// In en, this message translates to:
-  /// **'SCR'**
-  String get plannerCanvas_chartMode_scr;
-
   /// No description provided for @plannerCanvas_scrub_tts.
   ///
   /// In en, this message translates to:

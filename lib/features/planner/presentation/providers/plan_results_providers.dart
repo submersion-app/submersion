@@ -192,6 +192,21 @@ final planLostGasProvider =
       return _nothingToCompute(ref, const []);
     }, retry: (_, _) => null);
 
+/// Whether the chart is in Bailout view: the Bailout chip is on and still
+/// offered. The contingency toggles are not in effect then (#5018): the
+/// bailout picture is no variant of them, and their ghost over it would mix
+/// two dives.
+final planBailoutViewProvider = Provider<bool>((ref) {
+  if (ref.watch(chartDisplayModeProvider) != ChartDisplayMode.bailout) {
+    return false;
+  }
+  if (!ref.watch(planMayHaveBailoutProvider)) return false;
+  return !planResultView(
+    ref.watch(planBailoutProvider),
+    ref.watch(divePlanNotifierProvider.select((s) => s.id)),
+  ).isFinishedEmpty;
+});
+
 /// What the chart does about the bailout picture: [picture] to draw in place
 /// of the live plan, if any, and [status] and [gasGap] to say on the chart, if
 /// any. All are null outside [ChartDisplayMode.bailout].

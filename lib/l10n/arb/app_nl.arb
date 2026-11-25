@@ -18171,8 +18171,6 @@
   "divePlanner_segmentEditor_splitAtRateHint": "Reizen met de geconfigureerde snelheid, de rest van de duur als hangtijd",
   "plannerCanvas_bailout_schedule": "Plan vanaf het ergste geval",
   "plannerCanvas_chartMode_bailout": "Bailout",
-  "plannerCanvas_chartMode_ccr": "CCR",
-  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",
