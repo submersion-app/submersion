@@ -63550,4 +63550,101 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'ホームの上部に表示する数値を選択します。表示するデータがまだない数値は省略されます。';
+
+  @override
+  String get dashboard_greeting_morning => 'おはようございます';
+
+  @override
+  String get dashboard_greeting_afternoon => 'こんにちは';
+
+  @override
+  String get dashboard_greeting_evening => 'こんばんは';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting、$nameさん！';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting！';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1本のダイブを記録';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count本のダイブを記録';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1本のダイブ';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count本のダイブ';
+  }
+
+  @override
+  String get dashboard_hero_error => '海の深みを探検する準備はできましたか？';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '水中で$hours時間';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'ダイブ統計を読み込み中...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '水中で$minutes分';
+  }
+
+  @override
+  String get dashboard_hero_noDives => '最初のダイブを記録しましょう';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'ダイバー';
+
+  @override
+  String get dashboard_hero_statDives => 'ダイブ';
+
+  @override
+  String get dashboard_hero_statHours => '時間';
+
+  @override
+  String get dashboard_hero_statSites => 'サイト';
+
+  @override
+  String get dashboard_hero_statCountries => 'か国';
+
+  @override
+  String get dashboard_semantics_greetingBanner => 'ダッシュボードのあいさつバナー';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'クイックアクション';
+
+  @override
+  String get dashboard_quickActions_insights => 'インサイト';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'ヘッダー';
+
+  @override
+  String get settings_homeHeader_phone => 'スマートフォン幅';
+
+  @override
+  String get settings_homeHeader_wide => 'より広い画面';
+
+  @override
+  String get settings_homeHeader_compact => 'コンパクト';
+
+  @override
+  String get settings_homeHeader_banner => 'バナー';
+
+  @override
+  String get settings_homeHeader_description =>
+      'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
 }

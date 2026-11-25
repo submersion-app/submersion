@@ -62046,4 +62046,101 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       '选择首页顶部显示的数字。尚无内容可显示的数字会被省略。';
+
+  @override
+  String get dashboard_greeting_morning => '上午好';
+
+  @override
+  String get dashboard_greeting_afternoon => '下午好';
+
+  @override
+  String get dashboard_greeting_evening => '晚上好';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '已记录 1 次潜水';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '已记录 $count 次潜水';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 次潜水';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count 次潜水';
+  }
+
+  @override
+  String get dashboard_hero_error => '准备好探索深海了吗？';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '水下 $hours 小时';
+  }
+
+  @override
+  String get dashboard_hero_loading => '正在加载您的潜水统计...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '水下 $minutes 分钟';
+  }
+
+  @override
+  String get dashboard_hero_noDives => '准备好记录您的第一次潜水了吗？';
+
+  @override
+  String get dashboard_hero_diverFallbackName => '潜水员';
+
+  @override
+  String get dashboard_hero_statDives => '潜水';
+
+  @override
+  String get dashboard_hero_statHours => '小时';
+
+  @override
+  String get dashboard_hero_statSites => '潜点';
+
+  @override
+  String get dashboard_hero_statCountries => '国家';
+
+  @override
+  String get dashboard_semantics_greetingBanner => '仪表盘问候横幅';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => '快捷操作';
+
+  @override
+  String get dashboard_quickActions_insights => '洞察';
+
+  @override
+  String get settings_homeHeader_sectionTitle => '页眉';
+
+  @override
+  String get settings_homeHeader_phone => '手机宽度';
+
+  @override
+  String get settings_homeHeader_wide => '更宽的屏幕';
+
+  @override
+  String get settings_homeHeader_compact => '紧凑';
+
+  @override
+  String get settings_homeHeader_banner => '横幅';
+
+  @override
+  String get settings_homeHeader_description =>
+      '紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。';
 }

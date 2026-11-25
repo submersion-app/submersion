@@ -65834,4 +65834,102 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Kies de cijfers bovenaan Start. Een cijfer zonder iets om te tonen wordt weggelaten.';
+
+  @override
+  String get dashboard_greeting_morning => 'Goedemorgen';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Goedemiddag';
+
+  @override
+  String get dashboard_greeting_evening => 'Goedenavond';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 duik gelogd';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count duiken gelogd';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 duik';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count duiken';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Klaar om de diepte te verkennen?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours uur onder water';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'Uw duikstatistieken laden...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes minuten onder water';
+  }
+
+  @override
+  String get dashboard_hero_noDives => 'Klaar om uw eerste duik te loggen?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Duiker';
+
+  @override
+  String get dashboard_hero_statDives => 'duiken';
+
+  @override
+  String get dashboard_hero_statHours => 'uur';
+
+  @override
+  String get dashboard_hero_statSites => 'stekken';
+
+  @override
+  String get dashboard_hero_statCountries => 'landen';
+
+  @override
+  String get dashboard_semantics_greetingBanner =>
+      'Dashboard begroetingsbanner';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Snelle acties';
+
+  @override
+  String get dashboard_quickActions_insights => 'Inzichten';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Koptekst';
+
+  @override
+  String get settings_homeHeader_phone => 'Telefoonbreedte';
+
+  @override
+  String get settings_homeHeader_wide => 'Bredere schermen';
+
+  @override
+  String get settings_homeHeader_compact => 'Compact';
+
+  @override
+  String get settings_homeHeader_banner => 'Banner';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.';
 }

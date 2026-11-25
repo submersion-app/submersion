@@ -66363,4 +66363,104 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Choisissez les chiffres affichés en haut de l\'accueil. Un chiffre qui n\'a encore rien à montrer est omis.';
+
+  @override
+  String get dashboard_greeting_morning => 'Bonjour';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Bon après-midi';
+
+  @override
+  String get dashboard_greeting_evening => 'Bonsoir';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name !';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting !';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 plongée enregistrée';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count plongées enregistrées';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 plongée';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count plongées';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Prêt à explorer les profondeurs ?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours heures sous l\'eau';
+  }
+
+  @override
+  String get dashboard_hero_loading =>
+      'Chargement de tes statistiques de plongée...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes minutes sous l\'eau';
+  }
+
+  @override
+  String get dashboard_hero_noDives =>
+      'Prêt à enregistrer ta première plongée ?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Plongeur';
+
+  @override
+  String get dashboard_hero_statDives => 'plongées';
+
+  @override
+  String get dashboard_hero_statHours => 'heures';
+
+  @override
+  String get dashboard_hero_statSites => 'sites';
+
+  @override
+  String get dashboard_hero_statCountries => 'pays';
+
+  @override
+  String get dashboard_semantics_greetingBanner =>
+      'Bannière d\'accueil du tableau de bord';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Actions rapides';
+
+  @override
+  String get dashboard_quickActions_insights => 'Analyses';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'En-tête';
+
+  @override
+  String get settings_homeHeader_phone => 'Largeur de téléphone';
+
+  @override
+  String get settings_homeHeader_wide => 'Écrans plus larges';
+
+  @override
+  String get settings_homeHeader_compact => 'Compact';
+
+  @override
+  String get settings_homeHeader_banner => 'Bannière';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Compact est une barre fine avec des voyants d\'état. Bannière est la bannière d\'accueil avec vos totaux de plongée. Enregistré sur cet appareil.';
 }

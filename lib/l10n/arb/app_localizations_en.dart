@@ -65219,4 +65219,101 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.';
+
+  @override
+  String get dashboard_greeting_morning => 'Good morning';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Good afternoon';
+
+  @override
+  String get dashboard_greeting_evening => 'Good evening';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 dive logged';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count dives logged';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 dive';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count dives';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Ready to explore the depths?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours hours underwater';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'Loading your dive stats...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes minutes underwater';
+  }
+
+  @override
+  String get dashboard_hero_noDives => 'Ready to log your first dive?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Diver';
+
+  @override
+  String get dashboard_hero_statDives => 'dives';
+
+  @override
+  String get dashboard_hero_statHours => 'hours';
+
+  @override
+  String get dashboard_hero_statSites => 'sites';
+
+  @override
+  String get dashboard_hero_statCountries => 'countries';
+
+  @override
+  String get dashboard_semantics_greetingBanner => 'Dashboard greeting banner';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Quick Actions';
+
+  @override
+  String get dashboard_quickActions_insights => 'Insights';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Header';
+
+  @override
+  String get settings_homeHeader_phone => 'Phone width';
+
+  @override
+  String get settings_homeHeader_wide => 'Wider screens';
+
+  @override
+  String get settings_homeHeader_compact => 'Compact';
+
+  @override
+  String get settings_homeHeader_banner => 'Banner';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.';
 }

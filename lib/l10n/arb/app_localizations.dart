@@ -103555,6 +103555,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.'**
   String get settings_homeKeyNumbers_description;
+
+  /// No description provided for @dashboard_greeting_morning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get dashboard_greeting_morning;
+
+  /// No description provided for @dashboard_greeting_afternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get dashboard_greeting_afternoon;
+
+  /// No description provided for @dashboard_greeting_evening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get dashboard_greeting_evening;
+
+  /// No description provided for @dashboard_greeting_withName.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}, {name}!'**
+  String dashboard_greeting_withName(Object greeting, Object name);
+
+  /// No description provided for @dashboard_greeting_withoutName.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting}!'**
+  String dashboard_greeting_withoutName(Object greeting);
+
+  /// No description provided for @dashboard_hero_divesLoggedOne.
+  ///
+  /// In en, this message translates to:
+  /// **'1 dive logged'**
+  String get dashboard_hero_divesLoggedOne;
+
+  /// No description provided for @dashboard_hero_divesLoggedOther.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives logged'**
+  String dashboard_hero_divesLoggedOther(Object count);
+
+  /// No description provided for @dashboard_hero_divesTotalOne.
+  ///
+  /// In en, this message translates to:
+  /// **'1 dive'**
+  String get dashboard_hero_divesTotalOne;
+
+  /// No description provided for @dashboard_hero_divesTotalOther.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives'**
+  String dashboard_hero_divesTotalOther(Object count);
+
+  /// No description provided for @dashboard_hero_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to explore the depths?'**
+  String get dashboard_hero_error;
+
+  /// No description provided for @dashboard_hero_hoursUnderwater.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours underwater'**
+  String dashboard_hero_hoursUnderwater(Object hours);
+
+  /// No description provided for @dashboard_hero_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your dive stats...'**
+  String get dashboard_hero_loading;
+
+  /// No description provided for @dashboard_hero_minutesUnderwater.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes underwater'**
+  String dashboard_hero_minutesUnderwater(Object minutes);
+
+  /// No description provided for @dashboard_hero_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to log your first dive?'**
+  String get dashboard_hero_noDives;
+
+  /// No description provided for @dashboard_hero_diverFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver'**
+  String get dashboard_hero_diverFallbackName;
+
+  /// No description provided for @dashboard_hero_statDives.
+  ///
+  /// In en, this message translates to:
+  /// **'dives'**
+  String get dashboard_hero_statDives;
+
+  /// No description provided for @dashboard_hero_statHours.
+  ///
+  /// In en, this message translates to:
+  /// **'hours'**
+  String get dashboard_hero_statHours;
+
+  /// No description provided for @dashboard_hero_statSites.
+  ///
+  /// In en, this message translates to:
+  /// **'sites'**
+  String get dashboard_hero_statSites;
+
+  /// No description provided for @dashboard_hero_statCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'countries'**
+  String get dashboard_hero_statCountries;
+
+  /// No description provided for @dashboard_semantics_greetingBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard greeting banner'**
+  String get dashboard_semantics_greetingBanner;
+
+  /// No description provided for @dashboard_quickActions_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get dashboard_quickActions_sectionTitle;
+
+  /// No description provided for @dashboard_quickActions_insights.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get dashboard_quickActions_insights;
+
+  /// Settings > Home: heading of the choice between the compact header bar and the welcome banner
+  ///
+  /// In en, this message translates to:
+  /// **'Header'**
+  String get settings_homeHeader_sectionTitle;
+
+  /// Settings > Home: row label for the header used at phone width
+  ///
+  /// In en, this message translates to:
+  /// **'Phone width'**
+  String get settings_homeHeader_phone;
+
+  /// Settings > Home: row label for the header used on tablet and desktop widths
+  ///
+  /// In en, this message translates to:
+  /// **'Wider screens'**
+  String get settings_homeHeader_wide;
+
+  /// Option name: the slim header bar
+  ///
+  /// In en, this message translates to:
+  /// **'Compact'**
+  String get settings_homeHeader_compact;
+
+  /// Option name: the welcome banner
+  ///
+  /// In en, this message translates to:
+  /// **'Banner'**
+  String get settings_homeHeader_banner;
+
+  /// Settings > Home: explains the two header options
+  ///
+  /// In en, this message translates to:
+  /// **'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.'**
+  String get settings_homeHeader_description;
 }
 
 class _AppLocalizationsDelegate
