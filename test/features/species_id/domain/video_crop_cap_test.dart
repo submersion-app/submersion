@@ -218,6 +218,15 @@ void main() {
       expect(keptStandIn(rows, rows.first, {'c', 't'})?.id, 'c');
     });
 
+    test('never stands an unnamed crop in for a named track', () {
+      final rows = [
+        track('dropped', area: 50),
+        track('named', area: 100),
+        unnamed('blob', area: 900),
+      ];
+      expect(keptStandIn(rows, rows.first, {'named', 'blob'})?.id, 'named');
+    });
+
     test('is null when the group has no crop left', () {
       final rows = [
         track('a'),

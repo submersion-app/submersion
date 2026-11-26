@@ -64,8 +64,9 @@ Set<String> videoCropsToDrop(
 }
 
 /// The track in [missing]'s group whose crop is in [present], largest box
-/// first: what to show for a crop the cap dropped. Null when the group has
-/// none left.
+/// first: what to show for a crop the cap dropped. Only a track of the
+/// same kind stands in, named for named, as the cap ranks them apart: an
+/// unnamed crop may be a blur or a hand. Null when the group has none left.
 MediaIdentification? keptStandIn(
   List<MediaIdentification> rows,
   MediaIdentification missing,
@@ -73,11 +74,13 @@ MediaIdentification? keptStandIn(
   List<TaggedSpecies> tags = const [],
 }) {
   final key = cropGroupKey(missing, tags: tags);
+  final named = isNamed(missing);
   return rows
       .where(
         (i) =>
             i.isTrack &&
             present.contains(i.id) &&
+            isNamed(i) == named &&
             cropGroupKey(i, tags: tags) == key,
       )
       .sorted(_bySize)

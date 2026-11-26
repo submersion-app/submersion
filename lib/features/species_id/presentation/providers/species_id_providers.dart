@@ -570,13 +570,16 @@ final identificationCropProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(table.watchChanges());
       // A video keeps only a few crops of each species (issue #5032): a
       // dropped one shows the largest kept crop of its group instead.
-      final rows = await ref
-          .read(mediaIdentificationRepositoryProvider)
-          .forMedia(key.$1);
+      final repository = ref.read(mediaIdentificationRepositoryProvider);
+      final rows = await repository.forMedia(key.$1);
       final row = rows.firstWhereOrNull((i) => i.id == key.$2);
       if (row == null || !row.isTrack || !ref.mounted) return null;
+      // Its tags tell a track the diver accepted as another species, which
+      // falls back within that species, as the cap ranks it.
+      final tags = await repository.taggedSpecies(key.$1);
+      if (!ref.mounted) return null;
       final present = await ref.watch(presentCropIdsProvider(key.$1).future);
-      final standIn = keptStandIn(rows, row, present);
+      final standIn = keptStandIn(rows, row, present, tags: tags);
       if (standIn == null) return null;
       return store.read(key.$1, standIn.id);
     });

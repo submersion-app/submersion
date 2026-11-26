@@ -84,6 +84,45 @@ void main() {
     expect(await container.read(present.future), {'kept-small', 'kept-large'});
   });
 
+  test('a track accepted as another species falls back within that '
+      'species (its tag says so)', () async {
+    final rows = [
+      track(
+        'dropped',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_grunt',
+      ).copyWith(boxPixelWidth: 900),
+      track(
+        'grunt',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_grunt',
+      ).copyWith(boxPixelWidth: 100),
+      track(
+        'parrot',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_queen_parrotfish',
+      ).copyWith(boxPixelWidth: 500),
+    ];
+    await store.write('v1', 'grunt', small);
+    await store.write('v1', 'parrot', large);
+    final container = ProviderContainer(
+      overrides: [
+        identificationCropStoreProvider.overrideWithValue(store),
+        mediaIdentificationRepositoryProvider.overrideWithValue(
+          _Tagged(rows, const [
+            TaggedSpecies(
+              speciesId: 'sp_grunt',
+              scientificName: 'Haemulon flavolineatum',
+            ),
+            TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
+          ]),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    expect(await bytesOf(await cropOf(container, 'v1', 'dropped')), small);
+  });
+
   test('a photo\'s missing crop stays missing', () async {
     final rows = [identification('a'), identification('b')];
     await store.write('m1', 'b', large);
@@ -93,4 +132,14 @@ void main() {
   test('a track with no kept crop in its group stays missing', () async {
     expect(await cropOf(containerFor([track('a')]), 'v1', 'a'), isNull);
   });
+}
+
+/// Identifications with the species tags of their media.
+class _Tagged extends FixedIdentifications {
+  _Tagged(super.rows, this.tags);
+
+  final List<TaggedSpecies> tags;
+
+  @override
+  Future<List<TaggedSpecies>> taggedSpecies(String mediaId) async => tags;
 }

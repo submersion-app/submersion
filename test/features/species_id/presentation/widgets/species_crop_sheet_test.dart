@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -252,6 +253,11 @@ void main() {
         tester,
         type: MediaType.video,
         rows: [track('a', 1000), track('b', 2000), track('c', 3000)],
+        extra: [
+          presentCropIdsProvider.overrideWith(
+            (ref, _) async => {'a', 'b', 'c'},
+          ),
+        ],
       );
       expect(find.text('3 in this video'), findsOneWidget);
     });
@@ -378,6 +384,35 @@ void main() {
       await tester.pumpAndSettle();
       expect(reported, const Duration(milliseconds: 4000));
       expect(find.byKey(const ValueKey('species_crop_sheet')), findsNothing);
+    });
+
+    testWidgets('a screen reader can play from a time', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpVideo(
+        tester,
+        [gruntTrack('a', 4000, 9000)],
+        present: {'a'},
+        onMoment: (_) {},
+      );
+      final data = tester
+          .getSemantics(find.bySemanticsLabel('Play from 0:04'))
+          .getSemanticsData();
+      expect(data.hasAction(SemanticsAction.tap), isTrue);
+      semantics.dispose();
+    });
+
+    testWidgets('says nothing of the count until the kept crops are read', (
+      tester,
+    ) async {
+      final never = Completer<Set<String>>();
+      await pumpOpener(
+        tester,
+        rows: [gruntTrack('a', 0, 500), gruntTrack('b', 2000, 2500)],
+        type: MediaType.video,
+        onMoment: (_) {},
+        extra: [presentCropIdsProvider.overrideWith((ref, _) => never.future)],
+      );
+      expect(find.text('2 in this video'), findsNothing);
     });
 
     testWidgets('a track under a second is one time', (tester) async {

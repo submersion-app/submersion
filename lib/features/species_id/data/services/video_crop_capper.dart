@@ -45,8 +45,14 @@ class VideoCropCapper {
       if (drop.isEmpty) return 0;
       final present = await _crops.presentAmong(mediaId, drop.toList());
       if (present.isEmpty) return 0;
+      // Only the maker trims synced crops. With this device's id unread,
+      // only a run with no maker yet (never published) counts as its own.
       final me = await _deviceId();
-      if (run != null && me != null && !run.madeOn(me)) {
+      final mine =
+          run == null ||
+          run.analysedBy == null ||
+          (me != null && run.madeOn(me));
+      if (!mine) {
         await _crops.deleteFiles(mediaId, present.toList());
         return 0;
       }

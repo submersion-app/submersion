@@ -7,8 +7,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
+import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/services/species_crops.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -124,9 +124,12 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
     // A video keeps only the clearest few crops of a species (issue #5032):
     // the strip shows those, or the first track, whose crop falls back to a
     // kept one of its group.
-    final present = video
-        ? ref.watch(presentCropIdsProvider(mediaId)).value
+    final presentRead = video
+        ? ref.watch(presentCropIdsProvider(mediaId))
         : null;
+    final present = presentRead?.value;
+    // Read, or failed to: a failed read counts every track, never hides it.
+    final presentKnown = presentRead == null || !presentRead.isLoading;
     final kept = present == null
         ? const <MediaIdentification>[]
         : [
@@ -174,7 +177,9 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
               ),
             ),
           ),
-          if (all.length > 1) ...[
+          // On a video, said once the kept crops are read, so the count
+          // does not change under the diver's eyes.
+          if (all.length > 1 && presentKnown) ...[
             const SizedBox(height: 12),
             Text(
               !video
@@ -239,25 +244,33 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
         runSpacing: 8,
         children: [
           for (final s in stretches)
-            Semantics(
-              button: true,
-              label: l10n.media_species_playFrom(time(s.startMs)),
-              excludeSemantics: true,
-              child: ActionChip(
-                key: ValueKey('species_crop_moment_${s.startMs}'),
-                avatar: const Icon(Icons.play_arrow, size: 18),
-                label: Text(
-                  s.endMs - s.startMs < 1000
-                      ? time(s.startMs)
-                      : l10n.media_species_seenStretch(
-                          time(s.startMs),
-                          time(s.endMs),
-                        ),
-                ),
-                onPressed: () => Navigator.of(
+            Builder(
+              builder: (context) {
+                void play() => Navigator.of(
                   context,
-                ).pop(Duration(milliseconds: s.startMs)),
-              ),
+                ).pop(Duration(milliseconds: s.startMs));
+                // The chip's own semantics are replaced, so the tap is
+                // offered here too, or a screen reader cannot press it.
+                return Semantics(
+                  button: true,
+                  label: l10n.media_species_playFrom(time(s.startMs)),
+                  excludeSemantics: true,
+                  onTap: play,
+                  child: ActionChip(
+                    key: ValueKey('species_crop_moment_${s.startMs}'),
+                    avatar: const Icon(Icons.play_arrow, size: 18),
+                    label: Text(
+                      s.endMs - s.startMs < 1000
+                          ? time(s.startMs)
+                          : l10n.media_species_seenStretch(
+                              time(s.startMs),
+                              time(s.endMs),
+                            ),
+                    ),
+                    onPressed: play,
+                  ),
+                );
+              },
             ),
         ],
       ),

@@ -129,6 +129,15 @@ void main() {
     },
   );
 
+  test('with this device\'s id unreadable it removes no synced crop of a '
+      'video another device analysed', () async {
+    me = null;
+    final ids = await seedNamed('v1', 5, madeBy: 'other');
+    expect(await capper().cap('v1'), 0);
+    expect(await store.presentAmong('v1', ids), ids.toSet());
+    expect(await cropTombstones(), isEmpty);
+  });
+
   test('does nothing for a photo', () async {
     final rows = [
       for (var k = 0; k < 5; k++)
