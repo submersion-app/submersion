@@ -23163,9 +23163,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min. ledobható ólom';
 
   @override
-  String get trim_title => 'Trimm';
-
-  @override
   String get trim_tryout_button => 'Elhelyezés kipróbálása';
 
   @override
@@ -23362,6 +23359,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trim_spot_floatPoint => 'A testen eloszolva';
+
+  @override
+  String get trim_spot_noSpot => 'Nincs rögzített hely';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'Trimmábra: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
 
   @override
   String trim_verdictLine(String pitch, String roll) {

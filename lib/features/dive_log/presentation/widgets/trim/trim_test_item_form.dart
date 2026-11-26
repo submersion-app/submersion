@@ -41,13 +41,19 @@ class _TrimTestItemFormState extends State<TrimTestItemForm> {
     final units = widget.units;
     final name = _name.text.trim();
     final read = readNumber(_weight.text);
-    final kg = read is NumberValue ? units.weightToKg(read.value) : null;
+    final shown = read is NumberValue ? read.value : null;
+    // The bounds as the message shows them, to one decimal in the diver's
+    // unit, so a diver who types exactly what it says is accepted.
+    double bound(double kg) =>
+        double.parse(units.convertWeight(kg).toStringAsFixed(1));
+    final inRange =
+        shown != null &&
+        shown >= bound(TrimTestItemForm.minKg) - 1e-9 &&
+        shown <= bound(TrimTestItemForm.maxKg) + 1e-9;
+    final kg = inRange ? units.weightToKg(shown) : null;
     setState(() {
       _nameError = name.isEmpty ? l10n.trim_tryout_nameRequired : null;
-      _weightError =
-          kg == null ||
-              kg < TrimTestItemForm.minKg - 1e-9 ||
-              kg > TrimTestItemForm.maxKg + 1e-9
+      _weightError = kg == null
           ? l10n.trim_tryout_weightRange(
               units.formatWeight(TrimTestItemForm.minKg),
               units.formatWeight(TrimTestItemForm.maxKg),

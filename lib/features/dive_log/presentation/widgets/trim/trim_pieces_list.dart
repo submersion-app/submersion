@@ -81,7 +81,7 @@ class TrimPiecesList extends StatelessWidget {
   String _where(TrimElement e, BuildContext context) {
     final l10n = context.l10n;
     final side = trimSideMark(e, l10n);
-    final spot = e.spot.label(l10n);
+    final spot = trimSpotLabelFor(e, l10n);
     final weight = units.formatWeight(trimShownKg(e.sinkKg));
     return side.isEmpty ? '$weight, $spot' : '$weight, $spot ($side)';
   }

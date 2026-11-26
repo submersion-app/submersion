@@ -273,4 +273,130 @@ void main() {
     expect(byId['back']!.bottom, lessThanOrEqualTo(40));
     expect(byId['front']!.top, greaterThanOrEqualTo(120));
   });
+
+  testWidgets('a weight whose spot is not known says so', (tester) async {
+    await pump(
+      tester,
+      scene([
+        const TrimElement(
+          id: 'm',
+          label: '',
+          kind: TrimElementKind.lead,
+          sinkKg: 6,
+          spot: TrimSpot.waist,
+          weightType: WeightType.mixed,
+          spotUnknown: true,
+        ),
+      ]),
+    );
+    expect(chipTexts(tester).single, contains('spot not known'));
+  });
+
+  testWidgets('the summary reads cleanly with no lead', (tester) async {
+    await pump(tester, scene(const []));
+    final label = tester
+        .getSemantics(find.byType(TrimFigure))
+        .getSemanticsData()
+        .label;
+    expect(label, isNot(contains('Lead:')));
+    expect(label, endsWith('.'));
+  });
+
+  test('gear with no spot reads as such, not as spread over the body', () {
+    const tray = TrimElement(
+      id: 'h',
+      label: 'Hose',
+      kind: TrimElementKind.gear,
+      sinkKg: 0.1,
+      spot: TrimSpot.floatPoint,
+    );
+    const suit = TrimElement(
+      id: 's',
+      label: 'Suit',
+      kind: TrimElementKind.gear,
+      sinkKg: 0,
+      spot: TrimSpot.floatPoint,
+      pieceIds: ['wetsuit_side_torso'],
+    );
+    expect(trimIsSpreadOverBody(suit), isTrue);
+    expect(trimIsSpreadOverBody(tray), isFalse);
+  });
+
+  test('centred gear on a sided spot is drawn on both limbs', () {
+    const gloves = TrimElement(
+      id: 'g',
+      label: 'Gloves',
+      kind: TrimElementKind.gear,
+      sinkKg: 0.2,
+      spot: TrimSpot.hand,
+    );
+    const right = TrimElement(
+      id: 'r',
+      label: 'Light',
+      kind: TrimElementKind.gear,
+      sinkKg: 0.2,
+      spot: TrimSpot.hand,
+      lateral: TrimLateral.right,
+    );
+    const left = TrimElement(
+      id: 'l',
+      label: 'Light',
+      kind: TrimElementKind.gear,
+      sinkKg: 0.2,
+      spot: TrimSpot.hand,
+      lateral: TrimLateral.left,
+    );
+    expect(trimOnFarSide(gloves) && trimOnNearSide(gloves), isTrue);
+    expect(trimOnFarSide(right) && !trimOnNearSide(right), isTrue);
+    expect(!trimOnFarSide(left) && trimOnNearSide(left), isTrue);
+  });
+
+  test('stacked elements at one spot are set apart', () {
+    TrimElement stage(String id) => TrimElement(
+      id: id,
+      label: id,
+      kind: TrimElementKind.tank,
+      sinkKg: 1,
+      spot: TrimSpot.stageClip,
+      lateral: TrimLateral.left,
+      pieceIds: const ['tank_stage_side'],
+    );
+    final offsets = trimStackOffsets([stage('a'), stage('b'), stage('c')]);
+    expect(offsets.values.toSet(), hasLength(3));
+    expect(offsets['a'], Offset.zero);
+  });
+
+  test('a taller chip later in a row does not overlap the next row', () {
+    final layout = packTrimChips(
+      const [
+        TrimChipRequest(
+          elementId: 'a',
+          anchor: Offset(50, 80),
+          size: Size(60, 16),
+          above: false,
+        ),
+        TrimChipRequest(
+          elementId: 'b',
+          anchor: Offset(150, 80),
+          size: Size(60, 40),
+          above: false,
+        ),
+        TrimChipRequest(
+          elementId: 'c',
+          anchor: Offset(50, 80),
+          size: Size(60, 16),
+          above: false,
+        ),
+      ],
+      width: 300,
+      figureTop: 0,
+      figureBottom: 60,
+    );
+    final rects = [for (final c in layout.chips) c.rect];
+    for (var i = 0; i < rects.length; i++) {
+      for (var j = i + 1; j < rects.length; j++) {
+        expect(rects[i].overlaps(rects[j]), isFalse);
+      }
+    }
+  });
 }

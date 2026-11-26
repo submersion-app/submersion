@@ -1,7 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_chip_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure.dart';
@@ -70,9 +72,11 @@ class _TrimTryoutSheetState extends State<_TrimTryoutSheet> {
     super.dispose();
   }
 
+  // No fixed height: the sheet grows to its content and scrolls within the
+  // screen, and clears the keyboard while a test item is typed.
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: MediaQuery.sizeOf(context).height * 0.9,
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
     child: SingleChildScrollView(
       child: TrimTryoutView(
         controller: _controller,
@@ -123,6 +127,32 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
     return null;
   }
 
+  TrimElement? get _dragged => _dragId == null
+      ? null
+      : _c.scene.elements.where((x) => x.id == _dragId).firstOrNull;
+
+  bool get _moving =>
+      _dragAt != null &&
+      _downAt != null &&
+      (_dragAt! - _downAt!).distance >= kTouchSlop;
+
+  /// The anchor of the spot a dragged chip would land on.
+  Offset? _dragTargetAnchor() {
+    final e = _dragged;
+    final geometry = _geometry;
+    if (e == null || geometry == null || !_moving || !_c.canMove(e)) {
+      return null;
+    }
+    return geometry.anchorOf(geometry.nearestSpot(_dragAt!, _c.spotsFor(e)));
+  }
+
+  /// The dragged chip's outline, following the finger.
+  Rect? _dragGhostRect() {
+    if (!_moving) return null;
+    final chip = _chips?.chips.where((c) => c.elementId == _dragId).firstOrNull;
+    return chip?.rect.shift(_dragAt! - _downAt!);
+  }
+
   /// A finger lifted near where it landed taps the chip (its side cycles);
   /// further away, the chip drops on the nearest spot it may use.
   void _drop() {
@@ -134,6 +164,7 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
     _dragAt = null;
     _downAt = null;
     if (id == null || at == null || down == null || geometry == null) return;
+    setState(() {});
     if ((at - down).distance < kTouchSlop) {
       _c.cycleSide(id);
       return;
@@ -190,7 +221,7 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
                       _dragAt = d.localPosition;
                     }
                     ..onUpdate = (d) {
-                      _dragAt = d.localPosition;
+                      setState(() => _dragAt = d.localPosition);
                     }
                     ..onEnd = (_) => _drop(),
                 ),
@@ -201,6 +232,9 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
             result: result,
             units: widget.units,
             showAllChips: true,
+            selectedElementId: _dragId,
+            dragTarget: _dragTargetAnchor(),
+            dragGhost: _dragGhostRect(),
             onLayout: (geometry, chips) {
               _geometry = geometry;
               _chips = chips;
@@ -224,8 +258,8 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
 
   String _formatMoment(double kgM) =>
       widget.units.settings.weightUnit == WeightUnit.pounds
-      ? '${(kgM * _lbFtPerKgM).toStringAsFixed(2)} lb·ft'
-      : '${kgM.toStringAsFixed(2)} kg·m';
+      ? '${formatFixedForDisplay(kgM * _lbFtPerKgM, 2)} lb·ft'
+      : '${formatFixedForDisplay(kgM, 2)} kg·m';
 
   /// 1 kg m in pound-feet.
   static const _lbFtPerKgM = 2.20462262 * 3.2808399;
@@ -267,9 +301,11 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
       ],
     );
 
+    // With no cursor the sheet opens at the rest anchor, the time its scene
+    // was built for.
     final timeIndex = moments.isEmpty
         ? 0
-        : _nearestIndex(moments, _c.timestamp ?? moments.last.timestamp);
+        : _nearestIndex(moments, _c.timestamp ?? _c.scene.timestamp);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,

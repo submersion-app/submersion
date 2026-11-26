@@ -93,29 +93,60 @@ TrimScene buildTrimScene({
   required int? timestamp,
   double? heightCm,
   double? bodyMassKg,
-}) {
-  final result = outcome.result;
-  final verdict = outcome.outputs.verdict;
-  final at = timestamp ?? verdict.anchor.timestamp;
+}) => TrimSceneBase(
+  dive: dive,
+  outcome: outcome,
+  heightCm: heightCm,
+  bodyMassKg: bodyMassKg,
+).at(timestamp);
 
-  return TrimScene(
-    elements: [
-      ..._lead(dive),
-      ..._gear(dive, result.input.staticTerms),
-      ..._tanks(dive, result.input, at),
-    ],
-    modelNetKg: timestamp == null
-        ? verdict.netKg
-        : _netAt(result.samples, at, verdict.netKg),
-    liftSpot: _liftSpot(dive.equipment),
-    body: TrimBody(heightCm: heightCm, bodyMassKg: bodyMassKg),
-    timestamp: at,
-    suitLiftKg: timestamp == null
-        ? _suitAtAnchor(result.input, verdict)
-        : _nearest(result.samples, at)?.suitKg ?? 0,
-    shortySuit: _isShorty(dive.equipment),
-    waterDensity: result.input.environment.waterDensityKgM3 / 1000,
-  );
+/// The part of a dive's trim that does not change through the dive (lead,
+/// gear, the body, where the lift acts), built once, so scrubbing the
+/// profile redoes only the tanks, the model's net and the suit (issue
+/// #5028).
+class TrimSceneBase {
+  TrimSceneBase({
+    required this.dive,
+    required this.outcome,
+    this.heightCm,
+    this.bodyMassKg,
+  }) : _fixed = [
+         ..._lead(dive),
+         ..._gear(dive, outcome.result.input.staticTerms),
+       ],
+       _lift = _liftSpot(dive.equipment),
+       _body = TrimBody(heightCm: heightCm, bodyMassKg: bodyMassKg),
+       _shorty = _isShorty(dive.equipment);
+
+  final Dive dive;
+  final BuoyancyTwinOutcome outcome;
+  final double? heightCm;
+  final double? bodyMassKg;
+  final List<TrimElement> _fixed;
+  final TrimSpot _lift;
+  final TrimBody _body;
+  final bool _shorty;
+
+  /// The scene at [timestamp] (null: the rest anchor).
+  TrimScene at(int? timestamp) {
+    final result = outcome.result;
+    final verdict = outcome.outputs.verdict;
+    final at = timestamp ?? verdict.anchor.timestamp;
+    return TrimScene(
+      elements: [..._fixed, ..._tanks(dive, result.input, at)],
+      modelNetKg: timestamp == null
+          ? verdict.netKg
+          : _netAt(result.samples, at, verdict.netKg),
+      liftSpot: _lift,
+      body: _body,
+      timestamp: at,
+      suitLiftKg: timestamp == null
+          ? _suitAtAnchor(result.input, verdict)
+          : _nearest(result.samples, at)?.suitKg ?? 0,
+      shortySuit: _shorty,
+      waterDensity: result.input.environment.waterDensityKgM3 / 1000,
+    );
+  }
 }
 
 /// The suit's share of the verdict, which leads the terms when there is a

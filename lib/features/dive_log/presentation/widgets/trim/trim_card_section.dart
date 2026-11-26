@@ -20,7 +20,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// [stored] is the saved dive, as the model reads it, so nothing typed in a
 /// sitting reworks the figure before Save.
-class TrimCardSection extends ConsumerWidget {
+class TrimCardSection extends ConsumerStatefulWidget {
   const TrimCardSection({
     super.key,
     required this.stored,
@@ -33,21 +33,42 @@ class TrimCardSection extends ConsumerWidget {
   final UnitFormatter units;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final height = ref.watch(latestDiverHeightProvider).value;
-    final mass = ref.watch(latestDiverWeightProvider).value?.weightKg;
-    final profile = watchChartProfile(ref, stored);
-    final cursor = ref.watch(profileTrackingIndexProvider(stored.id));
-    final seconds = cursor != null && cursor >= 0 && cursor < profile.length
-        ? profile[cursor].timestamp
-        : null;
-    TrimScene sceneAt(int? t) => buildTrimScene(
-      dive: stored,
-      outcome: outcome,
-      timestamp: t,
+  ConsumerState<TrimCardSection> createState() => _TrimCardSectionState();
+}
+
+class _TrimCardSectionState extends ConsumerState<TrimCardSection> {
+  TrimSceneBase? _base;
+
+  /// The base for this dive, outcome and body, rebuilt only when one of them
+  /// changes, so scrubbing the cursor does not recompose the gear.
+  TrimSceneBase _baseFor(double? height, double? mass) {
+    final b = _base;
+    if (b != null &&
+        identical(b.dive, widget.stored) &&
+        identical(b.outcome, widget.outcome) &&
+        b.heightCm == height &&
+        b.bodyMassKg == mass) {
+      return b;
+    }
+    return _base = TrimSceneBase(
+      dive: widget.stored,
+      outcome: widget.outcome,
       heightCm: height,
       bodyMassKg: mass,
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final height = ref.watch(latestDiverHeightProvider).value;
+    final mass = ref.watch(latestDiverWeightProvider).value?.weightKg;
+    final profile = watchChartProfile(ref, widget.stored);
+    final cursor = ref.watch(profileTrackingIndexProvider(widget.stored.id));
+    final seconds = cursor != null && cursor >= 0 && cursor < profile.length
+        ? profile[cursor].timestamp
+        : null;
+    final base = _baseFor(height, mass);
+    TrimScene sceneAt(int? t) => base.at(t);
     final scene = sceneAt(seconds);
     final result = scene.trimIn(TrimPose.standard);
     return Column(
@@ -58,7 +79,7 @@ class TrimCardSection extends ConsumerWidget {
           scene: scene,
           pose: TrimPose.standard,
           result: result,
-          units: units,
+          units: widget.units,
         ),
         const SizedBox(height: 8),
         TrimGauges(result: result),
@@ -72,10 +93,10 @@ class TrimCardSection extends ConsumerWidget {
               sceneAt: sceneAt,
               openingTimestamp: seconds,
               moments: [
-                for (final s in outcome.result.samples)
+                for (final s in widget.outcome.result.samples)
                   TrimMoment(timestamp: s.timestamp, depthM: s.depthM),
               ],
-              units: units,
+              units: widget.units,
             ),
           ),
         ),

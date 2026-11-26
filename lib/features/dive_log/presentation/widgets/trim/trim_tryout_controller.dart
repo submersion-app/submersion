@@ -21,8 +21,8 @@ class TrimTryoutController extends ChangeNotifier {
 
   int? _timestamp;
   TrimPose _pose = TrimPose.standard;
-  final Map<String, ({TrimSpot spot, TrimLateral lateral})> _moves = {};
-  final List<TrimElement> _tests = [];
+  Map<String, ({TrimSpot spot, TrimLateral lateral})> _moves = const {};
+  List<TrimElement> _tests = const [];
   TrimScene? _scene;
   TrimResult? _result;
 
@@ -125,17 +125,20 @@ class TrimTryoutController extends ChangeNotifier {
 
   void _set(TrimElement e, TrimSpot spot, TrimLateral lateral) {
     if (e.kind == TrimElementKind.test) {
-      final i = _tests.indexWhere((t) => t.id == e.id);
-      _tests[i] = _tests[i].copyWith(spot: spot, lateral: lateral);
+      _tests = [
+        for (final t in _tests)
+          t.id == e.id ? t.copyWith(spot: spot, lateral: lateral) : t,
+      ];
     } else {
-      _moves[e.id] = (spot: spot, lateral: lateral);
+      _moves = {..._moves, e.id: (spot: spot, lateral: lateral)};
     }
     _changed();
   }
 
   /// A test item of [kg] named [name], at the waist.
   void addTestItem(String name, double kg) {
-    _tests.add(
+    _tests = [
+      ..._tests,
       TrimElement(
         id: 'test:${_tests.length}:$name',
         label: name,
@@ -143,7 +146,7 @@ class TrimTryoutController extends ChangeNotifier {
         sinkKg: kg,
         spot: TrimSpot.waist,
       ),
-    );
+    ];
     _changed();
   }
 
@@ -159,8 +162,8 @@ class TrimTryoutController extends ChangeNotifier {
   }
 
   void reset() {
-    _moves.clear();
-    _tests.clear();
+    _moves = const {};
+    _tests = const [];
     _pose = TrimPose.standard;
     _timestamp = openingTimestamp;
     _changed();

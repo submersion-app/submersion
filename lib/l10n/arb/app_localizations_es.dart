@@ -23251,9 +23251,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buoyancy_minDitchable => 'Lastre soltable mínimo';
 
   @override
-  String get trim_title => 'Trimado';
-
-  @override
   String get trim_tryout_button => 'Probar posiciones';
 
   @override
@@ -23450,6 +23447,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trim_spot_floatPoint => 'Repartido por el cuerpo';
+
+  @override
+  String get trim_spot_noSpot => 'Sin lugar fijo';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'Figura de trimado: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
 
   @override
   String trim_verdictLine(String pitch, String roll) {

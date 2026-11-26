@@ -36495,12 +36495,6 @@ abstract class AppLocalizations {
   /// **'Min ditchable weight'**
   String get buoyancy_minDitchable;
 
-  /// No description provided for @trim_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Trim'**
-  String get trim_title;
-
   /// No description provided for @trim_tryout_button.
   ///
   /// In en, this message translates to:
@@ -36878,6 +36872,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spread over the body'**
   String get trim_spot_floatPoint;
+
+  /// No description provided for @trim_spot_noSpot.
+  ///
+  /// In en, this message translates to:
+  /// **'No fixed spot'**
+  String get trim_spot_noSpot;
+
+  /// No description provided for @trim_figure_summaryNoLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim figure: {verdict}.'**
+  String trim_figure_summaryNoLead(String verdict);
+
+  /// No description provided for @diveLog_detail_weight_withSide.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({side})'**
+  String diveLog_detail_weight_withSide(String name, String side);
 
   /// No description provided for @trim_verdictLine.
   ///

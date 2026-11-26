@@ -283,4 +283,44 @@ void main() {
       expect(find.byType(TrimFigure), findsOneWidget);
     });
   });
+
+  testWidgets('a weight carried on one side says which (#5028)', (
+    tester,
+  ) async {
+    final sided = Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2026, 3, 15, 10),
+      weights: const [
+        DiveWeight(
+          id: 'w1',
+          diveId: 'd1',
+          weightType: WeightType.integrated,
+          amountKg: 4,
+          side: WeightSide.left,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          buoyancyTwinProvider('d1').overrideWith((ref) async => null),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: DiveWeightsBuoyancyCard(
+              dive: sided,
+              stored: sided,
+              showWeights: true,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Integrated Weights (Left)'), findsOneWidget);
+  });
 }

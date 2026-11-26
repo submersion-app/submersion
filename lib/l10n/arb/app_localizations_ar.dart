@@ -23669,9 +23669,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buoyancy_minDitchable => 'أدنى وزن قابل للإسقاط';
 
   @override
-  String get trim_title => 'التوازن';
-
-  @override
   String get trim_tryout_button => 'جرّب المواضع';
 
   @override
@@ -23868,6 +23865,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trim_spot_floatPoint => 'موزّع على الجسم';
+
+  @override
+  String get trim_spot_noSpot => 'لا موضع ثابت';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'شكل التوازن: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
 
   @override
   String trim_verdictLine(String pitch, String roll) {

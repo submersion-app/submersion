@@ -46,4 +46,26 @@ void main() {
     expect(find.text('Left'), findsOneWidget);
     expect(find.text('Right'), findsOneWidget);
   });
+
+  testWidgets('the gauges read left to right in a right-to-left language', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('he'),
+        child: const TrimGauges(
+          result: TrimResult(pitchKgM: 1, rollKgM: 1, balancingLiftKg: 0),
+        ),
+      ),
+    );
+    final directions = tester
+        .widgetList<Directionality>(
+          find.descendant(
+            of: find.byType(TrimGauges),
+            matching: find.byType(Directionality),
+          ),
+        )
+        .map((d) => d.textDirection);
+    expect(directions, contains(TextDirection.ltr));
+  });
 }

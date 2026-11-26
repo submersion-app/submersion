@@ -23,13 +23,38 @@ class TrimChipStyle {
   final TextStyle textStyle;
 }
 
+/// Whether [e] is drawn on the far (right) limbs: gear on the right of a
+/// sided spot, and gear on both sides (gloves, both ankle weights, suits,
+/// fins). The viewer sees the diver's left side.
+bool trimOnFarSide(TrimElement e) =>
+    !e.spot.sided || e.lateral != TrimLateral.left;
+
+/// Whether [e] is drawn on the near (left) side.
+bool trimOnNearSide(TrimElement e) =>
+    !e.spot.sided || e.lateral != TrimLateral.right;
+
+/// How far each element drawn with others at the same place is set apart,
+/// in side units, so three stages on one clip read as three. The first at
+/// a place stays put.
+Map<String, Offset> trimStackOffsets(List<TrimElement> elements) {
+  final seen = <(TrimSpot, TrimLateral, String), int>{};
+  final out = <String, Offset>{};
+  for (final e in elements) {
+    if (e.pieceIds.isEmpty) continue;
+    final key = (e.spot, e.lateral, e.pieceIds.first);
+    final k = seen[key] ?? 0;
+    seen[key] = k + 1;
+    out[e.id] = Offset(6.0 * k, 12.0 * k);
+  }
+  return out;
+}
+
 /// Paints the posed, tilted side-view diver and its chips (issue #5028).
 ///
-/// The viewer sees the diver's left side. The far (right) arm and leg are
-/// painted first, shaded and set back, with the gear they carry; then the
-/// torso with its gear (gear on the right of the torso behind it), then the
-/// near shin, foot and arm, so the arm lies over the suit. Within each part
-/// pieces paint in layer order.
+/// The far (right) arm and leg are painted first, shaded and set back, with
+/// the gear they carry; then the torso with its gear (gear on the right of
+/// the torso behind it), then the near shin, foot and arm, so the arm lies
+/// over the suit. Within each part pieces paint in layer order.
 class TrimFigurePainter extends CustomPainter {
   TrimFigurePainter({
     required this.elements,
@@ -39,9 +64,12 @@ class TrimFigurePainter extends CustomPainter {
     required this.chipTexts,
     required this.chipStyles,
     required this.leaderColor,
+    this.textDirection = TextDirection.ltr,
     this.selectedElementId,
     this.selectedColor,
-  });
+    this.dragTarget,
+    this.dragGhost,
+  }) : _stack = trimStackOffsets(elements);
 
   final List<TrimElement> elements;
   final TrimFigureGeometry geometry;
@@ -52,8 +80,15 @@ class TrimFigurePainter extends CustomPainter {
   final Map<String, String> chipTexts;
   final Map<String, TrimChipStyle> chipStyles;
   final Color leaderColor;
+  final TextDirection textDirection;
   final String? selectedElementId;
   final Color? selectedColor;
+
+  /// While a chip is dragged: the anchor of the spot it would land on, and
+  /// the chip's outline under the finger.
+  final Offset? dragTarget;
+  final Rect? dragGhost;
+  final Map<String, Offset> _stack;
 
   /// How far, in side units, the far limbs are set back.
   static const Offset farOffset = Offset(5, -4);
@@ -65,6 +100,7 @@ class TrimFigurePainter extends CustomPainter {
     _paintFigure(canvas);
     canvas.restore();
     _paintChips(canvas);
+    _paintDrag(canvas);
   }
 
   void _paintFigure(Canvas canvas) {
@@ -72,35 +108,43 @@ class TrimFigurePainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
-    void draw(TrimPieceData piece, int color, {bool shaded = false}) {
+    void draw(
+      TrimPieceData piece,
+      int color,
+      Offset offset, {
+      bool shaded = false,
+    }) {
       final paths = TrimFigurePaths.of(piece.id);
+      if (offset != Offset.zero) {
+        canvas.save();
+        canvas.translate(offset.dx, offset.dy);
+      }
       for (var i = 0; i < paths.length; i++) {
         final c = Color(palette.colorFor(piece.paths[i].role, color));
         paint.color = shaded ? Color.lerp(c, Colors.black, 0.28)! : c;
         canvas.drawPath(paths[i], paint);
       }
+      if (offset != Offset.zero) canvas.restore();
     }
-
-    bool farSide(TrimElement e) =>
-        e.spot.sided && e.lateral == TrimLateral.right;
 
     // The body piece of [segment] (unless [bare]), then every piece of
     // [segment] carried by an element [include] accepts, in layer order.
-    List<(TrimPieceData, int)> group(
+    List<(TrimPieceData, int, Offset)> group(
       TrimSegment segment,
       bool Function(TrimElement) include, {
       bool bare = false,
     }) {
-      final out = <(TrimPieceData, int)>[
+      final out = <(TrimPieceData, int, Offset)>[
         if (!bare)
-          if (trimArtwork[_bodyPiece(segment)] case final body?) (body, 0),
+          if (trimArtwork[_bodyPiece(segment)] case final body?)
+            (body, 0, Offset.zero),
       ];
       for (final e in elements) {
         if (!include(e)) continue;
         for (final id in e.pieceIds) {
           final piece = trimArtwork[id];
           if (piece != null && piece.segment == segment) {
-            out.add((piece, e.color));
+            out.add((piece, e.color, _stack[e.id] ?? Offset.zero));
           }
         }
       }
@@ -116,30 +160,37 @@ class TrimFigurePainter extends CustomPainter {
       canvas.save();
       if (far) canvas.translate(farOffset.dx, farOffset.dy);
       geometry.enterSegment(canvas, segment);
-      for (final (piece, color) in group(segment, include, bare: bare)) {
-        draw(piece, color, shaded: far);
+      for (final (piece, color, offset) in group(
+        segment,
+        include,
+        bare: bare,
+      )) {
+        draw(piece, color, offset, shaded: far);
       }
       canvas.restore();
     }
 
-    // Far limbs, set back and shaded: centred gear (suits, fins) is on both
-    // sides, sided gear only when it is on the right.
     for (final segment in const [
       TrimSegment.arm,
       TrimSegment.shin,
       TrimSegment.foot,
     ]) {
-      pass(segment, (e) => !e.spot.sided || farSide(e), far: true);
+      pass(segment, trimOnFarSide, far: true);
     }
     // Torso gear on the right, behind the body; then the torso and the rest.
-    pass(TrimSegment.torso, farSide, far: true, bare: true);
-    pass(TrimSegment.torso, (e) => !farSide(e));
+    pass(
+      TrimSegment.torso,
+      (e) => e.spot.sided && e.lateral == TrimLateral.right,
+      far: true,
+      bare: true,
+    );
+    pass(TrimSegment.torso, trimOnNearSide);
     for (final segment in const [
       TrimSegment.shin,
       TrimSegment.foot,
       TrimSegment.arm,
     ]) {
-      pass(segment, (e) => !farSide(e));
+      pass(segment, trimOnNearSide);
     }
   }
 
@@ -189,12 +240,35 @@ class TrimFigurePainter extends CustomPainter {
         ),
         maxLines: 1,
         ellipsis: '...',
-        textDirection: TextDirection.ltr,
+        textDirection: textDirection,
       )..layout(maxWidth: chip.rect.width - 12);
       tp.paint(
         canvas,
         Offset(chip.rect.left + 6, chip.rect.center.dy - tp.height / 2),
       );
+      tp.dispose();
+    }
+  }
+
+  void _paintDrag(Canvas canvas) {
+    final color = selectedColor ?? leaderColor;
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = color
+      ..isAntiAlias = true;
+    if (dragTarget case final target?) {
+      canvas.drawCircle(target, 8, stroke);
+      canvas.drawCircle(target, 3, Paint()..color = color);
+    }
+    if (dragGhost case final ghost?) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(ghost, const Radius.circular(6)),
+        stroke,
+      );
+      if (dragTarget case final target?) {
+        canvas.drawLine(ghost.center, target, stroke..strokeWidth = 1);
+      }
     }
   }
 
@@ -205,5 +279,8 @@ class TrimFigurePainter extends CustomPainter {
       old.geometry.scale != geometry.scale ||
       old.palette != palette ||
       !identical(old.chips, chips) ||
-      old.selectedElementId != selectedElementId;
+      old.selectedElementId != selectedElementId ||
+      old.dragTarget != dragTarget ||
+      old.dragGhost != dragGhost ||
+      old.textDirection != textDirection;
 }

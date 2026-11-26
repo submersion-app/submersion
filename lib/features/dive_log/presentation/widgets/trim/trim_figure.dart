@@ -28,6 +28,8 @@ class TrimFigure extends StatelessWidget {
     this.selectedElementId,
     this.maxFigureHeight = 260,
     this.onLayout,
+    this.dragTarget,
+    this.dragGhost,
   });
 
   final TrimScene scene;
@@ -42,6 +44,11 @@ class TrimFigure extends StatelessWidget {
   /// drags (the try-out sheet).
   final void Function(TrimFigureGeometry geometry, TrimChipLayout chips)?
   onLayout;
+
+  /// While a chip is dragged: the spot anchor it would land on and its
+  /// outline under the finger (see [TrimFigurePainter.dragTarget]).
+  final Offset? dragTarget;
+  final Rect? dragGhost;
 
   /// Lead and test items always; with [showAllChips], tanks and any gear
   /// heavy or light enough to matter too. Gear lighter than [minChipKg], and
@@ -65,7 +72,8 @@ class TrimFigure extends StatelessWidget {
       trimElementName(e, l10n),
       units.formatWeight(trimShownKg(e.sinkKg)),
     );
-    return side.isEmpty ? text : '$text $side';
+    final sided = side.isEmpty ? text : '$text $side';
+    return e.spotUnknown ? '$sided (${l10n.trim_chip_note})' : sided;
   }
 
   @override
@@ -74,6 +82,7 @@ class TrimFigure extends StatelessWidget {
     final scheme = theme.colorScheme;
     final textStyle =
         theme.textTheme.labelSmall ?? const TextStyle(fontSize: 11);
+    final direction = Directionality.of(context);
     final chipped = [
       for (final e in scene.elements)
         if (_chipped(e)) e,
@@ -124,7 +133,12 @@ class TrimFigure extends StatelessWidget {
                       TrimChipRequest(
                         elementId: e.id,
                         anchor: g.anchorOf(e.spot),
-                        size: _measure(texts[e.id]!, textStyle, width),
+                        size: _measure(
+                          texts[e.id]!,
+                          textStyle,
+                          width,
+                          direction,
+                        ),
                         above: e.spot.pointOn(scene.body, pose).z > 0,
                       ),
                   ],
@@ -151,6 +165,9 @@ class TrimFigure extends StatelessWidget {
                   leaderColor: scheme.onSurfaceVariant,
                   selectedElementId: selectedElementId,
                   selectedColor: scheme.primary,
+                  textDirection: direction,
+                  dragTarget: dragTarget,
+                  dragGhost: dragGhost,
                 ),
               ),
             );
@@ -160,15 +177,22 @@ class TrimFigure extends StatelessWidget {
     );
   }
 
-  static Size _measure(String text, TextStyle style, double maxWidth) {
+  static Size _measure(
+    String text,
+    TextStyle style,
+    double maxWidth,
+    TextDirection direction,
+  ) {
     final tp = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: 1,
-      textDirection: TextDirection.ltr,
+      textDirection: direction,
     )..layout();
     // Padding of 6 each side; a chip never takes more than half the width,
     // so a long name ellipsizes rather than crowding out the rest.
-    return Size(math.min(tp.width + 12, maxWidth / 2), tp.height + 6);
+    final size = Size(math.min(tp.width + 12, maxWidth / 2), tp.height + 6);
+    tp.dispose();
+    return size;
   }
 
   String _summary(BuildContext context) {
@@ -176,8 +200,11 @@ class TrimFigure extends StatelessWidget {
     final lead = [
       for (final e in scene.elements)
         if (e.kind == TrimElementKind.lead || e.kind == TrimElementKind.test)
-          '${chipText(e, context)} ${e.spot.label(l10n)}',
+          '${chipText(e, context)} ${trimSpotLabelFor(e, l10n)}',
     ].join(', ');
-    return l10n.trim_figure_summary(trimVerdictLine(result, l10n), lead);
+    final verdict = trimVerdictLine(result, l10n);
+    return lead.isEmpty
+        ? l10n.trim_figure_summaryNoLead(verdict)
+        : l10n.trim_figure_summary(verdict, lead);
   }
 }

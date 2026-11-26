@@ -23230,9 +23230,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min. abwerfbares Blei';
 
   @override
-  String get trim_title => 'Trimm';
-
-  @override
   String get trim_tryout_button => 'Platzierung testen';
 
   @override
@@ -23429,6 +23426,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trim_spot_floatPoint => 'Über den Körper verteilt';
+
+  @override
+  String get trim_spot_noSpot => 'Kein fester Ort';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'Trimmfigur: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
 
   @override
   String trim_verdictLine(String pitch, String roll) {

@@ -22408,9 +22408,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buoyancy_minDitchable => '最小投棄可能ウェイト';
 
   @override
-  String get trim_title => 'トリム';
-
-  @override
   String get trim_tryout_button => '配置を試す';
 
   @override
@@ -22607,6 +22604,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trim_spot_floatPoint => '体全体に分散';
+
+  @override
+  String get trim_spot_noSpot => '決まった位置なし';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'トリム図：$verdict。';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name（$side）';
+  }
 
   @override
   String trim_verdictLine(String pitch, String roll) {

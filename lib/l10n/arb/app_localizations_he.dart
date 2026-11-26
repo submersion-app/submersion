@@ -22757,9 +22757,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_minDitchable => 'משקל מזערי הניתן להשלכה';
 
   @override
-  String get trim_title => 'איזון';
-
-  @override
   String get trim_tryout_button => 'נסה מיקומים';
 
   @override
@@ -22956,6 +22953,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trim_spot_floatPoint => 'פזור על הגוף';
+
+  @override
+  String get trim_spot_noSpot => 'אין מיקום קבוע';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'תרשים איזון: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
 
   @override
   String trim_verdictLine(String pitch, String roll) {

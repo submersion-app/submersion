@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
@@ -210,7 +211,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Right').last);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(CheckedPopupMenuItem<TrimPieceAction>),
+        matching: find.text('Right'),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(
       controller.scene.elements.singleWhere((e) => e.id == 'light').lateral,
@@ -265,5 +271,90 @@ void main() {
       controller.scene.elements.singleWhere((e) => e.id == 'belt').spot,
       TrimSpot.trimPockets,
     );
+  });
+
+  testWidgets('opened at the rest anchor, the time slider shows it', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 6000);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    controller = TrimTryoutController(sceneAt: sceneAt, openingTimestamp: null);
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: TrimTryoutView(
+          controller: controller,
+          moments: const [
+            TrimMoment(timestamp: 0, depthM: 0),
+            TrimMoment(timestamp: 600, depthM: 18),
+            TrimMoment(timestamp: 1200, depthM: 0),
+          ],
+          units: metric,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('10:00, ${metric.formatDepth(18)}'), findsOneWidget);
+  });
+
+  testWidgets('a dragged chip shows where it will land', (tester) async {
+    await pump(tester);
+    final p = painter(tester);
+    final chip = p.chips.singleWhere((c) => c.elementId == 'belt').rect;
+    final figure = tester.getTopLeft(
+      find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is TrimFigurePainter,
+      ),
+    );
+    final gesture = await tester.startGesture(figure + chip.center);
+    await gesture.moveBy(const Offset(-40, -40));
+    await tester.pump();
+    expect(painter(tester).dragTarget, isNotNull);
+    expect(painter(tester).selectedElementId, 'belt');
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(painter(tester).dragTarget, isNull);
+  });
+
+  testWidgets('imperial range edges as shown are accepted', (tester) async {
+    await pump(tester, units: imperial);
+    await tester.enterText(find.byKey(TrimTestItemForm.nameKey), 'Low');
+    await tester.enterText(find.byKey(TrimTestItemForm.weightKey), '0.2');
+    await tester.tap(find.text('Add test item'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(TrimTestItemForm.nameKey), 'High');
+    await tester.enterText(find.byKey(TrimTestItemForm.weightKey), '44.1');
+    await tester.tap(find.text('Add test item'));
+    await tester.pumpAndSettle();
+    expect(
+      controller.scene.elements.where((e) => e.kind == TrimElementKind.test),
+      hasLength(2),
+    );
+  });
+
+  testWidgets('pitch and roll use the locale decimal mark', (tester) async {
+    // Displayed numbers follow the process locale, as the app sets it.
+    final previous = Intl.defaultLocale;
+    Intl.defaultLocale = 'de';
+    addTearDown(() => Intl.defaultLocale = previous);
+    tester.view.physicalSize = const Size(800, 6000);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    controller = TrimTryoutController(sceneAt: sceneAt, openingTimestamp: 600);
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('de'),
+        child: TrimTryoutView(
+          controller: controller,
+          moments: const [],
+          units: metric,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining(RegExp(r'\d,\d\d kg·m')), findsWidgets);
   });
 }

@@ -506,4 +506,33 @@ void main() {
     expect(byId['light']!.movableTo, isNot(contains(TrimSpot.fins)));
     expect(byId['fins']!.movableTo, isEmpty);
   });
+
+  test('a scene base gives the same scene at every moment', () {
+    const tank = TwinTankInput(
+      id: 't1',
+      label: 'AL80',
+      volumeL: 11.1,
+      material: TankMaterial.aluminum,
+      startPressureBar: 200,
+      endPressureBar: 50,
+    );
+    final dive = Dive(
+      id: 'd1',
+      dateTime: when,
+      tanks: const [DiveTank(id: 't1', volume: 11.1)],
+      gear: [GearLink(item: item('light', EquipmentType.light))],
+    );
+    final outcome = buoyancyOutcome(tanks: const [tank]);
+    final base = TrimSceneBase(dive: dive, outcome: outcome);
+    for (final t in [null, 0, 60]) {
+      final direct = buildTrimScene(dive: dive, outcome: outcome, timestamp: t);
+      final cached = base.at(t);
+      expect(cached.timestamp, direct.timestamp);
+      expect(cached.modelNetKg, direct.modelNetKg);
+      expect(
+        [for (final e in cached.elements) (e.id, e.sinkKg, e.spot)],
+        [for (final e in direct.elements) (e.id, e.sinkKg, e.spot)],
+      );
+    }
+  });
 }

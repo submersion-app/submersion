@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weight_name_text.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The lead a dive's diver carried, one row each: the lead typed in the
@@ -29,7 +32,12 @@ class DiveWeightRows extends ConsumerWidget {
     // The typed weights, else the legacy single weight in the same format.
     final displayWeights = <_WeightDisplay>[
       for (final weight in dive.weights)
-        _WeightDisplay(title: WeightNameText(weight), amount: weight.amountKg),
+        _WeightDisplay(
+          title: weight.side == null
+              ? WeightNameText(weight)
+              : Text(_sidedName(weight, l10n)),
+          amount: weight.amountKg,
+        ),
       if (dive.weights.isEmpty &&
           dive.weightAmount != null &&
           dive.weightAmount! > 0)
@@ -99,4 +107,19 @@ class _WeightDisplay {
   final double amount;
 
   const _WeightDisplay({required this.title, required this.amount});
+}
+
+/// A weight carried on one side, with that side named (issue #5028):
+/// `Integrated Weights (Left)`, or `Top pocket · Integrated Weights (Left)`.
+String _sidedName(DiveWeight weight, AppLocalizations l10n) {
+  final (:name, :type) = weightNameParts(weight, l10n);
+  final side = switch (weight.side) {
+    WeightSide.left => l10n.diveLog_weight_side_left,
+    WeightSide.right => l10n.diveLog_weight_side_right,
+    null => '',
+  };
+  return l10n.diveLog_detail_weight_withSide(
+    name.isEmpty ? type : '$name · $type',
+    side,
+  );
 }

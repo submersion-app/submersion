@@ -23256,9 +23256,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buoyancy_minDitchable => 'Zavorra sganciabile minima';
 
   @override
-  String get trim_title => 'Assetto';
-
-  @override
   String get trim_tryout_button => 'Prova posizioni';
 
   @override
@@ -23455,6 +23452,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get trim_spot_floatPoint => 'Distribuito sul corpo';
+
+  @override
+  String get trim_spot_noSpot => 'Nessuna posizione fissa';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'Figura di assetto: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
 
   @override
   String trim_verdictLine(String pitch, String roll) {

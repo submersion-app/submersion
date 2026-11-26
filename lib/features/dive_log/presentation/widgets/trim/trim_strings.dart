@@ -67,8 +67,19 @@ String trimElementName(TrimElement e, AppLocalizations l10n) {
   if (e.label.trim().isNotEmpty) return e.label.trim();
   if (e.weightType case final type?) return type.localizedName(l10n);
   if (e.kind == TrimElementKind.test) return l10n.trim_testItem;
-  return e.spot.label(l10n);
+  return trimSpotLabelFor(e, l10n);
 }
+
+/// A suit or layer drawn over the body: its lift is spread along it. Other
+/// float-point elements (hoses, tools, bags) simply have no spot.
+bool trimIsSpreadOverBody(TrimElement e) =>
+    e.spot == TrimSpot.floatPoint && e.pieceIds.isNotEmpty;
+
+/// Where [e] sits, in words.
+String trimSpotLabelFor(TrimElement e, AppLocalizations l10n) =>
+    e.spot == TrimSpot.floatPoint && !trimIsSpreadOverBody(e)
+    ? l10n.trim_spot_noSpot
+    : e.spot.label(l10n);
 
 /// "L" or "R" for an element on one side of a sided spot, else empty.
 String trimSideMark(TrimElement e, AppLocalizations l10n) {

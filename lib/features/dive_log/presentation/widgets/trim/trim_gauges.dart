@@ -66,38 +66,43 @@ class _Gauge extends StatelessWidget {
       color: theme.colorScheme.onSurfaceVariant,
     );
     final fraction = (value / TrimGauges.fullScaleKgM).clamp(-1.0, 1.0);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 56, child: Text(label, style: small)),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                height: 8,
-                child: CustomPaint(
-                  painter: _GaugePainter(
-                    fraction: fraction,
-                    color: color,
-                    track: theme.colorScheme.surfaceContainerHighest,
-                    centre: theme.colorScheme.outline,
+    // Head to feet and left to right are physical directions, drawn as the
+    // figure faces: they never mirror in a right-to-left language.
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 56, child: Text(label, style: small)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 8,
+                  child: CustomPaint(
+                    painter: _GaugePainter(
+                      fraction: fraction,
+                      color: color,
+                      track: theme.colorScheme.surfaceContainerHighest,
+                      centre: theme.colorScheme.outline,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  Expanded(child: Text(start, style: small)),
-                  Expanded(
-                    child: Text(end, style: small, textAlign: TextAlign.end),
-                  ),
-                ],
-              ),
-            ],
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Expanded(child: Text(start, style: small)),
+                    Expanded(
+                      child: Text(end, style: small, textAlign: TextAlign.end),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

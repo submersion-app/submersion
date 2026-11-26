@@ -47,7 +47,8 @@ class TrimChipLayout {
 ///
 /// Each band is filled left to right by anchor: a chip is centred on its
 /// anchor (clamped to [width]) and goes in the first row it fits beside the
-/// last chip of, else a new row further from the figure.
+/// last chip of, else a new row further from the figure. Each row is as tall
+/// as its tallest chip, so a taller chip never reaches into the next row.
 TrimChipLayout packTrimChips(
   List<TrimChipRequest> requests, {
   required double width,
@@ -61,8 +62,10 @@ TrimChipLayout packTrimChips(
       for (final r in requests)
         if (r.above == above) r,
     ]..sort((a, b) => a.anchor.dx.compareTo(b.anchor.dx));
+    // First pass: rows by horizontal room alone.
     final rowRight = <double>[];
-    final rowExtent = <double>[];
+    final rowHeight = <double>[];
+    final assigned = <(TrimChipRequest, int, double, double)>[];
     for (final r in band) {
       final w = math.min(r.size.width, width);
       final left = (r.anchor.dx - w / 2).clamp(0.0, width - w);
@@ -70,16 +73,21 @@ TrimChipLayout packTrimChips(
       if (row < 0) {
         row = rowRight.length;
         rowRight.add(double.negativeInfinity);
-        final before = row == 0
-            ? (above ? figureTop - gap : figureBottom + gap)
-            : rowExtent[row - 1];
-        rowExtent.add(
-          above ? before - r.size.height - gap : before + r.size.height + gap,
-        );
+        rowHeight.add(0);
       }
       rowRight[row] = left + w;
-      final edge = rowExtent[row];
-      final top = above ? edge + gap : edge - r.size.height - gap;
+      rowHeight[row] = math.max(rowHeight[row], r.size.height);
+      assigned.add((r, row, left, w));
+    }
+    // Second pass: each row's edge from the heights of the rows before it.
+    final rowEdge = <double>[];
+    var edge = above ? figureTop - gap : figureBottom + gap;
+    for (final h in rowHeight) {
+      rowEdge.add(edge);
+      edge = above ? edge - h - gap : edge + h + gap;
+    }
+    for (final (r, row, left, w) in assigned) {
+      final top = above ? rowEdge[row] - r.size.height : rowEdge[row];
       placed.add(
         TrimChipPlacement(
           elementId: r.elementId,
