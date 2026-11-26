@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/core/utils/switch_depth_format.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/ccr_switch_depth_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The "ppO2 limits CCR" entry of the decompression settings: the current
@@ -19,18 +22,21 @@ class CcrPpO2LimitTile extends ConsumerWidget {
           ccrSetpointLow: s.ccrSetpointLow,
           ccrSetpointHigh: s.ccrSetpointHigh,
           ccrDiluentModPpO2: s.ccrDiluentModPpO2,
+          ccrSetpointSwitchDepth: s.ccrSetpointSwitchDepth,
         ),
       ),
     );
+    final units = ref.watch(unitFormatterProvider);
 
     return ListTile(
       leading: const Icon(Icons.loop),
       title: Text(l10n.settings_decompression_ccrPpO2LimitsTitle),
       subtitle: Text(
-        l10n.settings_decompression_ccrPpO2LimitsSubtitle(
+        l10n.settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
           formatFixedForDisplay(settings.ccrSetpointLow, 1),
           formatFixedForDisplay(settings.ccrSetpointHigh, 1),
           formatFixedForDisplay(settings.ccrDiluentModPpO2, 1),
+          formatSwitchDepth(units, settings.ccrSetpointSwitchDepth),
         ),
       ),
       trailing: const Icon(Icons.edit),
@@ -40,12 +46,15 @@ class CcrPpO2LimitTile extends ConsumerWidget {
           initialSetpointLow: settings.ccrSetpointLow,
           initialSetpointHigh: settings.ccrSetpointHigh,
           initialDiluentModPpO2: settings.ccrDiluentModPpO2,
-          onSave: (low, high, diluentMod) => ref
+          initialSetpointSwitchDepth: settings.ccrSetpointSwitchDepth,
+          units: units,
+          onSave: (low, high, diluentMod, switchDepth) => ref
               .read(settingsProvider.notifier)
               .setCcrPpO2Limits(
                 setpointLow: low,
                 setpointHigh: high,
                 diluentModPpO2: diluentMod,
+                setpointSwitchDepth: switchDepth,
               ),
         ),
       ),
@@ -64,13 +73,28 @@ class CcrPpO2LimitDialog extends StatefulWidget {
     required this.initialSetpointLow,
     required this.initialSetpointHigh,
     required this.initialDiluentModPpO2,
+    required this.initialSetpointSwitchDepth,
+    required this.units,
     required this.onSave,
   });
 
   final double initialSetpointLow;
   final double initialSetpointHigh;
   final double initialDiluentModPpO2;
-  final void Function(double low, double high, double diluentMod) onSave;
+
+  /// Stored switch depth in meters; the row shows it in [units].
+  final double initialSetpointSwitchDepth;
+  final UnitFormatter units;
+
+  /// Receives the setpoints and Dil MOD in bar and the switch depth in
+  /// meters.
+  final void Function(
+    double low,
+    double high,
+    double diluentMod,
+    double switchDepth,
+  )
+  onSave;
 
   @override
   State<CcrPpO2LimitDialog> createState() => _CcrPpO2LimitDialogState();
@@ -84,6 +108,7 @@ class _CcrPpO2LimitDialogState extends State<CcrPpO2LimitDialog> {
   late double _low;
   late double _high;
   late double _diluentMod;
+  late double _switchDepth;
 
   /// A stored value snapped onto the slider's 0.1 grid and range.
   static double _snap(double value) => SettingsNotifier.ccrPpO2OnGrid(value);
@@ -95,6 +120,9 @@ class _CcrPpO2LimitDialogState extends State<CcrPpO2LimitDialog> {
     _high = _snap(widget.initialSetpointHigh);
     if (_high < _low) _high = _low;
     _diluentMod = _snap(widget.initialDiluentModPpO2);
+    _switchDepth = SettingsNotifier.ccrSwitchDepthOnGrid(
+      widget.initialSetpointSwitchDepth,
+    );
   }
 
   @override
@@ -163,6 +191,14 @@ class _CcrPpO2LimitDialogState extends State<CcrPpO2LimitDialog> {
               divisions: _divisions,
               onChanged: (v) => setState(() => _diluentMod = _snap(v)),
             ),
+            const SizedBox(height: 12),
+            CcrSwitchDepthRow(
+              label: l10n.settings_decompression_ccrDialog_switchDepth,
+              hint: l10n.settings_decompression_ccrDialog_switchDepthHint,
+              meters: _switchDepth,
+              units: widget.units,
+              onChanged: (v) => setState(() => _switchDepth = v),
+            ),
           ],
         ),
       ),
@@ -173,7 +209,7 @@ class _CcrPpO2LimitDialogState extends State<CcrPpO2LimitDialog> {
         ),
         FilledButton(
           onPressed: () {
-            widget.onSave(_low, _high, _diluentMod);
+            widget.onSave(_low, _high, _diluentMod, _switchDepth);
             Navigator.of(context).pop();
           },
           child: Text(l10n.settings_decompression_dialog_save),

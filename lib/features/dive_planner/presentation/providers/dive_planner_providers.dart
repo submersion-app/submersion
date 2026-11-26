@@ -1000,7 +1000,9 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
-  /// Update CCR setpoints; only supplied values change.
+  /// Update CCR setpoints; only supplied values change. [switchOff] sets or
+  /// clears the plan's "no switch by depth" choice and leaves the stored
+  /// switch depth alone, so turning it back off restores that depth.
   void updateSetpoints({
     double? low,
     bool clearLow = false,
@@ -1008,6 +1010,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     bool clearHigh = false,
     double? switchDepth,
     bool clearSwitchDepth = false,
+    bool? switchOff,
   }) {
     state = state.copyWith(
       setpointLow: low,
@@ -1016,6 +1019,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       clearSetpointHigh: clearHigh,
       setpointSwitchDepth: switchDepth,
       clearSetpointSwitchDepth: clearSwitchDepth,
+      setpointSwitchOff: switchOff,
       isDirty: true,
       updatedAt: DateTime.now(),
     );

@@ -22029,6 +22029,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Profondità di cambio setpoint';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote =>
+      'Nessun cambio in base alla profondità: setpoint basso per tutta l\'immersione';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'Rapporto pSCR';
 
   @override
@@ -25789,7 +25793,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_ccrSetpointSwitchDepth =>
-      'Setpoint switch depth';
+      'Profondità di cambio setpoint';
 
   @override
   String get settings_conflict_field_channelIndex => 'Canale';
@@ -27460,7 +27464,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Profondità di cambio setpoint';
 
   @override
-  String get settings_conflict_field_setpointSwitchOff => 'Setpoint switch off';
+  String get settings_conflict_field_setpointSwitchOff =>
+      'Cambio di setpoint disattivato';
 
   @override
   String get settings_conflict_field_settings_key => 'Impostazione';
@@ -29832,12 +29837,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'Limiti di ppO2 CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'Setpoint basso $low · alto $high · MOD Dil $dil bar';
+    return 'Setpoint basso $low · alto $high · MOD Dil $dil bar · cambio $depth';
   }
 
   @override
@@ -29864,6 +29870,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'ppO2 che il diluente può raggiungere in un flush; ne fissa la MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth =>
+      'Profondità di cambio setpoint';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'Setpoint alto sotto, setpoint basso sopra';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

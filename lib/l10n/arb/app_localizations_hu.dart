@@ -21933,6 +21933,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Setpoint váltási mélység';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote =>
+      'Nincs mélység szerinti váltás: végig alacsony setpoint';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'pSCR arány';
 
   @override
@@ -25682,7 +25686,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_ccrSetpointSwitchDepth =>
-      'Setpoint switch depth';
+      'Setpoint váltási mélység';
 
   @override
   String get settings_conflict_field_channelIndex => 'Csatorna';
@@ -27306,7 +27310,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Setpoint-váltás mélysége';
 
   @override
-  String get settings_conflict_field_setpointSwitchOff => 'Setpoint switch off';
+  String get settings_conflict_field_setpointSwitchOff =>
+      'Setpoint-váltás kikapcsolva';
 
   @override
   String get settings_conflict_field_settings_key => 'Beállítás';
@@ -29657,12 +29662,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-határok CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'Setpoint alacsony $low · magas $high · Dil-MOD $dil bar';
+    return 'Setpoint alacsony $low · magas $high · Dil-MOD $dil bar · váltás $depth';
   }
 
   @override
@@ -29689,6 +29695,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'A hígítógáz öblítéskor elérhető ppO2-je; ez határozza meg a MOD-ját';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth =>
+      'Setpoint váltási mélység';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'Alatta magas, felette alacsony setpoint';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

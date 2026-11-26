@@ -21702,6 +21702,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Setpoint switch depth';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote =>
+      'No switch by depth: low setpoint throughout';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'pSCR ratio';
 
   @override
@@ -29326,12 +29330,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2 limits CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'Setpoint low $low · high $high · Dil MOD $dil bar';
+    return 'Setpoint low $low · high $high · Dil MOD $dil bar · switch $depth';
   }
 
   @override
@@ -29358,6 +29363,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'ppO2 the diluent may reach on a flush; sets its MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth =>
+      'Setpoint switch depth';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'High setpoint below, low setpoint above';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

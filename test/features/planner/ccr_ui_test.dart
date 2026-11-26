@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -10,6 +11,8 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/widgets/ccr_settings_section.dart';
+import 'package:submersion/features/planner/presentation/widgets/ccr_setpoint_control.dart';
+import 'package:submersion/features/planner/presentation/widgets/ccr_switch_depth_control.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -230,210 +233,234 @@ void main() {
     expect(find.textContaining('used:'), findsNWidgets(4));
   });
 
-  testWidgets('CCR settings edit all setpoints; switch depth accepts 0', (
+  // The CCR section's three controls, stacked: setpoint low, setpoint high,
+  // switch depth (issue #3793).
+  Finder control(int index) => index == 2
+      ? find.byType(CcrSwitchDepthControl)
+      : find.byType(CcrSetpointControl).at(index);
+
+  Finder choice(Finder within, String label) =>
+      find.descendant(of: within, matching: find.text(label));
+
+  Future<ProviderContainer> pumpSection(
+    WidgetTester tester, {
+    AppSettings settings = const AppSettings(),
+    double width = 500,
+  }) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...plannerResultsInline(),
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(settings),
+          ),
+        ],
+        child: SingleChildScrollView(
+          child: SizedBox(width: width, child: const CcrSettingsSection()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return ProviderScope.containerOf(
+      tester.element(find.byType(CcrSettingsSection)),
+    );
+  }
+
+  const settingsWithCcr = AppSettings(
+    ccrSetpointLow: 0.6,
+    ccrSetpointHigh: 1.2,
+    ccrSetpointSwitchDepth: 12.0,
+  );
+
+  testWidgets('Default shows the Settings setpoints and switch depth as read '
+      'only text, with no number field', (tester) async {
+    final container = await pumpSection(tester, settings: settingsWithCcr);
+
+    expect(find.text('0.6 bar'), findsOneWidget);
+    expect(find.text('1.2 bar'), findsOneWidget);
+    expect(find.text('12m'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.setpointLow, isNull);
+    expect(state.setpointHigh, isNull);
+    expect(state.setpointSwitchDepth, isNull);
+    expect(state.setpointSwitchOff, isFalse);
+  });
+
+  testWidgets('Default shows the Settings switch depth in the diver\'s unit', (
+    tester,
+  ) async {
+    await pumpSection(
+      tester,
+      settings: settingsWithCcr.copyWith(depthUnit: DepthUnit.feet),
+    );
+
+    // 12 m is 39.37 ft: not a whole number, so one decimal.
+    expect(find.text('39.4ft'), findsOneWidget);
+    expect(find.text('12m'), findsNothing);
+  });
+
+  testWidgets('a setpoint Custom starts at the Settings value, edits write '
+      'the plan, Default clears it again', (tester) async {
+    final container = await pumpSection(tester, settings: settingsWithCcr);
+
+    await tester.tap(choice(control(0), 'Custom'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointLow, 0.6);
+    // The other setpoint is untouched.
+    expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
+    final field = find.descendant(
+      of: control(0),
+      matching: find.byType(TextField),
+    );
+    expect(tester.widget<TextField>(field).controller!.text, '0.6');
+
+    await tester.enterText(field, '0.8');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointLow, 0.8);
+
+    // Out of range text is not committed until focus leaves the box.
+    await tester.enterText(field, '0');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointLow, 0.8);
+
+    await tester.tap(choice(control(0), 'Default'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointLow, isNull);
+    expect(find.byType(TextField), findsNothing);
+
+    await tester.tap(choice(control(1), 'Custom'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointHigh, 1.2);
+    await tester.tap(choice(control(1), 'Default'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
+  });
+
+  testWidgets('a plan that carries its own setpoints shows Custom with them', (
     tester,
   ) async {
     await tester.pumpWidget(
       testApp(
-        overrides: overrides(),
-        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+        overrides: [
+          ...plannerResultsInline(),
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(settingsWithCcr),
+          ),
+        ],
+        child: const SingleChildScrollView(
+          child: SizedBox(width: 500, child: CcrSettingsSection()),
+        ),
       ),
     );
-    await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(
       tester.element(find.byType(CcrSettingsSection)),
     );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateSetpoints(low: 0.9, high: 1.5, switchDepth: 20);
+    await tester.pumpAndSettle();
+
     final fields = find.byType(TextField);
     expect(fields, findsNWidgets(3));
+    expect(tester.widget<TextField>(fields.at(0)).controller!.text, '0.9');
+    expect(tester.widget<TextField>(fields.at(1)).controller!.text, '1.5');
+    expect(tester.widget<TextField>(fields.at(2)).controller!.text, '20');
+  });
 
-    await tester.enterText(fields.at(0), '0.8');
-    await tester.enterText(fields.at(1), '1.5');
-    await tester.enterText(fields.at(2), '15');
+  testWidgets('switch depth Custom starts at the Settings depth and accepts '
+      '0; Off keeps the depth; Default clears both', (tester) async {
+    final container = await pumpSection(tester, settings: settingsWithCcr);
+    final depth = control(2);
+
+    await tester.tap(choice(depth, 'Custom'));
     await tester.pumpAndSettle();
-    final state = container.read(divePlanNotifierProvider);
-    expect(state.setpointLow, 0.8);
-    expect(state.setpointHigh, 1.5);
-    expect(state.setpointSwitchDepth, 15.0);
+    var state = container.read(divePlanNotifierProvider);
+    expect(state.setpointSwitchDepth, 12.0);
+    expect(state.setpointSwitchOff, isFalse);
+    final field = find.descendant(of: depth, matching: find.byType(TextField));
+    expect(tester.widget<TextField>(field).controller!.text, '12');
 
-    // Switch depth 0 (high setpoint from the surface) is a valid config.
-    await tester.enterText(fields.at(2), '0');
+    await tester.enterText(field, '18');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointSwitchDepth, 18.0);
+
+    // 0 (high setpoint from the surface) is a valid depth.
+    await tester.enterText(field, '0');
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).setpointSwitchDepth, 0.0);
 
-    // Out of range (below the practical minimum) is not committed until
-    // focus leaves the field, which this test never triggers, so the prior
-    // value stays untouched.
-    await tester.enterText(fields.at(0), '0');
+    await tester.enterText(field, '18');
     await tester.pumpAndSettle();
-    expect(container.read(divePlanNotifierProvider).setpointLow, 0.8);
+    await tester.tap(choice(depth, 'Off'));
+    await tester.pumpAndSettle();
+    state = container.read(divePlanNotifierProvider);
+    expect(state.setpointSwitchOff, isTrue);
+    expect(state.setpointSwitchDepth, 18.0);
+    expect(
+      find.text('No switch by depth: low setpoint throughout'),
+      findsOneWidget,
+    );
+    expect(find.byType(TextField), findsNothing);
+
+    // Custom again brings back the depth that was kept.
+    await tester.tap(choice(depth, 'Custom'));
+    await tester.pumpAndSettle();
+    state = container.read(divePlanNotifierProvider);
+    expect(state.setpointSwitchOff, isFalse);
+    expect(state.setpointSwitchDepth, 18.0);
+
+    await tester.tap(choice(depth, 'Off'));
+    await tester.pumpAndSettle();
+    await tester.tap(choice(depth, 'Default'));
+    await tester.pumpAndSettle();
+    state = container.read(divePlanNotifierProvider);
+    expect(state.setpointSwitchOff, isFalse);
+    expect(state.setpointSwitchDepth, isNull);
+    expect(find.text('12m'), findsOneWidget);
   });
 
-  testWidgets(
-    'an empty setpoint field follows the diver\'s Settings as a greyed '
-    'hint, not the spec 0.7 / 1.3 (issues #2801, #3552)',
-    (tester) async {
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            ...plannerResultsInline(),
-            settingsProvider.overrideWith(
-              (ref) => _TestSettingsNotifier(
-                const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
-              ),
-            ),
-          ],
-          child: const SizedBox(width: 500, child: CcrSettingsSection()),
-        ),
-      );
-      await tester.pumpAndSettle();
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(CcrSettingsSection)),
-      );
-      // A plan that reached CCR without the mode switch's seed (an imported
-      // file, or one saved before the seed existed) carries no setpoints.
-      expect(container.read(divePlanNotifierProvider).setpointLow, isNull);
-      expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
-
-      final fields = find.byType(TextField);
-      // Empty text, with the Settings value shown only as the hint - the
-      // same visible distinction every other overridable Setup field uses.
-      expect(tester.widget<TextField>(fields.at(0)).controller!.text, '');
-      expect(
-        tester.widget<TextField>(fields.at(0)).decoration?.hintText,
-        '0.6',
-      );
-      expect(tester.widget<TextField>(fields.at(1)).controller!.text, '');
-      expect(
-        tester.widget<TextField>(fields.at(1)).decoration?.hintText,
-        '1.2',
-      );
-    },
-  );
-
-  testWidgets(
-    'an unset setpoint field\'s hint follows a Settings change; a set one '
-    'keeps its own value (issues #2801, #3552)',
-    (tester) async {
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            ...plannerResultsInline(),
-            settingsProvider.overrideWith(
-              (ref) => _TestSettingsNotifier(
-                const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
-              ),
-            ),
-          ],
-          child: const SizedBox(width: 500, child: CcrSettingsSection()),
-        ),
-      );
-      await tester.pumpAndSettle();
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(CcrSettingsSection)),
-      );
-      container
-          .read(divePlanNotifierProvider.notifier)
-          .updateSetpoints(low: 0.9);
-
-      (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
-          .replace(
-            const AppSettings(ccrSetpointLow: 0.5, ccrSetpointHigh: 1.4),
-          );
-      await tester.pumpAndSettle();
-
-      final fields = find.byType(TextField);
-      // The low field now carries the plan's own override text; a plan
-      // value is never overwritten by a Settings change.
-      expect(tester.widget<TextField>(fields.at(0)).controller!.text, '0.9');
-      // The high field is still unset, so its hint follows the new Settings
-      // value.
-      expect(tester.widget<TextField>(fields.at(1)).controller!.text, '');
-      expect(
-        tester.widget<TextField>(fields.at(1)).decoration?.hintText,
-        '1.4',
-      );
-    },
-  );
-
-  testWidgets(
-    'clearing an override leaves the field empty, following Settings again '
-    '(issues #2801, #3552)',
-    (tester) async {
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            ...plannerResultsInline(),
-            settingsProvider.overrideWith(
-              (ref) => _TestSettingsNotifier(
-                const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
-              ),
-            ),
-          ],
-          child: const SizedBox(width: 500, child: CcrSettingsSection()),
-        ),
-      );
-      await tester.pumpAndSettle();
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(CcrSettingsSection)),
-      );
-      final fields = find.byType(TextField);
-      await tester.enterText(fields.at(1), '1.5');
-      await tester.pumpAndSettle();
-      expect(container.read(divePlanNotifierProvider).setpointHigh, 1.5);
-
-      // Blank text clears the override back to "follow Settings".
-      await tester.enterText(fields.at(1), '');
-      await tester.pumpAndSettle();
-      expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
-
-      (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
-          .replace(
-            const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.4),
-          );
-      await tester.pumpAndSettle();
-
-      expect(tester.widget<TextField>(fields.at(1)).controller!.text, '');
-      expect(
-        tester.widget<TextField>(fields.at(1)).decoration?.hintText,
-        '1.4',
-      );
-    },
-  );
-
-  testWidgets('CCR settings fields stay in a row when there is room, and stack '
-      'vertically when there is not (#3130)', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: overrides(),
-        child: const SizedBox(width: 500, child: CcrSettingsSection()),
-      ),
+  testWidgets('switch depth Custom edits in feet and stores meters', (
+    tester,
+  ) async {
+    final container = await pumpSection(
+      tester,
+      settings: settingsWithCcr.copyWith(depthUnit: DepthUnit.feet),
     );
-    await tester.pumpAndSettle();
-    final wideFields = find.byType(TextField);
-    expect(wideFields, findsNWidgets(3));
-    // Side by side: all three share the same top edge.
-    final wideTops = [
-      for (var i = 0; i < 3; i++) tester.getTopLeft(wideFields.at(i)).dy,
-    ];
-    expect(wideTops[1], wideTops[0]);
-    expect(wideTops[2], wideTops[0]);
 
-    await tester.pumpWidget(
-      testApp(
-        overrides: overrides(),
-        child: const SizedBox(width: 300, child: CcrSettingsSection()),
-      ),
-    );
+    await tester.tap(choice(control(2), 'Custom'));
     await tester.pumpAndSettle();
-    final narrowFields = find.byType(TextField);
-    expect(narrowFields, findsNWidgets(3));
-    // Stacked: each field starts strictly below the one before it, so
-    // every label keeps the field's full width instead of being
-    // ellipsis-truncated.
-    final narrowTops = [
-      for (var i = 0; i < 3; i++) tester.getTopLeft(narrowFields.at(i)).dy,
-    ];
-    expect(narrowTops[1], greaterThan(narrowTops[0]));
-    expect(narrowTops[2], greaterThan(narrowTops[1]));
+    final field = find.descendant(
+      of: control(2),
+      matching: find.byType(TextField),
+    );
+    // The Settings depth, 12 m, in feet.
+    expect(tester.widget<TextField>(field).controller!.text, '39.4');
+    expect(find.text('ft'), findsWidgets);
+
+    await tester.enterText(field, '40');
+    await tester.pumpAndSettle();
+    expect(
+      container.read(divePlanNotifierProvider).setpointSwitchDepth,
+      closeTo(12.192, 0.001),
+    );
+  });
+
+  testWidgets('the controls stack and stay readable on a narrow screen', (
+    tester,
+  ) async {
+    final container = await pumpSection(
+      tester,
+      settings: settingsWithCcr,
+      width: 300,
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.updateSetpoints(low: 0.9, high: 1.5, switchDepth: 20);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final tops = [for (var i = 0; i < 3; i++) tester.getTopLeft(control(i)).dy];
+    expect(tops[1], greaterThan(tops[0]));
+    expect(tops[2], greaterThan(tops[1]));
   });
 }

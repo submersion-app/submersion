@@ -21895,6 +21895,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Setpoint-wisseldiepte';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote =>
+      'Geen wissel op diepte: de hele duik laag setpoint';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'pSCR-verhouding';
 
   @override
@@ -25633,7 +25637,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_ccrSetpointSwitchDepth =>
-      'Setpoint switch depth';
+      'Setpoint-wisseldiepte';
 
   @override
   String get settings_conflict_field_channelIndex => 'Kanaal';
@@ -27280,7 +27284,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Diepte voor setpointwissel';
 
   @override
-  String get settings_conflict_field_setpointSwitchOff => 'Setpoint switch off';
+  String get settings_conflict_field_setpointSwitchOff => 'Setpointwissel uit';
 
   @override
   String get settings_conflict_field_settings_key => 'Instelling';
@@ -29633,12 +29637,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-limieten CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'Setpoint laag $low · hoog $high · Dil-MOD $dil bar';
+    return 'Setpoint laag $low · hoog $high · Dil-MOD $dil bar · wissel $depth';
   }
 
   @override
@@ -29664,6 +29669,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'ppO2 die het diluent bij een flush mag bereiken; bepaalt de MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth =>
+      'Setpoint-wisseldiepte';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'Hoog setpoint eronder, laag setpoint erboven';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

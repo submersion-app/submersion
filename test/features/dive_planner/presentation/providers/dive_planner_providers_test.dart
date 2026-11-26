@@ -598,6 +598,36 @@ void main() {
       },
     );
 
+    test('updateSetpoints sets and clears switchOff and keeps the stored '
+        'switch depth (#3793)', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateSetpoints(switchDepth: 18.0);
+      notifier.updateSetpoints(switchOff: true);
+      var state = container.read(divePlanNotifierProvider);
+      expect(state.setpointSwitchOff, isTrue);
+      expect(state.setpointSwitchDepth, 18.0);
+      expect(state.isDirty, isTrue);
+
+      // A call that does not mention switchOff leaves it alone.
+      notifier.updateSetpoints(low: 0.8);
+      expect(
+        container.read(divePlanNotifierProvider).setpointSwitchOff,
+        isTrue,
+      );
+
+      notifier.updateSetpoints(switchOff: false);
+      state = container.read(divePlanNotifierProvider);
+      expect(state.setpointSwitchOff, isFalse);
+      expect(state.setpointSwitchDepth, 18.0);
+    });
+
     test('switching to CCR keeps setpoints the diver already set', () {
       final container = ProviderContainer(
         overrides: [
