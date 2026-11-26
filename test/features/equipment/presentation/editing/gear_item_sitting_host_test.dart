@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,12 +12,14 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_cards.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -132,6 +136,105 @@ void main() {
     expect(page.save.calls.single.cards, {GearItemCardId.notes.name});
     expect(page.save.calls.single.after.notes, 'Serviced in May');
     expect(page.state.saved.single?.notes, 'Serviced in May');
+  });
+
+  // The closed Service clocks card shows the held clocks until the sitting
+  // ends; the Save reads the stored ones again first, so the card never
+  // falls back to a read from before the write (issue #5042).
+  group('the clocks read again before a Save ends', () {
+    late int reads;
+    late Completer<void> gate;
+
+    Future<({FakeGearItemSave save, _OtherItemPageState state})> pumpCounting(
+      WidgetTester tester,
+    ) {
+      reads = 0;
+      gate = Completer<void>();
+      return pump(
+        tester,
+        extraOverrides: [
+          serviceClockSnapshotProvider(apex.id).overrideWith((ref) async {
+            reads++;
+            await gate.future;
+            return null;
+          }),
+        ],
+      );
+    }
+
+    testWidgets('a Save that changed the clocks ends the sitting only once '
+        'they are read again', (tester) async {
+      final page = await pumpCounting(tester);
+      page.save.runHeld = false;
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      final controller = page.state.editController;
+      final session = controller.session!;
+      await tester.runAsync(() => gearItemClocksList.currentOrRead(session));
+      holdClock(
+        session,
+        ServiceSchedule(
+          id: '',
+          equipmentId: apex.id,
+          serviceKindId: 'k-annual',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+
+      final saving = controller.save();
+      await tester.pump();
+      expect(reads, 1);
+      expect(controller.session, same(session));
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(await saving, isTrue);
+      expect(controller.session, isNull);
+    });
+
+    testWidgets('a read that never answers holds the Save no longer than '
+        'the wait allowed', (tester) async {
+      final page = await pumpCounting(tester);
+      page.save.runHeld = false;
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      final controller = page.state.editController;
+      final session = controller.session!;
+      await tester.runAsync(() => gearItemClocksList.currentOrRead(session));
+      holdClock(
+        session,
+        ServiceSchedule(
+          id: '',
+          equipmentId: apex.id,
+          serviceKindId: 'k-annual',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+
+      var done = false;
+      unawaited(controller.save().then((_) => done = true));
+      await tester.pump(const Duration(seconds: 1));
+      expect(done, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+      expect(done, isTrue);
+      expect(controller.session, isNull);
+    });
+
+    testWidgets('a Save that changed nothing on the clocks does not read '
+        'them', (tester) async {
+      final page = await pumpCounting(tester);
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      final controller = page.state.editController;
+      controller.session!.set(gearNotesField, 'Serviced in May');
+
+      expect(await controller.save(), isTrue);
+      await tester.pumpAndSettle();
+      expect(reads, 0);
+      expect(controller.session, isNull);
+    });
   });
 
   // The tag write offered after Save reads the stored fill back; a read

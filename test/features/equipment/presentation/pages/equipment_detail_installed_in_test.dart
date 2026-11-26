@@ -21,6 +21,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/service_clock_snapshot_override.dart';
 import '../../../../helpers/detail_row_finders.dart';
 
 /// The history section needs a notifier that never touches the database.
@@ -121,6 +122,7 @@ void main() {
           serviceClockStatusesProvider(
             cellId,
           ).overrideWith((ref) async => const []),
+          serviceClockSnapshotOverride(cellId),
           equipmentComponentsProvider(
             cellId,
           ).overrideWith((ref) async => const []),
