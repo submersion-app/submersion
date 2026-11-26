@@ -68,12 +68,55 @@ class SpeciesGalleryRepository {
     return pool;
   }
 
+  /// Each species' chosen cover crop, while its identification is still an
+  /// accepted, tagged crop of the species in scope. A stale cover is absent,
+  /// so the species falls back to its best crop.
+  Future<Map<String, SpeciesCrop>> coverCrops({required String diverId}) async {
+    final rows = await _select(
+      partitionBy: 'mi.decided_species_id',
+      diverId: diverId,
+      coverOf: diverId,
+    );
+    return {for (final row in rows) row.speciesId: row.crop};
+  }
+
+  /// Each species' chosen cover photo (a cover without a crop), while the
+  /// photo still carries the species' tag and is in scope: species id to
+  /// media id.
+  Future<Map<String, String>> coverPhotoIds({required String diverId}) async {
+    final rows = await _db
+        .customSelect(
+          '''
+      SELECT sc.species_id, sc.media_id
+      FROM species_covers sc
+      JOIN media_species ms
+        ON ms.media_id = sc.media_id AND ms.species_id = sc.species_id
+      JOIN media m ON m.id = sc.media_id
+      LEFT JOIN dives d ON d.id = m.dive_id
+      WHERE sc.diver_id = ?
+        AND sc.identification_id IS NULL
+        AND sc.media_id IS NOT NULL
+        AND (m.dive_id IS NULL OR d.diver_id = ?)
+    ''',
+          variables: [
+            Variable.withString(diverId),
+            Variable.withString(diverId),
+          ],
+        )
+        .get();
+    return {
+      for (final row in rows)
+        row.read<String>('species_id'): row.read<String>('media_id'),
+    };
+  }
+
   Future<List<({String speciesId, SpeciesCrop crop})>> _select({
     required String partitionBy,
     String? diverId,
     String? speciesId,
     bool confirmedOnly = false,
     bool lifeListOnly = false,
+    String? coverOf,
   }) async {
     final diverClause = diverId == null
         ? ''
@@ -94,6 +137,15 @@ class SpeciesGalleryRepository {
               ${DiveStatsScope.and(alias: 'ld')}
           )'''
         : '';
+    final coverClause = coverOf == null
+        ? ''
+        : '''
+          AND mi.id IN (
+            SELECT sc.identification_id FROM species_covers sc
+            WHERE sc.diver_id = ?
+              AND sc.species_id = mi.decided_species_id
+              AND sc.media_id = mi.media_id
+          )''';
     final rows = await _db
         .customSelect(
           '''
@@ -116,7 +168,7 @@ class SpeciesGalleryRepository {
         LEFT JOIN dives d ON d.id = m.dive_id
         WHERE mi.decision = 'accepted'
           AND mi.decided_species_id IS NOT NULL
-          $diverClause $speciesClause $confirmedClause $lifeListClause
+          $diverClause $speciesClause $confirmedClause $lifeListClause $coverClause
       )
       WHERE rn = 1
       ORDER BY taken_at DESC, id ASC
@@ -125,6 +177,7 @@ class SpeciesGalleryRepository {
             if (diverId != null) Variable.withString(diverId),
             if (speciesId != null) Variable.withString(speciesId),
             if (lifeListOnly && diverId != null) Variable.withString(diverId),
+            if (coverOf != null) Variable.withString(coverOf),
           ],
         )
         .get();

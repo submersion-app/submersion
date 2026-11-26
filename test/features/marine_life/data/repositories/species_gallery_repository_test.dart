@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_gallery_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -242,5 +245,74 @@ void main() {
     );
 
     expect(crops.single.confirmed, isFalse);
+  });
+
+  Future<void> cover(
+    String speciesId,
+    String mediaId, {
+    String? identificationId,
+  }) async {
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.speciesCovers)
+        .insert(
+          SpeciesCoversCompanion.insert(
+            id: 'cover-$speciesId',
+            diverId: 'diver-a',
+            speciesId: speciesId,
+            mediaId: Value(mediaId),
+            identificationId: Value(identificationId),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+  }
+
+  test(
+    'a cover crop counts while its identification is a tagged crop',
+    () async {
+      await insertTestTag(mediaId: 'p1', speciesId: 'grouper');
+      await insertTestTag(mediaId: 'p2', speciesId: 'grouper');
+      await insertTestIdentification(
+        id: 'small',
+        mediaId: 'p1',
+        speciesId: 'grouper',
+        width: 50,
+        height: 50,
+      );
+      await insertTestIdentification(
+        id: 'big',
+        mediaId: 'p2',
+        speciesId: 'grouper',
+        width: 900,
+        height: 900,
+      );
+      await cover('grouper', 'p1', identificationId: 'small');
+
+      final covers = await repository.coverCrops(diverId: 'diver-a');
+
+      expect(covers['grouper']!.identificationId, 'small');
+    },
+  );
+
+  test('a stale cover crop is ignored', () async {
+    await insertTestIdentification(
+      id: 'gone',
+      mediaId: 'p1',
+      speciesId: 'grouper',
+    );
+    await cover('grouper', 'p1', identificationId: 'gone');
+
+    expect(await repository.coverCrops(diverId: 'diver-a'), isEmpty);
+  });
+
+  test('a cover photo counts while the photo carries the tag', () async {
+    await insertTestTag(mediaId: 'p2', speciesId: 'grouper');
+    await cover('grouper', 'p2');
+    await cover('snapper', 'p1');
+
+    expect(await repository.coverPhotoIds(diverId: 'diver-a'), {
+      'grouper': 'p2',
+    });
   });
 }
