@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_bui
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_chip_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure_painter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_strings.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../../helpers/test_app.dart';
@@ -115,6 +116,33 @@ void main() {
     final texts = chipTexts(tester);
     expect(texts, contains('Integrated Weights 4.0 kg L'));
     expect(texts, contains('Top pocket 2.0 kg'));
+  });
+
+  testWidgets('a weightless element never reads as minus zero', (tester) async {
+    await pump(
+      tester,
+      scene([
+        const TrimElement(
+          id: 'reg',
+          label: 'Regulator',
+          kind: TrimElementKind.gear,
+          sinkKg: -0.0,
+          spot: TrimSpot.mouth,
+        ),
+        const TrimElement(
+          id: 'hood',
+          label: 'Hood',
+          kind: TrimElementKind.gear,
+          sinkKg: -0.01,
+          spot: TrimSpot.head,
+        ),
+      ]),
+      showAllChips: true,
+    );
+    expect(
+      trimShownKg(-0.0).isNegative || trimShownKg(-0.01).isNegative,
+      isFalse,
+    );
   });
 
   testWidgets('an imperial diver reads pounds', (tester) async {

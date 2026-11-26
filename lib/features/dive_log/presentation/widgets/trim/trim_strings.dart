@@ -79,3 +79,7 @@ String trimSideMark(TrimElement e, AppLocalizations l10n) {
     TrimLateral.centre => '',
   };
 }
+
+/// [kg] as it is shown: a weight too small to print reads as 0, never as
+/// minus zero.
+double trimShownKg(double kg) => kg.abs() < 0.05 ? 0 : kg;

@@ -63,7 +63,7 @@ class TrimFigure extends StatelessWidget {
     final side = trimSideMark(e, l10n);
     final text = l10n.trim_chip_weight(
       trimElementName(e, l10n),
-      units.formatWeight(e.sinkKg),
+      units.formatWeight(trimShownKg(e.sinkKg)),
     );
     return side.isEmpty ? text : '$text $side';
   }

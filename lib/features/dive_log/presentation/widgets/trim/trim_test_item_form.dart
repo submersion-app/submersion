@@ -70,7 +70,6 @@ class _TrimTestItemFormState extends State<TrimTestItemForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 2,
               child: TextField(
                 key: TrimTestItemForm.nameKey,
                 controller: _name,

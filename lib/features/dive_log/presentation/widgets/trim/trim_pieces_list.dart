@@ -82,7 +82,7 @@ class TrimPiecesList extends StatelessWidget {
     final l10n = context.l10n;
     final side = trimSideMark(e, l10n);
     final spot = e.spot.label(l10n);
-    final weight = units.formatWeight(e.sinkKg);
+    final weight = units.formatWeight(trimShownKg(e.sinkKg));
     return side.isEmpty ? '$weight, $spot' : '$weight, $spot ($side)';
   }
 
