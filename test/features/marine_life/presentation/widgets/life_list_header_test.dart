@@ -72,4 +72,14 @@ void main() {
     await tester.tap(find.byType(FilterChip));
     expect(toggled, isFalse);
   });
+
+  testWidgets('the selected chip draws no checkmark over its icon', (
+    tester,
+  ) async {
+    await _pump(tester, withoutPhoto: 3, filterOn: true);
+    expect(
+      tester.widget<FilterChip>(find.byType(FilterChip)).showCheckmark,
+      isFalse,
+    );
+  });
 }

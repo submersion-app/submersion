@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/marine_life/domain/species_grouping.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_browse_prefs_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_gallery_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/life_list_header.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -93,8 +95,12 @@ Future<void> _pumpPage(
   List<Override> extra = const [],
   VoidCallback? onBestCrops,
   bool settle = true,
+  SpeciesGroupBy groupBy = SpeciesGroupBy.none,
 }) async {
   final overrides = await getBaseOverrides();
+  // Most tests read one grid in sort order; the default groups by category.
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(kSpeciesGroupByKey, groupBy.name);
   await tester.pumpWidget(
     testAppRouter(
       router: _router(),
@@ -401,5 +407,15 @@ void main() {
       settle: false,
     );
     expect(find.byKey(const ValueKey('species_no_photo_chip')), findsNothing);
+  });
+
+  testWidgets('a fresh install groups by category', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(kSpeciesGroupByKey);
+    final container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+    addTearDown(container.dispose);
+    expect(container.read(speciesGroupByProvider), SpeciesGroupBy.category);
   });
 }

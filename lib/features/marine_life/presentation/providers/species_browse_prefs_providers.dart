@@ -10,8 +10,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 const String kSpeciesGroupByKey = 'species_page.group_by';
 const String kSpeciesBrowseGridKey = 'species_page.grid';
 
-/// The Species page grouping. None until changed; a value this build does
-/// not know (written by a newer one) reads as none.
+/// The Species page grouping. Category until changed; a value this build
+/// does not know (written by a newer one) reads as category.
 class SpeciesGroupByNotifier extends StateNotifier<SpeciesGroupBy>
     with SerialPreferenceWrites {
   SpeciesGroupByNotifier(this._prefs) : super(_read(_prefs));
@@ -22,7 +22,7 @@ class SpeciesGroupByNotifier extends StateNotifier<SpeciesGroupBy>
     final stored = prefs.getString(kSpeciesGroupByKey);
     return SpeciesGroupBy.values.firstWhere(
       (by) => by.name == stored,
-      orElse: () => SpeciesGroupBy.none,
+      orElse: () => SpeciesGroupBy.category,
     );
   }
 

@@ -67,6 +67,9 @@ class LifeListHeader extends StatelessWidget {
             FilterChip(
               key: const ValueKey('species_no_photo_chip'),
               avatar: const Icon(Icons.hide_image_outlined, size: 18),
+              // The checkmark would be drawn over the icon; the selected
+              // colour says the filter is on.
+              showCheckmark: false,
               label: Text(
                 l10n.marineLife_speciesPage_withoutPhoto(withoutPhoto),
               ),

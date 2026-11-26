@@ -16,10 +16,10 @@ Future<ProviderContainer> _container(Map<String, Object> stored) async {
 }
 
 void main() {
-  test('default is none and grid', () async {
+  test('default is category and grid', () async {
     final container = await _container({});
 
-    expect(container.read(speciesGroupByProvider), SpeciesGroupBy.none);
+    expect(container.read(speciesGroupByProvider), SpeciesGroupBy.category);
     expect(container.read(speciesBrowseGridProvider), isTrue);
   });
 
@@ -44,7 +44,7 @@ void main() {
   test('an unknown stored value reads as the default', () async {
     final container = await _container({kSpeciesGroupByKey: 'byMoonPhase'});
 
-    expect(container.read(speciesGroupByProvider), SpeciesGroupBy.none);
+    expect(container.read(speciesGroupByProvider), SpeciesGroupBy.category);
   });
 
   test('rapid changes store the last one', () async {
