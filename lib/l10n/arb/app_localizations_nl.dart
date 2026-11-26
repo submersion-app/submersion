@@ -24326,6 +24326,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navShortcut_short_weighting => 'Lood';
 
   @override
+  String get navShortcut_short_trim => 'Trim';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'Oppervl.-int.';
 
   @override

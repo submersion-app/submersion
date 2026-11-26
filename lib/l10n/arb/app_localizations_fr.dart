@@ -24524,6 +24524,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navShortcut_short_weighting => 'Lestage';
 
   @override
+  String get navShortcut_short_trim => 'Assiette';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'Interv. surface';
 
   @override

@@ -23216,6 +23216,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navShortcut_short_weighting => '配重';
 
   @override
+  String get navShortcut_short_trim => '纵倾';
+
+  @override
   String get navShortcut_short_surfaceInterval => '水面间隔';
 
   @override

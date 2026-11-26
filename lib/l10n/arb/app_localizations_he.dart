@@ -23950,6 +23950,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navShortcut_short_weighting => 'משקולות';
 
   @override
+  String get navShortcut_short_trim => 'איזון';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'מרווח שטח';
 
   @override

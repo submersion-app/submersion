@@ -24119,6 +24119,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navShortcut_short_weighting => 'Weighting';
 
   @override
+  String get navShortcut_short_trim => 'Trim';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'Surface int.';
 
   @override

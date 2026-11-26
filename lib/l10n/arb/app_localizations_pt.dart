@@ -24462,6 +24462,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navShortcut_short_weighting => 'Lastro';
 
   @override
+  String get navShortcut_short_trim => 'Trim';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'Int. superfície';
 
   @override

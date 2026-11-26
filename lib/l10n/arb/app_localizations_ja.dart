@@ -23567,6 +23567,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navShortcut_short_weighting => 'ウェイト';
 
   @override
+  String get navShortcut_short_trim => 'トリム';
+
+  @override
   String get navShortcut_short_surfaceInterval => '水面休息';
 
   @override

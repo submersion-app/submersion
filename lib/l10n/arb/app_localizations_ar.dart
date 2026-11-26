@@ -24880,6 +24880,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navShortcut_short_weighting => 'الأوزان';
 
   @override
+  String get navShortcut_short_trim => 'التوازن';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'فترة السطح';
 
   @override

@@ -24470,6 +24470,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navShortcut_short_weighting => 'Lastre';
 
   @override
+  String get navShortcut_short_trim => 'Trimado';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'Int. superficie';
 
   @override

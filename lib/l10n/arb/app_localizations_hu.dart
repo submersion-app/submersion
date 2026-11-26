@@ -24371,6 +24371,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navShortcut_short_weighting => 'Súlyozás';
 
   @override
+  String get navShortcut_short_trim => 'Trimm';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'Felszíni idő';
 
   @override

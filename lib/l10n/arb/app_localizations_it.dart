@@ -24468,6 +24468,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navShortcut_short_weighting => 'Zavorra';
 
   @override
+  String get navShortcut_short_trim => 'Assetto';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'Int. superficie';
 
   @override

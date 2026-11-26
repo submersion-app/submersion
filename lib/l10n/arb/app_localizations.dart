@@ -38515,6 +38515,12 @@ abstract class AppLocalizations {
   /// **'Weighting'**
   String get navShortcut_short_weighting;
 
+  /// Short nav-bar label for the Trim Calculator shortcut
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get navShortcut_short_trim;
+
   /// Short nav bar label for the Surface Interval tool shortcut; must fit one bottom-bar slot.
   ///
   /// In en, this message translates to:

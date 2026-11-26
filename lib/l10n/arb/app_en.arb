@@ -15480,6 +15480,8 @@
     "description": "Short nav bar label for the Gas Calculators shortcut; must fit one bottom-bar slot."
   },
   "navShortcut_short_weighting": "Weighting",
+  "navShortcut_short_trim": "Trim",
+  "@navShortcut_short_trim": {"description": "Short nav-bar label for the Trim Calculator shortcut"},
   "@navShortcut_short_weighting": {
     "description": "Short nav bar label for the Weight Calculator shortcut; must fit one bottom-bar slot."
   },

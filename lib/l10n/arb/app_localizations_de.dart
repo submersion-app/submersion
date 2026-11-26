@@ -24438,6 +24438,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navShortcut_short_weighting => 'Blei';
 
   @override
+  String get navShortcut_short_trim => 'Trimm';
+
+  @override
   String get navShortcut_short_surfaceInterval => 'Oberfl.-Pause';
 
   @override
