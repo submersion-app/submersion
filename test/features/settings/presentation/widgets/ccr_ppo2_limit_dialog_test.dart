@@ -178,6 +178,24 @@ void main() {
       expect(saved.single.depth, 100.0);
     });
 
+    testWidgets('Save settles a value still in the box, without a blur', (
+      tester,
+    ) async {
+      final saved = <_Saved>[];
+      await tester.pumpWidget(_dialogApp(onSave: saved.add));
+      await _open(tester);
+
+      // Typed as on a phone: "15" is an in-range prefix of "150", and the
+      // box keeps focus when Save is tapped.
+      await tester.enterText(_depthField, '15');
+      await tester.pumpAndSettle();
+      await tester.enterText(_depthField, '150');
+      await tester.pumpAndSettle();
+
+      await _save(tester);
+      expect(saved.single.depth, 100.0);
+    });
+
     testWidgets('an empty box is ignored and blur restores the held depth', (
       tester,
     ) async {

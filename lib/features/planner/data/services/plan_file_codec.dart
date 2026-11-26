@@ -449,7 +449,9 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     setpointLow: (plan['setpointLow'] as num?)?.toDouble(),
     setpointHigh: (plan['setpointHigh'] as num?)?.toDouble(),
     setpointSwitchDepth: (plan['setpointSwitchDepth'] as num?)?.toDouble(),
-    setpointSwitchOff: plan['setpointSwitchOff'] as bool? ?? false,
+    // Tolerant read: anything but a literal true (a hand-edited 1 or
+    // "true") is the default, never a failed import.
+    setpointSwitchOff: plan['setpointSwitchOff'] == true,
     scrInjectionRate: _positive(plan['scrInjectionRate']),
     scrVo2: _positive(plan['scrVo2']),
     pscrVo2: _positive(plan['pscrVo2']),

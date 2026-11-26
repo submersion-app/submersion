@@ -178,6 +178,12 @@ void main() {
     final plain = planToSubplanJson(_plan());
     expect(plain, isNot(contains('setpointSwitchOff')));
     expect(subplanFromJson(plain).setpointSwitchOff, isFalse);
+
+    // A hand-edited file with a non-boolean value imports as the default
+    // instead of failing.
+    final file = jsonDecode(plain) as Map<String, dynamic>;
+    (file['plan'] as Map<String, dynamic>)['setpointSwitchOff'] = 1;
+    expect(subplanFromJson(jsonEncode(file)).setpointSwitchOff, isFalse);
   });
 
   // Issue #3552: an unset field means "follow Settings". Importing a file

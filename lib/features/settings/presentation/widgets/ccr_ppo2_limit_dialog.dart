@@ -109,6 +109,7 @@ class _CcrPpO2LimitDialogState extends State<CcrPpO2LimitDialog> {
   late double _high;
   late double _diluentMod;
   late double _switchDepth;
+  final _switchDepthRow = GlobalKey<CcrSwitchDepthRowState>();
 
   /// A stored value snapped onto the slider's 0.1 grid and range.
   static double _snap(double value) => SettingsNotifier.ccrPpO2OnGrid(value);
@@ -193,6 +194,7 @@ class _CcrPpO2LimitDialogState extends State<CcrPpO2LimitDialog> {
             ),
             const SizedBox(height: 12),
             CcrSwitchDepthRow(
+              key: _switchDepthRow,
               label: l10n.settings_decompression_ccrDialog_switchDepth,
               hint: l10n.settings_decompression_ccrDialog_switchDepthHint,
               meters: _switchDepth,
@@ -209,6 +211,9 @@ class _CcrPpO2LimitDialogState extends State<CcrPpO2LimitDialog> {
         ),
         FilledButton(
           onPressed: () {
+            // Settle a value still being typed: commit() reports it through
+            // onChanged, whose setState updates _switchDepth synchronously.
+            _switchDepthRow.currentState?.commit();
             widget.onSave(_low, _high, _diluentMod, _switchDepth);
             Navigator.of(context).pop();
           },

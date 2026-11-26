@@ -147,6 +147,13 @@ void main() {
       expect(dive.setpointHigh, 1.4);
     });
 
+    test('a plan with the switch Off logs its low setpoint as the high', () {
+      final state = ccrState().copyWith(setpointSwitchOff: true);
+      final dive = _entry(state, config: settings).newDive(state, null);
+      expect(dive.setpointLow, 0.6);
+      expect(dive.setpointHigh, 0.6);
+    });
+
     test('an update compares against the resolved values', () {
       final state = ccrState();
       final entry = _entry(state, config: settings);

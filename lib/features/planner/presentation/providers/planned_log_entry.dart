@@ -95,7 +95,13 @@ class PlannedLogEntry {
         PlanMode.oc || PlanMode.ccr => null,
       },
       setpointLow: mode == PlanMode.ccr ? config.setpointLowFor(plan) : null,
-      setpointHigh: mode == PlanMode.ccr ? config.setpointHighFor(plan) : null,
+      // A plan with the switch Off breathes its low setpoint throughout, so
+      // that is the high one the log may fall back on as well.
+      setpointHigh: mode != PlanMode.ccr
+          ? null
+          : plan.setpointSwitchOff
+          ? config.setpointLowFor(plan)
+          : config.setpointHighFor(plan),
       profile: sampledPlanProfile([
         for (final point in canvas.profile)
           DiveProfilePoint(

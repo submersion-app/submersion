@@ -78,7 +78,8 @@ class ScenarioSettings extends Equatable {
   final double defaultScrVo2Lpm;
 
   /// The diver's CCR setpoint switch depth (m), for a CCR plan that sets none
-  /// of its own (issue #3793), so the lab and the planner agree on the loop.
+  /// of its own (issue #3793), so the lab and the planner switch setpoint at
+  /// the same depth. The setpoints themselves still come from the dive.
   final double ccrSetpointSwitchDepth;
 
   /// Mirrors profile_analysis_provider: altitude, water type and surface

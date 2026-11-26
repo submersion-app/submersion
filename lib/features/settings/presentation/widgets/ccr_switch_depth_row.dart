@@ -32,10 +32,10 @@ class CcrSwitchDepthRow extends StatefulWidget {
   final ValueChanged<double> onChanged;
 
   @override
-  State<CcrSwitchDepthRow> createState() => _CcrSwitchDepthRowState();
+  State<CcrSwitchDepthRow> createState() => CcrSwitchDepthRowState();
 }
 
-class _CcrSwitchDepthRowState extends State<CcrSwitchDepthRow> {
+class CcrSwitchDepthRowState extends State<CcrSwitchDepthRow> {
   static const double _sliderMin = SettingsNotifier.ccrSwitchDepthSliderMin;
   static const double _sliderMax = SettingsNotifier.ccrSwitchDepthSliderMax;
   static final int _divisions = (_sliderMax - _sliderMin).round();
@@ -91,10 +91,16 @@ class _CcrSwitchDepthRowState extends State<CcrSwitchDepthRow> {
     if (meters != null && meters != widget.meters) widget.onChanged(meters);
   }
 
-  /// On blur: out-of-range text settles on the nearest end, anything that is
-  /// not a number goes back to the held value.
   void _handleFocusChange() {
-    if (_focusNode.hasFocus) return;
+    if (!_focusNode.hasFocus) commit();
+  }
+
+  /// Settles the box: out-of-range text goes to the nearest end, anything
+  /// that is not a number back to the held value. Runs on blur, and a Save
+  /// button calls it first, since tapping a button on a touch screen does
+  /// not take focus from the box (the last in-range prefix typed would be
+  /// saved otherwise).
+  void commit() {
     final read = readNumber(_controller.text, allowNegative: false);
     if (read is NumberValue) {
       final clamped = SettingsNotifier.ccrSwitchDepthOnGrid(
