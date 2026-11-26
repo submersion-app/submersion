@@ -849,8 +849,10 @@ void main() {
       expect(SettingsNotifier.ccrSwitchDepthSliderMax, 30.0);
       expect(SettingsNotifier.ccrSwitchDepthInputMin, 0.0);
       expect(SettingsNotifier.ccrSwitchDepthInputMax, 100.0);
-      expect(SettingsNotifier.ccrSwitchDepthOnGrid(10.04), 10.0);
-      expect(SettingsNotifier.ccrSwitchDepthOnGrid(10.06), 10.1);
+      expect(SettingsNotifier.ccrSwitchDepthOnGrid(10.0004), 10.0);
+      expect(SettingsNotifier.ccrSwitchDepthOnGrid(10.0006), 10.001);
+      // A depth typed in feet survives: 30 ft is 9.144 m.
+      expect(SettingsNotifier.ccrSwitchDepthOnGrid(9.144), 9.144);
       expect(SettingsNotifier.ccrSwitchDepthOnGrid(-1), 0.0);
       expect(SettingsNotifier.ccrSwitchDepthOnGrid(101), 100.0);
     });

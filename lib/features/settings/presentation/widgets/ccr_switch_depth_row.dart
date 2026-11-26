@@ -72,13 +72,13 @@ class _CcrSwitchDepthRowState extends State<CcrSwitchDepthRow> {
   String _textFor(double meters) =>
       formatRoundedForInput(widget.units.convertDepth(meters), 1);
 
-  /// The text as meters on the stored 0.1 m grid, or null when it is blank,
+  /// The text as meters, through ccrSwitchDepthOnGrid, or null when it is blank,
   /// unreadable or outside 0-100 m.
   double? _metersFromText(String text) {
     final read = readNumber(text, allowNegative: false);
     if (read is! NumberValue) return null;
     final exact = widget.units.depthToMeters(read.value);
-    // Half a grid step of slack, so 328.1 ft still reads as 100 m.
+    // A little slack, so 328.1 ft still reads as 100 m.
     if (exact < SettingsNotifier.ccrSwitchDepthInputMin ||
         exact > SettingsNotifier.ccrSwitchDepthInputMax + 0.05) {
       return null;

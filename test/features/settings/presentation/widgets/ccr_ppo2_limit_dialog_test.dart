@@ -225,8 +225,8 @@ void main() {
       await tester.enterText(_depthField, '100');
       await tester.pumpAndSettle();
       await _save(tester);
-      // 100 ft is 30.48 m, kept on the 0.1 m grid.
-      expect(saved.single.depth, closeTo(30.5, 1e-9));
+      // 100 ft is 30.48 m, kept exactly so it shows as 100 ft again.
+      expect(saved.single.depth, closeTo(30.48, 1e-9));
     });
   });
 

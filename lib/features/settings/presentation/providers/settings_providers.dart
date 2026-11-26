@@ -2721,18 +2721,19 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static const double ccrSwitchDepthInputMin = 0.0;
   static const double ccrSwitchDepthInputMax = 100.0;
 
-  /// [value] clamped to the input range and rounded to 0.1 m.
+  /// [value] clamped to the input range and rounded to the millimeter. Not
+  /// to 0.1 m: a depth typed in feet must survive the round trip (30 ft is
+  /// 9.144 m, which a 0.1 m grid turns into 29.9 ft).
   static double ccrSwitchDepthOnGrid(double value) =>
-      (value.clamp(ccrSwitchDepthInputMin, ccrSwitchDepthInputMax) * 10)
+      (value.clamp(ccrSwitchDepthInputMin, ccrSwitchDepthInputMax) * 1000)
           .round() /
-      10;
+      1000;
 
   /// Set the CCR ppO2 limits in one persisted write. Each is put on the
   /// [ccrPpO2Min]..[ccrPpO2Max] 0.1 bar grid, and the high setpoint is held
   /// at or above the low one, the same "never inverted" rule
   /// [setPpO2Limits] keeps. A [setpointSwitchDepth] of null keeps the stored
-  /// switch depth; otherwise it is put on the 0.1 m grid within the
-  /// [ccrSwitchDepthInputMin]..[ccrSwitchDepthInputMax] range.
+  /// switch depth; otherwise it goes through [ccrSwitchDepthOnGrid].
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
     required double setpointHigh,
