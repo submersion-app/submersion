@@ -55,3 +55,10 @@ const gearFollowsPackingSql =
     "e.status <> 'wanted' AND (t.diver_id IS NULL OR e.diver_id IS NULL "
     'OR e.diver_id = t.diver_id OR EXISTS (SELECT 1 FROM equipment_shares s '
     'WHERE s.equipment_id = e.id AND s.diver_id = t.diver_id))';
+
+/// The viewer half of [gearFollowsPacking] as SQL over `equipment e`:
+/// usable by the diver bound to each of its three placeholders.
+const gearUsableByViewerSql =
+    '(? IS NULL OR e.diver_id IS NULL OR e.diver_id = ? OR EXISTS '
+    '(SELECT 1 FROM equipment_shares v WHERE v.equipment_id = e.id '
+    'AND v.diver_id = ?))';

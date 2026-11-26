@@ -743,13 +743,18 @@ class TripChecklistRepository {
   /// fan a per-trip query -- and, through the provider family, a per-trip
   /// table subscription -- out of a widget that rebuilds on every dashboard
   /// paint. Mirrors PreDiveSessionRepository.getItemsForSessions.
+  ///
+  /// [viewerId] as in [getAllItemsForTrip], so the counts agree with the
+  /// rows that diver reads.
   Future<Map<String, ({int done, int total})>> getProgressForTrips(
-    List<String> tripIds,
-  ) async {
+    List<String> tripIds, {
+    String? viewerId,
+  }) async {
     if (tripIds.isEmpty) return {};
     try {
       // Only the placeholder count is interpolated; every id is bound.
       final placeholders = List.filled(tripIds.length, '?').join(', ');
+      final viewer = viewerId == null ? '' : 'AND $gearUsableByViewerSql ';
       final rows = await _db
           .customSelect(
             'SELECT c.trip_id AS trip_id, COUNT(*) AS total, '
@@ -762,11 +767,16 @@ class TripChecklistRepository {
             'LEFT JOIN trips t ON t.id = c.trip_id '
             'LEFT JOIN equipment e ON e.id = i.equipment_id '
             'AND $gearFollowsPackingSql '
+            '$viewer'
             'LEFT JOIN trip_equipment p '
             'ON p.trip_id = c.trip_id AND p.equipment_id = i.equipment_id '
             'WHERE c.trip_id IN ($placeholders) '
             'GROUP BY c.trip_id',
-            variables: [for (final id in tripIds) Variable.withString(id)],
+            variables: [
+              if (viewerId != null)
+                for (var n = 0; n < 3; n++) Variable.withString(viewerId),
+              for (final id in tripIds) Variable.withString(id),
+            ],
             readsFrom: {
               _db.tripChecklistItems,
               _db.tripChecklists,

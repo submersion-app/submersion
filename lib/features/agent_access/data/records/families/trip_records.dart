@@ -47,7 +47,7 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
         for (final c in await r.tripCylinders.getCylindersForTrip(trip.id))
           tripCylinderDocument(c),
       ],
-      'checklists': (trip, _) async => [
+      'checklists': (trip, load) async => [
         for (final list in await r.tripChecklistLists.getChecklistsForTrip(
           trip.id,
         ))
@@ -60,7 +60,10 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
                 tripChecklistSectionDocument(s),
             ],
             'items': [
-              for (final i in await r.tripChecklists.getByChecklistId(list.id))
+              for (final i in await r.tripChecklists.getByChecklistId(
+                list.id,
+                viewerId: load.diverId,
+              ))
                 tripChecklistItemDocument(i),
             ],
           },
