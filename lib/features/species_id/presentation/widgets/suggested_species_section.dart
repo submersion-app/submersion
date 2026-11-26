@@ -477,12 +477,10 @@ class IdentificationCrop extends ConsumerWidget {
     final read = ref.watch(
       identificationCropProvider((mediaId, identificationId)),
     );
-    // Still being read: the plain background, never "not on this device"
-    // for a crop that is about to show (issue #5024).
+    // Still being read: the placeholder's background and size, never "not
+    // on this device" for a crop that is about to show (issue #5024).
     if (read.isLoading && !read.hasValue) {
-      return ColoredBox(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      );
+      return _Placeholder(showReason: showReason, loading: true);
     }
     final crop = read.value;
     final placeholder = _Placeholder(showReason: showReason);
@@ -503,9 +501,12 @@ class IdentificationCrop extends ConsumerWidget {
 }
 
 class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.showReason});
+  const _Placeholder({required this.showReason, this.loading = false});
 
   final bool showReason;
+
+  /// The crop is still being read: the same size, with nothing said yet.
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -513,24 +514,31 @@ class _Placeholder extends StatelessWidget {
     return ColoredBox(
       color: scheme.surfaceContainerHighest,
       child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.image_not_supported_outlined,
-                color: scheme.onSurfaceVariant,
-              ),
-              if (showReason) ...[
-                const SizedBox(height: 8),
-                Text(
-                  context.l10n.media_species_cropUnavailable,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: scheme.onSurfaceVariant),
+        child: Visibility(
+          // Kept to size while loading, but neither seen nor read out.
+          visible: !loading,
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.image_not_supported_outlined,
+                  color: scheme.onSurfaceVariant,
                 ),
+                if (showReason) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    context.l10n.media_species_cropUnavailable,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
