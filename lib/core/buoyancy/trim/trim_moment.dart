@@ -64,6 +64,9 @@ class TrimElement {
   /// section 14 C). 0 for anything that is not a cylinder.
   final double valveSinkKg;
 
+  /// Its whole in-water weight, valve included: what it weighs as shown.
+  double get totalSinkKg => sinkKg + valveSinkKg;
+
   /// How far it is moved along the body from its spot, metres toward the
   /// feet: a cylinder slid up or down its band in try-out.
   final double shiftM;

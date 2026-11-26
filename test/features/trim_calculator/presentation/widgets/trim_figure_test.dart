@@ -453,4 +453,24 @@ void main() {
       expect(moved.dy, closeTo(0, 1e-6));
     });
   });
+
+  testWidgets("a tank's chip shows its whole weight, valve included", (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      scene(const [
+        TrimElement(
+          id: 'tank',
+          label: 'AL80',
+          kind: TrimElementKind.tank,
+          sinkKg: -1.5,
+          spot: TrimSpot.backTank,
+          valveSinkKg: 0.7,
+        ),
+      ]),
+      showAllChips: true,
+    );
+    expect(chipTexts(tester).single, contains('-0.8 kg'));
+  });
 }

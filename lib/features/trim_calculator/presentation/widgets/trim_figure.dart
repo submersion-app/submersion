@@ -60,7 +60,7 @@ class TrimFigure extends StatelessWidget {
     _ =>
       showAllChips &&
           e.spot != TrimSpot.floatPoint &&
-          e.sinkKg.abs() >= minChipKg,
+          e.totalSinkKg.abs() >= minChipKg,
   };
 
   static const double minChipKg = 0.2;
@@ -70,7 +70,7 @@ class TrimFigure extends StatelessWidget {
     final side = trimSideMark(e, l10n);
     final text = l10n.trim_chip_weight(
       trimElementName(e, l10n),
-      units.formatWeight(trimShownKg(e.sinkKg)),
+      units.formatWeight(trimShownKg(e.totalSinkKg)),
     );
     final sided = side.isEmpty ? text : '$text $side';
     return e.spotUnknown ? '$sided (${l10n.trim_chip_note})' : sided;
@@ -201,7 +201,7 @@ class TrimFigure extends StatelessWidget {
     final l10n = context.l10n;
     final text = l10n.trim_chip_weight(
       trimElementName(e, l10n),
-      units.formatWeight(trimShownKg(e.sinkKg)),
+      units.formatWeight(trimShownKg(e.totalSinkKg)),
     );
     final side = !e.spot.sided
         ? null

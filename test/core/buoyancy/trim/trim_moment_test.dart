@@ -233,4 +233,16 @@ void main() {
       closeTo(-1 * 0.1, 1e-9),
     );
   });
+
+  test("a tank's total weight counts its valve", () {
+    const tank = TrimElement(
+      id: 'tank',
+      label: 'AL80',
+      kind: TrimElementKind.tank,
+      sinkKg: -1.5,
+      spot: TrimSpot.backTank,
+      valveSinkKg: 0.7,
+    );
+    expect(tank.totalSinkKg, closeTo(-0.8, 1e-9));
+  });
 }

@@ -516,4 +516,27 @@ void main() {
       expect(find.text('What would level you'), findsNothing);
     });
   });
+
+  testWidgets("the Pieces list weighs a tank whole, valve included", (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      at: (t) => sceneAt(t).copyWith(
+        elements: [
+          ...sceneAt(t).elements,
+          const TrimElement(
+            id: 'tank',
+            label: 'AL80',
+            kind: TrimElementKind.tank,
+            sinkKg: -1.5,
+            spot: TrimSpot.backTank,
+            valveSinkKg: 0.7,
+          ),
+        ],
+      ),
+    );
+    expect(find.textContaining('-0.8 kg'), findsWidgets);
+    expect(find.textContaining('-1.5 kg'), findsNothing);
+  });
 }
