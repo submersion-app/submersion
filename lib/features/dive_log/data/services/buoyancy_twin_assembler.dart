@@ -213,6 +213,8 @@ class BuoyancyTwinAssembler {
           label: feature.label,
           kg: fitted ?? feature.priorKg,
           source: source,
+          itemId: item.id,
+          priorKg: feature.priorKg,
         ),
       );
     }

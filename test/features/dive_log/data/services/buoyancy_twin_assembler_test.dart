@@ -647,6 +647,32 @@ void main() {
     });
   });
 
+  group('BuoyancyTwinAssembler.composeRigTerms gear identity (#5028)', () {
+    test('each gear term names its item and carries its prior', () {
+      const hood = EquipmentItem(
+        id: 'hood1',
+        name: 'Hood',
+        type: EquipmentType.hood,
+      );
+      final rig = BuoyancyTwinAssembler.composeRigTerms(
+        items: const [wetsuit, hood],
+        tanks: const [],
+        model: emptyModel(),
+        waterType: WaterType.salt,
+        bodyWeightKg: 80,
+      );
+      final term = rig.staticTerms.singleWhere((t) => t.itemId == 'hood1');
+      expect(term.priorKg, isNotNull);
+      expect(term.priorKg, closeTo(0.3, 0.5));
+      // The suit is modelled apart, and body and water terms are no item's.
+      expect(rig.staticTerms.where((t) => t.itemId == 'suit1'), isEmpty);
+      expect(
+        rig.staticTerms.singleWhere((t) => t.label == 'water').itemId,
+        isNull,
+      );
+    });
+  });
+
   group('BuoyancyTwinAssembler.composeRigTerms salinity', () {
     double waterTerm({WaterType? waterType, double? salinityPpt}) =>
         BuoyancyTwinAssembler.composeRigTerms(

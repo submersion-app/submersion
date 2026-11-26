@@ -1,4 +1,5 @@
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
+import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 
@@ -15,6 +16,7 @@ class TrimElement {
     required this.spot,
     this.lateral = TrimLateral.centre,
     this.itemId,
+    this.weightType,
     this.pieceIds = const [],
   });
 
@@ -30,6 +32,9 @@ class TrimElement {
   /// The equipment item this stands for, when it is gear.
   final String? itemId;
 
+  /// A typed weight's placement, which names it when it has no label.
+  final WeightType? weightType;
+
   /// The side-view artwork drawn for it; empty when it is drawn as a chip.
   final List<String> pieceIds;
 
@@ -41,6 +46,7 @@ class TrimElement {
     spot: spot ?? this.spot,
     lateral: lateral ?? this.lateral,
     itemId: itemId,
+    weightType: weightType,
     pieceIds: pieceIds,
   );
 }
