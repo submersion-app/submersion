@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,10 +16,12 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_service_card.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
@@ -55,9 +59,13 @@ void main() {
     WidgetTester tester,
     Widget card, {
     List<Object> extraOverrides = const [],
+    List<ServiceClockStatus> storedClocks = const [],
   }) async {
     await tester.runAsync(() async {
       await EquipmentRepository().createEquipment(tank);
+      for (final clock in storedClocks) {
+        await ServiceScheduleRepository().createSchedule(clock.schedule);
+      }
       final passport = await CylinderPassportRepository().ensurePassportId('a');
       stored = await CylinderFillRepository().create(
         CylinderFill(
@@ -89,12 +97,14 @@ void main() {
           tripCopyFillIdsProvider('a').overrideWith((ref) async => const {}),
           serviceClockStatusesProvider(
             'a',
-          ).overrideWith((ref) async => const <ServiceClockStatus>[]),
+          ).overrideWith((ref) async => storedClocks),
           serviceRecordsForEquipmentProvider(
             'a',
           ).overrideWith((ref) async => const <ServiceRecord>[]),
           ...extraOverrides,
         ],
+        // The trigger lines asserted below are the English ones.
+        locale: const Locale('en'),
         child: SingleChildScrollView(child: card),
       ),
     );
@@ -331,5 +341,49 @@ void main() {
     expect(find.text('O2 clean'), findsOneWidget);
     expect(find.textContaining('Due '), findsOneWidget);
     expect(find.byType(RecordChangedDot), findsOneWidget);
+  });
+
+  testWidgets('a clock removed in the sitting does not come back while its '
+      'verdicts are still being read (issue #5042)', (tester) async {
+    final hydro = ServiceKind(
+      id: 'hydro',
+      name: 'Hydrostatic test',
+      defaultIntervalDays: 1825,
+      createdAt: at,
+      updatedAt: at,
+    );
+    final reading = Completer<ServiceClockSnapshot?>();
+    await pump(
+      tester,
+      Builder(
+        builder: (context) =>
+            PassportServiceCard(equipment: tank, editing: session),
+      ),
+      storedClocks: [
+        ServiceClockStatus(
+          schedule: ServiceSchedule(
+            id: 'h1',
+            equipmentId: 'a',
+            serviceKindId: 'hydro',
+            createdAt: at,
+            updatedAt: at,
+          ),
+          kind: hydro,
+          anchor: at,
+          dueDate: DateTime(2031, 3, 3),
+          severity: ServiceClockSeverity.ok,
+          now: at,
+        ),
+      ],
+      extraOverrides: [
+        serviceClockSnapshotProvider('a').overrideWith((ref) => reading.future),
+      ],
+    );
+    expect(find.text('Hydrostatic test'), findsOneWidget);
+
+    removeHeldClock(session, 'h1');
+    await tester.pump();
+
+    expect(find.text('Hydrostatic test'), findsNothing);
   });
 }

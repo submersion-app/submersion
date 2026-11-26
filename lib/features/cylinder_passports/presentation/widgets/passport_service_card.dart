@@ -121,19 +121,6 @@ class PassportServiceCard extends ConsumerWidget {
         session != null && gearItemServiceRecordsList.isChanged(session)
         ? gearItemServiceRecordsList.current(session)
         : null;
-    // The held clocks and records evaluated over the item's usage, once the
-    // read they are evaluated over has landed; the stored verdicts else.
-    final held = heldClocks == null && heldRecords == null
-        ? null
-        : ref
-              .watch(serviceClockSnapshotProvider(equipment.id))
-              .value
-              ?.statusesFor(schedules: heldClocks, records: heldRecords);
-    final clocks =
-        held ??
-        ref.watch(serviceClockStatusesProvider(equipment.id)).value ??
-        const <ServiceClockStatus>[];
-    final byKind = {for (final c in clocks) c.kind.id: c};
     // The clocks the sitting changed, which carry the changed dot.
     final loaded = {
       for (final s
@@ -146,11 +133,38 @@ class PassportServiceCard extends ConsumerWidget {
       for (final s in heldClocks ?? const <ServiceSchedule>[])
         if (loaded[s.id] != s) s.serviceKindId,
     };
-    // The held records only beside the verdicts evaluated over them.
-    final records =
-        (held != null ? heldRecords : null) ??
-        ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
-        const <ServiceRecord>[];
+    // The held clocks and records evaluated over the item's usage, from the
+    // one read the verdicts and the records both come from (issue #5042).
+    final snapshot = heldClocks == null && heldRecords == null
+        ? null
+        : ref.watch(serviceClockSnapshotProvider(equipment.id)).value;
+    final held = snapshot?.statusesFor(
+      schedules: heldClocks,
+      records: heldRecords,
+    );
+    final stored =
+        ref.watch(serviceClockStatusesProvider(equipment.id)).value ??
+        const <ServiceClockStatus>[];
+    // Until that read lands, only the stored clocks the sitting kept as they
+    // were: a removed clock does not come back, and a changed one waits for
+    // its verdict rather than showing the old one.
+    final kept = {
+      for (final s in heldClocks ?? const <ServiceSchedule>[])
+        if (loaded[s.id] == s) s.id,
+    };
+    final clocks =
+        held ??
+        (heldClocks == null
+            ? stored
+            : [
+                for (final c in stored)
+                  if (kept.contains(c.schedule.id)) c,
+              ]);
+    final byKind = {for (final c in clocks) c.kind.id: c};
+    final records = snapshot != null
+        ? (heldRecords ?? snapshot.records)
+        : ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
+              const <ServiceRecord>[];
     // The untracked row names the built-in kind the way the rest of the app
     // does, falling back to its id before the kind list has loaded.
     final kindNames = {
