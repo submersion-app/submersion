@@ -23,7 +23,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 void main() {
   late AppDatabase db;
@@ -140,7 +140,7 @@ void main() {
   Future<void> save(WidgetTester tester) async {
     // The bar's Save enables on the frame after an edit.
     await tester.pump();
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
   }
 
@@ -645,7 +645,7 @@ void main() {
       await tester.tapAt(const Offset(400, 20));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Discard'));
       await tester.pumpAndSettle();

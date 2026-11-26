@@ -19,7 +19,7 @@ import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templat
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
@@ -196,8 +196,8 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  AppBarTextAction save(WidgetTester tester) => tester
-      .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+  RecordEditAction save(WidgetTester tester) => tester
+      .widgetList<RecordEditAction>(find.byType(RecordEditAction))
       .firstWhere((a) => a.label == 'Save');
 
   Future<void> rename(WidgetTester tester, String name) async {
@@ -206,7 +206,7 @@ void main() {
   }
 
   Future<void> tapSave(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
   }
 
@@ -251,7 +251,7 @@ void main() {
   ) async {
     await pump(tester, templateId: await stored());
     await rename(tester, 'Renamed');
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     // Step through the save and the page's exit, frame by frame.
     for (var i = 0; i < 30; i++) {
       await tester.pump(const Duration(milliseconds: 20));
@@ -357,7 +357,7 @@ void main() {
     await tester.pump();
     expect(save(tester).onPressed, isNotNull);
 
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
     expect((await repo.getSectionsForTemplate(id)).single.title, 'Back gas');
   });

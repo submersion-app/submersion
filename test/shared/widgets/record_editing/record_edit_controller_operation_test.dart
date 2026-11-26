@@ -8,7 +8,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 @immutable
 class _Rec {
@@ -316,7 +316,7 @@ void main() {
     );
 
     final actions = tester
-        .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+        .widgetList<RecordEditAction>(find.byType(RecordEditAction))
         .toList();
     expect(actions, hasLength(2));
     for (final action in actions) {

@@ -23,7 +23,7 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
@@ -190,10 +190,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Finder saveFinder() => find.widgetWithText(AppBarTextAction, 'Save');
+  Finder saveFinder() => find.widgetWithText(RecordEditAction, 'Save');
 
-  AppBarTextAction save(WidgetTester tester) =>
-      tester.widget<AppBarTextAction>(saveFinder());
+  RecordEditAction save(WidgetTester tester) =>
+      tester.widget<RecordEditAction>(saveFinder());
 
   Future<void> tapSave(WidgetTester tester) async {
     await tester.pump();
@@ -202,7 +202,7 @@ void main() {
   }
 
   Future<void> cancel(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
     await tester.pumpAndSettle();
   }
 
@@ -228,7 +228,15 @@ void main() {
 
     expect(find.byType(RecordEditBar), findsOneWidget);
     expect(find.byType(BackButton), findsNothing);
-    expect(find.widgetWithText(FilledButton, 'Save'), findsNothing);
+    // The bar's Save is filled (issue #5034); no other Save is.
+    expect(find.widgetWithText(FilledButton, 'Save'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(RecordEditBar),
+        matching: find.widgetWithText(FilledButton, 'Save'),
+      ),
+      findsOneWidget,
+    );
     expect(save(tester).onPressed, isNull);
   });
 
