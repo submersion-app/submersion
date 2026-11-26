@@ -34,15 +34,17 @@ class TripChecklistRepository {
   final _log = LoggerService.forClass(TripChecklistRepository);
   final _sections = TripChecklistSectionRepository();
 
-  /// Ticks on equipment and its shares too: a gear item reads as a plain
-  /// one while its equipment is missing or unusable (gearFollowsPacking),
-  /// and turns back when that changes.
+  /// Ticks on equipment, its shares and trips too: a gear item reads as a
+  /// plain one while its equipment is missing or unusable by the trip's
+  /// diver (gearFollowsPacking), and turns back when that changes, a trip
+  /// handed to another diver included.
   Stream<void> watchTripChecklistChanges() => _db.tableUpdates(
     TableUpdateQuery.onAllTables([
       _db.tripChecklistItems,
       _db.tripEquipment,
       _db.equipment,
       _db.equipmentShares,
+      _db.trips,
     ]),
   );
 
@@ -159,11 +161,15 @@ class TripChecklistRepository {
   /// through `trip_checklists`. Used by the trip overview card, which needs
   /// individual due dates for its overdue/due-soon counts rather than just
   /// the done/total counts [getProgressForTrips] returns.
+  ///
+  /// With [viewerId], a gear item whose equipment that diver cannot use
+  /// reads as a plain item (see gearFollowsPacking).
   Future<List<domain.TripChecklistItem>> getAllItemsForTrip(
-    String tripId,
-  ) async {
+    String tripId, {
+    String? viewerId,
+  }) async {
     try {
-      return await _readItems(tripId: tripId);
+      return await _readItems(tripId: tripId, viewerId: viewerId);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get checklist items for trip $tripId',
@@ -174,11 +180,13 @@ class TripChecklistRepository {
     }
   }
 
+  /// One checklist's items; [viewerId] as in [getAllItemsForTrip].
   Future<List<domain.TripChecklistItem>> getByChecklistId(
-    String checklistId,
-  ) async {
+    String checklistId, {
+    String? viewerId,
+  }) async {
     try {
-      return await _readItems(checklistId: checklistId);
+      return await _readItems(checklistId: checklistId, viewerId: viewerId);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get checklist items for checklist $checklistId',
@@ -192,6 +200,7 @@ class TripChecklistRepository {
   Future<List<domain.TripChecklistItem>> _readItems({
     String? tripId,
     String? checklistId,
+    String? viewerId,
   }) async {
     final items = _db.tripChecklistItems;
     final checklists = _db.tripChecklists;
@@ -214,7 +223,12 @@ class TripChecklistRepository {
             leftOuterJoin(
               gear,
               gear.id.equalsExp(items.equipmentId) &
-                  gearFollowsPacking(_db, gear, trips.diverId),
+                  gearFollowsPacking(
+                    _db,
+                    gear,
+                    trips.diverId,
+                    viewerId: viewerId,
+                  ),
               useColumns: false,
             ),
           ])

@@ -100,7 +100,9 @@ final tripChecklistAllItemsProvider =
     });
 
 /// One checklist's items, ordered by sortOrder. Self-invalidates on table
-/// changes so sync-applied edits render live.
+/// changes so sync-applied edits render live. Read as the active diver
+/// sees them: on a shared trip, a gear item for the owner's gear that is
+/// hidden from this diver reads as a plain item, as the Gear tab hides it.
 final tripChecklistProvider =
     FutureProvider.family<List<domain.TripChecklistItem>, String>((
       ref,
@@ -108,7 +110,8 @@ final tripChecklistProvider =
     ) async {
       final repository = ref.watch(tripChecklistRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
-      return repository.getByChecklistId(checklistId);
+      final viewerId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getByChecklistId(checklistId, viewerId: viewerId);
     });
 
 /// One checklist's sections, ordered by sortOrder. Self-invalidates on table

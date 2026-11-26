@@ -240,4 +240,80 @@ void main() {
     await repository.toggleDone(planned.id, isDone: true);
     expect(await packs.equipmentIdsForTrip(trip.id), [wing.id]);
   });
+
+  test('a viewer reads the owner\'s hidden gear as a plain item until it is '
+      'shared with them', () async {
+    Future<Diver> diver(String name) => DiverRepository().createDiver(
+      Diver(
+        id: '',
+        name: name,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
+    );
+    final owner = await diver('Owner');
+    final sharee = await diver('Sharee');
+    final start = DateTime(2026, 10, 1);
+    final trip = await TripRepository().createTrip(
+      Trip(
+        id: '',
+        name: 'Shared trip',
+        diverId: owner.id,
+        startDate: start,
+        endDate: start.add(const Duration(days: 3)),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    final checklist = await TripChecklistsRepository().createChecklist(
+      tripId: trip.id,
+      name: 'Packing',
+    );
+    final wing = await EquipmentRepository().createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+        diverId: owner.id,
+      ),
+    );
+    await repository.createItem(
+      item(wing.name, equipmentId: wing.id).copyWith(checklistId: checklist.id),
+    );
+    await packs.pack(trip.id, [wing.id]);
+
+    final asOwner = (await repository.getByChecklistId(
+      checklist.id,
+      viewerId: owner.id,
+    )).single;
+    expect(asOwner.equipmentId, wing.id);
+    expect(asOwner.isDone, isTrue);
+
+    // The Gear tab hides the owner's private wing from the sharee, so the
+    // row neither names it nor shows its packing.
+    final asSharee = (await repository.getAllItemsForTrip(
+      trip.id,
+      viewerId: sharee.id,
+    )).single;
+    expect(asSharee.equipmentId, isNull);
+    expect(asSharee.isDone, isFalse);
+
+    await EquipmentShareRepository().shareMany(
+      equipmentIds: [wing.id],
+      diverIds: [sharee.id],
+      actingDiverId: owner.id,
+    );
+    final shared = (await repository.getByChecklistId(
+      checklist.id,
+      viewerId: sharee.id,
+    )).single;
+    expect(shared.equipmentId, wing.id);
+    expect(shared.isDone, isTrue);
+  });
+
+  test('a trip handed to another diver ticks the checklist stream', () async {
+    final tick = repository.watchTripChecklistChanges().first;
+    await TripRepository().updateTrip(testTrip.copyWith(name: 'Renamed'));
+    await expectLater(tick.timeout(const Duration(seconds: 5)), completes);
+  });
 }

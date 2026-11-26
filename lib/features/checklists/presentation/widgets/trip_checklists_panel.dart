@@ -81,6 +81,7 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       final list = tripChecklistsList(
         checklists: ref.read(tripChecklistsRepositoryProvider),
         items: ref.read(tripChecklistRepositoryProvider),
+        viewer: () => ref.read(validatedCurrentDiverIdProvider.future),
       );
       final writes = HeldTripChecklistWrites(
         session: editing,

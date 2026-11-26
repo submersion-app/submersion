@@ -300,10 +300,12 @@ class TripChecklistsHeld {
 /// read from and written through the repositories given (the app's
 /// providers where there are some, so a test can stand in for them). What
 /// the list holds lives in the sitting under its key, so every list made by
-/// this function is the same list.
+/// this function is the same list. [viewer] answers the active diver, whose
+/// view of gear items the rows are read in (see getAllItemsForTrip).
 SittingList<Trip, TripChecklistsHeld> tripChecklistsList({
   required TripChecklistsRepository checklists,
   required TripChecklistRepository items,
+  Future<String?> Function()? viewer,
 }) => SittingList<Trip, TripChecklistsHeld>(
   key: 'trip.checklists',
   cardId: TripCardId.checklists.name,
@@ -315,7 +317,10 @@ SittingList<Trip, TripChecklistsHeld> tripChecklistsList({
         sections: stored.isEmpty
             ? const []
             : await items.getSectionsForTrip(trip.id),
-        items: await items.getAllItemsForTrip(trip.id),
+        items: await items.getAllItemsForTrip(
+          trip.id,
+          viewerId: await viewer?.call(),
+        ),
       ),
     ];
   },

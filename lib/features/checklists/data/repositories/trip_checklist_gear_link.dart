@@ -10,24 +10,43 @@ import 'package:submersion/core/database/database.dart';
 /// Otherwise the item reads and ticks as a plain one by its own is_done, as
 /// it does once the equipment is deleted, so it is never stranded unticked
 /// with gear the trip cannot pack.
+///
+/// With a [viewerId], the equipment must be usable by that diver too: on a
+/// shared trip a sharee never reads the packing of the owner's gear that
+/// is hidden from them (the Gear tab hides it the same way), and sees the
+/// row as a plain item instead.
 Expression<bool> gearFollowsPacking(
   AppDatabase db,
   $EquipmentTable equipment,
-  Expression<String> tripDiverId,
+  Expression<String> tripDiverId, {
+  String? viewerId,
+}) {
+  final follows =
+      equipment.status.equals(EquipmentStatus.wanted.name).not() &
+      _usableBy(db, equipment, tripDiverId);
+  return viewerId == null
+      ? follows
+      : follows & _usableBy(db, equipment, Variable<String>(viewerId));
+}
+
+/// Owned by [diverId], shared with them, ownerless, or no diver at all.
+Expression<bool> _usableBy(
+  AppDatabase db,
+  $EquipmentTable equipment,
+  Expression<String> diverId,
 ) {
   final shares = db.equipmentShares;
-  return equipment.status.equals(EquipmentStatus.wanted.name).not() &
-      (tripDiverId.isNull() |
-          equipment.diverId.isNull() |
-          equipment.diverId.equalsExp(tripDiverId) |
-          existsQuery(
-            db.selectOnly(shares)
-              ..addColumns([shares.id])
-              ..where(
-                shares.equipmentId.equalsExp(equipment.id) &
-                    shares.diverId.equalsExp(tripDiverId),
-              ),
-          ));
+  return diverId.isNull() |
+      equipment.diverId.isNull() |
+      equipment.diverId.equalsExp(diverId) |
+      existsQuery(
+        db.selectOnly(shares)
+          ..addColumns([shares.id])
+          ..where(
+            shares.equipmentId.equalsExp(equipment.id) &
+                shares.diverId.equalsExp(diverId),
+          ),
+      );
 }
 
 /// [gearFollowsPacking] as SQL over `equipment e` and `trips t`, for the
