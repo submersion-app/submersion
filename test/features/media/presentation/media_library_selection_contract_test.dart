@@ -63,6 +63,39 @@ class _SeededLibraryNotifier extends StateNotifier<MediaLibraryState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Library notifier holding [rest] back until [loadRest], as the real one
+/// holds every row past its loaded pages.
+class _PagedLibraryNotifier extends StateNotifier<MediaLibraryState>
+    implements MediaLibraryNotifier {
+  _PagedLibraryNotifier({
+    required List<MediaLibraryEntry> loaded,
+    required this.rest,
+  }) : super(
+         MediaLibraryState(
+           entries: loaded,
+           nextCursor: MediaLibraryCursor(sortKey: 0, id: loaded.last.item.id),
+         ),
+       );
+
+  final List<MediaLibraryEntry> rest;
+  int restLoads = 0;
+
+  @override
+  Future<void> loadRest() async {
+    restLoads++;
+    state = MediaLibraryState(entries: [...state.entries, ...rest]);
+  }
+
+  @override
+  Future<void> loadFirstPage() async {}
+
+  @override
+  Future<void> loadMore() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _FakeSettingsRepo extends AppSettingsRepository {
   @override
   Future<String?> getRawSetting(String key) async => null;
@@ -170,6 +203,46 @@ void main() {
     await tester.pump();
 
     expect(find.text('2 selected'), findsOneWidget);
+  });
+
+  // Issue #5022: the library pages in its rows, and Select All checked only
+  // the pages loaded so far.
+  testWidgets('Select All checks the rows past the loaded pages', (
+    tester,
+  ) async {
+    final notifier = _PagedLibraryNotifier(
+      loaded: [_entry('a'), _entry('b')],
+      rest: [_entry('c')],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaLibraryNotifierProvider.overrideWith((ref) => notifier),
+          appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.localFile: _UnavailableResolver(),
+            }),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: MediaLibraryView()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+    await tester.pump();
+    await tester.pump();
+
+    expect(notifier.restLoads, 1);
+    expect(find.text('3 selected'), findsOneWidget);
   });
 
   group('with the toolbar in the desktop header (#4777)', () {

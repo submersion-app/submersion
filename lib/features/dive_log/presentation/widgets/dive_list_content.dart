@@ -491,7 +491,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   }
 
   /// Loads every dive past the end of the list, so End lands on the last
-  /// dive rather than the last loaded one (#3302).
+  /// dive rather than the last loaded one (#3302), and Select All and Select
+  /// by date range reach every dive the filter matches (#5022).
   Future<void> _loadRestOfList() async {
     final paginated = ref.read(paginatedDiveListProvider).value;
     if (paginated == null || !paginated.hasMore) return;
@@ -502,7 +503,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       await ref.read(paginatedDiveListProvider.notifier).loadRest();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to load the rest of the dive list for End',
+        'Failed to load the rest of the dive list',
         error: e,
         stackTrace: stackTrace,
       );
@@ -510,6 +511,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       if (mounted) setState(() => _restLoads--);
     }
   }
+
+  /// Every dive the filter matches, once the ones past the loaded pages are
+  /// in. A read that fails leaves the loaded dives, with the list's Retry row
+  /// offering the rest.
+  Future<List<DiveSummary>> _loadAllDives() async {
+    await _loadRestOfList();
+    if (!mounted) return const [];
+    return ref.read(paginatedDiveListProvider).value?.dives ?? const [];
+  }
+
+  Future<List<String>> _loadAllDiveIds() async => [
+    for (final dive in await _loadAllDives()) dive.id,
+  ];
 
   void _landOnDive(BuildContext context, String diveId, {required bool toTop}) {
     for (final (index, section) in _lastSections.indexed) {
@@ -701,13 +715,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   }
 
   /// Pick a date range and select every dive whose date falls inside it.
-  Future<BulkActionOutcome> _selectByDateRange(List<DiveSummary> dives) async {
+  ///
+  /// [loadDives] returns every dive the list shows, including any past the
+  /// loaded pages, and is read only once a range is picked.
+  Future<BulkActionOutcome> _selectByDateRange(
+    Future<List<DiveSummary>> Function() loadDives,
+  ) async {
     final range = await showAppDateRangePicker(
       context: context,
       firstDate: DateTime(1970),
       lastDate: DateTime(2100),
     );
     if (range == null) return BulkActionOutcome.cancelled;
+    final dives = await loadDives();
+    if (!mounted) return BulkActionOutcome.cancelled;
     final matching = dives
         .where((d) => inDateRange(d, range))
         .map((d) => d.id)
@@ -1471,6 +1492,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     final loadedDives = paginatedAsync.value?.dives ?? [];
     final visibleIds = loadedDives.map((d) => d.id).toList();
+    // Dives past the loaded pages: Select All loads them before checking
+    // (#5022), and stays on until they are checked too.
+    final hasUnloadedRows = paginatedAsync.value?.hasMore ?? false;
 
     // Drop checked dives that fell out of the filtered, searched or sorted
     // list, so the count always matches what is on screen and a bulk action
@@ -1488,6 +1512,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return SelectableListScope(
       controller: _selection,
       selectableIds: visibleIds,
+      loadAllIds: _loadAllDiveIds,
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
         builder: (context, selection, _) {
@@ -1524,7 +1549,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             return Column(
               children: [
                 if (selection.isActive)
-                  _buildSelectionBar(loadedDives)
+                  _buildSelectionBar(
+                    loadedDives,
+                    loadAll: _loadAllDives,
+                    hasUnloadedRows: hasUnloadedRows,
+                  )
                 else
                   _buildCompactAppBar(context, filter),
                 Expanded(child: body),
@@ -1536,7 +1565,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           return LayoutBuilder(
             builder: (context, constraints) => Scaffold(
               appBar: selection.isActive
-                  ? _buildSelectionAppBar(loadedDives)
+                  ? _buildSelectionAppBar(
+                      loadedDives,
+                      loadAll: _loadAllDives,
+                      hasUnloadedRows: hasUnloadedRows,
+                    )
                   : _buildAppBar(
                       context,
                       filter,
@@ -1951,7 +1984,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// [SelectionAppBar], so they are deliberately absent here. This list is
   /// computed once and handed to both shells, which is what stops the master
   /// pane from silently offering fewer actions than the full-width bar.
-  List<BulkAction> _bulkActions(List<DiveSummary> dives) {
+  ///
+  /// [loadAll] returns every dive the list shows; see [_buildSelectionBar].
+  List<BulkAction> _bulkActions(Future<List<DiveSummary>> Function() loadAll) {
     return [
       BulkAction(
         id: 'combine',
@@ -1989,7 +2024,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         // Operates on the visible list rather than the selection, so it is
         // useful with nothing checked.
         alwaysEnabled: true,
-        onInvoke: () => _selectByDateRange(dives),
+        onInvoke: () => _selectByDateRange(loadAll),
       ),
       // A new trip made from the checked dives (issue #3658). After the
       // inline icons, so it sits in the overflow menu with its label and the
@@ -2028,14 +2063,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     ];
   }
 
-  /// Contextual bar for the full-width standalone layout.
-  SelectionAppBar _buildSelectionAppBar(List<DiveSummary> dives) {
-    return SelectionAppBar(
-      controller: _selection,
-      selectableIds: dives.map((d) => d.id).toList(),
-      actions: _bulkActions(dives),
+  /// Contextual bar for the full-width standalone layout; see
+  /// [_buildSelectionBar].
+  SelectionAppBar _buildSelectionAppBar(
+    List<DiveSummary> dives, {
+    Future<List<DiveSummary>> Function()? loadAll,
+    bool hasUnloadedRows = false,
+  }) {
+    return _selectionBar(
+      dives,
+      loadAll: loadAll,
+      hasUnloadedRows: hasUnloadedRows,
       shell: SelectionBarShell.appBar,
-      onDelete: _confirmAndDelete,
       maxInlineActions: 5,
     );
   }
@@ -2043,14 +2082,42 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Contextual bar for the master pane, which is too narrow for every icon.
   ///
   /// Same actions, same order; only the inline/overflow split differs.
-  Widget _buildSelectionBar(List<DiveSummary> dives) {
+  ///
+  /// [dives] are the loaded dives. A paged list passes [loadAll], which
+  /// loads the rest and returns every dive, for Select All and Select by date
+  /// range (#5022); without it [dives] is taken as every dive.
+  Widget _buildSelectionBar(
+    List<DiveSummary> dives, {
+    Future<List<DiveSummary>> Function()? loadAll,
+    bool hasUnloadedRows = false,
+  }) {
+    return _selectionBar(
+      dives,
+      loadAll: loadAll,
+      hasUnloadedRows: hasUnloadedRows,
+      shell: SelectionBarShell.pane,
+      maxInlineActions: 1,
+    );
+  }
+
+  SelectionAppBar _selectionBar(
+    List<DiveSummary> dives, {
+    required Future<List<DiveSummary>> Function()? loadAll,
+    required bool hasUnloadedRows,
+    required SelectionBarShell shell,
+    required int maxInlineActions,
+  }) {
     return SelectionAppBar(
       controller: _selection,
       selectableIds: dives.map((d) => d.id).toList(),
-      actions: _bulkActions(dives),
-      shell: SelectionBarShell.pane,
+      loadAllIds: loadAll == null
+          ? null
+          : () async => [for (final dive in await loadAll()) dive.id],
+      hasUnloadedRows: hasUnloadedRows,
+      actions: _bulkActions(loadAll ?? () async => dives),
+      shell: shell,
       onDelete: _confirmAndDelete,
-      maxInlineActions: 1,
+      maxInlineActions: maxInlineActions,
     );
   }
 

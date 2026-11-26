@@ -146,6 +146,24 @@ class SelectionController extends ValueNotifier<SelectionState> {
     );
   }
 
+  /// [selectAll] over the ids [loadAllIds] returns, for a paged surface whose
+  /// loaded rows are not every row (issue #5022).
+  ///
+  /// [loadAllIds] loads the rows not loaded yet and returns every id. A diver
+  /// who leaves selection mode while it runs has given up on the selection,
+  /// so the ids that arrive afterwards check nothing.
+  Future<void> selectAllAfterLoading(
+    Future<List<String>> Function() loadAllIds,
+  ) async {
+    final exits = _exits;
+    final ids = await loadAllIds();
+    if (_exits != exits) return;
+    selectAll(ids);
+  }
+
+  /// Bumped by [exit], so a load started before it can tell.
+  int _exits = 0;
+
   /// Replace the checked set with [ids], leaving the entry mode alone.
   ///
   /// For surfaces whose child widget owns the gesture layer and reports its
@@ -251,6 +269,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
 
   /// Leave selection mode and discard the selection.
   void exit() {
+    _exits++;
     value = SelectionState.inactive;
   }
 

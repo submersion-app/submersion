@@ -159,6 +159,22 @@ final mediaLibraryNotifierProvider =
       );
     });
 
+/// Every row the Library's query matches, read past the loaded pages, for
+/// Select All and Ctrl/Cmd-A (issue #5022).
+///
+/// Takes the container, not a widget's ref, so a widget gone by the time the
+/// read finishes cannot fail it; the rows are read afresh, so a query
+/// changed meanwhile answers with what the Library now shows.
+Future<List<String>> loadAllLibraryIds(ProviderContainer container) async {
+  if (container.read(mediaLibraryNotifierProvider).hasMore) {
+    await container.read(mediaLibraryNotifierProvider.notifier).loadRest();
+  }
+  return [
+    for (final entry in container.read(mediaLibraryNotifierProvider).entries)
+      entry.item.id,
+  ];
+}
+
 class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   MediaLibraryNotifier(
     this._repo,
@@ -302,6 +318,39 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
       state = state.copyWith(isLoadingMore: false);
       return;
     }
+    await _appendAfter(cursor, limit: MediaLibraryRepository.pageSize);
+  }
+
+  /// Reads every row past the loaded ones, for Select All (issue #5022).
+  ///
+  /// Each read asks for twice the last, so a library of thousands takes a
+  /// handful of reads rather than one per page. A failed read stops here
+  /// with the rows it has, as a failed [loadMore] does.
+  Future<void> loadRest() => _enqueuePaging(() async {
+    var limit = MediaLibraryRepository.pageSize;
+    while (mounted) {
+      final cursor = state.nextCursor;
+      if (cursor == null) return;
+      final appended = await _appendAfter(
+        cursor,
+        limit: limit,
+        keepLoadingMore: true,
+      );
+      if (!appended) return;
+      limit *= 2;
+    }
+  });
+
+  /// Appends up to [limit] rows after [cursor], reporting whether the read
+  /// worked.
+  ///
+  /// [keepLoadingMore] leaves the spinner flag of a [loadMore] queued behind
+  /// this read, which clears it on its own turn.
+  Future<bool> _appendAfter(
+    MediaLibraryCursor cursor, {
+    required int limit,
+    bool keepLoadingMore = false,
+  }) async {
     try {
       final page = await _repo.getPage(
         diverId: _diverId,
@@ -309,8 +358,9 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
         sort: _sort,
         grouping: _grouping,
         after: cursor,
+        limit: limit,
       );
-      if (!mounted) return;
+      if (!mounted) return false;
       // A write can move a loaded row past the cursor (hashing a row sets its
       // size); the refresh that write ticks has not landed yet. Appending by
       // id keeps the row from showing twice until it does.
@@ -321,14 +371,18 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
           ...page.entries.where((e) => !loaded.contains(e.item.id)),
         ],
         nextCursor: page.nextCursor,
+        isLoadingMore: keepLoadingMore && state.isLoadingMore,
       );
+      return true;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return false;
       state = MediaLibraryState(
         entries: state.entries,
         nextCursor: cursor,
+        isLoadingMore: keepLoadingMore && state.isLoadingMore,
         error: e,
       );
+      return false;
     }
   }
 

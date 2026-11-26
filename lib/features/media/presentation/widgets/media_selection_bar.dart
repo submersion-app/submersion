@@ -30,14 +30,24 @@ class MediaSelectionBar extends ConsumerWidget {
     required this.controller,
     required this.selectableIds,
     required this.selectedItems,
+    this.loadAllIds,
+    this.hasUnloadedRows = false,
   });
 
   /// The library's selection state machine, shared with the view that hosts
   /// this bar.
   final SelectionController controller;
 
-  /// Every id currently on screen, which is what Select All checks.
+  /// Every id currently on screen, which is what Select All checks unless
+  /// [loadAllIds] is given.
   final List<String> selectableIds;
+
+  /// Loads the rows past the loaded pages and returns every id, for Select
+  /// All (issue #5022); see [SelectionAppBar.loadAllIds].
+  final Future<List<String>> Function()? loadAllIds;
+
+  /// Rows exist past the loaded pages; see [SelectionAppBar.hasUnloadedRows].
+  final bool hasUnloadedRows;
 
   /// The currently selected items, resolved by the caller from the visible
   /// entries so share/unlink operate on real MediaItems.
@@ -140,6 +150,8 @@ class MediaSelectionBar extends ConsumerWidget {
     return SelectionAppBar(
       controller: controller,
       selectableIds: selectableIds,
+      loadAllIds: loadAllIds,
+      hasUnloadedRows: hasUnloadedRows,
       shell: SelectionBarShell.pane,
       onDelete: null,
       maxInlineActions: 2,

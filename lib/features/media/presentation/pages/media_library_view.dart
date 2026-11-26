@@ -72,6 +72,9 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     super.dispose();
   }
 
+  Future<List<String>> _loadAllIds() =>
+      loadAllLibraryIds(ProviderScope.containerOf(context, listen: false));
+
   void _openViewer(
     BuildContext context,
     List<MediaLibraryEntry> entries,
@@ -118,6 +121,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     return SelectableListScope(
       controller: _selection,
       selectableIds: visibleIds,
+      loadAllIds: _loadAllIds,
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
         builder: (context, selection, _) => Column(
@@ -126,6 +130,8 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
               MediaSelectionBar(
                 controller: _selection,
                 selectableIds: visibleIds,
+                loadAllIds: _loadAllIds,
+                hasUnloadedRows: state.hasMore,
                 selectedItems: state.entries
                     .where((e) => selection.isChecked(e.item.id))
                     .map((e) => e.item)
@@ -274,6 +280,8 @@ class MediaLibraryHeaderToolbar extends ConsumerWidget {
     return SelectableListScope(
       controller: selection,
       selectableIds: [for (final e in entries) e.item.id],
+      loadAllIds: () =>
+          loadAllLibraryIds(ProviderScope.containerOf(context, listen: false)),
       child: toolbar,
     );
   }

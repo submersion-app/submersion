@@ -325,6 +325,28 @@ void main() {
       },
     );
 
+    test('selectAllAfterLoading checks the ids the load returns', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      await controller.selectAllAfterLoading(() async => ['a', 'b', 'c']);
+      expect(controller.value.checkedIds, {'a', 'b', 'c'});
+    });
+
+    test(
+      'selectAllAfterLoading checks nothing after an exit mid-load',
+      () async {
+        final controller = SelectionController();
+        controller.enterExplicit();
+        final load = Completer<List<String>>();
+        final done = controller.selectAllAfterLoading(() => load.future);
+        // The diver closes the bar while the rest of the list loads.
+        controller.exit();
+        load.complete(['a', 'b']);
+        await done;
+        expect(controller.value.isActive, isFalse);
+      },
+    );
+
     test('deselectAll clears but keeps an explicit mode active', () {
       final controller = SelectionController();
       controller.enterExplicit();

@@ -59,8 +59,18 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
   final SelectionController controller;
 
   /// Ids the surface will accept actions on, already filtered to exclude
-  /// non-selectable rows. Select-all uses exactly this list.
+  /// non-selectable rows. Select-all uses exactly this list, unless
+  /// [loadAllIds] is given.
   final List<String> selectableIds;
+
+  /// For a paged surface: loads the rows not loaded yet and returns every id,
+  /// which select-all checks instead of [selectableIds] (issue #5022). Null
+  /// when [selectableIds] already holds every row.
+  final Future<List<String>> Function()? loadAllIds;
+
+  /// Rows exist past the loaded ones, so every loaded row checked is not
+  /// every row checked, and select-all stays enabled.
+  final bool hasUnloadedRows;
 
   /// Surface-specific extras: merge, export, bulk edit, and so on.
   final List<BulkAction> actions;
@@ -91,6 +101,8 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.shell,
     required this.onDelete,
     this.maxInlineActions = 3,
+    this.loadAllIds,
+    this.hasUnloadedRows = false,
   });
 
   /// Whether this surface offers a delete at all.
@@ -165,6 +177,16 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
   }
 
+  /// Check every row, loading first the ones a paged surface has not.
+  void _selectAll() {
+    final load = loadAllIds;
+    if (load == null) {
+      controller.selectAll(selectableIds);
+      return;
+    }
+    _start(controller.selectAllAfterLoading(load), 'select all');
+  }
+
   Future<void> _invoke(BulkAction action) => _runAndMaybeExit(
     action.onInvoke,
     exitsOnComplete: action.exitsSelectionOnComplete,
@@ -204,7 +226,9 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
 
     final allChecked =
-        count >= selectableIds.length && selectableIds.isNotEmpty;
+        !hasUnloadedRows &&
+        count >= selectableIds.length &&
+        selectableIds.isNotEmpty;
     bool enabledFor(BulkAction action) =>
         settled && action.isEnabledForSelection(count, checkedIds);
     final inline = actions.take(maxInlineActions).toList();
@@ -215,9 +239,7 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
         key: const ValueKey('selection_select_all'),
         icon: const Icon(Icons.select_all),
         tooltip: context.l10n.common_selection_selectAllTooltip,
-        onPressed: allChecked || !settled
-            ? null
-            : () => controller.selectAll(selectableIds),
+        onPressed: allChecked || !settled ? null : _selectAll,
       ),
       IconButton(
         key: const ValueKey('selection_deselect_all'),
