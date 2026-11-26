@@ -80,4 +80,35 @@ void main() {
       expect(column.read<String>('type'), 'TEXT');
     },
   );
+
+  test('an existing preset entry upgrades to both sides (null)', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('PRAGMA user_version = 382');
+        rawDb.execute('''
+          CREATE TABLE weight_preset_entries (
+            id TEXT NOT NULL PRIMARY KEY,
+            preset_id TEXT NOT NULL,
+            weight_type TEXT NOT NULL,
+            amount_kg REAL NOT NULL,
+            notes TEXT NOT NULL DEFAULT '',
+            label TEXT NOT NULL DEFAULT '',
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL,
+            hlc TEXT)
+        ''');
+        rawDb.execute(
+          "INSERT INTO weight_preset_entries (id, preset_id, weight_type, "
+          "amount_kg, created_at) VALUES ('e1', 'p1', 'trimWeights', 2, 0)",
+        );
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    final row = await db
+        .customSelect("SELECT side FROM weight_preset_entries WHERE id = 'e1'")
+        .getSingle();
+    expect(row.readNullable<String>('side'), isNull);
+  });
 }

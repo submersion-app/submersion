@@ -114,6 +114,27 @@ class WeightPresetEntry extends Equatable {
     this.sortOrder = 0,
   });
 
+  WeightPresetEntry copyWith({
+    String? id,
+    String? presetId,
+    WeightType? weightType,
+    double? amountKg,
+    String? notes,
+    String? label,
+    WeightSide? side,
+    bool clearSide = false,
+    int? sortOrder,
+  }) => WeightPresetEntry(
+    id: id ?? this.id,
+    presetId: presetId ?? this.presetId,
+    weightType: weightType ?? this.weightType,
+    amountKg: amountKg ?? this.amountKg,
+    notes: notes ?? this.notes,
+    label: label ?? this.label,
+    side: clearSide ? null : (side ?? this.side),
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+
   @override
   List<Object?> get props => [
     id,

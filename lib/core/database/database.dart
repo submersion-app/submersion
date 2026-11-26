@@ -1794,9 +1794,9 @@ class AppDatabase extends _$AppDatabase {
     // by hand, which a re-parse and a resync keep (issue #4909). Nullable,
     // no backfill; the floor does not move.
     382,
-    // v383: dive_weights.side, the side a weight is carried on, for the trim
-    // figure's roll (issue #5028). Nullable, null meaning both sides; no
-    // backfill, the floor does not move.
+    // v383: dive_weights.side and weight_preset_entries.side, the side a
+    // weight is carried on, for the trim figure's roll (issue #5028).
+    // Nullable, null meaning both sides; no backfill, the floor does not move.
     383,
   ];
 

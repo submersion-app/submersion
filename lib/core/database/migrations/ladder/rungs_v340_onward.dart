@@ -328,11 +328,11 @@ extension RungsFromV340 on AppDatabase {
     if (from < 382) await _assertDiveHandSetFieldsColumn();
     if (from < 382) await reportProgress();
 
-    // v383 (issue #5028): dive_weights.side, the side a weight is carried
-    // on, for the trim figure's roll. Nullable with no backfill, null
-    // meaning both sides; re-asserted in beforeOpen. The floor does not
-    // move.
-    if (from < 383) await _assertDiveWeightSideColumn();
+    // v383 (issue #5028): dive_weights.side and weight_preset_entries.side,
+    // the side a weight is carried on, for the trim figure's roll. Nullable
+    // with no backfill, null meaning both sides; re-asserted in beforeOpen.
+    // The floor does not move.
+    if (from < 383) await _assertWeightSideColumns();
     if (from < 383) await reportProgress();
   }
 }
