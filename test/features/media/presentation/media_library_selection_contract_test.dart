@@ -63,6 +63,53 @@ class _SeededLibraryNotifier extends StateNotifier<MediaLibraryState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Library notifier holding [rest] back until [loadRest], as the real one
+/// holds every row past its loaded pages.
+class _PagedLibraryNotifier extends StateNotifier<MediaLibraryState>
+    implements MediaLibraryNotifier {
+  /// [loading] starts as a new filter's notifier does: page one queued,
+  /// with no rows and no cursor.
+  _PagedLibraryNotifier({
+    required List<MediaLibraryEntry> loaded,
+    required this.rest,
+    bool loading = false,
+    this.fail = false,
+  }) : super(
+         loading
+             ? const MediaLibraryState(isLoading: true)
+             : MediaLibraryState(
+                 entries: loaded,
+                 nextCursor: MediaLibraryCursor(
+                   sortKey: 0,
+                   id: loaded.last.item.id,
+                 ),
+               ),
+       );
+
+  final List<MediaLibraryEntry> rest;
+
+  /// Makes [loadRest] fail its read, leaving the loaded rows.
+  final bool fail;
+  int restLoads = 0;
+
+  @override
+  Future<List<String>?> loadRest() async {
+    restLoads++;
+    if (fail) return null;
+    state = MediaLibraryState(entries: [...state.entries, ...rest]);
+    return [for (final entry in state.entries) entry.item.id];
+  }
+
+  @override
+  Future<void> loadFirstPage() async {}
+
+  @override
+  Future<void> loadMore() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _FakeSettingsRepo extends AppSettingsRepository {
   @override
   Future<String?> getRawSetting(String key) async => null;
@@ -170,6 +217,109 @@ void main() {
     await tester.pump();
 
     expect(find.text('2 selected'), findsOneWidget);
+  });
+
+  // Issue #5022: the library pages in its rows, and Select All checked only
+  // the pages loaded so far.
+  testWidgets('Select All checks the rows past the loaded pages', (
+    tester,
+  ) async {
+    final notifier = _PagedLibraryNotifier(
+      loaded: [_entry('a'), _entry('b')],
+      rest: [_entry('c')],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaLibraryNotifierProvider.overrideWith((ref) => notifier),
+          appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.localFile: _UnavailableResolver(),
+            }),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: MediaLibraryView()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+    await tester.pump();
+    await tester.pump();
+
+    expect(notifier.restLoads, 1);
+    expect(find.text('3 selected'), findsOneWidget);
+  });
+
+  // A new filter's page one is queued, with no cursor yet: its rows are part
+  // of "all", so the load waits for them rather than answering with none.
+  test('loading every id waits for a first page still loading', () async {
+    final notifier = _PagedLibraryNotifier(
+      loaded: const [],
+      rest: [_entry('a'), _entry('b')],
+      loading: true,
+    );
+    final container = ProviderContainer(
+      overrides: [mediaLibraryNotifierProvider.overrideWith((ref) => notifier)],
+    );
+    addTearDown(container.dispose);
+
+    expect(await loadAllLibraryIds(container), ['a', 'b']);
+    expect(notifier.restLoads, 1);
+  });
+
+  testWidgets('Select All checks nothing and says so when a read fails', (
+    tester,
+  ) async {
+    final notifier = _PagedLibraryNotifier(
+      loaded: [_entry('a'), _entry('b')],
+      rest: [_entry('c')],
+      fail: true,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaLibraryNotifierProvider.overrideWith((ref) => notifier),
+          appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.localFile: _UnavailableResolver(),
+            }),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: MediaLibraryView()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+    await tester.pump();
+    await tester.pump();
+
+    expect(notifier.restLoads, 1);
+    expect(find.text('0 selected'), findsOneWidget);
+    expect(
+      find.text(
+        'Could not load every item, so Select all was not applied. '
+        'Try again.',
+      ),
+      findsOneWidget,
+    );
   });
 
   group('with the toolbar in the desktop header (#4777)', () {

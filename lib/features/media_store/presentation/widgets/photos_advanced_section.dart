@@ -12,12 +12,16 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/media_store/presentation/providers/media_sweep_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_quality_settings.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/data_health/media_health.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/media_cache_settings_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media_store/presentation/widgets/stop_keeping_copies_dialog.dart';
 
 /// Photos & videos' Advanced section (spec section 8.3): upload quality,
 /// upload everything already attached, verify the copies, network
@@ -85,7 +89,15 @@ class _PhotosAdvancedSectionState extends ConsumerState<PhotosAdvancedSection> {
         ],
         ListTile(
           leading: const Icon(Icons.lan_outlined),
-          title: Text(l10n.settings_photosMedia_networkSources_title),
+          title: HealthMarkedTitle(
+            title: Text(l10n.settings_photosMedia_networkSources_title),
+            feature: DataFeature.media,
+            reasons: const {
+              HealthReason.mediaSubscriptionNeedsPassword,
+              HealthReason.mediaSubscriptionFailing,
+            },
+            subjectId: mediaSetupSubscriptions,
+          ),
           subtitle: Text(l10n.settings_photosMedia_networkSources_subtitle),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushSettingsPage(
@@ -258,26 +270,8 @@ class _PhotosAdvancedSectionState extends ConsumerState<PhotosAdvancedSection> {
 
   /// Today's Disconnect: this device only; nothing in the account goes.
   Future<void> _stopKeeping() async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.settings_photos_stopKeeping),
-        content: Text(l10n.settings_photos_stopKeepingBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.common_action_cancel),
-          ),
-          TextButton(
-            key: const Key('media-s3-disconnect-confirm'),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.settings_photos_stopKeeping),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+    final confirmed = await confirmStopKeepingCopies(context);
+    if (!confirmed || !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(mediaStoreServiceProvider).disconnect();

@@ -403,11 +403,14 @@ class _CurrencyRow extends ConsumerWidget {
       case CurrencyRowAction.mapping:
         final pref = await _currentPref(ref, s.rule.id);
         if (!context.mounted) return;
+        // A mapping this build cannot read starts from the rule's, which is
+        // what the engine applies in its place (issue #4942).
+        final own = pref == null || pref.unreadableMapping ? null : pref;
         final result = await showCurrencyMappingDialog(
           context,
           rule: s.rule,
-          types: pref?.countedDiveTypeIds,
-          modes: pref?.countedDiveModes,
+          types: own?.countedDiveTypeIds,
+          modes: own?.countedDiveModes,
         );
         if (result == null) return;
         await _writePrefs(

@@ -13,7 +13,6 @@ import 'package:submersion/features/dashboard/presentation/widgets/home_status_l
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/about_submersion.dart';
@@ -51,8 +50,8 @@ void _logDive(BuildContext context) => showAddDiveBottomSheet(
 /// Home's slim header: a + button at the leading edge for the quick actions
 /// (logging and planning a dive, the buddy swap and the emergency card), the
 /// status lights after it (tablet and up) and a divider while there are
-/// lights to part, the diver switcher with more than one diver profile, and
-/// the logo (no wordmark) closing the bar, which opens About Submersion.
+/// lights to part, the diver switcher, and the logo (no wordmark) closing
+/// the bar, which opens About Submersion.
 /// Every control has at least a 44 by 44 hit area.
 class HomeHeaderBar extends ConsumerWidget {
   const HomeHeaderBar({super.key});
@@ -60,9 +59,22 @@ class HomeHeaderBar extends ConsumerWidget {
   /// Height of the bar's content. Tall enough for 44-point hit areas.
   static const double barHeight = 48;
 
-  /// The app icon at the end of the bar, which opens About Submersion: the
-  /// largest that leaves the bar a few points above and below it.
-  static const double logoSize = 40;
+  /// The app icon at the end of the bar, which opens About Submersion: small
+  /// enough to leave about 8 points of the bar above and below it, and close
+  /// to the height of the pills and the switcher beside it.
+  static const double logoSize = 32;
+
+  /// The logo's button, on every platform: the tile sits centred in it.
+  static const double _logoButton = 44;
+
+  /// The part of each gap beside the tile that is the button's own padding.
+  static const double _logoInset = (_logoButton - logoSize) / 2;
+
+  /// Visible distance from the tile to the bar's end.
+  static const double _logoToEnd = 12;
+
+  /// Visible distance from the tile to the diver switcher.
+  static const double _logoToSwitcher = 8;
 
   static const Key switcherKey = ValueKey('home-header-switcher');
 
@@ -81,27 +93,17 @@ class HomeHeaderBar extends ConsumerWidget {
     // (or the retry pill) in the row.
     final divided = !phone && (retry || (lights?.isNotEmpty ?? false));
 
-    Widget lightsRow() {
-      if (retry) {
-        return Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: HomeLightChip(_retryLight(context, ref), dense: true),
-        );
-      }
-      if (lights == null) return const SizedBox.shrink();
-      return HomeLightsScroller(
-        children: [
-          for (final light in lights) HomeLightChip(light, dense: true),
-        ],
-      );
-    }
-
     return Material(
       color: theme.colorScheme.surface,
       child: Container(
         height: barHeight,
-        // The + button's own 44-point target spaces it from the edge.
-        padding: const EdgeInsetsDirectional.only(start: 4, end: 8),
+        // The + button's own 44-point target spaces it from the edge. At the
+        // end, this and the logo button's own inset put the tile
+        // _logoToEnd from the edge.
+        padding: const EdgeInsetsDirectional.only(
+          start: 4,
+          end: _logoToEnd - _logoInset,
+        ),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: theme.colorScheme.outlineVariant),
@@ -111,11 +113,15 @@ class HomeHeaderBar extends ConsumerWidget {
           children: [
             // The quick actions open from the bar's leading edge (the right
             // in a right-to-left language).
-            const _QuickActionsMenu(),
+            const HomeQuickActionsMenu(),
             const SizedBox(width: 4),
             // The lights take the room up to the switcher. On a phone they
             // sit in the strip below instead.
-            Expanded(child: phone ? const SizedBox() : lightsRow()),
+            Expanded(
+              child: phone
+                  ? const SizedBox()
+                  : _wideLights(context, ref, lights, retry: retry),
+            ),
             // A rule with space each side parts the lights from the diver
             // and the logo, so the last pill never runs into the switcher
             // (issue #4920).
@@ -135,8 +141,10 @@ class HomeHeaderBar extends ConsumerWidget {
             // The diver's name shows above phone width: with the actions in
             // the + menu there is room for it, capped and ellipsized.
             _DiverSwitcher(showName: !phone),
-            // The logo closes the bar and opens About Submersion.
-            const SizedBox(width: 4),
+            // The logo closes the bar and opens About Submersion. This and
+            // its button's own inset put the tile _logoToSwitcher from the
+            // switcher.
+            const SizedBox(width: _logoToSwitcher - _logoInset),
             const _AboutLogo(),
           ],
         ),
@@ -147,11 +155,101 @@ class HomeHeaderBar extends ConsumerWidget {
 
 enum _QuickAction { logDive, planDive, swap, emergency }
 
+/// Every light in one scrolling line, dense, as the bar shows them from
+/// tablet width up: the retry light in their place when the gauges fail to
+/// load, nothing while they load. Shared with the banner's row.
+Widget homeWideLights(BuildContext context, WidgetRef ref) {
+  final lights = _watchLights(context, ref);
+  return _wideLights(
+    context,
+    ref,
+    lights,
+    retry: ref.watch(dashboardGaugesProvider).hasError && lights == null,
+  );
+}
+
+/// [homeWideLights] from lights the caller has already built, so the compact
+/// bar, which needs them for its divider too, builds them once.
+Widget _wideLights(
+  BuildContext context,
+  WidgetRef ref,
+  List<HomeStatusLight>? lights, {
+  required bool retry,
+}) {
+  if (retry) {
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: HomeLightChip(_retryLight(context, ref), dense: true),
+    );
+  }
+  if (lights == null) return const SizedBox.shrink();
+  return HomeLightsScroller(
+    children: [for (final light in lights) HomeLightChip(light, dense: true)],
+  );
+}
+
+/// The phone's short form of the lights: every amber or red light by name,
+/// then one pill counting the quiet ones, which opens them all. Empty while
+/// the gauges load or when every light is hidden. Shared with the banner's
+/// row.
+List<Widget> homePhoneLightChips(BuildContext context, WidgetRef ref) {
+  final l10n = context.l10n;
+  final gaugesAsync = ref.watch(dashboardGaugesProvider);
+  final lights = _watchLights(context, ref);
+  if (lights == null) {
+    return [
+      if (gaugesAsync.hasError)
+        HomeLightChip(_retryLight(context, ref), dense: true),
+    ];
+  }
+  final split = splitForPhone(lights);
+  return [
+    for (final light in split.attention) HomeLightChip(light, dense: true),
+    // Nothing to vouch for when every light is hidden.
+    if (lights.isNotEmpty && (split.clear > 0 || split.attention.isEmpty))
+      HomeLightChip(
+        HomeStatusLight(
+          icon: Icons.check_circle_outline,
+          label: split.attention.isEmpty
+              ? l10n.dashboard_header_allClear
+              : l10n.dashboard_header_clearCount(split.clear),
+          tone: HomeLightTone.ok,
+          onTap: () => _showAllLights(context),
+        ),
+        dense: true,
+      ),
+  ];
+}
+
+void _showAllLights(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.dashboard_header_statusTitle,
+              style: Theme.of(sheetContext).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            const HomeStatusLightsWrap(),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 /// The + button, which opens every quick action: logging and planning a
 /// dive first, then the buddy swap (where the device has the radios for it)
 /// and the emergency card.
-class _QuickActionsMenu extends ConsumerWidget {
-  const _QuickActionsMenu();
+class HomeQuickActionsMenu extends ConsumerWidget {
+  const HomeQuickActionsMenu({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -218,15 +316,20 @@ class _AboutLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // An icon button, as the + is: one node that a screen reader names by
-    // the tooltip and can tap.
+    // the tooltip and can tap. Shrink-wrapped so the button is 44 on every
+    // platform: Material pads targets to 48 on mobile, which would move the
+    // tile 2 points closer to its neighbours there than on desktop.
     return IconButton(
       tooltip: context.l10n.settings_about_aboutSubmersion,
       onPressed: () => showAboutSubmersion(context),
       padding: EdgeInsets.zero,
       iconSize: HomeHeaderBar.logoSize,
-      style: IconButton.styleFrom(minimumSize: const Size.square(44)),
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(HomeHeaderBar._logoButton),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       icon: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         child: Image.asset(
           'assets/icon/icon.png',
           width: HomeHeaderBar.logoSize,
@@ -238,8 +341,8 @@ class _AboutLogo extends StatelessWidget {
   }
 }
 
-/// The active diver as a small avatar pill that opens the switcher. Absent
-/// with a single profile: there is nothing to switch to.
+/// The active diver as a small avatar pill that opens the switcher. Shown
+/// with a single profile too: the sheet then offers a new profile.
 class _DiverSwitcher extends ConsumerWidget {
   final bool showName;
 
@@ -247,14 +350,19 @@ class _DiverSwitcher extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Unknown (still loading) counts as one: most divers have one profile,
-    // and the bar must not jump.
-    final count = ref.watch(diverCountProvider).value ?? 1;
-    if (count < 2) return const SizedBox.shrink();
     // `value`, not the valueOrNull polyfill: a switch reloads the diver, and
     // `value` keeps the previous one until the next has loaded.
-    final Diver? diver = ref.watch(dashboardDiverProvider).value;
-    if (diver == null) return const SizedBox(width: 44, height: 44);
+    final diverAsync = ref.watch(dashboardDiverProvider);
+    final Diver? diver = diverAsync.value;
+    if (diver == null) {
+      // Hold the slot while the diver first loads so a phone's bar does not
+      // jump. With no diver to show (failed or missing), leave no empty gap:
+      // Riverpod reports a failure it is retrying as loading with an error,
+      // for about 38 seconds, so a held slot would wait that out.
+      return diverAsync.isLoading && !diverAsync.hasError
+          ? const SizedBox(width: 44, height: 44)
+          : const SizedBox.shrink();
+    }
     final theme = Theme.of(context);
     final label = context.l10n.settings_profileHub_switchDiver;
     return Tooltip(
@@ -323,35 +431,8 @@ class HomeStatusStrip extends ConsumerWidget {
     if (homeWidthTierOf(context) != HomeWidthTier.phone) {
       return const SizedBox.shrink();
     }
-    final l10n = context.l10n;
     final theme = Theme.of(context);
-    final gaugesAsync = ref.watch(dashboardGaugesProvider);
-    final lights = _watchLights(context, ref);
-    final List<Widget> children;
-    if (lights == null) {
-      children = [
-        if (gaugesAsync.hasError)
-          HomeLightChip(_retryLight(context, ref), dense: true),
-      ];
-    } else {
-      final split = splitForPhone(lights);
-      children = [
-        for (final light in split.attention) HomeLightChip(light, dense: true),
-        // Nothing to vouch for when every light is hidden.
-        if (lights.isNotEmpty && (split.clear > 0 || split.attention.isEmpty))
-          HomeLightChip(
-            HomeStatusLight(
-              icon: Icons.check_circle_outline,
-              label: split.attention.isEmpty
-                  ? l10n.dashboard_header_allClear
-                  : l10n.dashboard_header_clearCount(split.clear),
-              tone: HomeLightTone.ok,
-              onTap: () => _showAllLights(context),
-            ),
-            dense: true,
-          ),
-      ];
-    }
+    final children = homePhoneLightChips(context, ref);
     // Loading, or every light hidden: no empty bordered bar under the header.
     if (children.isEmpty) return const SizedBox.shrink();
     // No vertical padding: each pill's 44-point tap target already spaces
@@ -366,30 +447,6 @@ class HomeStatusStrip extends ConsumerWidget {
         ),
       ),
       child: HomeLightsScroller(children: children),
-    );
-  }
-
-  void _showAllLights(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.l10n.dashboard_header_statusTitle,
-                style: Theme.of(sheetContext).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              const HomeStatusLightsWrap(),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

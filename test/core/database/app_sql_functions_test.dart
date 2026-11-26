@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/computer_serial_identity.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_connection_setup.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
@@ -36,6 +37,60 @@ void main() {
     test('NULL stays NULL and a name of punctuation is empty', () {
       expect(key(null), isNull);
       expect(key('?!'), '');
+    });
+  });
+
+  group('same_computer_identity', () {
+    late sqlite3.Database db;
+
+    setUp(() {
+      db = sqlite3.sqlite3.openInMemory();
+      registerAppSqlFunctions(db);
+    });
+
+    tearDown(() => db.close());
+
+    Object? same(
+      Object? modelA,
+      Object? serialA,
+      Object? modelB,
+      Object? serialB,
+    ) => db.select('SELECT $kSameComputerIdentityFunction(?, ?, ?, ?) AS v', [
+      modelA,
+      serialA,
+      modelB,
+      serialB,
+    ]).first['v'];
+
+    test('is the model and serial check the Dart side runs', () {
+      const cases = [
+        ('Shearwater Perdix 2', null, 'Perdix 2', '0A1B2C3D'),
+        ('Perdix 2', '0A1B2C3D', 'Perdix 2', '169552957'),
+        ('Perdix\u00a02', null, ' perdix 2\n', null),
+        ('Perdix 2', '0A1B2C3D', 'Perdix 2', '0F0F0F0F'),
+        ('Perdix 2', null, 'Teric', null),
+        ('', null, '', null),
+      ];
+      for (final (modelA, serialA, modelB, serialB) in cases) {
+        final expected = sameComputerModelAndSerial(
+          modelA: modelA,
+          serialA: serialA,
+          modelB: modelB,
+          serialB: serialB,
+        );
+        expect(
+          same(modelA, serialA, modelB, serialB),
+          expected ? 1 : 0,
+          reason: '$modelA/$serialA vs $modelB/$serialB',
+        );
+      }
+      expect(same('Perdix 2', '0A1B2C3D', 'Perdix 2', '169552957'), 1);
+      expect(same('Perdix 2', '0A1B2C3D', 'Perdix 2', '0F0F0F0F'), 0);
+    });
+
+    test('reads NULL as blank and a number as its text', () {
+      expect(same(null, null, 'Perdix 2', null), 0);
+      expect(same('Perdix 2', 169552957, 'Perdix 2', '0A1B2C3D'), 1);
     });
   });
 

@@ -35,8 +35,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
+import 'package:submersion/features/media/presentation/widgets/share_password_flow.dart';
+import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -100,8 +106,18 @@ class _SubscriptionTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A failing subscription carries the same mark the data health puts on
+    // the rows leading here, so the one that needs the diver is found.
+    final failing = sub.lastError != null && sub.lastError!.isNotEmpty;
+    final colors = Theme.of(context).colorScheme;
     return ListTile(
-      leading: const Icon(Icons.feed_outlined),
+      leading: failing
+          ? const HealthSymbol(
+              key: Key('manifestSubscriptionFailing'),
+              level: HealthLevel.attention,
+              size: 24,
+            )
+          : const Icon(Icons.feed_outlined),
       title: Row(
         children: [
           Expanded(
@@ -114,7 +130,10 @@ class _SubscriptionTile extends ConsumerWidget {
           _FormatChip(format: sub.format),
         ],
       ),
-      subtitle: Text(_subtitle(context.l10n)),
+      subtitle: Text(
+        _subtitle(context.l10n),
+        style: failing ? TextStyle(color: colors.error) : null,
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -148,7 +167,9 @@ class _SubscriptionTile extends ConsumerWidget {
   String _subtitle(AppLocalizations l10n) {
     final parts = <String>[];
     if (sub.lastError != null && sub.lastError!.isNotEmpty) {
-      parts.add(l10n.media_manifest_lastError('${sub.lastError}'));
+      parts.add(
+        l10n.media_manifest_lastError(localizedPollError(l10n, sub.lastError!)),
+      );
     } else if (sub.lastPolledAt != null) {
       parts.add(
         l10n.media_manifest_lastPolled(_relative(l10n, sub.lastPolledAt!)),
@@ -203,9 +224,38 @@ class _SubscriptionTile extends ConsumerWidget {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.media_manifest_polling(label))),
       );
-      final polled = await poller.pollNow(sub.id, clock.now().toUtc());
+      var polled = await poller.pollNow(sub.id, clock.now().toUtc());
+      if (!context.mounted) return;
+      polled = await _askForSharePassword(context, ref, polled: polled);
+      if (!context.mounted) return;
+      // pollNow records a failed poll rather than throwing, so "Polled" alone
+      // would report a broken feed as fine. The recorded error says what
+      // went wrong.
+      final error = polled
+          ? (await ref
+                    .read(manifestSubscriptionRepositoryProvider)
+                    .getById(sub.id))
+                ?.lastError
+          : null;
       if (!context.mounted) return;
       ref.invalidate(manifestSubscriptionsProvider);
+      messenger.hideCurrentSnackBar();
+      if (error != null && error.isNotEmpty) {
+        final colors = Theme.of(context).colorScheme;
+        messenger.showSnackBar(
+          SnackBar(
+            key: const Key('manifestPollErrorSnackBar'),
+            backgroundColor: colors.errorContainer,
+            duration: const Duration(seconds: 10),
+            content: Text(
+              '$label: '
+              '${l10n.media_manifest_pollError(localizedPollError(l10n, error))}',
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+        );
+        return;
+      }
       messenger.showSnackBar(
         SnackBar(
           content: Text(
@@ -217,10 +267,34 @@ class _SubscriptionTile extends ConsumerWidget {
       );
     } catch (e) {
       if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.media_manifest_pollError('$e'))),
-      );
+      // In place of the "Polling" message, not queued behind it.
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(l10n.media_manifest_pollError('$e'))),
+        );
     }
+  }
+
+  /// After a poll of a Synology Photos share that failed for want of a
+  /// password (none saved, or the saved one refused), asks for it, saves it
+  /// for the share and polls again, until the poll gets past the password or
+  /// the user cancels. Returns what the last poll returned.
+  Future<bool> _askForSharePassword(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool polled,
+  }) {
+    // Feeds that are no share never want one; skip the read.
+    if (SynologyShareLink.tryParseShareUrl(sub.manifestUrl) == null) {
+      return Future.value(polled);
+    }
+    return resolveSharePassword(
+      context,
+      ref,
+      subscriptionId: sub.id,
+      polled: polled,
+    );
   }
 
   Future<void> _confirmAndDelete(BuildContext context, WidgetRef ref) async {
@@ -263,6 +337,8 @@ class _SubscriptionTile extends ConsumerWidget {
   Future<void> _showEditDialog(BuildContext context, WidgetRef ref) async {
     final urlController = TextEditingController(text: sub.manifestUrl);
     final nameController = TextEditingController(text: sub.displayName ?? '');
+    var interval = sub.pollIntervalSeconds;
+    final intervals = pollIntervalOptionsIncluding(sub.pollIntervalSeconds);
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -283,6 +359,24 @@ class _SubscriptionTile extends ConsumerWidget {
                 labelText: dialogContext.l10n.common_label_displayName,
               ),
             ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<int>(
+              key: const Key('manifestSubscriptionInterval'),
+              initialValue: interval,
+              decoration: InputDecoration(
+                labelText: context.l10n.media_pollInterval_checkEvery,
+              ),
+              items: [
+                for (final option in intervals)
+                  DropdownMenuItem(
+                    value: option.seconds,
+                    child: Text(option.label(context.l10n)),
+                  ),
+              ],
+              onChanged: (v) {
+                if (v != null) interval = v;
+              },
+            ),
           ],
         ),
         actions: [
@@ -301,15 +395,15 @@ class _SubscriptionTile extends ConsumerWidget {
     if (!context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref
-          .read(manifestSubscriptionRepositoryProvider)
-          .updateUrlAndDisplayName(
-            sub.id,
-            manifestUrl: urlController.text,
-            displayName: nameController.text.isEmpty
-                ? null
-                : nameController.text,
-          );
+      final repo = ref.read(manifestSubscriptionRepositoryProvider);
+      await repo.updateUrlAndDisplayName(
+        sub.id,
+        manifestUrl: urlController.text,
+        displayName: nameController.text.isEmpty ? null : nameController.text,
+      );
+      if (interval != sub.pollIntervalSeconds) {
+        await repo.setPollInterval(sub.id, interval);
+      }
       if (!context.mounted) return;
       ref.invalidate(manifestSubscriptionsProvider);
     } catch (e) {

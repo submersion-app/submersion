@@ -7719,6 +7719,47 @@
     }
   },
   "diveSites_backfill_offline": "Location lookup is unavailable. Check your connection and try again.",
+  "diveSites_backfill_confirm_mayStayEmpty": "Some fields may stay empty: OpenStreetMap often has no body of water for a pool, cenote or quarry, and no town for a site offshore.",
+  "diveSites_backfill_confirm_alreadyLookedUp": "{count, plural, =1{1 other site was looked up before and OpenStreetMap had nothing more for it.} other{{count} other sites were looked up before and OpenStreetMap had nothing more for them.}}",
+  "@diveSites_backfill_confirm_alreadyLookedUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_backfill_nothingNew": "{count, plural, =1{1 site still has empty location details, but OpenStreetMap had nothing more for it. Moving the site or clearing one of its fields offers it again.} other{{count} sites still have empty location details, but OpenStreetMap had nothing more for them. Moving a site or clearing one of its fields offers it again.}}",
+  "@diveSites_backfill_nothingNew": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_backfill_summary_updated": "{count, plural, =1{Updated 1 site.} other{Updated {count} sites.}}",
+  "@diveSites_backfill_summary_updated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_backfill_summary_nothingToAdd": "{count, plural, =1{OpenStreetMap had nothing to add for 1 site.} other{OpenStreetMap had nothing to add for {count} sites.}}",
+  "@diveSites_backfill_summary_nothingToAdd": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_backfill_summary_failed": "{count, plural, =1{1 lookup failed.} other{{count} lookups failed.}}",
+  "@diveSites_backfill_summary_failed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_list_menu_refreshPlaceNames": "Refresh place names",
   "diveSites_refresh_confirm_title": "Refresh place names?",
   "diveSites_refresh_confirm_body": "{count, plural, =1{1 site with coordinates is looked up again.} other{{count} sites with coordinates are looked up again.}} Country, region, town and body of water are replaced wherever they differ from the place name language ({language}), including values you typed yourself. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",
@@ -11703,6 +11744,27 @@
   "marineLife_speciesDetail_sightingStatsTitle": "Sighting Statistics",
   "marineLife_speciesDetail_sitesLabel": "Sites",
   "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
+  "marineLife_speciesDetail_firstSeenLabel": "First seen",
+  "marineLife_speciesDetail_lastSeenLabel": "Last seen",
+  "marineLife_speciesDetail_depthSeasonTitle": "Depth and season",
+  "marineLife_speciesDetail_photoDepths": "Photo depths",
+  "marineLife_speciesDetail_diveMaxDepth": "Dive max depth",
+  "marineLife_speciesDetail_byMonth": "Dives by month",
+  "marineLife_speciesDetail_timelineTitle": "Timeline",
+  "marineLife_speciesDetail_useAsCover": "Use as cover",
+  "marineLife_speciesDetail_removeCover": "Remove cover",
+  "marineLife_speciesDetail_cover": "Cover",
+  "marineLife_speciesDetail_findPhotos": "Find photos",
+  "marineLife_speciesDetail_openMedia": "Open photo or video",
+  "marineLife_speciesDetail_timelineDive": "Dive on {date}",
+  "@marineLife_speciesDetail_timelineDive": {
+    "description": "Accessibility label of one dot on a species' sightings timeline",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesEdit_addTitle": "Add Species",
@@ -11904,6 +11966,87 @@
     }
   },
   "marineLife_speciesPage_retry": "Retry",
+  "marineLife_speciesPage_headerSpecies": "Species",
+  "marineLife_speciesPage_headerNewIn": "New in {year}",
+  "@marineLife_speciesPage_headerNewIn": {
+    "description": "Header tile: species first seen this calendar year",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "marineLife_speciesPage_headerGrowth": "Life list growth",
+  "marineLife_speciesPage_withoutPhoto": "{count, plural, one{{count} without a photo} other{{count} without a photo}}",
+  "@marineLife_speciesPage_withoutPhoto": {
+    "description": "Chip filtering to seen species that have no picture",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_speciesPage_groupByTooltip": "Group by",
+  "marineLife_speciesPage_groupBy_none": "No grouping",
+  "marineLife_speciesPage_groupBy_category": "Category",
+  "marineLife_speciesPage_groupBy_firstSeen": "Year first seen",
+  "marineLife_speciesPage_groupBy_trip": "Trip",
+  "marineLife_speciesPage_groupBy_site": "Site",
+  "marineLife_speciesPage_noTrip": "No trip",
+  "marineLife_speciesPage_noSite": "No site",
+  "marineLife_speciesPage_seeAll": "See all",
+  "marineLife_speciesPage_showList": "Show as list",
+  "marineLife_speciesPage_showCards": "Show as cards",
+  "marineLife_speciesPage_practiceTooltip": "Practice naming species",
+  "marineLife_speciesPage_firstSeenHere": "First seen here",
+  "marineLife_rarity_new": "New",
+  "marineLife_rarity_seenOnce": "Seen once",
+  "marineLife_rarity_notSeenLately": "Not seen lately",
+  "marineLife_rarity_mastered": "Mastered",
+  "marineLife_practice_title": "ID practice",
+  "marineLife_practice_notEnough": "Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.",
+  "marineLife_practice_back": "Back to species",
+  "marineLife_practice_progress": "{current} of {total}",
+  "@marineLife_practice_progress": {
+    "description": "Practice round counter",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_practice_question": "Which species is this?",
+  "marineLife_practice_scientificNames": "Scientific names",
+  "marineLife_practice_right": "Right",
+  "marineLife_practice_wrong": "Not quite: it was {name}",
+  "@marineLife_practice_wrong": {
+    "description": "Shown after a wrong practice answer",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "marineLife_practice_next": "Next",
+  "marineLife_practice_finish": "See results",
+  "marineLife_practice_score": "{right} of {total} right",
+  "@marineLife_practice_score": {
+    "description": "Practice session score",
+    "placeholders": {
+      "right": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_practice_missedTitle": "To practise again",
+  "marineLife_practice_again": "Practise again",
+  "marineLife_practice_done": "Done",
   "speciesMap_title": "Species Map",
   "speciesMap_openTooltip": "Species map",
   "speciesMap_pickSpeciesTooltip": "Pick a species",
@@ -12168,8 +12311,8 @@
   "media_diveMediaSection_unlinkButton": "Unlink",
   "media_diveMediaSection_unlinkSelectedButton": "Unlink {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.",
-  "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
-  "media_library_unlinkConfirmTitle": "Unlink {count} items?",
+  "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
+  "media_library_unlinkConfirmTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkError": "Failed to unlink: {error}",
   "media_library_unlinkConfirmBody": "They leave your library, along with their cloud copies and thumbnails. Your original files are not affected. This cannot be undone.",
   "media_library_unlinkMetadataNote": "{count,plural, =1{1 of these has a caption or favorite saved in Submersion, and those details are lost.} other{{count} of these have a caption or favorite saved in Submersion, and those details are lost.}}",
@@ -12241,7 +12384,7 @@
   "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
   "media_siteDivePhotos_showAll": "Show all",
   "media_siteDivePhotos_showLess": "Show less",
-  "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
+  "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count, plural, =1{{count} item} other{{count} items}}?",
   "media_siteMediaSection_unlinkSelectedContent": "Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.",
   "@media_siteMediaSection_unlinkSelectedContent": {
     "description": "Site page unlink confirmation body",
@@ -12310,6 +12453,9 @@
   "media_photoPicker_tab_gallery": "Gallery",
   "media_photoPicker_tab_files": "Files",
   "media_photoPicker_tab_url": "URL",
+  "media_photoPicker_feedElsewhereHint": "To add a feed of photos, use Import on the Media screen.",
+  "media_photoPicker_galleryOnlyHint": "To add files or links, use Import on the Media screen.",
+  "media_photoPicker_galleryOnlyLinksHint": "To add links, use Import on the Media screen.",
   "media_photoPicker_clearSelectionButton": "Clear",
   "media_photoPicker_closeTooltip": "Close photo picker",
   "media_photoPicker_doneButton": "Done",
@@ -12590,6 +12736,40 @@
   "media_photoViewer_nextTooltip": "Next media",
   "media_photoViewer_noPhotosAvailable": "No photos available",
   "media_photoViewer_pageIndicator": "{current} / {total}",
+  "media_viewer_playOriginal": "Play original",
+  "@media_viewer_playOriginal": {"description": "Video viewer button: a shared album video plays as a smaller conversion; this plays the original file instead"},
+  "media_viewer_playMotion": "Play motion",
+  "@media_viewer_playMotion": {"description": "Photo viewer button: plays the short video a motion photo carries"},
+  "media_viewer_motionUnplayable": "This device cannot play the motion of this photo",
+  "@media_viewer_motionUnplayable": {"description": "Photo viewer: the motion photo's video cannot be decoded here (for example HEVC on a Windows PC without the HEVC extension)"},
+  "media_subscriptionBanner_message": "{count, plural, =1{Photo subscription \"{name}\" could not be updated: {error}} other{{count} photo subscriptions could not be updated, among them \"{name}\": {error}}}",
+  "@media_subscriptionBanner_message": {"description": "Media library banner: one or more photo subscriptions failed their last poll; name is the first one's name, error its last error", "placeholders": {"count": {"type": "int"}, "name": {"type": "String"}, "error": {"type": "String"}}},
+  "media_subscriptionBanner_open": "Open",
+  "@media_subscriptionBanner_open": {"description": "Media library banner action: opens the network sources settings"},
+  "media_pollInterval_minutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@media_pollInterval_minutes": {"description": "Poll interval choice for a photo subscription, in minutes", "placeholders": {"count": {"type": "int"}}},
+  "media_pollInterval_hours": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@media_pollInterval_hours": {"description": "Poll interval choice for a photo subscription, in hours", "placeholders": {"count": {"type": "int"}}},
+  "media_pollInterval_days": "{count, plural, =1{1 day} other{{count} days}}",
+  "@media_pollInterval_days": {"description": "Poll interval choice for a photo subscription, in days", "placeholders": {"count": {"type": "int"}}},
+  "media_sharePassword_title": "Share password",
+  "@media_sharePassword_title": {"description": "Title of the dialog asking for a Synology Photos shared album's password"},
+  "media_sharePassword_needed": "This Synology Photos share needs its password.",
+  "@media_sharePassword_needed": {"description": "A Synology Photos shared album asks for its password"},
+  "media_sharePassword_rejected": "The share did not accept the password. Enter it again.",
+  "@media_sharePassword_rejected": {"description": "A Synology Photos shared album refused the password entered"},
+  "media_sharePassword_field": "Password",
+  "@media_sharePassword_field": {"description": "Label of the password field for a shared album"},
+  "media_sharePassword_save": "Save and fetch",
+  "@media_sharePassword_save": {"description": "Dialog button: saves the shared album's password and fetches the album again"},
+  "media_sharePassword_keychainNote": "It is kept in this device's keychain and never synced.",
+  "@media_sharePassword_keychainNote": {"description": "Where a shared album's password is kept"},
+  "media_sharePassword_formSave": "Save password and fetch",
+  "@media_sharePassword_formSave": {"description": "Manifest import button: saves the shared album's password and fetches the album"},
+  "media_pollInterval_checkEvery": "Check every",
+  "@media_pollInterval_checkEvery": {"description": "Label of the poll interval choice in a photo subscription's edit dialog"},
+  "media_sharePassword_rejectedStatus": "The share did not accept the saved password.",
+  "@media_sharePassword_rejectedStatus": {"description": "Status where a photo subscription's error is shown (banner, card): the shared album refused the saved password"},
   "media_photoViewer_playPauseVideoLabel": "Play or pause video",
   "media_photoViewer_previousTooltip": "Previous media",
   "media_photoViewer_seekVideoLabel": "Seek video position",
@@ -13004,6 +13184,15 @@
   "@media_sources_neverScanned": {
     "description": "Sources section: a root with no scan yet"
   },
+  "media_sources_removeFolderTitle": "Stop watching this folder?",
+  "media_sources_removeFolderBody": "Submersion forgets the files it found in {folder}, so missing photos are no longer looked for there. No photo or file is deleted.",
+  "@media_sources_removeFolderBody": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "media_source_gallery": "Photo library",
   "@media_source_gallery": {
     "description": "Source type name"
@@ -13063,6 +13252,19 @@
   "media_smartAlbum_delete": "Delete album",
   "@media_smartAlbum_delete": {
     "description": "Filter bar: remove a smart album"
+  },
+  "media_smartAlbum_deleteConfirmTitle": "Delete \"{name}\"?",
+  "@media_smartAlbum_deleteConfirmTitle": {
+    "description": "Title of the confirmation before a smart album (a saved filter) is deleted from the Load album list. name is the album's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "media_smartAlbum_deleteConfirmBody": "Only the saved filter goes. No photos or videos change.",
+  "@media_smartAlbum_deleteConfirmBody": {
+    "description": "Body of the smart album delete confirmation: only the saved filter goes, no photo or video changes."
   },
   "media_smartAlbum_deleteFailed": "Could not delete album",
   "@media_smartAlbum_deleteFailed": {
@@ -13362,6 +13564,55 @@
   "media_divePicker_search": "Search dives",
   "@media_divePicker_search": {
     "description": "Search hint in the dive picker sheet"
+  },
+  "media_library_moveConfirmTitle": "Move {count, plural, =1{{count} item} other{{count} items}}?",
+  "@media_library_moveConfirmTitle": {
+    "description": "Title of the confirmation the media library shows after a dive is picked for Move to dive, naming how many photos and videos move.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_moveConfirmBody": "{count, plural, =1{The item moves to {dive}, off any dive it is on now.} other{The items move to {dive}, off any dive they are on now.}} Site and gear links stay as they are.",
+  "@media_library_moveConfirmBody": {
+    "description": "Body of the Move to dive confirmation. count is how many photos and videos move; dive is the picked dive's number and name, then its date, such as '#42 Blue Hole, Mar 12, 2026'. Some items may be on no dive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "media_library_moveConfirmAction": "Move",
+  "@media_library_moveConfirmAction": {
+    "description": "The Move to dive confirmation's button that moves the photos and videos."
+  },
+  "media_library_moveDiveOpenHint": "A dive in this move is open for editing. Save, cancel or lock it, then try again.",
+  "@media_library_moveDiveOpenHint": {
+    "description": "Shown when Move to dive is refused because the picked dive, or a dive the selected photos are on, is unlocked for editing on its page. Nothing is moved."
+  },
+  "media_library_moveFailed": "Could not move the items",
+  "@media_library_moveFailed": {
+    "description": "Shown when Move to dive could not write. Nothing moved, and the selection stays."
+  },
+  "media_library_unlinkFailed": "Could not unlink the items",
+  "@media_library_unlinkFailed": {
+    "description": "Shown when the media library's Unlink could not write. The selection stays."
+  },
+  "media_library_moveDiveName": "{label}, {date}",
+  "@media_library_moveDiveName": {
+    "description": "How the Move to dive confirmation names the picked dive: its number and name (label, such as '#42 Blue Hole'), then its date. Use the language's own list separator.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "media_library_moveToDive": "Move to dive",
   "@media_library_moveToDive": {
@@ -14235,8 +14486,6 @@
     }
   },
   "plannerCanvas_chartMode_bailout": "Bailout",
-  "plannerCanvas_chartMode_ccr": "CCR",
-  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "@plannerCanvas_scrub_tts": {
     "placeholders": {
@@ -14624,10 +14873,9 @@
   },
   "diveLog_detail_locationsMap_title": "Dive Locations",
   "diveLog_detail_coordinatesCopied": "Coordinates copied to clipboard",
-  "diveDetailSection_weights_name": "Weights",
-  "diveDetailSection_weights_description": "Weight breakdown, total weight",
+  "diveDetailSection_weights_name": "Weights and buoyancy",
+  "diveDetailSection_weights_description": "Weights carried, buoyancy through the dive, lead for next time, ditchable weight",
   "diveDetailSection_buoyancy_name": "Buoyancy",
-  "diveDetailSection_buoyancy_description": "Buoyancy through the dive, lead for next time, ditchable weight",
   "buoyancy_verdictBuoyant": "At your final stop (~{depth}) you were about {amount} buoyant",
   "@buoyancy_verdictBuoyant": {
     "placeholders": {
@@ -16111,6 +16359,12 @@
   "settings_conflict_field_mediaIdentifications_specific": "Looks like something in particular",
   "settings_conflict_field_mediaIdentifications_runId": "Analysis",
   "settings_conflict_field_mediaIdentifications_decisionHlc": "Decision clock",
+  "settings_conflict_field_speciesCovers_identificationId": "Cover crop",
+  "settings_conflict_field_speciesPractice_box": "Practice box",
+  "settings_conflict_field_speciesPractice_dueAt": "Practice due",
+  "settings_conflict_field_speciesPractice_rightCount": "Named right",
+  "settings_conflict_field_speciesPractice_wrongCount": "Named wrong",
+  "settings_conflict_field_speciesPractice_lastPractisedAt": "Last practised",
   "settings_conflict_field_mediaIdentificationCrops_jpeg": "Crop",
   "settings_conflict_field_medicalClearanceExpiryDate": "Medical clearance expiry",
   "settings_conflict_field_medicalNotes": "Medical notes",
@@ -17066,6 +17320,10 @@
   "@dataHealth_libraries_editsHeld": {"placeholders": {"name": {"type": "String"}}},
   "dataHealth_media_finishSetup": "Photos: finish setting up this device",
   "dataHealth_media_transfersPaused": "Photo transfers are paused",
+  "dataHealth_media_subscriptionPassword": "Photo subscription {name} needs its password",
+  "@dataHealth_media_subscriptionPassword": {"description": "Settings > Data health: a photo subscription (shared album) cannot be read on this device until its password is entered", "placeholders": {"name": {"type": "String"}}},
+  "dataHealth_media_subscriptionFailing": "Photo subscription {name} could not be updated",
+  "@dataHealth_media_subscriptionFailing": {"description": "Settings > Data health: the last poll of a photo subscription (shared album, photo feed) failed", "placeholders": {"name": {"type": "String"}}},
   "dataHealth_facts_dives": "{count, plural, one{{count} dive} other{{count} dives}}",
   "@dataHealth_facts_dives": {"placeholders": {"count": {"type": "int"}}},
   "dataHealth_facts_sites": "{count, plural, one{{count} site} other{{count} sites}}",
@@ -28096,6 +28354,16 @@
   "settings_mediaStorage_quality_small": "Small",
   "settings_mediaStorage_quality_caveat": "With a compression level set, full-resolution originals are not uploaded — they remain only on this device.",
   "settings_mediaStorage_quality_reuploadQueued": "Re-upload queued",
+  "settings_mediaStorage_quality_downgradeTitle": "Replace the full-quality copy?",
+  "settings_mediaStorage_quality_downgradeBody": "The original kept in your storage is replaced with a {level} copy. The photo on this device is kept.",
+  "@settings_mediaStorage_quality_downgradeBody": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_mediaStorage_quality_downgradeConfirm": "Replace",
   "settings_mediaStorage_quality_linuxFfmpegHint": "Install ffmpeg to enable video compression. Originals are uploaded until then.",
   "settings_mediaStorage_quality_saveFailed": "Could not save the upload quality. Try again.",
   "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it.",
@@ -28328,6 +28596,7 @@
   "common_selection_exitTooltip": "Exit selection",
   "common_selection_selectAllTooltip": "Select all",
   "common_selection_deselectAllTooltip": "Deselect all",
+  "common_selection_selectAllLoadFailed": "Could not load every item, so Select all was not applied. Try again.",
   "@common_selection_countSelected": {
     "placeholders": {
       "count": {
@@ -29303,14 +29572,6 @@
   "species_french_grunt_desc": "Small yellow-striped grunt that forms dense resting schools on Caribbean reefs during daylight hours.",
   "species_convict_tang_name": "Convict Tang",
   "species_convict_tang_desc": "Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats.",
-  "species_great_hammerhead_name": "Scalloped Hammerhead",
-  "species_great_hammerhead_desc": "Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands.",
-  "species_wobbegong_name": "Spotted Wobbegong",
-  "species_wobbegong_desc": "Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs.",
-  "species_manta_ray_name": "Reef Manta Ray",
-  "species_manta_ray_desc": "Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs.",
-  "species_oceanic_manta_name": "Oceanic Manta Ray",
-  "species_oceanic_manta_desc": "The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations.",
   "species_undulated_moray_name": "Undulated Moray Eel",
   "species_undulated_moray_desc": "Yellowish-green moray with dark wavy markings, commonly seen hunting on Indo-Pacific reefs at night.",
   "species_whitemouth_moray_name": "Whitemouth Moray Eel",
@@ -30234,6 +30495,8 @@
   "media_cache_error": "Error: {error}",
   "media_credentials_actionTest": "Test credentials",
   "media_credentials_authLabel": "Auth: {authType}",
+  "media_credentials_secretMissing": "Password missing on this device",
+  "@media_credentials_secretMissing": {"description": "Saved hosts list: the row exists (for example from a backup) but this device holds no password for it"},
   "media_credentials_deleteBody": "Removes the saved credentials. Items linked through this host will start showing \"Sign in required\" until you re-add them.",
   "media_credentials_deleteError": "Delete failed: {error}",
   "media_credentials_deleteTitle": "Delete {host}?",
@@ -32560,6 +32823,12 @@
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "This profile was imported from a dive computer and likely contains the original source data.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "Delete Permanently Now",
   "diveLog_profileEditor_deleteProfile_failed": "Could not delete the profile revision.",
+  "diveLog_profileEditor_removeSource": "Remove This Source",
+  "diveLog_profileEditor_unsavedEditsHint": "Save or undo your edits to delete the profile.",
+  "diveLog_profileEditor_unsavedEditsHintWithSource": "Save or undo your edits to delete the profile or remove this source.",
+  "diveLog_profileEditor_deleteProfile_notPrimary": "Delete Entire Profile only deletes revisions of the primary source's profile.",
+  "diveLog_profileEditor_deleteProfile_onlyRevision": "This is the dive's only profile revision, so it can't be deleted.",
+  "diveLog_profileEditor_deleteProfile_historyFailed": "Couldn't load the profile revisions, so none can be deleted now.",
   "diveLog_profileEditor_revisionLegacyHint": "Saved before revision history; not linked to a computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
@@ -33457,9 +33726,12 @@
   "@media_species_moreChips": {"description": "Screen reader label of the chip that counts the species left off the viewer's one line (issue #4825); the chip itself reads +N.", "placeholders": {"count": {"type": "int"}}},
   "media_species_listLocked": "Unlock to add or dismiss",
   "media_labels_action": "Species labels",
-  "media_labels_names": "Names",
-  "media_labels_allLife": "All life",
-  "media_labels_off": "Off",
+  "media_labels_names": "Names and likely animals",
+  "@media_labels_names": {"description": "Labels menu in the media viewer (issue #5023), first of three choices for what is drawn over the photo or video: a name label on each animal the app can name or the diver tagged, and a small dot on an unnamed animal that looks like a particular species (on a photo, or on a paused video once it has been followed for a second), so the diver can stop and name it. Vaguer detections, such as a fin or a bubble, get nothing. 'Likely animals' means those probable but unnamed ones; the wording must contrast with media_labels_allLife, which marks every detection."},
+  "media_labels_allLife": "Everything detected",
+  "@media_labels_allLife": {"description": "Labels menu in the media viewer (issue #5023), second of three choices: the name labels, plus a dot on everything the app detected that it cannot name, however vague (a fin, a bubble), while the video plays too. The wording must contrast with media_labels_names, which marks only the likely animals. Never 'all of life' or 'a lifetime'."},
+  "media_labels_off": "No labels",
+  "@media_labels_off": {"description": "Labels menu in the media viewer (issue #5023), third of three choices: draw no labels over the photo or video."},
   "media_labels_analyse": "Analyse",
   "media_labels_analyseAgain": "Analyse again",
   "media_labels_statusNoModel": "No species model installed",
@@ -33469,12 +33741,40 @@
   "@media_labels_statusAnalysingPercent": {"placeholders": {"percent": {"type": "String"}}},
   "media_labels_statusFound": "{count, plural, =0{Nothing found} =1{{count} found} other{{count} found}}",
   "@media_labels_statusFound": {"placeholders": {"count": {"type": "int"}}},
+  "media_labels_statusPartlyFound": "{count, plural, =0{Partly analysed, nothing found} =1{Partly analysed, {count} found} other{Partly analysed, {count} found}}",
+  "@media_labels_statusPartlyFound": {"description": "Labels menu status line for a photo or video analysed only in part, such as a video scanned part way (issue #4958), with how many animals were found so far.", "placeholders": {"count": {"type": "int"}}},
+  "media_labels_buttonNotAnalysed": "Species labels: not analysed",
+  "@media_labels_buttonNotAnalysed": {"description": "Tooltip of the viewer's species labels button while the item on screen is not analysed; the icon is drawn plain (issue #4958)."},
+  "media_labels_buttonAnalysing": "Species labels: analysing",
+  "@media_labels_buttonAnalysing": {"description": "Tooltip of the viewer's species labels button while the item on screen is being analysed; the icon is drawn in the theme colour (issue #4958)."},
+  "media_labels_buttonPartlyAnalysed": "Species labels: partly analysed",
+  "@media_labels_buttonPartlyAnalysed": {"description": "Tooltip of the viewer's species labels button while the item on screen is analysed only in part; the icon is drawn amber (issue #4958)."},
+  "media_labels_buttonOutdated": "Species labels: out of date",
+  "@media_labels_buttonOutdated": {"description": "Tooltip of the viewer's species labels button when the item on screen was analysed in full, but by an older model, for another place, or with its crops not on this device; the icon is drawn amber and Analyse brings it up to date (issue #4958)."},
+  "media_labels_buttonAnalysed": "Species labels: analysed",
+  "@media_labels_buttonAnalysed": {"description": "Tooltip of the viewer's species labels button once the item on screen is analysed; the icon is drawn green (issue #4958)."},
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} found, none named} other{{count} found, none named}}",
   "@media_labels_foundNoneNamed": {"description": "Brief message after the diver asks for a photo or video to be analysed and it finds animals it cannot name, so no name label is drawn (issue #4872).", "placeholders": {"count": {"type": "int"}}},
-  "media_labels_showAllLife": "Show all life",
-  "@media_labels_showAllLife": {"description": "Action on that message: switch the labels to All life, which draws the unnamed animals too."},
+  "media_labels_showAllLife": "Show everything detected",
+  "@media_labels_showAllLife": {"description": "Action on the notice shown when an analysis finds animals it cannot name: switch the labels menu to its 'Everything detected' choice (media_labels_allLife), which marks the unnamed detections too."},
   "media_species_possibleMatches": "Possible matches",
   "media_species_cropUnavailable": "Image not on this device",
+  "media_species_cropCountPhoto": "{count, plural, =1{{count} in this photo} other{{count} in this photo}}",
+  "@media_species_cropCountPhoto": {"description": "Under a species' crops on a locked photo: how many of that species the app found on it (issue #5024).", "placeholders": {"count": {"type": "int"}}},
+  "media_species_cropCountVideo": "{count, plural, =1{{count} in this video} other{{count} in this video}}",
+  "@media_species_cropCountVideo": {"description": "Under a species' crops on a locked video: how many of that species the app followed in it (issue #5024).", "placeholders": {"count": {"type": "int"}}},
+  "media_species_cropBestOfVideo": "{count, plural, other{{shown} best of {count} sightings}}",
+  "@media_species_cropBestOfVideo": {"description": "Under a species' crops on a locked video when it keeps only the clearest few: how many show of how many times the species was followed (issue #5032).", "placeholders": {"shown": {"type": "int"}, "count": {"type": "int"}}},
+  "media_species_seenAt": "Seen at",
+  "@media_species_seenAt": {"description": "Heading over the times a species was seen in a video, on its crop sheet (issue #5032)."},
+  "media_species_seenStretch": "{start} to {end}",
+  "@media_species_seenStretch": {"description": "A stretch of a video where a species was seen, as player times such as 0:04 to 0:31 (issue #5032).", "placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "media_species_playFrom": "Play from {time}",
+  "@media_species_playFrom": {"description": "Screen reader label of a time on a species' crop sheet: tapping it plays the video from there (issue #5032).", "placeholders": {"time": {"type": "String"}}},
+  "media_species_openSpeciesPage": "Species page",
+  "@media_species_openSpeciesPage": {"description": "Button on a species' crop sheet that opens the species page (issue #5024)."},
+  "media_species_cropThumb": "Image {index} of {count}",
+  "@media_species_cropThumb": {"description": "Screen reader label of one thumbnail on a species' crop sheet (issue #5024).", "placeholders": {"index": {"type": "int"}, "count": {"type": "int"}}},
   "media_species_taggedOnPhoto": "Tagged on this photo",
   "media_species_removeTag": "Remove {name}",
   "@media_species_removeTag": {"placeholders": {"name": {"type": "String"}}},
@@ -33808,6 +34108,8 @@
   "@media_info_checkUnavailable": {
     "description": "Result of Check now when nothing could be determined, for example an unmounted volume"
   },
+  "media_info_checkNeedsPassword": "Password missing or not accepted",
+  "@media_info_checkNeedsPassword": {"description": "Photo info, Check now: the source answered only that this device is not signed in to it (a shared album without its password here, or a host that refused the saved credentials)"},
   "media_info_backupQueued": "Queued for upload",
   "@media_info_backupQueued": {
     "description": "Confirmation shown after queueing an upload"
@@ -35098,6 +35400,9 @@
   },
   "backup_unrecognized_appBar_title": "Unrecognized Backups",
   "backup_unrecognized_explanation": "These files are in your backups folder but not in this device's backup history. Only a file this device wrote can be deleted here: anything else may be another device's only copy.",
+  "backup_unrecognized_explanation_appPrivate": "These files are in your backups folder but not in this device's backup history. This folder is private to Submersion on this device, so no other device uses these files and any of them can be deleted here.",
+  "backup_unrecognized_confirm_foreignWarning": "{count, plural, =1{One selected file may have been made by another device, an earlier install or an older version of Submersion. If it holds dives you do not have anywhere else, those dives will be lost.} other{{count} selected files may have been made by another device, an earlier install or an older version of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.}}",
+  "@backup_unrecognized_confirm_foreignWarning": { "placeholders": { "count": { "type": "int" } } },
   "backup_unrecognized_empty": "No unrecognized backup files.",
   "backup_unrecognized_loadFailed": "Could not read the backups folder.",
   "backup_unrecognized_unavailable": "This device cannot list the backup folder you chose, so unrecognized files cannot be found.",
@@ -37113,6 +37418,9 @@
   "@settings_setUpDevice_mark_skipped": {"description": "Screen reader label for a skipped step"},
   "settings_setUpDevice_item_signInAction": "Sign in",
   "@settings_setUpDevice_item_signInAction": {"description": "Button on a card item that signs in to an account"},
+  "settings_setUpDevice_item_subscriptionPassword": "The photo album {name} needs its password on this device.",
+  "@settings_setUpDevice_item_subscriptionPassword": {"description": "Set up this device card: a synced photo subscription (shared album) needs its password, which never syncs", "placeholders": {"name": {"type": "String"}}},
+  "settings_setUpDevice_item_enterPasswordAction": "Enter password",
   "settings_setUpDevice_item_reconnectAction": "Reconnect",
   "@settings_setUpDevice_item_reconnectAction": {"description": "Button on a card item that opens Photos and videos to reconnect"},
   "settings_setUpDevice_item_signIn": "Sign in to {account} again. Sync and backups are paused until you do.",
@@ -37476,6 +37784,18 @@
   "changeLog_label_removeDuplicateCylinders": "Removed duplicate cylinders",
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
+  },
+  "changeLog_label_moveMedia": "Moved to another dive",
+  "@changeLog_label_moveMedia": {
+    "description": "Change log entry title for the media library's Move to dive, which moves the selected photos and videos onto another dive."
+  },
+  "changeLog_label_unlinkMedia": "Unlinked from the library",
+  "@changeLog_label_unlinkMedia": {
+    "description": "Change log entry title for the media library's Unlink, which removes the selected photos and videos from the library (never the original files)."
+  },
+  "changeLog_label_removeGearPhotos": "Removed gear photos",
+  "@changeLog_label_removeGearPhotos": {
+    "description": "Change log entry title for the Media screen's Gear tab Remove, which takes the selected photos off their gear items."
   },
   "changeLog_label_updatePlannedDives": "Updated planned dives",
   "@changeLog_label_updatePlannedDives": {
@@ -38339,5 +38659,45 @@
   "@settings_homePanels_keyNumbersCount": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}},
   "settings_homePanels_activityCalendar": "Activity calendar",
   "settings_homePanels_recentOutings": "Recent outings",
-  "settings_homeKeyNumbers_description": "Choose the numbers shown at the top of Home. A number with nothing to show yet is left out."
+  "settings_homeKeyNumbers_description": "Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.",
+  "dashboard_greeting_morning": "Good morning",
+  "dashboard_greeting_afternoon": "Good afternoon",
+  "dashboard_greeting_evening": "Good evening",
+  "dashboard_greeting_withName": "{greeting}, {name}!",
+  "@dashboard_greeting_withName": {"placeholders": {"greeting": {"type": "Object"}, "name": {"type": "Object"}}},
+  "dashboard_greeting_withoutName": "{greeting}!",
+  "@dashboard_greeting_withoutName": {"placeholders": {"greeting": {"type": "Object"}}},
+  "dashboard_hero_divesLoggedOne": "1 dive logged",
+  "dashboard_hero_divesLoggedOther": "{count} dives logged",
+  "@dashboard_hero_divesLoggedOther": {"placeholders": {"count": {"type": "Object"}}},
+  "dashboard_hero_divesTotalOne": "1 dive",
+  "dashboard_hero_divesTotalOther": "{count} dives",
+  "@dashboard_hero_divesTotalOther": {"placeholders": {"count": {"type": "Object"}}},
+  "dashboard_hero_error": "Ready to explore the depths?",
+  "dashboard_hero_hoursUnderwater": "{hours} hours underwater",
+  "@dashboard_hero_hoursUnderwater": {"placeholders": {"hours": {"type": "Object"}}},
+  "dashboard_hero_loading": "Loading your dive stats...",
+  "dashboard_hero_minutesUnderwater": "{minutes} minutes underwater",
+  "@dashboard_hero_minutesUnderwater": {"placeholders": {"minutes": {"type": "Object"}}},
+  "dashboard_hero_noDives": "Ready to log your first dive?",
+  "dashboard_hero_diverFallbackName": "Diver",
+  "dashboard_hero_statDives": "dives",
+  "dashboard_hero_statHours": "hours",
+  "dashboard_hero_statSites": "sites",
+  "dashboard_hero_statCountries": "countries",
+  "dashboard_semantics_greetingBanner": "Dashboard greeting banner",
+  "dashboard_quickActions_sectionTitle": "Quick Actions",
+  "dashboard_quickActions_insights": "Insights",
+  "settings_homeHeader_sectionTitle": "Header",
+  "@settings_homeHeader_sectionTitle": {"description": "Settings > Home: heading of the choice between the compact header bar and the welcome banner"},
+  "settings_homeHeader_phone": "Phone width",
+  "@settings_homeHeader_phone": {"description": "Settings > Home: row label for the header used at phone width"},
+  "settings_homeHeader_wide": "Wider screens",
+  "@settings_homeHeader_wide": {"description": "Settings > Home: row label for the header used on tablet and desktop widths"},
+  "settings_homeHeader_compact": "Compact",
+  "@settings_homeHeader_compact": {"description": "Option name: the slim header bar"},
+  "settings_homeHeader_banner": "Banner",
+  "@settings_homeHeader_banner": {"description": "Option name: the welcome banner"},
+  "settings_homeHeader_description": "Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.",
+  "@settings_homeHeader_description": {"description": "Settings > Home: explains the two header options"}
 }

@@ -618,6 +618,49 @@ void main() {
       expect(find.text('Source is missing'), findsNothing);
     });
 
+    testWidgets('a check refused for want of a password says so', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _item(),
+        extra: [
+          mediaItemVerifierProvider.overrideWithValue(
+            _FakeVerifier(VerifyResult.unauthenticated),
+          ),
+        ],
+      );
+
+      await tester.tap(find.text('Check now'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Password missing or not accepted'), findsOneWidget);
+      expect(find.text('Could not check right now'), findsNothing);
+    });
+
+    testWidgets('a feed host refusing its sign-in is checked once', (
+      tester,
+    ) async {
+      // A subscription row on a basic-auth feed, not a shared album: there
+      // is no share password to ask for, so no second check either.
+      final verifier = _FakeVerifier(VerifyResult.unauthenticated);
+      await pump(
+        tester,
+        _item().copyWith(
+          sourceType: MediaSourceType.manifestEntry,
+          url: 'https://feed.example.com/photos/p1.jpg',
+          subscriptionId: 'sub-1',
+        ),
+        extra: [mediaItemVerifierProvider.overrideWithValue(verifier)],
+      );
+
+      await tester.tap(find.text('Check now'));
+      await tester.pumpAndSettle();
+
+      expect(verifier.verified, hasLength(1));
+      expect(find.text('Password missing or not accepted'), findsOneWidget);
+    });
+
     testWidgets('Locate appears only for a missing local file', (tester) async {
       final item = _item(
         sourceType: MediaSourceType.localFile,

@@ -11,6 +11,7 @@ String homePanelLabel(
   required GasConsumptionLane lane,
 }) => switch (panel) {
   HomePanelType.keyNumbers => l10n.settings_homePanels_keyNumbers,
+  HomePanelType.quickActions => l10n.dashboard_quickActions_sectionTitle,
   HomePanelType.waitingForDownload =>
     l10n.settings_homeCards_card_waitingForDownload,
   HomePanelType.preDive => l10n.dashboard_checklists_title,

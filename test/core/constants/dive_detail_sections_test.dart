@@ -18,7 +18,9 @@ void main() {
       // Lowered for the retired reefHealth section, whose satellite water
       // conditions moved into the Environment card (issue #3282), and raised for the Dive Lab section.
       // Raised for the Apple Health section (issue #637).
-      expect(DiveDetailSectionId.values.length, 26);
+      // Lowered for the retired buoyancy section, whose model joined the
+      // Weights card (issue #5005).
+      expect(DiveDetailSectionId.values.length, 25);
     });
 
     test('values match expected IDs', () {
@@ -510,7 +512,7 @@ void main() {
       expect(DiveDetailSectionId.environment.displayName, 'Environment');
       expect(DiveDetailSectionId.altitude.displayName, 'Altitude');
       expect(DiveDetailSectionId.tide.displayName, 'Tide');
-      expect(DiveDetailSectionId.weights.displayName, 'Weights');
+      expect(DiveDetailSectionId.weights.displayName, 'Weights and buoyancy');
       expect(DiveDetailSectionId.tanks.displayName, 'Cylinders');
       expect(DiveDetailSectionId.buddies.displayName, 'Buddies');
       expect(DiveDetailSectionId.signatures.displayName, 'Signatures');
@@ -554,7 +556,8 @@ void main() {
       );
       expect(
         DiveDetailSectionId.weights.description,
-        'Weight breakdown, total weight',
+        'Weights carried, buoyancy through the dive, lead for next time, '
+        'ditchable weight',
       );
       expect(
         DiveDetailSectionId.tanks.description,
@@ -652,7 +655,10 @@ void main() {
         'Altitude',
       );
       expect(DiveDetailSectionId.tide.localizedDisplayName(l10n), 'Tide');
-      expect(DiveDetailSectionId.weights.localizedDisplayName(l10n), 'Weights');
+      expect(
+        DiveDetailSectionId.weights.localizedDisplayName(l10n),
+        'Weights and buoyancy',
+      );
       expect(DiveDetailSectionId.tanks.localizedDisplayName(l10n), 'Cylinders');
       expect(DiveDetailSectionId.buddies.localizedDisplayName(l10n), 'Buddies');
       expect(
@@ -707,7 +713,8 @@ void main() {
       );
       expect(
         DiveDetailSectionId.weights.localizedDescription(l10n),
-        'Weight breakdown, total weight',
+        'Weights carried, buoyancy through the dive, lead for next time, '
+        'ditchable weight',
       );
       expect(
         DiveDetailSectionId.tanks.localizedDescription(l10n),
@@ -829,39 +836,53 @@ void main() {
     });
   });
 
-  group('buoyancy section', () {
-    test('is a registered section with a non-empty name', () {
+  group('retired buoyancy section (issue #5005)', () {
+    test('the Weights entry names the merged card', () {
+      expect(DiveDetailSectionId.weights.displayName, 'Weights and buoyancy');
+      expect(DiveDetailSectionId.weights.hiddenInGaugeMode, isFalse);
       expect(
-        DiveDetailSectionId.values,
-        contains(DiveDetailSectionId.buoyancy),
+        DiveDetailSectionId.values.map((s) => s.name),
+        isNot(contains(DiveDetailSectionId.legacyBuoyancyId)),
       );
-      expect(DiveDetailSectionId.buoyancy.displayName.isNotEmpty, isTrue);
     });
 
-    test('ensureAllSections appends buoyancy to a legacy config', () {
-      const legacy = [
-        DiveDetailSectionConfig(
-          id: DiveDetailSectionId.decoStatus,
-          visible: true,
-        ),
-        DiveDetailSectionConfig(id: DiveDetailSectionId.tanks, visible: true),
-      ];
-      final result = DiveDetailSectionConfig.ensureAllSections(legacy);
-      expect(result.map((s) => s.id), contains(DiveDetailSectionId.buoyancy));
-    });
+    test('a saved buoyancy entry is dropped', () {
+      const jsonStr =
+          '[{"id":"weights","visible":true},'
+          '{"id":"buoyancy","visible":false},'
+          '{"id":"notes","visible":true}]';
+      final result = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
 
-    test('round-trips through JSON', () {
-      const config = DiveDetailSectionConfig(
-        id: DiveDetailSectionId.buoyancy,
-        visible: false,
+      expect(result.length, DiveDetailSectionId.values.length);
+      expect(
+        result.firstWhere((s) => s.id == DiveDetailSectionId.weights).visible,
+        isTrue,
       );
-      final restored = DiveDetailSectionConfig.fromJson(config.toJson());
-      expect(restored.id, DiveDetailSectionId.buoyancy);
-      expect(restored.visible, isFalse);
+      final ids = result.map((s) => s.id).toList();
+      expect(
+        ids.indexOf(DiveDetailSectionId.weights),
+        lessThan(ids.indexOf(DiveDetailSectionId.notes)),
+      );
     });
 
-    test('stays visible for gauge dives', () {
-      expect(DiveDetailSectionId.buoyancy.hiddenInGaugeMode, isFalse);
+    test('a saved order that hid Weights keeps the merged card hidden', () {
+      const jsonStr =
+          '[{"id":"weights","visible":false},'
+          '{"id":"buoyancy","visible":true}]';
+      final result = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+
+      expect(
+        result.firstWhere((s) => s.id == DiveDetailSectionId.weights).visible,
+        isFalse,
+      );
+    });
+
+    test('an order holding only it falls back to the defaults', () {
+      const jsonStr = '[{"id":"buoyancy","visible":true}]';
+      expect(
+        DiveDetailSectionConfig.sectionsFromJson(jsonStr),
+        DiveDetailSectionConfig.defaultSections,
+      );
     });
   });
 

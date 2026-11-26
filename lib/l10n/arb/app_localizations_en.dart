@@ -12620,6 +12620,69 @@ class AppLocalizationsEn extends AppLocalizations {
       'Location lookup is unavailable. Check your connection and try again.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'Some fields may stay empty: OpenStreetMap often has no body of water for a pool, cenote or quarry, and no town for a site offshore.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count other sites were looked up before and OpenStreetMap had nothing more for them.',
+      one:
+          '1 other site was looked up before and OpenStreetMap had nothing more for it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count sites still have empty location details, but OpenStreetMap had nothing more for them. Moving a site or clearing one of its fields offers it again.',
+      one:
+          '1 site still has empty location details, but OpenStreetMap had nothing more for it. Moving the site or clearing one of its fields offers it again.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated $count sites.',
+      one: 'Updated 1 site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'OpenStreetMap had nothing to add for $count sites.',
+      one: 'OpenStreetMap had nothing to add for 1 site.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lookups failed.',
+      one: '1 lookup failed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'Refresh place names';
 
   @override
@@ -19081,6 +19144,47 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to load sighting statistics';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'First seen';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'Last seen';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => 'Depth and season';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'Photo depths';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth => 'Dive max depth';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'Dives by month';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'Timeline';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'Use as cover';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'Remove cover';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'Cover';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'Find photos';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'Open photo or video';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'Dive on $date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Class: $className';
   }
@@ -19419,6 +19523,129 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'Retry';
 
   @override
+  String get marineLife_speciesPage_headerSpecies => 'Species';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'New in $year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'Life list growth';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count without a photo',
+      one: '$count without a photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'Group by';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'No grouping';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'Category';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => 'Year first seen';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'Trip';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'Site';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'No trip';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'No site';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'See all';
+
+  @override
+  String get marineLife_speciesPage_showList => 'Show as list';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'Show as cards';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip =>
+      'Practice naming species';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'First seen here';
+
+  @override
+  String get marineLife_rarity_new => 'New';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'Seen once';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'Not seen lately';
+
+  @override
+  String get marineLife_rarity_mastered => 'Mastered';
+
+  @override
+  String get marineLife_practice_title => 'ID practice';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.';
+
+  @override
+  String get marineLife_practice_back => 'Back to species';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'Which species is this?';
+
+  @override
+  String get marineLife_practice_scientificNames => 'Scientific names';
+
+  @override
+  String get marineLife_practice_right => 'Right';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'Not quite: it was $name';
+  }
+
+  @override
+  String get marineLife_practice_next => 'Next';
+
+  @override
+  String get marineLife_practice_finish => 'See results';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right of $total right';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'To practise again';
+
+  @override
+  String get marineLife_practice_again => 'Practise again';
+
+  @override
+  String get marineLife_practice_done => 'Done';
+
+  @override
   String get speciesMap_title => 'Species Map';
 
   @override
@@ -19712,12 +19939,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'Unlink $count items?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Unlink $_temp0?';
   }
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'Unlink $count items?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Unlink $_temp0?';
   }
 
   @override
@@ -19853,7 +20092,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'Unlink $count items?';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Unlink $_temp0?';
   }
 
   @override
@@ -20043,6 +20288,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'To add a feed of photos, use Import on the Media screen.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'To add files or links, use Import on the Media screen.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'To add links, use Import on the Media screen.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'Clear';
@@ -20550,6 +20807,99 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Play original';
+
+  @override
+  String get media_viewer_playMotion => 'Play motion';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'This device cannot play the motion of this photo';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photo subscriptions could not be updated, among them \"$name\": $error',
+      one: 'Photo subscription \"$name\" could not be updated: $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Open';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Share password';
+
+  @override
+  String get media_sharePassword_needed =>
+      'This Synology Photos share needs its password.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'The share did not accept the password. Enter it again.';
+
+  @override
+  String get media_sharePassword_field => 'Password';
+
+  @override
+  String get media_sharePassword_save => 'Save and fetch';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'It is kept in this device\'s keychain and never synced.';
+
+  @override
+  String get media_sharePassword_formSave => 'Save password and fetch';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Check every';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'The share did not accept the saved password.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'Play or pause video';
 
   @override
@@ -20817,6 +21167,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_sources_neverScanned => 'Never scanned';
 
   @override
+  String get media_sources_removeFolderTitle => 'Stop watching this folder?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion forgets the files it found in $folder, so missing photos are no longer looked for there. No photo or file is deleted.';
+  }
+
+  @override
   String get media_source_gallery => 'Photo library';
 
   @override
@@ -20860,6 +21218,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_smartAlbum_delete => 'Delete album';
+
+  @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Only the saved filter goes. No photos or videos change.';
 
   @override
   String get media_smartAlbum_deleteFailed => 'Could not delete album';
@@ -21059,6 +21426,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Search dives';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return 'Move $_temp0?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'The items move to $dive, off any dive they are on now.',
+      one: 'The item moves to $dive, off any dive it is on now.',
+    );
+    return '$_temp0 Site and gear links stay as they are.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Move';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'A dive in this move is open for editing. Save, cancel or lock it, then try again.';
+
+  @override
+  String get media_library_moveFailed => 'Could not move the items';
+
+  @override
+  String get media_library_unlinkFailed => 'Could not unlink the items';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Move to dive';
@@ -21943,12 +22350,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_chartMode_bailout => 'Bailout';
 
   @override
-  String get plannerCanvas_chartMode_ccr => 'CCR';
-
-  @override
-  String get plannerCanvas_chartMode_scr => 'SCR';
-
-  @override
   String plannerCanvas_scrub_tts(String minutes) {
     return 'TTS $minutes′';
   }
@@ -22623,18 +23024,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Coordinates copied to clipboard';
 
   @override
-  String get diveDetailSection_weights_name => 'Weights';
+  String get diveDetailSection_weights_name => 'Weights and buoyancy';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Weight breakdown, total weight';
+      'Weights carried, buoyancy through the dive, lead for next time, ditchable weight';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Buoyancy';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Buoyancy through the dive, lead for next time, ditchable weight';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -26151,6 +26548,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Decision clock';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Cover crop';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Practice box';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => 'Practice due';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Named right';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Named wrong';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Last practised';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Crop';
 
   @override
@@ -28753,6 +29172,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataHealth_media_transfersPaused => 'Photo transfers are paused';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'Photo subscription $name needs its password';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'Photo subscription $name could not be updated';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -44673,6 +45102,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_mediaStorage_quality_reuploadQueued => 'Re-upload queued';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Replace the full-quality copy?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'The original kept in your storage is replaced with a $level copy. The photo on this device is kept.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Replace';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Install ffmpeg to enable video compression. Originals are uploaded until then.';
 
@@ -44982,6 +45423,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get common_selection_deselectAllTooltip => 'Deselect all';
+
+  @override
+  String get common_selection_selectAllLoadFailed =>
+      'Could not load every item, so Select all was not applied. Try again.';
 
   @override
   String common_bulkDelete_title(int count) {
@@ -48048,34 +48493,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get species_convict_tang_desc =>
       'Pale surgeonfish with six vertical black bars, often seen grazing in large schools on Indo-Pacific reef flats.';
-
-  @override
-  String get species_great_hammerhead_name => 'Scalloped Hammerhead';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Distinctive shark with a scalloped hammer-shaped head, forms large schools at seamounts and offshore islands.';
-
-  @override
-  String get species_wobbegong_name => 'Spotted Wobbegong';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Flat, well-camouflaged carpet shark with fringed lobes around the mouth, found on Australian temperate reefs.';
-
-  @override
-  String get species_manta_ray_name => 'Reef Manta Ray';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Graceful giant reaching 5m wingspan that visits cleaning stations and feeds on plankton at Indo-Pacific reefs.';
-
-  @override
-  String get species_oceanic_manta_name => 'Oceanic Manta Ray';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'The largest ray species with wingspans exceeding 7m, encountered at offshore seamounts and cleaning stations.';
 
   @override
   String get species_undulated_moray_name => 'Undulated Moray Eel';
@@ -51363,6 +51780,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'Password missing on this device';
+
+  @override
   String get media_credentials_deleteBody =>
       'Removes the saved credentials. Items linked through this host will start showing \"Sign in required\" until you re-add them.';
 
@@ -54404,6 +54825,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not delete the profile revision.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'Remove This Source';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'Save or undo your edits to delete the profile.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'Save or undo your edits to delete the profile or remove this source.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'Delete Entire Profile only deletes revisions of the primary source\'s profile.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'This is the dive\'s only profile revision, so it can\'t be deleted.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Couldn\'t load the profile revisions, so none can be deleted now.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Saved before revision history; not linked to a computer';
 
@@ -55101,13 +55545,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_labels_action => 'Species labels';
 
   @override
-  String get media_labels_names => 'Names';
+  String get media_labels_names => 'Names and likely animals';
 
   @override
-  String get media_labels_allLife => 'All life';
+  String get media_labels_allLife => 'Everything detected';
 
   @override
-  String get media_labels_off => 'Off';
+  String get media_labels_off => 'No labels';
 
   @override
   String get media_labels_analyse => 'Analyse';
@@ -55142,6 +55586,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Partly analysed, $count found',
+      one: 'Partly analysed, $count found',
+      zero: 'Partly analysed, nothing found',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => 'Species labels: not analysed';
+
+  @override
+  String get media_labels_buttonAnalysing => 'Species labels: analysing';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'Species labels: partly analysed';
+
+  @override
+  String get media_labels_buttonOutdated => 'Species labels: out of date';
+
+  @override
+  String get media_labels_buttonAnalysed => 'Species labels: analysed';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -55153,13 +55625,66 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Show all life';
+  String get media_labels_showAllLife => 'Show everything detected';
 
   @override
   String get media_species_possibleMatches => 'Possible matches';
 
   @override
   String get media_species_cropUnavailable => 'Image not on this device';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count in this photo',
+      one: '$count in this photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count in this video',
+      one: '$count in this video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown best of $count sightings',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => 'Seen at';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return 'Play from $time';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'Species page';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'Image $index of $count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'Tagged on this photo';
@@ -55740,6 +56265,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => 'Could not check right now';
+
+  @override
+  String get media_info_checkNeedsPassword =>
+      'Password missing or not accepted';
 
   @override
   String get media_info_backupQueued => 'Queued for upload';
@@ -57885,6 +58414,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get backup_unrecognized_explanation =>
       'These files are in your backups folder but not in this device\'s backup history. Only a file this device wrote can be deleted here: anything else may be another device\'s only copy.';
+
+  @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'These files are in your backups folder but not in this device\'s backup history. This folder is private to Submersion on this device, so no other device uses these files and any of them can be deleted here.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count selected files may have been made by another device, an earlier install or an older version of Submersion. If they hold dives you do not have anywhere else, those dives will be lost.',
+      one:
+          'One selected file may have been made by another device, an earlier install or an older version of Submersion. If it holds dives you do not have anywhere else, those dives will be lost.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty => 'No unrecognized backup files.';
@@ -61577,6 +62123,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Sign in';
 
   @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'The photo album $name needs its password on this device.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => 'Enter password';
+
+  @override
   String get settings_setUpDevice_item_reconnectAction => 'Reconnect';
 
   @override
@@ -62395,6 +62949,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Removed duplicate cylinders';
+
+  @override
+  String get changeLog_label_moveMedia => 'Moved to another dive';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Unlinked from the library';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Removed gear photos';
 
   @override
   String get changeLog_label_updatePlannedDives => 'Updated planned dives';
@@ -65083,4 +65646,101 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.';
+
+  @override
+  String get dashboard_greeting_morning => 'Good morning';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Good afternoon';
+
+  @override
+  String get dashboard_greeting_evening => 'Good evening';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 dive logged';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count dives logged';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 dive';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count dives';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Ready to explore the depths?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours hours underwater';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'Loading your dive stats...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes minutes underwater';
+  }
+
+  @override
+  String get dashboard_hero_noDives => 'Ready to log your first dive?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Diver';
+
+  @override
+  String get dashboard_hero_statDives => 'dives';
+
+  @override
+  String get dashboard_hero_statHours => 'hours';
+
+  @override
+  String get dashboard_hero_statSites => 'sites';
+
+  @override
+  String get dashboard_hero_statCountries => 'countries';
+
+  @override
+  String get dashboard_semantics_greetingBanner => 'Dashboard greeting banner';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Quick Actions';
+
+  @override
+  String get dashboard_quickActions_insights => 'Insights';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Header';
+
+  @override
+  String get settings_homeHeader_phone => 'Phone width';
+
+  @override
+  String get settings_homeHeader_wide => 'Wider screens';
+
+  @override
+  String get settings_homeHeader_compact => 'Compact';
+
+  @override
+  String get settings_homeHeader_banner => 'Banner';
+
+  @override
+  String get settings_homeHeader_description =>
+      'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.';
 }

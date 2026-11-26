@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_paint_utils.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_palette.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
 import 'package:submersion/features/planner/presentation/chart/stop_tag_layouter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
@@ -20,7 +21,7 @@ class PlanChartSeriesPainter extends CustomPainter {
   /// drawn dashed under the plan so the diver can see how far they have
   /// moved from what they actually did. Null for ordinary plans.
   final PlanCanvasSeries? sourceDive;
-  final List<String> stopTagLabels;
+  final List<PlanStopTag> stopTags;
   final String meanDepthLabel;
   final TextStyle labelStyle;
   final TextStyle tagStyle;
@@ -32,7 +33,7 @@ class PlanChartSeriesPainter extends CustomPainter {
     required this.series,
     required this.ghost,
     this.sourceDive,
-    required this.stopTagLabels,
+    required this.stopTags,
     required this.meanDepthLabel,
     required this.labelStyle,
     required this.tagStyle,
@@ -102,10 +103,12 @@ class PlanChartSeriesPainter extends CustomPainter {
           labelStyle.copyWith(color: palette.meanDepthLine),
           textDirection,
         );
-        label.paint(
-          canvas,
-          Offset(plot.right - label.width - 4, y - label.height - 2),
-        );
+        label
+          ..paint(
+            canvas,
+            Offset(plot.right - label.width - 4, y - label.height - 2),
+          )
+          ..dispose();
       }
 
       // The profile line.
@@ -157,41 +160,91 @@ class PlanChartSeriesPainter extends CustomPainter {
       );
       final pill = RRect.fromRectAndRadius(pills[i], const Radius.circular(8));
       canvas.drawRRect(pill, Paint()..color = palette.gasFlagBackground);
-      label.paint(canvas, Offset(pill.left + 6, pill.top + 3));
+      label
+        ..paint(canvas, Offset(pill.left + 6, pill.top + 3))
+        ..dispose();
     }
 
-    // Stop tags with collision avoidance.
-    if (series.stopLabels.isNotEmpty &&
-        stopTagLabels.length == series.stopLabels.length) {
-      final painters = [
-        for (final text in stopTagLabels)
-          layoutLabel(
-            text,
-            tagStyle.copyWith(color: palette.stopTagText),
-            textDirection,
+    // Stop tags with collision avoidance. A change against the base plan
+    // rides in a second pill inside the same laid-out box, so it moves with
+    // its tag.
+    if (stopTags.isNotEmpty) {
+      const changeGap = 3.0;
+      final labels = [
+        for (final tag in stopTags)
+          (
+            main: layoutLabel(
+              tag.label,
+              tagStyle.copyWith(
+                color: tag.isNew
+                    ? palette.stopTagChangeText
+                    : palette.stopTagText,
+              ),
+              textDirection,
+            ),
+            change: tag.change == null
+                ? null
+                : layoutLabel(
+                    tag.change!,
+                    tagStyle.copyWith(color: palette.stopTagChangeText),
+                    // A signed number keeps its sign in front in every
+                    // locale; right to left it would read 2+.
+                    TextDirection.ltr,
+                  ),
           ),
       ];
       final rects = StopTagLayouter.layout(
         anchors: [
-          for (final m in series.stopLabels)
-            geometry.toPixel(m.timeSeconds + m.durationSeconds, m.depth),
+          for (final tag in stopTags)
+            geometry.toPixel(
+              tag.marker.timeSeconds + tag.marker.durationSeconds,
+              tag.marker.depth,
+            ),
         ],
-        sizes: [for (final p in painters) Size(p.width + 10, p.height + 6)],
+        sizes: [
+          for (final (:main, :change) in labels)
+            Size(
+              main.width +
+                  10 +
+                  (change == null ? 0 : changeGap + change.width + 10),
+              main.height + 6,
+            ),
+        ],
         bounds: plot,
       );
-      final borderPaint = Paint()
-        ..color = palette.stopTagBorder
-        ..strokeWidth = 1
-        ..style = PaintingStyle.stroke;
-      final fillPaint = Paint()..color = palette.stopTagBackground;
-      for (var i = 0; i < rects.length; i++) {
-        final rrect = RRect.fromRectAndRadius(
-          rects[i],
-          const Radius.circular(4),
+      void pill(Rect rect, TextPainter text, {required bool warn}) {
+        final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(4));
+        canvas.drawRRect(
+          rrect,
+          Paint()
+            ..color = warn
+                ? palette.stopTagChangeBackground
+                : palette.stopTagBackground,
         );
-        canvas.drawRRect(rrect, fillPaint);
-        canvas.drawRRect(rrect, borderPaint);
-        painters[i].paint(canvas, Offset(rects[i].left + 5, rects[i].top + 3));
+        canvas.drawRRect(
+          rrect,
+          Paint()
+            ..color = warn ? palette.stopTagChangeBorder : palette.stopTagBorder
+            ..strokeWidth = 1
+            ..style = PaintingStyle.stroke,
+        );
+        text.paint(canvas, Offset(rect.left + 5, rect.top + 3));
+      }
+
+      for (var i = 0; i < rects.length; i++) {
+        final (:main, :change) = labels[i];
+        final pills = stopTagPillRects(
+          box: rects[i],
+          mainWidth: main.width + 10,
+          changeWidth: change == null ? null : change.width + 10,
+          gap: changeGap,
+          textDirection: textDirection,
+        );
+        pill(pills.main, main, warn: stopTags[i].isNew);
+        if (change != null) pill(pills.change!, change, warn: true);
+        // Each holds a native paragraph; let it go now rather than at GC.
+        main.dispose();
+        change?.dispose();
       }
     }
   }
@@ -216,8 +269,34 @@ class PlanChartSeriesPainter extends CustomPainter {
       oldDelegate.ghost != ghost ||
       oldDelegate.sourceDive != sourceDive ||
       oldDelegate.meanDepthLabel != meanDepthLabel ||
-      !listEquals(oldDelegate.stopTagLabels, stopTagLabels) ||
+      !listEquals(oldDelegate.stopTags, stopTags) ||
       oldDelegate.labelStyle != labelStyle ||
       oldDelegate.tagStyle != tagStyle ||
       oldDelegate.textDirection != textDirection;
+}
+
+/// Splits a stop tag's laid-out [box] into its main pill and, when there is
+/// a change, the change pill after it in reading order: on the right in a
+/// left-to-right locale, on the left in a right-to-left one.
+@visibleForTesting
+({Rect main, Rect? change}) stopTagPillRects({
+  required Rect box,
+  required double mainWidth,
+  required double? changeWidth,
+  required double gap,
+  required TextDirection textDirection,
+}) {
+  if (changeWidth == null) {
+    return (
+      main: Rect.fromLTWH(box.left, box.top, mainWidth, box.height),
+      change: null,
+    );
+  }
+  final rtl = textDirection == TextDirection.rtl;
+  final changeLeft = rtl ? box.left : box.left + mainWidth + gap;
+  final mainLeft = rtl ? box.left + changeWidth + gap : box.left;
+  return (
+    main: Rect.fromLTWH(mainLeft, box.top, mainWidth, box.height),
+    change: Rect.fromLTWH(changeLeft, box.top, changeWidth, box.height),
+  );
 }

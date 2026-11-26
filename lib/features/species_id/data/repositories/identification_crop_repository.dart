@@ -63,6 +63,18 @@ class IdentificationCropRepository {
     return present;
   }
 
+  /// The media with more than [count] crops here (issue #5032).
+  Future<List<String>> mediaWithMoreThan(int count) async {
+    final db = _db;
+    final table = db.mediaIdentificationCrops;
+    final crops = table.id.count();
+    return (db.selectOnly(table)
+          ..addColumns([table.mediaId, crops])
+          ..groupBy([table.mediaId], having: crops.isBiggerThanValue(count)))
+        .map((r) => r.read(table.mediaId)!)
+        .get();
+  }
+
   /// Stores [jpeg] as the crop of [identificationId] on [mediaId], and
   /// publishes it.
   Future<void> put(

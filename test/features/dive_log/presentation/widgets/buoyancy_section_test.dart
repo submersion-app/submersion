@@ -15,9 +15,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_chart
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_lead_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_safety_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_through_dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -190,58 +190,6 @@ void main() {
     expect(find.textContaining('Tank material not set'), findsNothing);
   });
 
-  testWidgets('the header offers a what-if, not an edit (#4585)', (
-    tester,
-  ) async {
-    await _pump(tester, buoyancyOutcome());
-
-    expect(find.text('Adjust'), findsNothing);
-    await tester.tap(find.text('What if?'));
-    await tester.pumpAndSettle();
-    expect(find.text('What if you changed your weighting?'), findsOneWidget);
-  });
-
-  testWidgets('the info sheet names the What if? button', (tester) async {
-    await _pump(tester, buoyancyOutcome());
-    await tester.ensureVisible(find.byType(InfoButton));
-    await tester.tap(find.byType(InfoButton));
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('“What if?” opens a sheet'), findsOneWidget);
-    expect(find.textContaining('Adjust opens'), findsNothing);
-  });
-
-  testWidgets('a narrow card fits its header row', (tester) async {
-    // Half of a 700px paired row. The title, the What if? button and the info
-    // icon could not shrink, so the header overflowed; the title now gives
-    // way instead.
-    await tester.binding.setSurfaceSize(const Size(300, 1600));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
-    await _pump(tester, buoyancyOutcome());
-
-    expect(tester.takeException(), isNull);
-    expect(find.text('BUOYANCY'), findsOneWidget);
-    expect(find.text('What if?'), findsOneWidget);
-  });
-
-  testWidgets('a narrow card fits the longer German What if? label', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(300, 1600));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
-    await _pump(tester, buoyancyOutcome(), locale: const Locale('de'));
-
-    // The label cannot fit beside the title and info icon, so the button
-    // keeps its icon and carries the label as its tooltip.
-    expect(tester.takeException(), isNull);
-    expect(find.text('Was wäre, wenn?'), findsNothing);
-    await tester.tap(find.byTooltip('Was wäre, wenn?'));
-    await tester.pumpAndSettle();
-    expect(find.text('Was wäre, wenn du dein Blei änderst?'), findsOneWidget);
-  });
-
   testWidgets('says how buoyant the diver was exactly once', (tester) async {
     await _pump(tester, buoyancyOutcome());
     expect(find.text('1.8 kg buoyant'), findsOneWidget);
@@ -274,17 +222,6 @@ void main() {
     expect(find.text('End of dive'), findsNothing);
     expect(find.text('Buoyancy swing'), findsNothing);
     expect(find.byType(TwinSummaryRows), findsNothing);
-  });
-
-  testWidgets('the info sheet no longer explains buoyancy swing', (
-    tester,
-  ) async {
-    await _pump(tester, buoyancyOutcome());
-    await tester.ensureVisible(find.byType(InfoButton));
-    await tester.tap(find.byType(InfoButton));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Peak lift needed'), findsWidgets);
-    expect(find.textContaining('Buoyancy swing'), findsNothing);
   });
 
   testWidgets('a no-profile dive reads the convention in the diver units', (
@@ -328,28 +265,17 @@ void main() {
 
   testWidgets('renders nothing when the outcome is null', (tester) async {
     await _pump(tester, null);
-    expect(find.byType(Card), findsNothing);
+    expect(find.byType(BuoyancyThroughDive), findsNothing);
   });
 
-  testWidgets('header uses an info icon instead of the hover tooltip', (
-    tester,
-  ) async {
+  testWidgets('has no card or title of its own', (tester) async {
+    // The merged Weights and buoyancy card draws the frame and the title
+    // (issue #5005); this is only its body.
     await _pump(tester, buoyancyOutcome());
-
-    expect(find.byType(InfoButton), findsOneWidget);
-    expect(
-      find.byWidgetPredicate(
-        (w) =>
-            w is Tooltip &&
-            w.message ==
-                'Modeled net buoyancy through the dive from your profile, gas use, and gear.',
-      ),
-      findsNothing,
-    );
-    await tester.ensureVisible(find.byType(InfoButton));
-    await tester.tap(find.byType(InfoButton));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Peak lift needed'), findsWidgets);
+    expect(find.byType(BuoyancyThroughDive), findsOneWidget);
+    expect(find.byType(Card), findsNothing);
+    expect(find.text('BUOYANCY'), findsNothing);
+    expect(find.text('What if?'), findsNothing);
   });
 
   group('profile cursor sync (#4423)', () {

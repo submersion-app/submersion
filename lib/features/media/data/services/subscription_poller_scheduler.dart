@@ -79,6 +79,9 @@ class SubscriptionPollerScheduler {
   Timer? _timer;
   Timer? _warmupTimer;
 
+  /// Set by [dispose]: a cycle finishing afterwards arms no new timer.
+  bool _disposed = false;
+
   /// Sleep [warmup] (30 s by default) so first-frame work isn't blocked by
   /// the network, then run a cycle and schedule the next periodic one.
   ///
@@ -93,7 +96,13 @@ class SubscriptionPollerScheduler {
     if (_warmupTimer != null) return;
     _warmupTimer = Timer(warmup, () async {
       _warmupTimer = null;
-      await pollNow();
+      // Nobody awaits a timer callback, so a failure here would surface as
+      // an unhandled error and leave the periodic cycle unscheduled.
+      try {
+        await pollNow();
+      } catch (e, st) {
+        _log.error('Launch poll cycle failed', error: e, stackTrace: st);
+      }
       await _scheduleNext();
     });
   }
@@ -103,8 +112,20 @@ class SubscriptionPollerScheduler {
   // `pollNow()` and `computeInterval()`. Driving real `Timer`s through
   // `package:fake_async` would only re-verify SDK semantics, not anything
   // specific to this class.
+  /// Arms the next cycle. Never throws and never stops: intervals that
+  /// cannot be read (the database briefly away, a library switch) arm the
+  /// default cadence, so one bad moment does not end polling for the
+  /// session. A disposed scheduler arms nothing.
   Future<void> _scheduleNext() async {
-    final intervals = await _activePollIntervals();
+    if (_disposed) return;
+    List<int> intervals;
+    try {
+      intervals = await _activePollIntervals();
+    } catch (e, st) {
+      _log.error('Reading poll intervals failed', error: e, stackTrace: st);
+      intervals = const [];
+    }
+    if (_disposed) return;
     final next = computeInterval(intervals);
     _timer?.cancel();
     _timer = Timer(next, () async {
@@ -123,6 +144,7 @@ class SubscriptionPollerScheduler {
   /// The warm-up timer is cancelled first so its callback (which would
   /// schedule the periodic timer) cannot run after disposal.
   void dispose() {
+    _disposed = true;
     _warmupTimer?.cancel();
     _warmupTimer = null;
     _timer?.cancel();

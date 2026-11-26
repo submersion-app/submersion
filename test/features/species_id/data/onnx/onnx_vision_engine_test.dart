@@ -19,6 +19,8 @@ import 'package:submersion/features/species_id/domain/entities/vision_analysis.d
 import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
+
 /// A worker that records its calls and holds each analysis until [release].
 class FakeWorker implements OnnxWorkerHandle {
   final calls = <String>[];
@@ -389,6 +391,27 @@ void main() {
           reason: '$platform',
         );
       }
+    });
+
+    test('an engine with no library check of its own follows the test '
+        'override, whatever the host ships', () async {
+      addTearDown(applyGlobalTestDefaults);
+      OnnxVisionEngine unchecked() => _tracked(
+        OnnxVisionEngine(
+          platform: TargetPlatform.android,
+          worker: () async => worker,
+          deviceMemory: FakeDeviceMemory(androidMinimumMemoryBytes),
+        ),
+      );
+
+      OnnxVisionEngine.debugLibraryLoadsOverride = true;
+      expect(await unchecked().availability(), VisionAvailability.available);
+
+      OnnxVisionEngine.debugLibraryLoadsOverride = false;
+      expect(
+        await unchecked().availability(),
+        VisionAvailability.unsupportedPlatform,
+      );
     });
 
     test('is available at exactly the floor', () async {

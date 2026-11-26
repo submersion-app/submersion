@@ -5,6 +5,9 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/data_health/media_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -196,8 +199,16 @@ class MediaSourcesPage extends ConsumerWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.cloud_outlined),
-              title: Text(
-                context.l10n.settings_photosMedia_networkSources_title,
+              title: HealthMarkedTitle(
+                title: Text(
+                  context.l10n.settings_photosMedia_networkSources_title,
+                ),
+                feature: DataFeature.media,
+                reasons: const {
+                  HealthReason.mediaSubscriptionNeedsPassword,
+                  HealthReason.mediaSubscriptionFailing,
+                },
+                subjectId: mediaSetupSubscriptions,
               ),
               subtitle: Text(
                 context.l10n.settings_photosMedia_networkSources_subtitle,

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,7 @@ import 'package:submersion/features/species_id/data/pack/species_pack_store.dart
 import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/data/services/auto_applier.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
@@ -33,6 +35,8 @@ import 'package:submersion/features/species_id/data/services/named_crop_backfill
 import 'package:submersion/features/species_id/data/services/naming_bars_fill.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
+import 'package:submersion/features/species_id/data/services/video_crop_capper.dart';
+import 'package:submersion/features/species_id/domain/services/video_crop_cap.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
@@ -301,6 +305,29 @@ Future<void> runIdentificationLaunchSteps(ProviderContainer container) async {
   );
   await fillIdentificationNamingBarsAtLaunch(container);
   await backfillNamedCropsAtLaunch(container);
+  await trimVideoCropsAtLaunch(container);
+}
+
+/// Trims every video this device analysed down to the crops it keeps
+/// (issue #5032): the clearest few of each species. After the backfill, so
+/// crops it moved into the logbook are counted. Only media holding more
+/// crops than one species may keep are read. Never throws.
+Future<void> trimVideoCropsAtLaunch(ProviderContainer container) async {
+  if (!marineLifeIdEnabled) return;
+  final identifications = container.read(mediaIdentificationRepositoryProvider);
+  final crops = container.read(identificationCropStoreProvider);
+  try {
+    await VideoCropCapper(
+      identifications: identifications,
+      crops: crops,
+      taggedSpecies: identifications.taggedSpecies,
+      deviceId: syncDeviceIdOrNull,
+    ).capAll(await crops.mediaWithMoreThan(videoCropsKept));
+  } on Object catch (e) {
+    LoggerService.forClass(
+      VideoCropCapper,
+    ).debug('Could not trim video crops at launch', error: e);
+  }
 }
 
 /// Moves the crops of named identifications this device analysed before
@@ -384,16 +411,25 @@ final videoFileReaderProvider =
       (ref, item) async {
         // Only the playback the player on screen holds: resolving one here
         // could fetch a whole original the diver never played (a load that
-        // failed, a cache that let it go). A scan downloads nothing.
-        if (!ref.exists(videoPlaybackProvider(item))) return null;
+        // failed, a cache that let it go). A scan downloads nothing. The
+        // player may hold it under an earlier copy of the item (issue
+        // #4958): the newest such copy is read.
+        final held = ref.exists(videoPlaybackProvider(item))
+            ? item
+            : ref
+                  .read(liveVideoPlaybacksProvider)
+                  .of(item.id)
+                  .where((copy) => ref.exists(videoPlaybackProvider(copy)))
+                  .lastOrNull;
+        if (held == null) return null;
         final resolving = ref.keepAlive();
         try {
           final access = ref.read(videoFileAccessProvider);
-          final playback = await ref.read(videoPlaybackProvider(item).future);
+          final playback = await ref.read(videoPlaybackProvider(held).future);
           if (playback is! FilePlayback) return null;
           final path = playback.path;
           return <T>(Future<T> Function(String path) read) =>
-              access<T>(path: path, bookmarkRef: item.bookmarkRef, read: read);
+              access<T>(path: path, bookmarkRef: held.bookmarkRef, read: read);
         } finally {
           resolving.close();
         }
@@ -527,14 +563,53 @@ final identificationCropProvider = FutureProvider.autoDispose
       final table = ref.watch(identificationCropRepositoryProvider);
       ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
       final crop = await store.read(key.$1, key.$2);
+      if (crop != null || !ref.mounted) return crop;
       // A synced crop is written once, so only one still to come is waited
       // for: a sync bringing other crops must not read this one again and
       // have its picture decoded and drawn anew.
-      if (crop == null && ref.mounted) {
-        ref.invalidateSelfWhen(table.watchChanges());
-      }
-      return crop;
+      ref.invalidateSelfWhen(table.watchChanges());
+      // A video keeps only a few crops of each species (issue #5032): a
+      // dropped one shows the largest kept crop of its group instead.
+      final repository = ref.read(mediaIdentificationRepositoryProvider);
+      final rows = await _rowsWithoutPaths(repository, key.$1);
+      final row = rows.firstWhereOrNull((i) => i.id == key.$2);
+      if (row == null || !row.isTrack || !ref.mounted) return null;
+      // Its tags tell a track the diver accepted as another species, which
+      // falls back within that species, as the cap ranks it.
+      final tags = await repository.taggedSpecies(key.$1);
+      if (!ref.mounted) return null;
+      final present = await ref.watch(presentCropIdsProvider(key.$1).future);
+      final standIn = keptStandIn(rows, row, present, tags: tags);
+      if (standIn == null) return null;
+      return store.read(key.$1, standIn.id);
     });
+
+/// The identifications of a media item that have a crop on this device, a
+/// file or a synced one (issue #5032): a video keeps only a few of each
+/// species.
+final presentCropIdsProvider = FutureProvider.autoDispose
+    .family<Set<String>, String>((ref, mediaId) async {
+      final store = ref.watch(identificationCropStoreProvider);
+      final repository = ref.watch(mediaIdentificationRepositoryProvider);
+      ref.invalidateSelfWhen(store.watchChanges().where((id) => id == mediaId));
+      ref.invalidateSelfWhen(
+        ref.watch(identificationCropRepositoryProvider).watchChanges(),
+      );
+      final rows = await _rowsWithoutPaths(repository, mediaId);
+      return store.presentAmong(mediaId, [for (final i in rows) i.id]);
+    });
+
+/// [mediaId]'s identifications without their track paths, which only the
+/// labels over a playing video need.
+Future<List<MediaIdentification>> _rowsWithoutPaths(
+  MediaIdentificationRepository repository,
+  String mediaId,
+) async {
+  final (_, rows) = await repository.forMediaIdsWithRuns([
+    mediaId,
+  ], withPaths: false);
+  return rows[mediaId] ?? const [];
+}
 
 /// How many identifications the open logbook keeps.
 final identificationCountProvider = FutureProvider.autoDispose<int>((ref) {

@@ -52,6 +52,10 @@ final exempt = <String, String>{
       'crops the on-device model cut from media; derived by the app',
   'lib/features/species_id/data/repositories/identification_embedding_repository.dart:*':
       'a cache',
+  'lib/features/marine_life/data/repositories/species_cover_repository.dart:*':
+      'which picture stands for a species on the Species pages: screen state',
+  'lib/features/marine_life/data/repositories/species_practice_repository.dart:*':
+      'ID practice progress, not a record of the diving',
   'lib/features/insights/data/repositories/observation_dismissals_repository.dart:*':
       'the state of derived findings, recomputed from records',
   'lib/features/data_quality/data/repositories/quality_findings_repository.dart:*':
@@ -419,6 +423,7 @@ final exempt = <String, String>{
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollNotModified',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollSuccess',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:setActive',
+    'lib/features/media/data/repositories/manifest_subscription_repository.dart:setPollInterval',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:updateUrlAndDisplayName',
     'lib/features/media/data/repositories/media_repair_log_repository.dart:record',
     'lib/features/media/data/repositories/media_repository.dart:clearRemoteCompressed',

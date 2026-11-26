@@ -200,6 +200,7 @@ class MediaViewerToolbar extends ConsumerWidget {
     this.marineLifeLabelsOn = true,
     this.marineLifeRing,
     this.marineLifeTone,
+    this.marineLifeLabel,
   });
 
   final MediaItem item;
@@ -273,6 +274,10 @@ class MediaViewerToolbar extends ConsumerWidget {
 
   /// The item on screen is being analysed: a ring round the labels icon.
   final ToolbarRing? marineLifeRing;
+
+  /// The labels action's tooltip and overflow-menu text, naming how far
+  /// analysis has got (issue #4958); null uses the action's plain name.
+  final String? marineLifeLabel;
 
   /// [readOnly] drops every action that changes the media or its links:
   /// a browser views and shares, and nothing more (issue #4121).
@@ -355,7 +360,7 @@ class MediaViewerToolbar extends ConsumerWidget {
         MediaViewerAction(
           id: 'marine_life_labels',
           icon: marineLifeLabelsOn ? MdiIcons.fish : MdiIcons.fishOff,
-          label: l10n.media_labels_action,
+          label: marineLifeLabel ?? l10n.media_labels_action,
           priority: 2,
           tone: marineLifeTone,
           ring: marineLifeRing,

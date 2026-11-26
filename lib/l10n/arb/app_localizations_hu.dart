@@ -12783,6 +12783,70 @@ class AppLocalizationsHu extends AppLocalizations {
       'A helylekérdezés nem érhető el. Ellenőrizze a kapcsolatot, és próbálja újra.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'Egyes mezők üresek maradhatnak: az OpenStreetMap egy uszodához, cenotéhoz vagy kőbányához gyakran nem ad víztestet, egy nyílt vízi merülőhelyhez pedig települést.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A Submersion már lekérdezett további $count merülőhelyet, de az OpenStreetMap nem adott hozzájuk többet.',
+      one:
+          'A Submersion már lekérdezett további 1 merülőhelyet, de az OpenStreetMap nem adott hozzá többet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülőhelynek még vannak üres helyadatai, de az OpenStreetMap nem adott hozzájuk többet. Ha áthelyez egy helyet, vagy kiüríti valamelyik mezőjét, újra felajánljuk.',
+      one:
+          '1 merülőhelynek még vannak üres helyadatai, de az OpenStreetMap nem adott hozzá többet. Ha áthelyezi a helyet, vagy kiüríti valamelyik mezőjét, újra felajánljuk.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülőhely frissítve.',
+      one: '1 merülőhely frissítve.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az OpenStreetMap $count merülőhelyhez nem tudott semmit hozzáadni.',
+      one: 'Az OpenStreetMap 1 merülőhelyhez nem tudott semmit hozzáadni.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lekérdezés sikertelen.',
+      one: '1 lekérdezés sikertelen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'Helynevek frissítése';
 
   @override
@@ -19297,6 +19361,48 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült betölteni az észlelési statisztikákat';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'Először látva';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'Utoljára látva';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => 'Mélység és évszak';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'Fotók mélysége';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth =>
+      'Merülések maximális mélysége';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'Merülések havonta';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'Idővonal';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'Beállítás borítóként';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'Borító eltávolítása';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'Borító';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'Fotók keresése';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'Fotó vagy videó megnyitása';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'Merülés: $date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Osztály: $className';
   }
@@ -19640,6 +19746,129 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'Újra';
+
+  @override
+  String get marineLife_speciesPage_headerSpecies => 'Fajok';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'Új fajok, $year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'A fajlista növekedése';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó nélkül',
+      one: '1 fotó nélkül',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'Csoportosítás';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'Nincs csoportosítás';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'Kategória';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => 'Az első észlelés éve';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'Út';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'Merülőhely';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'Nincs út';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'Nincs merülőhely';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'Összes';
+
+  @override
+  String get marineLife_speciesPage_showList => 'Megjelenítés listaként';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'Megjelenítés kártyákként';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip =>
+      'Fajfelismerés gyakorlása';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'Itt látott először';
+
+  @override
+  String get marineLife_rarity_new => 'Új';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'Egyszer látott';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'Régóta nem látott';
+
+  @override
+  String get marineLife_rarity_mastered => 'Elsajátított';
+
+  @override
+  String get marineLife_practice_title => 'Felismerési gyakorlat';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'A gyakorláshoz legalább 4 olyan faj kell, amelyhez megerősített fotókivágás tartozik. Jelöld meg és erősítsd meg a látott fajok fotóit, aztán gyere vissza.';
+
+  @override
+  String get marineLife_practice_back => 'Vissza a fajokhoz';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'Melyik faj ez?';
+
+  @override
+  String get marineLife_practice_scientificNames => 'Tudományos nevek';
+
+  @override
+  String get marineLife_practice_right => 'Helyes';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'Majdnem: ez $name volt';
+  }
+
+  @override
+  String get marineLife_practice_next => 'Tovább';
+
+  @override
+  String get marineLife_practice_finish => 'Eredmények';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right / $total helyes';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'Újra gyakorlandó';
+
+  @override
+  String get marineLife_practice_again => 'Újra gyakorlás';
+
+  @override
+  String get marineLife_practice_done => 'Kész';
 
   @override
   String get speciesMap_title => 'Fajtérkép';
@@ -20268,6 +20497,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_tab_url => 'URL';
 
   @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'Fotófolyam hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'Fájlok vagy hivatkozások hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'Hivatkozások hozzáadásához használd az Importálás lehetőséget a Média képernyőn.';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Törlés';
 
   @override
@@ -20780,6 +21021,99 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'Eredeti lejátszása';
+
+  @override
+  String get media_viewer_playMotion => 'Mozgás lejátszása';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'Ez az eszköz nem tudja lejátszani a fotó mozgását';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fotóelőfizetést nem sikerült frissíteni, köztük ezt: „$name”: $error',
+      one: 'A(z) „$name” fotóelőfizetést nem sikerült frissíteni: $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'Megnyitás';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perc',
+      one: '1 perc',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count óra',
+      one: '1 óra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nap',
+      one: '1 nap',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'Megosztás jelszava';
+
+  @override
+  String get media_sharePassword_needed =>
+      'Ehhez a Synology Photos-megosztáshoz meg kell adni a jelszavát.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'A megosztás nem fogadta el a jelszót. Add meg újra.';
+
+  @override
+  String get media_sharePassword_field => 'Jelszó';
+
+  @override
+  String get media_sharePassword_save => 'Mentés és lekérés';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'Az eszköz kulcstartójában tárolódik, és soha nem szinkronizálódik.';
+
+  @override
+  String get media_sharePassword_formSave => 'Jelszó mentése és lekérés';
+
+  @override
+  String get media_pollInterval_checkEvery => 'Ellenőrzés gyakorisága';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'A megosztás nem fogadta el a mentett jelszót.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel =>
       'Videó lejátszása vagy szüneteltetése';
 
@@ -21058,6 +21392,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_sources_neverScanned => 'Még nem vizsgált';
 
   @override
+  String get media_sources_removeFolderTitle => 'Leállítod a mappa figyelését?';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'A Submersion elfelejti a(z) $folder mappában talált fájlokat, így ott már nem keresi a hiányzó fotókat. Egyetlen fotó vagy fájl sem törlődik.';
+  }
+
+  @override
   String get media_source_gallery => 'Fotókönyvtár';
 
   @override
@@ -21102,6 +21444,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_smartAlbum_delete => 'Album törlése';
+
+  @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'Törlöd ezt: „$name”?';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'Csak a mentett szűrő törlődik. A fotók és videók nem változnak.';
 
   @override
   String get media_smartAlbum_deleteFailed => 'Az album törlése nem sikerült';
@@ -21302,6 +21653,49 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'Merülések keresése';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem',
+      one: '$count elem',
+    );
+    return '$_temp0 áthelyezése?';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az elemek ide kerülnek: $dive, és kikerülnek abból a merülésből, amelyhez most tartoznak.',
+      one:
+          'Az elem ide kerül: $dive, és kikerül abból a merülésből, amelyhez most tartozik.',
+    );
+    return '$_temp0 A merülőhely- és felszereléskapcsolatok változatlanok maradnak.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'Áthelyezés';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'Az áthelyezés egyik merülése szerkesztésre meg van nyitva. Mentsd, vesd el vagy zárold, majd próbáld újra.';
+
+  @override
+  String get media_library_moveFailed => 'Az elemeket nem sikerült áthelyezni';
+
+  @override
+  String get media_library_unlinkFailed =>
+      'Az elemeket nem sikerült leválasztani';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label, $date';
+  }
 
   @override
   String get media_library_moveToDive => 'Áthelyezés merüléshez';
@@ -22192,12 +22586,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_chartMode_bailout => 'Bailout';
 
   @override
-  String get plannerCanvas_chartMode_ccr => 'CCR';
-
-  @override
-  String get plannerCanvas_chartMode_scr => 'SCR';
-
-  @override
   String plannerCanvas_scrub_tts(String minutes) {
     return 'TTS $minutes′';
   }
@@ -22882,18 +23270,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Koordináták a vágólapra másolva';
 
   @override
-  String get diveDetailSection_weights_name => 'Súlyok';
+  String get diveDetailSection_weights_name => 'Súlyok és felhajtóerő';
 
   @override
   String get diveDetailSection_weights_description =>
-      'Súly lebontás, teljes súly';
+      'Vitt súlyok, felhajtóerő a merülés során, ólom a következő alkalomra, ledobható ólom';
 
   @override
   String get diveDetailSection_buoyancy_name => 'Felhajtóerő';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'Felhajtóerő a merülés során, ólom a következő alkalomra, ledobható ólom';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -26465,6 +26849,29 @@ class AppLocalizationsHu extends AppLocalizations {
       'Döntés órája';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Borítókivágás';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Gyakorlódoboz';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Gyakorlás esedékes';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Helyesen megnevezve';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Tévesen megnevezve';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Utoljára gyakorolva';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Kivágás';
 
   @override
@@ -29097,6 +29504,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataHealth_media_transfersPaused => 'A fotóátvitel szünetel';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'A(z) $name fotóelőfizetéshez jelszó szükséges';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'A(z) $name fotóelőfizetést nem sikerült frissíteni';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -45164,6 +45581,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Újratöltés sorba állítva';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'Lecseréled a teljes minőségű másolatot?';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'A tárhelyeden őrzött eredetit egy $level másolat váltja fel. Az eszközön lévő fotó megmarad.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'Csere';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Telepítse az ffmpeg-et a videótömörítés engedélyezéséhez. Addig az eredetik kerülnek feltöltésre.';
 
@@ -45474,6 +45903,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get common_selection_deselectAllTooltip => 'Kijelölés megszüntetése';
+
+  @override
+  String get common_selection_selectAllLoadFailed =>
+      'Nem sikerült minden elemet betölteni, ezért az Összes kijelölése nem történt meg. Próbáld újra.';
 
   @override
   String common_bulkDelete_title(int count) {
@@ -48544,34 +48977,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get species_convict_tang_desc =>
       'Halvány doktorhal hat függőleges fekete sávval, gyakran nagy rajokban legel az indo-csendes-óceáni zátonylapokon.';
-
-  @override
-  String get species_great_hammerhead_name => 'Csipkés pörölycápa';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'Jellegzetes cápa csipkés szegélyű, kalapács alakú fejjel, nagy rajokat alkot tenger alatti hegyeknél és part menti szigeteknél.';
-
-  @override
-  String get species_wobbegong_name => 'Foltos szőnyegcápa';
-
-  @override
-  String get species_wobbegong_desc =>
-      'Lapos, kiválóan álcázott szőnyegcápa a szája körül rojtos bőrlebenyekkel, Ausztrália mérsékelt övi zátonyain él.';
-
-  @override
-  String get species_manta_ray_name => 'Zátonymanta';
-
-  @override
-  String get species_manta_ray_desc =>
-      'Kecses óriás akár 5 méteres szárnyfesztávval, amely tisztogatóállomásokat látogat és planktonnal táplálkozik az indo-csendes-óceáni zátonyokon.';
-
-  @override
-  String get species_oceanic_manta_name => 'Óceáni manta';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'A legnagyobb rájafaj, szárnyfesztávja meghaladja a 7 métert, part menti tenger alatti hegyeknél és tisztogatóállomásoknál találkozni vele.';
 
   @override
   String get species_undulated_moray_name => 'Hullámos muréna';
@@ -51853,6 +52258,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'A jelszó hiányzik ezen az eszközön';
+
+  @override
   String get media_credentials_deleteBody =>
       'Törli a mentett hitelesítő adatokat. Az ezen a kiszolgálón keresztül csatolt elemeknél a „Bejelentkezés szükséges” felirat jelenik meg, amíg újra hozzá nem adja őket.';
 
@@ -54942,6 +55351,29 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült törölni a profilverziót.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'E forrás eltávolítása';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'A profil törléséhez mentse vagy vonja vissza a módosításait.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'A profil törléséhez vagy e forrás eltávolításához mentse vagy vonja vissza a módosításait.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'A „Teljes profil törlése” csak az elsődleges forrás profiljának verzióit törli.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'Ez a merülés egyetlen profilverziója, ezért nem törölhető.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'Nem sikerült betölteni a profilverziókat, ezért most egyik sem törölhető.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'A verzióelőzmények előtt mentve; nincs számítógéphez kapcsolva';
 
@@ -55661,13 +56093,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_labels_action => 'Fajok címkéi';
 
   @override
-  String get media_labels_names => 'Nevek';
+  String get media_labels_names => 'Nevek és valószínű állatok';
 
   @override
-  String get media_labels_allLife => 'Minden élőlény';
+  String get media_labels_allLife => 'Minden észlelt';
 
   @override
-  String get media_labels_off => 'Ki';
+  String get media_labels_off => 'Nincs címke';
 
   @override
   String get media_labels_analyse => 'Elemzés';
@@ -55702,6 +56134,35 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Részben elemezve, $count találat',
+      one: 'Részben elemezve, $count találat',
+      zero: 'Részben elemezve, nincs találat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => 'Fajok címkéi: nincs elemezve';
+
+  @override
+  String get media_labels_buttonAnalysing =>
+      'Fajok címkéi: elemzés folyamatban';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'Fajok címkéi: részben elemezve';
+
+  @override
+  String get media_labels_buttonOutdated => 'Fajok címkéi: elavult';
+
+  @override
+  String get media_labels_buttonAnalysed => 'Fajok címkéi: elemezve';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -55713,13 +56174,66 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Minden élőlény mutatása';
+  String get media_labels_showAllLife => 'Minden észlelt mutatása';
 
   @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';
 
   @override
   String get media_species_cropUnavailable => 'A kép nincs ezen az eszközön';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ezen a fotón',
+      one: '$count ezen a fotón',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ebben a videóban',
+      one: '$count ebben a videóban',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown legjobb a(z) $count észlelésből',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => 'Látható';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start és $end között';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return 'Lejátszás innen: $time';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'Fajoldal';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return '$index. kép ($count közül)';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'Ezen a fotón címkézve';
@@ -56307,6 +56821,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => 'Most nem ellenőrizhető';
+
+  @override
+  String get media_info_checkNeedsPassword =>
+      'A jelszó hiányzik, vagy elutasították';
 
   @override
   String get media_info_backupQueued => 'Feltöltési sorban';
@@ -58483,6 +59001,23 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get backup_unrecognized_explanation =>
       'Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Itt csak olyan fájl törölhető, amelyet ez az eszköz írt: bármi más lehet egy másik eszköz egyetlen másolata.';
+
+  @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'Ezek a fájlok a biztonsági mentések mappájában vannak, de nem szerepelnek ennek az eszköznek a mentési előzményeiben. Ez a mappa ezen az eszközön csak a Submersioné, így más eszköz nem használja ezeket a fájlokat, és bármelyikük törölhető itt.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count kijelölt fájlt lehet, hogy egy másik eszköz, egy korábbi telepítés vagy a Submersion egy régebbi verziója hozott létre. Ha olyan merüléseket tartalmaznak, amelyek máshol nincsenek meg, ezek a merülések elvesznek.',
+      one:
+          'Egy kijelölt fájlt lehet, hogy egy másik eszköz, egy korábbi telepítés vagy a Submersion egy régebbi verziója hozott létre. Ha olyan merüléseket tartalmaz, amelyek máshol nincsenek meg, ezek a merülések elvesznek.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty =>
@@ -62202,6 +62737,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'Bejelentkezés';
 
   @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'A(z) $name fotóalbumhoz jelszó szükséges ezen az eszközön.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => 'Jelszó megadása';
+
+  @override
   String get settings_setUpDevice_item_reconnectAction => 'Újracsatlakozás';
 
   @override
@@ -63027,6 +63570,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Ismétlődő palackok eltávolítva';
+
+  @override
+  String get changeLog_label_moveMedia => 'Áthelyezve másik merüléshez';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'Leválasztva a könyvtárról';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'Felszerelésfotók eltávolítva';
 
   @override
   String get changeLog_label_updatePlannedDives =>
@@ -65719,4 +66271,102 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'Válaszd ki a Kezdőlap tetején látható számokat. Az a szám, amelyhez még nincs adat, kimarad.';
+
+  @override
+  String get dashboard_greeting_morning => 'Jó reggelt';
+
+  @override
+  String get dashboard_greeting_afternoon => 'Jó délutánt';
+
+  @override
+  String get dashboard_greeting_evening => 'Jó estét';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting, $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1 merülés rögzítve';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count merülés rögzítve';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1 merülés';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count merülés';
+  }
+
+  @override
+  String get dashboard_hero_error => 'Kész felfedezni a mélységet?';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours óra víz alatt';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'Merülési statisztikák betöltése...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes perc víz alatt';
+  }
+
+  @override
+  String get dashboard_hero_noDives => 'Kész rögzíteni az első merülését?';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'Búvár';
+
+  @override
+  String get dashboard_hero_statDives => 'merülés';
+
+  @override
+  String get dashboard_hero_statHours => 'óra';
+
+  @override
+  String get dashboard_hero_statSites => 'helyszín';
+
+  @override
+  String get dashboard_hero_statCountries => 'ország';
+
+  @override
+  String get dashboard_semantics_greetingBanner =>
+      'Irányítópult üdvözlő banner';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'Gyors műveletek';
+
+  @override
+  String get dashboard_quickActions_insights => 'Elemzések';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'Fejléc';
+
+  @override
+  String get settings_homeHeader_phone => 'Telefonszélesség';
+
+  @override
+  String get settings_homeHeader_wide => 'Szélesebb képernyők';
+
+  @override
+  String get settings_homeHeader_compact => 'Kompakt';
+
+  @override
+  String get settings_homeHeader_banner => 'Szalag';
+
+  @override
+  String get settings_homeHeader_description =>
+      'A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.';
 }

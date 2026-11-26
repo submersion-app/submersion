@@ -12,6 +12,9 @@ void main() {
     bool transfersWaitingWithReason = false,
     bool storeUnreachable = false,
     String? storeLabel,
+    int subscriptionCount = 0,
+    String? subscriptionNeedingPassword,
+    String? subscriptionFailing,
   }) => MediaHealthInputs(
     storeAttachedHere: storeAttachedHere,
     storeAnnounced: storeAnnounced,
@@ -21,6 +24,9 @@ void main() {
     transfersWaitingWithReason: transfersWaitingWithReason,
     storeUnreachable: storeUnreachable,
     storeLabel: storeLabel,
+    subscriptionCount: subscriptionCount,
+    subscriptionNeedingPassword: subscriptionNeedingPassword,
+    subscriptionFailing: subscriptionFailing,
   );
 
   void expectHealth(FeatureHealth h, HealthLevel level, HealthReason reason) {
@@ -156,6 +162,71 @@ void main() {
       );
       expectHealth(h, HealthLevel.healthy, HealthReason.ok);
       expect(h.findings, isEmpty);
+    });
+  });
+
+  group('photo subscriptions', () {
+    test('subscriptions alone count as set up', () {
+      final h = evaluateMediaHealth(
+        inputs(
+          storeAttachedHere: false,
+          storeAnnounced: false,
+          subscriptionCount: 1,
+        ),
+      );
+      expectHealth(h, HealthLevel.healthy, HealthReason.ok);
+    });
+
+    test('a subscription wanting its password needs attention', () {
+      final h = evaluateMediaHealth(
+        inputs(
+          storeAttachedHere: false,
+          storeAnnounced: false,
+          subscriptionCount: 2,
+          subscriptionNeedingPassword: 'Dives',
+        ),
+      );
+      expectHealth(
+        h,
+        HealthLevel.attention,
+        HealthReason.mediaSubscriptionNeedsPassword,
+      );
+      expect(h.name, 'Dives');
+      expect(h.subjectId, mediaSetupSubscriptions);
+    });
+
+    test('a failing subscription needs attention', () {
+      final h = evaluateMediaHealth(
+        inputs(subscriptionCount: 1, subscriptionFailing: 'Feed'),
+      );
+      expectHealth(
+        h,
+        HealthLevel.attention,
+        HealthReason.mediaSubscriptionFailing,
+      );
+      expect(
+        findingFor(h, {
+          HealthReason.mediaSubscriptionFailing,
+        }, subjectId: mediaSetupSubscriptions)?.name,
+        'Feed',
+      );
+    });
+
+    test('both findings are kept for the Network sources row', () {
+      final h = evaluateMediaHealth(
+        inputs(
+          subscriptionCount: 2,
+          subscriptionNeedingPassword: 'A',
+          subscriptionFailing: 'B',
+        ),
+      );
+      expect(
+        h.findings.map((f) => f.reason),
+        containsAll([
+          HealthReason.mediaSubscriptionNeedsPassword,
+          HealthReason.mediaSubscriptionFailing,
+        ]),
+      );
     });
   });
 }

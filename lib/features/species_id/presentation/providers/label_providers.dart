@@ -180,10 +180,15 @@ final mediaAnalysisStatusProvider = FutureProvider.autoDispose
             // Read once, above.
             read: (runs, stored),
           );
+      // A video left part way is told apart from an item looked at in
+      // full by other models or for another place (issue #4958).
+      final partway = item.mediaType == MediaType.video && !run.scanComplete;
       return (
         state: current.contains(item.id)
             ? MediaAnalysisState.analysed
-            : MediaAnalysisState.partial,
+            : partway
+            ? MediaAnalysisState.partial
+            : MediaAnalysisState.outdated,
         found: found,
       );
     });

@@ -1,24 +1,44 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
+import 'package:submersion/features/media/data/repositories/site_attachment_repository.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+/// Records each category write a site's sitting makes, touching no database.
+class _RecordingSiteAttachments extends SiteAttachmentRepository {
+  final List<(List<String>, SiteAttachmentCategory?)> calls = [];
+
+  @override
+  Future<int> setSiteCategory(
+    List<String> ids,
+    SiteAttachmentCategory? category,
+  ) async {
+    calls.add((List.of(ids), category));
+    return ids.length;
+  }
+}
 
 /// Photos added, unlinked and relinked in a sitting, written at Save
 /// (issue #4527, plan 6).
 void main() {
   final dive = Dive(id: 'dive-1', dateTime: DateTime.utc(2026));
-  MediaItem row(String id, int minute) => MediaItem(
-    id: id,
-    diveId: 'dive-1',
-    mediaType: MediaType.photo,
-    takenAt: DateTime.utc(2026, 1, 1, 10, minute),
-    createdAt: DateTime.utc(2026),
-    updatedAt: DateTime.utc(2026),
-  );
+  MediaItem row(String id, int minute, {SiteAttachmentCategory? category}) =>
+      MediaItem(
+        id: id,
+        siteCategory: category,
+        diveId: 'dive-1',
+        mediaType: MediaType.photo,
+        takenAt: DateTime.utc(2026, 1, 1, 10, minute),
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      );
   final stored = [row('s1', 5), row('s2', 20)];
 
   late List<String> calls;
@@ -31,7 +51,7 @@ void main() {
     failRows = false;
   });
 
-  EditSession<Dive> started() {
+  EditSession<Dive> started({bool setsCategories = true}) {
     final session = EditSession<Dive>(dive);
     addTearDown(() {
       if (!session.isDisposed) session.dispose();
@@ -53,6 +73,11 @@ void main() {
         },
         drainDeletes: () async => calls.add('drain deletes'),
         enqueueUpload: queued.add,
+        setCategories: setsCategories
+            ? (categories) async => calls.add(
+                'categories ${[for (final e in categories.entries) '${e.key}:${e.value?.name}']}',
+              )
+            : null,
       ),
       cardId: 'media',
     );
@@ -253,4 +278,89 @@ void main() {
     SittingMediaWriters.forDive(reading);
     expect(read, isEmpty);
   });
+
+  // A site's bulk Set category, held in the open card (issue #4527, media
+  // library plan 2).
+  group('a held category', () {
+    test(
+      'is written at Save and shown before it; Cancel writes nothing',
+      () async {
+        final session = started();
+        setCategoryInSitting(session, stored, SiteAttachmentCategory.parking);
+        expect(session.changedCardIds, {'media'});
+        expect(calls, isEmpty);
+        expect(mediaInSitting(session, stored).map((m) => m.siteCategory), [
+          SiteAttachmentCategory.parking,
+          SiteAttachmentCategory.parking,
+        ]);
+
+        await session.runHeldWrites();
+        expect(calls, ['categories [s1:parking, s2:parking]']);
+
+        final cancelled = started();
+        setCategoryInSitting(cancelled, stored, SiteAttachmentCategory.parking);
+        calls.clear();
+        cancelled.dispose();
+        expect(calls, isEmpty);
+      },
+    );
+
+    test('set back to the stored one leaves nothing held', () {
+      final underwater = [
+        row('s1', 5, category: SiteAttachmentCategory.underwater),
+      ];
+      final same = started();
+      setCategoryInSitting(same, underwater, SiteAttachmentCategory.underwater);
+      expect(same.changedCardIds, isEmpty);
+
+      final back = started();
+      setCategoryInSitting(back, underwater, SiteAttachmentCategory.parking);
+      expect(back.changedCardIds, {'media'});
+      setCategoryInSitting(back, underwater, SiteAttachmentCategory.underwater);
+      expect(back.changedCardIds, isEmpty);
+    });
+
+    test('loses to an unlink of the same photo', () async {
+      final session = started();
+      setCategoryInSitting(session, stored, SiteAttachmentCategory.parking);
+      unlinkMediaInSitting(session, {'s2'});
+      await session.runHeldWrites();
+      expect(calls, ['categories [s1:parking]', 'unlink [s2]']);
+    });
+
+    test('is refused at Save by a sitting that sets no category', () async {
+      final session = started(setsCategories: false);
+      setCategoryInSitting(session, stored, SiteAttachmentCategory.parking);
+      await expectLater(session.runHeldWrites(), throwsUnsupportedError);
+    });
+  });
+
+  // The site's own writer: one write per category, Uncategorized included.
+  test(
+    'a site sitting writes each held category once, null included',
+    () async {
+      final repository = _RecordingSiteAttachments();
+      final container = ProviderContainer(
+        overrides: [
+          siteAttachmentRepositoryProvider.overrideWithValue(repository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await SittingMediaWriters.forSite(container.read).setCategories!({
+        'm1': SiteAttachmentCategory.parking,
+        'm2': null,
+        'm3': SiteAttachmentCategory.parking,
+      });
+
+      expect(repository.calls, hasLength(2));
+      expect(
+        repository.calls
+            .firstWhere((c) => c.$2 == SiteAttachmentCategory.parking)
+            .$1,
+        ['m1', 'm3'],
+      );
+      expect(repository.calls.firstWhere((c) => c.$2 == null).$1, ['m2']);
+    },
+  );
 }

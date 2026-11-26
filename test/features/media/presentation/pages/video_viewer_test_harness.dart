@@ -178,6 +178,7 @@ Future<FakeVideoPlatform> pumpVideoViewer(
   List<Override> overrides = const [],
   List<MediaItem>? mediaList,
   FakeVideoPlatform? platform,
+  Duration? initialVideoPosition,
 }) async {
   final player = platform ?? FakeVideoPlatform();
   useVideoPlatform(player);
@@ -203,6 +204,7 @@ Future<FakeVideoPlatform> pumpVideoViewer(
           home: MediaViewerPage(
             mediaList: mediaList ?? [video('v1')],
             initialMediaId: 'v1',
+            initialVideoPosition: initialVideoPosition,
           ),
         ),
       ),

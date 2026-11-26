@@ -9,7 +9,7 @@ part of '../app_database_migrations.dart';
 /// column-exists guard on the final DROP COLUMN, so it is called from both
 /// its onUpgrade rung and the beforeOpen backstop.
 extension TripChecklistMigrations on AppDatabase {
-  /// v383: inventory identity on trip checklist items (issue #4934).
+  /// v384: inventory identity on trip checklist items (issue #4934).
   Future<void> _assertTripChecklistEquipmentColumn() =>
       _addColumnIfMissing('trip_checklist_items', 'equipment_id', 'TEXT');
 

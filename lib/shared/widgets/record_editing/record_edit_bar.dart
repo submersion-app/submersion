@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 /// The top bar of a record page while it is unlocked: Cancel, what is being
 /// edited, and Save.
 ///
 /// It is tinted and underlined in the accent colour so an unlocked page
 /// cannot be mistaken for a locked one, and it has no back arrow: the only
-/// ways out of a sitting are Cancel and Save.
+/// ways out of a sitting are Cancel and Save. Those wear the pencil's amber
+/// (Save filled, Cancel a ring) so the way out is as easy to find as the
+/// way in (issue #5034).
 class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
   const RecordEditBar({
     super.key,
@@ -61,9 +63,10 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
       // translation takes the width it needs instead of a fixed slot.
       title: Row(
         children: [
-          AppBarTextAction(
+          RecordEditAction(
             label: l10n.forms_cancel,
             onPressed: isSaving || isBusy ? null : onCancel,
+            style: RecordEditActionStyle.ring,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -73,7 +76,7 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         ...actions,
-        AppBarTextAction(
+        RecordEditAction(
           label: saveLabel ?? l10n.forms_save,
           onPressed: canSave && !isSaving && !isBusy ? onSave : null,
           busy: isSaving,

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
@@ -21,9 +20,9 @@ class _RecordingBackfill extends StateNotifier<BackfillState>
   final List<SiteLocationLookupMode> counted = [];
 
   @override
-  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+  Future<BackfillCandidates> findCandidates(SiteLocationLookupMode mode) async {
     counted.add(mode);
-    return const [];
+    return const BackfillCandidates(sites: []);
   }
 
   @override

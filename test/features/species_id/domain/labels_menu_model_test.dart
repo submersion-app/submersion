@@ -53,18 +53,28 @@ void main() {
     expect(m.actionEnabled, isTrue);
   });
 
-  test('part analysed with something found says how many', () {
+  test('part analysed with something found says so, and how many (issue '
+      '#4958)', () {
     final m = model(MediaAnalysisState.partial, found: 2);
-    expect(m.line, LabelsStatusLine.found);
+    expect(m.line, LabelsStatusLine.partlyFound);
     expect(m.found, 2);
   });
 
   test('part analysed with nothing found says so, not that it was never '
       'analysed', () {
     final m = model(MediaAnalysisState.partial);
-    expect(m.line, LabelsStatusLine.found);
+    expect(m.line, LabelsStatusLine.partlyFound);
     expect(m.found, 0);
     expect(m.action, AnalyseAction.analyse);
+  });
+
+  test('out of date says how many, as a finished analysis does, and '
+      'offers Analyse (issue #4958)', () {
+    final m = model(MediaAnalysisState.outdated, found: 2);
+    expect(m.line, LabelsStatusLine.found);
+    expect(m.found, 2);
+    expect(m.action, AnalyseAction.analyse);
+    expect(m.actionEnabled, isTrue);
   });
 
   test('analysed says how many, nothing included', () {
@@ -89,7 +99,7 @@ void main() {
   test('a video part scanned on another device, with no model here, says '
       'what was found and offers nothing (issue #4926)', () {
     final m = model(MediaAnalysisState.partFoundNoModel, found: 2);
-    expect(m.line, LabelsStatusLine.found);
+    expect(m.line, LabelsStatusLine.partlyFound);
     expect(m.found, 2);
     expect(m.actionEnabled, isFalse);
   });
@@ -100,6 +110,7 @@ void main() {
       (MediaAnalysisState.noModel, LabelsButtonStatus.notAnalysed),
       (MediaAnalysisState.notAnalysed, LabelsButtonStatus.notAnalysed),
       (MediaAnalysisState.partial, LabelsButtonStatus.partial),
+      (MediaAnalysisState.outdated, LabelsButtonStatus.outdated),
       (MediaAnalysisState.analysed, LabelsButtonStatus.analysed),
       // Another device's results are an analysis, even with no model here.
       (MediaAnalysisState.foundNoModel, LabelsButtonStatus.analysed),

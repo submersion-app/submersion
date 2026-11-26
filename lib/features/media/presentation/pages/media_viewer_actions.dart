@@ -47,8 +47,14 @@ extension _ViewerActions on _MediaViewerPageState {
   /// tap does nothing.
   void _showMoment(MediaItem item, MediaPersonTag tag) {
     final at = tag.videoPosition;
+    if (at != null) _showMomentAt(item, at);
+  }
+
+  /// Pauses [item], a video, on [at]: a face tag's frame, or a time a
+  /// species was seen (issue #5032). Nothing when it cannot play here.
+  void _showMomentAt(MediaItem item, Duration at) {
     final controller = _videoControllers[item.id];
-    if (at == null || controller == null) return;
+    if (controller == null) return;
     final value = controller.value;
     if (!value.isInitialized || value.hasError) return;
     unawaited(controller.pause().then((_) => controller.seekTo(at)));

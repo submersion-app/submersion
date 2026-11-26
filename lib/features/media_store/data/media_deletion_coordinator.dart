@@ -50,10 +50,25 @@ class MediaDeletionCoordinator {
   /// undoable, as for [deleteMediaItems]: for a delete inside a write that
   /// can still be rolled back, whose caller runs [drainHeldDeletes] once it
   /// has committed (a dive's sitting saved, issue #4527).
+  ///
+  /// [deferDrain] also leaves the worker for [drainHeldDeletes], but the
+  /// delete is final, so every cached copy goes: for a delete filed as one
+  /// History entry, whose caller drains once the entry has closed, so the
+  /// worker's other transfers are not filed under it (the media library's
+  /// Unlink, issue #4527). Never inside a transaction: a final delete's
+  /// purge waits for a running species analysis of those photos, which
+  /// writes outside the transaction and so would wait on its lock forever.
+  /// A delete inside a transaction uses [holdRemoteDelete].
   Future<void> deleteMultipleMedia(
     List<String> ids, {
     bool holdRemoteDelete = false,
-  }) => _delete(ids, const <String, MediaItem>{}, kick: !holdRemoteDelete);
+    bool deferDrain = false,
+  }) => _delete(
+    ids,
+    const <String, MediaItem>{},
+    kick: !holdRemoteDelete && !deferDrain,
+    undoable: holdRemoteDelete,
+  );
 
   /// Lets the worker take the intents a held delete queued.
   Future<void> drainHeldDeletes() => _kick('held media delete');
@@ -82,6 +97,7 @@ class MediaDeletionCoordinator {
     {for (final item in items) item.id: item},
     keepIf: keepIf,
     kick: !holdRemoteDelete,
+    undoable: holdRemoteDelete,
   );
 
   /// Undo for a held [deleteMediaItems] (issue #2718): [rows] are media the
@@ -125,12 +141,14 @@ class MediaDeletionCoordinator {
   }
 
   /// [known] short-circuits the per-id read for callers that already hold
-  /// the row; ids absent from it are read back as before.
+  /// the row; ids absent from it are read back as before. [undoable] is
+  /// handed to the cache purge.
   Future<void> _delete(
     List<String> ids,
     Map<String, MediaItem> known, {
     bool Function(MediaData row)? keepIf,
     bool kick = true,
+    bool undoable = false,
   }) async {
     var enqueued = false;
     // The rows as they were, for the cache purge: nothing can be read back
@@ -172,7 +190,7 @@ class MediaDeletionCoordinator {
     } else {
       await _mediaRepository.deleteMultipleMedia(ids);
     }
-    await _purge(purged, undoable: !kick);
+    await _purge(purged, undoable: undoable);
     if (enqueued && kick) await _kick('media delete');
   }
 

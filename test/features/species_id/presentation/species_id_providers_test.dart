@@ -14,6 +14,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -393,6 +394,73 @@ void main() {
     test('is none when the video does not play from a file', () async {
       final c = withPlayback(const NoPlayback(NoPlaybackReason.notFound));
       expect(await c.read(videoFileReaderProvider(item).future), isNull);
+    });
+
+    group('asked for by a later copy of the video (issue #4958)', () {
+      // The Media library's items arrive without their dive enrichment,
+      // which the viewer fills in while the video plays: the copy the
+      // viewer asks with is then no longer the one the player resolved.
+      final later = item.copyWith(updatedAt: DateTime.utc(2026, 2));
+
+      /// The real playback body, over a file resolved by [resolvedFilePathProvider].
+      ProviderContainer resolvingFiles() {
+        opened.clear();
+        resolved = 0;
+        final c = ProviderContainer(
+          overrides: [
+            resolvedFilePathProvider.overrideWith((ref, _) async {
+              resolved++;
+              return '/videos/v1.mp4';
+            }),
+            videoFileAccessProvider.overrideWithValue(<T>({
+              String? path,
+              String? bookmarkRef,
+              required Future<T> Function(String path) read,
+            }) {
+              opened.add((path, bookmarkRef));
+              return read('/opened$path');
+            }),
+          ],
+        );
+        addTearDown(c.dispose);
+        return c;
+      }
+
+      test('reads the playback the player holds for the earlier copy, '
+          'resolving nothing more', () async {
+        final c = resolvingFiles();
+        final hold = c.listen(videoPlaybackProvider(item), (_, _) {});
+        addTearDown(hold.close);
+        await c.read(videoPlaybackProvider(item).future);
+
+        final reader = await c.read(videoFileReaderProvider(later).future);
+
+        expect(await reader!((path) async => path), '/opened/videos/v1.mp4');
+        expect(opened, [('/videos/v1.mp4', 'bm-1')]);
+        expect(resolved, 1);
+      });
+
+      test('is none once the player lets the earlier copy go', () async {
+        final c = resolvingFiles();
+        final hold = c.listen(videoPlaybackProvider(item), (_, _) {});
+        await c.read(videoPlaybackProvider(item).future);
+        hold.close();
+        // Let the playback dispose, as it does once nothing listens.
+        await Future<void>.delayed(Duration.zero);
+
+        expect(await c.read(videoFileReaderProvider(later).future), isNull);
+        expect(resolved, 1);
+      });
+
+      test('never reads another video\'s playback', () async {
+        final c = resolvingFiles();
+        final hold = c.listen(videoPlaybackProvider(item), (_, _) {});
+        addTearDown(hold.close);
+        await c.read(videoPlaybackProvider(item).future);
+        final other = later.copyWith(id: 'v2');
+
+        expect(await c.read(videoFileReaderProvider(other).future), isNull);
+      });
     });
   });
 

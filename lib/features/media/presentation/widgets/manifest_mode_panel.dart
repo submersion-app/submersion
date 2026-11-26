@@ -24,23 +24,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/data/services/dive_link_matcher.dart';
+import 'package:submersion/features/media/data/services/manifest_entry_adoption.dart';
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_import_targets.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/providers/manifest_tab_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_preview_pane.dart';
+import 'package:submersion/features/media/presentation/widgets/poll_interval_options.dart';
+import 'package:submersion/features/media/presentation/widgets/synology_password_dialog.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Standard poll-interval choices surfaced in the dropdown. The plan's
-/// 24-hour default sits at the middle of the list.
-const List<_PollIntervalOption> _kPollIntervals = [
-  _PollIntervalOption(seconds: 3600, label: '1 hour'),
-  _PollIntervalOption(seconds: 21600, label: '6 hours'),
-  _PollIntervalOption(seconds: 86400, label: '24 hours'),
-  _PollIntervalOption(seconds: 604800, label: '7 days'),
-];
+/// Standard poll-interval choices surfaced in the dropdown, shared with the
+/// subscription's edit dialog.
+const List<PollIntervalOption> _kPollIntervals = kPollIntervalOptions;
 
 class ManifestModePanel extends ConsumerStatefulWidget {
   const ManifestModePanel({super.key});
@@ -73,10 +82,17 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
   /// the snackbar and the pushed review fire correctly across the async
   /// gap, and bails out via `mounted` if the user navigated away.
   Future<void> _commit() async {
+    final current = ref.read(manifestTabProvider);
+    if (current is ManifestTabShowingPreview &&
+        SynologyShareLink.tryParseShareLink(Uri.parse(current.url)) != null) {
+      return _commitShare();
+    }
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     String? committedSubscriptionId;
     List<String>? committedMediaIds;
+    var adopted = 0;
+    var reused = false;
     bool subscriptionPersisted = false;
 
     await ref
@@ -84,43 +100,46 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
         .commit(
           onCommit: (preview) async {
             final pipeline = ref.read(networkFetchPipelineProvider);
+            final prepared = await _prepareCommit(preview);
             final resolved = await pipeline.resolveManifestEntries(
-              preview.result.entries,
+              prepared.plan.fresh,
             );
+            Future<ImportReviewResult> confirm(
+              Map<String, MediaAttachTarget> targets,
+            ) async {
+              final sub = await _subscriptionFor(preview, prepared.existing);
+              reused = prepared.existing != null;
+              subscriptionPersisted = reused || preview.subscribe;
+              committedSubscriptionId = sub.id;
+              adopted = await applyManifestAdoption(
+                ref.read(mediaRepositoryProvider),
+                prepared.plan,
+                sub.id,
+              );
+              final requests = requestsFromReview(resolved, targets);
+              final ids = await pipeline.insertResolved(
+                requests,
+                subscriptionId: sub.id,
+              );
+              committedMediaIds = ids;
+              return ImportReviewResult(
+                linked: ids.length,
+                skipped: resolved.length - requests.length,
+              );
+            }
+
+            // Nothing left to review: every entry is already in the
+            // subscription or was taken over from a deleted one.
+            if (resolved.isEmpty) {
+              await confirm(const {});
+              return;
+            }
             if (!mounted) return;
             await navigator.push(
               MaterialPageRoute<void>(
                 builder: (_) => MediaImportReviewPage(
                   candidates: candidatesFor(resolved),
-                  onConfirm: (targets) async {
-                    final subRepo = ref.read(
-                      manifestSubscriptionRepositoryProvider,
-                    );
-                    final format =
-                        preview.formatOverride ?? preview.result.format;
-                    // Every commit creates a subscription row because the
-                    // pipeline keys manifest rows on it (the partial unique
-                    // index on `(subscription_id, entry_key)`). Subscribe off
-                    // means an inert `isActive: false` row that Undo removes.
-                    final created = await subRepo.createSubscription(
-                      manifestUrl: preview.url,
-                      format: format,
-                      pollIntervalSeconds: preview.pollIntervalSeconds,
-                      isActive: preview.subscribe,
-                    );
-                    subscriptionPersisted = preview.subscribe;
-                    committedSubscriptionId = created.id;
-                    final requests = requestsFromReview(resolved, targets);
-                    final ids = await pipeline.insertResolved(
-                      requests,
-                      subscriptionId: created.id,
-                    );
-                    committedMediaIds = ids;
-                    return ImportReviewResult(
-                      linked: ids.length,
-                      skipped: resolved.length - requests.length,
-                    );
-                  },
+                  onConfirm: confirm,
                 ),
               ),
             );
@@ -140,7 +159,9 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
       SnackBar(
         // TODO(media): l10n, pluralization
         content: Text(
-          'Imported ${ids.length} entr${ids.length == 1 ? 'y' : 'ies'}',
+          '${reused ? 'Already subscribed. ' : ''}'
+          'Imported ${ids.length} new entr${ids.length == 1 ? 'y' : 'ies'}'
+          '${adopted > 0 ? ', took over $adopted already in the library' : ''}',
         ),
         duration: const Duration(seconds: 5),
         persist: false,
@@ -152,8 +173,142 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
             subscriptionId: subId,
             // Keep the user-created subscription if Subscribe was on; the
             // user explicitly opted in to recurring polling. Only the
-            // sentinel one-shot subscription is torn down.
+            // sentinel one-shot subscription is torn down, and never one
+            // that existed before this import.
             deleteSubscription: !subscriptionPersisted,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// What an import of [preview] has to do before anything is written: the
+  /// subscription that already reads this URL, if any, and how the entries
+  /// it does not hold yet split into rows left behind by a deleted
+  /// subscription and entries that are new to the library.
+  ///
+  /// Pasting a feed that is already subscribed must not open a second
+  /// subscription: each one keys its rows on its own id, so both would
+  /// import every entry and every photo would appear twice.
+  Future<({ManifestSubscription? existing, ManifestAdoptionPlan plan})>
+  _prepareCommit(ManifestTabShowingPreview preview) async {
+    final mediaRepo = ref.read(mediaRepositoryProvider);
+    final existing = await ref
+        .read(manifestSubscriptionRepositoryProvider)
+        .findByManifestUrl(preview.url);
+    final pending = existing == null
+        ? preview.result.entries
+        : await entriesNotYetIn(mediaRepo, existing.id, preview.result.entries);
+    final plan = await planManifestAdoption(mediaRepo, pending);
+    return (existing: existing, plan: plan);
+  }
+
+  /// The subscription an import writes under: the one that already reads
+  /// the URL, switched on when this import asked for polling, or a new one.
+  ///
+  /// Every commit needs a subscription row because the pipeline keys
+  /// manifest rows on it (the partial unique index on
+  /// `(subscription_id, entry_key)`). Subscribe off means an inert
+  /// `isActive: false` row that Undo removes.
+  Future<ManifestSubscription> _subscriptionFor(
+    ManifestTabShowingPreview preview,
+    ManifestSubscription? existing,
+  ) async {
+    final subRepo = ref.read(manifestSubscriptionRepositoryProvider);
+    if (existing != null) {
+      if (preview.subscribe && !existing.isActive) {
+        await subRepo.setActive(existing.id, true);
+      }
+      return existing;
+    }
+    // A shared album is named after the album, so two albums on one NAS
+    // can be told apart wherever the app reports on them.
+    final title = preview.result.title;
+    final isShare =
+        SynologyShareLink.tryParseShareLink(Uri.parse(preview.url)) != null;
+    return subRepo.createSubscription(
+      manifestUrl: preview.url,
+      format: preview.formatOverride ?? preview.result.format,
+      pollIntervalSeconds: preview.pollIntervalSeconds,
+      isActive: preview.subscribe,
+      displayName: isShare && title != null && title.isNotEmpty ? title : null,
+    );
+  }
+
+  /// Imports a Synology Photos share the way its subscription polls it: only
+  /// photos with a confident dive match are linked, the rest wait for a
+  /// later poll (or a dive that does not exist yet).
+  ///
+  /// A shared album easily holds hundreds of photos. The review page asks for
+  /// one suggestion per row and rebuilds as each arrives, which does not
+  /// scale to that, and nobody wants to tick hundreds of rows by hand.
+  Future<void> _commitShare() async {
+    final messenger = ScaffoldMessenger.of(context);
+    String? committedSubscriptionId;
+    List<String>? committedMediaIds;
+    var skipped = 0;
+    var adopted = 0;
+    var reused = false;
+    var subscribe = false;
+
+    await ref
+        .read(manifestTabProvider.notifier)
+        .commit(
+          onCommit: (preview) async {
+            final pipeline = ref.read(networkFetchPipelineProvider);
+            final prepared = await _prepareCommit(preview);
+            final resolved = await pipeline.resolveManifestEntries(
+              prepared.plan.fresh,
+            );
+            final decided = await requestsForConfidentMatches(
+              resolved,
+              DiveLinkMatcher(diveRepository: ref.read(diveRepositoryProvider)),
+              diverId: ref.read(currentDiverIdProvider),
+            );
+            final sub = await _subscriptionFor(preview, prepared.existing);
+            reused = prepared.existing != null;
+            committedSubscriptionId = sub.id;
+            subscribe = reused
+                ? sub.isActive || preview.subscribe
+                : preview.subscribe;
+            adopted = await applyManifestAdoption(
+              ref.read(mediaRepositoryProvider),
+              prepared.plan,
+              sub.id,
+            );
+            committedMediaIds = await pipeline.insertResolved(
+              decided.requests,
+              subscriptionId: sub.id,
+            );
+            skipped = decided.skipped;
+          },
+        );
+
+    if (!mounted) return;
+    final ids = committedMediaIds;
+    final subId = committedSubscriptionId;
+    if (ids == null || subId == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        // TODO(media): l10n, pluralization
+        content: Text(
+          '${reused ? 'This album is already subscribed; added what was new. ' : ''}'
+          'Linked ${ids.length} new photos to dives'
+          '${adopted > 0 ? ', took over $adopted already in the library' : ''}. '
+          '$skipped without a matching dive'
+          '${subscribe ? ' are checked again on the next poll.' : '.'}',
+        ),
+        duration: const Duration(seconds: 8),
+        persist: false,
+        action: SnackBarAction(
+          // TODO(media): l10n
+          label: 'Undo',
+          onPressed: () => _undoCommit(
+            mediaIds: ids,
+            subscriptionId: subId,
+            // A subscription that existed before this import is never
+            // removed by its Undo.
+            deleteSubscription: !reused && !subscribe,
           ),
         ),
       ),
@@ -238,7 +393,19 @@ class _Body extends ConsumerWidget {
         );
       case ManifestTabFetching():
         return const Center(child: CircularProgressIndicator());
-      case ManifestTabError(:final message):
+      case ManifestTabError(
+        :final url,
+        :final message,
+        :final unauthorized,
+        :final detail,
+      ):
+        final uri = Uri.tryParse(url);
+        final share = unauthorized && uri != null
+            ? SynologyShareLink.tryParseShareLink(uri)
+            : null;
+        if (share != null) {
+          return _SynologyPasswordForm(url: url, share: share, reason: detail);
+        }
         return Align(
           alignment: Alignment.topLeft,
           // TODO(media): l10n
@@ -354,7 +521,7 @@ class _SubscribeRow extends StatelessWidget {
                       .map(
                         (option) => DropdownMenuItem<int>(
                           value: option.seconds,
-                          child: Text(option.label),
+                          child: Text(option.label(context.l10n)),
                         ),
                       )
                       .toList(),
@@ -378,9 +545,123 @@ class _SubscribeRow extends StatelessWidget {
   }
 }
 
-class _PollIntervalOption {
-  const _PollIntervalOption({required this.seconds, required this.label});
+/// Asks for a Synology Photos share's password when fetching its link was
+/// refused, saves it for this share (each share has its own) and fetches
+/// again.
+class _SynologyPasswordForm extends ConsumerStatefulWidget {
+  const _SynologyPasswordForm({
+    required this.url,
+    required this.share,
+    this.reason,
+  });
 
-  final int seconds;
-  final String label;
+  final String url;
+  final SynologyShareLink share;
+
+  /// Why the share refused: no password yet, or a rejected one.
+  final String? reason;
+
+  @override
+  ConsumerState<_SynologyPasswordForm> createState() =>
+      _SynologyPasswordFormState();
+}
+
+class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
+  final TextEditingController _password = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final password = _password.text;
+    if (password.isEmpty || _saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(networkCredentialsServiceProvider)
+          .save(
+            hostname: NetworkCredentialsService.synologyShareKey(widget.share),
+            authType: kSynologyShareAuthType,
+            password: password,
+            // No display name: the row is named after its album where one
+            // reads the share, and a stored label would stay in one language.
+          );
+      if (!mounted) return;
+      // The Saved hosts list reads the store once; show the new row.
+      ref.invalidate(savedHostsProvider);
+      await ref.read(manifestTabProvider.notifier).fetch(widget.url);
+    } catch (e) {
+      // A keychain that refuses the write: say so, or the button simply
+      // comes back and the share still asks for its password.
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.media_credentials_saveError('$e'))),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.media_sharePassword_needed,
+            style: theme.textTheme.bodyMedium,
+          ),
+          if (widget.reason != null &&
+              widget.reason != kSynologyPasswordMissingMessage) ...[
+            const SizedBox(height: 4),
+            Text(
+              localizedPollError(l10n, widget.reason!),
+              key: const Key('synologySharePasswordError'),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ],
+          const SizedBox(height: 4),
+          Text(
+            l10n.media_sharePassword_keychainNote,
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: const Key('synologySharePassword'),
+            controller: _password,
+            obscureText: true,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _save(),
+            decoration: InputDecoration(
+              labelText: l10n.media_sharePassword_title,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            key: const Key('synologySharePasswordSave'),
+            icon: _saving
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.lock_open),
+            label: Text(l10n.media_sharePassword_formSave),
+            onPressed: _saving ? null : _save,
+          ),
+        ],
+      ),
+    );
+  }
 }

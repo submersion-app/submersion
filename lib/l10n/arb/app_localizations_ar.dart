@@ -13006,6 +13006,90 @@ class AppLocalizationsAr extends AppLocalizations {
       'البحث عن الموقع غير متاح. تحقق من الاتصال وحاول مرة أخرى.';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      'قد تبقى بعض الحقول فارغة: غالبًا لا يعرف OpenStreetMap مسطحًا مائيًا لمسبح أو سينوت أو محجر، ولا بلدة لموقع في عرض البحر.';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'تم البحث عن $count موقع غوص آخر من قبل ولم يكن لدى OpenStreetMap المزيد عنها.',
+      many:
+          'تم البحث عن $count موقع غوص آخر من قبل ولم يكن لدى OpenStreetMap المزيد عنها.',
+      few:
+          'تم البحث عن $count مواقع غوص أخرى من قبل ولم يكن لدى OpenStreetMap المزيد عنها.',
+      two:
+          'تم البحث عن موقعي غوص آخرين من قبل ولم يكن لدى OpenStreetMap المزيد عنهما.',
+      one:
+          'تم البحث عن موقع غوص آخر من قبل ولم يكن لدى OpenStreetMap المزيد عنه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'لا يزال $count موقع غوص ينقصها بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنها. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+      many:
+          'لا يزال $count موقع غوص ينقصها بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنها. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+      few:
+          'لا تزال $count مواقع غوص ينقصها بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنها. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+      two:
+          'لا يزال موقعا غوص ينقصهما بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنهما. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+      one:
+          'لا يزال موقع غوص واحد ينقصه بعض تفاصيل الموقع، لكن لم يكن لدى OpenStreetMap المزيد عنه. نقل الموقع أو إفراغ أحد حقوله يعيد عرضه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count موقع غوص.',
+      many: 'تم تحديث $count موقع غوص.',
+      few: 'تم تحديث $count مواقع غوص.',
+      two: 'تم تحديث موقعي غوص.',
+      one: 'تم تحديث موقع غوص واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لم يكن لدى OpenStreetMap ما يضيفه لـ $count موقع غوص.',
+      many: 'لم يكن لدى OpenStreetMap ما يضيفه لـ $count موقع غوص.',
+      few: 'لم يكن لدى OpenStreetMap ما يضيفه لـ $count مواقع غوص.',
+      two: 'لم يكن لدى OpenStreetMap ما يضيفه لموقعي غوص.',
+      one: 'لم يكن لدى OpenStreetMap ما يضيفه لموقع غوص واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'فشلت $count عملية بحث.',
+      many: 'فشلت $count عملية بحث.',
+      few: 'فشلت $count عمليات بحث.',
+      two: 'فشل بحثان.',
+      one: 'فشل بحث واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => 'تحديث أسماء الأماكن';
 
   @override
@@ -19621,6 +19705,47 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تحميل إحصائيات المشاهدات';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'أول مشاهدة';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'آخر مشاهدة';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => 'العمق والموسم';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'أعماق الصور';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth => 'أقصى عمق للغطسات';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'الغطسات حسب الشهر';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'الخط الزمني';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'استخدام كغلاف';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'إزالة الغلاف';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'الغلاف';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'البحث عن صور';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'فتح الصورة أو الفيديو';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'غطسة في $date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'الصنف: $className';
   }
@@ -19981,6 +20106,132 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'إعادة المحاولة';
 
   @override
+  String get marineLife_speciesPage_headerSpecies => 'الأنواع';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'جديدة في $year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'نمو قائمة الأنواع';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع بلا صورة',
+      many: '$count نوعًا بلا صورة',
+      few: '$count أنواع بلا صورة',
+      two: 'نوعان بلا صورة',
+      one: 'نوع واحد بلا صورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'التجميع حسب';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'بدون تجميع';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'الفئة';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => 'سنة أول مشاهدة';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'الرحلة';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'موقع الغوص';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'بدون رحلة';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'بدون موقع';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'عرض الكل';
+
+  @override
+  String get marineLife_speciesPage_showList => 'العرض كقائمة';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'العرض كبطاقات';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip =>
+      'التدرب على تسمية الأنواع';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'شوهد هنا أول مرة';
+
+  @override
+  String get marineLife_rarity_new => 'جديد';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'شوهد مرة واحدة';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'لم يُشاهد منذ مدة';
+
+  @override
+  String get marineLife_rarity_mastered => 'متقن';
+
+  @override
+  String get marineLife_practice_title => 'التدرب على التعرف';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'يتطلب التدريب 4 أنواع على الأقل لكل منها قص صورة مؤكد. ضع وسومًا على صور الأنواع التي شاهدتها وأكدها، ثم عد إلى هنا.';
+
+  @override
+  String get marineLife_practice_back => 'العودة إلى الأنواع';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current من $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'ما هذا النوع؟';
+
+  @override
+  String get marineLife_practice_scientificNames => 'الأسماء العلمية';
+
+  @override
+  String get marineLife_practice_right => 'صحيح';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'ليس تمامًا: كان $name';
+  }
+
+  @override
+  String get marineLife_practice_next => 'التالي';
+
+  @override
+  String get marineLife_practice_finish => 'عرض النتائج';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right من $total صحيحة';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'للتدرب مجددًا';
+
+  @override
+  String get marineLife_practice_again => 'التدرب مجددًا';
+
+  @override
+  String get marineLife_practice_done => 'تم';
+
+  @override
   String get speciesMap_title => 'خريطة الأنواع';
 
   @override
@@ -20301,12 +20552,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String media_diveMediaSection_unlinkSelectedTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
   String media_library_unlinkConfirmTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
@@ -20452,7 +20721,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
-    return 'إلغاء ربط $count عنصر؟';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'إلغاء ربط $_temp0؟';
   }
 
   @override
@@ -20657,6 +20935,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      'لإضافة موجز صور، استخدم استيراد في شاشة الوسائط.';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'لإضافة ملفات أو روابط، استخدم استيراد في شاشة الوسائط.';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'لإضافة روابط، استخدم استيراد في شاشة الوسائط.';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'مسح';
@@ -21203,6 +21493,110 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'تشغيل الأصل';
+
+  @override
+  String get media_viewer_playMotion => 'تشغيل الحركة';
+
+  @override
+  String get media_viewer_motionUnplayable =>
+      'لا يمكن لهذا الجهاز تشغيل حركة هذه الصورة';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر تحديث $count اشتراك صور، من بينها \"$name\": $error',
+      many: 'تعذّر تحديث $count اشتراكًا للصور، من بينها \"$name\": $error',
+      few: 'تعذّر تحديث $count اشتراكات صور، من بينها \"$name\": $error',
+      two: 'تعذّر تحديث اشتراكَي صور، من بينهما \"$name\": $error',
+      one: 'تعذّر تحديث اشتراك الصور \"$name\": $error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => 'فتح';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      many: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتان',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ساعة',
+      many: '$count ساعة',
+      few: '$count ساعات',
+      two: 'ساعتان',
+      one: 'ساعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => 'كلمة مرور المشاركة';
+
+  @override
+  String get media_sharePassword_needed =>
+      'تحتاج مشاركة Synology Photos هذه إلى كلمة المرور الخاصة بها.';
+
+  @override
+  String get media_sharePassword_rejected =>
+      'لم تقبل المشاركة كلمة المرور. أدخلها مرة أخرى.';
+
+  @override
+  String get media_sharePassword_field => 'كلمة المرور';
+
+  @override
+  String get media_sharePassword_save => 'حفظ وجلب';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'تُحفظ في سلسلة مفاتيح هذا الجهاز ولا تتم مزامنتها أبدًا.';
+
+  @override
+  String get media_sharePassword_formSave => 'حفظ كلمة المرور والجلب';
+
+  @override
+  String get media_pollInterval_checkEvery => 'التحقق كل';
+
+  @override
+  String get media_sharePassword_rejectedStatus =>
+      'لم تقبل المشاركة كلمة المرور المحفوظة.';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => 'تشغيل أو إيقاف الفيديو';
 
   @override
@@ -21469,6 +21863,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_sources_neverScanned => 'لم يتم الفحص مطلقًا';
 
   @override
+  String get media_sources_removeFolderTitle => 'إيقاف مراقبة هذا المجلد؟';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'ينسى Submersion الملفات التي وجدها في $folder، فلن يُبحث هناك بعد الآن عن الصور المفقودة. لا يُحذف أي صورة أو ملف.';
+  }
+
+  @override
   String get media_source_gallery => 'مكتبة الصور';
 
   @override
@@ -21512,6 +21914,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_smartAlbum_delete => 'حذف الألبوم';
+
+  @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      'يُحذف عامل التصفية المحفوظ فقط. لا تتغير أي صور أو مقاطع فيديو.';
 
   @override
   String get media_smartAlbum_deleteFailed => 'تعذّر حذف الألبوم';
@@ -21715,6 +22126,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'البحث في الغطسات';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      many: '$count عنصرًا',
+      few: '$count عناصر',
+      two: 'عنصرين',
+      one: 'عنصر واحد',
+    );
+    return 'نقل $_temp0؟';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      many: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      few: 'تنتقل العناصر إلى $dive وتغادر أي غطسة هي عليها الآن.',
+      two: 'ينتقل العنصران إلى $dive ويغادران أي غطسة هما عليها الآن.',
+      one: 'ينتقل العنصر إلى $dive ويغادر أي غطسة هو عليها الآن.',
+    );
+    return '$_temp0 تبقى روابط الموقع والمعدات كما هي.';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => 'نقل';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'إحدى الغطسات في هذا النقل مفتوحة للتعديل. احفظها أو ألغِ التعديل أو اقفلها، ثم حاول مرة أخرى.';
+
+  @override
+  String get media_library_moveFailed => 'تعذّر نقل العناصر';
+
+  @override
+  String get media_library_unlinkFailed => 'تعذّر إلغاء ربط العناصر';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label، $date';
+  }
 
   @override
   String get media_library_moveToDive => 'نقل إلى غطسة';
@@ -22627,12 +23084,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_chartMode_bailout => 'Bailout';
 
   @override
-  String get plannerCanvas_chartMode_ccr => 'CCR';
-
-  @override
-  String get plannerCanvas_chartMode_scr => 'SCR';
-
-  @override
   String plannerCanvas_scrub_tts(String minutes) {
     return 'TTS $minutes′';
   }
@@ -23328,18 +23779,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم نسخ الإحداثيات إلى الحافظة';
 
   @override
-  String get diveDetailSection_weights_name => 'الأوزان';
+  String get diveDetailSection_weights_name => 'الأوزان والطفو';
 
   @override
   String get diveDetailSection_weights_description =>
-      'تفصيل الأوزان، إجمالي الوزن';
+      'الأوزان المحمولة، الطفو خلال الغطسة، الرصاص للمرة القادمة، والوزن القابل للإسقاط';
 
   @override
   String get diveDetailSection_buoyancy_name => 'الطفو';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'الطفو خلال الغطسة، الرصاص للمرة القادمة، والوزن القابل للإسقاط';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -26887,6 +27334,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'ساعة القرار';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'قص الغلاف';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'صندوق التدريب';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => 'موعد التدريب';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'الإجابات الصحيحة';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'الإجابات الخاطئة';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'آخر تدريب';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'القصاصة';
 
   @override
@@ -29528,6 +29997,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataHealth_media_transfersPaused =>
       'عمليات نقل الصور متوقفة مؤقتًا';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return 'اشتراك الصور $name يحتاج إلى كلمة المرور';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return 'تعذّر تحديث اشتراك الصور $name';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -46056,6 +46535,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'تمت إضافة إعادة الرفع إلى قائمة الانتظار';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'استبدال النسخة بالجودة الكاملة؟';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'تُستبدل النسخة الأصلية المحفوظة في مساحة التخزين بنسخة $level. تبقى الصورة على هذا الجهاز.';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => 'استبدال';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'ثبّت ffmpeg لتمكين ضغط الفيديو. حتى ذلك الحين يتم رفع النسخ الأصلية.';
 
@@ -46361,6 +46852,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get common_selection_deselectAllTooltip => 'إلغاء تحديد الكل';
+
+  @override
+  String get common_selection_selectAllLoadFailed =>
+      'تعذّر تحميل جميع العناصر، لذا لم يُطبَّق تحديد الكل. حاول مرة أخرى.';
 
   @override
   String common_bulkDelete_title(int count) {
@@ -49468,34 +49963,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get species_convict_tang_desc =>
       'سمكة جراح فاتحة اللون بستة أشرطة عمودية سوداء، تُشاهد غالبًا وهي ترعى في أسراب كبيرة على مسطحات الشعاب بالمحيطين الهندي والهادئ.';
-
-  @override
-  String get species_great_hammerhead_name => 'قرش المطرقة المسنن';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      'قرش مميز برأس مطرقي مسنن الحواف، يشكّل أسرابًا كبيرة عند الجبال البحرية والجزر البعيدة عن الساحل.';
-
-  @override
-  String get species_wobbegong_name => 'قرش السجاد المرقّط';
-
-  @override
-  String get species_wobbegong_desc =>
-      'قرش سجاد مسطح جيد التمويه بفصوص مهدّبة حول الفم، يوجد في الشعاب المعتدلة بأستراليا.';
-
-  @override
-  String get species_manta_ray_name => 'شفنين المانتا الشعابي';
-
-  @override
-  String get species_manta_ray_desc =>
-      'عملاق رشيق يبلغ باع جناحيه خمسة أمتار، يزور محطات التنظيف ويتغذى على العوالق في شعاب المحيطين الهندي والهادئ.';
-
-  @override
-  String get species_oceanic_manta_name => 'شفنين المانتا المحيطي';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      'أكبر أنواع الشفنين ويتجاوز باع جناحيه سبعة أمتار، ويُصادَف عند الجبال البحرية البعيدة عن الساحل ومحطات التنظيف.';
 
   @override
   String get species_undulated_moray_name => 'ثعبان البحر المورَي المتموّج';
@@ -52819,6 +53286,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing =>
+      'كلمة المرور مفقودة على هذا الجهاز';
+
+  @override
   String get media_credentials_deleteBody =>
       'يزيل بيانات الاعتماد المحفوظة. ستعرض العناصر المرتبطة عبر هذا المضيف عبارة \"يتطلب تسجيل الدخول\" إلى أن تعيد إضافتها.';
 
@@ -56035,6 +56506,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر حذف مراجعة الملف الشخصي.';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'إزالة هذا المصدر';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'احفظ تعديلاتك أو تراجع عنها لحذف الملف.';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'احفظ تعديلاتك أو تراجع عنها لحذف الملف أو إزالة هذا المصدر.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      'يحذف «حذف الملف الكامل» مراجعات ملف المصدر الأساسي فقط.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'هذه هي المراجعة الوحيدة لملف الغوصة، لذا لا يمكن حذفها.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'تعذر تحميل مراجعات الملف، لذا لا يمكن حذف أي منها الآن.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص';
 
@@ -56754,13 +57248,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_labels_action => 'تسميات الأنواع';
 
   @override
-  String get media_labels_names => 'الأسماء';
+  String get media_labels_names => 'الأسماء والحيوانات المحتملة';
 
   @override
-  String get media_labels_allLife => 'كل الكائنات';
+  String get media_labels_allLife => 'كل ما تم اكتشافه';
 
   @override
-  String get media_labels_off => 'إيقاف';
+  String get media_labels_off => 'بلا تسميات';
 
   @override
   String get media_labels_analyse => 'تحليل';
@@ -56798,6 +57292,37 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حُلِّل جزئيًا، عُثر على $count',
+      many: 'حُلِّل جزئيًا، عُثر على $count',
+      few: 'حُلِّل جزئيًا، عُثر على $count',
+      two: 'حُلِّل جزئيًا، عُثر على اثنين',
+      one: 'حُلِّل جزئيًا، عُثر على واحد',
+      zero: 'حُلِّل جزئيًا، لم يُعثر على شيء',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => 'تسميات الأنواع: لم يُحلَّل';
+
+  @override
+  String get media_labels_buttonAnalysing => 'تسميات الأنواع: جارٍ التحليل';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed =>
+      'تسميات الأنواع: حُلِّل جزئيًا';
+
+  @override
+  String get media_labels_buttonOutdated => 'تسميات الأنواع: غير محدَّث';
+
+  @override
+  String get media_labels_buttonAnalysed => 'تسميات الأنواع: حُلِّل';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -56812,7 +57337,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'إظهار كل الكائنات';
+  String get media_labels_showAllLife => 'إظهار كل ما تم اكتشافه';
 
   @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
@@ -56820,6 +57345,69 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get media_species_cropUnavailable =>
       'الصورة غير موجودة على هذا الجهاز';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count في هذه الصورة',
+      many: '$count في هذه الصورة',
+      few: '$count في هذه الصورة',
+      two: '$count في هذه الصورة',
+      one: '$count في هذه الصورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count في هذا الفيديو',
+      many: '$count في هذا الفيديو',
+      few: '$count في هذا الفيديو',
+      two: '$count في هذا الفيديو',
+      one: '$count في هذا الفيديو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أفضل $shown من $count مشاهدة',
+      many: 'أفضل $shown من $count مشاهدة',
+      few: 'أفضل $shown من $count مشاهدة',
+      two: 'أفضل $shown من $count مشاهدة',
+      one: 'أفضل $shown من $count مشاهدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => 'شوهد عند';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start إلى $end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return 'تشغيل من $time';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'صفحة النوع';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'الصورة $index من $count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'موسومة في هذه الصورة';
@@ -57426,6 +58014,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => 'تعذر التحقق الآن';
+
+  @override
+  String get media_info_checkNeedsPassword => 'كلمة المرور مفقودة أو مرفوضة';
 
   @override
   String get media_info_backupQueued => 'في قائمة انتظار الرفع';
@@ -59615,6 +60206,29 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get backup_unrecognized_explanation =>
       'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. لا يمكن حذف سوى ملف كتبه هذا الجهاز هنا: أي ملف آخر قد يكون النسخة الوحيدة لجهاز آخر.';
+
+  @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'هذه الملفات موجودة في مجلد النسخ الاحتياطي لديك لكنها ليست في سجل النسخ الاحتياطي لهذا الجهاز. هذا المجلد خاص بتطبيق Submersion على هذا الجهاز، لذا لا يستخدم أي جهاز آخر هذه الملفات ويمكن حذف أي منها هنا.';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'ربما أنشأ $count ملف محدد جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+      many:
+          'ربما أنشأ $count ملفًا محددًا جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+      few:
+          'ربما أنشأ $count ملفات محددة جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانت تحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+      two:
+          'ربما أنشأ ملفين محددين جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كانا يحتويان على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+      one:
+          'ربما أنشأ ملفًا محددًا واحدًا جهاز آخر أو تثبيت سابق أو إصدار أقدم من تطبيق Submersion. إذا كان يحتوي على غطسات لا تملكها في أي مكان آخر، فستُفقد تلك الغطسات.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty =>
@@ -63478,6 +64092,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'تسجيل الدخول';
 
   @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return 'يحتاج ألبوم الصور $name إلى كلمة المرور على هذا الجهاز.';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction =>
+      'أدخل كلمة المرور';
+
+  @override
   String get settings_setUpDevice_item_reconnectAction => 'إعادة الاتصال';
 
   @override
@@ -64312,6 +64935,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'إزالة الأسطوانات المكررة';
+
+  @override
+  String get changeLog_label_moveMedia => 'نُقلت إلى غطسة أخرى';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'أُلغي الربط من المكتبة';
+
+  @override
+  String get changeLog_label_removeGearPhotos => 'أُزيلت صور المعدات';
 
   @override
   String get changeLog_label_updatePlannedDives => 'تم تحديث الغطسات المخططة';
@@ -67063,4 +67695,101 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'اختر الأرقام المعروضة أعلى الشاشة الرئيسية. يُحذف الرقم الذي ليس لديه ما يعرضه بعد.';
+
+  @override
+  String get dashboard_greeting_morning => 'صباح الخير';
+
+  @override
+  String get dashboard_greeting_afternoon => 'مساء الخير';
+
+  @override
+  String get dashboard_greeting_evening => 'مساء الخير';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting، $name!';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting!';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => 'غوصة واحدة مسجلة';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count غوصات مسجلة';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => 'غوصة واحدة';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count غوصات';
+  }
+
+  @override
+  String get dashboard_hero_error => 'هل أنت مستعد لاستكشاف الأعماق؟';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '$hours ساعات تحت الماء';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'جارٍ تحميل إحصائيات الغوص...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '$minutes دقائق تحت الماء';
+  }
+
+  @override
+  String get dashboard_hero_noDives => 'هل أنت مستعد لتسجيل أول غوصة؟';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'غواص';
+
+  @override
+  String get dashboard_hero_statDives => 'غطسات';
+
+  @override
+  String get dashboard_hero_statHours => 'ساعات';
+
+  @override
+  String get dashboard_hero_statSites => 'مواقع';
+
+  @override
+  String get dashboard_hero_statCountries => 'دول';
+
+  @override
+  String get dashboard_semantics_greetingBanner => 'شعار ترحيب لوحة التحكم';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'إجراءات سريعة';
+
+  @override
+  String get dashboard_quickActions_insights => 'الرؤى';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'الترويسة';
+
+  @override
+  String get settings_homeHeader_phone => 'عرض الهاتف';
+
+  @override
+  String get settings_homeHeader_wide => 'الشاشات الأعرض';
+
+  @override
+  String get settings_homeHeader_compact => 'مضغوط';
+
+  @override
+  String get settings_homeHeader_banner => 'لافتة';
+
+  @override
+  String get settings_homeHeader_description =>
+      'المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.';
 }

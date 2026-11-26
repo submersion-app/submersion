@@ -7,6 +7,8 @@
 // follows the pattern set by `network_fetch_pipeline_test.dart` (real DB +
 // stub extractor) and `trip_media_scanner_test.dart` (hand-rolled fakes
 // rather than Mockito) — both pre-existing in this codebase.
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +17,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
@@ -22,6 +25,7 @@ import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/dive_link_matcher.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
@@ -61,6 +65,31 @@ class _StaticFetcher extends ManifestFetchService {
     if (outcome == null) {
       return const ManifestFetchFailure(message: 'no fixture');
     }
+    return outcome;
+  }
+}
+
+/// [_StaticFetcher] whose answers wait for [_release], so a test can hold a
+/// poll in flight.
+class _GatedFetcher extends _StaticFetcher {
+  _GatedFetcher(this._release, super.outcomes);
+
+  final Future<void> _release;
+
+  @override
+  Future<ManifestFetchOutcome> fetch(
+    Uri url, {
+    ManifestFormat? formatOverride,
+    String? ifNoneMatch,
+    String? ifModifiedSince,
+  }) async {
+    final outcome = super.fetch(
+      url,
+      formatOverride: formatOverride,
+      ifNoneMatch: ifNoneMatch,
+      ifModifiedSince: ifModifiedSince,
+    );
+    await _release;
     return outcome;
   }
 }
@@ -252,6 +281,95 @@ void main() {
     expect(fetcher.calls.single.formatOverride, ManifestFormat.json);
     expect(fetcher.calls.single.ifNoneMatch, isNull);
     expect(fetcher.calls.single.ifModifiedSince, isNull);
+  });
+
+  test('a poll already running is joined, not run a second time', () async {
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: 'https://feed.example.com/m.json',
+      format: ManifestFormat.json,
+    );
+    final release = Completer<void>();
+    final fetcher = _GatedFetcher(release.future, {
+      'https://feed.example.com/m.json': ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/photo1.jpg')]),
+      ),
+    });
+    SubscriptionPoller poller() => SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final now = DateTime.utc(2024, 4, 27, 10);
+
+    // The scheduler's cycle and a Poll now on a second poller (a provider
+    // rebuild makes a new one) reach the same subscription together.
+    final cycle = poller().pollAllDue(now);
+    final manual = poller().pollNow(sub.id, now);
+    await pumpEventQueue();
+    release.complete();
+    await Future.wait([cycle, manual]);
+
+    expect(fetcher.calls, hasLength(1));
+    expect(await mediaRepo.getAllBySubscription(sub.id), hasLength(1));
+    expect((await subscriptions.getById(sub.id))!.lastError, isNull);
+  });
+
+  test('demo mode polls nothing on the timer', () async {
+    await subscriptions.createSubscription(
+      manifestUrl: 'https://feed.example.com/m.json',
+      format: ManifestFormat.json,
+    );
+    final fetcher = _StaticFetcher({});
+    DemoModeGate.instance.markActive(true);
+    addTearDown(() => DemoModeGate.instance.markActive(false));
+    final visited = await SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    ).pollAllDue(DateTime.utc(2024, 4, 27, 10));
+    expect(visited, 0);
+    expect(fetcher.calls, isEmpty);
+  });
+
+  test('a subscription that arrived by sync records its poll', () async {
+    // Sync writes the synced row only; the per-device state row is missing.
+    const id = 'synced-sub';
+    await db
+        .into(db.mediaSubscriptions)
+        .insert(
+          const MediaSubscriptionsCompanion(
+            id: Value(id),
+            manifestUrl: Value('https://feed.example.com/m.json'),
+            format: Value('json'),
+            createdAt: Value(0),
+            updatedAt: Value(0),
+          ),
+        );
+    final fetcher = _StaticFetcher({
+      'https://feed.example.com/m.json': const ManifestFetchFailure(
+        statusCode: 401,
+        message: 'This share needs its password',
+      ),
+    });
+    final now = DateTime.utc(2024, 4, 27, 10);
+    await SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    ).pollAllDue(now);
+
+    final after = await subscriptions.getById(id);
+    expect(after!.lastError, 'This share needs its password');
+    expect(after.nextPollAt, isNotNull);
+    // Recorded, so the next cycle waits out the backoff instead of polling
+    // it again.
+    expect(await subscriptions.listActiveDue(now), isEmpty);
   });
 
   test(
@@ -674,6 +792,246 @@ void main() {
     expect(rows.single.height, 1200);
     // ID is preserved across the patch.
     expect(rows.single.id, firstRow.id);
+  });
+
+  test('a missing file name is filled in, a known one kept', () async {
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: 'https://feed.example.com/m.json',
+      format: ManifestFormat.json,
+      pollIntervalSeconds: 3600,
+    );
+    final fetcher = _StaticFetcher({
+      'https://feed.example.com/m.json': ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/p1.jpg')]),
+        etag: null,
+        lastModified: null,
+      ),
+    });
+    final poller = SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final t0 = DateTime.utc(2024, 4, 27, 10, 0, 0);
+    await poller.pollAllDue(t0);
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.originalFilename,
+      isNull,
+    );
+
+    ManifestFetchSuccess named(String name) => ManifestFetchSuccess(
+      parsed: _parsed([
+        ManifestEntry(
+          entryKey: 'k1',
+          url: 'https://feed.example.com/p1.jpg',
+          takenAt: DateTime.utc(2024, 6, 1, 12, 0, 0),
+          latitude: 1.0,
+          longitude: 2.0,
+          width: 800,
+          height: 600,
+          caption: 'cap',
+          filename: name,
+        ),
+      ]),
+      etag: null,
+      lastModified: null,
+    );
+
+    fetcher._outcomes['https://feed.example.com/m.json'] = named('P1.JPG');
+    await poller.pollAllDue(t0.add(const Duration(hours: 2)));
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.originalFilename,
+      'P1.JPG',
+    );
+
+    // A rename at the source does not overwrite the stored name.
+    fetcher._outcomes['https://feed.example.com/m.json'] = named('renamed.jpg');
+    await poller.pollAllDue(t0.add(const Duration(hours: 4)));
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.originalFilename,
+      'P1.JPG',
+    );
+  });
+
+  test('rows a deleted subscription left behind are taken over, not imported '
+      'again', () async {
+    const feed = 'https://feed.example.com/m.json';
+    final fetcher = _StaticFetcher({
+      feed: ManifestFetchSuccess(
+        parsed: _parsed([
+          _entry('k1', 'https://feed.example.com/photo1.jpg'),
+          _entry('k2', 'https://feed.example.com/photo2.jpg'),
+        ]),
+      ),
+    });
+    SubscriptionPoller pollerFor() => SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final first = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await pollerFor().pollNow(first.id, DateTime.utc(2024, 4, 27, 10));
+    final before = await mediaRepo.getAllBySubscription(first.id);
+    expect(before, hasLength(2));
+    // The old subscription had marked one row missing.
+    await mediaRepo.markOrphaned(before.first.id, true);
+
+    // Deleting a subscription keeps its rows; subscribing again finds them.
+    await subscriptions.deleteById(first.id);
+    final second = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await pollerFor().pollNow(second.id, DateTime.utc(2024, 4, 28, 10));
+
+    final after = await mediaRepo.getAllBySubscription(second.id);
+    expect(after.map((m) => m.id).toSet(), before.map((m) => m.id).toSet());
+    expect(after.map((m) => m.entryKey).toSet(), {'k1', 'k2'});
+    expect(after.every((m) => m.diveId == 'd1'), isTrue);
+    expect(after.every((m) => !m.isOrphaned), isTrue);
+    final all = await mediaRepo.getAllBySourceType(
+      MediaSourceType.manifestEntry,
+    );
+    expect(all, hasLength(2));
+  });
+
+  group('naming a shared album', () {
+    const share = 'https://nas.example.com:5001/mo/sharing/code1';
+
+    Future<ManifestSubscription?> pollOnce(
+      String url, {
+      String? displayName,
+      String? title = 'Dives',
+    }) async {
+      final poller = SubscriptionPoller(
+        subscriptions: subscriptions,
+        mediaRepo: mediaRepo,
+        fetchService: _StaticFetcher({
+          url: ManifestFetchSuccess(
+            parsed: ManifestParseResult(
+              format: ManifestFormat.json,
+              title: title,
+              entries: [_entry('k1', 'https://nas.example.com/p1.jpg')],
+            ),
+          ),
+        }),
+        pipeline: pipeline,
+        diveLinkMatcher: matcher,
+      );
+      final sub = await subscriptions.createSubscription(
+        manifestUrl: url,
+        format: ManifestFormat.json,
+        displayName: displayName,
+      );
+      await poller.pollNow(sub.id, DateTime.utc(2024, 4, 27, 10));
+      return subscriptions.getById(sub.id);
+    }
+
+    test('an unnamed share takes the album name', () async {
+      expect((await pollOnce(share))!.displayName, 'Dives');
+    });
+
+    test('a name the user gave is kept', () async {
+      final sub = await pollOnce(share, displayName: 'Mine');
+      expect(sub!.displayName, 'Mine');
+    });
+
+    test('a feed is not renamed', () async {
+      final sub = await pollOnce('https://feed.example.com/m.json');
+      expect(sub!.displayName, isNull);
+    });
+
+    test('no title, no name', () async {
+      expect((await pollOnce(share, title: null))!.displayName, isNull);
+    });
+  });
+
+  test('a feed that suddenly lists nothing marks nothing missing', () async {
+    const feed = 'https://feed.example.com/m.json';
+    final outcomes = <String, ManifestFetchOutcome>{
+      feed: ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/photo1.jpg')]),
+      ),
+    };
+    final fetcher = _StaticFetcher(outcomes);
+    final poller = SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await poller.pollNow(sub.id, DateTime.utc(2024, 4, 27, 10));
+    expect(await mediaRepo.getAllBySubscription(sub.id), hasLength(1));
+
+    outcomes[feed] = ManifestFetchSuccess(parsed: _parsed(const []));
+    await poller.pollNow(sub.id, DateTime.utc(2024, 4, 28, 10));
+
+    final rows = await mediaRepo.getAllBySubscription(sub.id);
+    expect(rows.single.isOrphaned, isFalse);
+    final after = await subscriptions.getById(sub.id);
+    expect(after!.lastError, contains('listed no entries'));
+  });
+
+  test('an empty feed with nothing imported is a normal poll', () async {
+    const feed = 'https://feed.example.com/m.json';
+    final poller = SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: _StaticFetcher({
+        feed: ManifestFetchSuccess(parsed: _parsed(const [])),
+      }),
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await poller.pollNow(sub.id, DateTime.utc(2024, 4, 27, 10));
+    final after = await subscriptions.getById(sub.id);
+    expect(after!.lastError, isNull);
+    expect(after.lastPolledAt, isNotNull);
+  });
+
+  test('rows of a live subscription are never taken over', () async {
+    const feed = 'https://feed.example.com/m.json';
+    final fetcher = _StaticFetcher({
+      feed: ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/photo1.jpg')]),
+      ),
+    });
+    SubscriptionPoller pollerFor() => SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final first = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    final second = await subscriptions.createSubscription(
+      manifestUrl: feed,
+      format: ManifestFormat.json,
+    );
+    await pollerFor().pollNow(first.id, DateTime.utc(2024, 4, 27, 10));
+    await pollerFor().pollNow(second.id, DateTime.utc(2024, 4, 27, 10));
+
+    expect(await mediaRepo.getAllBySubscription(first.id), hasLength(1));
+    expect(await mediaRepo.getAllBySubscription(second.id), hasLength(1));
   });
 }
 

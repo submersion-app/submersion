@@ -183,7 +183,7 @@ class KeyNumbersPanel extends ConsumerWidget {
           onTap: () => context.push('/dives'),
         );
       case HomeKeyNumber.timeUnder:
-        final hours = _hours(n.careerTimeSeconds);
+        final hours = formatHomeHours(n.careerTimeSeconds);
         final yearSeconds = n.timeThisYearSeconds;
         return _Tile(
           title: l10n.dashboard_key_timeUnder,
@@ -192,7 +192,7 @@ class KeyNumbersPanel extends ConsumerWidget {
           unit: l10n.dashboard_key_hoursUnit,
           comparison: (yearSeconds ?? 0) == 0
               ? null
-              : l10n.dashboard_key_hoursThisYear(_hours(yearSeconds!)),
+              : l10n.dashboard_key_hoursThisYear(formatHomeHours(yearSeconds!)),
           semantics: '$hours ${l10n.dashboard_key_hoursUnit}',
           onTap: () => context.push('/dives'),
         );
@@ -316,8 +316,9 @@ class KeyNumbersPanel extends ConsumerWidget {
 /// Hours from [seconds]: a decimal under ten, so a first 45-minute dive is
 /// not "0", and whole hours from there. The choice is made on the value as
 /// rounded for display, so 9.97 hours reads "10", not "10.0". In the
-/// locale's decimal separator.
-String _hours(int seconds) {
+/// locale's decimal separator. Shared with the welcome banner so the two
+/// never disagree on one screen.
+String formatHomeHours(int seconds) {
   final exact = seconds / 3600;
   final tenths = (exact * 10).round() / 10;
   // Whole hours count down (10.9 is "10"), but never below the ten the

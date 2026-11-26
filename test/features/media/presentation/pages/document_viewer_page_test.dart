@@ -91,11 +91,11 @@ Widget _editableHost(MediaItem item, {String? editableSiteId}) => ProviderScope(
 );
 
 void main() {
-  // Issue #1039: a site's PDF can be categorized from its viewer; a dive's
-  // or a piece of gear's cannot, so the action needs a site id to appear.
-  testWidgets('Edit details shows only with an editable site id', (
-    tester,
-  ) async {
+  // A site's PDF has its own lock (issue #4527): locked, it offers no Edit
+  // details, so nothing is written past the lock; a dive's or a piece of
+  // gear's never did.
+  testWidgets('a PDF offers no Edit details while locked, a site\'s or a '
+      'dive\'s', (tester) async {
     final doc = _doc(originalFilename: 'reef-map.pdf');
     await tester.pumpWidget(_editableHost(doc));
     await tester.pumpAndSettle();
@@ -103,32 +103,7 @@ void main() {
 
     await tester.pumpWidget(_editableHost(doc, editableSiteId: 'site-1'));
     await tester.pumpAndSettle();
-    expect(find.byTooltip('Edit details'), findsOneWidget);
-  });
-
-  testWidgets('a second Edit details opens on the saved category', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _editableHost(
-        _doc(originalFilename: 'reef-map.pdf'),
-        editableSiteId: 'site-1',
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Edit details'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Uncategorized'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Parking').last);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byTooltip('Edit details'));
-    await tester.pumpAndSettle();
-    expect(find.text('Parking'), findsOneWidget);
-    expect(find.text('Uncategorized'), findsNothing);
+    expect(find.byTooltip('Edit details'), findsNothing);
   });
 
   testWidgets('unavailable document shows the unavailable state', (

@@ -31,16 +31,7 @@ class RecordEditController<T> extends ChangeNotifier {
     this.onStart,
     this.reread,
     this.creating = false,
-    this.relayoutCardIds = const {},
   });
-
-  /// The cards whose opening or closing lays the page out afresh, which
-  /// builds the other open cards again: the trip page's header block
-  /// (issue #4844). A card rebuilt that way loses text it could not read,
-  /// and with it the mark that refuses the Save, so such a card does not
-  /// open or close while another card holds unreadable input; that card is
-  /// shown instead.
-  final Set<String> relayoutCardIds;
 
   /// Whether this controller's sittings create their record (issue #4527):
   /// the stored record is a seed ([EditSession.isNew]). A clean sitting has
@@ -219,20 +210,6 @@ class RecordEditController<T> extends ChangeNotifier {
   void _requestRevealOfInvalid(String cardId) =>
       _requestReveal(cardId, fieldId: _invalidFields[cardId]?.first);
 
-  /// Whether opening or closing [cardId] is refused because it lays the
-  /// page out afresh while another card holds unreadable input
-  /// ([relayoutCardIds]). When it is, that card is asked to show itself.
-  bool _refusedRelayout(String cardId) {
-    if (!relayoutCardIds.contains(cardId)) return false;
-    for (final other in _invalidFields.keys) {
-      if (other == cardId) continue;
-      _requestRevealOfInvalid(other);
-      notifyListeners();
-      return true;
-    }
-    return false;
-  }
-
   /// Starts a sitting on [stored]. Each card of [laidOut] is open from the
   /// first notification, brought in as [addCard] brings a card in but not
   /// scrolled to: a new record's starter cards (issue #4527).
@@ -297,7 +274,6 @@ class RecordEditController<T> extends ChangeNotifier {
     final session = _session;
     if (session == null || isBusy) return;
     if (_openCardIds.contains(cardId)) return;
-    if (_refusedRelayout(cardId)) return;
     _holdLayoutFor(session);
     _openCardIds.add(cardId);
     _toldRevisions[cardId] = session.revisionOf(cardId);
@@ -320,7 +296,6 @@ class RecordEditController<T> extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    if (_openCardIds.contains(cardId) && _refusedRelayout(cardId)) return;
     final wasOpen = _openCardIds.remove(cardId);
     final wasAdded =
         !session.changedCardIds.contains(cardId) &&

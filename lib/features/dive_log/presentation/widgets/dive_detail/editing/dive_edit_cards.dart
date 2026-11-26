@@ -118,8 +118,7 @@ RecordCardFadeReason? diveCardFadeReason(DiveDetailSectionId id) =>
       DiveDetailSectionId.decoStatus ||
       DiveDetailSectionId.tissueLoading ||
       DiveDetailSectionId.sacSegments ||
-      DiveDetailSectionId.tide ||
-      DiveDetailSectionId.buoyancy => RecordCardFadeReason.calculated,
+      DiveDetailSectionId.tide => RecordCardFadeReason.calculated,
       DiveDetailSectionId.health ||
       DiveDetailSectionId.surfaceGps => RecordCardFadeReason.imported,
       _ => null,

@@ -91,7 +91,8 @@ void main() {
   });
 
   test('trip cards know their tab', () {
-    expect(TripCardId.header.tab, isNull);
+    // With the rest of the trip summary, not on every tab (issue #4927).
+    expect(TripCardId.header.tab, TripDetailTab.overview);
     expect(TripCardId.packedGear.tab, TripDetailTab.gear);
     expect(TripCardId.cylinders.tab, TripDetailTab.gear);
     expect(TripCardId.checklists.tab, TripDetailTab.checklist);

@@ -230,6 +230,125 @@ void main() {
     );
   });
 
+  // Issue #4960: a single-source dive holding the computer's recording and an
+  // older copy of the same source with no computer, each a root revision.
+  group('activating the computer recording over a computer-less copy', () {
+    const recordingSamples = [
+      ProfileSample(timestamp: 0, depth: 0.0),
+      ProfileSample(timestamp: 4, depth: 20.0),
+      ProfileSample(timestamp: 8, depth: 0.0),
+    ];
+    const copySamples = [
+      ProfileSample(timestamp: 2, depth: 0.0),
+      ProfileSample(timestamp: 6, depth: 18.0),
+      ProfileSample(timestamp: 10, depth: 0.0),
+    ];
+
+    Future<String> seedAndActivateRecording() async {
+      await insertComputer('dc-a');
+      await insertDataSource(id: 'src-a', computerId: 'dc-a', isPrimary: true);
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'dive-1',
+        sourceId: 'src-a',
+        samples: copySamples,
+        now: now,
+      );
+      final recordingId = await ProfileSeriesRepository().insertSeries(
+        diveId: 'dive-1',
+        computerId: 'dc-a',
+        sourceId: 'src-a',
+        isPrimary: false,
+        samples: recordingSamples,
+        now: now,
+      );
+      await repository.setActiveProfileSeries('dive-1', recordingId);
+      return recordingId;
+    }
+
+    test('getDiveById draws only the active recording', () async {
+      final recordingId = await seedAndActivateRecording();
+
+      final primaries = await (db.select(
+        db.diveProfileSeries,
+      )..where((t) => t.isPrimary.equals(true))).get();
+      expect(primaries.map((r) => r.id), [recordingId]);
+
+      final dive = await repository.getDiveById('dive-1');
+      expect(asPairs(dive!.profile), [(0, 0.0), (4, 20.0), (8, 0.0)]);
+    });
+
+    test('the merged reads agree with getDiveById', () async {
+      await seedAndActivateRecording();
+
+      final merged = await repository.getMergedProfile('dive-1');
+      final batched = await repository.getMergedProfilesForDives(['dive-1']);
+
+      expect(asPairs(merged), [(0, 0.0), (4, 20.0), (8, 0.0)]);
+      expect(asPairs(batched['dive-1']!), asPairs(merged));
+    });
+  });
+
+  group('a second source recorded with no computer', () {
+    Future<void> seedTwoSources() async {
+      await insertComputer('dc-a');
+      await insertDataSource(id: 'src-a', computerId: 'dc-a', isPrimary: true);
+      await insertDataSource(id: 'src-b', computerId: null, isPrimary: false);
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'dive-1',
+        computerId: 'dc-a',
+        sourceId: 'src-a',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0.0),
+          ProfileSample(timestamp: 4, depth: 20.0),
+          ProfileSample(timestamp: 8, depth: 0.0),
+        ],
+        now: now,
+      );
+      // Second sources are always stored demoted.
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'dive-1',
+        sourceId: 'src-b',
+        isPrimary: false,
+        samples: const [
+          ProfileSample(timestamp: 1, depth: 0.5),
+          ProfileSample(timestamp: 5, depth: 19.5),
+        ],
+        now: now,
+      );
+    }
+
+    test('keeps its samples beside the primary recording', () async {
+      await seedTwoSources();
+
+      final dive = await repository.getDiveById('dive-1');
+
+      expect(asPairs(dive!.profile), [
+        (0, 0.0),
+        (1, 0.5),
+        (4, 20.0),
+        (5, 19.5),
+        (8, 0.0),
+      ]);
+    });
+
+    test('keeps its samples after the primary is edited', () async {
+      await seedTwoSources();
+      await repository.saveEditedProfile('dive-1', const [
+        DiveProfilePoint(timestamp: 0, depth: 0.0),
+        DiveProfilePoint(timestamp: 4, depth: 20.0),
+      ]);
+
+      final dive = await repository.getDiveById('dive-1');
+
+      expect(asPairs(dive!.profile), [
+        (0, 0.0),
+        (1, 0.5),
+        (4, 20.0),
+        (5, 19.5),
+      ]);
+    });
+  });
+
   group('non-edited reads are unchanged', () {
     test(
       'a second computer keeps its samples after the primary is edited',

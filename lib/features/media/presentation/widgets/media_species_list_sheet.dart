@@ -10,23 +10,30 @@ import 'package:submersion/features/species_id/presentation/providers/recorded_n
 
 /// Every species on a locked photo or video, from its "+N" chip (issue
 /// #4825): the one line under the viewer shows only what fits. A tag opens
-/// its species page; a suggestion is shown and waits for the unlock.
+/// its crops on this item (issue #5024); a suggestion is shown and waits
+/// for the unlock.
 Future<void> showMediaSpeciesListSheet(
   BuildContext context,
   MediaItem item, {
   EditSession<PhotoRecord>? sitting,
+  ValueChanged<Duration>? onMoment,
 }) => showModalBottomSheet<void>(
   context: context,
   useSafeArea: true,
   isScrollControlled: true,
-  builder: (_) => _MediaSpeciesList(item: item, sitting: sitting),
+  builder: (_) =>
+      _MediaSpeciesList(item: item, sitting: sitting, onMoment: onMoment),
 );
 
 class _MediaSpeciesList extends ConsumerWidget {
-  const _MediaSpeciesList({required this.item, this.sitting});
+  const _MediaSpeciesList({required this.item, this.sitting, this.onMoment});
 
   final MediaItem item;
   final EditSession<PhotoRecord>? sitting;
+
+  /// Plays the video from a time tapped on a species' crop sheet, once
+  /// this list has closed too (issue #5032).
+  final ValueChanged<Duration>? onMoment;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,8 +78,14 @@ class _MediaSpeciesList extends ConsumerWidget {
               ref,
               item.id,
               sitting,
-              openUnconfirmed: true,
               nearbyRequest: nearbyRequestForMedia(item),
+              cropsOf: item,
+              onMoment: onMoment == null
+                  ? null
+                  : (at) {
+                      Navigator.of(context).pop();
+                      onMoment!(at);
+                    },
             ),
           ),
         ],

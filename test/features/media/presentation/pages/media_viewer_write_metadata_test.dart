@@ -26,7 +26,13 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/fake_photo_picker_service.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/marine_life_id_off.dart';
+
+/// Rounds of 20 ms of real time, so about five seconds before a wait fails:
+/// room for a machine running many test bundles at once.
+const _maxRealAsyncRounds = 250;
 
 class _UnavailableResolver implements MediaSourceResolver {
   @override
@@ -99,6 +105,11 @@ MediaItem item({
 );
 
 void main() {
+  // The page is built inside runAsync, so the viewer's wait before it asks
+  // for marine life analysis runs on real time, and on a Linux runner the
+  // labels ring then outlasts a pumpAndSettle (issue #4949).
+  turnOffMarineLifeIdForEachTest();
+
   const channel = MethodChannel('com.submersion.app/metadata');
   late SharedPreferences prefs;
   late List<MethodCall> nativeCalls;
@@ -128,6 +139,14 @@ void main() {
         .setMockMethodCallHandler(channel, null);
     await tearDownTestDatabase();
   });
+
+  /// The viewer has its item: the toolbar is up, the stored photo has been
+  /// read (only then is its unlock offered), and no loading spinner is left
+  /// to keep a ticker running under a later pumpAndSettle.
+  bool viewerLoaded() =>
+      find.byType(MediaViewerToolbar).evaluate().isNotEmpty &&
+      find.byKey(const ValueKey('viewer_unlock')).evaluate().isNotEmpty &&
+      find.byType(CircularProgressIndicator).evaluate().isEmpty;
 
   Future<void> pump(
     WidgetTester tester,
@@ -163,11 +182,16 @@ void main() {
           ),
         ),
       );
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      await tester.pump();
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      await tester.pump();
     });
+    // Loading the item is real async work (asset resolution, the photo
+    // record, the media row), so wait for its end rather than a fixed slice
+    // of real time, which a loaded machine can outrun (issue #4937).
+    await pumpUntilRealAsync(
+      tester,
+      viewerLoaded,
+      maxRounds: _maxRealAsyncRounds,
+      reason: 'the viewer to load its item',
+    );
   }
 
   /// Opens the write's confirmation. Writing to the file is a whole-record
@@ -183,14 +207,22 @@ void main() {
   }
 
   /// The write runs over a real platform channel, so it needs the real event
-  /// loop rather than the fake test clock.
+  /// loop rather than the fake test clock. Every way it ends drops its
+  /// spinner and shows a SnackBar, so that pair is what is waited for, not a
+  /// fixed slice of real time (issue #4937). No spinner alone would hold
+  /// before the write's spinner is first shown.
   Future<void> confirmWrite(WidgetTester tester) async {
     await tester.runAsync(() async {
       await tester.tap(find.text('Write'));
-      await Future<void>.delayed(const Duration(milliseconds: 150));
     });
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await pumpUntilRealAsync(
+      tester,
+      () =>
+          find.byType(SnackBar).evaluate().isNotEmpty &&
+          find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      maxRounds: _maxRealAsyncRounds,
+      reason: 'the write to finish',
+    );
   }
 
   testWidgets('the action is offered when the item has dive data', (

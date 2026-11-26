@@ -9,12 +9,16 @@ The Dashboard is your home screen: a dense, at-a-glance view of your diving, the
 
 ## Header
 
-A slim bar across the top holds:
+Home has two header styles. You choose one for phone-sized screens and one for wider screens in **Settings > Appearance > Home** (see [Customizing the Dashboard](#customizing-the-dashboard)). **Compact** is the default.
+
+**Compact** is a slim bar across the top that holds:
 
 - a **+** button for the quick actions (see below),
 - the **status lights** (see below),
-- when you have more than one [diver profile](diver-profile.md), your avatar. Tap it to switch diver,
+- your [diver profile](diver-profile.md) avatar. Tap it to switch diver or add another,
 - and the Submersion logo at the end of the bar. Tap it for **About Submersion**: the version you are running and when it was built.
+
+**Banner** is the welcome banner: an animated ocean with a greeting for the time of day, your name, and your dive and hour totals. On a wider screen it also shows your dives, hours, sites and countries. Your avatar and the Submersion logo sit at either end of it and work as in the compact bar. Under the banner, a thin row holds the **+** button and the status lights. The banner scrolls away with the page, and the row stays at the top.
 
 Tap **+** for the **quick actions**:
 
@@ -23,7 +27,7 @@ Tap **+** for the **quick actions**:
 - **Swap with a buddy** (not in a web browser),
 - and the **Emergency card** (hotlines, chambers and your medical details; see [Safety](safety.md)).
 
-On a phone the status lights sit in a strip under the bar.
+On a phone the status lights sit in a strip under the bar, or in the row under the banner.
 
 ## Status lights
 
@@ -75,6 +79,7 @@ Tap any panel to open the full screen behind it.
 | **Recent sites** | A map of the sites you dived most recently. |
 | **On this day** | A dive you made on today's date in an earlier year. |
 | **Checklists**, **Courses in progress**, **Waiting for download** | Your pre-dive and trip checklists, courses under way, and logged dives waiting for your dive computer. |
+| **Quick Actions** | Large buttons for **Log Dive**, **Plan Dive**, **Swap with a buddy** (not in a web browser), **Insights**, **Tracks** and the **Emergency card**. Off in every layout; switch it on under **Panels**. |
 
 **Next trip**, **Species seen lately**, **Recent media**, **Recent sites**, **On this day**, **Checklists**, **Courses in progress** and **Waiting for download** appear only when they have something to show, so a layout never has empty boxes.
 
@@ -97,11 +102,12 @@ There are four ready-made layouts:
 
 Open **Settings > Appearance > Home**:
 
+- **Header**: choose **Compact** or **Banner** for **Phone width** and for **Wider screens**. A window you resize switches between the two as it crosses phone width.
 - **Layout**: pick one of the four layouts. If you have changed the panels yourself, you are asked before your arrangement is replaced.
 - **Panels**: show or hide each panel, and drag to reorder them. Changing them makes the layout your own. Tap **Key numbers** to choose which numbers it shows. **Reset to default** returns to the Balanced layout.
 - **Status chips**: turn each status light on or off.
 
-These choices are kept on each device, so your phone and your computer can use different layouts. If you hide every panel, the Dashboard says so and offers **Customize Home** to bring them back.
+These choices are kept on each device, so your phone and your computer can use different headers and layouts. If you hide every panel, the Dashboard says so and offers **Customize Home** to bring them back.
 
 > [!TIP]
 > Keep your equipment service dates and insurance expiry up to date in [Equipment](equipment.md) and [Diver Profile](diver-profile.md), so the lights can warn you before a deadline passes.

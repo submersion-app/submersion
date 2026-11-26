@@ -292,4 +292,40 @@ void main() {
       expect(state.isLoadingMore, isFalse);
     });
   });
+
+  // Select All loads the rest of the list (#5022): a query changed while that
+  // load waits its turn must not be paged on from the old query's cursor.
+  group('PaginatedDiveListNotifier.loadRest', () {
+    test('reads nothing once the query changes before its turn', () async {
+      final diverId = await setUpCurrentDiver();
+      await seedDives(diverId, 300);
+      // The first page is read 1; the page load ahead of loadRest is read 2.
+      final repository = _CountingRepository(diveRepo, gateCall: 2);
+      final container = makeContainer(repository: repository);
+      await firstPage(container);
+      final notifier = container.read(paginatedDiveListProvider.notifier);
+
+      final page = notifier.loadNextPage();
+      await repository.gateReached.future;
+      final rest = notifier.loadRest();
+      container.read(diveFilterProvider.notifier).state = DiveFilterState(
+        query: TextNode(['reef']),
+      );
+      repository.release.complete();
+      await page;
+      await rest;
+      final reloaded = await firstPage(container);
+      while (container
+              .read(paginatedDiveListProvider)
+              .value!
+              .unfilteredTotalCount ==
+          null) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // The page, then the new query's own reload: no read in between.
+      expect(repository.summaryCalls, 3);
+      expect(reloaded.dives, isNotEmpty);
+    });
+  });
 }

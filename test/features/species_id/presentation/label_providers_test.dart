@@ -362,13 +362,29 @@ void main() {
       expect(s.found, 1);
     });
 
-    test('partial when another pack analysed it', () async {
+    test('out of date, not part analysed, when another pack analysed it '
+        '(issue #4958)', () async {
       await repository.storeRun(
         currentRun('m1').copyWith(packVersion: 'older'),
         insert: const [],
         deleteIds: const [],
       );
-      expect((await status(item('m1'))).state, MediaAnalysisState.partial);
+      expect((await status(item('m1'))).state, MediaAnalysisState.outdated);
+    });
+
+    test('a video scanned to its end by another pack is out of date, not '
+        'part analysed (issue #4958)', () async {
+      final video = item('v1', type: MediaType.video);
+      await repository.storeRun(
+        currentRun('v1', video: true).copyWith(
+          packVersion: 'older',
+          scannedMs: () => 25000,
+          videoDurationMs: () => 25000,
+        ),
+        insert: const [],
+        deleteIds: const [],
+      );
+      expect((await status(video)).state, MediaAnalysisState.outdated);
     });
 
     test(

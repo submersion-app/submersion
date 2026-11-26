@@ -12,7 +12,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -133,13 +133,13 @@ ProviderContainer profileContainer(WidgetTester tester) =>
     ProviderScope.containerOf(tester.element(find.byType(Navigator).first));
 
 /// The bar's action labelled [label] (Cancel or Save).
-AppBarTextAction barAction(WidgetTester tester, String label) => tester
-    .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+RecordEditAction barAction(WidgetTester tester, String label) => tester
+    .widgetList<RecordEditAction>(find.byType(RecordEditAction))
     .firstWhere((a) => a.label == label);
 
 /// Taps the bar's [label] action and settles.
 Future<void> tapBar(WidgetTester tester, String label) async {
-  await tester.tap(find.widgetWithText(AppBarTextAction, label));
+  await tester.tap(find.widgetWithText(RecordEditAction, label));
   await tester.pumpAndSettle();
 }
 

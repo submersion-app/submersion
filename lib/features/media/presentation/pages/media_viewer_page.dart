@@ -39,9 +39,11 @@ import 'package:submersion/features/media/presentation/helpers/set_time_seed.dar
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/network_video_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
+import 'package:submersion/features/media/presentation/widgets/motion_photo_layer.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/draggable_perdix_overlay.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
@@ -88,6 +90,7 @@ part 'media_viewer_actions.dart';
 part 'media_viewer_bottom_metadata.dart';
 part 'media_viewer_chrome.dart';
 part 'media_viewer_gallery.dart';
+part 'media_viewer_keyboard.dart';
 part 'media_viewer_perdix.dart';
 part 'media_viewer_video_item.dart';
 part 'media_viewer_write_metadata.dart';
@@ -117,12 +120,17 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// a gear photo backs up (issue #3355); null or an empty result shows none.
   final String? Function(MediaItem)? captionFor;
 
+  /// Where the initial item starts when it is a video: a species crop's
+  /// moment (issue #5027). Applied once, to that item only.
+  final Duration? initialVideoPosition;
+
   const MediaViewerPage({
     super.key,
     required this.mediaList,
     required this.initialMediaId,
     this.showGoToDive = false,
     this.captionFor,
+    this.initialVideoPosition,
   });
 
   @override
@@ -227,8 +235,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     } else {
       watchVideoPlayState(controller);
       setState(() => _videoControllers[mediaId] = controller);
+      final start = widget.initialVideoPosition;
+      if (start != null && !_startApplied && mediaId == widget.initialMediaId) {
+        _startApplied = true;
+        unawaited(controller.seekTo(start));
+      }
     }
   }
+
+  /// Whether [MediaViewerPage.initialVideoPosition] has been applied.
+  bool _startApplied = false;
 
   /// Resolves the live record for the item on screen when the caller passed a
   /// lean one.
@@ -324,55 +340,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
     );
-  }
-
-  /// Keyboard navigation for pointer platforms: arrows page, Escape closes.
-  ///
-  /// This node is an ancestor of the video item's own [Focus], which handles
-  /// only the space bar and returns [KeyEventResult.ignored] for everything
-  /// else, so arrows keep working while a video holds focus. Arrow presses are
-  /// reported handled even at the ends of the list, which keeps them from
-  /// falling through to default directional focus traversal.
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-      return KeyEventResult.ignored;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-      _step(-1);
-      return KeyEventResult.handled;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-      _step(1);
-      return KeyEventResult.handled;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.escape) {
-      // Escape backs out one step at a time: in a sitting, Pick white and
-      // the colour panel first (issue #4527), then people tag mode.
-      if (photoUnlocked && pickingWhite) {
-        togglePickWhite();
-        return KeyEventResult.handled;
-      }
-      if (photoUnlocked && colorPanelOpen) {
-        closeColorEditing();
-        return KeyEventResult.handled;
-      }
-      if (taggingPeople) {
-        togglePeopleTagging();
-        return KeyEventResult.handled;
-      }
-      // While unlocked, Escape is Cancel: the viewer stays open.
-      if (photoUnlocked) {
-        unawaited(cancelPhotoSitting());
-        return KeyEventResult.handled;
-      }
-      if (isFullscreen) {
-        exitFullscreen();
-      } else {
-        Navigator.of(context).maybePop();
-      }
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
   }
 
   @override
@@ -577,6 +544,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                             child: const SizedBox.expand(),
                           ),
                         ),
+                      ),
+
+                    // Above the tap target, which would take its taps.
+                    if (!currentItem.isVideo)
+                      MotionPhotoOverlay(
+                        item: currentItem,
+                        enabled: !pickingWhite && !taggingPeople,
+                        showButton: isFullscreen
+                            ? fullscreenControlsVisible
+                            : _showOverlay || photoUnlocked,
                       ),
 
                     // "Pick white" on a paused video: the player owns ordinary

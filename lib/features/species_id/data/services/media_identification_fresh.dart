@@ -69,5 +69,7 @@ extension _FreshRuns on MediaIdentificationService {
       for (final c in changed)
         if (written.contains(c.id)) c,
     ]);
+    // Newly named tracks bring their crops into the synced few (#5032).
+    if (changed.any((c) => c.isTrack)) await _capper.cap(run.mediaId);
   }
 }

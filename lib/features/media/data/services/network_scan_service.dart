@@ -20,6 +20,8 @@ import 'package:submersion/features/media/data/repositories/manifest_subscriptio
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/host_rate_limiter.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
+import 'package:submersion/features/media/data/synology/synology_api.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/network_scan_progress.dart';
@@ -193,16 +195,17 @@ class NetworkScanService {
             uri,
             headers: {...headers, 'Range': 'bytes=0-0'},
           );
-          return _verdictFor(getResp.statusCode);
+          return _verdictForResponse(uri, getResp);
         }
-        return _verdictFor(headResp.statusCode);
+        return _verdictForResponse(uri, headResp);
       });
 
       await _persistResult(row, verdict);
       return verdict == _ScanVerdict.reachable;
     } catch (e, st) {
+      // The host, never the URL: a shared album's URL carries its code.
       _log.warning(
-        'Scan failed for media ${row.id} (${row.url}): $e',
+        'Scan failed for media ${row.id} (${uri.host}): $e',
         stackTrace: st,
       );
       try {
@@ -253,6 +256,18 @@ class NetworkScanService {
     // an empty map — the request goes through without auth.
     final headers = await _credentials.headersFor(uri);
     return headers ?? const <String, String>{};
+  }
+
+  /// [_verdictFor], except that a Synology share's JSON answer proves
+  /// nothing: the share reports every error (a lost session, a deleted item)
+  /// as HTTP 200 with a JSON body. The subscription poll, not this scan,
+  /// orphans rows that left the album.
+  _ScanVerdict _verdictForResponse(Uri uri, http.BaseResponse response) {
+    if (SynologyShareLink.tryParseApiUri(uri) != null &&
+        isSynologyJsonResponse(response.headers['content-type'])) {
+      return _ScanVerdict.inconclusive;
+    }
+    return _verdictFor(response.statusCode);
   }
 
   bool _isHeadUnsupported(int code) =>

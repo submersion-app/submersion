@@ -186,7 +186,7 @@ void main() {
       expect(find.text('Bailout'), findsNothing);
     });
 
-    testWidgets('already in Bailout view, the chips stay as the way back', (
+    testWidgets('already in Bailout view, the chip stays as the way back', (
       tester,
     ) async {
       final container = await _mount(
@@ -197,7 +197,7 @@ void main() {
       );
       expect(find.text('Bailout'), findsOneWidget);
 
-      await tester.tap(find.text('CCR'));
+      await tester.tap(find.text('Bailout'));
       await tester.pumpAndSettle();
 
       expect(container.read(chartDisplayModeProvider), ChartDisplayMode.ccr);
