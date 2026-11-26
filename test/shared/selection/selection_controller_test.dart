@@ -347,6 +347,30 @@ void main() {
       },
     );
 
+    test('selectAllAfterLoading keeps a check made mid-load', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      final load = Completer<List<String>>();
+      final done = controller.selectAllAfterLoading(() => load.future);
+      // The diver checks one row while the rest of the list loads.
+      controller.toggle('a');
+      load.complete(['a', 'b', 'c']);
+      await done;
+      expect(controller.value.checkedIds, {'a'});
+    });
+
+    test('selectAllAfterLoading still checks all through a prune', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      controller.toggle('a');
+      final load = Completer<List<String>>();
+      final done = controller.selectAllAfterLoading(() => load.future);
+      controller.pruneTo(const ['a', 'b']);
+      load.complete(['a', 'b']);
+      await done;
+      expect(controller.value.checkedIds, {'a', 'b'});
+    });
+
     test('selectAllAfterLoading does nothing once disposed mid-load', () async {
       final controller = SelectionController();
       controller.enterExplicit();

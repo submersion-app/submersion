@@ -92,6 +92,9 @@ void main() {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
+        // Pinned: these assertions read English labels and type dates in
+        // the English date picker's format.
+        locale: const Locale('en'),
         overrides: [
           ...base,
           diveListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),

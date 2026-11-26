@@ -67,14 +67,22 @@ class _SeededLibraryNotifier extends StateNotifier<MediaLibraryState>
 /// holds every row past its loaded pages.
 class _PagedLibraryNotifier extends StateNotifier<MediaLibraryState>
     implements MediaLibraryNotifier {
+  /// [loading] starts as a new filter's notifier does: page one queued,
+  /// with no rows and no cursor.
   _PagedLibraryNotifier({
     required List<MediaLibraryEntry> loaded,
     required this.rest,
+    bool loading = false,
   }) : super(
-         MediaLibraryState(
-           entries: loaded,
-           nextCursor: MediaLibraryCursor(sortKey: 0, id: loaded.last.item.id),
-         ),
+         loading
+             ? const MediaLibraryState(isLoading: true)
+             : MediaLibraryState(
+                 entries: loaded,
+                 nextCursor: MediaLibraryCursor(
+                   sortKey: 0,
+                   id: loaded.last.item.id,
+                 ),
+               ),
        );
 
   final List<MediaLibraryEntry> rest;
@@ -244,6 +252,23 @@ void main() {
 
     expect(notifier.restLoads, 1);
     expect(find.text('3 selected'), findsOneWidget);
+  });
+
+  // A new filter's page one is queued, with no cursor yet: its rows are part
+  // of "all", so the load waits for them rather than answering with none.
+  test('loading every id waits for a first page still loading', () async {
+    final notifier = _PagedLibraryNotifier(
+      loaded: const [],
+      rest: [_entry('a'), _entry('b')],
+      loading: true,
+    );
+    final container = ProviderContainer(
+      overrides: [mediaLibraryNotifierProvider.overrideWith((ref) => notifier)],
+    );
+    addTearDown(container.dispose);
+
+    expect(await loadAllLibraryIds(container), ['a', 'b']);
+    expect(notifier.restLoads, 1);
   });
 
   group('with the toolbar in the desktop header (#4777)', () {

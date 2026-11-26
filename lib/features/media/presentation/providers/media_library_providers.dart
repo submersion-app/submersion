@@ -169,7 +169,11 @@ final mediaLibraryNotifierProvider =
 /// the diver's checks. The old query's ids are pruned once the new rows land.
 Future<List<String>> loadAllLibraryIds(ProviderContainer container) async {
   final state = container.read(mediaLibraryNotifierProvider);
-  if (!state.hasMore) return [for (final entry in state.entries) entry.item.id];
+  // Page one of a new filter or sort is still queued: it has no cursor yet,
+  // but the rows it brings are part of "all", and loadRest waits for them.
+  if (!state.hasMore && !state.isLoading) {
+    return [for (final entry in state.entries) entry.item.id];
+  }
   return container.read(mediaLibraryNotifierProvider.notifier).loadRest();
 }
 
