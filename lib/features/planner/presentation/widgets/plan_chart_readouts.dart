@@ -21,9 +21,6 @@ import 'package:submersion/features/planner/domain/services/plan_issue_grouping.
 ///
 /// Renders a [Positioned.fill], so it must be a direct child of the chart
 /// [Stack].
-///
-/// Says in [phoneStopListFitsProvider] whether its stop list has room for a
-/// row, so the chart tags the stops itself when it has not.
 class PlanChartReadouts extends ConsumerWidget {
   const PlanChartReadouts({super.key, required this.onIssuesTap});
 
@@ -46,8 +43,6 @@ class PlanChartReadouts extends ConsumerWidget {
     final bottomClearance = bottomClearanceFor(
       MediaQuery.textScalerOf(context),
     );
-    void reportStopListFit(bool fits) =>
-        ref.read(phoneStopListFitsProvider.notifier).state = fits;
     final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
 
@@ -188,7 +183,6 @@ class PlanChartReadouts extends ConsumerWidget {
                                   topGap: 3,
                                   // Less the inset this overlay already has.
                                   bottomReserve: bottomClearance - 8,
-                                  onFitChanged: reportStopListFit,
                                   formatDepth: (m) =>
                                       units.formatDepth(m, decimals: 0),
                                 ),
@@ -221,8 +215,3 @@ class PlanChartReadouts extends ConsumerWidget {
     );
   }
 }
-
-/// Whether the phone readouts' stop list has room for at least one row. When
-/// it has not (a short chart with an issues pill), the chart tags the stops
-/// on the profile as it did before the list, rather than showing none.
-final phoneStopListFitsProvider = StateProvider<bool>((ref) => true);
