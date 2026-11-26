@@ -970,6 +970,31 @@ void main() {
       expect(item.isSatisfied, isTrue);
     });
 
+    test('ccrHours leaves out a dive with only a bottom time', () async {
+      // Bottom time is derived from a depth threshold, so it never counts
+      // as runtime (#3304).
+      await _seedDiverAndCourse();
+      await seedCcrDive('ccr-1', 3600);
+      await _seedDive('bottom-only');
+      await DatabaseService.instance.database.customStatement(
+        "UPDATE dives SET dive_mode = 'ccr', runtime = NULL, "
+        'entry_time = NULL, exit_time = NULL, bottom_time = 5400 '
+        "WHERE id = 'bottom-only'",
+      );
+      await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'CCR time',
+        kind: RequirementKind.ccrHours,
+        targetCount: 2,
+      );
+
+      final item = (await repository.getCourseProgress(
+        'course-1',
+      )).requirements.single;
+      expect(item.derivedAmount, 60);
+      expect(item.isSatisfied, isFalse);
+    });
+
     test('ccrHours on one rebreather ignores other units', () async {
       await _seedDiverAndCourse();
       final db = DatabaseService.instance.database;

@@ -100,6 +100,21 @@ void main() {
     expect(rows.single.linkedDives.single.diveId, 'v1');
   });
 
+  test('retyping a credited dive requirement as derived drops its credits', () {
+    for (final kind in [RequirementKind.ccrHours, RequirementKind.diveQuery]) {
+      final rows = withRequirementEdited(
+        [
+          row('a', dives: ['v1']),
+        ],
+        'a',
+        RequirementDraft(name: 'Requirement a', kind: kind, targetCount: 5),
+      );
+
+      expect(rows.single.requirement.kind, kind);
+      expect(rows.single.linkedDives, isEmpty);
+    }
+  });
+
   test('turning a checklist into a dive requirement clears its tick', () {
     final rows = withRequirementEdited(
       [row('a', kind: RequirementKind.checklist, completedAt: now)],

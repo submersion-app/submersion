@@ -272,8 +272,11 @@ class CourseRequirementRepository {
     final equipmentId = requirement.equipmentId;
     final row = await _db
         .customSelect(
-          'SELECT COALESCE(SUM(COALESCE(${measuredRuntimeSecondsSql('d')}, '
-          'd.bottom_time, 0)), 0) AS seconds FROM dives d '
+          // Measured runtime only: bottom time is derived from a depth
+          // threshold and never counts as runtime (#3304), so a dive with
+          // nothing measured adds nothing (SUM skips its NULL).
+          'SELECT COALESCE(SUM(${measuredRuntimeSecondsSql('d')}), 0) '
+          'AS seconds FROM dives d '
           "WHERE d.dive_mode = 'ccr' AND ${_loggedDiveScope('d')} "
           '${equipmentId == null ? '' : 'AND EXISTS (SELECT 1 FROM '
                     'dive_equipment de WHERE de.dive_id = d.id '

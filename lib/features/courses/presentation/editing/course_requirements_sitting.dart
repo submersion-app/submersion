@@ -139,7 +139,10 @@ List<CourseRequirementProgress> withRequirementEdited(
     requirement: draft.kind == RequirementKind.checklist
         ? edited
         : edited.clearCompletedAt(),
-    linkedDives: r.linkedDives,
+    // A derived requirement is counted from the logbook and credits no
+    // dives: dropping them here lets the save unlink them, so switching
+    // back to a dive requirement does not bring old credits back.
+    linkedDives: draft.kind.isDerived ? const [] : r.linkedDives,
     derivedAmount: derivedAmount,
   );
 });
