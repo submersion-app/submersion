@@ -46096,6 +46096,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'Tout désélectionner';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'Impossible de charger tous les éléments : « Tout sélectionner » n\'a pas été appliqué. Réessayez.';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -167,7 +167,8 @@ final mediaLibraryNotifierProvider =
 /// reading: a filter or sort changed meanwhile builds a new one whose first
 /// page may not be in yet, and checking "all" of its empty rows would clear
 /// the diver's checks. The old query's ids are pruned once the new rows land.
-Future<List<String>> loadAllLibraryIds(ProviderContainer container) async {
+/// Null when a read failed and some rows are still missing.
+Future<List<String>?> loadAllLibraryIds(ProviderContainer container) async {
   final state = container.read(mediaLibraryNotifierProvider);
   // Page one of a new filter or sort is still queued: it has no cursor yet,
   // but the rows it brings are part of "all", and loadRest waits for them.
@@ -330,9 +331,10 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   /// with the rows it has, as a failed [loadMore] does.
   ///
   /// Returns the ids of the rows loaded once it is done, which are this
-  /// notifier's even if it has since been disposed.
-  Future<List<String>> loadRest() async {
-    var ids = _loadedIds();
+  /// notifier's even if it has since been disposed, or null when a read
+  /// failed and rows are still missing.
+  Future<List<String>?> loadRest() async {
+    List<String>? ids = _loadedIds();
     await _enqueuePaging(() async {
       var limit = MediaLibraryRepository.pageSize;
       while (mounted) {
@@ -343,7 +345,10 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
           limit: limit,
           keepLoadingMore: true,
         );
-        if (!appended) break;
+        if (!appended) {
+          ids = null;
+          return;
+        }
         limit *= 2;
       }
       if (mounted) ids = _loadedIds();

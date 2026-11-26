@@ -13976,6 +13976,7 @@
   "common_selection_exitTooltip": "選択を終了",
   "common_selection_selectAllTooltip": "すべて選択",
   "common_selection_deselectAllTooltip": "すべての選択を解除",
+  "common_selection_selectAllLoadFailed": "すべての項目を読み込めなかったため、すべて選択は適用されませんでした。もう一度お試しください。",
   "common_bulkDelete_title": "{count, plural, one{{count}件の項目を削除しますか？} other{{count}件の項目を削除しますか？}}",
   "common_bulkDelete_body": "この操作は元に戻せません。",
   "common_bulkDelete_snackbar": "{count, plural, one{{count}件削除しました} other{{count}件削除しました}}",

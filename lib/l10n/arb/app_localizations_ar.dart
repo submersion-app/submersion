@@ -46659,6 +46659,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'إلغاء تحديد الكل';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'تعذّر تحميل جميع العناصر، لذا لم يُطبَّق تحديد الكل. حاول مرة أخرى.';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

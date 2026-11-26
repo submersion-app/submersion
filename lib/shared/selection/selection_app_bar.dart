@@ -64,9 +64,10 @@ class SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<String> selectableIds;
 
   /// For a paged surface: loads the rows not loaded yet and returns every id,
-  /// which select-all checks instead of [selectableIds] (issue #5022). Null
-  /// when [selectableIds] already holds every row.
-  final Future<List<String>> Function()? loadAllIds;
+  /// which select-all checks instead of [selectableIds] (issue #5022); see
+  /// [SelectionController.selectAllAfterLoading]. Null when [selectableIds]
+  /// already holds every row.
+  final Future<List<String>?> Function()? loadAllIds;
 
   /// Rows exist past the loaded ones, so every loaded row checked is not
   /// every row checked, and select-all stays enabled.

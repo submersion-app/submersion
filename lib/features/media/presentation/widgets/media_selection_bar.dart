@@ -44,7 +44,7 @@ class MediaSelectionBar extends ConsumerWidget {
 
   /// Loads the rows past the loaded pages and returns every id, for Select
   /// All (issue #5022); see [SelectionAppBar.loadAllIds].
-  final Future<List<String>> Function()? loadAllIds;
+  final Future<List<String>?> Function()? loadAllIds;
 
   /// Rows exist past the loaded pages; see [SelectionAppBar.hasUnloadedRows].
   final bool hasUnloadedRows;

@@ -72,8 +72,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     super.dispose();
   }
 
-  Future<List<String>> _loadAllIds() =>
-      loadAllLibraryIds(ProviderScope.containerOf(context, listen: false));
+  Future<List<String>?> _loadAllIds() => _loadAllLibraryIdsOrSay(context);
 
   void _openViewer(
     BuildContext context,
@@ -280,9 +279,21 @@ class MediaLibraryHeaderToolbar extends ConsumerWidget {
     return SelectableListScope(
       controller: selection,
       selectableIds: [for (final e in entries) e.item.id],
-      loadAllIds: () =>
-          loadAllLibraryIds(ProviderScope.containerOf(context, listen: false)),
+      loadAllIds: () => _loadAllLibraryIdsOrSay(context),
       child: toolbar,
     );
   }
+}
+
+/// [loadAllLibraryIds] for Select All, saying so when a read failed and
+/// nothing new was checked (issue #5022).
+Future<List<String>?> _loadAllLibraryIdsOrSay(BuildContext context) async {
+  // Read before the await: the widget can be gone once the rows are in.
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final message = context.l10n.common_selection_selectAllLoadFailed;
+  final ids = await loadAllLibraryIds(
+    ProviderScope.containerOf(context, listen: false),
+  );
+  if (ids == null) messenger?.showSnackBar(SnackBar(content: Text(message)));
+  return ids;
 }

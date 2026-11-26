@@ -43,9 +43,19 @@ class _PagedNotifier extends StateNotifier<AsyncValue<PaginatedDiveListState>>
   /// or sort change queued behind it does.
   bool reloadAfterRest = false;
 
+  /// Makes [loadRest] fail its read, as the real notifier does: the loaded
+  /// rows stay and the list is flagged for retry.
+  bool failRest = false;
+
   @override
   Future<void> loadRest() async {
     restLoads++;
+    if (failRest) {
+      state = AsyncValue.data(
+        state.requireValue.copyWith(loadMoreFailed: true),
+      );
+      return;
+    }
     state = reloadAfterRest
         ? const AsyncValue.loading()
         : AsyncValue.data(
@@ -156,6 +166,27 @@ void main() {
 
     // The dives on screen when Select All was tapped, not none.
     expect(find.text('2 selected'), findsOneWidget);
+  });
+
+  testWidgets('Select All checks nothing and says so when a read fails', (
+    tester,
+  ) async {
+    final notifier = await pumpList(tester);
+    notifier.failRest = true;
+    await _enterSelection(tester);
+
+    await tester.tap(selectAll);
+    await _settle(tester);
+
+    expect(notifier.restLoads, 1);
+    expect(find.text('0 selected'), findsOneWidget);
+    expect(
+      find.text(
+        'Could not load every item, so Select all was not applied. '
+        'Try again.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Ctrl-A checks the dives past the loaded page', (tester) async {

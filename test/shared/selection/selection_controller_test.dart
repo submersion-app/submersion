@@ -347,6 +347,14 @@ void main() {
       },
     );
 
+    test('selectAllAfterLoading checks nothing when the load fails', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      controller.toggle('a');
+      await controller.selectAllAfterLoading(() async => null);
+      expect(controller.value.checkedIds, {'a'});
+    });
+
     test('selectAllAfterLoading keeps a check made mid-load', () async {
       final controller = SelectionController();
       controller.enterExplicit();

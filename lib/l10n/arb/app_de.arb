@@ -13851,6 +13851,7 @@
   "common_selection_exitTooltip": "Auswahl beenden",
   "common_selection_selectAllTooltip": "Alle auswählen",
   "common_selection_deselectAllTooltip": "Auswahl aufheben",
+  "common_selection_selectAllLoadFailed": "Nicht alle Einträge konnten geladen werden, daher wurde „Alle auswählen“ nicht ausgeführt. Bitte erneut versuchen.",
   "common_bulkDelete_title": "{count, plural, one{{count} Element löschen?} other{{count} Elemente löschen?}}",
   "common_bulkDelete_body": "Dies kann nicht rückgängig gemacht werden.",
   "common_bulkDelete_snackbar": "{count, plural, one{{count} gelöscht} other{{count} gelöscht}}",

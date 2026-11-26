@@ -20,8 +20,9 @@ class SelectableListScope extends StatelessWidget {
   final List<String> selectableIds;
 
   /// For a paged surface: loads the rows not loaded yet and returns every id,
-  /// which Ctrl/Cmd-A checks instead of [selectableIds] (issue #5022).
-  final Future<List<String>> Function()? loadAllIds;
+  /// which Ctrl/Cmd-A checks instead of [selectableIds] (issue #5022); see
+  /// [SelectionController.selectAllAfterLoading].
+  final Future<List<String>?> Function()? loadAllIds;
 
   final Widget child;
 

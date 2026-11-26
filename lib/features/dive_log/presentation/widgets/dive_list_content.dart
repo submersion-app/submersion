@@ -494,43 +494,58 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Loads every dive past the end of the list, so End lands on the last
   /// dive rather than the last loaded one (#3302), and Select All and Select
   /// by date range reach every dive the filter matches (#5022).
-  Future<void> _loadRestOfList() async {
+  ///
+  /// Reports whether no read failed: a failed one leaves the list flagged
+  /// for retry with dives still missing.
+  Future<bool> _loadRestOfList() async {
     final paginated = ref.read(paginatedDiveListProvider).value;
-    if (paginated == null || !paginated.hasMore) return;
+    if (paginated == null || !paginated.hasMore) return true;
     setState(() => _restLoads++);
     try {
       // A failed read is logged and flagged for retry by the notifier; this
       // catches anything else.
       await ref.read(paginatedDiveListProvider.notifier).loadRest();
+      return !(ref.read(paginatedDiveListProvider).value?.loadMoreFailed ??
+          false);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to load the rest of the dive list',
         error: e,
         stackTrace: stackTrace,
       );
+      return false;
     } finally {
       if (mounted) setState(() => _restLoads--);
     }
   }
 
   /// Every dive the filter matches, once the ones past the loaded pages are
-  /// in. A read that fails leaves the loaded dives, with the list's Retry row
-  /// offering the rest.
+  /// in, or null when a read failed: a bulk action given only the dives that
+  /// loaded would miss the rest without anyone seeing, so the caller checks
+  /// nothing new and the diver is told to try again.
   ///
   /// A filter or sort changed meanwhile reloads the list from the top, and
   /// the read can land while that reload has no rows yet: checking "all" of
   /// none would clear the diver's checks, so the dives held when this started
   /// answer instead, and the prune drops them once the new rows land.
-  Future<List<DiveSummary>> _loadAllDives() async {
+  Future<List<DiveSummary>?> _loadAllDives() async {
     final before = ref.read(paginatedDiveListProvider).value?.dives ?? const [];
-    await _loadRestOfList();
+    // Read before the await: the list can be gone once the rows are in.
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final failedMessage = context.l10n.common_selection_selectAllLoadFailed;
+    final loaded = await _loadRestOfList();
+    if (!loaded) {
+      messenger?.showSnackBar(SnackBar(content: Text(failedMessage)));
+      return null;
+    }
     if (!mounted) return before;
     return ref.read(paginatedDiveListProvider).value?.dives ?? before;
   }
 
-  Future<List<String>> _loadAllDiveIds() async => [
-    for (final dive in await _loadAllDives()) dive.id,
-  ];
+  Future<List<String>?> _loadAllDiveIds() async {
+    final dives = await _loadAllDives();
+    return dives == null ? null : [for (final dive in dives) dive.id];
+  }
 
   void _landOnDive(BuildContext context, String diveId, {required bool toTop}) {
     for (final (index, section) in _lastSections.indexed) {
@@ -726,7 +741,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// [loadDives] returns every dive the list shows, including any past the
   /// loaded pages, and is read only once a range is picked.
   Future<BulkActionOutcome> _selectByDateRange(
-    Future<List<DiveSummary>> Function() loadDives,
+    Future<List<DiveSummary>?> Function() loadDives,
   ) async {
     final range = await showAppDateRangePicker(
       context: context,
@@ -735,6 +750,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
     if (range == null) return BulkActionOutcome.cancelled;
     final dives = await loadDives();
+    if (dives == null) return BulkActionOutcome.failed;
     if (!mounted) return BulkActionOutcome.cancelled;
     final matching = dives
         .where((d) => inDateRange(d, range))
@@ -1993,7 +2009,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// pane from silently offering fewer actions than the full-width bar.
   ///
   /// [loadAll] returns every dive the list shows; see [_buildSelectionBar].
-  List<BulkAction> _bulkActions(Future<List<DiveSummary>> Function() loadAll) {
+  List<BulkAction> _bulkActions(Future<List<DiveSummary>?> Function() loadAll) {
     return [
       BulkAction(
         id: 'combine',
@@ -2074,7 +2090,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// [_buildSelectionBar].
   SelectionAppBar _buildSelectionAppBar(
     List<DiveSummary> dives, {
-    Future<List<DiveSummary>> Function()? loadAll,
+    Future<List<DiveSummary>?> Function()? loadAll,
     bool hasUnloadedRows = false,
   }) {
     return _selectionBar(
@@ -2095,7 +2111,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// range (#5022); without it [dives] is taken as every dive.
   Widget _buildSelectionBar(
     List<DiveSummary> dives, {
-    Future<List<DiveSummary>> Function()? loadAll,
+    Future<List<DiveSummary>?> Function()? loadAll,
     bool hasUnloadedRows = false,
   }) {
     return _selectionBar(
@@ -2109,7 +2125,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   SelectionAppBar _selectionBar(
     List<DiveSummary> dives, {
-    required Future<List<DiveSummary>> Function()? loadAll,
+    required Future<List<DiveSummary>?> Function()? loadAll,
     required bool hasUnloadedRows,
     required SelectionBarShell shell,
     required int maxInlineActions,
@@ -2119,7 +2135,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       selectableIds: dives.map((d) => d.id).toList(),
       loadAllIds: loadAll == null
           ? null
-          : () async => [for (final dive in await loadAll()) dive.id],
+          : () async {
+              final all = await loadAll();
+              return all == null ? null : [for (final dive in all) dive.id];
+            },
       hasUnloadedRows: hasUnloadedRows,
       actions: _bulkActions(loadAll ?? () async => dives),
       shell: shell,
@@ -2622,6 +2641,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       _selection.selectAllAfterLoading(() async {
         final kept = _selectedIds.toList();
         final dives = await _loadAllDives();
+        if (dives == null) return null;
         return [
           ...kept,
           for (final dive in dives)

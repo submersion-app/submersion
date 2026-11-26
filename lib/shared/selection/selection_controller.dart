@@ -154,18 +154,21 @@ class SelectionController extends ValueNotifier<SelectionState> {
   /// [selectAll] over the ids [loadAllIds] returns, for a paged surface whose
   /// loaded rows are not every row (issue #5022).
   ///
-  /// [loadAllIds] loads the rows not loaded yet and returns every id. A diver
+  /// [loadAllIds] loads the rows not loaded yet and returns every id, or
+  /// null when a read failed and some rows are still missing: checking only
+  /// those that loaded would let a bulk action miss the rest without anyone
+  /// seeing, so nothing new is checked and the surface says why. A diver
   /// who changes the selection while it runs (checks or unchecks a row,
   /// deselects all, leaves the mode) has made a newer choice, so the ids that
   /// arrive afterwards check nothing, as they do once the surface has gone
   /// and disposed this controller. A prune is not the diver's choice and
   /// does not count.
   Future<void> selectAllAfterLoading(
-    Future<List<String>> Function() loadAllIds,
+    Future<List<String>?> Function() loadAllIds,
   ) async {
     final edits = _edits;
     final ids = await loadAllIds();
-    if (_disposed || _edits != edits) return;
+    if (ids == null || _disposed || _edits != edits) return;
     selectAll(ids);
   }
 

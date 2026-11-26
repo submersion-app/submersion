@@ -71609,6 +71609,12 @@ abstract class AppLocalizations {
   /// **'Deselect all'**
   String get common_selection_deselectAllTooltip;
 
+  /// No description provided for @common_selection_selectAllLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load every item, so Select all was not applied. Try again.'**
+  String get common_selection_selectAllLoadFailed;
+
   /// No description provided for @common_bulkDelete_title.
   ///
   /// In en, this message translates to:

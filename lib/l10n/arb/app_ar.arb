@@ -13697,6 +13697,7 @@
   "common_selection_exitTooltip": "إنهاء التحديد",
   "common_selection_selectAllTooltip": "تحديد الكل",
   "common_selection_deselectAllTooltip": "إلغاء تحديد الكل",
+  "common_selection_selectAllLoadFailed": "تعذّر تحميل جميع العناصر، لذا لم يُطبَّق تحديد الكل. حاول مرة أخرى.",
   "common_bulkDelete_title": "{count, plural, zero{حذف {count} عنصر؟} one{حذف عنصر واحد؟} two{حذف عنصرين؟} few{حذف {count} عناصر؟} many{حذف {count} عنصرا؟} other{حذف {count} عنصر؟}}",
   "common_bulkDelete_body": "لا يمكن التراجع عن هذا.",
   "common_bulkDelete_snackbar": "{count, plural, zero{تم حذف {count}} one{تم حذف عنصر واحد} two{تم حذف عنصرين} few{تم حذف {count}} many{تم حذف {count}} other{تم حذف {count}}}",

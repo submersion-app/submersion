@@ -44040,6 +44040,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'すべての選択を解除';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'すべての項目を読み込めなかったため、すべて選択は適用されませんでした。もう一度お試しください。';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

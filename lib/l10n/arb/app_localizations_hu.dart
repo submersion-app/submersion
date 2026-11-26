@@ -45711,6 +45711,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'Kijelölés megszüntetése';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'Nem sikerült minden elemet betölteni, ezért az Összes kijelölése nem történt meg. Próbáld újra.';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

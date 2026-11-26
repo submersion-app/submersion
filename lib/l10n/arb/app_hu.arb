@@ -13697,6 +13697,7 @@
   "common_selection_exitTooltip": "Kijelölés befejezése",
   "common_selection_selectAllTooltip": "Összes kijelölése",
   "common_selection_deselectAllTooltip": "Kijelölés megszüntetése",
+  "common_selection_selectAllLoadFailed": "Nem sikerült minden elemet betölteni, ezért az Összes kijelölése nem történt meg. Próbáld újra.",
   "common_bulkDelete_title": "{count, plural, one{{count} elem törlése?} other{{count} elem törlése?}}",
   "common_bulkDelete_body": "Ez a művelet nem vonható vissza.",
   "common_bulkDelete_snackbar": "{count, plural, one{{count} törölve} other{{count} törölve}}",

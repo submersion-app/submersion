@@ -13697,6 +13697,7 @@
   "common_selection_exitTooltip": "Esci dalla selezione",
   "common_selection_selectAllTooltip": "Seleziona tutto",
   "common_selection_deselectAllTooltip": "Deseleziona tutto",
+  "common_selection_selectAllLoadFailed": "Impossibile caricare tutti gli elementi, quindi Seleziona tutto non è stato applicato. Riprova.",
   "common_bulkDelete_title": "{count, plural, one{Eliminare {count} elemento?} other{Eliminare {count} elementi?}}",
   "common_bulkDelete_body": "Questa azione non può essere annullata.",
   "common_bulkDelete_snackbar": "{count, plural, one{{count} eliminato} other{{count} eliminati}}",

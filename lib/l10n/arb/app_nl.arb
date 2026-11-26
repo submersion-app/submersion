@@ -13697,6 +13697,7 @@
   "common_selection_exitTooltip": "Selectie beëindigen",
   "common_selection_selectAllTooltip": "Alles selecteren",
   "common_selection_deselectAllTooltip": "Alles deselecteren",
+  "common_selection_selectAllLoadFailed": "Niet alle items konden worden geladen, dus Alles selecteren is niet toegepast. Probeer het opnieuw.",
   "common_bulkDelete_title": "{count, plural, one{{count} item verwijderen?} other{{count} items verwijderen?}}",
   "common_bulkDelete_body": "Dit kan niet ongedaan worden gemaakt.",
   "common_bulkDelete_snackbar": "{count, plural, one{{count} verwijderd} other{{count} verwijderd}}",
