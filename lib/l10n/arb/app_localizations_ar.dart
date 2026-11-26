@@ -20053,6 +20053,80 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'إعادة المحاولة';
 
   @override
+  String get marineLife_speciesPage_headerSpecies => 'Species';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'New in $year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'Life list growth';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count without a photo',
+      one: '$count without a photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'Group by';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'No grouping';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'Category';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => 'Year first seen';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'Trip';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'Site';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'No trip';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'No site';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'See all';
+
+  @override
+  String get marineLife_speciesPage_showList => 'Show as list';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'Show as cards';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip =>
+      'Practice naming species';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'First seen here';
+
+  @override
+  String get marineLife_rarity_new => 'New';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'Seen once';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'Not seen lately';
+
+  @override
+  String get marineLife_rarity_mastered => 'Mastered';
+
+  @override
   String get speciesMap_title => 'خريطة الأنواع';
 
   @override

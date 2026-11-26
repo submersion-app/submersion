@@ -31346,6 +31346,132 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get marineLife_speciesPage_retry;
 
+  /// No description provided for @marineLife_speciesPage_headerSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get marineLife_speciesPage_headerSpecies;
+
+  /// Header tile: species first seen this calendar year
+  ///
+  /// In en, this message translates to:
+  /// **'New in {year}'**
+  String marineLife_speciesPage_headerNewIn(String year);
+
+  /// No description provided for @marineLife_speciesPage_headerGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Life list growth'**
+  String get marineLife_speciesPage_headerGrowth;
+
+  /// Chip filtering to seen species that have no picture
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} without a photo} other{{count} without a photo}}'**
+  String marineLife_speciesPage_withoutPhoto(int count);
+
+  /// No description provided for @marineLife_speciesPage_groupByTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get marineLife_speciesPage_groupByTooltip;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No grouping'**
+  String get marineLife_speciesPage_groupBy_none;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get marineLife_speciesPage_groupBy_category;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_firstSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Year first seen'**
+  String get marineLife_speciesPage_groupBy_firstSeen;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get marineLife_speciesPage_groupBy_trip;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get marineLife_speciesPage_groupBy_site;
+
+  /// No description provided for @marineLife_speciesPage_noTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'No trip'**
+  String get marineLife_speciesPage_noTrip;
+
+  /// No description provided for @marineLife_speciesPage_noSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get marineLife_speciesPage_noSite;
+
+  /// No description provided for @marineLife_speciesPage_seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get marineLife_speciesPage_seeAll;
+
+  /// No description provided for @marineLife_speciesPage_showList.
+  ///
+  /// In en, this message translates to:
+  /// **'Show as list'**
+  String get marineLife_speciesPage_showList;
+
+  /// No description provided for @marineLife_speciesPage_showCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Show as cards'**
+  String get marineLife_speciesPage_showCards;
+
+  /// No description provided for @marineLife_speciesPage_practiceTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice naming species'**
+  String get marineLife_speciesPage_practiceTooltip;
+
+  /// No description provided for @marineLife_speciesPage_firstSeenHere.
+  ///
+  /// In en, this message translates to:
+  /// **'First seen here'**
+  String get marineLife_speciesPage_firstSeenHere;
+
+  /// No description provided for @marineLife_rarity_new.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get marineLife_rarity_new;
+
+  /// No description provided for @marineLife_rarity_seenOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Seen once'**
+  String get marineLife_rarity_seenOnce;
+
+  /// No description provided for @marineLife_rarity_notSeenLately.
+  ///
+  /// In en, this message translates to:
+  /// **'Not seen lately'**
+  String get marineLife_rarity_notSeenLately;
+
+  /// No description provided for @marineLife_rarity_mastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get marineLife_rarity_mastered;
+
   /// No description provided for @speciesMap_title.
   ///
   /// In en, this message translates to:
