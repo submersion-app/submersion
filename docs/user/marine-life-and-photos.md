@@ -69,6 +69,8 @@ Then come the facts (dives, sites, first and last seen), the description, **Wher
 
 A species with no picture offers **Find photos**, which opens the photos from the dives where you logged it, ready to tag.
 
+The page's **Photos** card works as before: **Tag photos** picks photos from that species' dives to tag with it, and **Add photos** links new ones.
+
 ### ID practice
 
 **Practice** on the Species page asks you to name your own animals: up to ten rounds, each one of your confirmed crops and four names, chosen from the same category where possible. A switch shows scientific names instead. Practice needs at least four species with a confirmed crop.

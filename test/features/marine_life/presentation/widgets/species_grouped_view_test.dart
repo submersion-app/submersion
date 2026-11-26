@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/species_grouping.dart';
+import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
+import 'package:submersion/features/marine_life/domain/entities/species_crop.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/seen_species_tile.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_card.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_grouped_view.dart';
@@ -19,6 +21,7 @@ Future<void> _pump(
   required SpeciesGroupBy by,
   bool grid = true,
   ValueChanged<SpeciesCategory>? onSeeAll,
+  Map<String, SpeciesPicture> pictures = const {},
 }) async {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
@@ -29,7 +32,7 @@ Future<void> _pump(
       groups: groups,
       by: by,
       grid: grid,
-      pictures: const {},
+      pictures: pictures,
       rarityOf: (_) => null,
       onOpen: (_) {},
       onSeeAllCategory: onSeeAll ?? (_) {},
@@ -132,5 +135,20 @@ void main() {
       groupSeenSpecies([_grouper, _snapper], by: SpeciesGroupBy.firstSeen),
       by: SpeciesGroupBy.firstSeen,
     );
+  });
+
+  testWidgets('list rows show the species picture, not only the newest photo', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      [
+        SpeciesGroup(key: 'all', entries: [_grouper]),
+      ],
+      by: SpeciesGroupBy.none,
+      grid: false,
+      pictures: {'Grouper': CropPicture(testCrop('cover_crop'))},
+    );
+    expect(find.byType(IdentificationCrop), findsOneWidget);
   });
 }

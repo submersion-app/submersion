@@ -15,17 +15,21 @@ class SpeciesFactsRepository {
 
   /// The trips and sites each species was seen on, and those of its first
   /// sighting. A dive without a trip or site gives a place with a null id.
+  /// Aggregated in SQL by (species, trip, site), so a long log returns one
+  /// row per place, not one per sighting.
   Future<SpeciesPlaces> places({String? diverId}) async {
     final rows = await _db.customSelect('''
-      SELECT s.species_id, d.dive_date_time,
-             d.trip_id, t.name AS trip_name, t.start_date AS trip_start,
-             d.site_id, ds.name AS site_name
+      SELECT s.species_id, MIN(d.dive_date_time) AS first_at,
+             d.trip_id, MAX(t.name) AS trip_name,
+             MAX(t.start_date) AS trip_start,
+             d.site_id, MAX(ds.name) AS site_name
       FROM sightings s
       JOIN dives d ON d.id = s.dive_id
       LEFT JOIN trips t ON t.id = d.trip_id
       LEFT JOIN dive_sites ds ON ds.id = d.site_id
       WHERE 1=1 ${_diverClause(diverId)}${DiveStatsScope.and(alias: 'd')}
-      ORDER BY d.dive_date_time ASC, d.id ASC
+      GROUP BY s.species_id, d.trip_id, d.site_id
+      ORDER BY first_at ASC
     ''', variables: _diverVariables(diverId)).get();
     final trips = <String, Map<String?, SpeciesPlace>>{};
     final sites = <String, Map<String?, SpeciesPlace>>{};
@@ -57,8 +61,8 @@ class SpeciesFactsRepository {
               name: row.readNullable<String>('site_name') ?? '',
             ),
           );
-      // Rows come oldest first, so the first row of a species is its first
-      // sighting.
+      // Rows come oldest first by each place's first sighting, so the first
+      // row of a species is where it was first seen.
       if (!firstTrip.containsKey(species)) {
         firstTrip[species] = tripId;
         firstSite[species] = siteId;

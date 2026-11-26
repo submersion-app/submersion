@@ -10,6 +10,7 @@ import 'package:submersion/features/marine_life/domain/species_rarity.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/seen_species_tile.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_card.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_picture_view.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/collapsible_group_header.dart';
@@ -116,9 +117,17 @@ class _SpeciesGroupedViewState extends State<SpeciesGroupedView> {
         itemCount: entries.length,
         itemBuilder: (context, index) {
           final entry = entries[index];
+          final picture = widget.pictures[entry.species.id];
           return SeenSpeciesTile(
             entry: entry,
             cover: widget.covers[entry.species.id],
+            leading: picture == null || picture is NoPicture
+                ? null
+                : SpeciesPictureView(
+                    picture: picture,
+                    category: entry.species.category,
+                    targetSize: const Size(80, 80),
+                  ),
             onTap: () => widget.onOpen(entry),
           );
         },
