@@ -93,7 +93,7 @@ void main() {
         data: const MediaQueryData(textScaler: scaler),
         child: SizedBox(
           width: 160,
-          height: speciesCardHeight(160, scaler),
+          height: speciesCardHeight(160, scaler, withMarker: true),
           child: SpeciesCard(
             entry: seenEntry('Very ' * 18, dives: 12),
             picture: const NoPicture(),
@@ -104,5 +104,13 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
+  });
+
+  test('the marker line is reserved only when it can show', () {
+    const scaler = TextScaler.noScaling;
+    expect(
+      speciesCardHeight(160, scaler, withMarker: true),
+      greaterThan(speciesCardHeight(160, scaler)),
+    );
   });
 }

@@ -142,7 +142,13 @@ class _SpeciesGroupedViewState extends State<SpeciesGroupedView> {
               crossAxisCount: columns,
               mainAxisSpacing: 8,
               crossAxisSpacing: 8,
-              mainAxisExtent: speciesCardHeight(cell, scaler),
+              mainAxisExtent: speciesCardHeight(
+                cell,
+                scaler,
+                withMarker:
+                    widget.by == SpeciesGroupBy.trip ||
+                    widget.by == SpeciesGroupBy.site,
+              ),
             ),
             itemCount: entries.length,
             itemBuilder: (context, index) {

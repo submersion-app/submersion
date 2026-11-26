@@ -17,15 +17,21 @@ String rarityLabel(AppLocalizations l10n, SpeciesRarity rarity) =>
       SpeciesRarity.mastered => l10n.marineLife_rarity_mastered,
     };
 
-/// The height of a card's text block at [scaler]: two lines of name, the
-/// dive count and the First seen here marker, with their padding.
-double speciesCardTextHeight(TextScaler scaler) =>
-    20 + 2 * scaler.scale(14) * 1.45 + 2 * scaler.scale(12) * 1.5;
+/// The height of a card's text block at [scaler]: two lines of name and the
+/// dive count, with their padding, and the First seen here line when
+/// [withMarker] (a Trip or Site grouping, the only place it shows).
+double speciesCardTextHeight(TextScaler scaler, {bool withMarker = false}) =>
+    20 +
+    2 * scaler.scale(14) * 1.45 +
+    (withMarker ? 2 : 1) * scaler.scale(12) * 1.5;
 
 /// The height of a card [width] wide: its 4:3 picture over the text block.
 /// Sized from the text scale so a large one never overflows the card.
-double speciesCardHeight(double width, TextScaler scaler) =>
-    width * 3 / 4 + speciesCardTextHeight(scaler);
+double speciesCardHeight(
+  double width,
+  TextScaler scaler, {
+  bool withMarker = false,
+}) => width * 3 / 4 + speciesCardTextHeight(scaler, withMarker: withMarker);
 
 /// One species on the Species page grid (issue #5027): its picture filling
 /// the top, a rarity badge over it, the name and the dive count below.
