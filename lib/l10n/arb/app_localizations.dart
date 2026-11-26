@@ -87931,13 +87931,13 @@ abstract class AppLocalizations {
   /// **'Species labels'**
   String get media_labels_action;
 
-  /// Labels menu in the media viewer (issue #5023), first of three choices for what is drawn over the photo or video: a name label on each animal the app can name or the diver tagged, and nothing on the animals it cannot name (bar the odd small dot). The wording must contrast with media_labels_allLife: this one leaves the unnamed animals out.
+  /// Labels menu in the media viewer (issue #5023), first of three choices for what is drawn over the photo or video: a name label on each animal the app can name or the diver tagged. An unnamed animal that looks like a particular species still gets a small dot where the diver can stop and name it (on a photo, or on a paused video once it has been followed for a second); vaguer detections get nothing. The wording must contrast with media_labels_allLife, which marks every unnamed detection.
   ///
   /// In en, this message translates to:
   /// **'Named animals only'**
   String get media_labels_names;
 
-  /// Labels menu in the media viewer (issue #5023), second of three choices: the name labels, plus a dot on every animal found that the app cannot name. The wording must contrast with media_labels_names: this one includes the unnamed animals. 'Animal' means a creature detected in the photo, never 'all of life' or 'a lifetime'.
+  /// Labels menu in the media viewer (issue #5023), second of three choices: the name labels, plus a dot on every animal found that the app cannot name, however vague, while the video plays too. The wording must contrast with media_labels_names, which marks only the unnamed animals that look like a particular species. 'Animal' means a creature detected in the photo, never 'all of life' or 'a lifetime'.
   ///
   /// In en, this message translates to:
   /// **'Every animal found'**
