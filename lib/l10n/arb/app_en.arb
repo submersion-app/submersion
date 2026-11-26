@@ -28486,6 +28486,7 @@
   "common_selection_exitTooltip": "Exit selection",
   "common_selection_selectAllTooltip": "Select all",
   "common_selection_deselectAllTooltip": "Deselect all",
+  "common_selection_selectAllLoadFailed": "Could not load every item, so Select all was not applied. Try again.",
   "@common_selection_countSelected": {
     "placeholders": {
       "count": {

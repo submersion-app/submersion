@@ -44875,6 +44875,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'בטל בחירת הכול';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'לא ניתן היה לטעון את כל הפריטים, ולכן \"בחר הכל\" לא הוחל. נסה שוב.';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

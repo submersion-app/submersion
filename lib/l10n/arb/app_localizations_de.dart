@@ -45893,6 +45893,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'Auswahl aufheben';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'Nicht alle Einträge konnten geladen werden, daher wurde „Alle auswählen“ nicht ausgeführt. Bitte erneut versuchen.';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

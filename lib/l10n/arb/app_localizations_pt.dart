@@ -45950,6 +45950,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'Desmarcar tudo';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'Não foi possível carregar todos os itens, por isso Selecionar todos não foi aplicado. Tente novamente.';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

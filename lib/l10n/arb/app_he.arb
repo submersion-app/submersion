@@ -13697,6 +13697,7 @@
   "common_selection_exitTooltip": "יציאה מבחירה",
   "common_selection_selectAllTooltip": "בחר הכול",
   "common_selection_deselectAllTooltip": "בטל בחירת הכול",
+  "common_selection_selectAllLoadFailed": "לא ניתן היה לטעון את כל הפריטים, ולכן \"בחר הכל\" לא הוחל. נסה שוב.",
   "common_bulkDelete_title": "{count, plural, one{למחוק פריט אחד?} two{למחוק שני פריטים?} many{למחוק {count} פריטים?} other{למחוק {count} פריטים?}}",
   "common_bulkDelete_body": "לא ניתן לבטל פעולה זו.",
   "common_bulkDelete_snackbar": "{count, plural, one{פריט אחד נמחק} two{שני פריטים נמחקו} many{{count} נמחקו} other{{count} נמחקו}}",

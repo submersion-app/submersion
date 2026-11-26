@@ -43258,6 +43258,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_selection_deselectAllTooltip => '取消全选';
 
   @override
+  String get common_selection_selectAllLoadFailed => '无法加载所有项目，因此未应用全选。请重试。';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
