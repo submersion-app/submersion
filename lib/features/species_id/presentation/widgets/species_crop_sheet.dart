@@ -136,7 +136,10 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
             for (final i in all)
               if (present.contains(i.id)) i,
           ];
-    final crops = !video ? all : (kept.isEmpty ? [all.first] : kept);
+    // A failed read shows every crop, as before the cap: none is hidden.
+    final crops = !video || (presentRead?.hasError ?? false)
+        ? all
+        : (kept.isEmpty ? [all.first] : kept);
     final selected = _selected < crops.length ? _selected : 0;
     final scientific = ref
         .watch(speciesProvider(chip.speciesId))

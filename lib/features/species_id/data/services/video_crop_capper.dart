@@ -35,10 +35,15 @@ class VideoCropCapper {
   /// and on a device that did not analyse the video. Never throws.
   Future<int> cap(String mediaId) async {
     try {
-      final (run, first) = await _drops(mediaId);
+      final (_, first) = await _drops(mediaId);
       if (first.isEmpty) return 0;
       final present = await _crops.presentAmong(mediaId, first.toList());
       if (present.isEmpty) return 0;
+      // Read again just before deleting: a scan, rename or claim since the
+      // first read may keep a crop that read dropped. Only crops both
+      // reads drop go, and who owns them is read from this last snapshot:
+      // a sync may have replaced the run in between.
+      final (run, again) = await _drops(mediaId);
       // Only the maker trims synced crops, and only a run here says who
       // that is: with none (not synced yet) or this device's id unread,
       // only a run with no maker yet (never published) counts as its own.
@@ -46,10 +51,6 @@ class VideoCropCapper {
       final mine =
           run != null &&
           (run.analysedBy == null || (me != null && run.madeOn(me)));
-      // Read again just before deleting: a scan, rename or claim since the
-      // first read may keep a crop that read dropped. Only crops both
-      // reads drop go.
-      final (_, again) = await _drops(mediaId);
       final gone = [
         for (final id in present)
           if (again.contains(id)) id,

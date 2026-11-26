@@ -415,6 +415,24 @@ void main() {
       expect(find.text('2 in this video'), findsNothing);
     });
 
+    testWidgets('a failed read of the kept crops shows every crop', (
+      tester,
+    ) async {
+      await pumpOpener(
+        tester,
+        rows: [gruntTrack('a', 0, 500), gruntTrack('b', 2000, 2500)],
+        type: MediaType.video,
+        onMoment: (_) {},
+        extra: [
+          presentCropIdsProvider.overrideWith(
+            (ref, _) async => throw StateError('read failed'),
+          ),
+        ],
+      );
+      expect(thumbs(), findsNWidgets(2));
+      expect(find.text('2 in this video'), findsOneWidget);
+    });
+
     testWidgets('a track under a second is one time', (tester) async {
       await pumpVideo(
         tester,

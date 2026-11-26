@@ -166,6 +166,20 @@ void main() {
     expect(await store.presentAmong('v1', ids), {...ids.take(3), ids.last});
   });
 
+  test('a run another device took over between the reads removes no '
+      'synced crop', () async {
+    final ids = await seedNamed('v1', 5);
+    final capper = VideoCropCapper(
+      identifications: _TakenOverAfterFirstRead(),
+      crops: store,
+      taggedSpecies: (_) async => const [],
+      deviceId: () async => me,
+    );
+    expect(await capper.cap('v1'), 0);
+    expect(await store.presentAmong('v1', ids), ids.toSet());
+    expect(await cropTombstones(), isEmpty);
+  });
+
   test('does nothing for a photo', () async {
     final rows = [
       for (var k = 0; k < 5; k++)
@@ -263,6 +277,34 @@ class _ClaimsAfterFirstRead extends MediaIdentificationRepository {
                   : i,
           ],
       },
+    );
+  }
+}
+
+/// Reads the run as another device's from the second read on: a sync
+/// replaced it between the cap's reads.
+class _TakenOverAfterFirstRead extends MediaIdentificationRepository {
+  var _reads = 0;
+
+  @override
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) async {
+    final (runs, rows) = await super.forMediaIdsWithRuns(
+      mediaIds,
+      withPaths: withPaths,
+    );
+    if (_reads++ == 0) return (runs, rows);
+    return (
+      {
+        for (final MapEntry(:key, :value) in runs.entries)
+          key: value.copyWith(analysedBy: () => 'other'),
+      },
+      rows,
     );
   }
 }
