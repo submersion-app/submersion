@@ -56334,10 +56334,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_labels_action => 'Étiquettes d\'espèces';
 
   @override
-  String get media_labels_names => 'Animaux nommés seulement';
+  String get media_labels_names => 'Noms et animaux probables';
 
   @override
-  String get media_labels_allLife => 'Tous les animaux trouvés';
+  String get media_labels_allLife => 'Tout ce qui est détecté';
 
   @override
   String get media_labels_off => 'Aucune étiquette';
@@ -56417,7 +56417,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Afficher tous les animaux';
+  String get media_labels_showAllLife => 'Afficher tout ce qui est détecté';
 
   @override
   String get media_species_possibleMatches => 'Correspondances possibles';

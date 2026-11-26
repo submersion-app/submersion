@@ -148,7 +148,7 @@ void main() {
     await analyse(tester);
     expect(service.byHand, [true]);
     expect(find.text('2 found, none named'), findsOneWidget);
-    await tester.tap(find.text('Show every animal'));
+    await tester.tap(find.text('Show everything detected'));
     await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(
       tester.element(find.text('labels')),
@@ -162,7 +162,7 @@ void main() {
     stored.rows = [];
     await analyse(tester);
     expect(find.text('Nothing found'), findsOneWidget);
-    expect(find.text('Show every animal'), findsNothing);
+    expect(find.text('Show everything detected'), findsNothing);
   });
 
   testWidgets('a find with a name says nothing: its pill shows', (
@@ -179,7 +179,7 @@ void main() {
   testWidgets('in All life the notice offers no switch', (tester) async {
     await analyse(tester, mode: LabelMode.allLife);
     expect(find.text('1 found, none named'), findsOneWidget);
-    expect(find.text('Show every animal'), findsNothing);
+    expect(find.text('Show everything detected'), findsNothing);
   });
 
   testWidgets('Analyse again says what it found too', (tester) async {

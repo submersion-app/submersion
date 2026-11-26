@@ -53917,10 +53917,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_labels_action => '種のラベル';
 
   @override
-  String get media_labels_names => '名前の分かる動物のみ';
+  String get media_labels_names => '名前と可能性の高い動物';
 
   @override
-  String get media_labels_allLife => '見つかったすべての動物';
+  String get media_labels_allLife => '検出されたものすべて';
 
   @override
   String get media_labels_off => 'ラベルなし';
@@ -53996,7 +53996,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'すべての動物を表示';
+  String get media_labels_showAllLife => '検出されたものをすべて表示';
 
   @override
   String get media_species_possibleMatches => '一致する可能性のある種';
