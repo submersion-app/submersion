@@ -617,6 +617,39 @@ void main() {
       expect(await weightsOf('dive1'), isEmpty);
     });
 
+    test(
+      'swaps left and right pockets logged in the other order (#5028)',
+      () async {
+        await preset('pocketL', 3, type: 'integrated', side: 'left');
+        await preset('pocketR', 3, type: 'integrated', side: 'right');
+        await set('pair', presets: ['pocketL', 'pocketR']);
+        // The same two weights on the dive, right first.
+        for (final (id, side) in const [('a-r', 'right'), ('b-l', 'left')]) {
+          await db
+              .into(db.diveWeights)
+              .insert(
+                DiveWeightsCompanion.insert(
+                  id: id,
+                  diveId: 'dive1',
+                  weightType: 'integrated',
+                  amountKg: 3,
+                  createdAt: t,
+                  side: Value(side),
+                ),
+              );
+        }
+        expect(
+          await applier.swapWeights(
+            diveId: 'dive1',
+            fromSetId: 'pair',
+            toSetId: 'fenced',
+          ),
+          isTrue,
+        );
+        expect(await weightsOf('dive1'), [closeTo(2.72, 1e-9)]);
+      },
+    );
+
     test('does nothing when the old set carried no weights', () async {
       expect(
         await applier.swapWeights(

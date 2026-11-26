@@ -401,21 +401,28 @@ class DiveSetBundleApplier {
 
   // The swap compares what is on the dive with what a set would fill in
   // whatever order the rows come back, so both sides sort the same way.
-  static String _key(WeightType type, String label, String notes, double kg) =>
-      '${type.name}|$label|$notes|${kg.toStringAsFixed(6)}';
+  // The side is part of the key: a left and a right pocket that are alike
+  // otherwise must pair with the same sides on both lists (issue #5028).
+  static String _key(
+    WeightType type,
+    String label,
+    String notes,
+    double kg,
+    WeightSide? side,
+  ) => '${type.name}|$label|$notes|${kg.toStringAsFixed(6)}|${side?.name}';
 
   static List<T> _sortedBy<T>(List<T> items, String Function(T) key) =>
       [...items]..sort((a, b) => key(a).compareTo(key(b)));
 
   static List<DiveWeight> _sorted(List<DiveWeight> weights) => _sortedBy(
     weights,
-    (w) => _key(w.weightType, w.label, w.notes, w.amountKg),
+    (w) => _key(w.weightType, w.label, w.notes, w.amountKg, w.side),
   );
 
   static List<WeightEntryDraft> _sortedDrafts(List<WeightEntryDraft> drafts) =>
       _sortedBy(
         drafts,
-        (w) => _key(w.weightType, w.label, w.notes, w.amountKg),
+        (w) => _key(w.weightType, w.label, w.notes, w.amountKg, w.side),
       );
 
   /// Moves the tags of the [justApplied] sets that another of [setIds]

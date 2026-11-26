@@ -78,7 +78,19 @@ class _TrimDivePickerState extends ConsumerState<_TrimDivePicker> {
                 watchProvider: (ref, query) =>
                     ref.watch(diveSearchProvider(query)),
                 emptyQueryBuilder: (context) => const _RecentDives(),
-                dataBuilder: (context, dives) => _DiveList(dives: dives),
+                // The search covers plans and drafts too; the calculator
+                // weighs logged dives only.
+                dataBuilder: (context, dives) {
+                  final logged = loggedDives(dives);
+                  return logged.isEmpty
+                      ? Center(
+                          child: Text(
+                            l10n.trim_calculator_noMatches(_query),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      : _DiveList(dives: logged);
+                },
                 emptyBuilder: (context, query) => Center(
                   child: Text(
                     l10n.trim_calculator_noMatches(query),
