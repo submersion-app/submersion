@@ -17,7 +17,7 @@ import 'package:submersion/shared/widgets/collapsible_group_header.dart';
 const kSpeciesCardMaxWidth = 200.0;
 
 /// A card's width over its height: a 4:3 picture over two lines of text.
-const kSpeciesCardAspect = 0.78;
+const kSpeciesCardAspect = 0.86;
 
 /// Width of a card on a category shelf.
 const kSpeciesShelfCardWidth = 160.0;
