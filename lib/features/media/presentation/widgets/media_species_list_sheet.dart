@@ -10,7 +10,8 @@ import 'package:submersion/features/species_id/presentation/providers/recorded_n
 
 /// Every species on a locked photo or video, from its "+N" chip (issue
 /// #4825): the one line under the viewer shows only what fits. A tag opens
-/// its species page; a suggestion is shown and waits for the unlock.
+/// its crops on this item (issue #5024); a suggestion is shown and waits
+/// for the unlock.
 Future<void> showMediaSpeciesListSheet(
   BuildContext context,
   MediaItem item, {
@@ -71,8 +72,8 @@ class _MediaSpeciesList extends ConsumerWidget {
               ref,
               item.id,
               sitting,
-              openUnconfirmed: true,
               nearbyRequest: nearbyRequestForMedia(item),
+              cropsOf: item,
             ),
           ),
         ],

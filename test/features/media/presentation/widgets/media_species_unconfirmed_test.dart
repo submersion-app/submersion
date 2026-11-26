@@ -89,7 +89,7 @@ void main() {
       expect(opened, 1);
     });
 
-    testWidgets('is inert on a locked photo', (tester) async {
+    testWidgets('is inert with nothing to open', (tester) async {
       await pump(tester);
 
       await tester.tap(find.text('Queen Parrotfish'));

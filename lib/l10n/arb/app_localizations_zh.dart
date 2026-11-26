@@ -52767,6 +52767,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_cropUnavailable => '图像不在此设备上';
 
   @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此照片中有 $count 个',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此视频中有 $count 个',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => '物种页面';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return '图片 $index/$count';
+  }
+
+  @override
   String get media_species_taggedOnPhoto => '此照片中已标记';
 
   @override

@@ -55132,6 +55132,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_cropUnavailable => 'התמונה לא נמצאת במכשיר זה';
 
   @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בתמונה זו',
+      one: '$count בתמונה זו',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בסרטון זה',
+      one: '$count בסרטון זה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'דף המין';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'תמונה $index מתוך $count';
+  }
+
+  @override
   String get media_species_taggedOnPhoto => 'מתויגים בתמונה זו';
 
   @override

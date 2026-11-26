@@ -56362,6 +56362,36 @@ class AppLocalizationsEs extends AppLocalizations {
       'La imagen no está en este dispositivo';
 
   @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count en esta foto',
+      one: '$count en esta foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count en este vídeo',
+      one: '$count en este vídeo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'Página de la especie';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'Imagen $index de $count';
+  }
+
+  @override
   String get media_species_taggedOnPhoto => 'Etiquetadas en esta foto';
 
   @override

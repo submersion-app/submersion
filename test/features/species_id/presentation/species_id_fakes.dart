@@ -158,3 +158,14 @@ SpeciesSuggestion suggestion(
     const NamedCandidate(candidate: chromis, score: 0.05),
   ],
 );
+
+/// A repository whose every media item holds [rows], for the views that
+/// read a photo's identifications once (issue #5024).
+class FixedIdentifications extends MediaIdentificationRepository {
+  FixedIdentifications(this.rows);
+
+  final List<MediaIdentification> rows;
+
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) async => rows;
+}

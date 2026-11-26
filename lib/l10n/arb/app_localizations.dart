@@ -88051,6 +88051,30 @@ abstract class AppLocalizations {
   /// **'Image not on this device'**
   String get media_species_cropUnavailable;
 
+  /// Under a species' crops on a locked photo: how many of that species the app found on it (issue #5024).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} in this photo} other{{count} in this photo}}'**
+  String media_species_cropCountPhoto(int count);
+
+  /// Under a species' crops on a locked video: how many of that species the app followed in it (issue #5024).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} in this video} other{{count} in this video}}'**
+  String media_species_cropCountVideo(int count);
+
+  /// Button on a species' crop sheet that opens the species page (issue #5024).
+  ///
+  /// In en, this message translates to:
+  /// **'Species page'**
+  String get media_species_openSpeciesPage;
+
+  /// Screen reader label of one thumbnail on a species' crop sheet (issue #5024).
+  ///
+  /// In en, this message translates to:
+  /// **'Image {index} of {count}'**
+  String media_species_cropThumb(int index, int count);
+
   /// No description provided for @media_species_taggedOnPhoto.
   ///
   /// In en, this message translates to:
