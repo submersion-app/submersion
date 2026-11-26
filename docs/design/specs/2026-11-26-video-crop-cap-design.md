@@ -1,6 +1,7 @@
 # Cap identification crops per species on a video
 
-Date: 2026-11-26. Status: approved design, not yet built.
+Date: 2026-11-26. Status: approved design, built for issue #5032
+(plan: `docs/design/plans/2026-11-26-video-crop-cap.md`).
 
 ## Why
 
@@ -218,3 +219,15 @@ the cap again.
 - Test fixtures: a video group with many tracks, a group with exactly 3, a
   claimed track outside the top 3, a rename after a trim, a peer applying the
   tombstones, and the readiness case.
+
+## As built
+
+- Readiness: a group of named tracks holding an undecided one needs a crop
+  on at least one of its tracks; a video whose named tracks have none is
+  analysed again.
+- The launch step trims every media holding more than 3 crops each launch;
+  a trimmed video costs one read of its rows after that.
+- Stretches merge tracks that overlap or start within 1 s of the last
+  one's end; a stretch under 1 s shows one time.
+- The crop sheet hands the tapped time back to the viewer, which pauses
+  the video on it as a face tag's chip does.
