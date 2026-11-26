@@ -57,6 +57,7 @@ abstract final class SetBundleResolver {
               amountKg: entry.amountKg,
               notes: entry.notes,
               label: entry.label,
+              side: entry.side,
             ),
     ];
     final joined = <CylinderConfigItem>[
@@ -140,6 +141,7 @@ abstract final class SetBundleResolver {
       if (a.weightType != b.weightType ||
           a.label != b.label ||
           a.notes != b.notes ||
+          a.side != b.side ||
           (a.amountKg - b.amountKg).abs() > 1e-6) {
         return false;
       }

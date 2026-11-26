@@ -63,4 +63,21 @@ void main() {
         .getSingle();
     expect(row.readNullable<String>('side'), isNull);
   });
+
+  test(
+    'a fresh database has weight_preset_entries.side, nullable TEXT',
+    () async {
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      addTearDown(db.close);
+
+      final cols = await db
+          .customSelect("PRAGMA table_info('weight_preset_entries')")
+          .get();
+      final column = cols.firstWhere((c) => c.read<String>('name') == 'side');
+      expect(column.read<int>('notnull'), 0);
+      expect(column.read<String>('type'), 'TEXT');
+    },
+  );
 }

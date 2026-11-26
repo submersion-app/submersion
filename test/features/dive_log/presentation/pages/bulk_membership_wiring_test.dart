@@ -766,7 +766,13 @@ void main() {
         diverId: 'diver-1',
         displayName: 'Belt',
         entries: const [
-          (weightType: WeightType.belt, amountKg: 3.63, notes: '', label: ''),
+          (
+            weightType: WeightType.belt,
+            amountKg: 3.63,
+            notes: '',
+            label: '',
+            side: null,
+          ),
         ],
       );
       final created = await EquipmentSetRepository().createSet(

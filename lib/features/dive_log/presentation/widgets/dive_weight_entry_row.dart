@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weight_label_field.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weight_side_choice.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -145,50 +146,17 @@ class _DiveWeightEntryRowState extends State<DiveWeightEntryRow> {
           // Below the name, so the name stays tight to its own row.
           if (_current.weightType != WeightType.backplate) ...[
             const SizedBox(height: 8),
-            _sideChoice(context),
-          ],
-        ],
-      ),
-    );
-  }
-
-  /// Both (null), Left or Right, for the trim figure's roll.
-  Widget _sideChoice(BuildContext context) {
-    final l10n = context.l10n;
-    return Row(
-      children: [
-        Text(l10n.diveLog_weight_side_label),
-        const SizedBox(width: 12),
-        Flexible(
-          child: SegmentedButton<WeightSide?>(
-            showSelectedIcon: false,
-            style: const ButtonStyle(visualDensity: VisualDensity.compact),
-            segments: [
-              ButtonSegment(
-                value: null,
-                label: Text(l10n.diveLog_weight_side_both),
-              ),
-              ButtonSegment(
-                value: WeightSide.left,
-                label: Text(l10n.diveLog_weight_side_left),
-              ),
-              ButtonSegment(
-                value: WeightSide.right,
-                label: Text(l10n.diveLog_weight_side_right),
-              ),
-            ],
-            selected: {_current.side},
-            onSelectionChanged: (selection) => setState(
-              () => _update(
-                _current.copyWith(
-                  side: selection.single,
-                  clearSide: selection.single == null,
+            WeightSideChoice(
+              side: _current.side,
+              onChanged: (side) => setState(
+                () => _update(
+                  _current.copyWith(side: side, clearSide: side == null),
                 ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        ],
+      ),
     );
   }
 }

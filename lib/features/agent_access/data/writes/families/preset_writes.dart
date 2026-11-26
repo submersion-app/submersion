@@ -1,5 +1,5 @@
 import 'package:submersion/core/constants/enums.dart'
-    show TankMaterial, WeightType;
+    show TankMaterial, WeightSide, WeightType, weightSideFromName;
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/built_in_rule.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
@@ -137,6 +137,8 @@ class WeightPresetWrites extends WritableEntry {
           trim: true,
         ),
         'notes': const FieldCodec.text(allowBlank: true),
+        // The side it is carried on (issue #5028); null is both sides.
+        'side': FieldCodec.enumName(WeightSide.values, nullable: true),
       },
       defaults: const {'label': '', 'notes': ''},
       maxItems: 20,
@@ -166,6 +168,7 @@ class WeightPresetWrites extends WritableEntry {
             'amount_kg': e.amountKg,
             'label': e.label,
             'notes': e.notes,
+            'side': e.side?.name,
           },
       ],
     };
@@ -216,6 +219,7 @@ class WeightPresetWrites extends WritableEntry {
               amountKg: (item['amount_kg']! as num).toDouble(),
               notes: item['notes']! as String,
               label: item['label']! as String,
+              side: weightSideFromName(item['side'] as String?),
             ),
         ];
 }

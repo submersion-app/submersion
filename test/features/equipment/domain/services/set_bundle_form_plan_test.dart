@@ -8,10 +8,22 @@ import 'package:submersion/features/weight_presets/domain/entities/weight_preset
 /// (issue #4525).
 void main() {
   const belt6 = <WeightEntryDraft>[
-    (weightType: WeightType.belt, amountKg: 2.72, notes: '', label: ''),
+    (
+      weightType: WeightType.belt,
+      amountKg: 2.72,
+      notes: '',
+      label: '',
+      side: null,
+    ),
   ];
   const belt8 = <WeightEntryDraft>[
-    (weightType: WeightType.belt, amountKg: 3.63, notes: '', label: ''),
+    (
+      weightType: WeightType.belt,
+      amountKg: 3.63,
+      notes: '',
+      label: '',
+      side: null,
+    ),
   ];
   List<DiveWeight> onDive(List<WeightEntryDraft> drafts) => [
     for (final (i, d) in drafts.indexed)

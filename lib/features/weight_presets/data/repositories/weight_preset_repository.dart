@@ -115,6 +115,7 @@ class WeightPresetRepository {
           amountKg: w.amountKg,
           notes: w.notes,
           label: w.label,
+          side: w.side,
         ),
     ],
   );
@@ -162,6 +163,7 @@ class WeightPresetRepository {
                 amountKg: Value(entries[i].amountKg),
                 notes: Value(entries[i].notes),
                 label: Value(normalizeWeightLabel(entries[i].label)),
+                side: Value(entries[i].side?.name),
                 sortOrder: Value(i),
                 createdAt: Value(now),
               ),
@@ -256,6 +258,7 @@ class WeightPresetRepository {
                 amountKg: Value(entries[i].amountKg),
                 notes: Value(entries[i].notes),
                 label: Value(normalizeWeightLabel(entries[i].label)),
+                side: Value(entries[i].side?.name),
                 sortOrder: Value(i),
                 createdAt: Value(now),
               ),
@@ -346,6 +349,7 @@ class WeightPresetRepository {
     amountKg: row.amountKg,
     notes: row.notes,
     label: row.label,
+    side: weightSideFromName(row.side),
     sortOrder: row.sortOrder,
   );
 }

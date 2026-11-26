@@ -80,7 +80,13 @@ void main() {
     setId: 'warm',
     gearIds: ['wing'],
     weights: [
-      (weightType: WeightType.integrated, amountKg: 2.0, notes: '', label: ''),
+      (
+        weightType: WeightType.integrated,
+        amountKg: 2.0,
+        notes: '',
+        label: '',
+        side: null,
+      ),
     ],
   );
   final bare = Dive(id: 'dive', dateTime: t0);

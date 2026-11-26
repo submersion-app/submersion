@@ -76,6 +76,7 @@ void main() {
           amountKg: 2.72,
           notes: '',
           label: 'Pockets',
+          side: null,
         ),
       ],
     )).id;
@@ -83,7 +84,13 @@ void main() {
       diverId: 'd1',
       displayName: 'Belt',
       entries: const [
-        (weightType: WeightType.belt, amountKg: 2.72, notes: '', label: ''),
+        (
+          weightType: WeightType.belt,
+          amountKg: 2.72,
+          notes: '',
+          label: '',
+          side: null,
+        ),
       ],
     )).id;
     final configs = CylinderConfigRepository();
@@ -179,7 +186,13 @@ void main() {
         id: belt6,
         displayName: 'Belt',
         entries: const [
-          (weightType: WeightType.belt, amountKg: 4, notes: '', label: ''),
+          (
+            weightType: WeightType.belt,
+            amountKg: 4,
+            notes: '',
+            label: '',
+            side: null,
+          ),
         ],
       );
       // The change streams are debounced.

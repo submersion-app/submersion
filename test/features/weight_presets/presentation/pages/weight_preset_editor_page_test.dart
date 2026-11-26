@@ -476,6 +476,50 @@ void main() {
       expect(repo.updated.single.entries.single.label, 'Top pocket');
     });
 
+    testWidgets('new: a row\'s side saves with its entry (#5028)', (
+      tester,
+    ) async {
+      await pump(tester);
+      await tester.enterText(find.byType(TextFormField).first, 'Pockets');
+      await tester.enterText(_amountField().last, '2');
+      await tester.tap(find.text('Left').last);
+      await tester.pump();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.created.single.entries.single.side, WeightSide.left);
+    });
+
+    testWidgets('edit: an entry\'s side is shown and saved back (#5028)', (
+      tester,
+    ) async {
+      repo.loadReturns = _preset(
+        'p1',
+        'Pockets',
+        entries: const [
+          WeightPresetEntry(
+            id: 'p1-e0',
+            presetId: 'p1',
+            weightType: WeightType.integrated,
+            amountKg: 2.0,
+            side: WeightSide.right,
+          ),
+        ],
+      );
+      await pump(tester, presetId: 'p1');
+
+      final choice = tester.widget<SegmentedButton<WeightSide?>>(
+        find.byType(SegmentedButton<WeightSide?>),
+      );
+      expect(choice.selected, {WeightSide.right});
+      await tester.enterText(_amountField().first, '3');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.updated.single.entries.single.side, WeightSide.right);
+    });
+
     testWidgets('deleting a middle row keeps the others\' names and types', (
       tester,
     ) async {

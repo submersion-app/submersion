@@ -115,4 +115,20 @@ void main() {
     final rows = named.toDiveWeights(diveId: 'dv', newId: () => 'n');
     expect(rows.single.label, 'Top pocket');
   });
+
+  test('toDiveWeights carries each entry\'s side (#5028)', () {
+    final sided = preset.copyWith(
+      entries: [
+        const WeightPresetEntry(
+          id: 'e1',
+          presetId: 'p1',
+          weightType: WeightType.integrated,
+          amountKg: 2,
+          side: WeightSide.left,
+        ),
+      ],
+    );
+    final rows = sided.toDiveWeights(diveId: 'd', newId: () => 'n');
+    expect(rows.single.side, WeightSide.left);
+  });
 }

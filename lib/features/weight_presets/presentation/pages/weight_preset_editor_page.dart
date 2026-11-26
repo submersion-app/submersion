@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weight_label_field.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weight_side_choice.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
@@ -34,7 +35,12 @@ class WeightPresetEditorPage extends ConsumerStatefulWidget {
 }
 
 /// One weight row as the editor shows it.
-typedef WeightRowDraft = ({WeightType type, String amount, String label});
+typedef WeightRowDraft = ({
+  WeightType type,
+  String amount,
+  String label,
+  WeightSide? side,
+});
 
 /// What the weight preset editor's form shows, as the diver sees it: the
 /// sitting's draft (issue #4527, phase 4). Text as shown, so a weight in
@@ -58,6 +64,9 @@ class WeightPresetDraft {
 
 class _Row {
   WeightType type;
+
+  /// The side it is carried on (issue #5028); null for both sides.
+  WeightSide? side;
   final TextEditingController amount;
 
   /// The entry's optional name (issue #956).
@@ -71,7 +80,14 @@ class _Row {
   final WeightPresetEntry? loaded;
   final String? loadedText;
 
-  _Row(this.type, this.amount, this.label, {this.loaded, this.loadedText});
+  _Row(
+    this.type,
+    this.amount,
+    this.label, {
+    this.side,
+    this.loaded,
+    this.loadedText,
+  });
 
   /// The row as it would be stored, its untouched fields taken from
   /// [stored], the entry as stored now (the loaded entry when it is gone).
@@ -92,6 +108,9 @@ class _Row {
       label: origin != null && label.text == origin.label && base != null
           ? base.label
           : label.text,
+      side: origin != null && side == origin.side && base != null
+          ? base.side
+          : side,
     );
   }
 
@@ -114,11 +133,13 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
     WeightType type, {
     String amount = '',
     String label = '',
+    WeightSide? side,
     WeightPresetEntry? loaded,
   }) => _Row(
     type,
     TextEditingController(text: amount)..addListener(editorChanged),
     TextEditingController(text: label)..addListener(editorChanged),
+    side: side,
     loaded: loaded,
     loadedText: loaded == null ? null : amount,
   );
@@ -185,6 +206,7 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
               e.weightType,
               amount: formatRoundedForInput(units.convertWeight(e.amountKg), 3),
               label: e.label,
+              side: e.side,
               loaded: e,
             ),
           ),
@@ -251,7 +273,12 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
     name: _nameController.text,
     rows: [
       for (final r in _rows)
-        (type: r.type, amount: r.amount.text, label: r.label.text),
+        (
+          type: r.type,
+          amount: r.amount.text,
+          label: r.label.text,
+          side: r.side,
+        ),
     ],
   );
 
@@ -388,7 +415,11 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
                   ],
                   onChanged: (v) {
                     if (v == null) return;
-                    setState(() => row.type = v);
+                    setState(() {
+                      row.type = v;
+                      // Backplate weight is always centred, so it has no side.
+                      if (v == WeightType.backplate) row.side = null;
+                    });
                     editorChanged();
                   },
                 ),
@@ -423,6 +454,16 @@ class _WeightPresetEditorPageState extends ConsumerState<WeightPresetEditorPage>
           ),
           const SizedBox(height: 8),
           WeightLabelField(controller: row.label),
+          if (row.type != WeightType.backplate) ...[
+            const SizedBox(height: 8),
+            WeightSideChoice(
+              side: row.side,
+              onChanged: (side) {
+                setState(() => row.side = side);
+                editorChanged();
+              },
+            ),
+          ],
         ],
       ),
     );

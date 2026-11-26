@@ -282,6 +282,7 @@ class DiveSetBundleApplier {
             amountKg: w.amountKg,
             notes: w.notes,
             label: w.label,
+            side: w.side,
           ),
       ],
     );

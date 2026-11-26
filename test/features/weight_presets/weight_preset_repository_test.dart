@@ -173,12 +173,19 @@ void main() {
         diverId: diverId,
         displayName: '  Wetsuit 5mm  ',
         entries: const [
-          (weightType: WeightType.belt, amountKg: 4.0, notes: '', label: ''),
+          (
+            weightType: WeightType.belt,
+            amountKg: 4.0,
+            notes: '',
+            label: '',
+            side: null,
+          ),
           (
             weightType: WeightType.trimWeights,
             amountKg: 1.0,
             notes: 'tail',
             label: '',
+            side: null,
           ),
         ],
       );
@@ -222,6 +229,7 @@ void main() {
           amountKg: 6.0,
           notes: '',
           label: '',
+          side: null,
         ),
       ],
     );
@@ -271,6 +279,47 @@ void main() {
     ]);
   });
 
+  test(
+    'createFromWeights and updatePreset keep each weight\'s side (#5028)',
+    () async {
+      final preset = await repo.createFromWeights(
+        diverId: diverId,
+        displayName: 'Sided',
+        weights: [
+          _w(WeightType.integrated, 2).copyWith(side: WeightSide.left),
+          _w(WeightType.integrated, 2),
+        ],
+      );
+      expect(preset.entries.map((e) => e.side).toList(), [
+        WeightSide.left,
+        null,
+      ]);
+      final reread = (await repo.getPresetById(preset.id))!;
+      expect(reread.entries.map((e) => e.side).toList(), [
+        WeightSide.left,
+        null,
+      ]);
+
+      await repo.updatePreset(
+        id: preset.id,
+        displayName: 'Sided',
+        entries: const [
+          (
+            weightType: WeightType.trimWeights,
+            amountKg: 1,
+            notes: '',
+            label: '',
+            side: WeightSide.right,
+          ),
+        ],
+      );
+      expect(
+        (await repo.getPresetById(preset.id))!.entries.single.side,
+        WeightSide.right,
+      );
+    },
+  );
+
   test('updatePreset writes the entries\' names', () async {
     final preset = await repo.createFromWeights(
       diverId: diverId,
@@ -286,6 +335,7 @@ void main() {
           amountKg: 2,
           notes: '',
           label: 'Top pocket',
+          side: null,
         ),
       ],
     );
@@ -299,7 +349,13 @@ void main() {
       diverId: diverId,
       displayName: 'Warm water',
       entries: [
-        (weightType: WeightType.belt, amountKg: 4.0, notes: '', label: ''),
+        (
+          weightType: WeightType.belt,
+          amountKg: 4.0,
+          notes: '',
+          label: '',
+          side: null,
+        ),
       ],
     );
 

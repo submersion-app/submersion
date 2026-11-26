@@ -81,7 +81,12 @@ void main() {
     }
   }
 
-  Future<void> preset(String id, double kg, {String type = 'belt'}) async {
+  Future<void> preset(
+    String id,
+    double kg, {
+    String type = 'belt',
+    String? side,
+  }) async {
     await db
         .into(db.weightPresets)
         .insert(
@@ -102,6 +107,7 @@ void main() {
             weightType: type,
             amountKg: kg,
             createdAt: t,
+            side: Value(side),
           ),
         );
   }
@@ -256,6 +262,16 @@ void main() {
     expect(tanks.map((x) => x.tankRole), ['backGas', 'deco']);
     expect(tanks.map((x) => x.o2Percent), [32, 50]);
     expect(tanks.map((x) => x.tankOrder), [0, 1]);
+  });
+
+  test('a set\'s weights keep their side (#5028)', () async {
+    await preset('pocketL', 2, type: 'integrated', side: 'left');
+    await set('rig', presets: ['pocketL']);
+    await applier.apply(diveId: 'dive1', setIds: ['rig']);
+    final rows = await (db.select(
+      db.diveWeights,
+    )..where((w) => w.diveId.equals('dive1'))).get();
+    expect(rows.single.side, 'left');
   });
 
   test('leaves weights alone when the dive has weight rows', () async {

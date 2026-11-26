@@ -828,5 +828,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'weight_preset_entries': {
     'label': 'The diver\'s own name for this entry, copied to and from a dive\'s weights',
+    'side': 'the side this entry is carried on, \'left\' or \'right\', copied to and from a dive\'s weights',
   },
 };
