@@ -158,7 +158,52 @@
 - [ ] **Step 4: Run**; expect PASS.
 - [ ] **Step 5: Commit** `feat(marine-life): queries for species crops, places, months and depths`.
 
-<!-- TASKS 5 AND 6 (synced tables) ARE INSERTED HERE -->
+### Task 5: Covers and practice tables: schema, sync, change log, guards
+
+Model: `insight_observation_dismissals` (v265, commit b7972fffe2a): diver-owned, `hlc`, deterministic id, last write wins. Current `currentSchemaVersion` is 382; this task's rung is **v383**.
+
+**Files:**
+- Create: `lib/core/database/tables/species_revamp_tables.dart`; `lib/core/database/migrations/helpers/species_revamp_migrations.dart` (`part of '../app_database_migrations.dart'`)
+- Modify: `lib/core/database/database.dart` (import/export, `@DriftDatabase` tables list, `currentSchemaVersion = 383`, `383` appended to `migrationVersions`; nothing else, per `database_table_libraries_test.dart`); `migrations/app_database_migrations.dart` (`part`); `migrations/before_open_table_backstops.dart` (call the assert; `before_open.dart` is at 799 lines, touch nothing there); `migrations/ladder/rungs_v340_onward.dart` (`if (from < 383) await _assertSpeciesRevampSchema();` then `reportProgress()`); `performance_indexes.dart` (`idx_species_covers_hlc`, `idx_species_practice_hlc`, `idx_species_practice_diver`)
+- Modify (sync): `lib/core/data/repositories/sync_repository.dart` `hlcTargets` (`'speciesCovers'`, `'speciesPractice'`); `lib/core/services/sync/sync_data_serializer.dart` (SyncData field + `toJson`/`fromJson`, `_baseTables`, `_buildSyncDataUnmemoised` `_safeExport`, `fetchRecord`, `fetchRecords`, `_upsertRecordApply`, `_upsertRecordsApply`, `recordIdsFor`, `_syncTableFor`, `_deleteRecordApply`, new `_exportSpeciesCovers`/`_exportSpeciesPractice` with `t.hlc.isBiggerThanValue(hlcSince)`); `sync_service.dart` (`mergeOrder` after species and media, `hasUpdatedAt: true`; `entityHasUpdatedAt`; `parentRefs` `(field: 'speciesId', parent: 'species', nullable: false)` for both, diverId as the existing diver-owned tables declare it)
+- Modify (change log): `lib/core/database/change_log/change_log_policy.dart` `changeLogTables`: both `ChangeLogClass.tracked` (own roots, no `changeLogParents` entry)
+- Modify (guards): `lib/features/agent_access/data/sql/sql_denied_set.dart` not touched; both tables go in `_unexposedTables` of `test/features/agent_access/data/records/record_catalog_guard_test.dart` ("species page state"); regenerate `sql_column_notes.generated.dart` with `dart run tool/generate_sql_column_notes.dart`; conflict catalogue: new `lib/features/settings/presentation/conflicts/catalogue/species_revamp_fields.dart` registered in `_merge([...])` of `conflict_field_catalogue.dart` for `identificationId`, `box`, `dueAt`, `rightCount`, `wrongCount`, `lastPractisedAt`, with `settings_conflict_field_*` keys in all 11 ARBs; `tool/demo_data/src/checks/coverage_check.dart` `demoCoverageExclusions` with reason "species page state the demo does not need"
+- Test: `test/core/database/migration_v383_species_revamp_test.dart` (model `migration_v265_insight_observations_test.dart`); `test/core/services/sync/species_revamp_sync_test.dart` (model `insight_observation_dismissals_sync_test.dart`); add both tables to `sync_parent_refs_completeness_test.dart` `syncedTables` and `sync_data_serializer_batch_coverage_test.dart`
+
+**Interfaces:**
+- Produces Drift tables (each `primaryKey => {id}`):
+  - `SpeciesCovers`: `id` text; `diverId` text references `Divers` cascade; `speciesId` text references `Species` cascade; `mediaId` text (soft reference, no foreign key: a cover whose media goes away is ignored); `identificationId` text nullable (soft); `createdAt`, `updatedAt` int (ms); `hlc` text nullable.
+  - `SpeciesPractice` (`@DataClassName('SpeciesPracticeRow')`): `id`; `diverId`; `speciesId` (as above); `box` int; `dueAt` int (ms); `rightCount` int default 0; `wrongCount` int default 0; `lastPractisedAt` int nullable; `createdAt`, `updatedAt` int; `hlc` text nullable.
+  - `String speciesCoverId(String diverId, String speciesId) => 'sc_${sha1(diverId|speciesId)}'` and `String speciesPracticeId(...) => 'spr_${...}'` in `lib/features/marine_life/domain/species_revamp_ids.dart` (same form as `observationDismissalId`).
+- Sync entity types: `speciesCovers`, `speciesPractice`.
+
+- [ ] **Step 1: Write the failing migration test:** a v382 database gains both tables at v383 with their columns; `migrationVersions` contains 383; `migrationStepCount(382) == migrationStepCount(383) + 1`; the backstop creates them on a database that skipped the rung.
+- [ ] **Step 2: Write the failing sync test:** a cover and a practice row written on device A export after `hlcSince` and apply on device B; a newer `hlc` wins over an older one for the same id; a delete tombstone removes the row on B.
+- [ ] **Step 3: Run** both; expect failures.
+- [ ] **Step 4: Implement** tables, helper, rung, backstop, indexes, `build_runner` (unfiltered, in the background), sync arms, change log class, guards, conflict labels, demo exclusion, column notes.
+- [ ] **Step 5: Run** the two new tests plus the guard tests touched (`change_log_policy_test.dart`, `sync_hlc_target_registration_test.dart`, `sync_parent_refs_completeness_test.dart`, `sync_data_serializer_batch_coverage_test.dart`, `record_catalog_guard_test.dart`, `schema_resource_test.dart`, `conflict_field_catalogue_coverage_test.dart`, `conflict_labels_complete_test.dart`, `database_table_libraries_test.dart`), by path; expect PASS.
+- [ ] **Step 6: Commit** `feat(marine-life): synced tables for species covers and practice`.
+
+### Task 6: Cover and practice repositories, and keeping them whole
+
+**Files:**
+- Create: `lib/features/marine_life/domain/entities/species_cover.dart`; `lib/features/marine_life/data/repositories/species_cover_repository.dart`, `species_practice_repository.dart`
+- Modify: `lib/features/divers/data/repositories/diver_delete_steps.dart` `diverLibrarySteps` (both tables, `where: 'diver_id = ?1'`); `diver_merge_repository.dart` (both tables in a keeper-wins set beside `_singletonConfigTables`: the duplicate's rows are captured for undo, tombstoned and deleted, my call: a merge is rare and ids are derived from the diver); `lib/features/marine_life/data/services/retired_species_merger.dart` (re-key: for each row on a retired species, when the diver has no row on the replacement, delete it with a tombstone and insert it under the replacement's derived id, marked pending; otherwise delete it with a tombstone); `species_repository.dart` `deleteSpecies` (tombstone both tables' rows for the species before the cascade, as it does for tags); `test/architecture/agent_write_coverage_exempt.dart` (the new write methods, reason "species page state, not exposed to agents")
+- Test: `test/features/marine_life/data/repositories/species_cover_repository_test.dart`, `species_practice_repository_test.dart`; seed entries in `test/features/divers/data/repositories/diver_delete_tombstones_test.dart` and `test/features/divers/diver_merge_repository_test.dart`; a case in the retired merger's test
+
+**Interfaces:**
+- Consumes: Task 5 tables and ids, `PracticeState` (Task 3).
+- Produces:
+  - `class SpeciesCover extends Equatable { String speciesId; String mediaId; String? identificationId; }`.
+  - `SpeciesCoverRepository`: `Future<Map<String, SpeciesCover>> coversFor(String diverId)`; `Future<void> setCover({required String diverId, required String speciesId, required String mediaId, String? identificationId})` (upsert by derived id, `markRecordPending`); `Future<void> clearCover({required String diverId, required String speciesId})` (`logDeletion`); `Stream<void> watchChanges()`.
+  - `SpeciesPracticeRepository`: `Future<Map<String, PracticeState>> statesFor(String diverId)`; `Future<void> save(String diverId, PracticeState state)` (upsert, `markRecordPending`); `Stream<void> watchChanges()`.
+  - Writes run inside the diver's change log scope like other diver edits.
+
+- [ ] **Step 1: Write failing tests:** cover `set then read`, `set again replaces, one row`, `clear removes and tombstones`, `two devices setting a cover converge on one id`; practice `save then read round-trips every field`, `save stamps hlc and marks pending`; diver delete `removes and tombstones both tables`; diver merge `keeper's rows win, the duplicate's are tombstoned`; retired merger `a cover on a retired species moves to the replacement`, `a practice row is dropped when the replacement already has one`; species delete `tombstones the species' covers and practice rows`.
+- [ ] **Step 2: Run**; expect failures.
+- [ ] **Step 3: Implement.**
+- [ ] **Step 4: Run** the files above by path; expect PASS.
+- [ ] **Step 5: Commit** `feat(marine-life): species cover and practice repositories`.
 
 ### Task 7: Providers and device prefs
 
@@ -207,7 +252,7 @@
   - `SpeciesCard({required SeenSpecies entry, required SpeciesPicture picture, SpeciesRarity? rarity, bool firstSeenHere = false, VoidCallback? onTap})`: picture at 4:3, name (2 lines max, ellipsis), "<n> dives", badge pill.
   - `SpeciesGroupedView({required List<SpeciesGroup> groups, required SpeciesGroupBy by, required bool grid, ...})`: `none` a `SliverGrid` (max cross-axis extent 200, so 2 columns at 390 and 6 at 1280); `category` shelves (horizontal `ListView` per group, cards 160 wide, header "<category> · <n>" with See all calling `onSeeAllCategory(category)`); `firstSeen`, `trip`, `site` stacked sections with sticky collapsible headers (`collapsible_group_header.dart`). `grid == false` renders `SeenSpeciesTile` rows in the same groups.
   - App bar gains a Group by menu (`species_group_by_menu`), a grid/list toggle (`species_view_toggle`) and Practice (`species_practice`).
-- Behaviour: the header always reads the whole `seenSpeciesProvider` list; the no-photo chip filters to species whose picture is `NoPicture`; See all sets the category filter and Group by `none`; the existing count line, search, query chips, category chips, sort, review banner, download prompt, map and manage actions stay.
+- Behaviour: each card's rarity is `rarityFor(entry, now: DateTime.now(), practiceBox: speciesPracticeStatesProvider[id]?.box)`; the header always reads the whole `seenSpeciesProvider` list; the no-photo chip filters to species whose picture is `NoPicture`; See all sets the category filter and Group by `none`; the existing count line, search, query chips, category chips, sort, review banner, download prompt, map and manage actions stay.
 - [ ] **Step 1: Write failing tests:** header `shows total, new this year and the growth line`, `hides the chip at zero`; card `shows the rarity badge`, `long names ellipsize at 2 lines` (a 90-character name at 160 px); grouped view `shelves per category with See all`, `trip sections include No trip`, `list mode renders tiles`; page `group by persists across rebuilds`, `no-photo chip filters`, `header ignores the search`, `600 species build without per-card queries` (assert the gallery repository fake is called once).
 - [ ] **Step 2 to 4:** run, implement, run.
 - [ ] **Step 5: Commit** `feat(marine-life): photo-first life list with grouping and rarity`.
@@ -234,6 +279,7 @@
 **Interfaces:**
 - Consumes: Tasks 5, 7, 8, 10; `SpeciesWhereSeenSection`, `SpeciesSightingsSection`, `SpeciesPhotosSection`, `speciesInsightsProvider`.
 - Produces:
+  - `uncropped` is `mediaForSpeciesProvider(id)` minus the media ids in `speciesCropsProvider(id)`, newest first.
   - `SpeciesCropStrip({required String speciesId, required List<SpeciesCrop> crops, required List<MediaItem> uncropped, String? coverIdentificationId, String? coverMediaId})`: lazy horizontal `ListView.builder`, tiles 96 square, cover first; tap opens `openMediaViewer` over the species' media with `initialVideoPosition: Duration(milliseconds: bestMs)` for a video; long-press and secondary-click open a menu "Use as cover" / "Remove cover" writing through `SpeciesCoverRepository`.
   - `SpeciesFactsRow({required SpeciesInsights insights, SpeciesRarity? rarity})`: dives, sites, first seen, last seen (unit formatter dates), badge.
   - `SpeciesDepthSeasonSection({required List<double> photoDepths, double? minDiveDepth, double? maxDiveDepth, required List<int> monthCounts})`: vertical band with dots, label "Dive max depth" when `photoDepths` is empty; fl_chart `BarChart` of 12 months with localized one-letter month labels from `DateFormat.MMMMM(locale)`; hidden when there are no sightings.
