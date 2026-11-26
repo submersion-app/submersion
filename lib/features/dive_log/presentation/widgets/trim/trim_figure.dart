@@ -195,12 +195,36 @@ class TrimFigure extends StatelessWidget {
     return size;
   }
 
+  /// An element as a screen reader says it: the side as a word, not the
+  /// chip's letter.
+  String _spokenText(TrimElement e, BuildContext context) {
+    final l10n = context.l10n;
+    final text = l10n.trim_chip_weight(
+      trimElementName(e, l10n),
+      units.formatWeight(trimShownKg(e.sinkKg)),
+    );
+    final side = !e.spot.sided
+        ? null
+        : switch (e.lateral) {
+            TrimLateral.left => l10n.diveLog_weight_side_left,
+            TrimLateral.right => l10n.diveLog_weight_side_right,
+            TrimLateral.centre => null,
+          };
+    final where = trimSpotLabelFor(e, l10n);
+    return [
+      text,
+      ?side,
+      where,
+      if (e.spotUnknown) l10n.trim_chip_note,
+    ].join(' ');
+  }
+
   String _summary(BuildContext context) {
     final l10n = context.l10n;
     final lead = [
       for (final e in scene.elements)
         if (e.kind == TrimElementKind.lead || e.kind == TrimElementKind.test)
-          '${chipText(e, context)} ${trimSpotLabelFor(e, l10n)}',
+          _spokenText(e, context),
     ].join(', ');
     final verdict = trimVerdictLine(result, l10n);
     return lead.isEmpty

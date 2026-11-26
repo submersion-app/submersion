@@ -399,4 +399,25 @@ void main() {
       }
     }
   });
+
+  testWidgets('the summary names a side in words', (tester) async {
+    await pump(
+      tester,
+      scene([
+        lead(
+          'a',
+          4,
+          TrimSpot.hipPockets,
+          type: WeightType.integrated,
+          lateral: TrimLateral.left,
+        ),
+      ]),
+    );
+    final label = tester
+        .getSemantics(find.byType(TrimFigure))
+        .getSemanticsData()
+        .label;
+    expect(label, contains('Left'));
+    expect(label, isNot(contains(' L ')));
+  });
 }

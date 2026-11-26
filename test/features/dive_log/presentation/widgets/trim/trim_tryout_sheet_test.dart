@@ -357,4 +357,42 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining(RegExp(r'\d,\d\d kg·m')), findsWidgets);
   });
+
+  testWidgets('a long dive time slider draws no tick per sample', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      moments: [
+        for (var i = 0; i < 2000; i++) TrimMoment(timestamp: i * 2, depthM: 10),
+      ],
+    );
+    final slider = tester.widget<Slider>(find.byKey(TrimTryoutView.timeKey));
+    expect(slider.divisions, isNull);
+    await tester.drag(find.byKey(TrimTryoutView.timeKey), const Offset(400, 0));
+    await tester.pumpAndSettle();
+    expect(controller.timestamp, 3998);
+  });
+
+  testWidgets('a cancelled chip drag leaves nothing selected', (tester) async {
+    await pump(tester);
+    final p = painter(tester);
+    final chip = p.chips.singleWhere((c) => c.elementId == 'belt').rect;
+    final figure = tester.getTopLeft(
+      find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is TrimFigurePainter,
+      ),
+    );
+    final gesture = await tester.startGesture(figure + chip.center);
+    await gesture.moveBy(const Offset(-40, -40));
+    await tester.pump();
+    expect(painter(tester).selectedElementId, 'belt');
+    await gesture.cancel();
+    await tester.pump();
+    expect(painter(tester).selectedElementId, isNull);
+    expect(
+      controller.scene.elements.singleWhere((e) => e.id == 'belt').spot,
+      TrimSpot.waist,
+    );
+  });
 }

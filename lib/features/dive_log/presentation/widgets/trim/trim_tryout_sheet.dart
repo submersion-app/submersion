@@ -117,6 +117,10 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
   Offset? _downAt;
   Offset? _dragAt;
 
+  /// The pointer was cancelled (the system took the gesture): the drag ends
+  /// where it started, with no tap and no move.
+  bool _cancelled = false;
+
   TrimTryoutController get _c => widget.controller;
 
   String? _chipAt(Offset p) {
@@ -161,11 +165,14 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
     final at = _dragAt;
     final down = _downAt;
     final geometry = _geometry;
+    final cancelled = _cancelled;
     _dragId = null;
     _dragAt = null;
     _downAt = null;
-    if (id == null || at == null || down == null || geometry == null) return;
+    _cancelled = false;
     setState(() {});
+    if (cancelled) return;
+    if (id == null || at == null || down == null || geometry == null) return;
     if ((at - down).distance < kTouchSlop) {
       _c.cycleSide(id);
       return;
@@ -212,7 +219,10 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
           gestures: {
             _ChipPanRecognizer:
                 GestureRecognizerFactoryWithHandlers<_ChipPanRecognizer>(
-                  () => _ChipPanRecognizer(onChip: (p) => _chipAt(p) != null),
+                  () => _ChipPanRecognizer(
+                    onChip: (p) => _chipAt(p) != null,
+                    onPointerCancel: () => _cancelled = true,
+                  ),
                   (r) => r
                     // The chip is taken where the finger came down: the
                     // pan reports only once the finger has moved off it.
@@ -224,7 +234,10 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
                     ..onUpdate = (d) {
                       setState(() => _dragAt = d.localPosition);
                     }
-                    ..onEnd = (_) => _drop(),
+                    ..onEnd = (_) {
+                      _drop();
+                    }
+                    ..onCancel = _drop,
                 ),
           },
           child: TrimFigure(
@@ -344,8 +357,12 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
             key: TrimTryoutView.timeKey,
             value: timeIndex.toDouble(),
             max: (moments.length - 1).toDouble(),
-            divisions: moments.length - 1,
-            onChanged: (v) => _c.setTimestamp(moments[v.round()].timestamp),
+            // No divisions: a long dive has thousands of samples, one tick
+            // each; the value snaps to the nearest sample instead.
+            onChanged: (v) {
+              final t = moments[v.round()].timestamp;
+              if (t != _c.timestamp) _c.setTimestamp(t);
+            },
           ),
         ],
         const SizedBox(height: 8),
@@ -388,9 +405,19 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
 /// A pan that wins at once when the finger lands on a chip, so dragging a
 /// chip never scrolls the sheet, and leaves every other touch to the scroll.
 class _ChipPanRecognizer extends PanGestureRecognizer {
-  _ChipPanRecognizer({required this.onChip});
+  _ChipPanRecognizer({required this.onChip, required this.onPointerCancel});
 
   final bool Function(Offset localPosition) onChip;
+
+  /// A pan reports a cancelled pointer through onEnd, like a lift; this
+  /// tells the two apart.
+  final VoidCallback onPointerCancel;
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerCancelEvent) onPointerCancel();
+    super.handleEvent(event);
+  }
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
