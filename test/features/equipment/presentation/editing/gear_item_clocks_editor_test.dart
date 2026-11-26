@@ -119,6 +119,35 @@ void main() {
       expect((await storedClocks()).single.enabled, isTrue);
     });
 
+    testWidgets('a held clock shows its verdict over the held settings, with '
+        'the changed dot (issue #5042)', (tester) async {
+      final session = sitting();
+      await pump(tester, GearItemClocksEditor(session: session));
+
+      holdClock(
+        session,
+        ServiceSchedule(
+          id: '',
+          equipmentId: 'g1',
+          serviceKindId: 'k-o2',
+          createdAt: at,
+          updatedAt: at,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final added = gearItemClocksList.current(session)!.last;
+      final row = find.byKey(ValueKey('gear-clock-${added.id}'));
+      expect(
+        find.descendant(of: row, matching: find.textContaining('Due ')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: row, matching: find.byType(RecordChangedDot)),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('removing a clock holds it and writes nothing', (tester) async {
       final session = sitting();
       await pump(tester, GearItemClocksEditor(session: session));

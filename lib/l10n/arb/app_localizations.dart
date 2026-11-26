@@ -7678,11 +7678,41 @@ abstract class AppLocalizations {
   /// **'Replace'**
   String get checklists_replaceTemplate_confirm;
 
+  /// No description provided for @checklists_addGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear'**
+  String get checklists_addGear;
+
+  /// No description provided for @checklists_addGearSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear set'**
+  String get checklists_addGearSet;
+
+  /// No description provided for @checklists_addGear_cylindersOnGearTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders go on the Gear tab.'**
+  String get checklists_addGear_cylindersOnGearTab;
+
   /// No description provided for @checklists_addItem.
   ///
   /// In en, this message translates to:
   /// **'Add item'**
   String get checklists_addItem;
+
+  /// No description provided for @checklists_toPack.
+  ///
+  /// In en, this message translates to:
+  /// **'To pack'**
+  String get checklists_toPack;
+
+  /// No description provided for @checklists_packed.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed'**
+  String get checklists_packed;
 
   /// No description provided for @checklists_item_titleLabel.
   ///

@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_t
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/service_clock_snapshot_override.dart';
 
 class _MockServiceRecordNotifier
     extends StateNotifier<AsyncValue<List<ServiceRecord>>>
@@ -71,6 +72,7 @@ void main() {
           serviceClockStatusesProvider(
             id,
           ).overrideWith((ref) async => const []),
+          serviceClockSnapshotOverride(id),
           equipmentComponentsProvider(id).overrideWith((ref) async => const []),
           equipmentExposureTotalsProvider(
             id,

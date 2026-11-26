@@ -4958,7 +4958,23 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'Vervangen';
 
   @override
+  String get checklists_addGear => 'Uitrusting toevoegen';
+
+  @override
+  String get checklists_addGearSet => 'Uitrustingsset toevoegen';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Flessen horen op het tabblad Uitrusting.';
+
+  @override
   String get checklists_addItem => 'Item toevoegen';
+
+  @override
+  String get checklists_toPack => 'In te pakken';
+
+  @override
+  String get checklists_packed => 'Ingepakt';
 
   @override
   String get checklists_item_titleLabel => 'Titel';

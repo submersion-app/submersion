@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -94,20 +95,22 @@ void main() {
                 for (final k in [hydro, vip, o2]) k.id: k,
               },
         ),
-        serviceClockStatusesProvider('e1').overrideWith(
-          (ref) async =>
-              statuses ??
-              [
-                status(
-                  hydro,
-                  ServiceClockSeverity.overdue,
-                  DateTime(2026, 1, 1),
-                ),
-                status(vip, ServiceClockSeverity.ok, DateTime(2027, 5, 1)),
-              ],
-        ),
-        serviceSchedulesForEquipmentProvider('e1').overrideWith(
-          (ref) async => schedules ?? [sched('hydro'), sched('vip')],
+        // The rows and their verdicts come from one read (issue #5042).
+        serviceClockSnapshotProvider('e1').overrideWith(
+          (ref) async => ServiceClockSnapshot(
+            schedules: schedules ?? [sched('hydro'), sched('vip')],
+            records: const [],
+            evaluate: (_, _) =>
+                statuses ??
+                [
+                  status(
+                    hydro,
+                    ServiceClockSeverity.overdue,
+                    DateTime(2026, 1, 1),
+                  ),
+                  status(vip, ServiceClockSeverity.ok, DateTime(2027, 5, 1)),
+                ],
+          ),
         ),
         serviceKindsProvider.overrideWith(
           (ref) async => scopedKinds ?? [hydro, vip, o2],

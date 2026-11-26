@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dot_joined_wrap.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_mix_pill.dart';
 
 /// The tank's role icon beside its title.
@@ -14,12 +15,21 @@ const _iconGap = 6.0;
 const _figureGap = 12.0;
 const _figureMaxShare = 0.45;
 
+/// Below this width (at the default text size) the [CylinderBlock.details]
+/// run under the figure across the whole block (issue #5041): beside a
+/// figure on a phone they had a column too narrow to read.
+const _stackBelowWidth = 480.0;
+
 /// One cylinder on the Cylinders card (issue #3773): the tank [figure]
 /// first, carrying the start, end and used pressures, then beside it what
 /// the tank is (role icon, title, gas pill, and the [subtitle] under them)
-/// and the [details] in a single quiet style, with [trailing] (the gear
-/// check-in) at the end of that block. Issue #3675's table columns gave way
-/// to the figure.
+/// with [trailing] (the check-in and the cylinder menu), and the [details]
+/// in a single quiet style. On a wide block the details sit beside the
+/// figure and the trailing controls end the title line; on a narrow one the
+/// details run under the figure across the whole block and the controls sit
+/// under the title, beside the figure. Either way the controls take no
+/// width from the details (issue #5041). Issue #3675's table columns gave
+/// way to the figure.
 class CylinderBlock extends StatelessWidget {
   const CylinderBlock({
     super.key,
@@ -56,116 +66,106 @@ class CylinderBlock extends StatelessWidget {
     final muted = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
+    // Scaled with the text, so a large text size stacks the details on a
+    // card that would hold them beside the figure at the default size.
+    final stackBelow = MediaQuery.textScalerOf(context).scale(_stackBelowWidth);
+
+    // On a wide block the trailing controls end the title line; on a narrow
+    // one they would leave the title too little of the column, so they sit
+    // under it, in the room beside the figure.
+    Widget titleRow({required bool withTrailing}) => Row(
+      children: [
+        Expanded(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: _iconSize,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: _iconGap),
+                  Flexible(
+                    child: Text(title, style: theme.textTheme.titleSmall),
+                  ),
+                ],
+              ),
+              Semantics(
+                container: true,
+                label: gasLabel,
+                excludeSemantics: true,
+                child: GasMixPill(gasMix: gasMix),
+              ),
+            ],
+          ),
+        ),
+        if (withTrailing) ?trailing,
+      ],
+    );
+    final detailBlock = details.isEmpty
+        ? null
+        : Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: DefaultTextStyle.merge(
+              style: muted,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 2,
+                children: details,
+              ),
+            ),
+          );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: LayoutBuilder(
-        builder: (context, constraints) => Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: constraints.maxWidth * _figureMaxShare,
+        builder: (context, constraints) {
+          final stacked = constraints.maxWidth < stackBelow;
+          final beside = Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: constraints.maxWidth * _figureMaxShare,
+                ),
+                child: figure,
               ),
-              child: figure,
-            ),
-            const SizedBox(width: _figureGap),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            icon,
-                            size: _iconSize,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: _iconGap),
-                          Flexible(
-                            child: Text(
-                              title,
-                              style: theme.textTheme.titleSmall,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Semantics(
-                        container: true,
-                        label: gasLabel,
-                        excludeSemantics: true,
-                        child: GasMixPill(gasMix: gasMix),
-                      ),
-                    ],
-                  ),
-                  if (subtitle.isNotEmpty)
-                    DefaultTextStyle.merge(
-                      style: muted,
-                      child: DotJoinedWrap(children: subtitle),
-                    ),
-                  if (details.isNotEmpty || trailing != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: DefaultTextStyle.merge(
-                              style: muted,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: 2,
-                                children: details,
-                              ),
-                            ),
-                          ),
-                          ?trailing,
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// [children] in a wrapping line, each but the last followed by a dot, so a
-/// line breaks between items rather than inside one; only an item wider
-/// than the whole line wraps inside itself. The dots are not read out.
-class DotJoinedWrap extends StatelessWidget {
-  const DotJoinedWrap({super.key, required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      runSpacing: 2,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        for (var i = 0; i < children.length; i++)
-          i == children.length - 1
-              ? children[i]
-              // Flexible lets an item wider than the whole line wrap inside
-              // itself rather than overflow.
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
+              const SizedBox(width: _figureGap),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(child: children[i]),
-                    const ExcludeSemantics(child: Text(' · ')),
+                    titleRow(withTrailing: !stacked),
+                    if (subtitle.isNotEmpty)
+                      DefaultTextStyle.merge(
+                        style: muted,
+                        child: DotJoinedWrap(children: subtitle),
+                      ),
+                    if (stacked) ?trailing else ?detailBlock,
                   ],
                 ),
-      ],
+              ),
+            ],
+          );
+          if (!stacked || detailBlock == null) return beside;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              beside,
+              // A little more room under the figure than under the title.
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: detailBlock,
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

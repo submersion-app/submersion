@@ -15,6 +15,7 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_it
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
@@ -72,6 +73,22 @@ final redSea = Trip(
 
 /// Records each save the page asks for, stores its result where the page
 /// reads the trip from, and can fail.
+/// No diver profiles, so the active diver resolves to none without a
+/// database, for a test that names no [pumpTripPage] activeDiverId.
+class NoDivers implements DiverRepository {
+  @override
+  Stream<void> watchDiversChanges() => const Stream.empty();
+
+  @override
+  Future<Diver?> getDefaultDiver() async => null;
+
+  @override
+  Future<Diver?> getDiverById(String id) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class FakeTripSave implements TripEditSaveService {
   FakeTripSave(this.stored);
 
@@ -327,8 +344,10 @@ class FakeTripChecklistItems implements TripChecklistRepository {
   final templateStarts = <DateTime>[];
 
   @override
-  Future<List<TripChecklistItem>> getAllItemsForTrip(String tripId) async =>
-      held.items;
+  Future<List<TripChecklistItem>> getAllItemsForTrip(
+    String tripId, {
+    String? viewerId,
+  }) async => held.items;
 
   @override
   Future<List<TripChecklistSection>> getSectionsForChecklist(
@@ -340,8 +359,10 @@ class FakeTripChecklistItems implements TripChecklistRepository {
       held.sections;
 
   @override
-  Future<List<TripChecklistItem>> getByChecklistId(String checklistId) async =>
-      held.itemsOf(checklistId);
+  Future<List<TripChecklistItem>> getByChecklistId(
+    String checklistId, {
+    String? viewerId,
+  }) async => held.itemsOf(checklistId);
 
   @override
   Future<TripChecklistItem> createItem(
@@ -686,6 +707,8 @@ Future<TripPageHarness> pumpTripPage(
           validatedCurrentDiverIdProvider.overrideWith(
             (ref) async => activeDiverId,
           ),
+        // The sitting reads checklists as the active diver sees them.
+        diverRepositoryProvider.overrideWithValue(NoDivers()),
         tripEditSaveServiceProvider.overrideWith((ref) {
           final save = FakeTripSave(ref.watch(_storedProvider.notifier));
           harness = TripPageHarness(
@@ -703,6 +726,9 @@ Future<TripPageHarness> pumpTripPage(
         }),
         ...extraOverrides,
       ],
+      // The tests assert AppLocalizationsEn strings, so the page is shown in
+      // English whatever the machine's locale.
+      locale: const Locale('en'),
       child: Theme(
         data: AppThemeRegistry.resolveTheme(
           AppThemeRegistry.presets.first,

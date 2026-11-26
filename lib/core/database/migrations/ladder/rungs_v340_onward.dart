@@ -334,11 +334,17 @@ extension RungsFromV340 on AppDatabase {
     if (from < 383) await _assertSpeciesRevampSchema();
     if (from < 383) await reportProgress();
 
-    // v384 (issue #5028): dive_weights.side and weight_preset_entries.side,
+    // v384 (issue #4934): trip_checklist_items.equipment_id, the inventory
+    // link whose pack state decides a gear item's tick. Nullable, no
+    // backfill. The floor rises to 384 (see minimumCompatibleSchemaVersion).
+    if (from < 384) await _assertTripChecklistEquipmentColumn();
+    if (from < 384) await reportProgress();
+
+    // v385 (issue #5028): dive_weights.side and weight_preset_entries.side,
     // the side a weight is carried on, for the trim figure's roll. Nullable
     // with no backfill, null meaning both sides; re-asserted in beforeOpen.
     // The floor does not move.
-    if (from < 384) await _assertWeightSideColumns();
-    if (from < 384) await reportProgress();
+    if (from < 385) await _assertWeightSideColumns();
+    if (from < 385) await reportProgress();
   }
 }

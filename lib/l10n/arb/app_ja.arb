@@ -1402,7 +1402,12 @@
     }
   },
   "checklists_replaceTemplate_confirm": "置き換え",
+  "checklists_addGear": "器材を追加",
+  "checklists_addGearSet": "器材セットを追加",
+  "checklists_addGear_cylindersOnGearTab": "タンクは器材タブで追加します。",
   "checklists_addItem": "項目を追加",
+  "checklists_toPack": "パッキング予定",
+  "checklists_packed": "パッキング済み",
   "checklists_item_titleLabel": "タイトル",
   "checklists_item_titleRequired": "タイトルは必須です",
   "checklists_item_categoryLabel": "カテゴリー",
