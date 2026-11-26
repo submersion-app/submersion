@@ -71,4 +71,24 @@ void main() {
     expect(pictures['snapper'], PhotoPicture(_photo('p1')));
     expect(pictures['grouper'], isNull);
   });
+
+  test('a failing source does not take the other pictures with it', () async {
+    final container = ProviderContainer(
+      overrides: [
+        speciesCoverCropsProvider.overrideWith((ref) async => const {}),
+        speciesCoverPhotosProvider.overrideWith((ref) async => const {}),
+        speciesBestCropsProvider.overrideWith(
+          (ref) async => {'grouper': _crop('best')},
+        ),
+        speciesCoverMediaProvider.overrideWith(
+          (ref) async => throw StateError('no database'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final pictures = await container.read(speciesPicturesProvider.future);
+
+    expect(pictures['grouper'], CropPicture(_crop('best')));
+  });
 }

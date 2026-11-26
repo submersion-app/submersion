@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_cover_repository.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_facts_repository.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/media/presentation/providers/species_media_p
 /// Providers behind the Species pages' pictures, groupings, charts, covers
 /// and practice (issue #5027). Every read is scoped to the current diver
 /// and refreshed by the tables it reads.
+
+const _log = LoggerService('SpeciesGalleryProviders');
 
 final speciesGalleryRepositoryProvider = Provider<SpeciesGalleryRepository>(
   (ref) => SpeciesGalleryRepository(),
@@ -111,10 +114,27 @@ final speciesCoversProvider = FutureProvider<Map<String, SpeciesCover>>((
 final speciesPicturesProvider = FutureProvider<Map<String, SpeciesPicture>>((
   ref,
 ) async {
-  final coverCrops = await ref.watch(speciesCoverCropsProvider.future);
-  final coverPhotos = await ref.watch(speciesCoverPhotosProvider.future);
-  final best = await ref.watch(speciesBestCropsProvider.future);
-  final newest = await ref.watch(speciesCoverMediaProvider.future);
+  // Each source on its own: one that fails costs only its own pictures,
+  // never every card's.
+  Future<Map<String, T>> orEmpty<T>(Future<Map<String, T>> source) async {
+    try {
+      return await source;
+    } catch (e, stackTrace) {
+      _log.error(
+        'A species picture source failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const {};
+    }
+  }
+
+  final coverCrops = await orEmpty(ref.watch(speciesCoverCropsProvider.future));
+  final coverPhotos = await orEmpty(
+    ref.watch(speciesCoverPhotosProvider.future),
+  );
+  final best = await orEmpty(ref.watch(speciesBestCropsProvider.future));
+  final newest = await orEmpty(ref.watch(speciesCoverMediaProvider.future));
   final ids = {
     ...coverCrops.keys,
     ...coverPhotos.keys,
