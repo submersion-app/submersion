@@ -18230,8 +18230,6 @@
   "divePlanner_segmentEditor_splitAtRateHint": "以设定速率移动，剩余时间作为停留时间",
   "plannerCanvas_bailout_schedule": "基于最坏情况的计划",
   "plannerCanvas_chartMode_bailout": "Bailout",
-  "plannerCanvas_chartMode_ccr": "CCR",
-  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",

@@ -6628,8 +6628,6 @@
   "plannerCanvas_name_defaultFallback": "Tauchplan",
   "plannerCanvas_scrub_bailout": "BO {minutes}′",
   "plannerCanvas_chartMode_bailout": "Bailout",
-  "plannerCanvas_chartMode_ccr": "CCR",
-  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_scrub_readout": "RT {minutes}′ · {depth}",
   "plannerCanvas_share_import": "Importieren",

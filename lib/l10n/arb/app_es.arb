@@ -18230,8 +18230,6 @@
   "divePlanner_segmentEditor_splitAtRateHint": "Viaja a la velocidad configurada; el resto de la duración como tiempo de permanencia",
   "plannerCanvas_bailout_schedule": "Plan desde el peor caso",
   "plannerCanvas_chartMode_bailout": "Bailout",
-  "plannerCanvas_chartMode_ccr": "CCR",
-  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",

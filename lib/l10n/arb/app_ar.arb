@@ -18230,8 +18230,6 @@
   "divePlanner_segmentEditor_splitAtRateHint": "الانتقال بالمعدل المُهيأ، وبقية المدة كوقت ثبات",
   "plannerCanvas_bailout_schedule": "الجدول من أسوأ حالة",
   "plannerCanvas_chartMode_bailout": "Bailout",
-  "plannerCanvas_chartMode_ccr": "CCR",
-  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",

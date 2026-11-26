@@ -14482,8 +14482,6 @@
     }
   },
   "plannerCanvas_chartMode_bailout": "Bailout",
-  "plannerCanvas_chartMode_ccr": "CCR",
-  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "@plannerCanvas_scrub_tts": {
     "placeholders": {
