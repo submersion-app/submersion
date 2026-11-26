@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide Trip, TripChecklistItem, ChecklistTemplate, ChecklistTemplateItem;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/checklists/data/repositories/trip_checklist_
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -162,6 +164,30 @@ void main() {
 
     expect(await checklists.getChecklistsForTrip('t1'), hasLength(1));
     expect(session.changedCardIds, isEmpty);
+  });
+
+  test('gear is planned once per item, and a cylinder not at all', () async {
+    final session = await open();
+    const wing = EquipmentItem(
+      id: 'wing',
+      name: 'Wing',
+      type: EquipmentType.bcd,
+    );
+    const tank = EquipmentItem(
+      id: 'tank',
+      name: 'Tank',
+      type: EquipmentType.tank,
+    );
+
+    // The counts let the panel say what happened, a dropped tank included.
+    expect(writesOf(session).addGear('c1', [wing, tank, wing]), (
+      added: 1,
+      cylinders: 1,
+    ));
+    expect(writesOf(session).addGear('c1', [wing]), (added: 0, cylinders: 0));
+
+    final held = heldChecklistsOf(session, list)!;
+    expect([for (final i in held.itemsOf('c1')) i.title], ['Mask', 'Wing']);
   });
 
   test('a tick sets completedAt, an untick clears it', () async {

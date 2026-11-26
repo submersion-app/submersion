@@ -47,7 +47,7 @@ void main() {
       'id',
       'trip_id',
       'equipment_id',
-      // v384 adds the bag the item is packed in and its clock (issue #4945).
+      // v385 adds the bag the item is packed in and its clock (issue #4945).
       'bag_equipment_id',
       'bag_hlc',
       'created_at',

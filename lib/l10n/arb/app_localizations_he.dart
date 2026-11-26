@@ -4876,7 +4876,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'החלפה';
 
   @override
+  String get checklists_addGear => 'הוספת ציוד';
+
+  @override
+  String get checklists_addGearSet => 'הוספת ערכת ציוד';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'מכלים מוסיפים בלשונית ציוד.';
+
+  @override
   String get checklists_addItem => 'הוסף פריט';
+
+  @override
+  String get checklists_toPack => 'לאריזה';
+
+  @override
+  String get checklists_packed => 'ארוז';
 
   @override
   String get checklists_item_titleLabel => 'כותרת';

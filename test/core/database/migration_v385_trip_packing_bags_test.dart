@@ -5,21 +5,21 @@ import 'package:submersion/core/database/database.dart';
 
 void main() {
   test('version bookkeeping', () {
-    expect(AppDatabase.currentSchemaVersion, 384);
-    expect(AppDatabase.migrationVersions, contains(384));
+    expect(AppDatabase.currentSchemaVersion, 385);
+    expect(AppDatabase.migrationVersions, contains(385));
     expect(
-      AppDatabase.migrationStepCount(383),
-      AppDatabase.migrationStepCount(384) + 1,
+      AppDatabase.migrationStepCount(384),
+      AppDatabase.migrationStepCount(385) + 1,
     );
     // An additive column: the floor does not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 381);
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 384);
   });
 
-  test('v383 packed gear stays on the trip and starts unassigned', () async {
+  test('v384 packed gear stays on the trip and starts unassigned', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 383');
+          rawDb.execute('PRAGMA user_version = 384');
           rawDb.execute('''
             CREATE TABLE trip_equipment (
               id TEXT NOT NULL PRIMARY KEY,

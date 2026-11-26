@@ -6,6 +6,7 @@ class TripChecklistItem extends Equatable {
   final String id;
   final String checklistId;
   final String title;
+  final String? equipmentId;
 
   /// The section this item is grouped under, if any (issue #3360). Replaces
   /// the free-text `category` field.
@@ -24,6 +25,7 @@ class TripChecklistItem extends Equatable {
     required this.id,
     required this.checklistId,
     required this.title,
+    this.equipmentId,
     this.sectionId,
     this.notes = '',
     this.dueDate,
@@ -49,6 +51,7 @@ class TripChecklistItem extends Equatable {
     String? id,
     String? checklistId,
     String? title,
+    Object? equipmentId = _undefined,
     Object? sectionId = _undefined,
     String? notes,
     Object? dueDate = _undefined,
@@ -62,6 +65,9 @@ class TripChecklistItem extends Equatable {
       id: id ?? this.id,
       checklistId: checklistId ?? this.checklistId,
       title: title ?? this.title,
+      equipmentId: equipmentId == _undefined
+          ? this.equipmentId
+          : equipmentId as String?,
       sectionId: sectionId == _undefined
           ? this.sectionId
           : sectionId as String?,
@@ -82,6 +88,7 @@ class TripChecklistItem extends Equatable {
     id,
     checklistId,
     title,
+    equipmentId,
     sectionId,
     notes,
     dueDate,

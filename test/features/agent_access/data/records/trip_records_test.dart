@@ -376,6 +376,70 @@ void main() {
       );
     });
 
+    test('a gear item reads as the asking diver sees it', () async {
+      // 'named' is diver B's trip, shared with diver A. B's private wing is
+      // packed for it: B reads the item ticked, A (who cannot see the wing)
+      // reads a plain item by its own is_done.
+      await db
+          .into(db.tripChecklists)
+          .insert(
+            TripChecklistsCompanion.insert(
+              id: 'list-named',
+              tripId: 'named',
+              name: 'Packing',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'wing-b',
+              name: 'Wing',
+              type: 'bcd',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverB),
+            ),
+          );
+      await db
+          .into(db.tripChecklistItems)
+          .insert(
+            TripChecklistItemsCompanion.insert(
+              id: 'chk-gear',
+              checklistId: 'list-named',
+              title: 'Wing',
+              equipmentId: const Value('wing-b'),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await db
+          .into(db.tripEquipment)
+          .insert(
+            TripEquipmentCompanion.insert(
+              id: 'pack-wing',
+              tripId: 'named',
+              equipmentId: 'wing-b',
+              createdAt: t,
+            ),
+          );
+
+      final asOwner = await h.one(
+        'trip_checklist_items',
+        'chk-gear',
+        diverId: kDiverB,
+      );
+      expect(asOwner!['is_done'], isTrue);
+      final asSharee = await h.one(
+        'trip_checklist_items',
+        'chk-gear',
+        diverId: kDiverA,
+      );
+      expect(asSharee!['is_done'], isFalse);
+    });
+
     test('a trip cylinder keeps volume_l', () async {
       expect((await h.one('trip_cylinders', 'cyl-mine'))!['volume_l'], 12.0);
     });

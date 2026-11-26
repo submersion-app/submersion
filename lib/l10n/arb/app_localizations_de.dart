@@ -4984,7 +4984,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'Ersetzen';
 
   @override
+  String get checklists_addGear => 'Ausrüstung hinzufügen';
+
+  @override
+  String get checklists_addGearSet => 'Ausrüstungsset hinzufügen';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Flaschen kommen auf den Tab Ausrüstung.';
+
+  @override
   String get checklists_addItem => 'Eintrag hinzufügen';
+
+  @override
+  String get checklists_toPack => 'Einzupacken';
+
+  @override
+  String get checklists_packed => 'Gepackt';
 
   @override
   String get checklists_item_titleLabel => 'Titel';

@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
@@ -101,6 +102,7 @@ class TripGearTab extends ConsumerWidget {
     final checklists = tripChecklistsList(
       checklists: ref.read(tripChecklistsRepositoryProvider),
       items: ref.read(tripChecklistRepositoryProvider),
+      viewer: () => ref.read(validatedCurrentDiverIdProvider.future),
     );
     final checklistWrites = HeldTripChecklistWrites(
       session: editing,

@@ -15,7 +15,7 @@ extension SupportMigrations on AppDatabase {
     await addColumnIfStillMissing(this, table, column, ddl);
   }
 
-  /// v384: packing a piece of gear into a bag (issue #4945).
+  /// v385: packing a piece of gear into a bag (issue #4945).
   Future<void> _assertTripEquipmentBagColumn() async {
     await _addColumnIfMissing('trip_equipment', 'bag_equipment_id', 'TEXT');
     await _addColumnIfMissing('trip_equipment', 'bag_hlc', 'TEXT');

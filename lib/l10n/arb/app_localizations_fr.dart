@@ -5000,7 +5000,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'Remplacer';
 
   @override
+  String get checklists_addGear => 'Ajouter du matériel';
+
+  @override
+  String get checklists_addGearSet => 'Ajouter un ensemble de matériel';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Les blocs se gèrent dans l\'onglet Matériel.';
+
+  @override
   String get checklists_addItem => 'Ajouter un élément';
+
+  @override
+  String get checklists_toPack => 'À emballer';
+
+  @override
+  String get checklists_packed => 'Emballé';
 
   @override
   String get checklists_item_titleLabel => 'Titre';
