@@ -46,4 +46,17 @@ void main() {
 
     expect(container.read(speciesGroupByProvider), SpeciesGroupBy.none);
   });
+
+  test('rapid changes store the last one', () async {
+    final container = await _container({});
+    final notifier = container.read(speciesGroupByProvider.notifier);
+    final writes = [
+      notifier.set(SpeciesGroupBy.trip),
+      notifier.set(SpeciesGroupBy.site),
+      notifier.set(SpeciesGroupBy.category),
+    ];
+    await Future.wait(writes);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(kSpeciesGroupByKey), 'category');
+  });
 }

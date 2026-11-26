@@ -91,4 +91,24 @@ void main() {
 
     expect(pictures['grouper'], CropPicture(_crop('best')));
   });
+
+  test('pictures say when a source failed', () async {
+    final container = ProviderContainer(
+      overrides: [
+        speciesCoverCropsProvider.overrideWith((ref) async => const {}),
+        speciesCoverPhotosProvider.overrideWith((ref) async => const {}),
+        speciesBestCropsProvider.overrideWith((ref) async => const {}),
+        speciesCoverMediaProvider.overrideWith(
+          (ref) async => throw StateError('no database'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await container.read(speciesPicturesProvider.future);
+    await container.read(speciesPicturesCompleteProvider.future);
+    expect(
+      await container.read(speciesPicturesCompleteProvider.future),
+      isFalse,
+    );
+  });
 }

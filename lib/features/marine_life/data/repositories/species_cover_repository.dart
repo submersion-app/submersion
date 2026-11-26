@@ -51,7 +51,24 @@ class SpeciesCoverRepository {
     required String speciesId,
   }) => _write(diverId, speciesId, null, null);
 
+  /// The latest write, which the next waits on: two quick cover choices
+  /// land in the order they were made.
+  Future<void> _lastWrite = Future<void>.value();
+
   Future<void> _write(
+    String diverId,
+    String speciesId,
+    String? mediaId,
+    String? identificationId,
+  ) {
+    final next = _lastWrite.then(
+      (_) => _writeNow(diverId, speciesId, mediaId, identificationId),
+    );
+    _lastWrite = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
+
+  Future<void> _writeNow(
     String diverId,
     String speciesId,
     String? mediaId,

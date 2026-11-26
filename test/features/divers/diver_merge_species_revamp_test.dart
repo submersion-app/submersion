@@ -104,6 +104,14 @@ void main() {
 
     final row = await db.select(db.speciesPractice).getSingle();
     expect(row.id, speciesPracticeId(keeper, 'snapper'));
+    final dropped = await db
+        .customSelect(
+          "SELECT record_id FROM deletion_log WHERE entity_type = 'speciesPractice'",
+        )
+        .get();
+    expect(dropped.map((r) => r.data['record_id']), [
+      speciesPracticeId(dup, 'snapper'),
+    ]);
     expect(row.diverId, keeper);
     expect(row.box, 4);
     expect(row.rightCount, 3);

@@ -99,4 +99,19 @@ void main() {
     expect(row.hlc, isNotNull);
     expect(await pendingRecords(db, 'speciesCovers'), [row.id]);
   });
+
+  test('quick successive covers keep the last one chosen', () async {
+    final first = repository.setCover(
+      diverId: 'diver-a',
+      speciesId: 'grouper',
+      mediaId: 'm1',
+    );
+    final second = repository.setCover(
+      diverId: 'diver-a',
+      speciesId: 'grouper',
+      mediaId: 'm2',
+    );
+    await Future.wait([first, second]);
+    expect((await repository.coversFor('diver-a'))['grouper']!.mediaId, 'm2');
+  });
 }

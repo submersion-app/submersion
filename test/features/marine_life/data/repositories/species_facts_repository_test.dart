@@ -1,3 +1,6 @@
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_facts_repository.dart';
 
@@ -133,6 +136,22 @@ void main() {
     await insertTestMedia(id: 'p1', diveId: 'd1');
     final tick = repository.watchDepthChanges().first;
     await insertTestDepth(mediaId: 'p1', diveId: 'd1', depth: 8);
+    await expectLater(tick, completes);
+  });
+
+  test('moving a photo to another dive ticks the depths', () async {
+    await insertTestMedia(id: 'p1', diveId: 'd1');
+    final tick = repository.watchDepthChanges().first;
+    final db = DatabaseService.instance.database;
+    await (db.update(db.media)..where((m) => m.id.equals('p1'))).write(
+      const MediaCompanion(diveId: Value('d2')),
+    );
+    await expectLater(tick, completes);
+  });
+
+  test('renaming a trip or site ticks the places', () async {
+    final tick = repository.watchPlaceChanges().first;
+    await insertTestTrip('t9', 'Cozumel 2', DateTime.utc(2026));
     await expectLater(tick, completes);
   });
 }

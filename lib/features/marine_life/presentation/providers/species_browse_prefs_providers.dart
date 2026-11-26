@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/species_grouping.dart';
+import 'package:submersion/features/settings/presentation/providers/serial_preference_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// How this device lays out the Species page (issue #5027). Device
@@ -11,7 +12,8 @@ const String kSpeciesBrowseGridKey = 'species_page.grid';
 
 /// The Species page grouping. None until changed; a value this build does
 /// not know (written by a newer one) reads as none.
-class SpeciesGroupByNotifier extends StateNotifier<SpeciesGroupBy> {
+class SpeciesGroupByNotifier extends StateNotifier<SpeciesGroupBy>
+    with SerialPreferenceWrites {
   SpeciesGroupByNotifier(this._prefs) : super(_read(_prefs));
 
   final SharedPreferences _prefs;
@@ -24,9 +26,9 @@ class SpeciesGroupByNotifier extends StateNotifier<SpeciesGroupBy> {
     );
   }
 
-  Future<void> set(SpeciesGroupBy by) async {
+  Future<void> set(SpeciesGroupBy by) {
     state = by;
-    await _prefs.setString(kSpeciesGroupByKey, by.name);
+    return writeInTurn(() => _prefs.setString(kSpeciesGroupByKey, by.name));
   }
 }
 
@@ -36,15 +38,16 @@ final speciesGroupByProvider =
     );
 
 /// Whether the Species page shows picture cards (true) or the compact list.
-class SpeciesBrowseGridNotifier extends StateNotifier<bool> {
+class SpeciesBrowseGridNotifier extends StateNotifier<bool>
+    with SerialPreferenceWrites {
   SpeciesBrowseGridNotifier(this._prefs)
     : super(_prefs.getBool(kSpeciesBrowseGridKey) ?? true);
 
   final SharedPreferences _prefs;
 
-  Future<void> set(bool grid) async {
+  Future<void> set(bool grid) {
     state = grid;
-    await _prefs.setBool(kSpeciesBrowseGridKey, grid);
+    return writeInTurn(() => _prefs.setBool(kSpeciesBrowseGridKey, grid));
   }
 }
 

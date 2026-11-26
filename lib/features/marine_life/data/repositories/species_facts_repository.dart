@@ -136,9 +136,19 @@ class SpeciesFactsRepository {
     return [for (final row in rows) row.read<double>('depth_meters')];
   }
 
-  /// Ticks when a photo's depth or tags change.
+  /// Ticks when a photo's depth, tags or dive change.
   Stream<void> watchDepthChanges() => _db.tableUpdates(
-    TableUpdateQuery.onAllTables([_db.mediaEnrichment, _db.mediaSpecies]),
+    TableUpdateQuery.onAllTables([
+      _db.mediaEnrichment,
+      _db.mediaSpecies,
+      _db.media,
+    ]),
+  );
+
+  /// Ticks when a trip or site is renamed, moved or removed: what the Trip
+  /// and Site groupings show beyond the sightings themselves.
+  Stream<void> watchPlaceChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([_db.trips, _db.diveSites]),
   );
 
   String _diverClause(String? diverId) =>

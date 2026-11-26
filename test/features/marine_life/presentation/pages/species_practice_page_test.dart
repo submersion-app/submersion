@@ -21,10 +21,13 @@ import '../widgets/species_picture_test_support.dart';
 
 class _RecordingPractice extends SpeciesPracticeRepository {
   final saved = <PracticeState>[];
+  bool fail = false;
 
   @override
-  Future<void> save(String diverId, PracticeState state) async =>
-      saved.add(state);
+  Future<void> save(String diverId, PracticeState state) async {
+    if (fail) throw StateError('disk full');
+    saved.add(state);
+  }
 
   @override
   Future<Map<String, PracticeState>> statesFor(String diverId) async =>
@@ -208,5 +211,18 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.textContaining('Could not load your species'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('a failed save leaves the round unanswered', (tester) async {
+    final practice = await pump(tester);
+    practice.fail = true;
+    await tester.tap(find.byKey(ValueKey('practice_choice_${shown(tester)}')));
+    await tester.pumpAndSettle();
+    expect(find.text('Right'), findsNothing);
+    expect(find.byKey(const ValueKey('practice_next')), findsNothing);
+    expect(
+      find.text("Couldn't save your changes. Nothing was changed."),
+      findsOneWidget,
+    );
   });
 }

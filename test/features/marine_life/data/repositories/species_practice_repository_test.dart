@@ -56,4 +56,18 @@ void main() {
     expect(row.hlc, isNotNull);
     expect(await pendingRecords(db, 'speciesPractice'), [row.id]);
   });
+
+  test('overlapping saves keep the later state', () async {
+    final now = DateTime.utc(2026, 11, 25);
+    final older = repository.save(
+      'diver-a',
+      PracticeState.fresh('grouper', now),
+    );
+    final newer = repository.save(
+      'diver-a',
+      PracticeState(speciesId: 'grouper', box: 3, dueAt: now),
+    );
+    await Future.wait([older, newer]);
+    expect((await repository.statesFor('diver-a'))['grouper']!.box, 3);
+  });
 }

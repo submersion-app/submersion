@@ -152,11 +152,30 @@ final speciesPicturesProvider = FutureProvider<Map<String, SpeciesPicture>>((
   };
 });
 
+/// Whether every source behind [speciesPicturesProvider] loaded. When one
+/// failed, a species missing from the pictures may still have one, so
+/// nothing may be counted or filtered as having no photo.
+final speciesPicturesCompleteProvider = FutureProvider<bool>((ref) async {
+  try {
+    await Future.wait([
+      ref.watch(speciesCoverCropsProvider.future),
+      ref.watch(speciesCoverPhotosProvider.future),
+      ref.watch(speciesBestCropsProvider.future),
+      ref.watch(speciesCoverMediaProvider.future),
+    ]);
+    return true;
+  } catch (_) {
+    return false;
+  }
+});
+
 /// Where each species was seen, for the Trip and Site groupings.
 final speciesPlacesProvider = FutureProvider<SpeciesPlaces>((ref) async {
   final diverId = ref.watch(currentDiverIdProvider);
   invalidateOnSeenSpeciesChanges(ref);
-  return ref.watch(speciesFactsRepositoryProvider).places(diverId: diverId);
+  final facts = ref.watch(speciesFactsRepositoryProvider);
+  ref.invalidateSelfWhen(facts.watchPlaceChanges());
+  return facts.places(diverId: diverId);
 });
 
 /// Dives that saw a species in each calendar month, January first.

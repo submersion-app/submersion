@@ -170,7 +170,9 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
     final pictures = picturesAsync.value ?? const <String, SpeciesPicture>{};
     // Until the pictures arrive nothing is known to lack one: no count, and
     // no filtering on it.
-    final picturesKnown = picturesAsync.hasValue;
+    final picturesKnown =
+        picturesAsync.hasValue &&
+        (ref.watch(speciesPicturesCompleteProvider).value ?? false);
     final covers =
         ref.watch(speciesCoverMediaProvider).value ??
         const <String, MediaItem>{};

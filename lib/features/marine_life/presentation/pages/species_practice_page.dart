@@ -139,23 +139,37 @@ class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
         : common;
   }
 
+  /// Whether an answer is being saved: the choices wait until it is.
+  bool _saving = false;
+
+  /// Saves the answer first and only then marks the round answered, so a
+  /// failed save leaves the round open to answer again.
   Future<void> _answer(_Round round, String picked) async {
-    if (_picks.containsKey(_index)) return;
-    setState(() => _picks = {..._picks, _index: picked});
+    if (_picks.containsKey(_index) || _saving) return;
+    final index = _index;
     final diverId = ref.read(currentDiverIdProvider);
-    if (diverId == null) return;
+    if (diverId == null) {
+      setState(() => _picks = {..._picks, index: picked});
+      return;
+    }
     final states = ref.read(speciesPracticeStatesProvider).value ?? const {};
     final now = _now;
     final before =
         states[round.speciesId] ?? PracticeState.fresh(round.speciesId, now);
     final repository = ref.read(speciesPracticeRepositoryProvider);
-    await saveWithFeedback(
+    setState(() => _saving = true);
+    final saved = await saveWithFeedback(
       context,
       () => repository.save(
         diverId,
         applyAnswer(before, correct: picked == round.speciesId, now: now),
       ),
     );
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      if (saved) _picks = {..._picks, index: picked};
+    });
   }
 
   Widget _notEnough(BuildContext context) {

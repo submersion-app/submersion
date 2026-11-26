@@ -41,8 +41,18 @@ class SpeciesPracticeRepository {
     };
   }
 
+  /// The latest save, which the next waits on: overlapping saves land in
+  /// the order they were made, so an older state never overwrites a newer.
+  Future<void> _lastSave = Future<void>.value();
+
   /// Stores [state] as [diverId]'s record for its species.
-  Future<void> save(String diverId, PracticeState state) async {
+  Future<void> save(String diverId, PracticeState state) {
+    final next = _lastSave.then((_) => _saveNow(diverId, state));
+    _lastSave = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
+
+  Future<void> _saveNow(String diverId, PracticeState state) async {
     try {
       final now = clock.now().millisecondsSinceEpoch;
       final id = speciesPracticeId(diverId, state.speciesId);
