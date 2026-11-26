@@ -146,8 +146,9 @@ class PassportServiceCard extends ConsumerWidget {
       for (final s in heldClocks ?? const <ServiceSchedule>[])
         if (loaded[s.id] != s) s.serviceKindId,
     };
+    // The held records only beside the verdicts evaluated over them.
     final records =
-        heldRecords ??
+        (held != null ? heldRecords : null) ??
         ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
         const <ServiceRecord>[];
     // The untracked row names the built-in kind the way the rest of the app
