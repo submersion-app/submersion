@@ -529,4 +529,36 @@ void main() {
 
     expect(find.textContaining('Water ~'), findsNothing);
   });
+
+  testWidgets('a Hydrotank with nothing to read keeps no water line', (
+    tester,
+  ) async {
+    // A start pressure, but no end pressure and no line on the chart: there
+    // is no pressure to estimate the water at, with or without a cursor.
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      volume: 10,
+      startPressure: 240,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.hydrotank,
+    );
+    final dive = Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 6, 1, 10),
+      maxDepth: 15,
+      bottomTime: const Duration(minutes: 30),
+      tanks: const [hydrotank],
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 600, depth: 15, aveloGasRemaining: 80),
+      ],
+    );
+    await tester.pumpWidget(
+      _card(dive: dive, chartSeries: const EstimatedTankPressures({}, {})),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Water ~'), findsNothing);
+  });
 }

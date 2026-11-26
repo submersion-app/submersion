@@ -433,6 +433,9 @@ class CylindersCard extends ConsumerWidget {
         waterDriven &&
             waterVolume != null &&
             pressures.$1 != null &&
+            // A pressure to read the water at: the end, or the chart's line
+            // under the cursor.
+            (pressures.$2 != null || cursorLine != null) &&
             dive.profile.any((p) => p.aveloGasRemaining != null)
         ? _waterLabel(l10n, waterVolume)
         : null;
