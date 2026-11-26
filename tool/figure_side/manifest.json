@@ -1,0 +1,12 @@
+{
+  "pieces": [
+    {"id": "body_side_torso", "segment": "torso", "layer": 0,
+     "roles": ["body", "body", "body", "body", "body", "bodyShade"]},
+    {"id": "body_side_arm", "segment": "arm", "layer": 0,
+     "roles": ["body", "body", "body"]},
+    {"id": "body_side_shin", "segment": "shin", "layer": 0,
+     "roles": ["body", "body"]},
+    {"id": "body_side_foot", "segment": "foot", "layer": 0,
+     "roles": ["body", "body"]}
+  ]
+}
