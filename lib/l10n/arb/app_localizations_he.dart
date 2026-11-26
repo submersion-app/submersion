@@ -25206,6 +25206,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'נקודת כיוון נמוכה ב-CCR';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'Setpoint switch depth';
+
+  @override
   String get settings_conflict_field_channelIndex => 'ערוץ';
 
   @override
@@ -26769,6 +26773,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'עומק החלפת נקודת הכיוון';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff => 'Setpoint switch off';
 
   @override
   String get settings_conflict_field_settings_key => 'הגדרה';

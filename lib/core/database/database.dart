@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 383;
+  static const int currentSchemaVersion = 384;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1803,6 +1803,11 @@ class AppDatabase extends _$AppDatabase {
     // ID practice boxes per species (issue #5027). Additive; the floor does
     // not move.
     383,
+    // v384: diver_settings.ccr_setpoint_switch_depth and
+    // dive_plans.setpoint_switch_off, the diver-wide CCR setpoint switch
+    // depth and a plan's no-switch flag (issue #3793). Additive and
+    // defaulted; the floor does not move.
+    384,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

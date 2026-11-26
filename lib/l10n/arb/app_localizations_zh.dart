@@ -24410,6 +24410,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_ccrSetpointLow => 'CCR 低设定点';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'Setpoint switch depth';
+
+  @override
   String get settings_conflict_field_channelIndex => '通道';
 
   @override
@@ -25873,6 +25877,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_setpointSwitchDepth => '设定点切换深度';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff => 'Setpoint switch off';
 
   @override
   String get settings_conflict_field_settings_key => '设置项';

@@ -40410,6 +40410,12 @@ abstract class AppLocalizations {
   /// **'CCR low setpoint'**
   String get settings_conflict_field_ccrSetpointLow;
 
+  /// No description provided for @settings_conflict_field_ccrSetpointSwitchDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint switch depth'**
+  String get settings_conflict_field_ccrSetpointSwitchDepth;
+
   /// No description provided for @settings_conflict_field_channelIndex.
   ///
   /// In en, this message translates to:
@@ -43289,6 +43295,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Setpoint switch depth'**
   String get settings_conflict_field_setpointSwitchDepth;
+
+  /// No description provided for @settings_conflict_field_setpointSwitchOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint switch off'**
+  String get settings_conflict_field_setpointSwitchOff;
 
   /// No description provided for @settings_conflict_field_settings_key.
   ///

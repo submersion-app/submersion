@@ -592,6 +592,11 @@ class DivePlanState extends Equatable {
   /// Depth below which the high setpoint is in force; null = default 10 m.
   final double? setpointSwitchDepth;
 
+  /// No switch by depth on this plan (issue #3793): the low setpoint
+  /// holds throughout. Wins over [setpointSwitchDepth], which is kept so
+  /// switching back to a custom depth restores it.
+  final bool setpointSwitchOff;
+
   /// Semi-closed loop flow, surface L/min (issue #4660): the CMF supply
   /// injection rate and VO2, and the passive (pSCR) loop's VO2. Null = use
   /// the diver's Settings default, resolved by `PlanEngineConfig.resolvedFor`.
@@ -753,6 +758,7 @@ class DivePlanState extends Equatable {
     this.setpointLow,
     this.setpointHigh,
     this.setpointSwitchDepth,
+    this.setpointSwitchOff = false,
     this.scrInjectionRate,
     this.scrVo2,
     this.pscrVo2,
@@ -868,6 +874,7 @@ class DivePlanState extends Equatable {
     bool clearSetpointHigh = false,
     double? setpointSwitchDepth,
     bool clearSetpointSwitchDepth = false,
+    bool? setpointSwitchOff,
     double? scrInjectionRate,
     bool clearScrInjectionRate = false,
     double? scrVo2,
@@ -994,6 +1001,7 @@ class DivePlanState extends Equatable {
       setpointSwitchDepth: clearSetpointSwitchDepth
           ? null
           : (setpointSwitchDepth ?? this.setpointSwitchDepth),
+      setpointSwitchOff: setpointSwitchOff ?? this.setpointSwitchOff,
       scrInjectionRate: clearScrInjectionRate
           ? null
           : (scrInjectionRate ?? this.scrInjectionRate),
@@ -1104,6 +1112,7 @@ class DivePlanState extends Equatable {
     setpointLow,
     setpointHigh,
     setpointSwitchDepth,
+    setpointSwitchOff,
     scrInjectionRate,
     scrVo2,
     pscrVo2,

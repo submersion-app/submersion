@@ -25632,6 +25632,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_ccrSetpointLow => 'Laag CCR-setpoint';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'Setpoint switch depth';
+
+  @override
   String get settings_conflict_field_channelIndex => 'Kanaal';
 
   @override
@@ -27274,6 +27278,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Diepte voor setpointwissel';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff => 'Setpoint switch off';
 
   @override
   String get settings_conflict_field_settings_key => 'Instelling';

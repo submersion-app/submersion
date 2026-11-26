@@ -776,6 +776,85 @@ void main() {
       },
     );
 
+    test('setCcrPpO2Limits writes the switch depth with the setpoints, '
+        'clamped to 0-100 m on a 0.1 m grid (#3793)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      expect(container.read(settingsProvider).ccrSetpointSwitchDepth, 10.0);
+
+      await notifier.setCcrPpO2Limits(
+        setpointLow: 0.7,
+        setpointHigh: 1.3,
+        diluentModPpO2: 1.6,
+        setpointSwitchDepth: 6.04,
+      );
+      var s = container.read(settingsProvider);
+      expect(s.ccrSetpointSwitchDepth, 6.0);
+      expect(s.ccrSetpointHigh, 1.3);
+
+      await notifier.setCcrPpO2Limits(
+        setpointLow: 0.7,
+        setpointHigh: 1.3,
+        diluentModPpO2: 1.6,
+        setpointSwitchDepth: 150,
+      );
+      expect(container.read(settingsProvider).ccrSetpointSwitchDepth, 100.0);
+
+      await notifier.setCcrPpO2Limits(
+        setpointLow: 0.7,
+        setpointHigh: 1.3,
+        diluentModPpO2: 1.6,
+        setpointSwitchDepth: -4,
+      );
+      expect(container.read(settingsProvider).ccrSetpointSwitchDepth, 0.0);
+
+      await notifier.setCcrPpO2Limits(
+        setpointLow: 0.7,
+        setpointHigh: 1.3,
+        diluentModPpO2: 1.6,
+        setpointSwitchDepth: 12.26,
+      );
+      s = container.read(settingsProvider);
+      expect(s.ccrSetpointSwitchDepth, 12.3);
+    });
+
+    test('setCcrPpO2Limits without a switch depth keeps the stored one '
+        '(#3793)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setCcrPpO2Limits(
+        setpointLow: 0.7,
+        setpointHigh: 1.3,
+        diluentModPpO2: 1.6,
+        setpointSwitchDepth: 18.0,
+      );
+      await notifier.setCcrPpO2Limits(
+        setpointLow: 0.8,
+        setpointHigh: 1.4,
+        diluentModPpO2: 1.5,
+      );
+      final s = container.read(settingsProvider);
+      expect(s.ccrSetpointLow, 0.8);
+      expect(s.ccrSetpointHigh, 1.4);
+      expect(s.ccrSetpointSwitchDepth, 18.0);
+      expect(container.read(ccrSetpointSwitchDepthProvider), 18.0);
+    });
+
+    test('the switch depth ranges and grid helper (#3793)', () {
+      expect(SettingsNotifier.ccrSwitchDepthSliderMin, 3.0);
+      expect(SettingsNotifier.ccrSwitchDepthSliderMax, 30.0);
+      expect(SettingsNotifier.ccrSwitchDepthInputMin, 0.0);
+      expect(SettingsNotifier.ccrSwitchDepthInputMax, 100.0);
+      expect(SettingsNotifier.ccrSwitchDepthOnGrid(10.04), 10.0);
+      expect(SettingsNotifier.ccrSwitchDepthOnGrid(10.06), 10.1);
+      expect(SettingsNotifier.ccrSwitchDepthOnGrid(-1), 0.0);
+      expect(SettingsNotifier.ccrSwitchDepthOnGrid(101), 100.0);
+    });
+
     test('the individual ppO2 setters clamp to the same picker grid', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

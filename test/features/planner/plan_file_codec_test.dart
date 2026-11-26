@@ -163,6 +163,23 @@ void main() {
     expect(legacy.ppO2DecoBandsExplicitlyOff, isFalse);
   });
 
+  test('the switch-off flag is written only when true and read as false '
+      'when absent (#3793)', () {
+    final off = _plan().copyWith(
+      setpointSwitchDepth: 12.0,
+      setpointSwitchOff: true,
+    );
+    final json = planToSubplanJson(off);
+    expect(json, contains('"setpointSwitchOff": true'));
+    final restored = subplanFromJson(json);
+    expect(restored.setpointSwitchOff, isTrue);
+    expect(restored.setpointSwitchDepth, 12.0);
+
+    final plain = planToSubplanJson(_plan());
+    expect(plain, isNot(contains('setpointSwitchOff')));
+    expect(subplanFromJson(plain).setpointSwitchOff, isFalse);
+  });
+
   // Issue #3552: an unset field means "follow Settings". Importing a file
   // that never wrote a field (or wrote it as JSON null) must keep it unset
   // rather than coerce it to the old hardcoded planner constants - that

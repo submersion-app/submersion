@@ -226,6 +226,11 @@ class DiverSettings extends Table {
   // the ppO2 a diluent may reach on a flush, which sets its MOD.
   RealColumn get ccrSetpointLow => real().withDefault(const Constant(0.7))();
   RealColumn get ccrSetpointHigh => real().withDefault(const Constant(1.3))();
+  // The depth (m) a CCR plan switches from the low to the high setpoint
+  // (v384, issue #3793). A plan's own switch depth, or its switch-off flag,
+  // overrides it.
+  RealColumn get ccrSetpointSwitchDepth =>
+      real().withDefault(const Constant(10.0))();
   RealColumn get ccrDiluentModPpO2 => real().withDefault(const Constant(1.6))();
   IntColumn get cnsWarningThreshold =>
       integer().withDefault(const Constant(80))();

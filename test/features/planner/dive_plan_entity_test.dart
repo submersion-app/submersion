@@ -163,6 +163,15 @@ void main() {
       expect(updated.setpointLow, 0.7);
       expect(updated.setpointHigh, 1.4);
       expect(updated.setpointSwitchDepth, 12.0);
+      expect(updated.setpointSwitchOff, isFalse);
+      expect(
+        updated.copyWith(setpointSwitchOff: true).setpointSwitchOff,
+        isTrue,
+      );
+      expect(
+        updated.copyWith(setpointSwitchOff: true).props,
+        isNot(equals(updated.props)),
+      );
       expect(updated.deviationDepthDelta, 6.0);
       expect(updated.deviationTimeMinutes, 10);
       expect(updated.turnPressureRule, TurnPressureRule.thirds);

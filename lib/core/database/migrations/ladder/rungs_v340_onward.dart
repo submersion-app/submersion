@@ -333,5 +333,11 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen; the floor does not move.
     if (from < 383) await _assertSpeciesRevampSchema();
     if (from < 383) await reportProgress();
+
+    // v384 (issue #3793): diver_settings.ccr_setpoint_switch_depth (default
+    // 10 m) and dive_plans.setpoint_switch_off (default off). Columns only,
+    // no backfill; re-asserted in beforeOpen. The floor does not move.
+    if (from < 384) await _assertCcrSetpointSwitchColumns();
+    if (from < 384) await reportProgress();
   }
 }

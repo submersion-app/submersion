@@ -25681,6 +25681,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_ccrSetpointLow => 'Alacsony CCR-setpoint';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'Setpoint switch depth';
+
+  @override
   String get settings_conflict_field_channelIndex => 'Csatorna';
 
   @override
@@ -27300,6 +27304,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Setpoint-váltás mélysége';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff => 'Setpoint switch off';
 
   @override
   String get settings_conflict_field_settings_key => 'Beállítás';

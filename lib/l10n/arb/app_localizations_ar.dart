@@ -26195,6 +26195,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_ccrSetpointLow => 'نقطة ضبط CCR الدنيا';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'Setpoint switch depth';
+
+  @override
   String get settings_conflict_field_channelIndex => 'القناة';
 
   @override
@@ -27778,6 +27782,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'عمق تبديل نقطة الضبط';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff => 'Setpoint switch off';
 
   @override
   String get settings_conflict_field_settings_key => 'الإعداد';

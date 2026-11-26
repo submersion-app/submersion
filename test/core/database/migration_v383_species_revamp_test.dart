@@ -25,7 +25,7 @@ void main() {
   }
 
   test('version bookkeeping', () {
-    expect(AppDatabase.currentSchemaVersion, 383);
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(383));
     expect(AppDatabase.migrationVersions, contains(383));
     expect(
       AppDatabase.migrationStepCount(382),
