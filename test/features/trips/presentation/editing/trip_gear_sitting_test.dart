@@ -281,6 +281,22 @@ void main() {
     expect(await packs.bagAssignmentsForTrip('t1'), isEmpty);
   });
 
+  test('a failed read of the bags opens the gear loose', () async {
+    await packs.pack('t1', ['duffel']);
+    await packs.assignBag('t1', 'fins', 'duffel');
+    packed = tripPackedGearList(
+      read: (id) async => [
+        for (final i in await packs.equipmentIdsForTrip(id)) catalogue[i]!,
+      ],
+      packs: _UnreadableBags(),
+    );
+    final session = await open();
+    expect(
+      {for (final row in packed.current(session)!) row.item.id: row.bagId},
+      {'fins': null, 'tank': null, 'duffel': null},
+    );
+  });
+
   test('rental slots keep their order and get ids', () async {
     final session = await open();
 
@@ -350,4 +366,10 @@ void main() {
       expect(session.changedCardIds, isEmpty);
     },
   );
+}
+
+class _UnreadableBags extends TripEquipmentRepository {
+  @override
+  Future<Map<String, String>> bagAssignmentsForTrip(String tripId) =>
+      Future.error(StateError('database is locked'));
 }

@@ -130,7 +130,7 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
       String? bagId;
       final isBag = widget.isBag || editing?.working.type == EquipmentType.bag;
       if (picked is Trip && !isBag) {
-        final gear = await ref.read(tripGearProvider(tripId).future);
+        final gear = await _gearOrNone(tripId);
         if (!mounted || !identical(editing, widget.editing)) return;
         final bags = tripPackingBags(gear);
         if (bags.isNotEmpty) {
@@ -155,6 +155,21 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.passport_trip_failed)),
       );
+    }
+  }
+
+  /// The gear packed for [tripId], or none when the read fails: a bag is
+  /// optional, so the item then packs loose.
+  Future<List<EquipmentItem>> _gearOrNone(String tripId) async {
+    try {
+      return await ref.read(tripGearProvider(tripId).future);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read the bags of a trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const [];
     }
   }
 

@@ -169,6 +169,72 @@ void main() {
     expect(await packed(), {'carry-on': null, 'fins': null, 'mask': null});
   });
 
+  test(
+    'the preview shows gear coming out of a bag the change unpacks',
+    () async {
+      await h.run([
+        update(
+          bags: {
+            'duffel': ['fins', 'mask'],
+            'carry-on': [],
+          },
+        ),
+      ]);
+      final change = (await h.preview([
+        update(
+          gear: {
+            'remove': ['duffel'],
+          },
+        ),
+      ])).items.single.fields['bag_contents']!;
+      expect(change.indirect, isTrue);
+      expect(change.newValue, isEmpty);
+    },
+  );
+
+  test('the preview shows unpacked gear leaving its bag', () async {
+    await h.run([
+      update(
+        bags: {
+          'duffel': ['fins', 'mask'],
+        },
+      ),
+    ]);
+    final change = (await h.preview([
+      update(
+        gear: {
+          'remove': ['fins'],
+        },
+      ),
+    ])).items.single.fields['bag_contents']!;
+    expect(change.newValue, {
+      'duffel': ['mask'],
+    });
+  });
+
+  test('unpacking gear in no bag shows no bag change', () async {
+    final plan = await h.preview([
+      update(
+        gear: {
+          'remove': ['fins'],
+        },
+      ),
+    ]);
+    expect(plan.items.single.fields, isNot(contains('bag_contents')));
+  });
+
+  test('deleting a bag counts the packed gear it lets loose', () async {
+    await h.run([
+      update(
+        bags: {
+          'duffel': ['fins', 'mask'],
+        },
+      ),
+    ]);
+    final plan = await h.preview([deleteOp('equipment', 'duffel')]);
+    expect(plan.items.single.reach.touched, {'trip_equipment': 2});
+  });
+
   test('gear the agent cannot see stays in its bag', () async {
     await item('b-reg', 'regulator', owner: kDiverB);
     await db

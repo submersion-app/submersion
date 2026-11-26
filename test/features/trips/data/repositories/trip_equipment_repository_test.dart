@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Variable;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -147,8 +147,50 @@ void main() {
         [t1, roller],
       );
       expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+      // Packed again, the bag starts empty rather than taking it back.
+      await packs.pack(t1, [roller]);
+      expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+      expect(
+        (await (db.select(
+          db.tripEquipment,
+        )..where((r) => r.equipmentId.equals(bcd))).getSingle()).bagEquipmentId,
+        isNull,
+      );
     },
   );
+
+  test('gear that has itself become a bag is in no bag', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+    await db.customStatement("UPDATE equipment SET type = 'bag' WHERE id = ?", [
+      bcd,
+    ]);
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+  });
+
+  test('a bag that is not packed is refused even when it is the one '
+      'stored', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+    await db.customStatement(
+      'DELETE FROM trip_equipment WHERE trip_id = ? AND equipment_id = ?',
+      [t1, roller],
+    );
+    await expectLater(packs.assignBag(t1, bcd, roller), throwsStateError);
+  });
+
+  test('a bag change stamps one clock, for the row and the bag', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+    final row = await (db.select(
+      db.tripEquipment,
+    )..where((r) => r.equipmentId.equals(bcd))).getSingle();
+    expect(row.bagHlc, isNotNull);
+    expect(row.bagHlc, row.hlc);
+  });
 
   test('tripIdsForEquipment lists the trips an item is packed for', () async {
     await packs.pack(t1, [bcd]);

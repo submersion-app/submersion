@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/constants/enums.dart' show TripType;
@@ -180,15 +182,42 @@ class TripWrites extends WritableEntry {
       next,
       update.relations['dive_ids']?.add ?? const <String>{},
     );
+    final bags = await _bagsAfterUnpacking(
+      id,
+      ownerId,
+      update.relations['equipment_ids']?.remove ?? const <String>{},
+    );
     // updateTrip deletes both: the vessel of a trip no longer a liveaboard,
     // and the days with nothing planned outside the new range.
     return SideEffects(
+      fields: {'bag_contents': ?bags},
       touched: assigned,
       parts: {
         if (details > 0) 'liveaboard_detail_records': details,
         if (bare > 0) 'trip_itinerary_days': bare,
       },
     );
+  }
+
+  /// The bags once [removed] leave the trip, when that changes them: an
+  /// unpacked bag's contents ride loose, and unpacked gear leaves its bag.
+  /// Null when the bags stay as they are.
+  Future<Map<String, List<String>>?> _bagsAfterUnpacking(
+    String id,
+    String? ownerId,
+    Set<String> removed,
+  ) async {
+    if (removed.isEmpty) return null;
+    final bags = await bagContentsOf(_r, id, ownerId);
+    final next = {
+      for (final MapEntry(key: bag, value: items) in bags.entries)
+        if (!removed.contains(bag))
+          bag: [
+            for (final item in items)
+              if (!removed.contains(item)) item,
+          ],
+    }..removeWhere((_, items) => items.isEmpty);
+    return jsonEncode(next) == jsonEncode(bags) ? null : next;
   }
 
   @override

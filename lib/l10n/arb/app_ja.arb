@@ -10581,6 +10581,8 @@
   "trips_bags_total": "合計重量：{weight}",
   "trips_bags_subtotal": "既知の重量の小計：{weight}",
   "trips_bags_missing": "重量未登録：{items}",
+  "trips_bags_missingMore": "{names} +{count}",
+  "trips_bags_missingSeparator": "、",
   "trips_gear_add_action": "追加",
   "trips_gear_add_fromEquipment": "自分の器材から",
   "trips_gear_add_fromSet": "器材セット",

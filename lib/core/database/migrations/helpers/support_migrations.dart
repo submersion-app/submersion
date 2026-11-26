@@ -16,8 +16,10 @@ extension SupportMigrations on AppDatabase {
   }
 
   /// v384: packing a piece of gear into a bag (issue #4945).
-  Future<void> _assertTripEquipmentBagColumn() =>
-      _addColumnIfMissing('trip_equipment', 'bag_equipment_id', 'TEXT');
+  Future<void> _assertTripEquipmentBagColumn() async {
+    await _addColumnIfMissing('trip_equipment', 'bag_equipment_id', 'TEXT');
+    await _addColumnIfMissing('trip_equipment', 'bag_hlc', 'TEXT');
+  }
 
   /// True when [table] exists in this database right now.
   Future<bool> _tableExists(String table) async {

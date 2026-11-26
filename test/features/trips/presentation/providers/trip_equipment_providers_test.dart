@@ -140,6 +140,43 @@ void main() {
       });
     });
 
+    test('a bag retyped away and back gets its contents back', () async {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'duffel',
+              name: 'duffel',
+              type: 'bag',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('me'),
+            ),
+          );
+      final packs = TripEquipmentRepository();
+      await packs.pack('t1', ['duffel', 'Zeagle']);
+      await packs.assignBag('t1', 'Zeagle', 'duffel');
+      container.listen(tripBagAssignmentsProvider('t1'), (_, _) {});
+      Future<void> retype(String type) async {
+        await (db.update(db.equipment)..where((e) => e.id.equals('duffel')))
+            .write(EquipmentCompanion(type: Value(type)));
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      expect(await read(tripBagAssignmentsProvider('t1')), {
+        'Zeagle': 'duffel',
+      });
+      await retype('other');
+      expect(
+        await container.read(tripBagAssignmentsProvider('t1').future),
+        isEmpty,
+      );
+      await retype('bag');
+      expect(await container.read(tripBagAssignmentsProvider('t1').future), {
+        'Zeagle': 'duffel',
+      });
+    });
+
     test('gear the diver cannot see is left off', () async {
       await TripEquipmentRepository().pack('t1', ['Apeks', 'reg']);
       final gear = await read(tripGearProvider('t1'));

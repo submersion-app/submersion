@@ -10251,6 +10251,8 @@
   "trips_bags_total": "Poids total : {weight}",
   "trips_bags_subtotal": "Sous-total connu : {weight}",
   "trips_bags_missing": "Poids manquant : {items}",
+  "trips_bags_missingMore": "{names} +{count}",
+  "trips_bags_missingSeparator": ", ",
   "trips_gear_add_action": "Ajouter",
   "trips_gear_add_fromEquipment": "Depuis mon matériel",
   "trips_gear_add_fromSet": "Un ensemble de matériel",

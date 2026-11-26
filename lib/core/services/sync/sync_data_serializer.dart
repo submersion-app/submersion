@@ -5866,44 +5866,63 @@ class SyncDataSerializer {
   }
 
   /// Reconciles copies of the same packed item to the lowest id while keeping
-  /// the bag from the newest copy that knew about bags (issue #4945).
+  /// the newest bag assignment (issue #4945).
   ///
-  /// Three steps per row, so no step can fail the batch: the local copy of
-  /// the pair takes the newer bag, then moves to the incoming id when that is
-  /// lower and no other row holds it, then the incoming row lands if neither
-  /// its pair nor its id is held.
+  /// Steps per row, so no step can fail the batch: the local copy of the
+  /// pair takes the incoming bag when its bag clock is newer; the local
+  /// copy's sync mark, then the copy itself, move to the incoming id when
+  /// that is lower and no other row holds it, so a bag change made here and
+  /// not yet published still goes out; then the incoming row lands if
+  /// neither its pair nor its id is held.
+  ///
+  /// The bag has its own clock, `bag_hlc`. A row from a peer that does not
+  /// know bags carries no bag key and lands with no bag clock, so any bag
+  /// assignment, however old its clock, still takes it.
   Future<void> _applyTripEquipmentRecords(
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
+    const localCopy =
+        'SELECT id FROM trip_equipment '
+        'WHERE trip_id = ? AND equipment_id = ? AND id > ? '
+        'AND NOT EXISTS (SELECT 1 FROM trip_equipment WHERE id = ?)';
     await _db.batch((batch) {
       for (final data in records) {
         final row = TripEquipmentRow.fromJson(data);
-        // Sync writes canonical, padded HLCs. A missing bag key is from an
-        // older client, while an explicit null clears the assignment.
-        if (data.containsKey('bagEquipmentId') && row.hlc != null) {
+        final knowsBags = data.containsKey('bagEquipmentId');
+        final bagHlc = knowsBags ? row.bagHlc : null;
+        // Sync writes canonical, padded HLCs, which order as strings.
+        if (bagHlc != null) {
           batch.customStatement(
-            'UPDATE trip_equipment SET bag_equipment_id = ?, hlc = ? '
+            'UPDATE trip_equipment SET bag_equipment_id = ?, bag_hlc = ? '
             'WHERE trip_id = ? AND equipment_id = ? '
-            'AND (hlc IS NULL OR hlc < ?)',
-            [row.bagEquipmentId, row.hlc, row.tripId, row.equipmentId, row.hlc],
+            'AND (bag_hlc IS NULL OR bag_hlc < ?)',
+            [row.bagEquipmentId, bagHlc, row.tripId, row.equipmentId, bagHlc],
           );
         }
+        final pair = [row.tripId, row.equipmentId, row.id, row.id];
+        batch.customStatement(
+          "UPDATE sync_records SET record_id = ? "
+          "WHERE entity_type = 'tripEquipment' "
+          'AND record_id IN ($localCopy)',
+          [row.id, ...pair],
+        );
         batch.customStatement(
           'UPDATE trip_equipment SET id = ?, created_at = ? '
-          'WHERE trip_id = ? AND equipment_id = ? AND id > ? '
-          'AND NOT EXISTS (SELECT 1 FROM trip_equipment WHERE id = ?)',
-          [row.id, row.createdAt, row.tripId, row.equipmentId, row.id, row.id],
+          'WHERE id IN ($localCopy)',
+          [row.id, row.createdAt, ...pair],
         );
         batch.customStatement(
           'INSERT INTO trip_equipment '
-          '(id, trip_id, equipment_id, bag_equipment_id, created_at, hlc) '
-          'VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
+          '(id, trip_id, equipment_id, bag_equipment_id, bag_hlc, '
+          'created_at, hlc) '
+          'VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
           [
             row.id,
             row.tripId,
             row.equipmentId,
-            row.bagEquipmentId,
+            knowsBags ? row.bagEquipmentId : null,
+            bagHlc,
             row.createdAt,
             row.hlc,
           ],

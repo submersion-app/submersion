@@ -36553,6 +36553,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => ', ';
+
+  @override
   String get trips_gear_add_action => 'Añadir';
 
   @override

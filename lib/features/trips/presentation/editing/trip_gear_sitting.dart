@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/checklists/domain/services/checklist_rows.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -20,6 +21,25 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
 const _uuid = Uuid();
+const _log = LoggerService('tripGearSitting');
+
+/// The trip's gear in a bag, or none when the read fails: the gear then
+/// shows loose, as the Gear tab shows it outside a sitting.
+Future<Map<String, String>> _bagAssignments(
+  TripEquipmentRepository packs,
+  String tripId,
+) async {
+  try {
+    return await packs.bagAssignmentsForTrip(tripId);
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to read the bags of trip gear',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return const {};
+  }
+}
 
 /// The gear packed for a trip, held in its sitting (issue #4527, phase 3):
 /// read through [read] (the Gear tab's own read) and written through
@@ -36,7 +56,7 @@ SittingList<Trip, TripPackedItem> tripPackedGearList({
     final gear = await read(trip.id);
     final assignments = tripPackingBags(gear).isEmpty
         ? const <String, String>{}
-        : await packs.bagAssignmentsForTrip(trip.id);
+        : await _bagAssignments(packs, trip.id);
     return [for (final item in gear) (item: item, bagId: assignments[item.id])];
   },
   write: (trip, loaded, current) async {

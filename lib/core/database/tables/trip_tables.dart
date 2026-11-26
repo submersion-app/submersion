@@ -426,6 +426,11 @@ class TripEquipment extends Table {
   /// The inventory ID of the packed bag on this trip. A soft reference
   /// lets the bag and its contents arrive independently during sync.
   TextColumn get bagEquipmentId => text().nullable()();
+
+  /// The clock of the last bag assignment, apart from [hlc] so a copy from
+  /// a peer that does not know bags never outranks one. Null when the bag
+  /// was never set.
+  TextColumn get bagHlc => text().nullable()();
   IntColumn get createdAt => integer()();
 
   /// This child's own clock, stamped when it is marked pending

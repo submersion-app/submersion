@@ -185,12 +185,17 @@ class FakeEquipment extends EquipmentRepository {
 }
 
 class FakePacks extends TripEquipmentRepository {
+  FakePacks({this.bags = const {}});
+
+  /// The stored bag of each item in one, item to bag.
+  final Map<String, String> bags;
   final assigned = <(String, String, String?)>[];
   final packed = <(String, List<String>)>[];
   final unpacked = <(String, String)>[];
 
   @override
-  Future<Map<String, String>> bagAssignmentsForTrip(String tripId) async => {};
+  Future<Map<String, String>> bagAssignmentsForTrip(String tripId) async =>
+      bags;
 
   @override
   Future<void> assignBag(
@@ -277,12 +282,13 @@ Future<Harness> pumpTab(
   AppSettings settings = const AppSettings(),
   Object? gearError,
   Object? bagError,
+  Map<String, String> bags = const {},
   List<String>? forecastReads,
   String? scanned,
   ComponentsIndex components = ComponentsIndex.empty,
   bool editing = false,
 }) async {
-  final packs = FakePacks();
+  final packs = FakePacks(bags: bags);
   final slots = FakeSlots([for (final s in states) s.cylinder]);
   final pushed = <String>[];
   final shown = onTrip ?? trip();
@@ -341,7 +347,7 @@ Future<Harness> pumpTab(
         }),
         tripBagAssignmentsProvider('t1').overrideWith((ref) async {
           if (bagError != null) throw bagError;
-          return {};
+          return bags;
         }),
         tripCylinderStatesProvider('t1').overrideWith((ref) async => states),
         tripCylindersProvider(

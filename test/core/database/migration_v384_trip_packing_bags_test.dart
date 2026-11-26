@@ -4,6 +4,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
+  test('version bookkeeping', () {
+    expect(AppDatabase.currentSchemaVersion, 384);
+    expect(AppDatabase.migrationVersions, contains(384));
+    expect(
+      AppDatabase.migrationStepCount(383),
+      AppDatabase.migrationStepCount(384) + 1,
+    );
+    // An additive column: the floor does not move.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 381);
+  });
+
   test('v383 packed gear stays on the trip and starts unassigned', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
@@ -31,6 +42,6 @@ void main() {
     expect(row.read<String>('trip_id'), 'trip');
     expect(row.read<String>('equipment_id'), 'wing');
     expect(row.readNullable<String>('bag_equipment_id'), isNull);
-    expect(AppDatabase.migrationVersions, contains(384));
+    expect(row.readNullable<String>('bag_hlc'), isNull);
   });
 }

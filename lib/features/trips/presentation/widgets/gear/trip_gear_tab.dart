@@ -27,6 +27,7 @@ import 'package:submersion/features/trips/presentation/widgets/gear/trip_cylinde
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_add_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_packed_item_row.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_unslotted_tank_row.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -240,13 +241,26 @@ class TripGearTab extends ConsumerWidget {
         return null;
       }
       return () async {
-        final choice = await pickTripBag(
-          context,
-          bags,
-          currentBagId: bagIds[item.id],
-        );
-        if (choice != null && context.mounted) {
-          writes.assignBag(item.id, choice.bagId);
+        final messenger = ScaffoldMessenger.of(context);
+        final l10n = context.l10n;
+        try {
+          final choice = await pickTripBag(
+            context,
+            bags,
+            currentBagId: bagIds[item.id],
+          );
+          if (choice != null && context.mounted) {
+            writes.assignBag(item.id, choice.bagId);
+          }
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to move trip gear to a bag',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.trips_gear_failed)),
+          );
         }
       };
     }
@@ -370,7 +384,12 @@ class TripGearTab extends ConsumerWidget {
               onMoveToBag: moveAction(item),
               onPutOnBoard: ended || writes == null
                   ? null
-                  : () => _putOnBoard(context, writes, item),
+                  : () => _putOnBoard(
+                      context,
+                      writes,
+                      item,
+                      bagged: bagIds[item.id] != null,
+                    ),
               onUnpack: writes == null
                   ? null
                   : () => _unpack(context, writes, item.id),
@@ -383,15 +402,18 @@ class TripGearTab extends ConsumerWidget {
   /// Puts a packed tank with no slot on the board (#2873): a slot from the
   /// item, as Add makes one, appended after the board's last slot as it is
   /// written (two tanks put on before the board refreshes would otherwise
-  /// tie); then its packed link goes, as Add packs none for a cylinder.
-  /// Should the unpack fail, the slot still lists the tank once (a slotted
-  /// tank's link is not shown), and a repeat adds no second slot (the
-  /// append skips a tank already on the board) but retries the unpack.
+  /// tie); then its packed link goes, as Add packs none for a loose
+  /// cylinder. A [bagged] tank stays packed in its bag, as Add leaves a
+  /// tank packed into a bag. Should the unpack fail, the slot still lists
+  /// the tank once (a slotted tank's link is not shown), and a repeat adds
+  /// no second slot (the append skips a tank already on the board) but
+  /// retries the unpack.
   Future<void> _putOnBoard(
     BuildContext context,
     TripGearWrites writes,
-    EquipmentItem item,
-  ) async {
+    EquipmentItem item, {
+    required bool bagged,
+  }) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     try {
@@ -404,7 +426,7 @@ class TripGearTab extends ConsumerWidget {
           now: now,
         ),
       ]);
-      await writes.unpack(item.id);
+      if (!bagged) await writes.unpack(item.id);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to put a packed tank on the board',
@@ -438,6 +460,17 @@ class TripGearTab extends ConsumerWidget {
 class _BagWeight extends StatelessWidget {
   const _BagWeight({required this.contents, required this.units});
 
+  /// How many names of unweighed gear a bag lists before counting the rest.
+  static const _shownNames = 3;
+
+  static String _names(AppLocalizations l10n, List<String> names) {
+    final shown = names
+        .take(_shownNames)
+        .join(l10n.trips_bags_missingSeparator);
+    final rest = names.length - _shownNames;
+    return rest > 0 ? l10n.trips_bags_missingMore(shown, rest) : shown;
+  }
+
   final TripBagContents contents;
   final UnitFormatter units;
 
@@ -458,7 +491,7 @@ class _BagWeight extends StatelessWidget {
                 : l10n.trips_bags_subtotal(weight),
           ),
           if (missing.isNotEmpty)
-            Text(l10n.trips_bags_missing(missing.join(', '))),
+            Text(l10n.trips_bags_missing(_names(l10n, missing))),
         ],
       ),
     );

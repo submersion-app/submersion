@@ -57358,6 +57358,18 @@ abstract class AppLocalizations {
   /// **'Missing weight: {items}'**
   String trips_bags_missing(String items);
 
+  /// The first few names of gear with no weight, then how many more there are.
+  ///
+  /// In en, this message translates to:
+  /// **'{names} +{count}'**
+  String trips_bags_missingMore(String names, int count);
+
+  /// Joins the names of gear with no weight under a bag. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get trips_bags_missingSeparator;
+
   /// No description provided for @trips_gear_add_action.
   ///
   /// In en, this message translates to:

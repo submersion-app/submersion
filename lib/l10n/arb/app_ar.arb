@@ -10376,6 +10376,8 @@
   "trips_bags_total": "الوزن الإجمالي: {weight}",
   "trips_bags_subtotal": "مجموع الأوزان المعروفة: {weight}",
   "trips_bags_missing": "أوزان غير مسجلة: {items}",
+  "trips_bags_missingMore": "{names} +{count}",
+  "trips_bags_missingSeparator": "، ",
   "trips_gear_add_action": "إضافة",
   "trips_gear_add_fromEquipment": "من معداتي",
   "trips_gear_add_fromSet": "مجموعة معدات",

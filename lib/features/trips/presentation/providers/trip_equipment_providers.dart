@@ -38,10 +38,15 @@ final tripGearProvider = FutureProvider.family<List<EquipmentItem>, String>((
   return [...items]..sort((a, b) => compareTextForSort(a.name, b.name));
 });
 
+/// The trip's gear in a bag, item to bag. Re-read when packing changes, and
+/// when gear changes, since retyping a bag puts its contents in or out.
 final tripBagAssignmentsProvider =
     FutureProvider.family<Map<String, String>, String>((ref, tripId) {
       final packs = ref.watch(tripEquipmentRepositoryProvider);
       ref.invalidateSelfWhen(packs.watchChanges());
+      ref.invalidateSelfWhen(
+        ref.watch(equipmentRepositoryProvider).watchEquipmentChanges(),
+      );
       return packs.bagAssignmentsForTrip(tripId);
     });
 

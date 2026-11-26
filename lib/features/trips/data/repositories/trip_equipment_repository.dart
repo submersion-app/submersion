@@ -39,7 +39,8 @@ class TripEquipmentRepository {
           .toSet();
 
   /// The trip's gear in a bag, item to bag. An item whose bag is no longer
-  /// packed on the trip, or is no longer a bag, rides loose.
+  /// packed on the trip, or is no longer a bag, rides loose, and an item
+  /// that has itself become a bag is in no bag.
   Future<Map<String, String>> bagAssignmentsForTrip(String tripId) async {
     final rows = await _db
         .customSelect(
@@ -49,8 +50,11 @@ class TripEquipmentRepository {
           'AND packed.equipment_id = item.bag_equipment_id '
           'JOIN equipment bag ON bag.id = item.bag_equipment_id '
           'AND bag.type = ? '
+          'JOIN equipment gear ON gear.id = item.equipment_id '
+          'AND gear.type != ? '
           'WHERE item.trip_id = ?',
           variables: [
+            Variable.withString(EquipmentType.bag.name),
             Variable.withString(EquipmentType.bag.name),
             Variable.withString(tripId),
           ],
@@ -99,7 +103,7 @@ class TripEquipmentRepository {
                     t.tripId.equals(tripId) & t.equipmentId.equals(equipmentId),
               ))
               .getSingleOrNull();
-      if (item == null || item.bagEquipmentId == bagId) return false;
+      if (item == null) return false;
       var target = bagId;
       if (target != null) {
         final inventory = _db.equipment;
@@ -131,24 +135,29 @@ class TripEquipmentRepository {
     if (changed) SyncEventBus.notifyLocalChange();
   }
 
+  /// Sets the bag of each of [rows] under one clock, which is both the row
+  /// clock and the bag's own (see TripEquipment.bagHlc).
   Future<void> _setBagForRows(
     List<TripEquipmentRow> rows,
     String? bagId,
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final row in rows) {
+      final clock = await _syncRepository.issueRowClock();
       await (_db.update(
         _db.tripEquipment,
       )..where((t) => t.id.equals(row.id))).write(
         TripEquipmentCompanion(
           bagEquipmentId: Value(bagId),
-          hlc: Value(await _syncRepository.issueRowClock()),
+          bagHlc: Value(clock),
+          hlc: Value(clock),
         ),
       );
       await _syncRepository.markRecordPending(
         entityType: entity,
         recordId: row.id,
         localUpdatedAt: now,
+        stampClock: false,
       );
     }
   }
@@ -167,7 +176,10 @@ class TripEquipmentRepository {
   }
 
   /// Packs each of [equipmentIds] for [tripId]; a pair already packed is
-  /// left alone. Returns how many were added.
+  /// left alone. Returns how many were added. Gear still naming a newly
+  /// packed item as its bag, left by an unpack that did not clear it (an
+  /// older app version, or a sync), comes out of it: a bag packed again
+  /// starts empty.
   Future<int> pack(String tripId, Iterable<String> equipmentIds) async {
     final added = await _db.transaction(() async {
       final existing = (await equipmentIdsForTrip(tripId)).toSet();
@@ -182,6 +194,16 @@ class TripEquipmentRepository {
           ),
       ];
       if (rows.isEmpty) return 0;
+      final stale =
+          await (_db.select(_db.tripEquipment)..where(
+                (t) =>
+                    t.tripId.equals(tripId) &
+                    t.bagEquipmentId.isIn([
+                      for (final r in rows) r.equipmentId.value,
+                    ]),
+              ))
+              .get();
+      await _setBagForRows(stale, null);
       await _db.batch((b) => b.insertAll(_db.tripEquipment, rows));
       for (final r in rows) {
         await _syncRepository.markRecordPending(

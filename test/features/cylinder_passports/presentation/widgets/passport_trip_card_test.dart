@@ -46,6 +46,7 @@ void main() {
     List<Trip> allTrips = const [],
     bool failing = false,
     List<EquipmentItem> gear = const [],
+    Object? gearError,
     EditSession<EquipmentItem>? editing,
   }) async {
     final fake = _FakePacks(failing: failing);
@@ -56,7 +57,10 @@ void main() {
           ...overrides,
           equipmentTripsProvider('tank').overrideWith((ref) async => trips),
           allTripsProvider.overrideWith((ref) async => allTrips),
-          tripGearProvider.overrideWith((ref, id) async => gear),
+          tripGearProvider.overrideWith((ref, id) async {
+            if (gearError != null) throw gearError;
+            return gear;
+          }),
           tripEquipmentRepositoryProvider.overrideWithValue(fake),
         ],
         child: SingleChildScrollView(
@@ -154,6 +158,23 @@ void main() {
     expect(find.text(l10n.passport_trip_packedFor('Trip a')), findsNothing);
     expect(find.byTooltip(l10n.passport_trip_unassign), findsNothing);
     expect(find.byTooltip(l10n.passport_trip_onBoard), findsOneWidget);
+  });
+
+  testWidgets('a failed read of the trip bags packs the item loose', (
+    tester,
+  ) async {
+    final (l10n, fake) = await pump(
+      tester,
+      allTrips: [trip('a')],
+      gearError: StateError('database is locked'),
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trip a'));
+    await tester.pumpAndSettle();
+    expect(fake.packed.single.$1, 'a');
+    expect(fake.packed.single.$2, ['tank']);
+    expect(find.text(l10n.passport_trip_failed), findsNothing);
   });
 
   testWidgets('Pack for a trip packs the picked trip', (tester) async {
