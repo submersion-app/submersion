@@ -30,6 +30,15 @@ extension Readiness on MediaIdentificationService {
     final me = runs.values.any((r) => r.analysedBy != null)
         ? await _deviceId()
         : null;
+    // A video's tracks group by species as the cap groups them, which a
+    // tag of another species than the app's guess changes (issue #5032).
+    final videos = [
+      for (final m in items)
+        if (m.mediaType == MediaType.video && runs.containsKey(m.id)) m.id,
+    ];
+    final tags = videos.isEmpty
+        ? const <String, List<TaggedSpecies>>{}
+        : await _identifications.taggedSpeciesFor(videos);
     for (final item in items) {
       final run = runs[item.id];
       if (run == null) continue;
@@ -41,7 +50,7 @@ extension Readiness on MediaIdentificationService {
           stored[item.id] ?? const <MediaIdentification>[],
         ))
           if (!i.isPending) i,
-      ]);
+      ], tags: tags[item.id] ?? const []);
       // Embeddings only choose between naming again and looking again,
       // never whether there is something to do.
       final nothingToDo = item.mediaType == MediaType.video
@@ -105,14 +114,15 @@ int? _regionCell(SpeciesPackManifest manifest, GeoPoint? location) =>
 Future<bool> _cropsPresent(
   IdentificationCropStore crops,
   String mediaId,
-  List<MediaIdentification> named,
-) async {
+  List<MediaIdentification> named, {
+  List<TaggedSpecies> tags = const [],
+}) async {
   final undecided = [
     for (final i in named)
       if (i.decision == IdentificationDecision.undecided) i,
   ];
   final present = named.any((i) => i.isTrack)
-      ? await _groupsCropped(crops, mediaId, named, [
+      ? await _groupsCropped(crops, mediaId, named, tags, [
           // A fish claimed from the frame is often one whose crop the cap
           // dropped; claiming it must not scan the whole video again.
           for (final i in undecided)
@@ -130,6 +140,7 @@ Future<bool> _groupsCropped(
   IdentificationCropStore crops,
   String mediaId,
   List<MediaIdentification> named,
+  List<TaggedSpecies> tags,
   List<MediaIdentification> undecided,
 ) async {
   if (undecided.isEmpty) return true;
@@ -138,7 +149,7 @@ Future<bool> _groupsCropped(
   ]);
   final cropped = {
     for (final i in named)
-      if (present.contains(i.id)) cropGroupKey(i),
+      if (present.contains(i.id)) cropGroupKey(i, tags: tags),
   };
-  return undecided.every((i) => cropped.contains(cropGroupKey(i)));
+  return undecided.every((i) => cropped.contains(cropGroupKey(i, tags: tags)));
 }

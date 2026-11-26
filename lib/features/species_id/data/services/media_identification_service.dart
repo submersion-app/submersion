@@ -529,7 +529,12 @@ class MediaIdentificationService {
         for (final i in named)
           if (i.decision == IdentificationDecision.undecided) i,
       ];
-      final cropsPresent = await _cropsPresent(_crops, item.id, named);
+      final cropsPresent = await _cropsPresent(
+        _crops,
+        item.id,
+        named,
+        tags: item.isVideo ? await _taggedSpecies(item.id) : const [],
+      );
       // A video's tracks are named again only when their pack or place
       // changed: its embeddings are not read otherwise.
       final namesCurrent =

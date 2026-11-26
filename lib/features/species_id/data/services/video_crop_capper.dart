@@ -35,33 +35,47 @@ class VideoCropCapper {
   /// and on a device that did not analyse the video. Never throws.
   Future<int> cap(String mediaId) async {
     try {
-      final (runs, stored) = await _identifications.forMediaIdsWithRuns([
-        mediaId,
-      ], withPaths: false);
-      final run = runs[mediaId];
-      final rows = visibleRows(run, stored[mediaId] ?? const []);
-      if (!rows.any((i) => i.isTrack)) return 0;
-      final drop = videoCropsToDrop(rows, tags: await _taggedSpecies(mediaId));
-      if (drop.isEmpty) return 0;
-      final present = await _crops.presentAmong(mediaId, drop.toList());
+      final (run, first) = await _drops(mediaId);
+      if (first.isEmpty) return 0;
+      final present = await _crops.presentAmong(mediaId, first.toList());
       if (present.isEmpty) return 0;
-      // Only the maker trims synced crops. With this device's id unread,
+      // Only the maker trims synced crops, and only a run here says who
+      // that is: with none (not synced yet) or this device's id unread,
       // only a run with no maker yet (never published) counts as its own.
       final me = await _deviceId();
       final mine =
-          run == null ||
-          run.analysedBy == null ||
-          (me != null && run.madeOn(me));
+          run != null &&
+          (run.analysedBy == null || (me != null && run.madeOn(me)));
+      // Read again just before deleting: a scan, rename or claim since the
+      // first read may keep a crop that read dropped. Only crops both
+      // reads drop go.
+      final (_, again) = await _drops(mediaId);
+      final gone = [
+        for (final id in present)
+          if (again.contains(id)) id,
+      ];
+      if (gone.isEmpty) return 0;
       if (!mine) {
-        await _crops.deleteFiles(mediaId, present.toList());
+        await _crops.deleteFiles(mediaId, gone);
         return 0;
       }
-      await _crops.delete(mediaId, present.toList());
-      return present.length;
+      await _crops.delete(mediaId, gone);
+      return gone.length;
     } on Object catch (e) {
       _log.debug('Could not cap the crops of $mediaId', error: e);
       return 0;
     }
+  }
+
+  /// [mediaId]'s run, and the tracks whose crop its rows drop now.
+  Future<(MediaIdentificationRun?, Set<String>)> _drops(String mediaId) async {
+    final (runs, stored) = await _identifications.forMediaIdsWithRuns([
+      mediaId,
+    ], withPaths: false);
+    final run = runs[mediaId];
+    final rows = visibleRows(run, stored[mediaId] ?? const []);
+    if (!rows.any((i) => i.isTrack)) return (run, const <String>{});
+    return (run, videoCropsToDrop(rows, tags: await _taggedSpecies(mediaId)));
   }
 
   /// Caps every one of [mediaIds], one at a time. Returns how many crops

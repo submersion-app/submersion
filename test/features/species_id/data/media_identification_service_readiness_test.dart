@@ -28,6 +28,14 @@ class _SpyIdentifications extends MediaIdentificationRepository {
 
   final reads = <String>[];
 
+  /// The species tagged on each media.
+  Map<String, List<TaggedSpecies>> tags = const {};
+
+  @override
+  Future<Map<String, List<TaggedSpecies>>> taggedSpeciesFor(
+    List<String> mediaIds,
+  ) async => {for (final id in mediaIds) id: ?tags[id]};
+
   @override
   Future<
     (
@@ -266,6 +274,34 @@ void main() {
     );
 
     expect(await upToDate([photo('v1', type: MediaType.video)]), {'v1'});
+  });
+
+  test('a crop of a track accepted as another species does not stand for '
+      'the fish the app still suggests (its tag says so)', () async {
+    identifications.tags = const {
+      'v1': [
+        TaggedSpecies(
+          speciesId: 'sp_grunt',
+          scientificName: 'Haemulon flavolineatum',
+        ),
+      ],
+    };
+    await storeScanned(
+      [
+        fx.track('t0'),
+        fx.track('t1'),
+        fx.track(
+          'corrected',
+          decision: IdentificationDecision.accepted,
+          decidedSpeciesId: 'sp_grunt',
+        ),
+      ],
+      cropped: ['corrected'],
+    );
+    // Analysed here, so only the crops decide.
+    await crops.markAnalysed('v1');
+
+    expect(await upToDate([photo('v1', type: MediaType.video)]), isEmpty);
   });
 
   test('a video whose named tracks have no crop at all is not: a restore '

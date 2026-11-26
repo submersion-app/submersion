@@ -138,6 +138,34 @@ void main() {
     expect(await cropTombstones(), isEmpty);
   });
 
+  test('with no run here for a video it removes no synced crop: the run '
+      'may not have synced yet', () async {
+    final ids = await seedNamed('v1', 5);
+    final runless = VideoCropCapper(
+      identifications: _Runless(),
+      crops: store,
+      taggedSpecies: (_) async => const [],
+      deviceId: () async => me,
+    );
+    expect(await runless.cap('v1'), 0);
+    expect(await store.presentAmong('v1', ids), ids.toSet());
+    expect(await cropTombstones(), isEmpty);
+  });
+
+  test('a crop the rows no longer drop when it is about to go stays: a '
+      'claim made meanwhile', () async {
+    final ids = await seedNamed('v1', 5);
+    final changing = _ClaimsAfterFirstRead(ids.last);
+    final capper = VideoCropCapper(
+      identifications: changing,
+      crops: store,
+      taggedSpecies: (_) async => const [],
+      deviceId: () async => me,
+    );
+    expect(await capper.cap('v1'), 1);
+    expect(await store.presentAmong('v1', ids), {...ids.take(3), ids.last});
+  });
+
   test('does nothing for a photo', () async {
     final rows = [
       for (var k = 0; k < 5; k++)
@@ -183,4 +211,58 @@ void main() {
       hasLength(5),
     );
   });
+}
+
+/// The rows of a video whose run has not arrived here.
+class _Runless extends MediaIdentificationRepository {
+  @override
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) async {
+    final (_, rows) = await super.forMediaIdsWithRuns(
+      mediaIds,
+      withPaths: withPaths,
+    );
+    return (const <String, MediaIdentificationRun>{}, rows);
+  }
+}
+
+/// Reads [claimed] as claimed from the second read on: the diver gave it
+/// a species between the cap's reads.
+class _ClaimsAfterFirstRead extends MediaIdentificationRepository {
+  _ClaimsAfterFirstRead(this.claimed);
+
+  final String claimed;
+  var _reads = 0;
+
+  @override
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) async {
+    final (runs, rows) = await super.forMediaIdsWithRuns(
+      mediaIds,
+      withPaths: withPaths,
+    );
+    if (_reads++ == 0) return (runs, rows);
+    return (
+      runs,
+      {
+        for (final MapEntry(:key, :value) in rows.entries)
+          key: [
+            for (final i in value)
+              i.id == claimed
+                  ? i.copyWith(claimedSpeciesId: () => 'sp_grunt')
+                  : i,
+          ],
+      },
+    );
+  }
 }
