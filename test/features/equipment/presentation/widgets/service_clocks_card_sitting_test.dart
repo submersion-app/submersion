@@ -241,4 +241,52 @@ void main() {
     expect(find.textContaining('database is locked'), findsOneWidget);
     expect(find.text('Yearly reg check'), findsNothing);
   });
+
+  testWidgets('an item not yet created lists its held clocks without a '
+      'verdict, not as unconfigured', (tester) async {
+    const fresh = EquipmentItem(
+      id: 'new',
+      name: 'New reg',
+      type: EquipmentType.regulator,
+    );
+    final session = EditSession(fresh, isNew: true);
+    addTearDown(session.dispose);
+    gearItemClocksList.loadNone(session);
+    await tester.pump();
+    holdClock(
+      session,
+      ServiceSchedule(
+        id: '',
+        equipmentId: 'new',
+        serviceKindId: 'k-o2',
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 2000);
+    addTearDown(tester.view.reset);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides.cast(),
+          serviceClockSnapshotProvider('new').overrideWith((ref) async => null),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ServiceClocksCard(equipmentId: 'new', shown: session),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hose swap'), findsOneWidget);
+    expect(find.text(l.equipment_serviceClocks_unconfigured), findsNothing);
+    expect(find.text(l.equipment_serviceClocks_empty), findsNothing);
+  });
 }

@@ -193,6 +193,35 @@ void main() {
       expect(controller.session, isNull);
     });
 
+    testWidgets('a read that never answers holds the Save no longer than '
+        'the wait allowed', (tester) async {
+      final page = await pumpCounting(tester);
+      page.save.runHeld = false;
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      final controller = page.state.editController;
+      final session = controller.session!;
+      await tester.runAsync(() => gearItemClocksList.currentOrRead(session));
+      holdClock(
+        session,
+        ServiceSchedule(
+          id: '',
+          equipmentId: apex.id,
+          serviceKindId: 'k-annual',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+
+      var done = false;
+      unawaited(controller.save().then((_) => done = true));
+      await tester.pump(const Duration(seconds: 1));
+      expect(done, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+      expect(done, isTrue);
+      expect(controller.session, isNull);
+    });
+
     testWidgets('a Save that changed nothing on the clocks does not read '
         'them', (tester) async {
       final page = await pumpCounting(tester);
