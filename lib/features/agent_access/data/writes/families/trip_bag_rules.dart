@@ -86,8 +86,8 @@ Future<PlanBlock?> bagContentsProblem(
 }
 
 /// Puts each packed item of [tripId] that [diverId] sees in the bag [parsed]
-/// names for it, and the rest loose, through the repository the gear tab
-/// moves gear with. Gear [diverId] does not see stays where it is.
+/// names for it, and the rest loose, in one repository batch checked as the
+/// gear tab's moves are. Gear [diverId] does not see stays where it is.
 Future<void> setBagContents(
   RecordRepositories r,
   String tripId,
@@ -101,12 +101,10 @@ Future<void> setBagContents(
       for (final id in ids) id: bagId,
   };
   final current = await visibleBagAssignments(r, tripId, diverId);
-  final items = {...current.keys, ...bagOf.keys}.toList()..sort();
-  for (final itemId in items) {
-    if (current[itemId] != bagOf[itemId]) {
-      await r.tripEquipment.assignBag(tripId, itemId, bagOf[itemId]);
-    }
-  }
+  await r.tripEquipment.assignBags(tripId, {
+    for (final itemId in {...current.keys, ...bagOf.keys})
+      if (current[itemId] != bagOf[itemId]) itemId: bagOf[itemId],
+  });
 }
 
 /// The parsed `bag_contents` back to a map, empty for anything else.

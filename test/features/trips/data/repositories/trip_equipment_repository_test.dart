@@ -192,6 +192,33 @@ void main() {
     expect(row.bagHlc, row.hlc);
   });
 
+  test('assignBags moves many items in one go, and a bad bag writes '
+      'none of them', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    final fins = await item('Fins', EquipmentType.fins);
+    await packs.pack(t1, [roller, bcd, tank, fins]);
+    await packs.pack(t2, [fins]);
+
+    var ticks = 0;
+    final sub = packs.watchChanges().listen((_) => ticks++);
+    addTearDown(sub.cancel);
+    await packs.assignBags(t1, {bcd: roller, tank: roller, 'unpacked': null});
+    expect(await packs.bagAssignmentsForTrip(t1), {bcd: roller, tank: roller});
+    await pumpEventQueue();
+    expect(ticks, 1);
+
+    await expectLater(
+      packs.assignBags(t1, {bcd: null, fins: tank}),
+      throwsStateError,
+    );
+    await expectLater(packs.assignBags(t1, {roller: roller}), throwsStateError);
+    expect(await packs.bagAssignmentsForTrip(t1), {bcd: roller, tank: roller});
+
+    await packs.assignBags(t1, {bcd: null, fins: tank}, orLoose: true);
+    expect(await packs.bagAssignmentsForTrip(t1), {tank: roller});
+    await packs.assignBags(t1, const {});
+  });
+
   test('tripIdsForEquipment lists the trips an item is packed for', () async {
     await packs.pack(t1, [bcd]);
     await packs.pack(t2, [bcd]);

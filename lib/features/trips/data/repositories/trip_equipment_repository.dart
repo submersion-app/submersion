@@ -94,43 +94,52 @@ class TripEquipmentRepository {
     String equipmentId,
     String? bagId, {
     bool orLoose = false,
+  }) => assignBags(tripId, {equipmentId: bagId}, orLoose: orLoose);
+
+  /// [assignBag] for many items at once, keyed item to bag: one read of the
+  /// trip and one transaction, which throws before writing anything when a
+  /// bag is not valid and [orLoose] is false. Gear not packed on the trip is
+  /// skipped.
+  Future<void> assignBags(
+    String tripId,
+    Map<String, String?> bagOf, {
+    bool orLoose = false,
   }) async {
+    if (bagOf.isEmpty) return;
     final changed = await _db.transaction(() async {
       final packed = _db.tripEquipment;
-      final item =
-          await (_db.select(packed)..where(
-                (t) =>
-                    t.tripId.equals(tripId) & t.equipmentId.equals(equipmentId),
-              ))
-              .getSingleOrNull();
-      if (item == null) return false;
-      var target = bagId;
-      if (target != null) {
-        final inventory = _db.equipment;
-        final candidates =
-            await (_db.select(packed).join([
-                  innerJoin(
-                    inventory,
-                    inventory.id.equalsExp(packed.equipmentId),
-                  ),
-                ])..where(
-                  packed.tripId.equals(tripId) &
-                      packed.equipmentId.isIn([target, equipmentId]) &
-                      inventory.type.equals(EquipmentType.bag.name),
-                ))
-                .get();
-        if (target == equipmentId ||
-            candidates.length != 1 ||
-            candidates.single.readTable(packed).equipmentId != target) {
+      final inventory = _db.equipment;
+      final rows = await (_db.select(packed).join([
+        leftOuterJoin(inventory, inventory.id.equalsExp(packed.equipmentId)),
+      ])..where(packed.tripId.equals(tripId))).get();
+      final items = <String, TripEquipmentRow>{};
+      final bags = <String>{};
+      for (final row in rows) {
+        final link = row.readTable(packed);
+        items[link.equipmentId] = link;
+        if (row.readTableOrNull(inventory)?.type == EquipmentType.bag.name) {
+          bags.add(link.equipmentId);
+        }
+      }
+      final moves = <String?, List<TripEquipmentRow>>{};
+      for (final MapEntry(key: equipmentId, value: bagId) in bagOf.entries) {
+        final item = items[equipmentId];
+        if (item == null) continue;
+        var target = bagId;
+        if (target != null &&
+            (!bags.contains(target) || bags.contains(equipmentId))) {
           if (!orLoose) {
             throw StateError('Choose a packed bag from the same trip');
           }
           target = null;
         }
+        if (item.bagEquipmentId == target) continue;
+        (moves[target] ??= []).add(item);
       }
-      if (item.bagEquipmentId == target) return false;
-      await _setBagForRows([item], target);
-      return true;
+      for (final MapEntry(key: target, value: items) in moves.entries) {
+        await _setBagForRows(items, target);
+      }
+      return moves.isNotEmpty;
     });
     if (changed) SyncEventBus.notifyLocalChange();
   }
