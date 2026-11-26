@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:clock/clock.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_it
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/checklists/domain/services/checklist_rows.dart';
 import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -298,10 +300,12 @@ class TripChecklistsHeld {
 /// read from and written through the repositories given (the app's
 /// providers where there are some, so a test can stand in for them). What
 /// the list holds lives in the sitting under its key, so every list made by
-/// this function is the same list.
+/// this function is the same list. [viewer] answers the active diver, whose
+/// view of gear items the rows are read in (see getAllItemsForTrip).
 SittingList<Trip, TripChecklistsHeld> tripChecklistsList({
   required TripChecklistsRepository checklists,
   required TripChecklistRepository items,
+  Future<String?> Function()? viewer,
 }) => SittingList<Trip, TripChecklistsHeld>(
   key: 'trip.checklists',
   cardId: TripCardId.checklists.name,
@@ -313,7 +317,10 @@ SittingList<Trip, TripChecklistsHeld> tripChecklistsList({
         sections: stored.isEmpty
             ? const []
             : await items.getSectionsForTrip(trip.id),
-        items: await items.getAllItemsForTrip(trip.id),
+        items: await items.getAllItemsForTrip(
+          trip.id,
+          viewerId: await viewer?.call(),
+        ),
       ),
     ];
   },
@@ -557,6 +564,51 @@ class HeldTripChecklistWrites implements TripChecklistWrites {
   Future<void> createItem(TripChecklistItem item) async => _set(
     _held.withItem(item.id.isEmpty ? item.copyWith(id: _uuid.v4()) : item),
   );
+
+  /// Plans [gear] on [checklistId], once per item, and answers how many
+  /// rows it added and how many cylinders it left out. Cylinders are left
+  /// out because a tank goes on the trip's cylinder board rather than being
+  /// packed, so a packing row could never follow it; the count lets the
+  /// caller say so rather than drop them silently.
+  ({int added, int cylinders}) addGear(
+    String checklistId,
+    Iterable<EquipmentItem> gear,
+  ) {
+    final held = _held;
+    final cylinders = {
+      for (final item in gear)
+        if (item.type == EquipmentType.tank) item.id,
+    }.length;
+    if (!held.checklists.any((checklist) => checklist.id == checklistId)) {
+      return (added: 0, cylinders: cylinders);
+    }
+    final planned = {
+      for (final row in held.itemsOf(checklistId)) ?row.equipmentId,
+    };
+    final fresh = {
+      for (final item in gear)
+        if (!planned.contains(item.id) && item.type != EquipmentType.tank)
+          item.id: item,
+    };
+    if (fresh.isEmpty) return (added: 0, cylinders: cylinders);
+    final now = clock.now();
+    _set(
+      fresh.values.fold(
+        held,
+        (next, item) => next.withItem(
+          TripChecklistItem(
+            id: _uuid.v4(),
+            checklistId: checklistId,
+            title: item.name,
+            equipmentId: item.id,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ),
+      ),
+    );
+    return (added: fresh.length, cylinders: cylinders);
+  }
 
   @override
   Future<void> updateItem(TripChecklistItem item) async =>

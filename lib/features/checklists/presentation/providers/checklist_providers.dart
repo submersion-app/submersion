@@ -96,11 +96,14 @@ final tripChecklistAllItemsProvider =
       // A checklist added or removed (not just an item) changes which rows
       // this joins across, e.g. right after createChecklist/deleteChecklist.
       ref.invalidateSelfWhen(checklistsRepository.watchTripChecklistsChanges());
-      return repository.getAllItemsForTrip(tripId);
+      final viewerId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllItemsForTrip(tripId, viewerId: viewerId);
     });
 
 /// One checklist's items, ordered by sortOrder. Self-invalidates on table
-/// changes so sync-applied edits render live.
+/// changes so sync-applied edits render live. Read as the active diver
+/// sees them: on a shared trip, a gear item for the owner's gear that is
+/// hidden from this diver reads as a plain item, as the Gear tab hides it.
 final tripChecklistProvider =
     FutureProvider.family<List<domain.TripChecklistItem>, String>((
       ref,
@@ -108,7 +111,8 @@ final tripChecklistProvider =
     ) async {
       final repository = ref.watch(tripChecklistRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
-      return repository.getByChecklistId(checklistId);
+      final viewerId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getByChecklistId(checklistId, viewerId: viewerId);
     });
 
 /// One checklist's sections, ordered by sortOrder. Self-invalidates on table
@@ -132,7 +136,10 @@ final tripChecklistCombinedProgressProvider =
       final checklistsRepository = ref.watch(tripChecklistsRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
       ref.invalidateSelfWhen(checklistsRepository.watchTripChecklistsChanges());
-      final progress = await repository.getProgressForTrips([tripId]);
+      final viewerId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      final progress = await repository.getProgressForTrips([
+        tripId,
+      ], viewerId: viewerId);
       return progress[tripId] ?? (done: 0, total: 0);
     });
 
@@ -181,9 +188,10 @@ final homeTripChecklistProvider =
 
       // One query for the whole shortlist: the answer may be any of them, and
       // asking per trip would fan out a query and a table subscription each.
+      final viewerId = await ref.watch(validatedCurrentDiverIdProvider.future);
       final progress = await repository.getProgressForTrips([
         for (final trip in ranked) trip.id,
-      ]);
+      ], viewerId: viewerId);
       for (final trip in ranked) {
         final counts = progress[trip.id];
         if (counts == null || counts.total == 0) continue;
