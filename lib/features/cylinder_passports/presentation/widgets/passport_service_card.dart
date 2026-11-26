@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
@@ -33,8 +34,9 @@ class PassportServiceCard extends ConsumerWidget {
 
   /// The open card's sitting (issue #4527, phase 3): Track O2 clean holds the
   /// clock in the item's service clocks until Save. With no sitting given,
-  /// nothing is offered. The statuses stay as stored until Save, as on the
-  /// Service clocks card.
+  /// nothing is offered. While the sitting holds clock or service record
+  /// changes, the rows show them evaluated over the item's usage, as the
+  /// Service clocks card does (issue #5042).
   final EditSession<EquipmentItem>? editing;
 
   /// The built-in O2 clean clock for this item.
@@ -91,7 +93,10 @@ class PassportServiceCard extends ConsumerWidget {
     final mayAct = scope == null || editing != null;
     if (session == null) return _build(context, ref, null, mayAct);
     return ListenableBuilder(
-      listenable: gearItemClocksList.changes(session),
+      listenable: Listenable.merge([
+        gearItemClocksList.changes(session),
+        gearItemServiceRecordsList.changes(session),
+      ]),
       builder: (context, _) => _build(context, ref, session, mayAct),
     );
   }
@@ -109,11 +114,40 @@ class PassportServiceCard extends ConsumerWidget {
         (editing == null || gearItemClocksList.current(editing) != null);
     final heldO2 = _heldO2(session);
     final units = ref.watch(unitFormatterProvider);
+    final heldClocks = session != null && gearItemClocksList.isChanged(session)
+        ? gearItemClocksList.current(session)
+        : null;
+    final heldRecords =
+        session != null && gearItemServiceRecordsList.isChanged(session)
+        ? gearItemServiceRecordsList.current(session)
+        : null;
+    // The held clocks and records evaluated over the item's usage, once the
+    // read they are evaluated over has landed; the stored verdicts else.
+    final held = heldClocks == null && heldRecords == null
+        ? null
+        : ref
+              .watch(serviceClockSnapshotProvider(equipment.id))
+              .value
+              ?.statusesFor(schedules: heldClocks, records: heldRecords);
     final clocks =
+        held ??
         ref.watch(serviceClockStatusesProvider(equipment.id)).value ??
         const <ServiceClockStatus>[];
     final byKind = {for (final c in clocks) c.kind.id: c};
+    // The clocks the sitting changed, which carry the changed dot.
+    final loaded = {
+      for (final s
+          in session == null
+              ? const <ServiceSchedule>[]
+              : gearItemClocksList.loaded(session) ?? const [])
+        s.id: s,
+    };
+    final changedKinds = {
+      for (final s in heldClocks ?? const <ServiceSchedule>[])
+        if (loaded[s.id] != s) s.serviceKindId,
+    };
     final records =
+        heldRecords ??
         ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
         const <ServiceRecord>[];
     // The untracked row names the built-in kind the way the rest of the app
@@ -150,7 +184,15 @@ class PassportServiceCard extends ConsumerWidget {
               if (byKind[kindId] case final status?)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(status.kind.name),
+                  title: changedKinds.contains(kindId)
+                      ? Row(
+                          children: [
+                            Flexible(child: Text(status.kind.name)),
+                            const SizedBox(width: 6),
+                            const RecordChangedDot(),
+                          ],
+                        )
+                      : Text(status.kind.name),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

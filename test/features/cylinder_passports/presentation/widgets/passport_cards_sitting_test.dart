@@ -16,11 +16,13 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
@@ -49,7 +51,11 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<AppLocalizations> pump(WidgetTester tester, Widget card) async {
+  Future<AppLocalizations> pump(
+    WidgetTester tester,
+    Widget card, {
+    List<Object> extraOverrides = const [],
+  }) async {
     await tester.runAsync(() async {
       await EquipmentRepository().createEquipment(tank);
       final passport = await CylinderPassportRepository().ensurePassportId('a');
@@ -87,6 +93,7 @@ void main() {
           serviceRecordsForEquipmentProvider(
             'a',
           ).overrideWith((ref) async => const <ServiceRecord>[]),
+          ...extraOverrides,
         ],
         child: SingleChildScrollView(child: card),
       ),
@@ -278,6 +285,51 @@ void main() {
 
     expect(session.changedCardIds, {GearItemCardId.serviceClocks.name});
     expect(find.text(l10n.passport_service_trackO2Clean), findsNothing);
+    expect(find.byType(RecordChangedDot), findsOneWidget);
+  });
+
+  testWidgets('a clock the sitting holds shows its verdict, with the changed '
+      'dot (issue #5042)', (tester) async {
+    final o2 = ServiceKind(
+      id: 'o2-clean',
+      name: 'O2 clean',
+      defaultIntervalDays: 365,
+      createdAt: at,
+      updatedAt: at,
+    );
+    final l10n = await pump(
+      tester,
+      Builder(
+        builder: (context) =>
+            PassportServiceCard(equipment: tank, editing: session),
+      ),
+      extraOverrides: [
+        serviceClockSnapshotProvider('a').overrideWith(
+          (ref) async => ServiceClockSnapshot(
+            schedules: const [],
+            records: const [],
+            evaluate: (schedules, _) => [
+              for (final s in schedules)
+                ServiceClockStatus(
+                  schedule: s,
+                  kind: o2,
+                  anchor: at,
+                  dueDate: DateTime(2027, 3, 3),
+                  severity: ServiceClockSeverity.ok,
+                  now: at,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    await tester.tap(find.text(l10n.passport_service_trackO2Clean));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.passport_service_notTracked), findsNothing);
+    expect(find.text('O2 clean'), findsOneWidget);
+    expect(find.textContaining('Due '), findsOneWidget);
     expect(find.byType(RecordChangedDot), findsOneWidget);
   });
 }
