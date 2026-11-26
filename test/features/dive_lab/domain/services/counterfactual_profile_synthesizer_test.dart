@@ -221,7 +221,7 @@ void main() {
       startDepth: 20,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
-      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
+      setpointSwitchDepth: 30,
       loop: const LoopSetpoints(
         low: 0.7,
         high: 1.3,

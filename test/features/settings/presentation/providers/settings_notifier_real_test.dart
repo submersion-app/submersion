@@ -777,7 +777,7 @@ void main() {
     );
 
     test('setCcrPpO2Limits writes the switch depth with the setpoints, '
-        'clamped to 0-100 m on a 0.1 m grid (#3793)', () async {
+        'clamped to 0-100 m to the millimeter (#3793)', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();
 
@@ -788,7 +788,7 @@ void main() {
         setpointLow: 0.7,
         setpointHigh: 1.3,
         diluentModPpO2: 1.6,
-        setpointSwitchDepth: 6.04,
+        setpointSwitchDepth: 6.0004,
       );
       var s = container.read(settingsProvider);
       expect(s.ccrSetpointSwitchDepth, 6.0);
