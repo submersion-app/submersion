@@ -338,7 +338,7 @@ void main() {
 
   test("the suit's lift follows the moment, the anchor's without one", () {
     final dive = Dive(id: 'd1', dateTime: when);
-    final samples = const [
+    const samples = [
       TwinSample(timestamp: 0, depthM: 0, suitKg: 6, tanksKg: 0, netKg: 2),
       TwinSample(timestamp: 60, depthM: 20, suitKg: 3, tanksKg: 0, netKg: 1),
     ];
