@@ -23291,6 +23291,52 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'Mi hozna vízszintbe';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Vigyél $weight kevesebb ólmot';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Told a palackot $distance feljebb a pántban';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Told a palackot $distance lejjebb a pántban';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'Könnyebb uszony, vízben közel semleges';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Nehezebb uszony, kb. $weight páronként';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Tegyél át $weight ólmot innen: $from, ide: $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Tegyél át $weight ólmot balról jobbra';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Tegyél át $weight ólmot jobbról balra';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Ezután: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'Vízszintes';
 
   @override

@@ -63,17 +63,18 @@ class TrimScene {
   /// convention.
   final int timestamp;
 
-  TrimScene copyWith({List<TrimElement>? elements}) => TrimScene(
-    elements: elements ?? this.elements,
-    modelNetKg: modelNetKg,
-    liftSpot: liftSpot,
-    body: body,
-    timestamp: timestamp,
-    suitLiftKg: suitLiftKg,
-    shortySuit: shortySuit,
-    suitPanelsMm: suitPanelsMm,
-    waterDensity: waterDensity,
-  );
+  TrimScene copyWith({List<TrimElement>? elements, double? modelNetKg}) =>
+      TrimScene(
+        elements: elements ?? this.elements,
+        modelNetKg: modelNetKg ?? this.modelNetKg,
+        liftSpot: liftSpot,
+        body: body,
+        timestamp: timestamp,
+        suitLiftKg: suitLiftKg,
+        shortySuit: shortySuit,
+        suitPanelsMm: suitPanelsMm,
+        waterDensity: waterDensity,
+      );
 
   /// Pitch and roll of this scene in [pose].
   TrimResult trimIn(TrimPose pose) => computeTrim(

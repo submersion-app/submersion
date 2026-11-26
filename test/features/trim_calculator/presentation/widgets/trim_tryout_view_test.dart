@@ -448,4 +448,72 @@ void main() {
       expect(find.text('2 in up'), findsOneWidget);
     });
   });
+
+  group('what would level you (research B)', () {
+    TrimScene rig(List<TrimElement> lead) => TrimScene(
+      elements: [
+        const TrimElement(
+          id: 'tank',
+          label: 'AL80',
+          kind: TrimElementKind.tank,
+          sinkKg: -1.4,
+          spot: TrimSpot.backTank,
+          valveSinkKg: 0.7,
+        ),
+        ...lead,
+      ],
+      modelNetKg: -1,
+      liftSpot: TrimSpot.wing,
+      body: TrimBody(heightCm: 175, bodyMassKg: 80),
+      timestamp: 600,
+      suitLiftKg: 7,
+    );
+
+    testWidgets('a feet-heavy rig is shown its fixes', (tester) async {
+      await pump(
+        tester,
+        at: (_) => rig(const [
+          TrimElement(
+            id: 'belt',
+            label: 'Belt',
+            kind: TrimElementKind.lead,
+            sinkKg: 8,
+            spot: TrimSpot.waist,
+          ),
+          TrimElement(
+            id: 'fins',
+            label: 'Fins',
+            kind: TrimElementKind.gear,
+            sinkKg: 1.2,
+            spot: TrimSpot.fins,
+          ),
+        ]),
+      );
+      expect(find.text('What would level you'), findsOneWidget);
+      expect(find.textContaining('Then: '), findsWidgets);
+    });
+
+    testWidgets('a level rig is shown none', (tester) async {
+      await pump(
+        tester,
+        at: (_) => rig(const [
+          TrimElement(
+            id: 'hips',
+            label: 'Hips',
+            kind: TrimElementKind.lead,
+            sinkKg: 4,
+            spot: TrimSpot.hipPockets,
+          ),
+          TrimElement(
+            id: 'trim',
+            label: 'Trim',
+            kind: TrimElementKind.lead,
+            sinkKg: 2,
+            spot: TrimSpot.trimPockets,
+          ),
+        ]),
+      );
+      expect(find.text('What would level you'), findsNothing);
+    });
+  });
 }

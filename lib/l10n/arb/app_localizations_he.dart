@@ -22885,6 +22885,52 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'מה ייישר אותך';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'קח $weight פחות משקולות';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'הזז את המכל $distance למעלה ברצועה';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'הזז את המכל $distance למטה ברצועה';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'סנפירים קלים יותר, כמעט ניטרליים במים';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'סנפירים כבדים יותר, כ-$weight לזוג';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'העבר $weight משקולות מ$from ל$to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'העבר $weight משקולות משמאל לימין';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'העבר $weight משקולות מימין לשמאל';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'אחר כך: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'מאוזן';
 
   @override

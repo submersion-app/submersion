@@ -23438,6 +23438,53 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'Ce qui vous mettrait à plat';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Portez $weight de lest en moins';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Remontez le bloc de $distance dans la sangle';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Descendez le bloc de $distance dans la sangle';
+  }
+
+  @override
+  String get trim_fix_lighterFins =>
+      'Palmes plus légères, presque neutres dans l\'eau';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Palmes plus lourdes, environ $weight la paire';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Déplacez $weight de lest de $from vers $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Déplacez $weight de lest de gauche à droite';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Déplacez $weight de lest de droite à gauche';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Ensuite : $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'À plat';
 
   @override

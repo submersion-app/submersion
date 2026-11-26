@@ -36711,6 +36711,66 @@ abstract class AppLocalizations {
   /// **'Pitch {pitch}, roll {roll}'**
   String trim_tryout_moments(String pitch, String roll);
 
+  /// No description provided for @trim_fixes_title.
+  ///
+  /// In en, this message translates to:
+  /// **'What would level you'**
+  String get trim_fixes_title;
+
+  /// No description provided for @trim_fix_lessLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry {weight} less lead'**
+  String trim_fix_lessLead(String weight);
+
+  /// No description provided for @trim_fix_tankUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide the tank {distance} up the band'**
+  String trim_fix_tankUp(String distance);
+
+  /// No description provided for @trim_fix_tankDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide the tank {distance} down the band'**
+  String trim_fix_tankDown(String distance);
+
+  /// No description provided for @trim_fix_lighterFins.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighter fins, near neutral in the water'**
+  String get trim_fix_lighterFins;
+
+  /// No description provided for @trim_fix_heavierFins.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavier fins, about {weight} a pair'**
+  String trim_fix_heavierFins(String weight);
+
+  /// No description provided for @trim_fix_moveLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {weight} of lead from {from} to {to}'**
+  String trim_fix_moveLead(String weight, String from, String to);
+
+  /// No description provided for @trim_fix_moveLeftToRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {weight} of lead from your left side to your right'**
+  String trim_fix_moveLeftToRight(String weight);
+
+  /// No description provided for @trim_fix_moveRightToLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Move {weight} of lead from your right side to your left'**
+  String trim_fix_moveRightToLeft(String weight);
+
+  /// No description provided for @trim_fix_then.
+  ///
+  /// In en, this message translates to:
+  /// **'Then: {verdict}'**
+  String trim_fix_then(String verdict);
+
   /// No description provided for @trim_verdict_level.
   ///
   /// In en, this message translates to:

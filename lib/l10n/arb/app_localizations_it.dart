@@ -23384,6 +23384,52 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'Cosa ti metterebbe in assetto';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Porta $weight di zavorra in meno';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Alza la bombola di $distance nel cinghiolo';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Abbassa la bombola di $distance nel cinghiolo';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'Pinne più leggere, quasi neutre in acqua';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Pinne più pesanti, circa $weight al paio';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Sposta $weight di zavorra da $from a $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Sposta $weight di zavorra da sinistra a destra';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Sposta $weight di zavorra da destra a sinistra';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Poi: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'In piano';
 
   @override

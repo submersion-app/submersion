@@ -5,11 +5,14 @@ import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/trim_calculator/domain/trim_fixes.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_chip_layout.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_geometry.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_fixes_list.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_gauges.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_pieces_list.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_strings.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_test_item_form.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_controller.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -201,6 +204,14 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
           ),
           style: theme.textTheme.bodySmall,
         ),
+        TrimFixesList(
+          fixes: suggestTrimFixes(
+            _c.scene,
+            _c.pose,
+            leadStepKg: trimLeadStepKg(widget.units),
+          ),
+          units: widget.units,
+        ),
         const SizedBox(height: 8),
       ],
     );
@@ -215,14 +226,7 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
   /// centimetres or, with feet for depth, inches.
   String _tankReadout(AppLocalizations l10n, double m) {
     if (m.abs() < 0.0005) return l10n.trim_tryout_tankAsLogged;
-    final String distance;
-    if (widget.units.settings.depthUnit == DepthUnit.feet) {
-      final inches = (m.abs() / 0.0254 * 10).round() / 10;
-      final whole = inches == inches.roundToDouble();
-      distance = '${formatFixedForDisplay(inches, whole ? 0 : 1)} in';
-    } else {
-      distance = '${formatFixedForDisplay(m.abs() * 100, 0)} cm';
-    }
+    final distance = formatTrimDistance(widget.units, m);
     return m < 0
         ? l10n.trim_tryout_tankShiftUp(distance)
         : l10n.trim_tryout_tankShiftDown(distance);

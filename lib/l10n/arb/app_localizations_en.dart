@@ -23045,6 +23045,52 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'What would level you';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Carry $weight less lead';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Slide the tank $distance up the band';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Slide the tank $distance down the band';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'Lighter fins, near neutral in the water';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Heavier fins, about $weight a pair';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Move $weight of lead from $from to $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Move $weight of lead from your left side to your right';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Move $weight of lead from your right side to your left';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Then: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'Level';
 
   @override

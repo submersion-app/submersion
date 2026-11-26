@@ -23244,6 +23244,53 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'Wat je recht zou leggen';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Neem $weight minder lood mee';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Schuif de fles $distance hoger in de band';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Schuif de fles $distance lager in de band';
+  }
+
+  @override
+  String get trim_fix_lighterFins =>
+      'Lichtere vinnen, bijna neutraal in het water';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Zwaardere vinnen, ongeveer $weight per paar';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Verplaats $weight lood van $from naar $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Verplaats $weight lood van links naar rechts';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Verplaats $weight lood van rechts naar links';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Dan: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'Horizontaal';
 
   @override

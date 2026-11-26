@@ -23797,6 +23797,52 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'ما الذي يجعلك مستويًا';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'احمل $weight أقل من الرصاص';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'حرّك الأسطوانة $distance لأعلى في الحزام';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'حرّك الأسطوانة $distance لأسفل في الحزام';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'زعانف أخف، شبه محايدة في الماء';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'زعانف أثقل، نحو $weight للزوج';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'انقل $weight من الرصاص من $from إلى $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'انقل $weight من الرصاص من اليسار إلى اليمين';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'انقل $weight من الرصاص من اليمين إلى اليسار';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'بعدها: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'مستوٍ';
 
   @override

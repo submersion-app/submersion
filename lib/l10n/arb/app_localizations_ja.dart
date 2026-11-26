@@ -22533,6 +22533,52 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => '水平にするには';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'ウェイトを $weight 減らす';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'タンクをバンドで $distance 上げる';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'タンクをバンドで $distance 下げる';
+  }
+
+  @override
+  String get trim_fix_lighterFins => '水中でほぼ中性の軽いフィン';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return '重いフィン（1組約 $weight）';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'ウェイト $weight を $from から $to へ移す';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'ウェイト $weight を左から右へ移す';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'ウェイト $weight を右から左へ移す';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return '結果：$verdict';
+  }
+
+  @override
   String get trim_verdict_level => '水平';
 
   @override

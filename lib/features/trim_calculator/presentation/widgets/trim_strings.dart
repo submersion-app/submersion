@@ -1,5 +1,8 @@
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -94,3 +97,34 @@ String trimSideMark(TrimElement e, AppLocalizations l10n) {
 /// [kg] as it is shown: a weight too small to print reads as 0, never as
 /// minus zero.
 double trimShownKg(double kg) => kg.abs() < 0.05 ? 0 : kg;
+
+/// A slide along the body, [metres] either way: whole centimetres, or with
+/// feet for depth, inches to a tenth (a whole inch shows no decimal).
+String formatTrimDistance(UnitFormatter units, double metres) {
+  final m = metres.abs();
+  if (units.settings.depthUnit == DepthUnit.feet) {
+    final inches = (m / 0.0254 * 10).round() / 10;
+    final whole = inches == inches.roundToDouble();
+    return '${formatFixedForDisplay(inches, whole ? 0 : 1)} in';
+  }
+  return '${formatFixedForDisplay(m * 100, 0)} cm';
+}
+
+/// One pound, in kilograms.
+const double kTrimPoundKg = 0.45359237;
+
+/// The step lead moves in for this diver: half a kilo, or a pound.
+double trimLeadStepKg(UnitFormatter units) =>
+    units.settings.weightUnit == WeightUnit.pounds ? kTrimPoundKg : 0.5;
+
+/// [kg] of lead in the diver's weight unit, with a decimal only when it is
+/// not whole.
+String formatTrimLead(UnitFormatter units, double kg) {
+  final value =
+      (WeightUnit.kilograms.convert(kg, units.settings.weightUnit) * 10)
+          .round() /
+      10;
+  final whole = value == value.roundToDouble();
+  return '${formatFixedForDisplay(value, whole ? 0 : 1)} '
+      '${units.settings.weightUnit.symbol}';
+}

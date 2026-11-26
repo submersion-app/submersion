@@ -23379,6 +23379,53 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'Qué te nivelaría';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Lleva $weight menos de plomo';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Sube la botella $distance en la cincha';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Baja la botella $distance en la cincha';
+  }
+
+  @override
+  String get trim_fix_lighterFins =>
+      'Aletas más ligeras, casi neutras en el agua';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Aletas más pesadas, unos $weight el par';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Pasa $weight de plomo de $from a $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Pasa $weight de plomo de la izquierda a la derecha';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Pasa $weight de plomo de la derecha a la izquierda';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Después: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'Nivelado';
 
   @override

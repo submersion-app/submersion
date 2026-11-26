@@ -23378,6 +23378,53 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'O que te deixaria nivelado';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Leve $weight a menos de lastro';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Suba o cilindro $distance na cinta';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Desça o cilindro $distance na cinta';
+  }
+
+  @override
+  String get trim_fix_lighterFins =>
+      'Nadadeiras mais leves, quase neutras na água';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Nadadeiras mais pesadas, cerca de $weight o par';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Mova $weight de lastro de $from para $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Mova $weight de lastro da esquerda para a direita';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Mova $weight de lastro da direita para a esquerda';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Depois: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'Nivelado';
 
   @override

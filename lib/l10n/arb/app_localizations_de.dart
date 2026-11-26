@@ -23358,6 +23358,53 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => 'Was dich ausgleichen würde';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return '$weight weniger Blei tragen';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Flasche $distance höher ins Band schieben';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Flasche $distance tiefer ins Band schieben';
+  }
+
+  @override
+  String get trim_fix_lighterFins =>
+      'Leichtere Flossen, im Wasser fast neutral';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Schwerere Flossen, etwa $weight pro Paar';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return '$weight Blei von $from nach $to verlagern';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return '$weight Blei von links nach rechts verlagern';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return '$weight Blei von rechts nach links verlagern';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Dann: $verdict';
+  }
+
+  @override
   String get trim_verdict_level => 'Waagerecht';
 
   @override

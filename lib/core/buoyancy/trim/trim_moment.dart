@@ -69,6 +69,7 @@ class TrimElement {
   final double shiftM;
 
   TrimElement copyWith({
+    double? sinkKg,
     TrimSpot? spot,
     TrimLateral? lateral,
     double? shiftM,
@@ -76,7 +77,7 @@ class TrimElement {
     id: id,
     label: label,
     kind: kind,
-    sinkKg: sinkKg,
+    sinkKg: sinkKg ?? this.sinkKg,
     spot: spot ?? this.spot,
     lateral: lateral ?? this.lateral,
     itemId: itemId,

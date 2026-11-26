@@ -22194,6 +22194,52 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trim_fixes_title => '如何调平';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return '减少 $weight 配重';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return '将气瓶在绑带中上移 $distance';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return '将气瓶在绑带中下移 $distance';
+  }
+
+  @override
+  String get trim_fix_lighterFins => '更轻的脚蹼，在水中接近中性';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return '更重的脚蹼，每副约 $weight';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return '将 $weight 配重从$from移到$to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return '将 $weight 配重从左侧移到右侧';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return '将 $weight 配重从右侧移到左侧';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return '之后：$verdict';
+  }
+
+  @override
   String get trim_verdict_level => '水平';
 
   @override
