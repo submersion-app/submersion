@@ -15,6 +15,7 @@ import 'package:submersion/features/trim_calculator/presentation/widgets/trim_di
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_controller.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The Trim Calculator, a Planning tool (issue #5028): a logged dive's rig on
 /// the posable figure, to move lead and gear, try test items, pose and time.
@@ -265,11 +266,19 @@ class _DiveHeader extends StatelessWidget {
     return ListTile(
       leading: const Icon(Icons.scuba_diving),
       title: Text(label.title),
-      subtitle: label.subtitle == null ? null : Text(label.subtitle!),
-      trailing: TextButton(
-        key: TrimCalculatorPage.changeDiveKey,
-        onPressed: onChangeDive,
-        child: Text(context.l10n.trim_calculator_changeDive),
+      // Change dive goes on its own line: a text button in trailing would
+      // squeeze the title once translated.
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (label.subtitle != null) Text(label.subtitle!),
+          TileSubtitleAction(
+            actionKey: TrimCalculatorPage.changeDiveKey,
+            label: context.l10n.trim_calculator_changeDive,
+            onPressed: onChangeDive,
+          ),
+        ],
       ),
     );
   }
