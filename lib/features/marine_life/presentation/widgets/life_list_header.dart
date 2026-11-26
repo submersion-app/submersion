@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/marine_life/domain/life_list_summary.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The Species page header (issue #5027): how many species the diver has
-/// seen, how many are new this year, and how the life list has grown.
 /// Height of the header tiles at the default text size.
 const _tileHeight = 76.0;
 
+/// The Species page header (issue #5027): how many species the diver has
+/// seen, how many are new this year, and how the life list has grown.
 class LifeListHeader extends StatelessWidget {
   const LifeListHeader({super.key, required this.summary, required this.year});
 

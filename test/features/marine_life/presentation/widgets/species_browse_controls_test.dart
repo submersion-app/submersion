@@ -85,15 +85,50 @@ void main() {
     expect(cleared, isTrue);
   });
 
-  testWidgets('fits a phone at text scale 1.3', (tester) async {
-    tester.view.physicalSize = const Size(390, 200);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
-    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-    await _pump(tester, withoutPhoto: 122);
-    expect(tester.takeException(), isNull);
-  });
+  // The narrow and large-text end: a small phone, German labels, a long
+  // grouping name and a four-digit count must all still fit on one row.
+  for (final (width, scale, locale) in [
+    (390.0, 1.3, 'en'),
+    (320.0, 1.0, 'en'),
+    (320.0, 1.3, 'en'),
+    (360.0, 1.3, 'de'),
+    (390.0, 1.5, 'de'),
+    (390.0, 2.0, 'en'),
+  ]) {
+    testWidgets('fits $width wide at text scale $scale ($locale)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 300);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      tester.platformDispatcher.textScaleFactorTestValue = scale;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(
+        testApp(
+          locale: Locale(locale),
+          child: SpeciesBrowseControls(
+            summary: '1,234 species · 23,100 sightings',
+            shortSummary: '1,234 species',
+            groupBy: SpeciesGroupBy.firstSeen,
+            grid: true,
+            sort: SeenSpeciesSort.mostDives,
+            withoutPhoto: 1122,
+            noPhotoFilterOn: false,
+            onGroupBy: (_) {},
+            onGrid: (_) {},
+            onSort: (_) {},
+            onNoPhotoFilter: (_) {},
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      // The view toggle, last in the row, is fully on screen.
+      final toggle = tester.getRect(
+        find.byKey(const ValueKey('species_view_toggle')),
+      );
+      expect(toggle.right, lessThanOrEqualTo(width));
+    });
+  }
 
   testWidgets('a phone shows the short count line', (tester) async {
     tester.view.physicalSize = const Size(390, 200);

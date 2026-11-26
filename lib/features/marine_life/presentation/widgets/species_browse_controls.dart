@@ -120,37 +120,44 @@ class SpeciesBrowseControls extends StatelessWidget {
                     ),
                 ],
               ),
-              PopupMenuButton<SpeciesGroupBy>(
-                key: const ValueKey('species_group_by_menu'),
-                tooltip: l10n.marineLife_speciesPage_groupByTooltip,
-                onSelected: onGroupBy,
-                itemBuilder: (context) => [
-                  for (final by in SpeciesGroupBy.values)
-                    CheckedPopupMenuItem(
-                      value: by,
-                      checked: by == groupBy,
-                      child: Text(groupByLabel(l10n, by)),
-                    ),
-                ],
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 120),
-                        child: Text(
-                          groupByLabel(l10n, groupBy),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelLarge,
-                        ),
+              // Shares what the chip and the buttons leave with the count
+              // line, so a small phone, large text or a long label
+              // shortens the label instead of pushing the row off screen.
+              Flexible(
+                child: PopupMenuButton<SpeciesGroupBy>(
+                  key: const ValueKey('species_group_by_menu'),
+                  tooltip: l10n.marineLife_speciesPage_groupByTooltip,
+                  onSelected: onGroupBy,
+                  itemBuilder: (context) => [
+                    for (final by in SpeciesGroupBy.values)
+                      CheckedPopupMenuItem(
+                        value: by,
+                        checked: by == groupBy,
+                        child: Text(groupByLabel(l10n, by)),
                       ),
-                      const Icon(Icons.arrow_drop_down, size: 20),
-                    ],
+                  ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 120),
+                            child: Text(
+                              groupByLabel(l10n, groupBy),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelLarge,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.arrow_drop_down, size: 20),
+                      ],
+                    ),
                   ),
                 ),
               ),
