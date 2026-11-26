@@ -188,17 +188,9 @@ void main() {
     tester,
   ) async {
     await pumpChart(tester, 160);
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(PlanChartReadouts)),
-    );
 
     expect(find.text('3m'), findsNothing);
     expect(find.textContaining('CNS'), findsOneWidget);
-    // So the chart tags the stops itself rather than showing none.
-    expect(container.read(phoneStopListFitsProvider), isFalse);
-
-    await pumpChart(tester, 230);
-    expect(container.read(phoneStopListFitsProvider), isTrue);
   });
 
   testWidgets('at large text sizes the list stops above the chips', (

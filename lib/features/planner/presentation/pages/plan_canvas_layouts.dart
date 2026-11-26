@@ -227,16 +227,14 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
   Widget _phonePlanChart() {
     return Stack(
       children: [
-        Positioned.fill(
+        const Positioned.fill(
           child: Padding(
-            padding: const EdgeInsets.all(8),
-            // The readouts list the stops; the chart tags them only when
-            // that list has no room for even one row.
-            child: Consumer(
-              builder: (context, ref, _) => PlanProfileChart(
-                showStopTags: !ref.watch(phoneStopListFitsProvider),
-              ),
-            ),
+            padding: EdgeInsets.all(8),
+            // The readouts list the stops. The chart never tags them: on a
+            // phone tags cover each other and the readouts, even when the
+            // list has no room for a row (the full-screen chart and the
+            // Results tab still show every stop then).
+            child: PlanProfileChart(showStopTags: false),
           ),
         ),
         PlanChartReadouts(
