@@ -51,6 +51,10 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
   /// on a locked photo or video (issue #5024); else its species page.
   final bool tagsOpenCrops;
 
+  /// Plays the video from a time tapped on a species' crop sheet (issue
+  /// #5032); null shows no times.
+  final ValueChanged<Duration>? onMoment;
+
   const MediaSpeciesChipsRow({
     super.key,
     required this.mediaId,
@@ -59,6 +63,7 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
     this.onMoreTap,
     this.item,
     this.tagsOpenCrops = false,
+    this.onMoment,
   });
 
   @override
@@ -83,6 +88,7 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
       nearbyRequest: item == null ? null : nearbyRequestForMedia(item),
       overlay: true,
       cropsOf: tagsOpenCrops ? item : null,
+      onMoment: onMoment,
     );
     if (chips.isEmpty) return const SizedBox.shrink();
     final row = Semantics(
@@ -132,6 +138,7 @@ List<Widget> speciesChipWidgets(
   NearbyListRequest? nearbyRequest,
   bool overlay = false,
   MediaItem? cropsOf,
+  ValueChanged<Duration>? onMoment,
 }) {
   final l10n = context.l10n;
   final chips = speciesChipsShown(ref, mediaId, sitting);
@@ -145,7 +152,13 @@ List<Widget> speciesChipWidgets(
   final iconSize = overlay ? ViewerTagChips.iconSize : 16.0;
   VoidCallback openTag(SpeciesTagChip chip) => cropsOf == null
       ? () => context.push('/species/${chip.speciesId}')
-      : () => openSpeciesCrops(context, ref, item: cropsOf, chip: chip);
+      : () => openSpeciesCrops(
+          context,
+          ref,
+          item: cropsOf,
+          chip: chip,
+          onMoment: onMoment,
+        );
   return [
     for (final chip in chips)
       if (!chip.unconfirmed)

@@ -52964,6 +52964,29 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次目击中最佳的 $shown 张',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => '出现时间';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start 至 $end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return '从 $time 开始播放';
+  }
+
+  @override
   String get media_species_openSpeciesPage => '物种页面';
 
   @override

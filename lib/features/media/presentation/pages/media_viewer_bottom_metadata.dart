@@ -19,6 +19,7 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
       item: item,
       settings: settings,
       onMomentTap: (tag) => _showMoment(item, tag),
+      onSpeciesMoment: item.isVideo ? (at) => _showMomentAt(item, at) : null,
       sitting: photoSitting,
       locked: photoLocked,
       onSuggestionTap: photoSitting == null
@@ -84,6 +85,10 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// A video face tag's chip was tapped (issue #1745).
   final ValueChanged<MediaPersonTag>? onMomentTap;
 
+  /// A time on a species' crop sheet was tapped (issue #5032): play the
+  /// video from there. Null for a photo.
+  final ValueChanged<Duration>? onSpeciesMoment;
+
   /// The photo's sitting, whose held tags the chips show (issue #4527).
   final EditSession<PhotoRecord>? sitting;
 
@@ -123,6 +128,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
     this.onSetTime,
     this.siteName,
     this.onMomentTap,
+    this.onSpeciesMoment,
     this.sitting,
     this.onSuggestionTap,
     this.locked = false,
@@ -224,6 +230,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                       onSuggestionTap: onSuggestionTap,
                       item: item,
                       tagsOpenCrops: locked,
+                      onMoment: onSpeciesMoment,
                       // Every species, from the "+N" chip: the sheet while
                       // the photo is unlocked, else the list (issue #4825).
                       onMoreTap:
@@ -232,6 +239,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                             context,
                             item,
                             sitting: sitting,
+                            onMoment: onSpeciesMoment,
                           ),
                     ),
                     // Metadata row, onto a second line where the chart

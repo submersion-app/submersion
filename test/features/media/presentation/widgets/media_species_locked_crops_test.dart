@@ -6,7 +6,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
+import 'package:submersion/features/media/presentation/widgets/media_species_list_sheet.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
@@ -57,21 +59,37 @@ void main() {
     WidgetTester tester, {
     required bool locked,
     VoidCallback? onSuggestionTap,
+    MediaType type = MediaType.photo,
+    ValueChanged<Duration>? onMoment,
+    bool throughList = false,
+    List<MediaIdentification>? rows,
   }) async {
     final overrides = await getBaseOverrides();
-    final item = testMediaItem(id: 'p1', diveId: 'd1');
+    final item = testMediaItem(id: 'p1', diveId: 'd1', mediaType: type);
     final router = GoRouter(
       initialLocation: '/viewer',
       routes: [
         GoRoute(
           path: '/viewer',
           builder: (_, _) => Scaffold(
-            body: MediaSpeciesChipsRow(
-              mediaId: 'p1',
-              item: item,
-              tagsOpenCrops: locked,
-              onSuggestionTap: onSuggestionTap,
-            ),
+            body: throughList
+                ? Builder(
+                    builder: (context) => TextButton(
+                      onPressed: () => showMediaSpeciesListSheet(
+                        context,
+                        item,
+                        onMoment: onMoment,
+                      ),
+                      child: const Text('list'),
+                    ),
+                  )
+                : MediaSpeciesChipsRow(
+                    mediaId: 'p1',
+                    item: item,
+                    tagsOpenCrops: locked,
+                    onSuggestionTap: onSuggestionTap,
+                    onMoment: onMoment,
+                  ),
           ),
         ),
         GoRoute(
@@ -99,12 +117,12 @@ void main() {
             (ref, request) async => const NearbySpecies(speciesKeys: {}),
           ),
           mediaIdentificationRepositoryProvider.overrideWithValue(
-            FixedIdentifications([
-              accepted('a', 'sp_grunt'),
-              accepted('b', 'sp_fan'),
-            ]),
+            FixedIdentifications(
+              rows ?? [accepted('a', 'sp_grunt'), accepted('b', 'sp_fan')],
+            ),
           ),
           identificationCropProvider.overrideWith((ref, key) async => null),
+          presentCropIdsProvider.overrideWith((ref, _) async => const {}),
         ],
       ),
     );
@@ -112,6 +130,60 @@ void main() {
   }
 
   final sheet = find.byKey(const ValueKey('species_crop_sheet'));
+
+  group('a video (issue #5032)', () {
+    final seen = [
+      accepted(
+        'a',
+        'sp_grunt',
+      ).copyWith(startMs: () => 4000, endMs: () => 9000, bestMs: () => 5000),
+    ];
+
+    testWidgets('a time on the crop sheet plays the video from there', (
+      tester,
+    ) async {
+      Duration? played;
+      await pump(
+        tester,
+        locked: true,
+        type: MediaType.video,
+        rows: seen,
+        onMoment: (at) => played = at,
+      );
+      await tester.tap(find.text('French Grunt'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('species_crop_moment_4000')));
+      await tester.pumpAndSettle();
+      expect(played, const Duration(seconds: 4));
+      expect(sheet, findsNothing);
+    });
+
+    testWidgets('from the whole list, a time closes both sheets', (
+      tester,
+    ) async {
+      Duration? played;
+      await pump(
+        tester,
+        locked: true,
+        type: MediaType.video,
+        rows: seen,
+        throughList: true,
+        onMoment: (at) => played = at,
+      );
+      await tester.tap(find.text('list'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('French Grunt'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('species_crop_moment_4000')));
+      await tester.pumpAndSettle();
+      expect(played, const Duration(seconds: 4));
+      expect(sheet, findsNothing);
+      expect(
+        find.byKey(const ValueKey('media_species_list_sheet')),
+        findsNothing,
+      );
+    });
+  });
 
   group('locked', () {
     testWidgets('a tag opens its crops', (tester) async {

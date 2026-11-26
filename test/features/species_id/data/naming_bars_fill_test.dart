@@ -17,6 +17,7 @@ import 'package:submersion/features/species_id/data/repositories/identification_
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/data/services/naming_bars_fill.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
@@ -196,6 +197,57 @@ void main() {
         ]);
       },
     );
+
+    test(
+      'trim each video down to 3 crops of a species (issue #5032)',
+      () async {
+        marineLifeIdEnabled = true;
+        addTearDown(resetMarineLifeIdEnabled);
+        final tracks = [
+          for (var k = 0; k < 5; k++)
+            track(
+              't$k',
+              decision: IdentificationDecision.accepted,
+              decidedSpeciesId: 'sp_queen_parrotfish',
+            ).copyWith(boxPixelWidth: 1000 - k * 10),
+        ];
+        await repo.storeRun(
+          videoRun(count: 5),
+          insert: tracks,
+          deleteIds: const [],
+        );
+        final crops = container.read(identificationCropStoreProvider);
+        for (final t in tracks) {
+          await crops.write('v1', t.id, Uint8List.fromList([1]), named: true);
+        }
+        await trimVideoCropsAtLaunch(container);
+        expect(await crops.presentAmong('v1', [for (final t in tracks) t.id]), {
+          't0',
+          't1',
+          't2',
+        });
+      },
+    );
+
+    test('leave every crop where the models cannot run', () async {
+      marineLifeIdEnabled = false;
+      addTearDown(resetMarineLifeIdEnabled);
+      final tracks = [for (var k = 0; k < 5; k++) track('t$k')];
+      await repo.storeRun(
+        videoRun(count: 5),
+        insert: tracks,
+        deleteIds: const [],
+      );
+      final crops = container.read(identificationCropStoreProvider);
+      for (final t in tracks) {
+        await crops.write('v1', t.id, Uint8List.fromList([1]), named: true);
+      }
+      await trimVideoCropsAtLaunch(container);
+      expect(
+        await crops.presentAmong('v1', [for (final t in tracks) t.id]),
+        hasLength(5),
+      );
+    });
   });
 
   test('at launch the orphan sweep runs before the crop backfill, so a crop '

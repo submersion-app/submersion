@@ -168,4 +168,16 @@ class FixedIdentifications extends MediaIdentificationRepository {
 
   @override
   Future<List<MediaIdentification>> forMedia(String mediaId) async => rows;
+
+  @override
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) async => (
+    const <String, MediaIdentificationRun>{},
+    {for (final id in mediaIds) id: rows},
+  );
 }
