@@ -352,3 +352,37 @@ scroll on a phone).
   files that stay under the 800-line guard.
 - Golden or painter tests for the jointed artwork at knee bends 0, 45 and
   90 and arm reach 0, 50 and 100.
+
+## 14. Research follow-up (decided 2026-11-26)
+
+After web and literature research
+(`docs/design/findings/2026-11-26-scuba-trim-research.md`), Eric chose to
+build all six proposed changes in this PR:
+
+- **A. Roll bands** apart from pitch: level under 0.12 kg m, slightly under
+  0.30 kg m, so a 2 lb difference between sides reads as a slight roll.
+- **F. Copy:** under the verdict, one line saying it is for the safety-stop
+  check with the gas left then, and that the tilt pictures the pull, not an
+  angle.
+- **D. Measured body:** the float point moves to the measured 0.385 H from
+  the crown. The head and torso get an explicit feet-down term so the bare
+  body in the measured pose (straight legs, arms overhead, fresh water) has
+  the measured torque: body mass x 1.93 cm for men, 1.36 cm for women,
+  1.65 cm when sex is not on file. Limbs keep their posed terms.
+- **E. Suit split by thickness:** each part's share of the suit's lift is its
+  skin coverage (Lund-Browder: torso 42, arms 17, thighs 23.5, shins 17)
+  times its neoprene thickness (first panel torso, second legs, third arms,
+  else the last given), normalised.
+- **C. Tanks:** a cylinder's valve weighs 0.7 kg in water at its top end,
+  0.34 m from the cylinder's centre, apart from the cylinder's own term at
+  its centre. Try-out gains a Tank height slider (10 cm up or down the band)
+  for back-mounted tanks.
+- **B. What would level me:** when the verdict is not level, the card and
+  the sheet list up to three fixes in the order instructors try them (carry
+  less lead when the diver holds 1.5 kg or more in the wing, tank height,
+  moving 0.5 to 2 kg of lead between low and high spots, lighter or heavier
+  fins), each with the verdict it gives. Distances follow the diver's depth
+  unit (cm or in).
+
+D and E move the model, so the four reference rigs in 7.5 are re-tuned and
+stay the acceptance tests; the tuned constants may change.
