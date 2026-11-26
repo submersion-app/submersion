@@ -106,4 +106,31 @@ void main() {
     expect(find.byType(SeenSpeciesTile), findsOneWidget);
     expect(find.byType(SpeciesCard), findsNothing);
   });
+
+  testWidgets('a trip with no name reads as No trip', (tester) async {
+    const places = SpeciesPlaces(
+      tripsBySpecies: {
+        'Grouper': [SpeciesPlace(id: 'gone', name: '')],
+      },
+      sitesBySpecies: {},
+      firstTripBySpecies: {},
+      firstSiteBySpecies: {},
+    );
+    await _pump(
+      tester,
+      groupSeenSpecies([_grouper], by: SpeciesGroupBy.trip, places: places),
+      by: SpeciesGroupBy.trip,
+    );
+    expect(find.text('No trip'), findsOneWidget);
+  });
+
+  testWidgets('sections and cards fit at text scale 2', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await _pump(
+      tester,
+      groupSeenSpecies([_grouper, _snapper], by: SpeciesGroupBy.firstSeen),
+      by: SpeciesGroupBy.firstSeen,
+    );
+  });
 }

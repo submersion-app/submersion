@@ -65,4 +65,44 @@ void main() {
     expect(text.overflow, TextOverflow.ellipsis);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('first seen here keeps the dive count', (tester) async {
+    await pumpPictures(
+      tester,
+      SizedBox(
+        width: 170,
+        height: 260,
+        child: SpeciesCard(
+          entry: seenEntry('Grouper', dives: 4),
+          picture: const NoPicture(),
+          firstSeenHere: true,
+        ),
+      ),
+    );
+    expect(find.text('4 dives'), findsOneWidget);
+    expect(find.text('First seen here'), findsOneWidget);
+  });
+
+  testWidgets('fits its grid cell at text scale 1.3 with a long name', (
+    tester,
+  ) async {
+    const scaler = TextScaler.linear(1.3);
+    await pumpPictures(
+      tester,
+      MediaQuery(
+        data: const MediaQueryData(textScaler: scaler),
+        child: SizedBox(
+          width: 160,
+          height: speciesCardHeight(160, scaler),
+          child: SpeciesCard(
+            entry: seenEntry('Very ' * 18, dives: 12),
+            picture: const NoPicture(),
+            rarity: SpeciesRarity.notSeenLately,
+            firstSeenHere: true,
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

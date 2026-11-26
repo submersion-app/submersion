@@ -61,7 +61,8 @@ class LifeListHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (withoutPhoto > 0) ...[
+          // Kept while the filter is on, so it can always be turned off.
+          if (withoutPhoto > 0 || noPhotoFilterOn) ...[
             const SizedBox(height: 8),
             FilterChip(
               key: const ValueKey('species_no_photo_chip'),

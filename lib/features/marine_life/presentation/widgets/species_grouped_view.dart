@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -15,9 +17,6 @@ import 'package:submersion/shared/widgets/collapsible_group_header.dart';
 /// The widest a card grows before another column is added: two columns on
 /// a phone, five or six on a desktop.
 const kSpeciesCardMaxWidth = 200.0;
-
-/// A card's width over its height: a 4:3 picture over two lines of text.
-const kSpeciesCardAspect = 0.86;
 
 /// Width of a card on a category shelf.
 const kSpeciesShelfCardWidth = 160.0;
@@ -95,7 +94,7 @@ class _SpeciesGroupedViewState extends State<SpeciesGroupedView> {
     if (group.year != null) return '${group.year}';
     final place = group.place;
     if (place == null) return '';
-    if (place.id == null) {
+    if (place.id == null || place.name.trim().isEmpty) {
       return widget.by == SpeciesGroupBy.site
           ? l10n.marineLife_speciesPage_noSite
           : l10n.marineLife_speciesPage_noTrip;
@@ -125,21 +124,34 @@ class _SpeciesGroupedViewState extends State<SpeciesGroupedView> {
         },
       );
     }
+    final scaler = MediaQuery.textScalerOf(context);
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-      sliver: SliverGrid.builder(
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: kSpeciesCardMaxWidth,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: kSpeciesCardAspect,
-        ),
-        itemCount: entries.length,
-        itemBuilder: (context, index) {
-          final entry = entries[index];
-          return _card(
-            entry,
-            firstSeenHere: firstSeenHere.contains(entry.species.id),
+      sliver: SliverLayoutBuilder(
+        builder: (context, constraints) {
+          // As many columns as fit at most kSpeciesCardMaxWidth each, each
+          // card as tall as its picture and text need at this text size.
+          final width = constraints.crossAxisExtent;
+          final columns = math.max(
+            1,
+            ((width + 8) / (kSpeciesCardMaxWidth + 8)).ceil(),
+          );
+          final cell = (width - 8 * (columns - 1)) / columns;
+          return SliverGrid.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              mainAxisExtent: speciesCardHeight(cell, scaler),
+            ),
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              return _card(
+                entry,
+                firstSeenHere: firstSeenHere.contains(entry.species.id),
+              );
+            },
           );
         },
       ),
@@ -149,7 +161,10 @@ class _SpeciesGroupedViewState extends State<SpeciesGroupedView> {
   Widget _shelf(BuildContext context, SpeciesGroup group) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    const cardHeight = kSpeciesShelfCardWidth / kSpeciesCardAspect;
+    final cardHeight = speciesCardHeight(
+      kSpeciesShelfCardWidth,
+      MediaQuery.textScalerOf(context),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -212,6 +227,7 @@ class _SpeciesGroupedViewState extends State<SpeciesGroupedView> {
               }),
             ),
             color: Theme.of(context).colorScheme.surface,
+            height: math.max(48, MediaQuery.textScalerOf(context).scale(56)),
           ),
         ),
         if (expanded) _entries(group.entries, group.firstSeenHere),
@@ -221,18 +237,23 @@ class _SpeciesGroupedViewState extends State<SpeciesGroupedView> {
 }
 
 class _SectionHeader extends SliverPersistentHeaderDelegate {
-  _SectionHeader({required this.child, required this.color});
+  _SectionHeader({
+    required this.child,
+    required this.color,
+    required this.height,
+  });
 
   final Widget child;
   final Color color;
 
-  static const _height = 48.0;
+  /// Grows with the text size, so a large one is not clipped.
+  final double height;
 
   @override
-  double get minExtent => _height;
+  double get minExtent => height;
 
   @override
-  double get maxExtent => _height;
+  double get maxExtent => height;
 
   @override
   Widget build(
@@ -246,5 +267,7 @@ class _SectionHeader extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_SectionHeader oldDelegate) =>
-      oldDelegate.child != child || oldDelegate.color != color;
+      oldDelegate.child != child ||
+      oldDelegate.color != color ||
+      oldDelegate.height != height;
 }

@@ -17,6 +17,16 @@ String rarityLabel(AppLocalizations l10n, SpeciesRarity rarity) =>
       SpeciesRarity.mastered => l10n.marineLife_rarity_mastered,
     };
 
+/// The height of a card's text block at [scaler]: two lines of name, the
+/// dive count and the First seen here marker, with their padding.
+double speciesCardTextHeight(TextScaler scaler) =>
+    20 + 2 * scaler.scale(14) * 1.45 + 2 * scaler.scale(12) * 1.5;
+
+/// The height of a card [width] wide: its 4:3 picture over the text block.
+/// Sized from the text scale so a large one never overflows the card.
+double speciesCardHeight(double width, TextScaler scaler) =>
+    width * 3 / 4 + speciesCardTextHeight(scaler);
+
 /// One species on the Species page grid (issue #5027): its picture filling
 /// the top, a rarity badge over it, the name and the dive count below.
 class SpeciesCard extends StatelessWidget {
@@ -68,35 +78,36 @@ class SpeciesCard extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.species.localizedCommonName(l10n),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    entry.species.localizedCommonName(l10n),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  Text(
+                    l10n.marineLife_speciesPage_divesCount(entry.diveCount),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    const Spacer(),
+                  ),
+                  if (firstSeenHere)
                     Text(
-                      firstSeenHere
-                          ? l10n.marineLife_speciesPage_firstSeenHere
-                          : l10n.marineLife_speciesPage_divesCount(
-                              entry.diveCount,
-                            ),
+                      l10n.marineLife_speciesPage_firstSeenHere,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: firstSeenHere
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
           ],

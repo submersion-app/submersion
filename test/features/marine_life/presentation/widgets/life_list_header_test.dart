@@ -19,6 +19,7 @@ Future<void> _pump(
   WidgetTester tester, {
   LifeListSummary? summary,
   int withoutPhoto = 0,
+  bool filterOn = false,
   ValueChanged<bool>? onFilter,
 }) => tester.pumpWidget(
   testApp(
@@ -27,7 +28,7 @@ Future<void> _pump(
       summary: summary ?? _summary(),
       year: 2026,
       withoutPhoto: withoutPhoto,
-      noPhotoFilterOn: false,
+      noPhotoFilterOn: filterOn,
       onNoPhotoFilter: onFilter ?? (_) {},
     ),
   ),
@@ -60,5 +61,15 @@ void main() {
     expect(find.text('12 without a photo'), findsOneWidget);
     await tester.tap(find.byType(FilterChip));
     expect(toggled, isTrue);
+  });
+
+  testWidgets('the chip stays while its filter is on, even at zero', (
+    tester,
+  ) async {
+    bool? toggled;
+    await _pump(tester, filterOn: true, onFilter: (v) => toggled = v);
+    expect(find.byType(FilterChip), findsOneWidget);
+    await tester.tap(find.byType(FilterChip));
+    expect(toggled, isFalse);
   });
 }
