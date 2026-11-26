@@ -26816,6 +26816,30 @@ class AppLocalizationsIt extends AppLocalizations {
       'Orologio della decisione';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Ritaglio di copertina';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box =>
+      'Livello di esercizio';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Esercizio previsto';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Nominata giusta';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Nominata sbagliata';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Ultimo esercizio';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg =>
       'Ritaglio';
 

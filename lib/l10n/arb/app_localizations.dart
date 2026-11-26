@@ -42156,6 +42156,42 @@ abstract class AppLocalizations {
   /// **'Decision clock'**
   String get settings_conflict_field_mediaIdentifications_decisionHlc;
 
+  /// No description provided for @settings_conflict_field_speciesCovers_identificationId.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover crop'**
+  String get settings_conflict_field_speciesCovers_identificationId;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_box.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice box'**
+  String get settings_conflict_field_speciesPractice_box;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_dueAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice due'**
+  String get settings_conflict_field_speciesPractice_dueAt;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_rightCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Named right'**
+  String get settings_conflict_field_speciesPractice_rightCount;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_wrongCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Named wrong'**
+  String get settings_conflict_field_speciesPractice_wrongCount;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_lastPractisedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last practised'**
+  String get settings_conflict_field_speciesPractice_lastPractisedAt;
+
   /// No description provided for @settings_conflict_field_mediaIdentificationCrops_jpeg.
   ///
   /// In en, this message translates to:

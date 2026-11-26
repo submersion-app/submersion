@@ -142,6 +142,8 @@ class SyncRepository {
       table: 'insight_observation_dismissals',
       pk: 'id',
     ),
+    'speciesCovers': (table: 'species_covers', pk: 'id'),
+    'speciesPractice': (table: 'species_practice', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
     // HLC merge-root only: the courseRequirementDives junction is clockless

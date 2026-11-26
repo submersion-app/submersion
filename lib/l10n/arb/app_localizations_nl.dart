@@ -26646,6 +26646,29 @@ class AppLocalizationsNl extends AppLocalizations {
       'Beslissingsklok';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Omslaguitsnede';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Oefenbak';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Oefening gepland';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Goed benoemd';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Fout benoemd';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Laatst geoefend';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg =>
       'Uitsnede';
 

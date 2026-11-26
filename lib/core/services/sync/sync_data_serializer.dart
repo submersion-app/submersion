@@ -367,6 +367,8 @@ class SyncData {
   final List<Map<String, dynamic>> ruleRuns;
   final List<Map<String, dynamic>> ruleRunChanges;
   final List<Map<String, dynamic>> insightObservationDismissals;
+  final List<Map<String, dynamic>> speciesCovers;
+  final List<Map<String, dynamic>> speciesPractice;
 
   /// Inbound only since v182: older peers still send row-per-sample arrays;
   /// they apply into the legacy tables and are packed into series by
@@ -527,6 +529,8 @@ class SyncData {
     this.ruleRuns = const [],
     this.ruleRunChanges = const [],
     this.insightObservationDismissals = const [],
+    this.speciesCovers = const [],
+    this.speciesPractice = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
     this.diveHealthRecords = const [],
@@ -671,6 +675,8 @@ class SyncData {
     'ruleRuns': ruleRuns,
     'ruleRunChanges': ruleRunChanges,
     'insightObservationDismissals': insightObservationDismissals,
+    'speciesCovers': speciesCovers,
+    'speciesPractice': speciesPractice,
     'tideRecords': tideRecords,
     'diveHealthRecords': diveHealthRecords,
     'settings': settings,
@@ -832,6 +838,8 @@ class SyncData {
       insightObservationDismissals: _parseList(
         json['insightObservationDismissals'],
       ),
+      speciesCovers: _parseList(json['speciesCovers']),
+      speciesPractice: _parseList(json['speciesPractice']),
       tankPressureProfiles: _parseList(json['tankPressureProfiles']),
       tideRecords: _parseList(json['tideRecords']),
       diveHealthRecords: _parseList(json['diveHealthRecords']),
@@ -1486,6 +1494,13 @@ class SyncDataSerializer {
     (
       key: 'insightObservationDismissals',
       table: _db.insightObservationDismissals,
+      blob: false,
+      full: null,
+    ),
+    (key: 'speciesCovers', table: _db.speciesCovers, blob: false, full: null),
+    (
+      key: 'speciesPractice',
+      table: _db.speciesPractice,
       blob: false,
       full: null,
     ),
@@ -3134,6 +3149,14 @@ class SyncDataSerializer {
         'insightObservationDismissals',
         () => _exportInsightObservationDismissals(hlcSince),
       ),
+      speciesCovers: await _safeExport(
+        'speciesCovers',
+        () => _exportSpeciesCovers(hlcSince),
+      ),
+      speciesPractice: await _safeExport(
+        'speciesPractice',
+        () => _exportSpeciesPractice(hlcSince),
+      ),
       tideRecords: await _safeExport(
         'tideRecords',
         () async => _withPendingChildren(
@@ -4343,6 +4366,16 @@ class SyncDataSerializer {
           _db.insightObservationDismissals,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'speciesCovers':
+        final row = await (_db.select(
+          _db.speciesCovers,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'speciesPractice':
+        final row = await (_db.select(
+          _db.speciesPractice,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'mediaSmartAlbums':
         final row = await (_db.select(
           _db.mediaSmartAlbums,
@@ -4941,6 +4974,16 @@ class SyncDataSerializer {
       case 'insightObservationDismissals':
         final rows = await (_db.select(
           _db.insightObservationDismissals,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'speciesCovers':
+        final rows = await (_db.select(
+          _db.speciesCovers,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'speciesPractice':
+        final rows = await (_db.select(
+          _db.speciesPractice,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'mediaSmartAlbums':
@@ -6681,6 +6724,20 @@ class SyncDataSerializer {
             .into(_db.insightObservationDismissals)
             .insertOnConflictUpdate(
               InsightObservationDismissalRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'speciesCovers':
+        await _db
+            .into(_db.speciesCovers)
+            .insertOnConflictUpdate(
+              SpeciesCoverRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'speciesPractice':
+        await _db
+            .into(_db.speciesPractice)
+            .insertOnConflictUpdate(
+              SpeciesPracticeRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'mediaSmartAlbums':
@@ -8449,6 +8506,26 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'speciesCovers':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.speciesCovers,
+            records
+                .map((r) => SpeciesCoverRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'speciesPractice':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.speciesPractice,
+            records
+                .map((r) => SpeciesPracticeRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'mediaSmartAlbums':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -9047,6 +9124,10 @@ class SyncDataSerializer {
           _db.insightObservationDismissals,
           _db.insightObservationDismissals.id,
         );
+      case 'speciesCovers':
+        return plain(_db.speciesCovers, _db.speciesCovers.id);
+      case 'speciesPractice':
+        return plain(_db.speciesPractice, _db.speciesPractice.id);
       case 'species':
         return plain(_db.species, _db.species.id);
       case 'tags':
@@ -9602,6 +9683,10 @@ class SyncDataSerializer {
         return _db.ruleRunChanges;
       case 'insightObservationDismissals':
         return _db.insightObservationDismissals;
+      case 'speciesCovers':
+        return _db.speciesCovers;
+      case 'speciesPractice':
+        return _db.speciesPractice;
       case 'species':
         return _db.species;
       case 'tags':
@@ -10308,6 +10393,16 @@ class SyncDataSerializer {
       case 'insightObservationDismissals':
         await (_db.delete(
           _db.insightObservationDismissals,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'speciesCovers':
+        await (_db.delete(
+          _db.speciesCovers,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'speciesPractice':
+        await (_db.delete(
+          _db.speciesPractice,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'mediaSmartAlbums':
@@ -11896,6 +11991,28 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.insightObservationDismissals);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportSpeciesCovers(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.speciesCovers);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportSpeciesPractice(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.speciesPractice);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

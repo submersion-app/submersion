@@ -26166,6 +26166,26 @@ class AppLocalizationsHe extends AppLocalizations {
       'שעון ההחלטה';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'חיתוך שער';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'תיבת תרגול';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => 'מועד תרגול';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount => 'זוהה נכון';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount => 'זוהה שגוי';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'תרגול אחרון';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'חיתוך';
 
   @override

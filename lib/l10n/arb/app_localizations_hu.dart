@@ -26678,6 +26678,29 @@ class AppLocalizationsHu extends AppLocalizations {
       'Döntés órája';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Borítókivágás';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Gyakorlódoboz';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Gyakorlás esedékes';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Helyesen megnevezve';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Tévesen megnevezve';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Utoljára gyakorolva';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Kivágás';
 
   @override

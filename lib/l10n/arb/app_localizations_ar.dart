@@ -27161,6 +27161,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'ساعة القرار';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'قص الغلاف';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'صندوق التدريب';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => 'موعد التدريب';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'الإجابات الصحيحة';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'الإجابات الخاطئة';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'آخر تدريب';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'القصاصة';
 
   @override

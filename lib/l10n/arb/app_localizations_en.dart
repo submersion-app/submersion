@@ -26378,6 +26378,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Decision clock';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Cover crop';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Practice box';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => 'Practice due';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Named right';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Named wrong';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Last practised';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Crop';
 
   @override

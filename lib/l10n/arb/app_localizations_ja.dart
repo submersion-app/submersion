@@ -25692,6 +25692,25 @@ class AppLocalizationsJa extends AppLocalizations {
       '判定のクロック';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      '表紙の切り抜き';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => '練習ボックス';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => '練習予定日';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount => '正解回数';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount => '不正解回数';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt => '最終練習日';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => '切り抜き';
 
   @override

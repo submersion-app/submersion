@@ -175,5 +175,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v381 backstop: what syncing marine life results needs (issue #4876;
     // synced, idempotent). After the v375 to v377 backstops.
     await _assertIdentificationSyncSchema();
+
+    // v383 backstop: species covers and practice (issue #5027; synced,
+    // idempotent).
+    await _assertSpeciesRevampSchema();
   }
 }

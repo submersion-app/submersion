@@ -26790,6 +26790,29 @@ class AppLocalizationsPt extends AppLocalizations {
       'Relógio da decisão';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Recorte de capa';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Caixa de prática';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Prática pendente';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Nomeada certa';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Nomeada errada';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Última prática';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Recorte';
 
   @override

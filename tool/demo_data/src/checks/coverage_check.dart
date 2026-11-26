@@ -48,6 +48,8 @@ const demoCoverageExclusions = <String, String>{
       'crops the marine life model cut from the media it analysed',
   'dive_safety_reviews': 'computed by the app when a dive is opened',
   'dive_safety_findings': 'computed by the app when a dive is opened',
+  'species_covers': 'a diver choosing a cover crop on a species page',
+  'species_practice': 'written as a diver answers ID practice rounds',
 };
 
 class CoverageCheck {

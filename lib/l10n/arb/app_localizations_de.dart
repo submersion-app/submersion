@@ -26762,6 +26762,28 @@ class AppLocalizationsDe extends AppLocalizations {
       'Entscheidungsuhr';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Titelausschnitt';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Übungsfach';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => 'Übung fällig';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Richtig benannt';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Falsch benannt';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Zuletzt geübt';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg =>
       'Ausschnitt';
 

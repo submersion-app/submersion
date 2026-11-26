@@ -26869,6 +26869,29 @@ class AppLocalizationsFr extends AppLocalizations {
       'Horloge de la décision';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Recadrage de couverture';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box =>
+      'Boîte d\'entraînement';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Entraînement prévu';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Bien nommée';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount => 'Mal nommée';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Dernier entraînement';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg =>
       'Recadrage';
 

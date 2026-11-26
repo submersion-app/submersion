@@ -25289,6 +25289,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_mediaIdentifications_decisionHlc => '决定时钟';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId => '封面裁剪';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => '练习盒';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => '练习到期';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount => '答对次数';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount => '答错次数';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt => '上次练习';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => '裁剪图';
 
   @override
