@@ -151,4 +151,22 @@ void main() {
       }
     }
   });
+
+  test('lead split between left and right pockets comes off both sides', () {
+    final s = scene([
+      tank,
+      lead('left', 3, TrimSpot.hipPockets, lateral: TrimLateral.left),
+      lead('right', 3, TrimSpot.hipPockets, lateral: TrimLateral.right),
+      lead('trim', 1, TrimSpot.trimPockets),
+      fins,
+    ], net: -2.2);
+    final found = fixes(s);
+    final less = found.where((f) => f.kind == TrimFixKind.lessLead).single;
+    expect(less.kg, 2);
+    expect(less.result.roll, RollVerdict.level);
+    final move = fixes(
+      s,
+    ).where((f) => f.kind == TrimFixKind.moveLead).firstOrNull;
+    if (move != null) expect(move.result.roll, RollVerdict.level);
+  });
 }

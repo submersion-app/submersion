@@ -92,6 +92,35 @@ List<double> _steps(double stepKg, double upTo) => [
 Iterable<TrimElement> _lead(TrimScene s) =>
     s.elements.where((e) => e.kind == TrimElementKind.lead && e.sinkKg > 0);
 
+/// The lead in [s], grouped by spot, the spot furthest toward the feet
+/// first (toward the head first when [headFirst]).
+List<List<TrimElement>> _leadBySpot(
+  TrimScene s,
+  TrimPose pose, {
+  bool headFirst = false,
+}) {
+  final groups = <TrimSpot, List<TrimElement>>{};
+  for (final e in _lead(s)) {
+    (groups[e.spot] ??= []).add(e);
+  }
+  double at(TrimSpot spot) => spot.pointOn(s.body, pose).s;
+  final spots = groups.keys.toList()
+    ..sort(
+      (a, b) => headFirst ? at(a).compareTo(at(b)) : at(b).compareTo(at(a)),
+    );
+  return [for (final spot in spots) groups[spot]!];
+}
+
+/// [kg] taken off [group] in proportion to what each piece weighs, so lead
+/// split between left and right pockets comes off both sides alike.
+Map<String, double> _takeFrom(List<TrimElement> group, double kg) {
+  final total = group.fold(0.0, (sum, e) => sum + e.sinkKg);
+  return {for (final e in group) e.id: kg * e.sinkKg / total};
+}
+
+double _groupKg(List<TrimElement> group) =>
+    group.fold(0.0, (sum, e) => sum + e.sinkKg);
+
 TrimFix? _lessLead(
   TrimScene scene,
   TrimPose pose,
@@ -105,16 +134,14 @@ TrimFix? _lessLead(
   if (lift < kTrimOverweightKg || total <= 0) return null;
   final drop = ((lift.clamp(0, total)) / stepKg).floorToDouble() * stepKg;
   if (drop <= 0) return null;
-  // Lead comes off the lowest first: the belt before the trim pockets.
-  final float = scene.body.floatPoint.s;
-  double at(TrimElement e) => e.spot.pointOn(scene.body, pose).s - float;
-  final order = [...lead]..sort((a, b) => at(b).compareTo(at(a)));
+  // Lead comes off the lowest spot first: the belt before the trim
+  // pockets.
   final take = <String, double>{};
   var left = drop;
-  for (final e in order) {
-    if (left <= 0) break;
-    final t = e.sinkKg < left ? e.sinkKg : left;
-    take[e.id] = t;
+  for (final group in _leadBySpot(scene, pose)) {
+    if (left <= 1e-9) break;
+    final t = _groupKg(group) < left ? _groupKg(group) : left;
+    take.addAll(_takeFrom(group, t));
     left -= t;
   }
   final after = scene
@@ -197,26 +224,27 @@ TrimFix? _moveLead(
   final to = feetHeavy ? TrimSpot.trimPockets : TrimSpot.hipPockets;
   final float = scene.body.floatPoint.s;
   final toS = to.pointOn(scene.body, pose).s - float;
-  // The lead furthest out on the heavy end, beyond the target spot.
-  double at(TrimElement e) => e.spot.pointOn(scene.body, pose).s - float;
-  final candidates = [
-    for (final e in _lead(scene))
-      if (e.spot != to && (feetHeavy ? at(e) > toS : at(e) < toS)) e,
-  ];
-  if (candidates.isEmpty) return null;
-  final source = candidates.reduce(
-    (a, b) => (feetHeavy ? at(b) > at(a) : at(b) < at(a)) ? b : a,
-  );
+  // The lead at the spot furthest out on the heavy end, beyond the target.
+  final source = _leadBySpot(scene, pose, headFirst: !feetHeavy).where((g) {
+    final at = g.first.spot.pointOn(scene.body, pose).s - float;
+    return g.first.spot != to && (feetHeavy ? at > toS : at < toS);
+  }).firstOrNull;
+  if (source == null) return null;
+  final available = _groupKg(source);
   TrimFix? best;
   for (final kg in _steps(
     stepKg,
-    source.sinkKg < kTrimMaxLeadMoveKg ? source.sinkKg : kTrimMaxLeadMoveKg,
+    available < kTrimMaxLeadMoveKg ? available : kTrimMaxLeadMoveKg,
   )) {
+    final take = _takeFrom(source, kg);
     final after = scene
         .copyWith(
           elements: [
             for (final e in scene.elements)
-              identical(e, source) ? e.copyWith(sinkKg: e.sinkKg - kg) : e,
+              if (take[e.id] case final t?)
+                e.copyWith(sinkKg: e.sinkKg - t)
+              else
+                e,
             TrimElement(
               id: 'fix:moved',
               label: '',
@@ -232,7 +260,7 @@ TrimFix? _moveLead(
       kind: TrimFixKind.moveLead,
       result: after,
       kg: kg,
-      from: source.spot,
+      from: source.first.spot,
       to: to,
     );
     if (after.pitch == TrimVerdict.level) return fix;
