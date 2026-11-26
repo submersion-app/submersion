@@ -297,6 +297,7 @@ void main() {
     )).single;
     expect(asSharee.equipmentId, isNull);
     expect(asSharee.isDone, isFalse);
+
     // Progress counts as each diver reads the rows.
     expect(
       await repository.getProgressForTrips([trip.id], viewerId: sharee.id),
@@ -306,6 +307,29 @@ void main() {
       await repository.getProgressForTrips([trip.id], viewerId: owner.id),
       {trip.id: (done: 1, total: 1)},
     );
+
+    // The trip page saves the sharee's tick on that plain row through
+    // updateItem: it ticks the row itself and never touches the packing.
+    await packs.unpack(trip.id, wing.id);
+    await repository.updateItem(
+      asSharee.copyWith(isDone: true, completedAt: DateTime(2026)),
+    );
+    expect(await packs.equipmentIdsForTrip(trip.id), isEmpty);
+    expect(
+      (await repository.getByChecklistId(
+        checklist.id,
+        viewerId: sharee.id,
+      )).single.isDone,
+      isTrue,
+    );
+    expect(
+      (await repository.getByChecklistId(
+        checklist.id,
+        viewerId: owner.id,
+      )).single.isDone,
+      isFalse,
+    );
+    await packs.pack(trip.id, [wing.id]);
 
     await EquipmentShareRepository().shareMany(
       equipmentIds: [wing.id],

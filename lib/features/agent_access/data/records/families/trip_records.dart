@@ -178,7 +178,12 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
     parentColumn: 'checklist_id',
     orderBy: 'r0.checklist_id, r0.sort_order',
     idOf: (i) => i.id,
-    byParents: (lists) => eachParent(lists, r.tripChecklists.getByChecklistId),
+    // As the asking diver reads them: on a shared trip, a gear item for the
+    // owner's gear hidden from that diver is a plain item, as in the app.
+    byParentsAs: (lists, load) => eachParent(
+      lists,
+      (id) => r.tripChecklists.getByChecklistId(id, viewerId: load.diverId),
+    ),
     document: tripChecklistItemDocument,
     summaryKeys: const ['checklist_id', 'title', 'is_done', 'due_date'],
   ),
