@@ -393,6 +393,7 @@ class DiveSetBundleApplier {
           amountKg: row.amountKg,
           notes: row.notes,
           label: row.label,
+          side: weightSideFromName(row.side),
         ),
     ];
   }

@@ -14,6 +14,10 @@ class DiveWeight extends Equatable {
   /// Empty when unnamed; [weightType] still says where it is carried.
   final String label;
 
+  /// The side this weight is carried on (issue #5028); null when it is
+  /// carried on both sides, split evenly.
+  final WeightSide? side;
+
   const DiveWeight({
     required this.id,
     required this.diveId,
@@ -21,6 +25,7 @@ class DiveWeight extends Equatable {
     required this.amountKg,
     this.notes = '',
     this.label = '',
+    this.side,
   });
 
   /// Create a copy with updated fields
@@ -31,6 +36,8 @@ class DiveWeight extends Equatable {
     double? amountKg,
     String? notes,
     String? label,
+    WeightSide? side,
+    bool clearSide = false,
   }) {
     return DiveWeight(
       id: id ?? this.id,
@@ -39,9 +46,18 @@ class DiveWeight extends Equatable {
       amountKg: amountKg ?? this.amountKg,
       notes: notes ?? this.notes,
       label: label ?? this.label,
+      side: clearSide ? null : (side ?? this.side),
     );
   }
 
   @override
-  List<Object?> get props => [id, diveId, weightType, amountKg, notes, label];
+  List<Object?> get props => [
+    id,
+    diveId,
+    weightType,
+    amountKg,
+    notes,
+    label,
+    side,
+  ];
 }

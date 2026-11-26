@@ -24,4 +24,19 @@ void main() {
   test('the name takes part in equality', () {
     expect(weight.copyWith(label: 'Top pocket'), isNot(weight));
   });
+
+  test('a weight is carried on both sides by default', () {
+    expect(weight.side, isNull);
+  });
+
+  test('copyWith sets and clears the side', () {
+    final left = weight.copyWith(side: WeightSide.left);
+    expect(left.side, WeightSide.left);
+    expect(left.copyWith(amountKg: 3).side, WeightSide.left);
+    expect(left.copyWith(clearSide: true).side, isNull);
+  });
+
+  test('the side takes part in equality', () {
+    expect(weight.copyWith(side: WeightSide.right), isNot(weight));
+  });
 }

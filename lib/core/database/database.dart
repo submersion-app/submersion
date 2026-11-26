@@ -333,7 +333,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 382;
+  static const int currentSchemaVersion = 383;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1794,6 +1794,10 @@ class AppDatabase extends _$AppDatabase {
     // by hand, which a re-parse and a resync keep (issue #4909). Nullable,
     // no backfill; the floor does not move.
     382,
+    // v383: dive_weights.side, the side a weight is carried on, for the trim
+    // figure's roll (issue #5028). Nullable, null meaning both sides; no
+    // backfill, the floor does not move.
+    383,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

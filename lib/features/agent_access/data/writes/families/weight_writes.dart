@@ -35,6 +35,8 @@ class WeightWrites extends WritableEntry {
       allowBlank: true,
     ),
     'notes': const FieldCodec.text(allowBlank: true),
+    // The side it is carried on (issue #5028); null is both sides.
+    'side': FieldCodec.enumName(WeightSide.values, nullable: true),
   };
 
   @override
@@ -93,6 +95,7 @@ class WeightWrites extends WritableEntry {
       amountKg: field('amount_kg'),
       label: field('label'),
       notes: field('notes'),
+      side: field('side'),
     );
   }
 }

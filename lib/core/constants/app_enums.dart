@@ -278,6 +278,16 @@ enum WeightType {
   const WeightType(this.displayName);
 }
 
+/// Which side of the diver a weight is carried on (issue #5028), for the
+/// trim figure's roll. A weight with no side is carried on both sides,
+/// split evenly, which is how every weight logged before v383 reads.
+enum WeightSide { left, right }
+
+/// The [WeightSide] a stored `dive_weights.side` names, or null for both
+/// sides or a value this version does not know.
+WeightSide? weightSideFromName(String? name) =>
+    WeightSide.values.where((s) => s.name == name).firstOrNull;
+
 /// Post-dive weighting feedback: was the carried weight right? (v104)
 ///
 /// Turns raw weight history into corrected training data for the weight

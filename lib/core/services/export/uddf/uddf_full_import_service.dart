@@ -1732,6 +1732,10 @@ class UddfFullImportService {
               UddfImportParsers.getElementText(weightElement, 'notes') ?? '';
           weight['label'] =
               UddfImportParsers.getElementText(weightElement, 'label') ?? '';
+          weight['side'] = UddfImportParsers.getElementText(
+            weightElement,
+            'side',
+          );
           weightsList.add(weight);
         }
         if (weightsList.isNotEmpty) {
