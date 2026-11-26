@@ -96,6 +96,11 @@ int? _regionCell(SpeciesPackManifest manifest, GeoPoint? location) =>
 /// restored by analysing once on this device (after a restore onto a new
 /// one); if that analysis could not bring it back, it stays without one
 /// rather than the item being analysed at every opening.
+///
+/// A video keeps only a few crops of each species (issue #5032), so a
+/// track's crop counts per group ([cropGroupKey]): a group with an
+/// undecided track needs a crop on at least one of its tracks, never on
+/// every one, or a video would be scanned again for crops the cap dropped.
 Future<bool> _cropsPresent(
   IdentificationCropStore crops,
   String mediaId,
@@ -103,9 +108,31 @@ Future<bool> _cropsPresent(
 ) async {
   final undecided = [
     for (final i in named)
-      if (i.decision == IdentificationDecision.undecided) i.id,
+      if (i.decision == IdentificationDecision.undecided) i,
   ];
-  return await crops.allPresent(mediaId, undecided) &&
+  final present = named.any((i) => i.isTrack)
+      ? await _groupsCropped(crops, mediaId, named, undecided)
+      : await crops.allPresent(mediaId, [for (final i in undecided) i.id]);
+  return present &&
       (undecided.length == named.length ||
           await crops.wasAnalysedHere(mediaId));
+}
+
+/// Whether every group of [named] tracks holding one of [undecided] has a
+/// crop on at least one of its tracks.
+Future<bool> _groupsCropped(
+  IdentificationCropStore crops,
+  String mediaId,
+  List<MediaIdentification> named,
+  List<MediaIdentification> undecided,
+) async {
+  if (undecided.isEmpty) return true;
+  final present = await crops.presentAmong(mediaId, [
+    for (final i in named) i.id,
+  ]);
+  final cropped = {
+    for (final i in named)
+      if (present.contains(i.id)) cropGroupKey(i),
+  };
+  return undecided.every((i) => cropped.contains(cropGroupKey(i)));
 }

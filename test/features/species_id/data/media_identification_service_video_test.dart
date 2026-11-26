@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/native.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/app_sql_functions.dart';
@@ -227,6 +228,37 @@ void main() {
       final fish = (await identifications.forMedia('v1')).single;
       expect(fish.isTrack, isTrue);
       expect(fish.top!.candidate, parrotfish);
+    });
+
+    test('a scan keeps 3 crops of a species followed 5 times (issue '
+        '#5032)', () async {
+      // Five fish of one species side by side, each a little smaller.
+      engine.videoFrames = {
+        for (var ms = 1000; ms < 4000; ms += 250)
+          ms: [
+            for (var k = 0; k < 5; k++)
+              DetectedBox(
+                box: IdentificationBox(
+                  x: 0.02 + k * 0.19,
+                  y: 0.4,
+                  width: 0.15 - k * 0.01,
+                  height: 0.1,
+                ),
+                score: 0.9,
+              ),
+          ],
+      };
+      await service.request(video());
+      final fish = await identifications.forMedia('v1');
+      expect(fish, hasLength(5));
+      final kept = await crops.presentAmong('v1', [for (final f in fish) f.id]);
+      expect(kept, hasLength(3));
+      final largest = fish.sorted(
+        (a, b) => (b.boxPixelWidth * b.boxPixelHeight).compareTo(
+          a.boxPixelWidth * a.boxPixelHeight,
+        ),
+      );
+      expect(kept, {for (final f in largest.take(3)) f.id});
     });
 
     test('leaving the video stops after the chunk in progress and resumes '
