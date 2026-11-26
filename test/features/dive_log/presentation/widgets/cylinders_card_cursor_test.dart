@@ -432,58 +432,69 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.textContaining('Water ~'), findsNothing);
+        // No water label is shown; its line is only kept for its height.
+        expect(find.byKey(const Key('tank-water-label-hydro')), findsNothing);
       },
     );
   });
 
   // Before the computer's first gas remaining the figure is the pressure
   // one and has no water label, but the card does not change height while
-  // the cursor moves: the Avelo summary beside the figure is taller.
-  testWidgets('the card keeps its height where the water is unknown', (
-    tester,
-  ) async {
-    const hydrotank = DiveTank(
-      id: 'hydro',
-      volume: 10,
-      startPressure: 240,
-      endPressure: 150,
-      gasMix: GasMix(o2: 21),
-      role: TankRole.hydrotank,
-    );
-    final dive = Dive(
-      id: 'dive-1',
-      diveNumber: 1,
-      dateTime: DateTime(2026, 6, 1, 10),
-      maxDepth: 15,
-      bottomTime: const Duration(minutes: 30),
-      tanks: const [hydrotank],
-      profile: const [
-        DiveProfilePoint(timestamp: 0, depth: 0),
-        DiveProfilePoint(timestamp: 600, depth: 15, aveloGasRemaining: 80),
-        DiveProfilePoint(timestamp: 1800, depth: 5, aveloGasRemaining: 40),
-      ],
-    );
-    const series = EstimatedTankPressures({
-      'hydro': [
-        TankPressurePoint(tankId: 'hydro', timestamp: 0, pressure: 240),
-        TankPressurePoint(tankId: 'hydro', timestamp: 1800, pressure: 150),
-      ],
-    }, {});
+  // the cursor moves: the label's line is kept while it has nothing to say.
+  for (final width in [800.0, 360.0]) {
+    testWidgets(
+      'the card keeps its height where the water is unknown, ${width.round()} wide',
+      (tester) async {
+        // On a phone the details run under the figure (issue #5041), so
+        // nothing beside the figure is taller than it.
+        await tester.binding.setSurfaceSize(Size(width, 1600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        const hydrotank = DiveTank(
+          id: 'hydro',
+          volume: 10,
+          startPressure: 240,
+          endPressure: 150,
+          gasMix: GasMix(o2: 21),
+          role: TankRole.hydrotank,
+        );
+        final dive = Dive(
+          id: 'dive-1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 6, 1, 10),
+          maxDepth: 15,
+          bottomTime: const Duration(minutes: 30),
+          tanks: const [hydrotank],
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 0),
+            DiveProfilePoint(timestamp: 600, depth: 15, aveloGasRemaining: 80),
+            DiveProfilePoint(timestamp: 1800, depth: 5, aveloGasRemaining: 40),
+          ],
+        );
+        const series = EstimatedTankPressures({
+          'hydro': [
+            TankPressurePoint(tankId: 'hydro', timestamp: 0, pressure: 240),
+            TankPressurePoint(tankId: 'hydro', timestamp: 1800, pressure: 150),
+          ],
+        }, {});
 
-    final heights = <double>[];
-    for (final cursor in [null, 0]) {
-      await tester.pumpWidget(
-        _card(dive: dive, chartSeries: series, cursor: cursor),
-      );
-      await tester.pumpAndSettle();
-      heights.add(tester.getSize(find.byType(CylindersCard)).height);
-      if (cursor == 0) {
-        // No gas remaining yet at 0:00: no water label is shown.
-        expect(find.byKey(const Key('tank-water-label-hydro')), findsNothing);
-      }
-      await tester.pumpWidget(const SizedBox());
-    }
-    expect(heights[1], heights[0]);
-  });
+        final heights = <double>[];
+        for (final cursor in [null, 0]) {
+          await tester.pumpWidget(
+            _card(dive: dive, chartSeries: series, cursor: cursor),
+          );
+          await tester.pumpAndSettle();
+          heights.add(tester.getSize(find.byType(CylindersCard)).height);
+          if (cursor == 0) {
+            // No gas remaining yet at 0:00: no water label is shown.
+            expect(
+              find.byKey(const Key('tank-water-label-hydro')),
+              findsNothing,
+            );
+          }
+          await tester.pumpWidget(const SizedBox());
+        }
+        expect(heights[1], heights[0]);
+      },
+    );
+  }
 }
