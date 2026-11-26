@@ -18,6 +18,7 @@ import 'package:submersion/features/marine_life/data/services/species_seed_servi
 import 'package:submersion/features/marine_life/domain/entities/bundled_species_catalog.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/features/marine_life/data/services/species_revamp_rows.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 
@@ -857,6 +858,7 @@ class SpeciesRepository {
     await (_db.delete(
       _db.siteSpecies,
     )..where((t) => t.speciesId.equals(id))).go();
+    await tombstoneSpeciesRevampRows(_db, _syncRepository, id);
 
     await (_db.delete(_db.species)..where((t) => t.id.equals(id))).go();
 

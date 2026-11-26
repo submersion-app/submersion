@@ -73,6 +73,9 @@ const _unexposedTables = {
   'imported_files',
   // Which insights a diver dismissed: screen state.
   'insight_observation_dismissals',
+  // A diver's cover crop and ID practice boxes per species: screen state.
+  'species_covers',
+  'species_practice',
   // Personal notes on a shared library site, keyed by a device-synced id.
   'library_site_notes',
   // Connection configuration, beside the credentials.

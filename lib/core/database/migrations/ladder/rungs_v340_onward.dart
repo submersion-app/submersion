@@ -327,5 +327,11 @@ extension RungsFromV340 on AppDatabase {
     // not move.
     if (from < 382) await _assertDiveHandSetFieldsColumn();
     if (from < 382) await reportProgress();
+
+    // v383 (issue #5027): species_covers and species_practice, a diver's
+    // cover crop and ID practice boxes per species. Additive and re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 383) await _assertSpeciesRevampSchema();
+    if (from < 383) await reportProgress();
   }
 }

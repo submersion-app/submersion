@@ -9,6 +9,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/marine_life/data/services/species_revamp_rows.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 
@@ -122,7 +123,14 @@ class DiverMergeRepository {
   /// `field_presets` is intentionally NOT in this set: those are user-named
   /// custom presets and losing them would be real data loss; they are
   /// repointed onto the keeper instead.
-  static const _singletonConfigTables = {'diver_settings', 'view_configs'};
+  ///
+  /// Species covers and practice (#5027): see copySpeciesRevampRowsToDiver.
+  static const _singletonConfigTables = {
+    'diver_settings',
+    'view_configs',
+    'species_covers',
+    'species_practice',
+  };
 
   /// Moved by [_recreateDuplicateShares] instead of the generic repoint.
   static const _sharesTable = 'equipment_shares';
@@ -252,6 +260,16 @@ class DiverMergeRepository {
           final rows = await _rowsByDiverId(table, duplicateId);
           for (final row in rows) {
             deletedSingleton.add((table: table, row: row));
+          }
+          for (final id in await copySpeciesRevampRowsToDiver(
+            _db,
+            _syncRepository,
+            table: table,
+            from: duplicateId,
+            to: keeperId,
+            now: now,
+          )) {
+            createdItemShares.add((table: table, id: id));
           }
           await _logRowDeletions(table, duplicateId);
           await _db.customStatement('DELETE FROM "$table" WHERE diver_id = ?', [

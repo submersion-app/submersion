@@ -19349,6 +19349,48 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült betölteni az észlelési statisztikákat';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'Először látva';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'Utoljára látva';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => 'Mélység és évszak';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'Fotók mélysége';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth =>
+      'Merülések maximális mélysége';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'Merülések havonta';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'Idővonal';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'Beállítás borítóként';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'Borító eltávolítása';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'Borító';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'Fotók keresése';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'Fotó vagy videó megnyitása';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'Merülés: $date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Osztály: $className';
   }
@@ -19692,6 +19734,129 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'Újra';
+
+  @override
+  String get marineLife_speciesPage_headerSpecies => 'Fajok';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'Új fajok, $year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'A fajlista növekedése';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó nélkül',
+      one: '1 fotó nélkül',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'Csoportosítás';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'Nincs csoportosítás';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'Kategória';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => 'Az első észlelés éve';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'Út';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'Merülőhely';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'Nincs út';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'Nincs merülőhely';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'Összes';
+
+  @override
+  String get marineLife_speciesPage_showList => 'Megjelenítés listaként';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'Megjelenítés kártyákként';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip =>
+      'Fajfelismerés gyakorlása';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'Itt látott először';
+
+  @override
+  String get marineLife_rarity_new => 'Új';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'Egyszer látott';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'Régóta nem látott';
+
+  @override
+  String get marineLife_rarity_mastered => 'Elsajátított';
+
+  @override
+  String get marineLife_practice_title => 'Felismerési gyakorlat';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'A gyakorláshoz legalább 4 olyan faj kell, amelyhez megerősített fotókivágás tartozik. Jelöld meg és erősítsd meg a látott fajok fotóit, aztán gyere vissza.';
+
+  @override
+  String get marineLife_practice_back => 'Vissza a fajokhoz';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'Melyik faj ez?';
+
+  @override
+  String get marineLife_practice_scientificNames => 'Tudományos nevek';
+
+  @override
+  String get marineLife_practice_right => 'Helyes';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'Majdnem: ez $name volt';
+  }
+
+  @override
+  String get marineLife_practice_next => 'Tovább';
+
+  @override
+  String get marineLife_practice_finish => 'Eredmények';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right / $total helyes';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'Újra gyakorlandó';
+
+  @override
+  String get marineLife_practice_again => 'Újra gyakorlás';
+
+  @override
+  String get marineLife_practice_done => 'Kész';
 
   @override
   String get speciesMap_title => 'Fajtérkép';
@@ -26676,6 +26841,29 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_mediaIdentifications_decisionHlc =>
       'Döntés órája';
+
+  @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Borítókivágás';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Gyakorlódoboz';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Gyakorlás esedékes';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Helyesen megnevezve';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Tévesen megnevezve';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Utoljára gyakorolva';
 
   @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Kivágás';

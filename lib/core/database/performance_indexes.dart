@@ -686,6 +686,24 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_media_identification_crops_hlc '
         'ON media_identification_crops(hlc)',
   ),
+  (
+    name: 'idx_species_covers_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_species_covers_hlc '
+        'ON species_covers(hlc)',
+  ),
+  (
+    name: 'idx_species_practice_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_species_practice_hlc '
+        'ON species_practice(hlc)',
+  ),
+  (
+    name: 'idx_species_practice_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_species_practice_diver '
+        'ON species_practice(diver_id)',
+  ),
 ];
 
 /// Creates any canonical index missing from [db], returning the names of

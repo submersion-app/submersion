@@ -18998,6 +18998,47 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לטעון את סטטיסטיקת התצפיות';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'נצפה לראשונה';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'נצפה לאחרונה';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => 'עומק ועונה';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'עומקי התמונות';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth => 'עומק מרבי בצלילות';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'צלילות לפי חודש';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'ציר זמן';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'הגדרה כתמונת שער';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'הסרת תמונת שער';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'תמונת שער';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'חיפוש תמונות';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'פתיחת התמונה או הסרטון';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'צלילה ב-$date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'מחלקה: $className';
   }
@@ -19331,6 +19372,128 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'ניסיון חוזר';
+
+  @override
+  String get marineLife_speciesPage_headerSpecies => 'מינים';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'חדשים ב-$year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'צמיחת רשימת המינים';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ללא תמונה',
+      one: 'מין אחד ללא תמונה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'קיבוץ לפי';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'ללא קיבוץ';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'קטגוריה';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => 'שנת התצפית הראשונה';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'טיול';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'אתר צלילה';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'ללא טיול';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'ללא אתר';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'הצג הכל';
+
+  @override
+  String get marineLife_speciesPage_showList => 'הצג כרשימה';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'הצג ככרטיסים';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip => 'תרגול זיהוי מינים';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'נצפה כאן לראשונה';
+
+  @override
+  String get marineLife_rarity_new => 'חדש';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'נצפה פעם אחת';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'לא נצפה מזמן';
+
+  @override
+  String get marineLife_rarity_mastered => 'נשלט';
+
+  @override
+  String get marineLife_practice_title => 'תרגול זיהוי';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'התרגול דורש לפחות 4 מינים עם חיתוך תמונה מאושר. תייגו ואשרו תמונות של המינים שראיתם, ואז חזרו.';
+
+  @override
+  String get marineLife_practice_back => 'חזרה למינים';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current מתוך $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'איזה מין זה?';
+
+  @override
+  String get marineLife_practice_scientificNames => 'שמות מדעיים';
+
+  @override
+  String get marineLife_practice_right => 'נכון';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'כמעט: זה היה $name';
+  }
+
+  @override
+  String get marineLife_practice_next => 'הבא';
+
+  @override
+  String get marineLife_practice_finish => 'צפייה בתוצאות';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right מתוך $total נכונות';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'לתרגול נוסף';
+
+  @override
+  String get marineLife_practice_again => 'תרגול נוסף';
+
+  @override
+  String get marineLife_practice_done => 'סיום';
 
   @override
   String get speciesMap_title => 'מפת מינים';
@@ -26164,6 +26327,26 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_mediaIdentifications_decisionHlc =>
       'שעון ההחלטה';
+
+  @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'חיתוך שער';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'תיבת תרגול';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => 'מועד תרגול';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount => 'זוהה נכון';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount => 'זוהה שגוי';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'תרגול אחרון';
 
   @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'חיתוך';

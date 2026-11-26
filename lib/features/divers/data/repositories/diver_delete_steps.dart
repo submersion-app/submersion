@@ -368,6 +368,17 @@ const List<DiverDeleteStep> diverLibrarySteps = [
     entityType: 'insightObservationDismissals',
     where: 'diver_id = ?1',
   ),
+  // Species covers and practice records (#5027) would cascade too.
+  (
+    table: 'species_covers',
+    entityType: 'speciesCovers',
+    where: 'diver_id = ?1',
+  ),
+  (
+    table: 'species_practice',
+    entityType: 'speciesPractice',
+    where: 'diver_id = ?1',
+  ),
 ];
 
 /// A link a surviving dive holds to a row the diver deletion removes.

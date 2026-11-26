@@ -30848,6 +30848,84 @@ abstract class AppLocalizations {
   /// **'Failed to load sighting statistics'**
   String get marineLife_speciesDetail_statsError;
 
+  /// No description provided for @marineLife_speciesDetail_firstSeenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First seen'**
+  String get marineLife_speciesDetail_firstSeenLabel;
+
+  /// No description provided for @marineLife_speciesDetail_lastSeenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen'**
+  String get marineLife_speciesDetail_lastSeenLabel;
+
+  /// No description provided for @marineLife_speciesDetail_depthSeasonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth and season'**
+  String get marineLife_speciesDetail_depthSeasonTitle;
+
+  /// No description provided for @marineLife_speciesDetail_photoDepths.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo depths'**
+  String get marineLife_speciesDetail_photoDepths;
+
+  /// No description provided for @marineLife_speciesDetail_diveMaxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive max depth'**
+  String get marineLife_speciesDetail_diveMaxDepth;
+
+  /// No description provided for @marineLife_speciesDetail_byMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by month'**
+  String get marineLife_speciesDetail_byMonth;
+
+  /// No description provided for @marineLife_speciesDetail_timelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get marineLife_speciesDetail_timelineTitle;
+
+  /// No description provided for @marineLife_speciesDetail_useAsCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Use as cover'**
+  String get marineLife_speciesDetail_useAsCover;
+
+  /// No description provided for @marineLife_speciesDetail_removeCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove cover'**
+  String get marineLife_speciesDetail_removeCover;
+
+  /// No description provided for @marineLife_speciesDetail_cover.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get marineLife_speciesDetail_cover;
+
+  /// No description provided for @marineLife_speciesDetail_findPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Find photos'**
+  String get marineLife_speciesDetail_findPhotos;
+
+  /// No description provided for @marineLife_speciesDetail_openMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Open photo or video'**
+  String get marineLife_speciesDetail_openMedia;
+
+  /// Accessibility label of one dot on a species' sightings timeline
+  ///
+  /// In en, this message translates to:
+  /// **'Dive on {date}'**
+  String marineLife_speciesDetail_timelineDive(String date);
+
   /// No description provided for @marineLife_speciesDetail_taxonomyClassLabel.
   ///
   /// In en, this message translates to:
@@ -31345,6 +31423,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get marineLife_speciesPage_retry;
+
+  /// No description provided for @marineLife_speciesPage_headerSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get marineLife_speciesPage_headerSpecies;
+
+  /// Header tile: species first seen this calendar year
+  ///
+  /// In en, this message translates to:
+  /// **'New in {year}'**
+  String marineLife_speciesPage_headerNewIn(String year);
+
+  /// No description provided for @marineLife_speciesPage_headerGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'Life list growth'**
+  String get marineLife_speciesPage_headerGrowth;
+
+  /// Chip filtering to seen species that have no picture
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} without a photo} other{{count} without a photo}}'**
+  String marineLife_speciesPage_withoutPhoto(int count);
+
+  /// No description provided for @marineLife_speciesPage_groupByTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get marineLife_speciesPage_groupByTooltip;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No grouping'**
+  String get marineLife_speciesPage_groupBy_none;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get marineLife_speciesPage_groupBy_category;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_firstSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Year first seen'**
+  String get marineLife_speciesPage_groupBy_firstSeen;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get marineLife_speciesPage_groupBy_trip;
+
+  /// No description provided for @marineLife_speciesPage_groupBy_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get marineLife_speciesPage_groupBy_site;
+
+  /// No description provided for @marineLife_speciesPage_noTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'No trip'**
+  String get marineLife_speciesPage_noTrip;
+
+  /// No description provided for @marineLife_speciesPage_noSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get marineLife_speciesPage_noSite;
+
+  /// No description provided for @marineLife_speciesPage_seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get marineLife_speciesPage_seeAll;
+
+  /// No description provided for @marineLife_speciesPage_showList.
+  ///
+  /// In en, this message translates to:
+  /// **'Show as list'**
+  String get marineLife_speciesPage_showList;
+
+  /// No description provided for @marineLife_speciesPage_showCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Show as cards'**
+  String get marineLife_speciesPage_showCards;
+
+  /// No description provided for @marineLife_speciesPage_practiceTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice naming species'**
+  String get marineLife_speciesPage_practiceTooltip;
+
+  /// No description provided for @marineLife_speciesPage_firstSeenHere.
+  ///
+  /// In en, this message translates to:
+  /// **'First seen here'**
+  String get marineLife_speciesPage_firstSeenHere;
+
+  /// No description provided for @marineLife_rarity_new.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get marineLife_rarity_new;
+
+  /// No description provided for @marineLife_rarity_seenOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Seen once'**
+  String get marineLife_rarity_seenOnce;
+
+  /// No description provided for @marineLife_rarity_notSeenLately.
+  ///
+  /// In en, this message translates to:
+  /// **'Not seen lately'**
+  String get marineLife_rarity_notSeenLately;
+
+  /// No description provided for @marineLife_rarity_mastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get marineLife_rarity_mastered;
+
+  /// No description provided for @marineLife_practice_title.
+  ///
+  /// In en, this message translates to:
+  /// **'ID practice'**
+  String get marineLife_practice_title;
+
+  /// No description provided for @marineLife_practice_notEnough.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.'**
+  String get marineLife_practice_notEnough;
+
+  /// No description provided for @marineLife_practice_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to species'**
+  String get marineLife_practice_back;
+
+  /// Practice round counter
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String marineLife_practice_progress(int current, int total);
+
+  /// No description provided for @marineLife_practice_question.
+  ///
+  /// In en, this message translates to:
+  /// **'Which species is this?'**
+  String get marineLife_practice_question;
+
+  /// No description provided for @marineLife_practice_scientificNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Scientific names'**
+  String get marineLife_practice_scientificNames;
+
+  /// No description provided for @marineLife_practice_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get marineLife_practice_right;
+
+  /// Shown after a wrong practice answer
+  ///
+  /// In en, this message translates to:
+  /// **'Not quite: it was {name}'**
+  String marineLife_practice_wrong(String name);
+
+  /// No description provided for @marineLife_practice_next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get marineLife_practice_next;
+
+  /// No description provided for @marineLife_practice_finish.
+  ///
+  /// In en, this message translates to:
+  /// **'See results'**
+  String get marineLife_practice_finish;
+
+  /// Practice session score
+  ///
+  /// In en, this message translates to:
+  /// **'{right} of {total} right'**
+  String marineLife_practice_score(int right, int total);
+
+  /// No description provided for @marineLife_practice_missedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'To practise again'**
+  String get marineLife_practice_missedTitle;
+
+  /// No description provided for @marineLife_practice_again.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise again'**
+  String get marineLife_practice_again;
+
+  /// No description provided for @marineLife_practice_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get marineLife_practice_done;
 
   /// No description provided for @speciesMap_title.
   ///
@@ -42155,6 +42443,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Decision clock'**
   String get settings_conflict_field_mediaIdentifications_decisionHlc;
+
+  /// No description provided for @settings_conflict_field_speciesCovers_identificationId.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover crop'**
+  String get settings_conflict_field_speciesCovers_identificationId;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_box.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice box'**
+  String get settings_conflict_field_speciesPractice_box;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_dueAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice due'**
+  String get settings_conflict_field_speciesPractice_dueAt;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_rightCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Named right'**
+  String get settings_conflict_field_speciesPractice_rightCount;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_wrongCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Named wrong'**
+  String get settings_conflict_field_speciesPractice_wrongCount;
+
+  /// No description provided for @settings_conflict_field_speciesPractice_lastPractisedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last practised'**
+  String get settings_conflict_field_speciesPractice_lastPractisedAt;
 
   /// No description provided for @settings_conflict_field_mediaIdentificationCrops_jpeg.
   ///

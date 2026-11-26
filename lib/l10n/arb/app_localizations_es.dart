@@ -19410,6 +19410,49 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudieron cargar las estadísticas de avistamientos';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'Primer avistamiento';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'Último avistamiento';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle =>
+      'Profundidad y temporada';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'Profundidad de las fotos';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth =>
+      'Profundidad máxima de las inmersiones';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'Inmersiones por mes';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'Cronología';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'Usar como portada';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'Quitar portada';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'Portada';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'Buscar fotos';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'Abrir foto o vídeo';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'Inmersión del $date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Clase: $className';
   }
@@ -19751,6 +19794,131 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'Reintentar';
+
+  @override
+  String get marineLife_speciesPage_headerSpecies => 'Especies';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'Nuevas en $year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'Crecimiento de la lista';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sin foto',
+      one: '1 sin foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'Agrupar por';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'Sin agrupar';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'Categoría';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen =>
+      'Año del primer avistamiento';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'Viaje';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'Punto de inmersión';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'Sin viaje';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'Sin punto de inmersión';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'Ver todas';
+
+  @override
+  String get marineLife_speciesPage_showList => 'Ver como lista';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'Ver como tarjetas';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip =>
+      'Practicar la identificación';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere =>
+      'Vista aquí por primera vez';
+
+  @override
+  String get marineLife_rarity_new => 'Nueva';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'Vista una vez';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'Sin ver hace tiempo';
+
+  @override
+  String get marineLife_rarity_mastered => 'Dominada';
+
+  @override
+  String get marineLife_practice_title => 'Práctica de identificación';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'Para practicar necesitas al menos 4 especies con un recorte de foto confirmado. Etiqueta y confirma fotos de las especies que has visto y vuelve después.';
+
+  @override
+  String get marineLife_practice_back => 'Volver a especies';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current de $total';
+  }
+
+  @override
+  String get marineLife_practice_question => '¿Qué especie es?';
+
+  @override
+  String get marineLife_practice_scientificNames => 'Nombres científicos';
+
+  @override
+  String get marineLife_practice_right => 'Correcto';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'Casi: era $name';
+  }
+
+  @override
+  String get marineLife_practice_next => 'Siguiente';
+
+  @override
+  String get marineLife_practice_finish => 'Ver resultados';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right de $total correctas';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'Para practicar de nuevo';
+
+  @override
+  String get marineLife_practice_again => 'Practicar de nuevo';
+
+  @override
+  String get marineLife_practice_done => 'Listo';
 
   @override
   String get speciesMap_title => 'Mapa de especies';
@@ -26813,6 +26981,29 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_mediaIdentifications_decisionHlc =>
       'Reloj de la decisión';
+
+  @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Recorte de portada';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Caja de práctica';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Práctica pendiente';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Nombrada bien';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Nombrada mal';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Última práctica';
 
   @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'Recorte';

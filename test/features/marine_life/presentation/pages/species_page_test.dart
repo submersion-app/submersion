@@ -1,11 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/domain/entities/species_crop.dart';
+import 'package:submersion/features/marine_life/domain/species_grouping.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_browse_prefs_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_gallery_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/life_list_header.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_category_chips.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -83,8 +94,14 @@ Future<void> _pumpPage(
   Locale locale = const Locale('en'),
   Map<String, MediaItem> covers = const {},
   List<Override> extra = const [],
+  VoidCallback? onBestCrops,
+  bool settle = true,
+  SpeciesGroupBy groupBy = SpeciesGroupBy.none,
 }) async {
   final overrides = await getBaseOverrides();
+  // Most tests read one grid in sort order; the default groups by category.
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(kSpeciesGroupByKey, groupBy.name);
   await tester.pumpWidget(
     testAppRouter(
       router: _router(),
@@ -94,15 +111,42 @@ Future<void> _pumpPage(
         mediaResolverOverride(),
         seenSpeciesProvider.overrideWith((ref) async => entries),
         speciesCoverMediaProvider.overrideWith((ref) async => covers),
+        speciesBestCropsProvider.overrideWith((ref) async {
+          onBestCrops?.call();
+          return const <String, SpeciesCrop>{};
+        }),
+        speciesCoverCropsProvider.overrideWith(
+          (ref) async => const <String, SpeciesCrop>{},
+        ),
+        speciesCoverPhotosProvider.overrideWith(
+          (ref) async => const <String, MediaItem>{},
+        ),
+        speciesPracticeStatesProvider.overrideWith((ref) async => const {}),
+        speciesPlacesProvider.overrideWith(
+          (ref) async => const SpeciesPlaces(
+            tripsBySpecies: {},
+            sitesBySpecies: {},
+            firstTripBySpecies: {},
+            firstSiteBySpecies: {},
+          ),
+        ),
         ...extra,
       ],
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+    await tester.pump();
+  }
 }
 
-double _top(WidgetTester tester, String text) =>
-    tester.getTopLeft(find.text(text)).dy;
+/// Where [text] reads in the grid: by row, then left to right.
+double _top(WidgetTester tester, String text) {
+  final at = tester.getTopLeft(find.text(text));
+  return at.dy * 10000 + at.dx;
+}
 
 void main() {
   testWidgets('lists seen species with a summary line', (tester) async {
@@ -150,6 +194,7 @@ void main() {
       });
 
   Future<void> typeInto(WidgetTester tester, String text) async {
+    await openSearch(tester);
     await tester.enterText(find.byType(TextField), text);
     await tester.pump();
     await tester.pump(kEntitySearchDebounce);
@@ -187,7 +232,11 @@ void main() {
     await _pumpPage(tester, const []);
 
     expect(find.text('No species yet'), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
+    // Search stays one tap away, as on every other list.
+    expect(
+      find.byKey(const ValueKey('entity-search-action-species')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('shows the no-match state for a query nothing matches', (
@@ -225,6 +274,8 @@ void main() {
   testWidgets('the manage action opens the catalog manager', (tester) async {
     await _pumpPage(tester, [_whaleShark]);
 
+    await tester.tap(find.byKey(const ValueKey('species_more_menu')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('manage_catalog')));
     await tester.pumpAndSettle();
     expect(find.text('MANAGE PAGE'), findsOneWidget);
@@ -234,13 +285,14 @@ void main() {
     await _pumpPage(tester, [_whaleShark, _turtle], locale: const Locale('de'));
     expect(find.text('Walhai'), findsOneWidget);
 
+    await openSearch(tester);
     await tester.enterText(find.byType(TextField), 'walh');
     await tester.pump();
     expect(find.text('Walhai'), findsOneWidget);
     expect(find.text('Green Sea Turtle'), findsNothing);
   });
 
-  testWidgets('tiles show the cover photo only for species that have one', (
+  testWidgets('cards show the photo only for species that have one', (
     tester,
   ) async {
     await _pumpPage(
@@ -250,7 +302,68 @@ void main() {
     );
 
     expect(find.byType(MediaItemView), findsOneWidget);
-    expect(find.byType(CircleAvatar), findsOneWidget);
+    expect(find.byKey(const ValueKey('species_category_tile')), findsOneWidget);
+  });
+
+  testWidgets('group by persists across rebuilds', (tester) async {
+    await _pumpPage(tester, [_whaleShark, _turtle]);
+    await tester.tap(find.byKey(const ValueKey('species_group_by_menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Category').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Shark · 1 species'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SpeciesPage)),
+    );
+    expect(container.read(speciesGroupByProvider), SpeciesGroupBy.category);
+  });
+
+  testWidgets('no-photo chip filters', (tester) async {
+    await _pumpPage(
+      tester,
+      [_whaleShark, _turtle],
+      covers: {'sp_whale_shark': testMediaItem(id: 'p1', diveId: 'd1')},
+    );
+    expect(find.byTooltip('1 without a photo'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('species_no_photo_chip')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Whale Shark'), findsNothing);
+    expect(find.text('Green Sea Turtle'), findsOneWidget);
+  });
+
+  testWidgets('header ignores the category filter', (tester) async {
+    await _pumpPage(tester, [
+      _whaleShark,
+      _turtle,
+    ], groupBy: SpeciesGroupBy.category);
+    await tester.tap(find.text('See all').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Green Sea Turtle'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(LifeListHeader),
+        matching: find.text('2'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('600 species build without per-card queries', (tester) async {
+    var calls = 0;
+    final many = [
+      for (var i = 0; i < 600; i++)
+        _whaleShark.copyWith(
+          species: _whaleShark.species.copyWith(id: 'sp_$i', commonName: 'S$i'),
+        ),
+    ];
+    await _pumpPage(tester, many, onBestCrops: () => calls++);
+
+    expect(calls, 1);
+    expect(find.text('600 species · 3000 sightings'), findsOneWidget);
   });
 
   group('query (#2365)', () {
@@ -293,4 +406,93 @@ void main() {
       expect(find.byType(QueryNoMatchState), findsOneWidget);
     });
   });
+
+  testWidgets('no photo count waits for the pictures', (tester) async {
+    await _pumpPage(
+      tester,
+      [_whaleShark, _turtle],
+      extra: [
+        speciesPicturesProvider.overrideWith(
+          (ref) => Completer<Map<String, SpeciesPicture>>().future,
+        ),
+      ],
+      settle: false,
+    );
+    expect(find.byKey(const ValueKey('species_no_photo_chip')), findsNothing);
+  });
+
+  testWidgets('a fresh install groups by category', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(kSpeciesGroupByKey);
+    final container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+    addTearDown(container.dispose);
+    expect(container.read(speciesGroupByProvider), SpeciesGroupBy.category);
+  });
+
+  testWidgets('search stays hidden until its icon is tapped', (tester) async {
+    await _pumpPage(tester, [_whaleShark]);
+    expect(find.byType(TextField), findsNothing);
+
+    await openSearch(tester);
+
+    expect(find.byType(TextField), findsOneWidget);
+  });
+
+  testWidgets('no row of category chips', (tester) async {
+    await _pumpPage(tester, [_whaleShark, _turtle]);
+    expect(find.byType(SpeciesCategoryChips), findsNothing);
+  });
+
+  testWidgets('See all shows its category as a chip that clears it', (
+    tester,
+  ) async {
+    await _pumpPage(tester, [
+      _whaleShark,
+      _turtle,
+    ], groupBy: SpeciesGroupBy.category);
+    await tester.tap(find.text('See all').first);
+    await tester.pumpAndSettle();
+    final chip = find.byKey(const ValueKey('species_category_filter'));
+    expect(chip, findsOneWidget);
+    expect(find.text('Green Sea Turtle'), findsNothing);
+
+    await tester.tap(
+      find.descendant(of: chip, matching: find.byIcon(Icons.close)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(chip, findsNothing);
+    expect(find.text('Green Sea Turtle'), findsOneWidget);
+  });
+
+  testWidgets('See all keeps the saved grouping for the next visit', (
+    tester,
+  ) async {
+    await _pumpPage(tester, [
+      _whaleShark,
+      _turtle,
+    ], groupBy: SpeciesGroupBy.category);
+    await tester.tap(find.text('See all').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Shark · 1 species'), findsNothing);
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(kSpeciesGroupByKey), 'category');
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('species_category_filter')),
+        matching: find.byIcon(Icons.close),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Shark · 1 species'), findsOneWidget);
+  });
+}
+
+Future<void> openSearch(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('entity-search-action-species')));
+  await tester.pumpAndSettle();
 }
