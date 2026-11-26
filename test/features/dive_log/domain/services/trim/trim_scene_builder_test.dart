@@ -368,4 +368,29 @@ void main() {
     expect(build(suit('shorty')).shortySuit, isTrue);
     expect(build(suit('full')).shortySuit, isFalse);
   });
+
+  test('gear elements carry their side-view pieces', () {
+    Dive suit(String style) => Dive(
+      id: 'd1',
+      dateTime: when,
+      gear: [
+        GearLink(
+          item: item(
+            'suit',
+            EquipmentType.wetsuit,
+            choices: {EquipmentAttrKeys.suitStyle: style},
+          ),
+        ),
+      ],
+    );
+    expect(only(build(suit('full')), TrimElementKind.gear).pieceIds, [
+      'wetsuit_side_torso',
+      'wetsuit_side_arm',
+      'wetsuit_side_shin',
+    ]);
+    expect(
+      only(build(suit('shorty')), TrimElementKind.gear).pieceIds,
+      contains('wetsuit_shorty_side_torso'),
+    );
+  });
 }

@@ -9,6 +9,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_figure_inputs.dart';
+import 'package:submersion/features/dive_log/domain/services/trim/trim_piece_ids.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_placement.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -104,14 +105,7 @@ TrimScene buildTrimScene({
     suitLiftKg: timestamp == null
         ? _suitAtAnchor(result.input, verdict)
         : _nearest(result.samples, at)?.suitKg ?? 0,
-    shortySuit: dive.equipment.any(
-      (i) =>
-          i.type == EquipmentType.wetsuit &&
-          i.attributes.any(
-            (a) =>
-                a.key == EquipmentAttrKeys.suitStyle && a.valueText == 'shorty',
-          ),
-    ),
+    shortySuit: _isShorty(dive.equipment),
   );
 }
 
@@ -203,15 +197,28 @@ List<TrimElement> _gear(Dive dive, List<TwinStaticTerm> terms) {
         priorById,
         model.byId(node.link.item.id)?.zone,
         camera,
+        trimPieceIdsForGearPieces(
+          model.byId(node.link.item.id)?.pieceIds ?? const [],
+          shorty: _isShorty(dive.equipment),
+        ),
       ),
   ];
 }
+
+bool _isShorty(List<EquipmentItem> items) => items.any(
+  (i) =>
+      i.type == EquipmentType.wetsuit &&
+      i.attributes.any(
+        (a) => a.key == EquipmentAttrKeys.suitStyle && a.valueText == 'shorty',
+      ),
+);
 
 TrimElement _gearElement(
   GearNode node,
   Map<String, double> priorById,
   FigureZone? zone,
   TrimPlacement? camera,
+  List<String> pieceIds,
 ) {
   final item = node.link.item;
   var at = trimPlacementForZone(zone);
@@ -236,7 +243,7 @@ TrimElement _gearElement(
     spot: at.spot,
     lateral: at.lateral,
     itemId: item.id,
-    pieceIds: at.pieceIds,
+    pieceIds: pieceIds,
   );
 }
 
