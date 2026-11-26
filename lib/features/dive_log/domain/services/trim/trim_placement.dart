@@ -183,12 +183,13 @@ TrimPlacement trimPlacementForWeightsGear(Map<String, String?> attributes) {
 TrimPlacement trimPlacementForTank(TankRole role, {String? wornAs}) {
   final worn = wornAsZones(wornAs);
   if (worn.isNotEmpty) {
-    final zone = worn.first;
-    final at = trimPlacementForZone(zone);
+    final at = trimPlacementForZone(worn.first);
     return TrimPlacement(
       at.spot,
       lateral: at.lateral,
-      pieceIds: _tankPieces(at.spot),
+      pieceIds: wornAs == kWornAsTwinSet
+          ? const ['tank_doubles_side']
+          : _tankPieces(at.spot),
     );
   }
   final TrimPlacement at = switch (role) {

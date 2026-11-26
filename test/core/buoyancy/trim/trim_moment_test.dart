@@ -176,4 +176,16 @@ void main() {
       greaterThan(suit(shorty: false).pitchKgM),
     );
   });
+
+  test('limbs weigh more in fresh water', () {
+    TrimResult at(double density) => computeTrim(
+      body: body,
+      pose: pose,
+      elements: const [],
+      modelNetKg: 0,
+      liftSpot: TrimSpot.floatPoint,
+      waterDensity: density,
+    );
+    expect(at(1.000).pitchKgM, greaterThan(at(1.025).pitchKgM));
+  });
 }

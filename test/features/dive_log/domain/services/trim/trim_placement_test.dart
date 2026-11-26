@@ -153,6 +153,13 @@ void main() {
       }
     });
 
+    test('a twin set worn as one draws the doubles', () {
+      expect(
+        trimPlacementForTank(TankRole.backGas, wornAs: 'twin_set').pieceIds,
+        ['tank_doubles_side'],
+      );
+    });
+
     test('worn_as wins over the role', () {
       expect(
         trimPlacementForTank(

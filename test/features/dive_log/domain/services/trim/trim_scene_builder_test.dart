@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
+import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -417,5 +418,92 @@ void main() {
     );
     expect(only(scene, TrimElementKind.gear).color, FigureColors.darkBlue);
     expect(only(scene, TrimElementKind.tank).color, FigureColors.steel);
+  });
+
+  test('a dive with no profile weighs its tanks at their logged end', () {
+    const tank = TwinTankInput(
+      id: 't1',
+      label: 'AL80',
+      volumeL: 11.1,
+      workingPressureBar: 207,
+      material: TankMaterial.aluminum,
+      startPressureBar: 200,
+      endPressureBar: 150,
+    );
+    final dive = Dive(
+      id: 'd1',
+      dateTime: when,
+      tanks: const [DiveTank(id: 't1', volume: 11.1)],
+    );
+    final scene = buildTrimScene(
+      dive: dive,
+      outcome: buoyancyOutcome(
+        tanks: const [tank],
+        samples: const [],
+        anchor: const TwinAnchor(
+          kind: TwinAnchorKind.convention,
+          timestamp: -1,
+          depthM: 5,
+        ),
+      ),
+      timestamp: null,
+    );
+    expect(scene.timestamp, -1);
+    expect(
+      only(scene, TrimElementKind.tank).sinkKg,
+      closeTo(-twinTankKgAt(tank, 150), 1e-9),
+    );
+  });
+
+  test('the scene carries the water density', () {
+    expect(
+      build(Dive(id: 'd1', dateTime: when)).waterDensity,
+      closeTo(1.025, 0.01),
+    );
+  });
+
+  test('an untyped or mixed weight is marked as spot not known', () {
+    final scene = build(
+      Dive(
+        id: 'd1',
+        dateTime: when,
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: 'd1',
+            weightType: WeightType.mixed,
+            amountKg: 6,
+          ),
+          DiveWeight(
+            id: 'w2',
+            diveId: 'd1',
+            weightType: WeightType.belt,
+            amountKg: 2,
+          ),
+        ],
+      ),
+    );
+    final lead = scene.elements
+        .where((e) => e.kind == TrimElementKind.lead)
+        .toList();
+    expect(lead.first.spotUnknown, isTrue);
+    expect(lead.last.spotUnknown, isFalse);
+  });
+
+  test('gear may move only to the spots its type may use', () {
+    final scene = build(
+      Dive(
+        id: 'd1',
+        dateTime: when,
+        gear: [
+          GearLink(item: item('light', EquipmentType.light)),
+          GearLink(item: item('fins', EquipmentType.fins)),
+        ],
+      ),
+    );
+    final byId = {for (final e in scene.elements) e.itemId: e};
+    expect(byId['light']!.movableTo, contains(TrimSpot.chestClip));
+    expect(byId['light']!.movableTo, isNot(contains(TrimSpot.fins)));
+    expect(byId['fins']!.movableTo, isEmpty);
   });
 }

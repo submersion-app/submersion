@@ -19,6 +19,8 @@ class TrimElement {
     this.weightType,
     this.pieceIds = const [],
     this.color = defaultColor,
+    this.spotUnknown = false,
+    this.movableTo,
   });
 
   /// Black, the gear figure's default for most gear.
@@ -45,6 +47,15 @@ class TrimElement {
   /// ARGB for its artwork's item colour, as the gear figure colours it.
   final int color;
 
+  /// A weight with no known placement (mixed, or no type), drawn at the
+  /// waist: its chip says so, so the verdict does not look surer than the
+  /// log is.
+  final bool spotUnknown;
+
+  /// The spots it may be moved to in try-out; null for anywhere (lead and
+  /// test items), empty when it stays put.
+  final List<TrimSpot>? movableTo;
+
   TrimElement copyWith({TrimSpot? spot, TrimLateral? lateral}) => TrimElement(
     id: id,
     label: label,
@@ -56,6 +67,8 @@ class TrimElement {
     weightType: weightType,
     pieceIds: pieceIds,
     color: color,
+    spotUnknown: spotUnknown,
+    movableTo: movableTo,
   );
 }
 
@@ -142,6 +155,7 @@ TrimResult computeTrim({
   required TrimSpot liftSpot,
   double suitLiftKg = 0,
   bool shortySuit = false,
+  double waterDensity = TrimBody.defaultWaterDensity,
 }) {
   final float = body.floatPoint;
   var pitch = 0.0;
@@ -156,7 +170,7 @@ TrimResult computeTrim({
     }
     if (e.kind == TrimElementKind.test) extraSink += e.sinkKg;
   }
-  for (final limb in body.limbMasses(pose)) {
+  for (final limb in body.limbMasses(pose, waterDensity: waterDensity)) {
     pitch += limb.inWaterKg * (limb.centre.s - float.s);
   }
   for (final (point, share) in body.suitShares(pose, shorty: shortySuit)) {

@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_position.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 
 /// Everything the trim figure weighs for one moment of one dive (issue
@@ -31,6 +32,7 @@ class TrimScene {
     required this.timestamp,
     this.suitLiftKg = 0,
     this.shortySuit = false,
+    this.waterDensity = TrimBody.defaultWaterDensity,
   });
 
   final List<TrimElement> elements;
@@ -40,6 +42,9 @@ class TrimScene {
 
   /// A shorty covers no forearms or shins.
   final bool shortySuit;
+
+  /// kg/L, for the limbs' in-water weight.
+  final double waterDensity;
 
   /// The buoyancy model's net at [timestamp]: negative is heavy.
   final double modelNetKg;
@@ -60,6 +65,7 @@ class TrimScene {
     timestamp: timestamp,
     suitLiftKg: suitLiftKg,
     shortySuit: shortySuit,
+    waterDensity: waterDensity,
   );
 
   /// Pitch and roll of this scene in [pose].
@@ -71,6 +77,7 @@ class TrimScene {
     liftSpot: liftSpot,
     suitLiftKg: suitLiftKg,
     shortySuit: shortySuit,
+    waterDensity: waterDensity,
   );
 }
 
@@ -107,6 +114,7 @@ TrimScene buildTrimScene({
         ? _suitAtAnchor(result.input, verdict)
         : _nearest(result.samples, at)?.suitKg ?? 0,
     shortySuit: _isShorty(dive.equipment),
+    waterDensity: result.input.environment.waterDensityKgM3 / 1000,
   );
 }
 
@@ -164,6 +172,8 @@ TrimElement _leadElement({
   itemId: itemId,
   weightType: type,
   pieceIds: at.pieceIds,
+  // Typed lead without a placement, or weights gear never has its own.
+  spotUnknown: itemId == null && (type == null || type == WeightType.mixed),
 );
 
 List<TrimElement> _gear(Dive dive, List<TwinStaticTerm> terms) {
@@ -248,6 +258,17 @@ TrimElement _gearElement(
     itemId: item.id,
     pieceIds: pieceIds,
     color: color,
+    // Where the gear figure lets the diver put this type, as trim spots.
+    movableTo: [
+      for (final s in {
+        for (final z in pickableFigureZones(
+          item.type,
+          figureAttributesOf(item),
+        ))
+          trimPlacementForZone(z).spot,
+      })
+        s,
+    ],
   );
 }
 
@@ -264,8 +285,10 @@ List<TrimElement> _tanks(Dive dive, TwinInput input, int at) {
           material: tank.material,
           cylinder: itemsById[tank.equipmentId],
           twin: twin,
+          // The no-profile convention reads the logged end pressure, as the
+          // model's own verdict does.
           pressureBar: at < 0
-              ? BuoyancyPhysics.defaultReserveBar
+              ? twin.endPressureBar ?? BuoyancyPhysics.defaultReserveBar
               : twinTankPressureAt(
                   twin,
                   at,

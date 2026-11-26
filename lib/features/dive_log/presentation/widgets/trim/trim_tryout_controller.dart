@@ -57,6 +57,7 @@ class TrimTryoutController extends ChangeNotifier {
               itemId: e.itemId,
               weightType: e.weightType,
               color: e.color,
+              movableTo: e.movableTo,
             )
           else
             e,
@@ -71,13 +72,19 @@ class TrimTryoutController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Suits and anything with no spot on the body stay where they are.
-  bool canMove(TrimElement e) => e.spot != TrimSpot.floatPoint;
+  /// Suits and anything with no spot on the body stay where they are, as
+  /// does gear the gear figure offers no other spot for.
+  bool canMove(TrimElement e) =>
+      e.spot != TrimSpot.floatPoint && spotsFor(e).length > 1;
 
-  /// The spots [e] may be dropped on.
+  /// The spots [e] may be dropped on: a tank's, gear's own (as the gear
+  /// figure offers them), anywhere on the body for lead and test items.
   List<TrimSpot> spotsFor(TrimElement e) {
-    if (!canMove(e)) return [e.spot];
+    if (e.spot == TrimSpot.floatPoint) return [e.spot];
     if (e.kind == TrimElementKind.tank) return tankSpots;
+    if (e.movableTo case final spots?) {
+      return spots.contains(e.spot) ? spots : [e.spot, ...spots];
+    }
     return [
       for (final s in TrimSpot.values)
         if (s != TrimSpot.floatPoint) s,
