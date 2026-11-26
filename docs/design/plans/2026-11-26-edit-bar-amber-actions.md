@@ -79,7 +79,7 @@
   - In both bar tests, `_action` finds `RecordEditAction` by `label` instead of `AppBarTextAction`.
   - New `Cancel is a ring and Save is filled` in both: `_action(tester, 'Cancel').style == RecordEditActionStyle.ring`, `_action(tester, 'Save').style == RecordEditActionStyle.filled`; with `saveLabel: 'Send'`, Send is filled.
   - Replace `the bar text reads on its background` (per preset, light and dark): the title and Cancel's label at 4.5:1 or better against the bar background; Cancel's ring colour at 3:1 or better against it; Save's label at 4.5:1 or better against `RecordPencilColors.of(context).fill`.
-  - New `long labels fit a phone-width bar`: 320 x 640 surface, `saveLabel` of 20 characters, no exception thrown (`tester.takeException()` is null) and the title's `RenderParagraph` reports `didExceedMaxLines`.
+  - New `long labels fit a phone-width bar`: 320 x 640 surface in Dutch (`Annuleren`, the longest Cancel of the app's languages), no exception thrown (`tester.takeException()` is null) and the title's `RenderParagraph` reports `didExceedMaxLines`. (Built first with a 20-character `saveLabel`; the test font draws every glyph as a 14 px square, so that label overflowed the old bar too.)
   - New `the bar fits at 200% text`: `MediaQuery(textScaler: TextScaler.linear(2))`, no exception.
   - New `the saving spinner reads on the fill` (bar test, per preset light and dark): with `isSaving: true`, the spinner colour against `fill` is 3:1 or better.
   - In `record_satellite_test.dart`, a `Done is filled` test: the satellite bar's `RecordEditAction` labelled Done has `style == filled`.

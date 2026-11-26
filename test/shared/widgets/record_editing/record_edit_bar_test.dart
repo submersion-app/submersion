@@ -200,7 +200,11 @@ void main() {
                         .widget<Material>(
                           find
                               .descendant(
-                                of: find.byType(RecordEditAction).first,
+                                of: find.byWidgetPredicate(
+                                  (w) =>
+                                      w is RecordEditAction &&
+                                      w.label == 'Cancel',
+                                ),
                                 matching: find.byType(Material),
                               )
                               .first,
