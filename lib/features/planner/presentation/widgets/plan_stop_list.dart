@@ -19,7 +19,6 @@ class PlanStopList extends StatefulWidget {
     required this.formatDepth,
     this.bottomReserve = 0,
     this.topGap = 0,
-    this.onFitChanged,
   });
 
   /// In time order, deepest first, as [planStopTags] gives them.
@@ -35,11 +34,6 @@ class PlanStopList extends StatefulWidget {
   /// list does.
   final double topGap;
 
-  /// Told, after the frame, whether at least one row fits, each time that
-  /// changes, so the chart can tag its stops itself when the list cannot
-  /// show them.
-  final ValueChanged<bool>? onFitChanged;
-
   static const visibleRows = 6;
 
   @override
@@ -51,7 +45,6 @@ class _PlanStopListState extends State<PlanStopList> {
   final _controller = ScrollController(keepScrollOffset: false);
   final _handoff = OverscrollHandoff();
   ScrollMetrics? _metrics;
-  bool? _reportedFit;
 
   @override
   void didUpdateWidget(PlanStopList oldWidget) {
@@ -82,18 +75,6 @@ class _PlanStopListState extends State<PlanStopList> {
     } else {
       _metrics = metrics;
     }
-  }
-
-  /// Reports [fits] once the frame is laid out: the listener rebuilds
-  /// widgets outside this one.
-  void _reportFit(bool fits) {
-    if (fits == _reportedFit) return;
-    _reportedFit = fits;
-    final onFitChanged = widget.onFitChanged;
-    if (onFitChanged == null) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _reportedFit == fits) onFitChanged(fits);
-    });
   }
 
   @override
@@ -182,9 +163,7 @@ class _PlanStopListState extends State<PlanStopList> {
               widget.bottomReserve,
           rowHeight * PlanStopList.visibleRows,
         );
-        final fits = viewport >= rowHeight;
-        _reportFit(fits);
-        if (!fits) return const SizedBox.shrink();
+        if (viewport < rowHeight) return const SizedBox.shrink();
         // Known from the row count, so the first frame already gets
         // the pointers and the fade right.
         final scrollable = contentHeight > viewport + 0.5;

@@ -56539,6 +56539,29 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown legjobb a(z) $count észlelésből',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => 'Látható';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start és $end között';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return 'Lejátszás innen: $time';
+  }
+
+  @override
   String get media_species_openSpeciesPage => 'Fajoldal';
 
   @override

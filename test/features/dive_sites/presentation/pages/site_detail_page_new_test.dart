@@ -20,7 +20,7 @@ import 'package:submersion/features/rules/data/services/rule_engine.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
@@ -108,9 +108,9 @@ void main() {
   EditSession<DiveSite> sitting(WidgetTester tester) =>
       controllerOf(tester).session!;
 
-  AppBarTextAction saveButton(WidgetTester tester) =>
-      tester.widget<AppBarTextAction>(
-        find.widgetWithText(AppBarTextAction, l.forms_save),
+  RecordEditAction saveButton(WidgetTester tester) =>
+      tester.widget<RecordEditAction>(
+        find.widgetWithText(RecordEditAction, l.forms_save),
       );
 
   Future<void> tapText(WidgetTester tester, String text) async {

@@ -29,3 +29,29 @@ List<MediaIdentification> cropsOfSpecies(
           },
   );
 }
+
+/// When in a video [tracks] were seen (issue #5032): one stretch per run
+/// of tracks that overlap or start within [gapMs] of the last one's end,
+/// in time order. Photos have no time and are left out.
+List<({int startMs, int endMs})> videoStretches(
+  List<MediaIdentification> tracks, {
+  int gapMs = 1000,
+}) {
+  final timed = [
+    for (final t in tracks)
+      if (t.startMs != null && t.endMs != null) (t.startMs!, t.endMs!),
+  ]..sort((a, b) => a.$1.compareTo(b.$1));
+  final stretches = <({int startMs, int endMs})>[];
+  for (final (start, end) in timed) {
+    final last = stretches.lastOrNull;
+    if (last != null && start <= last.endMs + gapMs) {
+      stretches[stretches.length - 1] = (
+        startMs: last.startMs,
+        endMs: end > last.endMs ? end : last.endMs,
+      );
+    } else {
+      stretches.add((startMs: start, endMs: end));
+    }
+  }
+  return stretches;
+}

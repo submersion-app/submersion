@@ -16,7 +16,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 
@@ -598,7 +598,7 @@ void main() {
 
   group('on the shared Cancel and Save bar', () {
     VoidCallback? saveOnPressed(WidgetTester tester) => tester
-        .widget<AppBarTextAction>(find.widgetWithText(AppBarTextAction, 'Save'))
+        .widget<RecordEditAction>(find.widgetWithText(RecordEditAction, 'Save'))
         .onPressed;
 
     Future<void> back(WidgetTester tester) async {

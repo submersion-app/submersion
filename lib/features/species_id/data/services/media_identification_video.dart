@@ -221,6 +221,10 @@ extension _VideoScanning on MediaIdentificationService {
         // The chip row and sheet agree with the labels, which reconcile in
         // memory, while the scan is still running (issue #4709).
         await reconcile(job.item.id);
+        // Then only the clearest crops of each species stay (issue #5032).
+        if (_databaseGeneration() == generation) {
+          await _capper.cap(job.item.id);
+        }
         _videoProgress = scan.progress;
         _changed();
         if (!more) {
@@ -242,6 +246,10 @@ extension _VideoScanning on MediaIdentificationService {
       }
       return false;
     } finally {
+      // A finish names and stores the tracks still open, with their crops.
+      if (_databaseGeneration() == generation) {
+        await _capper.cap(job.item.id);
+      }
       _armIdleUnload();
       await worker?.close();
     }

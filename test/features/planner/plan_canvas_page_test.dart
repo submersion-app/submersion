@@ -105,11 +105,12 @@ void main() {
     expect(find.byType(BackButton), findsNothing);
   });
 
-  testWidgets('a phone chart too short for the stop list tags its stops', (
-    tester,
-  ) async {
+  testWidgets('a phone chart too short for the stop list still leaves its '
+      'stops untagged', (tester) async {
     // 30% of a short body clamps the chart to its 160 dp floor, where a deco
-    // plan's issues pill leaves the readouts no room for a stop row.
+    // plan's issues pill leaves the readouts no room for a stop row. Tags
+    // there cover each other and the readouts, so the stops are left to the
+    // full-screen chart and the Results tab instead.
     await setSize(tester, const Size(420, 560));
     await tester.pumpWidget(harness());
     ProviderScope.containerOf(tester.element(find.byType(PlanCanvasPage)))
@@ -127,7 +128,7 @@ void main() {
       tester
           .widget<PlanProfileChart>(find.byType(PlanProfileChart))
           .showStopTags,
-      isTrue,
+      isFalse,
     );
   });
 

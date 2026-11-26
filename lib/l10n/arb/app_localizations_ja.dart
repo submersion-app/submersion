@@ -54549,6 +54549,29 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の目撃のうち上位$shown件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => '見られた時刻';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start〜$end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return '$timeから再生';
+  }
+
+  @override
   String get media_species_openSpeciesPage => '種のページ';
 
   @override

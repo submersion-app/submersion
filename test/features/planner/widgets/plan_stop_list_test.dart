@@ -382,35 +382,6 @@ void main() {
     expect(await heightWith(24, gap: 3), 0);
   });
 
-  testWidgets('it says whether a row fits, after the frame', (tester) async {
-    final reports = <bool>[];
-    final stops = _tags([for (var d = 42; d >= 3; d -= 3) (d.toDouble(), 1)]);
-    Future<void> pumpAt(double maxHeight) async {
-      await tester.pumpWidget(
-        _host(
-          ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: maxHeight),
-            child: PlanStopList(
-              tags: stops,
-              formatDepth: _metres,
-              bottomReserve: 48,
-              onFitChanged: reports.add,
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-    }
-
-    await pumpAt(100);
-    await pumpAt(120);
-    await pumpAt(60);
-    await pumpAt(100);
-
-    // Only the changes: room, none, room again.
-    expect(reports, [true, false, true]);
-  });
-
   testWidgets('a flick past the end carries the page on after the finger '
       'lifts', (tester) async {
     final page = ScrollController();

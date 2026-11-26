@@ -56851,6 +56851,29 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown melhores de $count avistamentos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => 'Visto em';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start a $end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return 'Reproduzir a partir de $time';
+  }
+
+  @override
   String get media_species_openSpeciesPage => 'Página da espécie';
 
   @override

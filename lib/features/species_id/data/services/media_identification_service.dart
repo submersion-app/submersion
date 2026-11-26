@@ -16,6 +16,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/crop_naming.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
+import 'package:submersion/features/species_id/data/services/video_crop_capper.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
@@ -26,6 +27,7 @@ import 'package:submersion/features/species_id/domain/services/identification_ru
 import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
+import 'package:submersion/features/species_id/domain/services/video_crop_cap.dart';
 import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/video_scan_order.dart';
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
@@ -153,6 +155,14 @@ class MediaIdentificationService {
   /// or null when it cannot be read: the run then counts as this device's
   /// and is stamped before it first publishes.
   final Future<String?> Function() _deviceId;
+
+  /// Drops the crops a video does not keep (issue #5032).
+  late final _capper = VideoCropCapper(
+    identifications: _identifications,
+    crops: _crops,
+    taggedSpecies: _taggedSpecies,
+    deviceId: _deviceId,
+  );
 
   /// A run id, minted when an analysis of a media starts (issue #4876).
   final String Function() _newRunId;
@@ -519,7 +529,12 @@ class MediaIdentificationService {
         for (final i in named)
           if (i.decision == IdentificationDecision.undecided) i,
       ];
-      final cropsPresent = await _cropsPresent(_crops, item.id, named);
+      final cropsPresent = await _cropsPresent(
+        _crops,
+        item.id,
+        named,
+        tags: item.isVideo ? await _taggedSpecies(item.id) : const [],
+      );
       // A video's tracks are named again only when their pack or place
       // changed: its embeddings are not read otherwise.
       final namesCurrent =

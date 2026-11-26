@@ -13,8 +13,10 @@ import 'package:path/path.dart' as p;
 ///
 /// Guard the whole tree rather than the pages that regressed, because the next
 /// one will be somewhere new. [AppBarTextAction] pins the label to the app
-/// bar's own foreground color and is the only sanctioned way to put a text
-/// action in an app bar.
+/// bar's own foreground color and is the sanctioned way to put a text action
+/// in an app bar. An unlocked record's bars use `RecordEditAction` instead,
+/// a filled or outlined button in the pencil's amber that brings its own
+/// label colour (issue #5034).
 void main() {
   final wrapper = p.join(
     'lib',
