@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -562,13 +563,37 @@ final identificationCropProvider = FutureProvider.autoDispose
       final table = ref.watch(identificationCropRepositoryProvider);
       ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
       final crop = await store.read(key.$1, key.$2);
+      if (crop != null || !ref.mounted) return crop;
       // A synced crop is written once, so only one still to come is waited
       // for: a sync bringing other crops must not read this one again and
       // have its picture decoded and drawn anew.
-      if (crop == null && ref.mounted) {
-        ref.invalidateSelfWhen(table.watchChanges());
-      }
-      return crop;
+      ref.invalidateSelfWhen(table.watchChanges());
+      // A video keeps only a few crops of each species (issue #5032): a
+      // dropped one shows the largest kept crop of its group instead.
+      final rows = await ref
+          .read(mediaIdentificationRepositoryProvider)
+          .forMedia(key.$1);
+      final row = rows.firstWhereOrNull((i) => i.id == key.$2);
+      if (row == null || !row.isTrack || !ref.mounted) return null;
+      final present = await ref.watch(presentCropIdsProvider(key.$1).future);
+      final standIn = keptStandIn(rows, row, present);
+      if (standIn == null) return null;
+      return store.read(key.$1, standIn.id);
+    });
+
+/// The identifications of a media item that have a crop on this device, a
+/// file or a synced one (issue #5032): a video keeps only a few of each
+/// species.
+final presentCropIdsProvider = FutureProvider.autoDispose
+    .family<Set<String>, String>((ref, mediaId) async {
+      final store = ref.watch(identificationCropStoreProvider);
+      final repository = ref.watch(mediaIdentificationRepositoryProvider);
+      ref.invalidateSelfWhen(store.watchChanges().where((id) => id == mediaId));
+      ref.invalidateSelfWhen(
+        ref.watch(identificationCropRepositoryProvider).watchChanges(),
+      );
+      final rows = await repository.forMedia(mediaId);
+      return store.presentAmong(mediaId, [for (final i in rows) i.id]);
     });
 
 /// How many identifications the open logbook keeps.
