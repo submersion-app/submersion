@@ -249,6 +249,7 @@ void main() {
   }) async {
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...plannerResultsInline(),
           settingsProvider.overrideWith(
@@ -342,6 +343,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...plannerResultsInline(),
           settingsProvider.overrideWith(

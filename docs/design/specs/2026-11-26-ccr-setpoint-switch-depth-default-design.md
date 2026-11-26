@@ -48,7 +48,8 @@ Settings change, the known limitation documented on that method.
 - `SettingsNotifier.setCcrPpO2Limits` gains `setpointSwitchDepth`, written in
   the same single update as the setpoints. Stored as entered within
   `ccrSwitchDepthInputMin`..`ccrSwitchDepthInputMax` (0..100 m), rounded to
-  0.1 m. The slider covers `ccrSwitchDepthSliderMin`..`ccrSwitchDepthSliderMax`
+  the millimeter, not 0.1 m: a depth typed in feet must read back exactly
+  (30 ft is 9.144 m, which a 0.1 m grid shows as 29.9 ft). The slider covers `ccrSwitchDepthSliderMin`..`ccrSwitchDepthSliderMax`
   (3..30 m, 1 m steps); a value outside it is typed into the number field.
 - `ccrSetpointSwitchDepthProvider`, a `select` on `settingsProvider`.
 

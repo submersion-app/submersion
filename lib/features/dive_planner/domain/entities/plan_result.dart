@@ -589,7 +589,9 @@ class DivePlanState extends Equatable {
   final double? setpointLow;
   final double? setpointHigh;
 
-  /// Depth below which the high setpoint is in force; null = default 10 m.
+  /// Depth below which the high setpoint is in force; null follows the
+  /// diver's Settings through `PlanEngineConfig.setpointSwitchDepthFor`
+  /// (issue #3793).
   final double? setpointSwitchDepth;
 
   /// No switch by depth on this plan (issue #3793): the low setpoint
