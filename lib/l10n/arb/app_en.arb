@@ -11999,6 +11999,50 @@
   "marineLife_rarity_seenOnce": "Seen once",
   "marineLife_rarity_notSeenLately": "Not seen lately",
   "marineLife_rarity_mastered": "Mastered",
+  "marineLife_practice_title": "ID practice",
+  "marineLife_practice_notEnough": "Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.",
+  "marineLife_practice_back": "Back to species",
+  "marineLife_practice_progress": "{current} of {total}",
+  "@marineLife_practice_progress": {
+    "description": "Practice round counter",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_practice_question": "Which species is this?",
+  "marineLife_practice_scientificNames": "Scientific names",
+  "marineLife_practice_right": "Right",
+  "marineLife_practice_wrong": "Not quite: it was {name}",
+  "@marineLife_practice_wrong": {
+    "description": "Shown after a wrong practice answer",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "marineLife_practice_next": "Next",
+  "marineLife_practice_finish": "See results",
+  "marineLife_practice_score": "{right} of {total} right",
+  "@marineLife_practice_score": {
+    "description": "Practice session score",
+    "placeholders": {
+      "right": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_practice_missedTitle": "To practise again",
+  "marineLife_practice_again": "Practise again",
+  "marineLife_practice_done": "Done",
   "speciesMap_title": "Species Map",
   "speciesMap_openTooltip": "Species map",
   "speciesMap_pickSpeciesTooltip": "Pick a species",

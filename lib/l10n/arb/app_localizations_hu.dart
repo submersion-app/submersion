@@ -19809,6 +19809,55 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_rarity_mastered => 'Mastered';
 
   @override
+  String get marineLife_practice_title => 'ID practice';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.';
+
+  @override
+  String get marineLife_practice_back => 'Back to species';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'Which species is this?';
+
+  @override
+  String get marineLife_practice_scientificNames => 'Scientific names';
+
+  @override
+  String get marineLife_practice_right => 'Right';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'Not quite: it was $name';
+  }
+
+  @override
+  String get marineLife_practice_next => 'Next';
+
+  @override
+  String get marineLife_practice_finish => 'See results';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right of $total right';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'To practise again';
+
+  @override
+  String get marineLife_practice_again => 'Practise again';
+
+  @override
+  String get marineLife_practice_done => 'Done';
+
+  @override
   String get speciesMap_title => 'Fajtérkép';
 
   @override

@@ -31550,6 +31550,90 @@ abstract class AppLocalizations {
   /// **'Mastered'**
   String get marineLife_rarity_mastered;
 
+  /// No description provided for @marineLife_practice_title.
+  ///
+  /// In en, this message translates to:
+  /// **'ID practice'**
+  String get marineLife_practice_title;
+
+  /// No description provided for @marineLife_practice_notEnough.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.'**
+  String get marineLife_practice_notEnough;
+
+  /// No description provided for @marineLife_practice_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to species'**
+  String get marineLife_practice_back;
+
+  /// Practice round counter
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String marineLife_practice_progress(int current, int total);
+
+  /// No description provided for @marineLife_practice_question.
+  ///
+  /// In en, this message translates to:
+  /// **'Which species is this?'**
+  String get marineLife_practice_question;
+
+  /// No description provided for @marineLife_practice_scientificNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Scientific names'**
+  String get marineLife_practice_scientificNames;
+
+  /// No description provided for @marineLife_practice_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get marineLife_practice_right;
+
+  /// Shown after a wrong practice answer
+  ///
+  /// In en, this message translates to:
+  /// **'Not quite: it was {name}'**
+  String marineLife_practice_wrong(String name);
+
+  /// No description provided for @marineLife_practice_next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get marineLife_practice_next;
+
+  /// No description provided for @marineLife_practice_finish.
+  ///
+  /// In en, this message translates to:
+  /// **'See results'**
+  String get marineLife_practice_finish;
+
+  /// Practice session score
+  ///
+  /// In en, this message translates to:
+  /// **'{right} of {total} right'**
+  String marineLife_practice_score(int right, int total);
+
+  /// No description provided for @marineLife_practice_missedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'To practise again'**
+  String get marineLife_practice_missedTitle;
+
+  /// No description provided for @marineLife_practice_again.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise again'**
+  String get marineLife_practice_again;
+
+  /// No description provided for @marineLife_practice_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get marineLife_practice_done;
+
   /// No description provided for @speciesMap_title.
   ///
   /// In en, this message translates to:

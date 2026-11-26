@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_crop.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -59,6 +60,23 @@ Future<void> pumpPictures(
         ...extra,
       ],
       child: child,
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Pumps a whole [app] (a router app, say) with crops served as one-pixel
+/// bytes and media resolved to a one-pixel image.
+Future<void> pumpPicturesApp(WidgetTester tester, Widget app) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        mediaResolverOverride(),
+        identificationCropProvider.overrideWith(
+          (ref, key) async => CropBytes(onePixelPng()),
+        ),
+      ],
+      child: app,
     ),
   );
   await tester.pumpAndSettle();
