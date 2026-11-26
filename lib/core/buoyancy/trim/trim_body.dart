@@ -76,10 +76,24 @@ class TrimBody {
   static const double wristFromShoulder = _upperArmLength + _forearmLength;
 
   /// Where along the torso, from the shoulder (0) to the hip (1), the diver
-  /// floats from: the centre of buoyancy, at the lower chest with the lungs
-  /// full. Winter's tables give no centre of buoyancy, so this is tuned
-  /// against the reference rigs of the trim design (spec 7.5).
-  static const double kFloatPointTorsoFraction = 0.35;
+  /// floats from: the centre of buoyancy of the body and the torso's share of
+  /// the suit, at the upper abdomen (0.36 of height from the crown, between
+  /// the nipple line and the navel). Winter's tables give no centre of
+  /// buoyancy, so this is tuned against the reference rigs of the trim
+  /// design (spec 7.5).
+  static const double kFloatPointTorsoFraction = 0.63;
+
+  /// How an exposure suit's lift is spread over the body, by the share of
+  /// skin each part covers (the rule of nines without the head): torso 40%,
+  /// arms 20%, thighs 24%, shins 16%. A shorty covers the torso, upper arms
+  /// and thighs only.
+  static const _fullSuit = (torso: 0.40, arms: 0.20, thighs: 0.24, shins: 0.16);
+  static const _shortySuit = (
+    torso: 0.55,
+    arms: 0.10,
+    thighs: 0.35,
+    shins: 0.0,
+  );
 
   // Mass fraction, centre of mass from the proximal joint (fraction of the
   // segment's length), density in kg/L.
@@ -189,6 +203,21 @@ class TrimBody {
         TrimLimbMass(segment: side.$2, centre: shin.$1, inWaterKg: shin.$2),
         TrimLimbMass(segment: side.$3, centre: foot.$1, inWaterKg: foot.$2),
       ],
+    ];
+  }
+
+  /// Where a suit's lift acts and the share at each place: the torso's share
+  /// at the float point, the rest at the limbs, both sides.
+  List<(TrimPoint, double)> suitShares(TrimPose pose, {bool shorty = false}) {
+    final shares = shorty ? _shortySuit : _fullSuit;
+    final armAt = shorty
+        ? alongArm(pose, _upperArmLength / 2)
+        : alongArm(pose, (_upperArmLength + _forearmLength) / 2);
+    return [
+      (floatPoint, shares.torso),
+      (armAt, shares.arms),
+      (hip + TrimPoint((knee.s - hip.s) / 2, 0), shares.thighs),
+      if (shares.shins > 0) (alongShin(pose, 0.5), shares.shins),
     ];
   }
 }

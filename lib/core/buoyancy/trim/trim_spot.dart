@@ -17,7 +17,7 @@ enum TrimSpot {
   chestClip(TrimSegment.torso, 0.24, -0.06, lateral: 0.08),
   upperBack(TrimSegment.torso, 0.16, 0.14),
   backTank(TrimSegment.torso, 0.33, 0.12),
-  // Wing gas centres at mid-back.
+  // Wing gas centres at mid-back, ahead of the float point.
   wing(TrimSegment.torso, 0.31, 0.09),
   trimPockets(TrimSegment.torso, 0.25, 0.09, lateral: 0.05),
   backplate(TrimSegment.torso, 0.30, 0.07),

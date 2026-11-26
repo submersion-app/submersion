@@ -240,7 +240,7 @@ double trimFinSinkKg(Map<String, String?> attributes) =>
     };
 
 const double kPaddleFinSinkKg = 0.6;
-const double kSplitFinSinkKg = 0.3;
+const double kSplitFinSinkKg = 0.2;
 const double kVentedFinSinkKg = 1.4;
 
 /// Camera parts the gear figure leaves in the tray; on the trim figure they

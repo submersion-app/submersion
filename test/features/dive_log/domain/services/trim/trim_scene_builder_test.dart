@@ -335,4 +335,37 @@ void main() {
       1.9,
     );
   });
+
+  test("the suit's lift follows the moment, the anchor's without one", () {
+    final dive = Dive(id: 'd1', dateTime: when);
+    final samples = const [
+      TwinSample(timestamp: 0, depthM: 0, suitKg: 6, tanksKg: 0, netKg: 2),
+      TwinSample(timestamp: 60, depthM: 20, suitKg: 3, tanksKg: 0, netKg: 1),
+    ];
+    expect(build(dive, samples: samples, timestamp: 0).suitLiftKg, 6);
+    expect(build(dive, samples: samples, timestamp: 60).suitLiftKg, 3);
+    // The fixture's verdict leads with a suit term of net - 5 + lead.
+    expect(
+      build(dive, samples: samples).suitLiftKg,
+      closeTo(1.8 - 5 + 6, 1e-9),
+    );
+  });
+
+  test('a shorty is marked', () {
+    Dive suit(String style) => Dive(
+      id: 'd1',
+      dateTime: when,
+      gear: [
+        GearLink(
+          item: item(
+            'suit',
+            EquipmentType.wetsuit,
+            choices: {EquipmentAttrKeys.suitStyle: style},
+          ),
+        ),
+      ],
+    );
+    expect(build(suit('shorty')).shortySuit, isTrue);
+    expect(build(suit('full')).shortySuit, isFalse);
+  });
 }

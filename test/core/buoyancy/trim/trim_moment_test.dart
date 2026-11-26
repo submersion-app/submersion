@@ -87,9 +87,10 @@ void main() {
     final arm = TrimSpot.wing.pointOn(body, pose).s - body.floatPoint.s;
     expect(atWing.balancingLiftKg, 3);
     expect(atWing.pitchKgM - atFloat.pitchKgM, closeTo(-3 * arm, 1e-9));
-    // Wing gas centres at mid-back, behind the lower-chest float point,
-    // so it lifts the hips.
-    expect(arm, greaterThan(0));
+    // Wing gas centres at mid-back, ahead of the upper-abdomen float point,
+    // so an overweighted diver's wing lifts the shoulders: feet-down.
+    expect(arm, lessThan(0));
+    expect(atWing.pitchKgM, greaterThan(atFloat.pitchKgM));
   });
 
   test('a light diver gets no balancing lift', () {
@@ -139,5 +140,40 @@ void main() {
     expect(straight.s, greaterThan(bent.s));
     expect(TrimSpot.fins.segment, TrimSegment.foot);
     expect(TrimSpot.hand.segment, TrimSegment.arm);
+  });
+
+  test("a wetsuit's leg neoprene lifts the legs", () {
+    final dry = computeTrim(
+      body: body,
+      pose: pose,
+      elements: const [],
+      modelNetKg: 0,
+      liftSpot: TrimSpot.floatPoint,
+    );
+    final suited = computeTrim(
+      body: body,
+      pose: pose,
+      elements: const [],
+      modelNetKg: 0,
+      liftSpot: TrimSpot.floatPoint,
+      suitLiftKg: 7,
+    );
+    expect(suited.pitchKgM, lessThan(dry.pitchKgM));
+  });
+
+  test('a shorty lifts the legs less than a full suit', () {
+    TrimResult suit({required bool shorty}) => computeTrim(
+      body: body,
+      pose: pose,
+      elements: const [],
+      modelNetKg: 0,
+      liftSpot: TrimSpot.floatPoint,
+      suitLiftKg: 5,
+      shortySuit: shorty,
+    );
+    expect(
+      suit(shorty: true).pitchKgM,
+      greaterThan(suit(shorty: false).pitchKgM),
+    );
   });
 }

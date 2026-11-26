@@ -63,13 +63,13 @@ enum RollVerdict { level, slightlyLeft, left, slightlyRight, right }
 
 /// A pull smaller than this reads as level (kg·m about the float point).
 /// Tuned with the reference rigs of the trim design (spec 7.5).
-const double kLevelBandKgM = 0.25;
+const double kLevelBandKgM = 0.72;
 
 /// Up to this, "slightly"; beyond, heavy.
-const double kSlightBandKgM = 0.75;
+const double kSlightBandKgM = 1.40;
 
 /// How far the figure tilts per kg·m of pitch, capped at [kMaxTiltDeg].
-const double kTiltDegPerKgM = 12;
+const double kTiltDegPerKgM = 10;
 const double kMaxTiltDeg = 20;
 
 TrimVerdict verdictForPitch(double kgM) {
@@ -118,7 +118,10 @@ class TrimResult {
 /// Sums every element's pull about [body]'s float point in [pose].
 ///
 /// The forces must sum to zero for the moment not to depend on where it is
-/// taken. The limbs from [body] count at their centres of mass. When the
+/// taken. The limbs from [body] count at their centres of mass, and the
+/// suit's lift ([suitLiftKg], at this moment) is spread over the body by
+/// [TrimBody.suitShares]: neoprene on the legs is what holds a wetsuit
+/// diver's legs up. When the
 /// diver is heavy ([modelNetKg] below zero, after any test items, which the
 /// model never saw), the lift that holds them neutral acts at [liftSpot];
 /// whatever is left over (the torso's own buoyancy, the suit, the model's
@@ -129,6 +132,8 @@ TrimResult computeTrim({
   required List<TrimElement> elements,
   required double modelNetKg,
   required TrimSpot liftSpot,
+  double suitLiftKg = 0,
+  bool shortySuit = false,
 }) {
   final float = body.floatPoint;
   var pitch = 0.0;
@@ -145,6 +150,9 @@ TrimResult computeTrim({
   }
   for (final limb in body.limbMasses(pose)) {
     pitch += limb.inWaterKg * (limb.centre.s - float.s);
+  }
+  for (final (point, share) in body.suitShares(pose, shorty: shortySuit)) {
+    pitch -= suitLiftKg * share * (point.s - float.s);
   }
   final lift = extraSink - modelNetKg;
   final liftKg = lift > 0 ? lift : 0.0;

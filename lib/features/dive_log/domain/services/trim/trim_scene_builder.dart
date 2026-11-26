@@ -2,6 +2,8 @@ import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
+import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
+import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -25,9 +27,17 @@ class TrimScene {
     required this.liftSpot,
     required this.body,
     required this.timestamp,
+    this.suitLiftKg = 0,
+    this.shortySuit = false,
   });
 
   final List<TrimElement> elements;
+
+  /// The exposure suit's lift at [timestamp], spread over the body.
+  final double suitLiftKg;
+
+  /// A shorty covers no forearms or shins.
+  final bool shortySuit;
 
   /// The buoyancy model's net at [timestamp]: negative is heavy.
   final double modelNetKg;
@@ -46,6 +56,19 @@ class TrimScene {
     liftSpot: liftSpot,
     body: body,
     timestamp: timestamp,
+    suitLiftKg: suitLiftKg,
+    shortySuit: shortySuit,
+  );
+
+  /// Pitch and roll of this scene in [pose].
+  TrimResult trimIn(TrimPose pose) => computeTrim(
+    body: body,
+    pose: pose,
+    elements: elements,
+    modelNetKg: modelNetKg,
+    liftSpot: liftSpot,
+    suitLiftKg: suitLiftKg,
+    shortySuit: shortySuit,
   );
 }
 
@@ -78,7 +101,28 @@ TrimScene buildTrimScene({
     liftSpot: _liftSpot(dive.equipment),
     body: TrimBody(heightCm: heightCm, bodyMassKg: bodyMassKg),
     timestamp: at,
+    suitLiftKg: timestamp == null
+        ? _suitAtAnchor(result.input, verdict)
+        : _nearest(result.samples, at)?.suitKg ?? 0,
+    shortySuit: dive.equipment.any(
+      (i) =>
+          i.type == EquipmentType.wetsuit &&
+          i.attributes.any(
+            (a) =>
+                a.key == EquipmentAttrKeys.suitStyle && a.valueText == 'shorty',
+          ),
+    ),
   );
+}
+
+/// The suit's share of the verdict, which leads the terms when there is a
+/// suit (as the balance bar reads it).
+double _suitAtAnchor(TwinInput input, TwinVerdict verdict) {
+  if (input.suit.kind == TwinSuitKind.none) return 0;
+  final first = verdict.terms.firstOrNull;
+  return first != null && first.label == 'suit'
+      ? first.kg
+      : input.suit.anchorKg;
 }
 
 List<TrimElement> _lead(Dive dive) => [
@@ -247,13 +291,18 @@ TrimElement _tankElement({
   );
 }
 
-double _netAt(List<TwinSample> samples, int at, double fallback) {
-  if (samples.isEmpty) return fallback;
-  var best = samples.first;
+double _netAt(List<TwinSample> samples, int at, double fallback) =>
+    _nearest(samples, at)?.netKg ?? fallback;
+
+TwinSample? _nearest(List<TwinSample> samples, int at) {
+  TwinSample? best;
   for (final s in samples) {
-    if ((s.timestamp - at).abs() < (best.timestamp - at).abs()) best = s;
+    if (best == null ||
+        (s.timestamp - at).abs() < (best.timestamp - at).abs()) {
+      best = s;
+    }
   }
-  return best.netKg;
+  return best;
 }
 
 /// A wing (or a backplate's wing) lifts at mid-back; a jacket BCD's bladder
