@@ -23,6 +23,7 @@ void openMediaViewer(
   List<MediaItem> items,
   String initialMediaId, {
   String? Function(MediaItem)? captionFor,
+  Duration? initialVideoPosition,
 }) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -32,6 +33,7 @@ void openMediaViewer(
         initialMediaId: initialMediaId,
         showGoToDive: true,
         captionFor: captionFor,
+        initialVideoPosition: initialVideoPosition,
       ),
     ),
   );

@@ -64,6 +64,8 @@ void main() {
     'rule_runs': 'ruleRuns',
     'rule_run_changes': 'ruleRunChanges',
     'insight_observation_dismissals': 'insightObservationDismissals',
+    'species_covers': 'speciesCovers',
+    'species_practice': 'speciesPractice',
     'dive_computers': 'diveComputers',
     'dive_computer_connections': 'diveComputerConnections',
     'shared_library_memberships': 'sharedLibraryMemberships',

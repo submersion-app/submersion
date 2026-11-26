@@ -614,21 +614,64 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(tooltipFollowsCursor: !state.tooltipFollowsCursor);
   }
 
-  /// Set the right axis metric for this session (also un-hides it)
+  /// Set the right axis metric for this session (also un-hides it), and turn
+  /// its line on: the axis only shows a metric whose line is drawn (#5012).
   void setRightAxisMetric(ProfileRightAxisMetric? metric) {
     if (metric == null) {
       state = state.copyWith(clearRightAxisMetric: true);
     } else {
-      state = state.copyWith(rightAxisMetric: metric, rightAxisHidden: false);
+      state = _withLineOn(
+        state.copyWith(rightAxisMetric: metric, rightAxisHidden: false),
+        metric,
+      );
     }
   }
+
+  /// [s] with [metric]'s line toggled on. Pressure shows every tank, since
+  /// a tank the diver hid would keep the axis off pressure. O2 cells switch
+  /// to millivolts for this session, the unit their axis is in.
+  static ProfileLegendState _withLineOn(
+    ProfileLegendState s,
+    ProfileRightAxisMetric metric,
+  ) => switch (metric) {
+    ProfileRightAxisMetric.temperature => s.copyWith(showTemperature: true),
+    ProfileRightAxisMetric.pressure => s.copyWith(
+      showPressure: true,
+      showTankPressure: const {},
+    ),
+    ProfileRightAxisMetric.heartRate => s.copyWith(showHeartRate: true),
+    ProfileRightAxisMetric.sac => s.copyWith(showSac: true),
+    ProfileRightAxisMetric.ascentRate => s.copyWith(showAscentRateLine: true),
+    ProfileRightAxisMetric.ndl => s.copyWith(showNdl: true),
+    ProfileRightAxisMetric.ppO2 => s.copyWith(showPpO2: true),
+    ProfileRightAxisMetric.ppN2 => s.copyWith(showPpN2: true),
+    ProfileRightAxisMetric.ppHe => s.copyWith(showPpHe: true),
+    ProfileRightAxisMetric.gasDensity => s.copyWith(showDensity: true),
+    ProfileRightAxisMetric.gf => s.copyWith(showGf: true),
+    ProfileRightAxisMetric.surfaceGf => s.copyWith(showSurfaceGf: true),
+    ProfileRightAxisMetric.meanDepth => s.copyWith(showMeanDepth: true),
+    ProfileRightAxisMetric.tts => s.copyWith(showTts: true),
+    ProfileRightAxisMetric.cns => s.copyWith(showCns: true),
+    ProfileRightAxisMetric.otu => s.copyWith(showOtu: true),
+    ProfileRightAxisMetric.o2CellMv => s.copyWith(
+      showO2Cells: true,
+      o2CellUnit: O2CellUnit.millivolts,
+    ),
+    ProfileRightAxisMetric.gtr => s.copyWith(showGtr: true),
+    ProfileRightAxisMetric.buoyancy => s.copyWith(showBuoyancy: true),
+    ProfileRightAxisMetric.aveloBuoyancy => s.copyWith(showAveloBuoyancy: true),
+    ProfileRightAxisMetric.aveloGasRemaining => s.copyWith(
+      showAveloGasRemaining: true,
+    ),
+    ProfileRightAxisMetric.computerRmv => s.copyWith(showComputerRmv: true),
+  };
 
   /// Explicitly hide the right axis ("None" selection)
   void hideRightAxis() {
     state = state.copyWith(rightAxisHidden: true, clearRightAxisMetric: true);
   }
 
-  /// Get the effective right axis metric (session override or settings default).
+  /// The preferred right axis metric (session override or settings default).
   /// Returns null when the user has explicitly chosen "None".
   ProfileRightAxisMetric? getEffectiveRightAxisMetric() =>
       effectiveRightAxisMetricOf(
@@ -874,10 +917,10 @@ class ProfileLegend extends _$ProfileLegend {
   }
 }
 
-/// The right-axis metric [state] shows: none when the diver hid the axis,
-/// else the session's pick, else [defaultMetric] from settings. Shared by
-/// the chart and by the surfaces that decide whether a metric's data must
-/// be computed for the axis (#4593).
+/// The right-axis metric [state] prefers: none when the diver hid the axis,
+/// else the session's pick, else [defaultMetric] from settings. The chart
+/// shows it only while its line is drawn, and otherwise moves the axis to a
+/// line that is (#5012).
 ProfileRightAxisMetric? effectiveRightAxisMetricOf(
   ProfileLegendState state,
   ProfileRightAxisMetric defaultMetric,

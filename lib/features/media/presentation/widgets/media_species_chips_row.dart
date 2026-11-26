@@ -11,6 +11,7 @@ import 'package:submersion/features/media/presentation/editing/photo_sitting_sho
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/recorded_nearby_pin.dart';
+import 'package:submersion/features/species_id/presentation/widgets/species_crop_sheet.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/widgets/viewer_tag_chips.dart';
@@ -46,6 +47,14 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
   /// list that marks a suggestion (issue #4668); null marks none.
   final MediaItem? item;
 
+  /// Each tag opens what its species looks like on [item], its crops, as
+  /// on a locked photo or video (issue #5024); else its species page.
+  final bool tagsOpenCrops;
+
+  /// Plays the video from a time tapped on a species' crop sheet (issue
+  /// #5032); null shows no times.
+  final ValueChanged<Duration>? onMoment;
+
   const MediaSpeciesChipsRow({
     super.key,
     required this.mediaId,
@@ -53,6 +62,8 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
     this.onSuggestionTap,
     this.onMoreTap,
     this.item,
+    this.tagsOpenCrops = false,
+    this.onMoment,
   });
 
   @override
@@ -76,6 +87,8 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
       onSuggestionTap: onSuggestionTap,
       nearbyRequest: item == null ? null : nearbyRequestForMedia(item),
       overlay: true,
+      cropsOf: tagsOpenCrops ? item : null,
+      onMoment: onMoment,
     );
     if (chips.isEmpty) return const SizedBox.shrink();
     final row = Semantics(
@@ -107,23 +120,25 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
   }
 }
 
-/// The chips for [mediaId]'s species, in the order the viewer shows them:
-/// the diver's tags, the app's tags not yet confirmed, then the app's
+/// The chips for [mediaId]'s species, in the order the viewer shows them: the
+/// diver's tags, the app's tags not yet confirmed, then the app's
 /// suggestions. A tag opens its species page; the others call
-/// [onSuggestionTap], and are inert without it. [openUnconfirmed] has the
-/// app's tags open their species page instead, as the diver's do. A
-/// suggestion on the "Recorded nearby" list read for [nearbyRequest] ends
-/// with a pin. [overlay] draws them as the viewer's compact chips over the
-/// picture, under a [ViewerTagChips.theme] (issue #4921).
+/// [onSuggestionTap], and are inert without it. A suggestion on the "Recorded
+/// nearby" list read for [nearbyRequest] ends with a pin. [overlay] draws
+/// them as the viewer's compact chips over the picture, under a
+/// [ViewerTagChips.theme] (issue #4921). With [cropsOf], every tag, the
+/// diver's or the app's, opens its species' crops on that photo or video
+/// instead (issue #5024); suggestions are unchanged.
 List<Widget> speciesChipWidgets(
   BuildContext context,
   WidgetRef ref,
   String mediaId,
   EditSession<PhotoRecord>? sitting, {
   VoidCallback? onSuggestionTap,
-  bool openUnconfirmed = false,
   NearbyListRequest? nearbyRequest,
   bool overlay = false,
+  MediaItem? cropsOf,
+  ValueChanged<Duration>? onMoment,
 }) {
   final l10n = context.l10n;
   final chips = speciesChipsShown(ref, mediaId, sitting);
@@ -135,6 +150,15 @@ List<Widget> speciesChipWidgets(
       : Theme.of(context).colorScheme.outline;
   final density = overlay ? ViewerTagChips.density : VisualDensity.compact;
   final iconSize = overlay ? ViewerTagChips.iconSize : 16.0;
+  VoidCallback openTag(SpeciesTagChip chip) => cropsOf == null
+      ? () => context.push('/species/${chip.speciesId}')
+      : () => openSpeciesCrops(
+          context,
+          ref,
+          item: cropsOf,
+          chip: chip,
+          onMoment: onMoment,
+        );
   return [
     for (final chip in chips)
       if (!chip.unconfirmed)
@@ -145,7 +169,7 @@ List<Widget> speciesChipWidgets(
           label: Text(
             localizedSpeciesName(l10n, chip.speciesId, chip.storedName),
           ),
-          onPressed: () => context.push('/species/${chip.speciesId}'),
+          onPressed: openTag(chip),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           visualDensity: density,
         ),
@@ -154,9 +178,7 @@ List<Widget> speciesChipWidgets(
       if (chip.unconfirmed)
         _UnconfirmedChip(
           chip: chip,
-          onTap: openUnconfirmed
-              ? () => context.push('/species/${chip.speciesId}')
-              : onSuggestionTap,
+          onTap: cropsOf != null ? openTag(chip) : onSuggestionTap,
           overlay: overlay,
         ),
     for (final s in suggestions)

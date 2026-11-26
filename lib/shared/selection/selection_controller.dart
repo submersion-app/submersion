@@ -48,6 +48,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
   /// user's work.
   void enterExplicit() {
     if (value.isActive) return;
+    _edits++;
     value = const SelectionState(
       checkedIds: <String>{},
       isActive: true,
@@ -74,6 +75,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
       toggle(id);
       return;
     }
+    _edits++;
     value = SelectionState(
       checkedIds: {?seedId, id},
       isActive: true,
@@ -86,6 +88,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
   ///
   /// Unchecking the last item ends an implicitly entered mode.
   void toggle(String id) {
+    _edits++;
     final next = Set<String>.from(value.checkedIds);
     if (!next.remove(id)) next.add(id);
 
@@ -108,6 +111,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
     String? fallbackAnchorId,
   }) {
     if (!orderedIds.contains(targetId)) return;
+    _edits++;
 
     // A stale anchor -- a highlighted row that a filter change pushed out of
     // the visible list, say -- yields an empty range. Fall back to anchoring
@@ -138,6 +142,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
   /// checks the diver kept through a filter change.
   void selectAll(List<String> selectableIds) {
     if (!_rowsSettled.value) return;
+    _edits++;
     value = SelectionState(
       checkedIds: Set<String>.from(selectableIds),
       isActive: true,
@@ -145,6 +150,33 @@ class SelectionController extends ValueNotifier<SelectionState> {
       anchorId: value.anchorId,
     );
   }
+
+  /// [selectAll] over the ids [loadAllIds] returns, for a paged surface whose
+  /// loaded rows are not every row (issue #5022).
+  ///
+  /// [loadAllIds] loads the rows not loaded yet and returns every id, or
+  /// null when a read failed and some rows are still missing: checking only
+  /// those that loaded would let a bulk action miss the rest without anyone
+  /// seeing, so nothing new is checked and the surface says why. A diver
+  /// who changes the selection while it runs (checks or unchecks a row,
+  /// deselects all, leaves the mode) has made a newer choice, so the ids that
+  /// arrive afterwards check nothing, as they do once the surface has gone
+  /// and disposed this controller. A prune is not the diver's choice and
+  /// does not count.
+  Future<void> selectAllAfterLoading(
+    Future<List<String>?> Function() loadAllIds,
+  ) async {
+    final edits = _edits;
+    final ids = await loadAllIds();
+    if (ids == null || _disposed || _edits != edits) return;
+    selectAll(ids);
+  }
+
+  /// Bumped by every change the diver makes, so a load started before one
+  /// can tell.
+  int _edits = 0;
+
+  bool _disposed = false;
 
   /// Replace the checked set with [ids], leaving the entry mode alone.
   ///
@@ -163,6 +195,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
   /// into selection by their Select control -- but the branch is kept so a
   /// future grid gesture cannot silently declare itself deliberate.
   void replaceChecked(List<String> ids) {
+    _edits++;
     final next = ids.toSet();
 
     if (!value.isActive) {
@@ -188,6 +221,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
   /// Ending the implicit mode here is the same rule as unchecking the last
   /// item by hand, so the two paths cannot disagree.
   void deselectAll() {
+    _edits++;
     if (!value.enteredExplicitly) {
       exit();
       return;
@@ -251,11 +285,13 @@ class SelectionController extends ValueNotifier<SelectionState> {
 
   /// Leave selection mode and discard the selection.
   void exit() {
+    _edits++;
     value = SelectionState.inactive;
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _rowsSettled.dispose();
     super.dispose();
   }

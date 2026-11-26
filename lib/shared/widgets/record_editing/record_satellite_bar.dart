@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 /// The top bar of a satellite page (a passport, the cylinder board) that
@@ -36,7 +36,7 @@ class RecordSatelliteBar extends StatelessWidget
       shape: style.shape,
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       actions: [
-        AppBarTextAction(
+        RecordEditAction(
           label: context.l10n.common_action_done,
           onPressed: onDone,
         ),

@@ -13,7 +13,7 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
@@ -747,7 +747,7 @@ void main() {
       expect(find.byType(RecordEditBar), findsOneWidget);
       expect(find.text('New Pre-Dive Checklist'), findsOneWidget);
       final save = tester
-          .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+          .widgetList<RecordEditAction>(find.byType(RecordEditAction))
           .firstWhere((a) => a.label == 'Save');
       expect(save.onPressed, isNull);
     });

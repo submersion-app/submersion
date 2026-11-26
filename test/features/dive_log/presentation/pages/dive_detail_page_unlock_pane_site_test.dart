@@ -5,7 +5,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_locations
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/test_database.dart';
@@ -57,7 +57,7 @@ void main() {
   }
 
   Finder saveAction() =>
-      find.byWidgetPredicate((w) => w is AppBarTextAction && w.label == 'Save');
+      find.byWidgetPredicate((w) => w is RecordEditAction && w.label == 'Save');
 
   testWidgets('with unsaved changes the hero\'s site link asks: Keep editing '
       'stays on the dive, Discard shows the site', (tester) async {

@@ -26,7 +26,7 @@ import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 /// Records the create/update/delete calls the edit form makes and loads a
 /// fixed result (or throws) for `getIncidentById`, so every page path can be
@@ -246,7 +246,7 @@ void main() {
     // writing something else so there is a change to save.
     await tester.enterText(find.byType(TextFormField).at(1), 'Cold water.');
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
 
     expect(find.text('Describe what happened'), findsOneWidget);
@@ -271,7 +271,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).first, 'Lost a fin');
     await tester.pump();
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
 
     expect(
@@ -280,8 +280,8 @@ void main() {
     );
     expect(find.text('Lost a fin'), findsOneWidget);
     expect(find.text('LIST'), findsNothing);
-    final save = tester.widget<AppBarTextAction>(
-      find.widgetWithText(AppBarTextAction, 'Save'),
+    final save = tester.widget<RecordEditAction>(
+      find.widgetWithText(RecordEditAction, 'Save'),
     );
     expect(save.onPressed, isNotNull);
   });
@@ -306,7 +306,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pump();
 
     router.pop();
@@ -365,7 +365,7 @@ void main() {
     await tester.tap(find.text('Serious'));
     await tester.pump();
 
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
 
     expect(repo.changes, isNotNull);
@@ -405,7 +405,7 @@ void main() {
         find.byType(TextFormField).first,
         'Ran low on gas on the safety stop.',
       );
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
       await tester.pumpAndSettle();
 
       expect(repo.created, isNotNull);
@@ -572,7 +572,7 @@ void main() {
         find.byType(TextFormField).first,
         'Second stage free-flowed at depth.',
       );
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
       await tester.pumpAndSettle();
       expect(repo.created!.equipmentId, 'reg');
       expect(repo.created!.category, IncidentCategory.equipment);
@@ -648,7 +648,7 @@ void main() {
       find.byType(TextFormField).first,
       'Tank valve stuck half open.',
     );
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
     expect(repo.created!.equipmentId, 'cyl');
   });
@@ -736,7 +736,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Jet Fins'));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
       await tester.pumpAndSettle();
       expect(requests, [
         {'reg', 'fins'},

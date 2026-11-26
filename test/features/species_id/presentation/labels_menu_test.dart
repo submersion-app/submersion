@@ -42,12 +42,13 @@ void main() {
     bool busy = false,
     double? progress,
     bool warm = true,
+    Locale locale = const Locale('en'),
   }) async {
     final shown = item ?? testMediaItem(id: 'm1');
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           ...overrides,
           mediaIdentificationServiceProvider.overrideWithValue(service),
@@ -116,12 +117,39 @@ void main() {
 
   testWidgets('checks the mode in force', (tester) async {
     await open(tester, mode: LabelMode.allLife);
-    expect(find.text('Names'), findsOneWidget);
-    expect(find.text('All life'), findsOneWidget);
-    expect(find.text('Off'), findsOneWidget);
+    // Each mode says what it draws (issue #5023): bare "All life" read as
+    // "a whole lifetime" once translated.
+    expect(find.text('Names and likely animals'), findsOneWidget);
+    expect(find.text('Everything detected'), findsOneWidget);
+    expect(find.text('No labels'), findsOneWidget);
     expect(checked(tester, 'all_life'), isTrue);
     expect(checked(tester, 'names'), isFalse);
     expect(checked(tester, 'off'), isFalse);
+  });
+
+  testWidgets('in French each mode says what it draws (issue #5023)', (
+    tester,
+  ) async {
+    await open(tester, locale: const Locale('fr'));
+    expect(find.text('Noms et animaux probables'), findsOneWidget);
+    expect(find.text('Tout ce qui est détecté'), findsOneWidget);
+    expect(find.text('Aucune étiquette'), findsOneWidget);
+    expect(find.text('Toute la vie'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('at a large text size on a phone the Analyse row wraps', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(360, 640)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await open(tester);
+    expect(find.text('Analyse again'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a mode picked is the one in force', (tester) async {

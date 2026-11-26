@@ -104,19 +104,20 @@ void main() {
     expect(got.inputs.curve!.every((v) => v != null), isTrue);
   });
 
-  testWidgets('runs the model for a buoyancy right axis with the line off', (
+  testWidgets('a buoyancy right axis alone does not run the model', (
     tester,
   ) async {
-    // Every other right-axis metric reads without its line shown; without
-    // the curve this axis would silently fall back to another metric.
+    // The right axis only reads a metric whose line is drawn (#5012), so
+    // with the line off it moves elsewhere and needs no curve.
     final got = await pump(
       tester,
       lineOn: false,
       modelable: true,
       defaultRightAxis: ProfileRightAxisMetric.buoyancy,
     );
-    expect(got.runs, 1);
-    expect(got.inputs.curve, hasLength(3));
+    expect(got.runs, 0);
+    expect(got.inputs.available, isTrue);
+    expect(got.inputs.curve, isNull);
   });
 
   testWidgets('an unmodelable dive offers nothing and runs nothing', (

@@ -11,7 +11,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
@@ -116,12 +116,12 @@ void main() {
     return tester.state<FakeEditorState>(find.byType(FakeEditorPage));
   }
 
-  AppBarTextAction saveButton(WidgetTester tester) => tester
-      .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+  RecordEditAction saveButton(WidgetTester tester) => tester
+      .widgetList<RecordEditAction>(find.byType(RecordEditAction))
       .firstWhere((a) => a.label == 'Save');
 
   Future<void> tapSave(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
   }
 
@@ -153,7 +153,7 @@ void main() {
     tester,
   ) async {
     await pump(tester);
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('list'), findsOneWidget);
@@ -165,7 +165,7 @@ void main() {
   ) async {
     await pump(tester);
     await type(tester, 'changed');
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsOneWidget);
     await tester.tap(find.text('Keep editing'));
@@ -422,7 +422,7 @@ void main() {
     testWidgets('Cancel with a change asks once, then leaves', (tester) async {
       await pump(tester, onExit: true);
       await type(tester, 'changed');
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsOneWidget);
       await tester.tap(find.text('Discard'));
@@ -467,7 +467,7 @@ void main() {
     // The diver is being worked out again, as after a divers-table
     // change: Save waits for it.
     container.invalidate(validatedCurrentDiverIdProvider);
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pump();
     // The bar shows the save in progress meanwhile, so the page never
     // settles until the diver is known: step the frames instead.
@@ -493,7 +493,7 @@ void main() {
     // The diver is being worked out again, as after a divers-table
     // change: Save waits for it.
     container.invalidate(validatedCurrentDiverIdProvider);
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pump();
     probe.valid = false;
     gate.complete('a');
@@ -540,12 +540,12 @@ void main() {
     // The diver is being worked out again, as after a divers-table
     // change: Save waits for it.
     container.invalidate(validatedCurrentDiverIdProvider);
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pump();
     final bar = tester.widget<RecordEditBar>(find.byType(RecordEditBar));
     expect(bar.isSaving, isTrue);
     final cancel = tester
-        .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+        .widgetList<RecordEditAction>(find.byType(RecordEditAction))
         .firstWhere((a) => a.label == 'Cancel');
     expect(cancel.onPressed, isNull);
     gate.complete('a');
@@ -583,7 +583,7 @@ void main() {
     container.invalidate(validatedCurrentDiverIdProvider);
     // No field holds the focus, so Escape is the page's cancel key.
     FocusManager.instance.primaryFocus?.unfocus();
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pump();

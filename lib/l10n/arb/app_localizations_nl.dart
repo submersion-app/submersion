@@ -19295,6 +19295,47 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan waarnemingsstatistieken niet laden';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'Eerst gezien';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'Laatst gezien';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => 'Diepte en seizoen';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'Fotodieptes';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth => 'Maximale duikdiepte';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'Duiken per maand';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'Tijdlijn';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'Als omslag gebruiken';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'Omslag verwijderen';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'Omslag';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'Foto\'s zoeken';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'Foto of video openen';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'Duik op $date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Klasse: $className';
   }
@@ -19635,6 +19676,131 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'Opnieuw proberen';
+
+  @override
+  String get marineLife_speciesPage_headerSpecies => 'Soorten';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'Nieuw in $year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'Groei van de soortenlijst';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zonder foto',
+      one: '1 zonder foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'Groeperen op';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'Geen groepering';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'Categorie';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen =>
+      'Jaar van eerste waarneming';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'Reis';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'Duikstek';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'Geen reis';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'Geen duikstek';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'Alles tonen';
+
+  @override
+  String get marineLife_speciesPage_showList => 'Als lijst tonen';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'Als kaarten tonen';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip =>
+      'Soorten herkennen oefenen';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere =>
+      'Hier voor het eerst gezien';
+
+  @override
+  String get marineLife_rarity_new => 'Nieuw';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'Eén keer gezien';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'Lang niet gezien';
+
+  @override
+  String get marineLife_rarity_mastered => 'Beheerst';
+
+  @override
+  String get marineLife_practice_title => 'Herkenning oefenen';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'Om te oefenen heb je minstens 4 soorten met een bevestigde fotouitsnede nodig. Label en bevestig foto\'s van de soorten die je hebt gezien en kom dan terug.';
+
+  @override
+  String get marineLife_practice_back => 'Terug naar soorten';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current van $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'Welke soort is dit?';
+
+  @override
+  String get marineLife_practice_scientificNames => 'Wetenschappelijke namen';
+
+  @override
+  String get marineLife_practice_right => 'Goed';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'Bijna: het was $name';
+  }
+
+  @override
+  String get marineLife_practice_next => 'Volgende';
+
+  @override
+  String get marineLife_practice_finish => 'Resultaten bekijken';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right van $total goed';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'Nog eens oefenen';
+
+  @override
+  String get marineLife_practice_again => 'Opnieuw oefenen';
+
+  @override
+  String get marineLife_practice_done => 'Klaar';
 
   @override
   String get speciesMap_title => 'Soortenkaart';
@@ -22366,12 +22532,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_chartMode_bailout => 'Bailout';
-
-  @override
-  String get plannerCanvas_chartMode_ccr => 'CCR';
-
-  @override
-  String get plannerCanvas_chartMode_scr => 'SCR';
 
   @override
   String plannerCanvas_scrub_tts(String minutes) {
@@ -26644,6 +26804,29 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_mediaIdentifications_decisionHlc =>
       'Beslissingsklok';
+
+  @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'Omslaguitsnede';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'Oefenbak';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt =>
+      'Oefening gepland';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'Goed benoemd';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'Fout benoemd';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'Laatst geoefend';
 
   @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg =>
@@ -45717,6 +45900,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'Alles deselecteren';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'Niet alle items konden worden geladen, dus Alles selecteren is niet toegepast. Probeer het opnieuw.';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -55899,13 +56086,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_labels_action => 'Labels voor soorten';
 
   @override
-  String get media_labels_names => 'Namen';
+  String get media_labels_names => 'Namen en waarschijnlijke dieren';
 
   @override
-  String get media_labels_allLife => 'Al het leven';
+  String get media_labels_allLife => 'Alles wat is gedetecteerd';
 
   @override
-  String get media_labels_off => 'Uit';
+  String get media_labels_off => 'Geen labels';
 
   @override
   String get media_labels_analyse => 'Analyseren';
@@ -55981,7 +56168,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Al het leven tonen';
+  String get media_labels_showAllLife => 'Alles tonen wat is gedetecteerd';
 
   @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';
@@ -55989,6 +56176,59 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_species_cropUnavailable =>
       'Afbeelding staat niet op dit apparaat';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count op deze foto',
+      one: '$count op deze foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count in deze video',
+      one: '$count in deze video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown beste van $count waarnemingen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => 'Gezien op';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start tot $end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return 'Afspelen vanaf $time';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'Soortpagina';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'Afbeelding $index van $count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'Getagd op deze foto';

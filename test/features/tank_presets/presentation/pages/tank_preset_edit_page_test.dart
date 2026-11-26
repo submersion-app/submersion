@@ -15,7 +15,7 @@ import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 
@@ -397,10 +397,10 @@ void main() {
       if (settle) await tester.pumpAndSettle();
     }
 
-    Finder saveAction() => find.widgetWithText(AppBarTextAction, 'Save');
+    Finder saveAction() => find.widgetWithText(RecordEditAction, 'Save');
 
     VoidCallback? saveOnPressed(WidgetTester tester) =>
-        tester.widget<AppBarTextAction>(saveAction()).onPressed;
+        tester.widget<RecordEditAction>(saveAction()).onPressed;
 
     Future<void> back(WidgetTester tester) async {
       final navigator = tester.state<NavigatorState>(find.byType(Navigator));

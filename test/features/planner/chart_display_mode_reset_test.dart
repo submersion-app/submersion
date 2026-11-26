@@ -9,7 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../helpers/mock_providers.dart';
 
-/// The chart's Bailout/CCR toggle belongs to the plan it was chosen on. It
+/// The chart's Bailout toggle belongs to the plan it was chosen on. It
 /// resets on its own when the plan changes, with no chart mounted: a diver
 /// who leaves the canvas, opens another plan and comes back must not land on
 /// a Bailout view they never chose for that plan (#3130 follow-up).

@@ -202,6 +202,7 @@ import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_routes.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_map_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_practice_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
@@ -2322,6 +2323,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // The species page opened on a new species (issue #4527, plan
                 // 11).
                 builder: (context, state) => newSpeciesPage(),
+              ),
+              // ID practice (issue #5027). Before `:speciesId`, which would
+              // take it for an id.
+              GoRoute(
+                path: 'practice',
+                name: 'speciesPractice',
+                builder: (context, state) => const SpeciesPracticePage(),
               ),
               // Species to review (issue #4727): one dive with `?dive=`,
               // else the whole log. Before `:speciesId`, which would take

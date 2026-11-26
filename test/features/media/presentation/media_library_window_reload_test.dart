@@ -113,6 +113,20 @@ void main() {
     });
   });
 
+  // Issue #5022: Select All loads every row first.
+  test('loadRest loads every row past the loaded pages', () async {
+    await seed(pageSize * 3 + 7);
+    await notifier().loadFirstPage();
+    expect(ids(), hasLength(pageSize));
+
+    final returned = await notifier().loadRest();
+
+    expect(ids(), hasLength(pageSize * 3 + 7));
+    expect(returned, ids());
+    expect(ids().toSet(), hasLength(ids().length), reason: 'no repeats');
+    expect(container.read(mediaLibraryNotifierProvider).hasMore, isFalse);
+  });
+
   test('a new row leaves a fully loaded library whole', () async {
     await seed(pageSize + 5);
     await notifier().loadFirstPage();

@@ -78,6 +78,15 @@ What is stored:
 - Crops of named identifications: the main database,
   `media_identification_crops`, synced. Crops of unnamed ones:
   `<application support>/species_id/crops/`, this device only.
+- A video keeps only the clearest crops of each species (issue #5032):
+  `videoCropsToDrop` keeps 3 named and 3 unnamed per group
+  (`cropGroupKey`, the best name's GBIF key), named ones ranked accepted,
+  then suggestable, then the rest, by box size; claimed tracks always keep
+  theirs. Rows are never trimmed, only crops. `VideoCropCapper` applies it
+  after each scan chunk, after a scan and after a rename, and
+  `trimVideoCropsAtLaunch` for what is already stored. Readiness counts a
+  track's crop per group, and `identificationCropProvider` shows a dropped
+  one's largest kept crop of the group instead.
 - Crop embeddings: the device-local cache, `identification_embeddings`.
   Never synced.
 - The installed pack: `<application support>/species_id/pack/`, excluded
@@ -816,7 +825,9 @@ another one found.
   holds on every device.
 - **At launch,** `fillIdentificationNamingBarsAtLaunch` gives this
   device's old runs the installed pack's bars, and
-  `backfillNamedCropsAtLaunch` moves its named crop files into the table.
+  `backfillNamedCropsAtLaunch` moves its named crop files into the table,
+  then `trimVideoCropsAtLaunch` caps the crops of each video. Only the
+  device that made a run deletes its synced crops, with tombstones.
 
 ## Memory readout
 

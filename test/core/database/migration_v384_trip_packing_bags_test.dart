@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v382 packed gear stays on the trip and starts unassigned', () async {
+  test('v383 packed gear stays on the trip and starts unassigned', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 382');
+          rawDb.execute('PRAGMA user_version = 383');
           rawDb.execute('''
             CREATE TABLE trip_equipment (
               id TEXT NOT NULL PRIMARY KEY,
@@ -31,6 +31,6 @@ void main() {
     expect(row.read<String>('trip_id'), 'trip');
     expect(row.read<String>('equipment_id'), 'wing');
     expect(row.readNullable<String>('bag_equipment_id'), isNull);
-    expect(AppDatabase.migrationVersions, contains(383));
+    expect(AppDatabase.migrationVersions, contains(384));
   });
 }

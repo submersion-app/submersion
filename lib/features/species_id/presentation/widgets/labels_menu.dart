@@ -216,10 +216,14 @@ Future<void> showMarineLifeLabelsMenu(
             children: [
               const Icon(Icons.refresh),
               const SizedBox(width: 12),
-              Text(
-                model.action == AnalyseAction.analyseAgain
-                    ? l10n.media_labels_analyseAgain
-                    : l10n.media_labels_analyse,
+              // Wraps once the menu is at its widest: a long translation or
+              // a large text size would overflow it (issue #5023).
+              Flexible(
+                child: Text(
+                  model.action == AnalyseAction.analyseAgain
+                      ? l10n.media_labels_analyseAgain
+                      : l10n.media_labels_analyse,
+                ),
               ),
             ],
           ),

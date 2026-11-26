@@ -18721,6 +18721,47 @@ class AppLocalizationsJa extends AppLocalizations {
   String get marineLife_speciesDetail_statsError => '観察統計を読み込めませんでした';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => '初めて見た日';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => '最後に見た日';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => '水深と季節';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => '写真の水深';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth => 'ダイブの最大水深';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => '月別のダイブ数';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'タイムライン';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => '表紙に使う';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => '表紙を外す';
+
+  @override
+  String get marineLife_speciesDetail_cover => '表紙';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => '写真を探す';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => '写真または動画を開く';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return '$dateのダイブ';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return '綱：$className';
   }
@@ -19047,6 +19088,127 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => '再試行';
+
+  @override
+  String get marineLife_speciesPage_headerSpecies => '種';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return '$year年の新種';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => '種リストの推移';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '写真なし$count種',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'グループ化';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'グループ化しない';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'カテゴリ';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => '初めて見た年';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => '旅行';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'ダイブサイト';
+
+  @override
+  String get marineLife_speciesPage_noTrip => '旅行なし';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'ダイブサイトなし';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'すべて表示';
+
+  @override
+  String get marineLife_speciesPage_showList => 'リスト表示';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'カード表示';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip => '種の名前を練習';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'ここで初めて見た';
+
+  @override
+  String get marineLife_rarity_new => '新規';
+
+  @override
+  String get marineLife_rarity_seenOnce => '1回だけ';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'しばらく見ていない';
+
+  @override
+  String get marineLife_rarity_mastered => '習得済み';
+
+  @override
+  String get marineLife_practice_title => '種の識別練習';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      '練習するには、確認済みの写真の切り抜きがある種が4種以上必要です。見た種の写真にタグを付けて確認してから、もう一度お試しください。';
+
+  @override
+  String get marineLife_practice_back => '種に戻る';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'この種は何ですか?';
+
+  @override
+  String get marineLife_practice_scientificNames => '学名';
+
+  @override
+  String get marineLife_practice_right => '正解';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return '惜しい: 正解は$name';
+  }
+
+  @override
+  String get marineLife_practice_next => '次へ';
+
+  @override
+  String get marineLife_practice_finish => '結果を見る';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$total問中$right問正解';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'もう一度練習';
+
+  @override
+  String get marineLife_practice_again => 'もう一度練習する';
+
+  @override
+  String get marineLife_practice_done => '完了';
 
   @override
   String get speciesMap_title => '生物マップ';
@@ -21686,12 +21848,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get plannerCanvas_chartMode_bailout => 'ベイルアウト';
-
-  @override
-  String get plannerCanvas_chartMode_ccr => 'CCR';
-
-  @override
-  String get plannerCanvas_chartMode_scr => 'SCR';
 
   @override
   String plannerCanvas_scrub_tts(String minutes) {
@@ -25690,6 +25846,25 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_conflict_field_mediaIdentifications_decisionHlc =>
       '判定のクロック';
+
+  @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      '表紙の切り抜き';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => '練習ボックス';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => '練習予定日';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount => '正解回数';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount => '不正解回数';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt => '最終練習日';
 
   @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => '切り抜き';
@@ -44070,6 +44245,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'すべての選択を解除';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'すべての項目を読み込めなかったため、すべて選択は適用されませんでした。もう一度お試しください。';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -53947,13 +54126,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_labels_action => '種のラベル';
 
   @override
-  String get media_labels_names => '名前';
+  String get media_labels_names => '名前と可能性の高い動物';
 
   @override
-  String get media_labels_allLife => 'すべての生物';
+  String get media_labels_allLife => '検出されたものすべて';
 
   @override
-  String get media_labels_off => 'オフ';
+  String get media_labels_off => 'ラベルなし';
 
   @override
   String get media_labels_analyse => '解析';
@@ -54026,13 +54205,66 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'すべての生物を表示';
+  String get media_labels_showAllLife => '検出されたものをすべて表示';
 
   @override
   String get media_species_possibleMatches => '一致する可能性のある種';
 
   @override
   String get media_species_cropUnavailable => '画像がこのデバイスにありません';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'この写真に$count件',
+      one: 'この写真に$count件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'この動画に$count件',
+      one: 'この動画に$count件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の目撃のうち上位$shown件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => '見られた時刻';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start〜$end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return '$timeから再生';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => '種のページ';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return '画像 $index/$count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'この写真でタグ付け済み';

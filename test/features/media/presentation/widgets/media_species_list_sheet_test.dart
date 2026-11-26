@@ -15,6 +15,8 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../species_id/domain/identification_rules_fixtures.dart'
+    show ruleId;
 import '../../../species_id/presentation/species_id_fakes.dart';
 import '../support/media_widget_harness.dart';
 
@@ -32,6 +34,13 @@ void main() {
   const tang = SpeciesTagChip(
     speciesId: 'sp_blue_tang',
     storedName: 'Blue Tang',
+    category: SpeciesCategory.fish,
+    isBuiltIn: false,
+  );
+
+  const handTag = SpeciesTagChip(
+    speciesId: 'sp_hand',
+    storedName: 'Hand Tagged',
     category: SpeciesCategory.fish,
     isBuiltIn: false,
   );
@@ -79,7 +88,21 @@ void main() {
           ...overrides,
           mediaTagChipsProvider(
             'p1',
-          ).overrideWith((ref) async => const [tang, appTag]),
+          ).overrideWith((ref) async => const [tang, appTag, handTag]),
+          mediaIdentificationRepositoryProvider.overrideWithValue(
+            FixedIdentifications([
+              for (final (id, species) in [
+                ('a', 'sp_blue_tang'),
+                ('b', 'sp_rock_beauty'),
+              ])
+                ruleId(
+                  id,
+                  decision: IdentificationDecision.accepted,
+                  decidedSpeciesId: species,
+                ),
+            ]),
+          ),
+          identificationCropProvider.overrideWith((ref, key) async => null),
           mediaSuggestionsProvider('p1').overrideWith(
             (ref) async => <SpeciesSuggestion>[
               suggestion(chromis, score: 0.71),
@@ -115,11 +138,20 @@ void main() {
     expect(find.text('Species in this video'), findsOneWidget);
   });
 
-  testWidgets('a tag opens its species page', (tester) async {
+  // The list is only shown while the photo is locked (issue #5024).
+  testWidgets('a tag opens its crops', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Blue Tang'));
     await tester.pumpAndSettle();
-    expect(find.text('DETAIL sp_blue_tang'), findsOneWidget);
+    expect(find.byKey(const ValueKey('species_crop_sheet')), findsOneWidget);
+    expect(find.text('DETAIL sp_blue_tang'), findsNothing);
+  });
+
+  testWidgets('a tag with no crop opens its species page', (tester) async {
+    await pump(tester);
+    await tester.tap(find.text('Hand Tagged'));
+    await tester.pumpAndSettle();
+    expect(find.text('DETAIL sp_hand'), findsOneWidget);
   });
 
   testWidgets('a suggestion is shown but does nothing', (tester) async {
@@ -133,13 +165,11 @@ void main() {
     expect(chip.onPressed, isNull);
   });
 
-  testWidgets('a tag the app applied opens its species page too', (
-    tester,
-  ) async {
+  testWidgets('a tag the app applied opens its crops too', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Rock Beauty'));
     await tester.pumpAndSettle();
-    expect(find.text('DETAIL sp_rock_beauty'), findsOneWidget);
+    expect(find.byKey(const ValueKey('species_crop_sheet')), findsOneWidget);
   });
 
   testWidgets('a suggestion recorded near the dive carries the pin '

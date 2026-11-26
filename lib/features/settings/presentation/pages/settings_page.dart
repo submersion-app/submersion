@@ -36,6 +36,7 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/theme/brand_typography.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -2230,7 +2231,9 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                 const SizedBox(height: 16),
                 Text(
                   context.l10n.settings_about_appName,
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  style: BrandTypography.wordmark(
+                    Theme.of(context).textTheme.headlineSmall,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 GestureDetector(

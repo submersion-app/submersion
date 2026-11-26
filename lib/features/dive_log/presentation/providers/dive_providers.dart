@@ -1125,8 +1125,23 @@ class PaginatedDiveListNotifier
   /// list reaches the last dive rather than the last loaded one (#3302).
   /// Asks for a page more than the count left; a count lagging rows written
   /// since leaves that read full, and the next one picks up the rest.
-  Future<void> loadRest() => _enqueuePaging(() async {
-    while (mounted) {
+  ///
+  /// The query is the one on screen when this is asked for. A filter, sort or
+  /// diver changed before or while it runs queues its own reload; reading on
+  /// would page the new query from the old one's cursor, so it stops.
+  Future<void> loadRest() {
+    final filterLoads = _filterLoads;
+    final diverSwitches = _diverSwitches;
+    final sort = _ref.read(diveSortProvider);
+    bool queryChanged() =>
+        filterLoads != _filterLoads ||
+        diverSwitches != _diverSwitches ||
+        sort != _ref.read(diveSortProvider);
+    return _enqueuePaging(() => _loadRest(queryChanged));
+  }
+
+  Future<void> _loadRest(bool Function() queryChanged) async {
+    while (mounted && !queryChanged()) {
       final current = state.valueOrNull;
       if (current == null || !current.hasMore) return;
       final missing = current.totalCount - current.dives.length;
@@ -1138,7 +1153,7 @@ class PaginatedDiveListNotifier
       // A failed read raises the flag; the Retry row takes it from there.
       if (state.valueOrNull?.loadMoreFailed ?? true) return;
     }
-  });
+  }
 
   /// A [jump] comes from [loadThrough] or [loadRest]: it keeps the spinner
   /// flag of a page load queued behind it, and preloads profiles around its

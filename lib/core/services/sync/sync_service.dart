@@ -2147,6 +2147,18 @@ class SyncService {
             records: data.mediaIdentificationCrops,
             hasUpdatedAt: false,
           ),
+          // Species covers and practice (v383, issue #5027): after species
+          // and media. Deterministic ids, so last writer wins by clock.
+          (
+            type: 'speciesCovers',
+            records: data.speciesCovers,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'speciesPractice',
+            records: data.speciesPractice,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'siteFeatures',
             records: data.siteFeatures,
@@ -3229,6 +3241,8 @@ class SyncService {
     'ruleRuns': true,
     'ruleRunChanges': true,
     'insightObservationDismissals': true,
+    'speciesCovers': true,
+    'speciesPractice': true,
     'species': false,
     'tags': true,
     'courses': true,
@@ -3760,6 +3774,13 @@ class SyncService {
     ],
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),
+      (field: 'speciesId', parent: 'species', nullable: false),
+    ],
+    // v383 (issue #5027): media and identification are soft references a
+    // stale cover ignores, so only the species is checked; diverId is left
+    // to repairDanglingForeignKeys like every diver key.
+    'speciesCovers': [(field: 'speciesId', parent: 'species', nullable: false)],
+    'speciesPractice': [
       (field: 'speciesId', parent: 'species', nullable: false),
     ],
     // v326: people tagged on photos and videos (issue #1745). buddyId is

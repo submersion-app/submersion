@@ -17,7 +17,7 @@ import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/pages/rule_edit_page.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
@@ -75,7 +75,7 @@ void main() {
   Future<void> save(WidgetTester tester) async {
     // The bar's Save enables on the frame after the edit.
     await tester.pump();
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 100)),
     );
@@ -194,8 +194,8 @@ void main() {
     await pumpEditor(tester);
     await tester.enterText(find.byKey(const ValueKey('rule_name')), 'Empty');
     await tester.pump();
-    final button = tester.widget<AppBarTextAction>(
-      find.widgetWithText(AppBarTextAction, 'Save'),
+    final button = tester.widget<RecordEditAction>(
+      find.widgetWithText(RecordEditAction, 'Save'),
     );
     expect(button.onPressed, isNull);
   });
@@ -256,7 +256,7 @@ void main() {
     });
     await pumpEditor(tester, ruleId: id);
     expect(find.textContaining('Made by a newer version'), findsOneWidget);
-    expect(find.widgetWithText(AppBarTextAction, 'Save'), findsNothing);
+    expect(find.widgetWithText(RecordEditAction, 'Save'), findsNothing);
   });
 
   testWidgets('Save waits while the condition text does not parse', (
@@ -280,8 +280,8 @@ void main() {
       of: find.byKey(const ValueKey('rule_condition_dives')),
       matching: find.byType(TextField),
     );
-    AppBarTextAction save() =>
-        tester.widget(find.widgetWithText(AppBarTextAction, 'Save'));
+    RecordEditAction save() =>
+        tester.widget(find.widgetWithText(RecordEditAction, 'Save'));
 
     await tester.enterText(field, 'depth > 30 and site = "Nowhere"');
     await tester.pumpAndSettle();
@@ -359,8 +359,8 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('rule_action_ok')));
     await tester.pumpAndSettle();
-    final save = tester.widget<AppBarTextAction>(
-      find.widgetWithText(AppBarTextAction, 'Save'),
+    final save = tester.widget<RecordEditAction>(
+      find.widgetWithText(RecordEditAction, 'Save'),
     );
     expect(save.onPressed, isNotNull);
   });

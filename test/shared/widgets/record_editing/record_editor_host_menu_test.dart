@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
@@ -90,8 +90,8 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  AppBarTextAction barAction(WidgetTester tester, String label) => tester
-      .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+  RecordEditAction barAction(WidgetTester tester, String label) => tester
+      .widgetList<RecordEditAction>(find.byType(RecordEditAction))
       .firstWhere((a) => a.label == label);
 
   Future<void> type(WidgetTester tester, String value) async {
@@ -119,7 +119,7 @@ void main() {
         ..seedFrom = '';
       await pump(tester, storedId: null);
       expect(barAction(tester, 'Save').onPressed, isNotNull);
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsOneWidget);
     });
@@ -212,7 +212,7 @@ void main() {
       probe.savedResult = 'saved!';
       await pump(tester);
       await type(tester, 'changed');
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
       await tester.pumpAndSettle();
       expect(probe.writes, ['rec-1']);
       expect(results, ['saved!']);
@@ -221,7 +221,7 @@ void main() {
     testWidgets('Cancel pops with no result', (tester) async {
       probe.savedResult = 'saved!';
       await pump(tester);
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
       await tester.pumpAndSettle();
       expect(results, [null]);
     });
@@ -245,7 +245,7 @@ void main() {
         ..handlesFailure = true;
       await pump(tester);
       await type(tester, 'changed');
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
       await tester.pumpAndSettle();
       expect(probe.failures.single, isA<StateError>());
       expect(find.byType(SnackBar), findsNothing);
@@ -260,7 +260,7 @@ void main() {
       probe.failWrite = true;
       await pump(tester);
       await type(tester, 'changed');
-      await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+      await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
       await tester.pumpAndSettle();
       expect(probe.failures, hasLength(1));
       expect(find.byType(SnackBar), findsOneWidget);
