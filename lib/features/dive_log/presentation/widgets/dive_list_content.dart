@@ -2612,12 +2612,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// [loadedIds].
   ///
   /// Only the last trip on screen can go on past the loaded pages, so only
-  /// its header loads the rest of the list first (#5022); any other trip is
-  /// all there already.
+  /// its header loads the rest of the list first (#5022), and only while it
+  /// holds fewer dives than the trip has; any other trip is all there.
   void _checkTrip(String tripId, List<String> loadedIds) {
     final last = _lastSections.isEmpty ? null : _lastSections.last;
     final hasMore = ref.read(paginatedDiveListProvider).value?.hasMore ?? false;
-    if (!hasMore || last is! TripSection || last.tripId != tripId) {
+    final mayContinue =
+        hasMore &&
+        last is TripSection &&
+        last.tripId == tripId &&
+        last.loadedCount < last.totalCount;
+    if (!mayContinue) {
       _selection.selectAll([..._selectedIds, ...loadedIds]);
       return;
     }

@@ -199,52 +199,81 @@ void main() {
   testWidgets('a trip header checks its dives past the loaded page', (
     tester,
   ) async {
-    DiveSummary tripDive(String id, int day) => DiveSummary(
-      id: id,
-      dateTime: DateTime(2026, 6, day),
-      sortTimestamp: 0,
-      tripId: 't1',
-      tripName: 'Tassie',
-      tripStartDate: DateTime(2026, 6, 1),
-      tripEndDate: DateTime(2026, 6, 9),
-    );
-    final notifier = _PagedNotifier([
-      _summary('d1', DateTime(2026, 7, 1)),
-      tripDive('d2', 9),
-      tripDive('d3', 8),
-      tripDive('d4', 7),
-    ], pageSize: 3);
-    final base = await getBaseOverrides(
-      settingsNotifier: MockSettingsNotifier(
-        const AppSettings(
-          diveListViewMode: ListViewMode.detailed,
-          groupTripsInDiveList: true,
-        ),
-      ),
-    );
-    await tester.pumpWidget(
-      testApp(
-        locale: const Locale('en'),
-        overrides: [
-          ...base,
-          tripDiveCountsProvider.overrideWith((ref) async => const {'t1': 3}),
-          paginatedDiveListProvider.overrideWith((ref) => notifier),
-        ],
-        child: const DiveListContent(showAppBar: false),
-      ),
-    );
-    await _settle(tester);
+    final notifier = await _pumpTripList(tester, lastDiveOnTrip: true);
     await _enterSelection(tester);
 
-    await tester.tap(
-      find.descendant(
-        of: find.byType(TripGroupHeader),
-        matching: find.byType(Checkbox),
-      ),
-    );
+    await tester.tap(_tripHeaderCheckbox);
     await _settle(tester);
 
     expect(notifier.restLoads, 1);
     expect(find.text('3 selected'), findsOneWidget);
   });
+
+  testWidgets('a trip shown whole checks without loading the rest', (
+    tester,
+  ) async {
+    final notifier = await _pumpTripList(tester, lastDiveOnTrip: false);
+    await _enterSelection(tester);
+
+    await tester.tap(_tripHeaderCheckbox);
+    await _settle(tester);
+
+    expect(notifier.restLoads, 0);
+    expect(find.text('2 selected'), findsOneWidget);
+  });
+}
+
+final _tripHeaderCheckbox = find.descendant(
+  of: find.byType(TripGroupHeader),
+  matching: find.byType(Checkbox),
+);
+
+/// A loose dive, then trip t1's dives d2 and d3 on page one, with d4 held
+/// back. [lastDiveOnTrip] puts d4 on the trip, which then goes on past the
+/// page; otherwise d4 is a loose dive and the trip is whole on screen.
+Future<_PagedNotifier> _pumpTripList(
+  WidgetTester tester, {
+  required bool lastDiveOnTrip,
+}) async {
+  DiveSummary tripDive(String id, int day) => DiveSummary(
+    id: id,
+    dateTime: DateTime(2026, 6, day),
+    sortTimestamp: 0,
+    tripId: 't1',
+    tripName: 'Tassie',
+    tripStartDate: DateTime(2026, 6, 1),
+    tripEndDate: DateTime(2026, 6, 9),
+  );
+  final notifier = _PagedNotifier([
+    _summary('d1', DateTime(2026, 7, 1)),
+    tripDive('d2', 9),
+    tripDive('d3', 8),
+    if (lastDiveOnTrip)
+      tripDive('d4', 7)
+    else
+      _summary('d4', DateTime(2026, 5, 1)),
+  ], pageSize: 3);
+  final base = await getBaseOverrides(
+    settingsNotifier: MockSettingsNotifier(
+      const AppSettings(
+        diveListViewMode: ListViewMode.detailed,
+        groupTripsInDiveList: true,
+      ),
+    ),
+  );
+  await tester.pumpWidget(
+    testApp(
+      locale: const Locale('en'),
+      overrides: [
+        ...base,
+        tripDiveCountsProvider.overrideWith(
+          (ref) async => {'t1': lastDiveOnTrip ? 3 : 2},
+        ),
+        paginatedDiveListProvider.overrideWith((ref) => notifier),
+      ],
+      child: const DiveListContent(showAppBar: false),
+    ),
+  );
+  await _settle(tester);
+  return notifier;
 }
