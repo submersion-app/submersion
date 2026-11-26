@@ -7,8 +7,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_parsing/path_parsing.dart';
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_artwork.gen.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_space.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_artwork.gen.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_space.dart';
 
 /// The trim figure's side-view artwork (issue #5028) is a build artefact
 /// checked in like the gear figure's. CI does not run the generator, so these

@@ -7,16 +7,16 @@ import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_builder.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_chip_layout.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure_geometry.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure_painter.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_strings.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_chip_layout.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_geometry.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_painter.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_strings.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The posable side-view diver for one trim scene (issue #5028): tilted by
 /// [result]'s pitch, with a chip naming each lead weight (every element
-/// with [showAllChips], as the try-out sheet shows them).
+/// with [showAllChips], as the trim calculator shows them).
 class TrimFigure extends StatelessWidget {
   const TrimFigure({
     super.key,
@@ -41,7 +41,7 @@ class TrimFigure extends StatelessWidget {
   final double maxFigureHeight;
 
   /// Called with the geometry and chips each build, for a host that hit-tests
-  /// drags (the try-out sheet).
+  /// drags (the trim calculator).
   final void Function(TrimFigureGeometry geometry, TrimChipLayout chips)?
   onLayout;
 
@@ -52,8 +52,8 @@ class TrimFigure extends StatelessWidget {
 
   /// Lead and test items always; with [showAllChips], tanks and any gear
   /// heavy or light enough to matter too. Gear lighter than [minChipKg], and
-  /// a suit spread over the body, would only crowd the figure; the try-out
-  /// sheet's Pieces list names them.
+  /// a suit spread over the body, would only crowd the figure; the trim
+  /// calculator's Pieces list names them.
   bool _chipped(TrimElement e) => switch (e.kind) {
     TrimElementKind.lead || TrimElementKind.test => true,
     TrimElementKind.tank => showAllChips,

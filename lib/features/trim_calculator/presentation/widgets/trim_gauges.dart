@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_strings.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_strings.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The trim verdict and its two gauges (issue #5028): pitch from head-heavy

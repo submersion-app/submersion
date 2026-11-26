@@ -5,7 +5,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Name and weight for a test item in the try-out sheet (issue #5028),
+/// Name and weight for a test item in the trim calculator (issue #5028),
 /// checked inline: a name is required and the weight runs from
 /// [minKg] to [maxKg] in the diver's units.
 class TrimTestItemForm extends StatefulWidget {

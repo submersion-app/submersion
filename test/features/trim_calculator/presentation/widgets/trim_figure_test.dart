@@ -8,13 +8,13 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_builder.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_chip_layout.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure_painter.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_strings.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_chip_layout.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_painter.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_strings.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-import '../../../../../helpers/test_app.dart';
+import '../../../../helpers/test_app.dart';
 
 /// The posable trim figure (issue #5028).
 void main() {

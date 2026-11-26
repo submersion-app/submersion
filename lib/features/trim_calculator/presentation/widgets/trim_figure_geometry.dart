@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_space.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_space.dart';
 
 /// Where the trim figure's side space lands on the canvas (issue #5028).
 ///

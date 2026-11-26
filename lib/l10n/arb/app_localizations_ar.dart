@@ -23049,6 +23049,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'حاسبة الأوزان';
 
   @override
+  String get planning_card_trimCalculator_title => 'حاسبة التوازن';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'كيف يوازنك الرصاص والمعدات';
+
+  @override
   String get planning_info_disclaimer =>
       'هذه الأدوات لأغراض التخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.';
 
@@ -23669,14 +23676,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buoyancy_minDitchable => 'أدنى وزن قابل للإسقاط';
 
   @override
-  String get trim_tryout_button => 'جرّب المواضع';
-
-  @override
   String get trim_card_caption =>
       'لفحص التوقف الآمن، مع الغاز المتبقي حينها. يصوّر الميل قوة الشد، لا زاوية.';
 
   @override
-  String get trim_tryout_title => 'جرّب المواضع';
+  String get trim_card_openCalculator => 'تحقق من التوازن';
+
+  @override
+  String get trim_calculator_changeDive => 'تغيير الغطسة';
+
+  @override
+  String get trim_calculator_pickDive => 'اختر غطسة';
+
+  @override
+  String get trim_calculator_searchDives => 'ابحث في الغطسات';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'لا توجد غطسات تطابق \"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'سجّل غطسة للتحقق من توازنها. تفتح الحاسبة على آخر غطسة لك.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'لا تحتوي هذه الغطسة على أسطوانات أو بدلة، لذا لا يمكن حساب توازنها. اختر غطسة أخرى.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'لم تعد تلك الغطسة في سجلك. اختر غطسة أخرى.';
 
   @override
   String get trim_tryout_hint =>

@@ -8,10 +8,10 @@ import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_bui
 /// Builds the logged scene at a moment of the dive (null: the rest anchor).
 typedef TrimSceneAt = TrimScene Function(int? timestamp);
 
-/// The try-out sheet's state (issue #5028): where the diver has moved each
+/// The trim calculator's state (issue #5028): where the diver has moved each
 /// element, the sides they gave them, the test items they added, the pose
 /// and the moment of the dive. Nothing here is ever written anywhere; it
-/// lives as long as the sheet.
+/// lives as long as the calculator shows one dive.
 class TrimTryoutController extends ChangeNotifier {
   TrimTryoutController({required this.sceneAt, required this.openingTimestamp})
     : _timestamp = openingTimestamp;

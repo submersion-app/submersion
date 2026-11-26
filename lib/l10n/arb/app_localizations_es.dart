@@ -22639,6 +22639,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Calculadora de peso';
 
   @override
+  String get planning_card_trimCalculator_title => 'Calculadora de trimado';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Cómo te equilibran el plomo y el equipo';
+
+  @override
   String get planning_info_disclaimer =>
       'Estas herramientas son solo para fines de planificación. Siempre verifica los cálculos y sigue tu formación de buceo.';
 
@@ -23251,14 +23258,37 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buoyancy_minDitchable => 'Lastre soltable mínimo';
 
   @override
-  String get trim_tryout_button => 'Probar posiciones';
-
-  @override
   String get trim_card_caption =>
       'Para la comprobación en la parada de seguridad, con el gas que quede entonces. La inclinación ilustra el empuje, no un ángulo.';
 
   @override
-  String get trim_tryout_title => 'Probar posiciones';
+  String get trim_card_openCalculator => 'Comprobar trimado';
+
+  @override
+  String get trim_calculator_changeDive => 'Cambiar inmersión';
+
+  @override
+  String get trim_calculator_pickDive => 'Elige una inmersión';
+
+  @override
+  String get trim_calculator_searchDives => 'Buscar inmersiones';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Ninguna inmersión coincide con «$query»';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Registra una inmersión para comprobar su trimado. La calculadora abre tu última inmersión.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Esta inmersión no tiene botellas ni traje, así que no se puede calcular su trimado. Elige otra inmersión.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Esa inmersión ya no está en tu registro. Elige otra inmersión.';
 
   @override
   String get trim_tryout_hint =>

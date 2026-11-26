@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_gauges.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_gauges.dart';
 
-import '../../../../../helpers/test_app.dart';
+import '../../../../helpers/test_app.dart';
 
 /// The pitch and roll gauges and the verdict line (issue #5028).
 void main() {

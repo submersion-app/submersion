@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_piece_ids.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_placement.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_artwork.gen.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_artwork.gen.dart';
 import 'package:submersion/features/equipment/figure/artwork/figure_artwork.gen.dart';
 
 /// Every drawing the trim figure names exists (issue #5028), and every

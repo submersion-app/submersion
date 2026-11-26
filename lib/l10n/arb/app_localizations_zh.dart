@@ -21505,6 +21505,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_weightCalculator_title => '配重计算器';
 
   @override
+  String get planning_card_trimCalculator_title => '纵倾计算器';
+
+  @override
+  String get planning_card_trimCalculator_subtitle => '配重和装备如何影响您的平衡';
+
+  @override
   String get planning_info_disclaimer => '这些工具仅供计划参考。请务必验证计算结果并遵循您的潜水训练。';
 
   @override
@@ -22072,13 +22078,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_minDitchable => '最小可抛弃配重';
 
   @override
-  String get trim_tryout_button => '尝试摆放';
-
-  @override
   String get trim_card_caption => '用于安全停留时的检查，按当时剩余的气体计算。倾斜表示受力，而非角度。';
 
   @override
-  String get trim_tryout_title => '尝试摆放';
+  String get trim_card_openCalculator => '检查纵倾';
+
+  @override
+  String get trim_calculator_changeDive => '更换潜水';
+
+  @override
+  String get trim_calculator_pickDive => '选择一次潜水';
+
+  @override
+  String get trim_calculator_searchDives => '搜索潜水';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return '没有与“$query”匹配的潜水';
+  }
+
+  @override
+  String get trim_calculator_noDives => '记录一次潜水即可检查其纵倾。计算器会打开您最近的潜水。';
+
+  @override
+  String get trim_calculator_cannotModel => '此次潜水没有气瓶或潜水服，因此无法计算纵倾。请选择另一次潜水。';
+
+  @override
+  String get trim_calculator_diveMissing => '该潜水已不在您的日志中。请选择另一次潜水。';
 
   @override
   String get trim_tryout_hint => '拖动标签以移动它。轻点标签以切换左右。此处的更改不会保存。';

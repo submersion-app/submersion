@@ -22512,6 +22512,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Gewichtscalculator';
 
   @override
+  String get planning_card_trimCalculator_title => 'Trimcalculator';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Hoe lood en uitrusting je in balans brengen';
+
+  @override
   String get planning_info_disclaimer =>
       'Deze tools zijn alleen voor planningsdoeleinden. Controleer berekeningen altijd en volg je duikopleiding.';
 
@@ -23116,14 +23123,37 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min. afwerpbaar lood';
 
   @override
-  String get trim_tryout_button => 'Plaatsing uitproberen';
-
-  @override
   String get trim_card_caption =>
       'Voor de controle bij de veiligheidsstop, met het gas dat dan over is. De helling toont de kracht, geen hoek.';
 
   @override
-  String get trim_tryout_title => 'Plaatsing uitproberen';
+  String get trim_card_openCalculator => 'Trim controleren';
+
+  @override
+  String get trim_calculator_changeDive => 'Andere duik';
+
+  @override
+  String get trim_calculator_pickDive => 'Kies een duik';
+
+  @override
+  String get trim_calculator_searchDives => 'Duiken zoeken';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Geen duiken komen overeen met \"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Log een duik om de trim te controleren. De calculator opent je laatste duik.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Deze duik heeft geen flessen of pak, dus de trim kan niet worden berekend. Kies een andere duik.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Die duik staat niet meer in je logboek. Kies een andere duik.';
 
   @override
   String get trim_tryout_hint =>

@@ -22643,6 +22643,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Calculadora de Peso';
 
   @override
+  String get planning_card_trimCalculator_title => 'Calculadora de Trim';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Como o lastro e o equipamento te equilibram';
+
+  @override
   String get planning_info_disclaimer =>
       'Estas ferramentas são apenas para fins de planejamento. Sempre verifique os cálculos e siga seu treinamento de mergulho.';
 
@@ -23250,14 +23257,37 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buoyancy_minDitchable => 'Lastro descartável mínimo';
 
   @override
-  String get trim_tryout_button => 'Testar posições';
-
-  @override
   String get trim_card_caption =>
       'Para a verificação na parada de segurança, com o gás restante nesse momento. A inclinação ilustra o empuxo, não um ângulo.';
 
   @override
-  String get trim_tryout_title => 'Testar posições';
+  String get trim_card_openCalculator => 'Verificar trim';
+
+  @override
+  String get trim_calculator_changeDive => 'Trocar mergulho';
+
+  @override
+  String get trim_calculator_pickDive => 'Escolha um mergulho';
+
+  @override
+  String get trim_calculator_searchDives => 'Buscar mergulhos';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Nenhum mergulho corresponde a \"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Registre um mergulho para verificar o trim. A calculadora abre no seu último mergulho.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Este mergulho não tem cilindros nem roupa, então o trim não pode ser calculado. Escolha outro mergulho.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Esse mergulho não está mais no seu registro. Escolha outro mergulho.';
 
   @override
   String get trim_tryout_hint =>

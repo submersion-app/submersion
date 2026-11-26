@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_artwork.gen.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_chip_layout.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure_geometry.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure_paths.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_piece_data.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_artwork.gen.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_chip_layout.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_geometry.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_paths.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_piece_data.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_palette.dart';
 
 /// The colours a chip is drawn in.

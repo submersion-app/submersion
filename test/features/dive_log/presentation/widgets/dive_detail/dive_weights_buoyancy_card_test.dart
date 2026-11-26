@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -8,8 +9,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_header_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_weights_buoyancy_card.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
@@ -45,13 +44,7 @@ void main() {
     bool showWeights = true,
     bool unlocked = false,
     Locale locale = const Locale('en'),
-    double? width,
   }) async {
-    if (width != null) {
-      tester.view.physicalSize = Size(width * 2, 4000);
-      tester.view.devicePixelRatio = 2;
-      addTearDown(tester.view.reset);
-    }
     Widget card = DiveWeightsBuoyancyCard(
       dive: weighted,
       stored: weighted,
@@ -75,8 +68,6 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           buoyancyTwinProvider('d1').overrideWith((ref) async => outcome),
-          latestDiverWeightProvider.overrideWith((ref) async => null),
-          latestDiverHeightProvider.overrideWith((ref) async => null),
         ],
         child: MaterialApp(
           // Pinned so the asserted strings do not depend on the host locale.
@@ -239,48 +230,81 @@ void main() {
     expect(find.text('Total:'), findsOneWidget);
   });
 
-  group('trim figure (#5028)', () {
+  group('trim calculator link (#5028)', () {
+    final link = find.byKey(DiveWeightsBuoyancyCard.trimLinkKey);
+
     testWidgets('sits between the weights list and the model', (tester) async {
-      await pump(tester, outcome: buoyancyOutcome(), width: 400);
-      final figure = tester.getTopLeft(find.byType(TrimFigure)).dy;
+      await pump(tester, outcome: buoyancyOutcome());
+      final at = tester.getTopLeft(link).dy;
+      expect(at, greaterThan(tester.getTopLeft(find.text('Weight Belt')).dy));
       expect(
-        figure,
-        greaterThan(tester.getTopLeft(find.text('Weight Belt')).dy),
-      );
-      expect(
-        figure,
+        at,
         lessThan(tester.getTopLeft(find.text('Lead for next time')).dy),
       );
+      expect(find.text('Check trim'), findsOneWidget);
     });
 
-    testWidgets('no model, no figure, and the list still shows', (
-      tester,
-    ) async {
+    testWidgets('no model, no link, and the list still shows', (tester) async {
       await pump(tester, outcome: null);
-      expect(find.byType(TrimFigure), findsNothing);
+      expect(link, findsNothing);
       expect(find.text('Weight Belt'), findsOneWidget);
-    });
-
-    testWidgets('sits beside the list at 720 wide and over', (tester) async {
-      await pump(tester, outcome: buoyancyOutcome(), width: 1000);
-      final figure = tester.getRect(find.byType(TrimFigure));
-      final list = tester.getRect(find.text('Weight Belt'));
-      expect(figure.left, greaterThan(list.left));
-      expect(figure.top, lessThan(list.bottom + 40));
-    });
-
-    testWidgets('stacks under the list when narrow', (tester) async {
-      await pump(tester, outcome: buoyancyOutcome(), width: 400);
-      final figure = tester.getRect(find.byType(TrimFigure));
-      final list = tester.getRect(find.text('Weight Belt'));
-      expect(figure.top, greaterThan(list.bottom));
     });
 
     testWidgets('shows with the model when there are no weights', (
       tester,
     ) async {
       await pump(tester, outcome: buoyancyOutcome(), showWeights: false);
-      expect(find.byType(TrimFigure), findsOneWidget);
+      expect(link, findsOneWidget);
+    });
+
+    testWidgets('opens the trim calculator on this dive', (tester) async {
+      Uri? opened;
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: SingleChildScrollView(
+                child: DiveWeightsBuoyancyCard(
+                  dive: weighted,
+                  stored: weighted,
+                  showWeights: true,
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/planning/trim-calculator',
+            builder: (_, state) {
+              opened = state.uri;
+              return const Scaffold(body: Text('calculator'));
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            buoyancyTwinProvider(
+              'd1',
+            ).overrideWith((ref) async => buoyancyOutcome()),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(link);
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      expect(find.text('calculator'), findsOneWidget);
+      expect(opened?.queryParameters['dive'], 'd1');
     });
   });
 

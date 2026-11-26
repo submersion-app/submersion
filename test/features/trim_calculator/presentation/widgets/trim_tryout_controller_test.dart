@@ -4,7 +4,7 @@ import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_builder.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_tryout_controller.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_controller.dart';
 
 /// The try-out sheet's state (issue #5028): moves, sides, test items, pose
 /// and time, none of it saved.

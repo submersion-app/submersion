@@ -35571,6 +35571,18 @@ abstract class AppLocalizations {
   /// **'Weight Calculator'**
   String get planning_card_weightCalculator_title;
 
+  /// No description provided for @planning_card_trimCalculator_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim Calculator'**
+  String get planning_card_trimCalculator_title;
+
+  /// No description provided for @planning_card_trimCalculator_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How your lead and gear balance you'**
+  String get planning_card_trimCalculator_subtitle;
+
   /// No description provided for @planning_info_disclaimer.
   ///
   /// In en, this message translates to:
@@ -36495,23 +36507,59 @@ abstract class AppLocalizations {
   /// **'Min ditchable weight'**
   String get buoyancy_minDitchable;
 
-  /// No description provided for @trim_tryout_button.
-  ///
-  /// In en, this message translates to:
-  /// **'Try placements'**
-  String get trim_tryout_button;
-
   /// No description provided for @trim_card_caption.
   ///
   /// In en, this message translates to:
   /// **'For the safety-stop check, with the gas left then. The tilt pictures the pull, not an angle.'**
   String get trim_card_caption;
 
-  /// No description provided for @trim_tryout_title.
+  /// No description provided for @trim_card_openCalculator.
   ///
   /// In en, this message translates to:
-  /// **'Try placements'**
-  String get trim_tryout_title;
+  /// **'Check trim'**
+  String get trim_card_openCalculator;
+
+  /// No description provided for @trim_calculator_changeDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Change dive'**
+  String get trim_calculator_changeDive;
+
+  /// No description provided for @trim_calculator_pickDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a dive'**
+  String get trim_calculator_pickDive;
+
+  /// No description provided for @trim_calculator_searchDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Search dives'**
+  String get trim_calculator_searchDives;
+
+  /// No description provided for @trim_calculator_noMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives match \"{query}\"'**
+  String trim_calculator_noMatches(String query);
+
+  /// No description provided for @trim_calculator_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a dive to check its trim. The calculator opens on your latest dive.'**
+  String get trim_calculator_noDives;
+
+  /// No description provided for @trim_calculator_cannotModel.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive has no tanks or exposure suit, so its trim can\'t be worked out. Choose another dive.'**
+  String get trim_calculator_cannotModel;
+
+  /// No description provided for @trim_calculator_diveMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'That dive is no longer in your log. Choose another dive.'**
+  String get trim_calculator_diveMissing;
 
   /// No description provided for @trim_tryout_hint.
   ///

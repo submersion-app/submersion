@@ -22649,6 +22649,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Calcolatore zavorra';
 
   @override
+  String get planning_card_trimCalculator_title => 'Calcolatore di assetto';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Come zavorra e attrezzatura ti bilanciano';
+
+  @override
   String get planning_info_disclaimer =>
       'Questi strumenti sono solo per la pianificazione. Verifica sempre i calcoli e segui la tua formazione subacquea.';
 
@@ -23256,14 +23263,37 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buoyancy_minDitchable => 'Zavorra sganciabile minima';
 
   @override
-  String get trim_tryout_button => 'Prova posizioni';
-
-  @override
   String get trim_card_caption =>
       'Per la verifica alla sosta di sicurezza, con il gas rimasto in quel momento. L\'inclinazione raffigura la spinta, non un angolo.';
 
   @override
-  String get trim_tryout_title => 'Prova posizioni';
+  String get trim_card_openCalculator => 'Verifica assetto';
+
+  @override
+  String get trim_calculator_changeDive => 'Cambia immersione';
+
+  @override
+  String get trim_calculator_pickDive => 'Scegli un\'immersione';
+
+  @override
+  String get trim_calculator_searchDives => 'Cerca immersioni';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Nessuna immersione corrisponde a \"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Registra un\'immersione per verificarne l\'assetto. Il calcolatore si apre sulla tua ultima immersione.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Questa immersione non ha bombole né muta, quindi il suo assetto non può essere calcolato. Scegli un\'altra immersione.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Quell\'immersione non è più nel tuo logbook. Scegli un\'altra immersione.';
 
   @override
   String get trim_tryout_hint =>

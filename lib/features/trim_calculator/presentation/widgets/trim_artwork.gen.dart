@@ -3,7 +3,7 @@
 // dart format off
 
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_piece_data.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_piece_data.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_piece_data.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_role.dart';
 

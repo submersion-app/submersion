@@ -5,13 +5,13 @@ import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_chip_layout.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure_geometry.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_gauges.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_pieces_list.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_test_item_form.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_tryout_controller.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_chip_layout.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_geometry.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_gauges.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_pieces_list.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_test_item_form.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_controller.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One sample of the dive the time slider can stop at.
@@ -22,74 +22,10 @@ class TrimMoment {
   final double depthM;
 }
 
-/// Opens the try-out sheet (issue #5028), at [openingTimestamp] of the dive
-/// (null: the rest anchor). Nothing in it is saved; closing it discards it.
-Future<void> showTrimTryoutSheet(
-  BuildContext context, {
-  required TrimSceneAt sceneAt,
-  required int? openingTimestamp,
-  required List<TrimMoment> moments,
-  required UnitFormatter units,
-}) => showModalBottomSheet<void>(
-  context: context,
-  isScrollControlled: true,
-  useSafeArea: true,
-  showDragHandle: true,
-  builder: (_) => _TrimTryoutSheet(
-    sceneAt: sceneAt,
-    openingTimestamp: openingTimestamp,
-    moments: moments,
-    units: units,
-  ),
-);
-
-class _TrimTryoutSheet extends StatefulWidget {
-  const _TrimTryoutSheet({
-    required this.sceneAt,
-    required this.openingTimestamp,
-    required this.moments,
-    required this.units,
-  });
-
-  final TrimSceneAt sceneAt;
-  final int? openingTimestamp;
-  final List<TrimMoment> moments;
-  final UnitFormatter units;
-
-  @override
-  State<_TrimTryoutSheet> createState() => _TrimTryoutSheetState();
-}
-
-class _TrimTryoutSheetState extends State<_TrimTryoutSheet> {
-  late final _controller = TrimTryoutController(
-    sceneAt: widget.sceneAt,
-    openingTimestamp: widget.openingTimestamp,
-  );
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  // No fixed height: the sheet grows to its content and scrolls within the
-  // screen, and clears the keyboard while a test item is typed.
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-    child: SingleChildScrollView(
-      child: TrimTryoutView(
-        controller: _controller,
-        moments: widget.moments,
-        units: widget.units,
-      ),
-    ),
-  );
-}
-
-/// The try-out sheet's content: the figure (drag a chip to move it, tap it
-/// to change its side), the gauges and moments, then pose, time, a test
-/// item, the pieces list and Reset.
+/// The trim calculator's working area (issue #5028): the figure (drag a chip
+/// to move it, tap it to change its side), the gauges and moments, then
+/// pose, time, a test item, the pieces list and Reset. Nothing in it is
+/// saved.
 class TrimTryoutView extends StatefulWidget {
   const TrimTryoutView({
     super.key,
@@ -205,8 +141,6 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(l10n.trim_tryout_title, style: theme.textTheme.titleMedium),
-        const SizedBox(height: 4),
         Text(
           l10n.trim_tryout_hint,
           style: theme.textTheme.bodySmall?.copyWith(
@@ -315,7 +249,7 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
       ],
     );
 
-    // With no cursor the sheet opens at the rest anchor, the time its scene
+    // The calculator opens at the rest anchor, the time its scene
     // was built for.
     final timeIndex = moments.isEmpty
         ? 0
@@ -403,7 +337,7 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
 }
 
 /// A pan that wins at once when the finger lands on a chip, so dragging a
-/// chip never scrolls the sheet, and leaves every other touch to the scroll.
+/// chip never scrolls the page, and leaves every other touch to the scroll.
 class _ChipPanRecognizer extends PanGestureRecognizer {
   _ChipPanRecognizer({required this.onChip, required this.onPointerCancel});
 

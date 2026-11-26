@@ -22318,6 +22318,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Weight Calculator';
 
   @override
+  String get planning_card_trimCalculator_title => 'Trim Calculator';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'How your lead and gear balance you';
+
+  @override
   String get planning_info_disclaimer =>
       'These tools are for planning purposes only. Always verify calculations and follow your dive training.';
 
@@ -22917,14 +22924,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min ditchable weight';
 
   @override
-  String get trim_tryout_button => 'Try placements';
-
-  @override
   String get trim_card_caption =>
       'For the safety-stop check, with the gas left then. The tilt pictures the pull, not an angle.';
 
   @override
-  String get trim_tryout_title => 'Try placements';
+  String get trim_card_openCalculator => 'Check trim';
+
+  @override
+  String get trim_calculator_changeDive => 'Change dive';
+
+  @override
+  String get trim_calculator_pickDive => 'Choose a dive';
+
+  @override
+  String get trim_calculator_searchDives => 'Search dives';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'No dives match \"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Log a dive to check its trim. The calculator opens on your latest dive.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'This dive has no tanks or exposure suit, so its trim can\'t be worked out. Choose another dive.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'That dive is no longer in your log. Choose another dive.';
 
   @override
   String get trim_tryout_hint =>

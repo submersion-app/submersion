@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/trim_calculator/presentation/trim_calculator_navigation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// How a planning tool opens when its row is tapped.
@@ -120,6 +121,13 @@ List<PlanningTool> planningToolsOf(BuildContext context) {
       color: colorScheme.primary.withValues(alpha: 0.8),
       title: context.l10n.planning_card_weightCalculator_title,
       subtitle: context.l10n.planning_card_weightCalculator_subtitle,
+    ),
+    PlanningTool(
+      id: kTrimCalculatorToolId,
+      icon: Icons.balance,
+      color: colorScheme.primary.withValues(alpha: 0.8),
+      title: context.l10n.planning_card_trimCalculator_title,
+      subtitle: context.l10n.planning_card_trimCalculator_subtitle,
     ),
     PlanningTool(
       id: 'surface-interval',

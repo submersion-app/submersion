@@ -22624,6 +22624,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Gewichtsrechner';
 
   @override
+  String get planning_card_trimCalculator_title => 'Trimmrechner';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Wie Blei und Ausrüstung dich ausbalancieren';
+
+  @override
   String get planning_info_disclaimer =>
       'Diese Werkzeuge dienen nur der Planung. Überprüfe Berechnungen immer und befolge deine Tauchausbildung.';
 
@@ -23230,14 +23237,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min. abwerfbares Blei';
 
   @override
-  String get trim_tryout_button => 'Platzierung testen';
-
-  @override
   String get trim_card_caption =>
       'Für den Check am Sicherheitsstopp, mit dem dann verbleibenden Gas. Die Neigung zeigt den Zug, keinen Winkel.';
 
   @override
-  String get trim_tryout_title => 'Platzierung testen';
+  String get trim_card_openCalculator => 'Trimm prüfen';
+
+  @override
+  String get trim_calculator_changeDive => 'Tauchgang wechseln';
+
+  @override
+  String get trim_calculator_pickDive => 'Tauchgang wählen';
+
+  @override
+  String get trim_calculator_searchDives => 'Tauchgänge suchen';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Keine Tauchgänge passen zu „$query“';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Erfasse einen Tauchgang, um seinen Trimm zu prüfen. Der Rechner öffnet deinen letzten Tauchgang.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Dieser Tauchgang hat keine Flaschen und keinen Anzug, daher lässt sich sein Trimm nicht berechnen. Wähle einen anderen Tauchgang.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Dieser Tauchgang ist nicht mehr in deinem Logbuch. Wähle einen anderen Tauchgang.';
 
   @override
   String get trim_tryout_hint =>

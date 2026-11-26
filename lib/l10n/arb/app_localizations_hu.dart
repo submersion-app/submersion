@@ -22553,6 +22553,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Súly kalkulátor';
 
   @override
+  String get planning_card_trimCalculator_title => 'Trimm kalkulátor';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Hogyan egyensúlyoz az ólom és a felszerelés';
+
+  @override
   String get planning_info_disclaimer =>
       'Ezek az eszközök kizárólag tervezési célokat szolgálnak. Mindig ellenőrizze a számításokat és kövesse merülési képzésének irányelveit.';
 
@@ -23163,14 +23170,37 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min. ledobható ólom';
 
   @override
-  String get trim_tryout_button => 'Elhelyezés kipróbálása';
-
-  @override
   String get trim_card_caption =>
       'A biztonsági megállónál végzett ellenőrzéshez, az akkor megmaradt gázzal. A dőlés a húzóerőt szemlélteti, nem egy szöget.';
 
   @override
-  String get trim_tryout_title => 'Elhelyezés kipróbálása';
+  String get trim_card_openCalculator => 'Trimm ellenőrzése';
+
+  @override
+  String get trim_calculator_changeDive => 'Merülés váltása';
+
+  @override
+  String get trim_calculator_pickDive => 'Válassz merülést';
+
+  @override
+  String get trim_calculator_searchDives => 'Merülések keresése';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Nincs a(z) „$query” keresésnek megfelelő merülés';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Rögzíts egy merülést a trimm ellenőrzéséhez. A kalkulátor a legutóbbi merülésedet nyitja meg.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Ennek a merülésnek nincs palackja vagy ruhája, így a trimmje nem számítható ki. Válassz másik merülést.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Ez a merülés már nincs a naplódban. Válassz másik merülést.';
 
   @override
   String get trim_tryout_hint =>

@@ -7,14 +7,14 @@ import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_builder.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure_painter.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_tryout_controller.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_pieces_list.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_test_item_form.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_tryout_sheet.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_painter.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_controller.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_pieces_list.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_test_item_form.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-import '../../../../../helpers/test_app.dart';
+import '../../../../helpers/test_app.dart';
 
 /// The try-out sheet (issue #5028).
 void main() {

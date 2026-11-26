@@ -22697,6 +22697,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Calculateur de lestage';
 
   @override
+  String get planning_card_trimCalculator_title => 'Calculateur d\'assiette';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Comment votre lest et votre équipement vous équilibrent';
+
+  @override
   String get planning_info_disclaimer =>
       'Ces outils sont destinés à la planification uniquement. Vérifiez toujours les calculs et suivez votre formation de plongée.';
 
@@ -23310,14 +23317,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buoyancy_minDitchable => 'Lest largable minimal';
 
   @override
-  String get trim_tryout_button => 'Essayer des placements';
-
-  @override
   String get trim_card_caption =>
       'Pour la vérification au palier de sécurité, avec le gaz restant à ce moment. L\'inclinaison illustre la poussée, pas un angle.';
 
   @override
-  String get trim_tryout_title => 'Essayer des placements';
+  String get trim_card_openCalculator => 'Vérifier l\'assiette';
+
+  @override
+  String get trim_calculator_changeDive => 'Changer de plongée';
+
+  @override
+  String get trim_calculator_pickDive => 'Choisir une plongée';
+
+  @override
+  String get trim_calculator_searchDives => 'Rechercher des plongées';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Aucune plongée ne correspond à « $query »';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Enregistrez une plongée pour vérifier son assiette. Le calculateur s\'ouvre sur votre dernière plongée.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Cette plongée n\'a ni bloc ni combinaison, son assiette ne peut donc pas être calculée. Choisissez une autre plongée.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Cette plongée n\'est plus dans votre carnet. Choisissez une autre plongée.';
 
   @override
   String get trim_tryout_hint =>

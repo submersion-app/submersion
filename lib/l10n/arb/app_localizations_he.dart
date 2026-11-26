@@ -22164,6 +22164,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'מחשבון משקל';
 
   @override
+  String get planning_card_trimCalculator_title => 'מחשבון איזון';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'איך המשקולות והציוד מאזנים אותך';
+
+  @override
   String get planning_info_disclaimer =>
       'כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.';
 
@@ -22757,14 +22764,37 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_minDitchable => 'משקל מזערי הניתן להשלכה';
 
   @override
-  String get trim_tryout_button => 'נסה מיקומים';
-
-  @override
   String get trim_card_caption =>
       'לבדיקה בעצירת הבטיחות, עם הגז שנותר אז. ההטיה ממחישה את המשיכה, לא זווית.';
 
   @override
-  String get trim_tryout_title => 'נסה מיקומים';
+  String get trim_card_openCalculator => 'בדוק איזון';
+
+  @override
+  String get trim_calculator_changeDive => 'החלף צלילה';
+
+  @override
+  String get trim_calculator_pickDive => 'בחר צלילה';
+
+  @override
+  String get trim_calculator_searchDives => 'חפש צלילות';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'אין צלילות התואמות ל-\"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'תעד צלילה כדי לבדוק את האיזון שלה. המחשבון נפתח על הצלילה האחרונה שלך.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'לצלילה הזו אין מכלים או חליפה, ולכן אי אפשר לחשב את האיזון שלה. בחר צלילה אחרת.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'הצלילה הזו כבר לא ביומן שלך. בחר צלילה אחרת.';
 
   @override
   String get trim_tryout_hint =>

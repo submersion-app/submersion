@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_strings.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_tryout_controller.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_strings.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_controller.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A choice from a piece's menu.

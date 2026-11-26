@@ -21827,6 +21827,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'ウェイト計算';
 
   @override
+  String get planning_card_trimCalculator_title => 'トリム計算';
+
+  @override
+  String get planning_card_trimCalculator_subtitle => 'ウェイトと器材のバランス';
+
+  @override
   String get planning_info_disclaimer =>
       'これらのツールはプランニング専用です。計算結果は必ず確認し、ダイビングのトレーニングで学んだことに従ってください。';
 
@@ -22408,14 +22414,35 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buoyancy_minDitchable => '最小投棄可能ウェイト';
 
   @override
-  String get trim_tryout_button => '配置を試す';
-
-  @override
   String get trim_card_caption =>
       '安全停止でのチェック用で、その時点の残りガスでの状態です。傾きは引く力を表すもので、角度ではありません。';
 
   @override
-  String get trim_tryout_title => '配置を試す';
+  String get trim_card_openCalculator => 'トリムを確認';
+
+  @override
+  String get trim_calculator_changeDive => 'ダイブを変更';
+
+  @override
+  String get trim_calculator_pickDive => 'ダイブを選択';
+
+  @override
+  String get trim_calculator_searchDives => 'ダイブを検索';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return '「$query」に一致するダイブはありません';
+  }
+
+  @override
+  String get trim_calculator_noDives => 'ダイブを記録するとトリムを確認できます。計算は最新のダイブで開きます。';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'このダイブにはタンクもスーツもないため、トリムを計算できません。別のダイブを選択してください。';
+
+  @override
+  String get trim_calculator_diveMissing => 'そのダイブはログにありません。別のダイブを選択してください。';
 
   @override
   String get trim_tryout_hint =>

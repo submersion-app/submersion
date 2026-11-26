@@ -4,7 +4,7 @@
 Sources: tool/figure_side/manifest.json and one SVG per piece at
 tool/figure_side/<id>.svg, drawn in the 400 by 200 side space (y down, the
 diver prone and facing left, back up, straight pose).
-Output:  lib/features/dive_log/presentation/widgets/trim/trim_artwork.gen.dart
+Output:  lib/features/trim_calculator/presentation/widgets/trim_artwork.gen.dart
 
     python3 tool/build_trim_artwork.py            # write the Dart file
     python3 tool/build_trim_artwork.py --verify   # check the sources and that the Dart file is current
@@ -26,7 +26,7 @@ import build_figure_artwork as fig  # noqa: E402
 
 ROOT = fig.ROOT
 SRC = ROOT / "tool" / "figure_side"
-OUT = ROOT / "lib" / "features" / "dive_log" / "presentation" / "widgets" / "trim" / "trim_artwork.gen.dart"
+OUT = ROOT / "lib" / "features" / "trim_calculator" / "presentation" / "widgets" / "trim_artwork.gen.dart"
 WIDTH, HEIGHT = 400.0, 200.0
 SEGMENTS = ["torso", "arm", "shin", "foot"]
 
@@ -91,7 +91,7 @@ def emit_dart(compiled, sources_digest):
         "// dart format off",
         "",
         "import 'package:submersion/core/buoyancy/trim/trim_body.dart';",
-        "import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_piece_data.dart';",
+        "import 'package:submersion/features/trim_calculator/presentation/widgets/trim_piece_data.dart';",
         "import 'package:submersion/features/equipment/figure/domain/figure_piece_data.dart';",
         "import 'package:submersion/features/equipment/figure/domain/figure_role.dart';",
         "",
