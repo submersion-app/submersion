@@ -11,7 +11,8 @@ import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// One editable weight on a dive: placement, amount and remove on the first
-/// line, the diver's optional name for it on the second (issue #956).
+/// line, the diver's optional name for it (issue #956) and the side it is
+/// carried on (issue #5028) below.
 ///
 /// The row keeps its current value itself and hands every edit to
 /// [onChanged]. The amount field does not rebuild the page while the diver
@@ -83,9 +84,16 @@ class _DiveWeightEntryRowState extends State<DiveWeightEntryRow> {
                       ),
                   ],
                   onChanged: (value) {
-                    if (value != null) {
-                      _update(_current.copyWith(weightType: value));
-                    }
+                    if (value == null) return;
+                    // Backplate weight is always centred, so it has no side.
+                    setState(
+                      () => _update(
+                        _current.copyWith(
+                          weightType: value,
+                          clearSide: value == WeightType.backplate,
+                        ),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -134,8 +142,53 @@ class _DiveWeightEntryRowState extends State<DiveWeightEntryRow> {
             initialValue: _current.label,
             onChanged: (value) => _update(_current.copyWith(label: value)),
           ),
+          // Below the name, so the name stays tight to its own row.
+          if (_current.weightType != WeightType.backplate) ...[
+            const SizedBox(height: 8),
+            _sideChoice(context),
+          ],
         ],
       ),
+    );
+  }
+
+  /// Both (null), Left or Right, for the trim figure's roll.
+  Widget _sideChoice(BuildContext context) {
+    final l10n = context.l10n;
+    return Row(
+      children: [
+        Text(l10n.diveLog_weight_side_label),
+        const SizedBox(width: 12),
+        Flexible(
+          child: SegmentedButton<WeightSide?>(
+            showSelectedIcon: false,
+            style: const ButtonStyle(visualDensity: VisualDensity.compact),
+            segments: [
+              ButtonSegment(
+                value: null,
+                label: Text(l10n.diveLog_weight_side_both),
+              ),
+              ButtonSegment(
+                value: WeightSide.left,
+                label: Text(l10n.diveLog_weight_side_left),
+              ),
+              ButtonSegment(
+                value: WeightSide.right,
+                label: Text(l10n.diveLog_weight_side_right),
+              ),
+            ],
+            selected: {_current.side},
+            onSelectionChanged: (selection) => setState(
+              () => _update(
+                _current.copyWith(
+                  side: selection.single,
+                  clearSide: selection.single == null,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

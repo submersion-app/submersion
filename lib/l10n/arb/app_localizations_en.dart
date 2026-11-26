@@ -8442,6 +8442,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Remove';
 
   @override
+  String get diveLog_weight_side_label => 'Side';
+
+  @override
+  String get diveLog_weight_side_both => 'Both';
+
+  @override
+  String get diveLog_weight_side_left => 'Left';
+
+  @override
+  String get diveLog_weight_side_right => 'Right';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'Suggested: $name';
   }

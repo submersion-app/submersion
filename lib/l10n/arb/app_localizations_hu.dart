@@ -8546,6 +8546,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Eltávolítás';
 
   @override
+  String get diveLog_weight_side_label => 'Oldal';
+
+  @override
+  String get diveLog_weight_side_both => 'Mindkettő';
+
+  @override
+  String get diveLog_weight_side_left => 'Bal';
+
+  @override
+  String get diveLog_weight_side_right => 'Jobb';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'Javasolt: $name';
   }

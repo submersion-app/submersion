@@ -160,4 +160,72 @@ void main() {
     await tester.enterText(amountField('3'), '3..');
     expect(current().single.amountKg, 3);
   });
+
+  group('side (#5028)', () {
+    Finder sideButton(String label) => find.descendant(
+      of: find.byType(SegmentedButton<WeightSide?>),
+      matching: find.text(label),
+    );
+
+    testWidgets('the row offers Both, Left and Right, Both selected', (
+      tester,
+    ) async {
+      await pumpRows(tester, [w('a', 2)]);
+
+      expect(sideButton('Both'), findsOneWidget);
+      expect(sideButton('Left'), findsOneWidget);
+      expect(sideButton('Right'), findsOneWidget);
+      final button = tester.widget<SegmentedButton<WeightSide?>>(
+        find.byType(SegmentedButton<WeightSide?>),
+      );
+      expect(button.selected, {null});
+    });
+
+    testWidgets('choosing Left reports a weight with side left', (
+      tester,
+    ) async {
+      final read = await pumpRows(tester, [w('a', 2)]);
+
+      await tester.tap(sideButton('Left'));
+      await tester.pumpAndSettle();
+
+      expect(read().single.side, WeightSide.left);
+    });
+
+    testWidgets('choosing Both again clears the side', (tester) async {
+      final read = await pumpRows(tester, [
+        w('a', 2).copyWith(side: WeightSide.right),
+      ]);
+
+      await tester.tap(sideButton('Both'));
+      await tester.pumpAndSettle();
+
+      expect(read().single.side, isNull);
+    });
+
+    testWidgets('a backplate weight shows no side choice', (tester) async {
+      await pumpRows(tester, [
+        w('a', 2).copyWith(weightType: WeightType.backplate),
+      ]);
+
+      expect(find.byType(SegmentedButton<WeightSide?>), findsNothing);
+    });
+
+    testWidgets('changing the type to backplate clears the side', (
+      tester,
+    ) async {
+      final read = await pumpRows(tester, [
+        w('a', 2).copyWith(side: WeightSide.left),
+      ]);
+
+      await tester.tap(find.byType(DropdownButtonFormField<WeightType>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Backplate Weights').last);
+      await tester.pumpAndSettle();
+
+      expect(read().single.weightType, WeightType.backplate);
+      expect(read().single.side, isNull);
+      expect(find.byType(SegmentedButton<WeightSide?>), findsNothing);
+    });
+  });
 }

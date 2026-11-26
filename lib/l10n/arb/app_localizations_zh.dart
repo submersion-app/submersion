@@ -8134,6 +8134,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => '移除';
 
   @override
+  String get diveLog_weight_side_label => '左右侧';
+
+  @override
+  String get diveLog_weight_side_both => '两侧';
+
+  @override
+  String get diveLog_weight_side_left => '左';
+
+  @override
+  String get diveLog_weight_side_right => '右';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return '建议：$name';
   }

@@ -8255,6 +8255,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => '削除';
 
   @override
+  String get diveLog_weight_side_label => '左右';
+
+  @override
+  String get diveLog_weight_side_both => '両側';
+
+  @override
+  String get diveLog_weight_side_left => '左';
+
+  @override
+  String get diveLog_weight_side_right => '右';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'おすすめ：$name';
   }

@@ -8714,6 +8714,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'إزالة';
 
   @override
+  String get diveLog_weight_side_label => 'الجانب';
+
+  @override
+  String get diveLog_weight_side_both => 'كلاهما';
+
+  @override
+  String get diveLog_weight_side_left => 'يسار';
+
+  @override
+  String get diveLog_weight_side_right => 'يمين';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'مقترح: $name';
   }

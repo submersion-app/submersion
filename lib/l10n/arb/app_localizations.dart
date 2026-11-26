@@ -13418,6 +13418,30 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get diveLog_edit_tooltip_removeWeight;
 
+  /// Label for the choice of which side of the diver a weight is carried on
+  ///
+  /// In en, this message translates to:
+  /// **'Side'**
+  String get diveLog_weight_side_label;
+
+  /// A weight carried on both sides of the diver, split evenly
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get diveLog_weight_side_both;
+
+  /// No description provided for @diveLog_weight_side_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get diveLog_weight_side_left;
+
+  /// No description provided for @diveLog_weight_side_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get diveLog_weight_side_right;
+
   /// No description provided for @diveLog_edit_tripSuggested.
   ///
   /// In en, this message translates to:

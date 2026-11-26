@@ -8390,6 +8390,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'הסרה';
 
   @override
+  String get diveLog_weight_side_label => 'צד';
+
+  @override
+  String get diveLog_weight_side_both => 'שניהם';
+
+  @override
+  String get diveLog_weight_side_left => 'שמאל';
+
+  @override
+  String get diveLog_weight_side_right => 'ימין';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'מוצע: $name';
   }

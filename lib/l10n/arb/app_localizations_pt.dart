@@ -8569,6 +8569,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Remover';
 
   @override
+  String get diveLog_weight_side_label => 'Lado';
+
+  @override
+  String get diveLog_weight_side_both => 'Ambos';
+
+  @override
+  String get diveLog_weight_side_left => 'Esquerda';
+
+  @override
+  String get diveLog_weight_side_right => 'Direita';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'Sugerido: $name';
   }
