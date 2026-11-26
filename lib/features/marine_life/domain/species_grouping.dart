@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
 import 'package:submersion/features/marine_life/domain/wall_clock.dart';
 
@@ -170,11 +171,11 @@ int _newestTripFirst(_PlaceGroup a, _PlaceGroup b) {
   if (da != null && db != null && da != db) return db.compareTo(da);
   if (da == null && db != null) return 1;
   if (da != null && db == null) return -1;
-  return a.place.name.compareTo(b.place.name);
+  return compareTextForSort(a.place.name, b.place.name);
 }
 
 int _mostSpeciesFirst(_PlaceGroup a, _PlaceGroup b) {
   final byCount = b.entries.length.compareTo(a.entries.length);
   if (byCount != 0) return byCount;
-  return a.place.name.compareTo(b.place.name);
+  return compareTextForSort(a.place.name, b.place.name);
 }

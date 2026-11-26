@@ -24,6 +24,7 @@ void main() {
   testWidgets('two columns at 1280', (tester) async {
     await pumpSpeciesPage(tester);
     tester.view.physicalSize = const Size(1280, 900);
+    addTearDown(tester.view.reset);
     await tester.pumpAndSettle();
 
     final hero = tester.getRect(find.byType(SpeciesHero));
