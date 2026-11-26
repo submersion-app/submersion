@@ -128,17 +128,22 @@ void main() {
     expect(taps, 1);
   });
 
-  testWidgets('a disabled action ignores taps', (tester) async {
+  testWidgets('a disabled action is a disabled button', (tester) async {
+    final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       _host(const RecordEditAction(label: 'Save', onPressed: null)),
     );
 
-    await tester.tap(find.text('Save'), warnIfMissed: false);
-
     expect(
-      tester.widget<RecordEditAction>(find.byType(RecordEditAction)).onPressed,
-      isNull,
+      tester.getSemantics(find.byType(RecordEditAction)),
+      isSemantics(
+        label: 'Save',
+        isButton: true,
+        hasEnabledState: true,
+        isEnabled: false,
+      ),
     );
+    semantics.dispose();
   });
 
   // Tropical's primary is its app bar's background, which made a bare

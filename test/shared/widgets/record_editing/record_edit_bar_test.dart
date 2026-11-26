@@ -273,11 +273,16 @@ void main() {
     await tester.pumpWidget(_host(textScale: 2));
 
     expect(tester.takeException(), isNull);
-    expect(
-      tester.getSize(find.byType(AppBar)).height,
-      kToolbarHeight,
-      reason: 'the bar keeps its height',
-    );
+    final bar = tester.getRect(find.byType(AppBar));
+    for (final label in ['Cancel', 'Save']) {
+      final button = tester.getRect(
+        find.byWidgetPredicate(
+          (w) => w is RecordEditAction && w.label == label,
+        ),
+      );
+      expect(button.top, greaterThanOrEqualTo(bar.top), reason: label);
+      expect(button.bottom, lessThanOrEqualTo(bar.bottom), reason: label);
+    }
   });
 
   // A sitting that ends otherwise (a reader's Send, issue #4527) names its
