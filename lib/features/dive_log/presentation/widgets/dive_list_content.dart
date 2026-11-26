@@ -515,10 +515,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Every dive the filter matches, once the ones past the loaded pages are
   /// in. A read that fails leaves the loaded dives, with the list's Retry row
   /// offering the rest.
+  ///
+  /// A filter or sort changed meanwhile reloads the list from the top, and
+  /// the read can land while that reload has no rows yet: checking "all" of
+  /// none would clear the diver's checks, so the dives held when this started
+  /// answer instead, and the prune drops them once the new rows land.
   Future<List<DiveSummary>> _loadAllDives() async {
+    final before = ref.read(paginatedDiveListProvider).value?.dives ?? const [];
     await _loadRestOfList();
-    if (!mounted) return const [];
-    return ref.read(paginatedDiveListProvider).value?.dives ?? const [];
+    if (!mounted) return before;
+    return ref.read(paginatedDiveListProvider).value?.dives ?? before;
   }
 
   Future<List<String>> _loadAllDiveIds() async => [

@@ -36,12 +36,18 @@ class _PagedNotifier extends StateNotifier<AsyncValue<PaginatedDiveListState>>
   final List<DiveSummary> all;
   int restLoads = 0;
 
+  /// Makes [loadRest] end with the list reloading from the top, as a filter
+  /// or sort change queued behind it does.
+  bool reloadAfterRest = false;
+
   @override
   Future<void> loadRest() async {
     restLoads++;
-    state = AsyncValue.data(
-      state.requireValue.copyWith(dives: all, hasMore: false),
-    );
+    state = reloadAfterRest
+        ? const AsyncValue.loading()
+        : AsyncValue.data(
+            state.requireValue.copyWith(dives: all, hasMore: false),
+          );
   }
 
   // A short first page leaves the list stranded, which asks for the next one;
@@ -126,6 +132,24 @@ void main() {
     }
     expect(find.text('2 selected'), findsOneWidget);
     expect(tester.widget<IconButton>(selectAll).onPressed, isNotNull);
+  });
+
+  testWidgets('Select All keeps the checks when the list reloads meanwhile', (
+    tester,
+  ) async {
+    final notifier = await pumpList(tester);
+    notifier.reloadAfterRest = true;
+    await _enterSelection(tester);
+    await tester.tap(
+      find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == 'd1'),
+    );
+    await _settle(tester);
+
+    await tester.tap(selectAll);
+    await tester.pump();
+
+    // The dives on screen when Select All was tapped, not none.
+    expect(find.text('2 selected'), findsOneWidget);
   });
 
   testWidgets('Ctrl-A checks the dives past the loaded page', (tester) async {
