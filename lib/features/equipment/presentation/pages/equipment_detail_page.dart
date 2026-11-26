@@ -48,6 +48,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_sit
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
@@ -328,8 +329,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
     // item not yet created has no clock to show (plan 11).
     if (!equipment.isWanted && !_creating) {
       consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
+      // The same read as the Service clocks card, so the two never disagree
+      // and the clocks are evaluated once (issue #5042).
       for (final status
-          in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
+          in ref
+                  .watch(serviceClockSnapshotProvider(equipmentId))
+                  .value
+                  ?.statuses ??
               const <ServiceClockStatus>[]) {
         consider((
           ownerId: equipmentId,
@@ -407,6 +413,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   enabled: equipment.customReminderEnabled,
                   days: equipment.customReminderDays,
                 ),
+                shown: _session,
               ),
             ),
             const SizedBox(height: 24),

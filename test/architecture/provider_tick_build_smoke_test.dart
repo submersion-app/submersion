@@ -13,7 +13,7 @@
 /// subscription broke `shareByDefaultProvider` at build time even though the
 /// read it guarded was fine.
 ///
-/// This test reads each of the 162 tick-subscribing providers once against a
+/// This test reads each of the 163 tick-subscribing providers once against a
 /// real in-memory database and asserts only that the build resolves without
 /// throwing. An empty database returning `null` or an empty list is a PASS --
 /// nothing here asserts on the returned data. Providers that genuinely cannot
@@ -59,6 +59,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_history_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -690,6 +691,10 @@ void main() {
     (
       name: 'serviceClockStatusesProvider',
       read: (c) => c.read(serviceClockStatusesProvider(_id).future),
+    ),
+    (
+      name: 'serviceClockSnapshotProvider',
+      read: (c) => c.read(serviceClockSnapshotProvider(_id).future),
     ),
     (
       name: 'serviceDueEquipmentProvider',

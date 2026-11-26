@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_edi
 import 'package:submersion/features/equipment/presentation/editing/gear_item_list_pending.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
@@ -21,9 +22,9 @@ import 'package:submersion/shared/widgets/record_editing/record_card_header.dart
 /// The Service clocks card's editor on an unlocked gear item page (issue
 /// #4527, phase 3, plan 6): the clocks as the sitting holds them, each
 /// added, changed, paused, resumed or removed there; a service logged from
-/// one, held as a service record; and the item's own reminder days. The
-/// due rows stay as stored until Save: a clock the sitting changed shows
-/// the changed dot instead.
+/// one, held as a service record; and the item's own reminder days. Each
+/// clock's verdict is evaluated over what the sitting holds (issue #5042),
+/// and a clock the sitting changed shows the changed dot as well.
 class GearItemClocksEditor extends ConsumerStatefulWidget {
   const GearItemClocksEditor({super.key, required this.session});
 
@@ -96,14 +97,9 @@ class _GearItemClocksEditorState extends ConsumerState<GearItemClocksEditor> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    final statuses = {
-      for (final status
-          in ref
-                  .watch(serviceClockStatusesProvider(_session.stored.id))
-                  .value ??
-              const <ServiceClockStatus>[])
-        status.schedule.id: status,
-    };
+    final snapshot = ref
+        .watch(serviceClockSnapshotProvider(_session.stored.id))
+        .value;
     final kindsById = {
       ...?ref.watch(allServiceKindsByIdProvider).value,
       for (final k in ref.watch(serviceKindsProvider).value ?? <ServiceKind>[])
@@ -117,6 +113,16 @@ class _GearItemClocksEditorState extends ConsumerState<GearItemClocksEditor> {
       ]),
       builder: (context, _) {
         final clocks = gearItemClocksList.current(_session);
+        // Each clock's verdict over the clocks and records the sitting
+        // holds, from the one read of the item's usage.
+        final statuses = {
+          if (snapshot != null && clocks != null)
+            for (final status in snapshot.statusesFor(
+              schedules: clocks,
+              records: gearItemServiceRecordsList.current(_session),
+            ))
+              status.schedule.id: status,
+        };
         // A service logged from a clock is held among the service records,
         // so it waits for them as well.
         final canLog = gearItemServiceRecordsList.current(_session) != null;
@@ -150,11 +156,8 @@ class _GearItemClocksEditorState extends ConsumerState<GearItemClocksEditor> {
                 _ClockRow(
                   schedule: schedule,
                   kind: kindsById[schedule.serviceKindId],
-                  // The stored row's verdict, while the sitting has not
-                  // changed the clock.
-                  status: loaded[schedule.id] == schedule
-                      ? statuses[schedule.id]
-                      : null,
+                  status: statuses[schedule.id],
+                  evaluated: snapshot != null,
                   changed: loaded[schedule.id] != schedule,
                   canLog: canLog,
                   units: units,
@@ -178,6 +181,7 @@ class _ClockRow extends StatelessWidget {
     required this.schedule,
     required this.kind,
     required this.status,
+    required this.evaluated,
     required this.changed,
     required this.canLog,
     required this.units,
@@ -187,6 +191,10 @@ class _ClockRow extends StatelessWidget {
   final ServiceSchedule schedule;
   final ServiceKind? kind;
   final ServiceClockStatus? status;
+
+  /// Whether the clocks have been evaluated: an enabled clock without a
+  /// [status] then has no interval.
+  final bool evaluated;
   final bool changed;
 
   /// Whether Log service may be chosen: the sitting has read the service
@@ -224,7 +232,7 @@ class _ClockRow extends StatelessWidget {
       subtitle: !schedule.enabled
           ? Text(l10n.equipment_serviceClocks_paused)
           : status == null
-          ? null
+          ? (evaluated ? Text(l10n.equipment_serviceClocks_unconfigured) : null)
           : Text(
               formatServiceTriggerLines(
                 context,

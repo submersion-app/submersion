@@ -12,6 +12,7 @@ import 'package:submersion/features/checklists/presentation/pages/checklist_temp
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
@@ -294,7 +295,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'OK'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -327,7 +328,7 @@ void main() {
       'No name yet',
     );
     await tester.pump();
-    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
 
     expect(find.text('Name is required'), findsOneWidget);
@@ -428,7 +429,7 @@ void main() {
     expect(find.text('Wetsuit'), findsNothing);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
     expect(await repo.getItemsForTemplate(created.id), isEmpty);
   });
