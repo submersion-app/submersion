@@ -23,8 +23,13 @@ class DotJoinedWrap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var style = DefaultTextStyle.of(context).style;
+    // As a Text does, so the dots match bold items.
+    if (MediaQuery.boldTextOf(context)) {
+      style = style.merge(const TextStyle(fontWeight: FontWeight.bold));
+    }
     return _DotJoined(
-      separatorStyle: DefaultTextStyle.of(context).style,
+      separatorStyle: style,
       textScaler: MediaQuery.textScalerOf(context),
       textDirection: Directionality.of(context),
       children: children,

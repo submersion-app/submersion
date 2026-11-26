@@ -432,6 +432,7 @@ class CylindersCard extends ConsumerWidget {
     final waterLabelReserve =
         waterDriven &&
             waterVolume != null &&
+            pressures.$1 != null &&
             dive.profile.any((p) => p.aveloGasRemaining != null)
         ? _waterLabel(l10n, waterVolume)
         : null;
@@ -499,23 +500,29 @@ class CylindersCard extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             figure,
-            if (waterLabel != null)
-              Text(
-                waterLabel,
-                key: Key('tank-water-label-${tank.id}'),
-                style: theme.textTheme.bodySmall,
-              )
-            else
-              // Kept for its height only: not drawn, not read out.
-              ExcludeSemantics(
-                child: Opacity(
-                  opacity: 0,
-                  child: Text(
-                    waterLabelReserve!,
+            // The reserve is the whole tank's water, at least as wide as
+            // any label: kept under the shown one, so neither the height
+            // nor the width changes while the cursor moves.
+            Stack(
+              children: [
+                if (waterLabelReserve != null)
+                  ExcludeSemantics(
+                    child: Opacity(
+                      opacity: 0,
+                      child: Text(
+                        waterLabelReserve,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                  ),
+                if (waterLabel != null)
+                  Text(
+                    waterLabel,
+                    key: Key('tank-water-label-${tank.id}'),
                     style: theme.textTheme.bodySmall,
                   ),
-                ),
-              ),
+              ],
+            ),
           ],
         );
       },

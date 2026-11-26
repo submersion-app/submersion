@@ -497,4 +497,36 @@ void main() {
       },
     );
   }
+
+  testWidgets('a Hydrotank that can show no water keeps no line for it', (
+    tester,
+  ) async {
+    // Without a start pressure there is never a water estimate, so no
+    // blank line is kept under the figure.
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      volume: 10,
+      endPressure: 150,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.hydrotank,
+    );
+    final dive = Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 6, 1, 10),
+      maxDepth: 15,
+      bottomTime: const Duration(minutes: 30),
+      tanks: const [hydrotank],
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 600, depth: 15, aveloGasRemaining: 80),
+      ],
+    );
+    await tester.pumpWidget(
+      _card(dive: dive, chartSeries: const EstimatedTankPressures({}, {})),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Water ~'), findsNothing);
+  });
 }

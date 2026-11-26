@@ -28,7 +28,8 @@ const _stackBelowWidth = 480.0;
 /// figure and the trailing controls end the title line; on a narrow one the
 /// details run under the figure across the whole block and the controls sit
 /// under the title, beside the figure. Either way the controls take no
-/// width from the details (issue #5041). Issue #3675's table columns gave way to the figure.
+/// width from the details (issue #5041). Issue #3675's table columns gave
+/// way to the figure.
 class CylinderBlock extends StatelessWidget {
   const CylinderBlock({
     super.key,
