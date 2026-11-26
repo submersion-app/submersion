@@ -320,6 +320,16 @@ class TripChecklistRepository {
         final tripId = row!.readTable(checklists).tripId;
         final packs = TripEquipmentRepository();
         if (isDone) {
+          // The link is soft: the item may have been deleted since it was
+          // planned, and a pack must never point at gear that is not there.
+          final equipment =
+              await (_db.selectOnly(_db.equipment)
+                    ..addColumns([_db.equipment.id])
+                    ..where(_db.equipment.id.equals(equipmentId)))
+                  .getSingleOrNull();
+          if (equipment == null) {
+            throw StateError('Equipment $equipmentId no longer exists');
+          }
           await packs.pack(tripId, [equipmentId]);
         } else {
           await packs.unpack(tripId, equipmentId);

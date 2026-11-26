@@ -328,6 +328,9 @@ extension RungsFromV340 on AppDatabase {
     if (from < 382) await _assertDiveHandSetFieldsColumn();
     if (from < 382) await reportProgress();
 
+    // v383 (issue #4934): trip_checklist_items.equipment_id, the inventory
+    // link whose pack state decides a gear item's tick. Nullable, no
+    // backfill. The floor rises to 383 (see minimumCompatibleSchemaVersion).
     if (from < 383) await _assertTripChecklistEquipmentColumn();
     if (from < 383) await reportProgress();
   }

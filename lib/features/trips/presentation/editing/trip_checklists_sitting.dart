@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:clock/clock.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
@@ -559,29 +560,38 @@ class HeldTripChecklistWrites implements TripChecklistWrites {
     _held.withItem(item.id.isEmpty ? item.copyWith(id: _uuid.v4()) : item),
   );
 
+  /// Plans [gear] on [checklistId], once per item. Cylinders are left out:
+  /// a tank goes on the trip's cylinder board rather than being packed, so
+  /// a packing row could never follow it.
   void addGear(String checklistId, Iterable<EquipmentItem> gear) {
-    var held = _held;
+    final held = _held;
     if (!held.checklists.any((checklist) => checklist.id == checklistId)) {
       return;
     }
     final planned = {
       for (final row in held.itemsOf(checklistId)) ?row.equipmentId,
     };
+    final fresh = {
+      for (final item in gear)
+        if (!planned.contains(item.id) && item.type != EquipmentType.tank)
+          item.id: item,
+    };
     final now = clock.now();
-    for (final item in gear) {
-      if (!planned.add(item.id)) continue;
-      held = held.withItem(
-        TripChecklistItem(
-          id: _uuid.v4(),
-          checklistId: checklistId,
-          title: item.name,
-          equipmentId: item.id,
-          createdAt: now,
-          updatedAt: now,
+    _set(
+      fresh.values.fold(
+        held,
+        (next, item) => next.withItem(
+          TripChecklistItem(
+            id: _uuid.v4(),
+            checklistId: checklistId,
+            title: item.name,
+            equipmentId: item.id,
+            createdAt: now,
+            updatedAt: now,
+          ),
         ),
-      );
-    }
-    _set(held);
+      ),
+    );
   }
 
   @override

@@ -163,6 +163,21 @@ void main() {
     },
   );
 
+  test('ticking a linked item whose gear is gone packs nothing', () async {
+    final planned = await repository.createItem(
+      (await item(title: 'Lost torch')).copyWith(equipmentId: 'gone'),
+    );
+
+    await expectLater(
+      repository.toggleDone(planned.id, isDone: true),
+      throwsStateError,
+    );
+    expect(
+      await TripEquipmentRepository().equipmentIdsForTrip(testTrip.id),
+      isEmpty,
+    );
+  });
+
   group('applyTemplate', () {
     late ChecklistTemplate template;
 

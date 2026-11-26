@@ -4,6 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
+  test('the floor rises to 383', () {
+    // A peer below 383 reads a gear item's stale is_done instead of the
+    // trip's packs, so it is held until it updates.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(383),
+    );
+  });
+
   test(
     'v382 checklist rows keep their checkmarks and gain no equipment link',
     () async {

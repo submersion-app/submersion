@@ -518,7 +518,15 @@ class AppDatabase extends _$AppDatabase {
   /// triggers a full resync in normal use): the device that analysed
   /// usually updates first. Held below the floor, it reads them all once it
   /// updates. Its own payloads still arrive here and decode cleanly.
-  static const int minimumCompatibleSchemaVersion = 381;
+  ///
+  /// Raised 381 -> 383 by gear on trip checklists (#4934): a v383 item with
+  /// an equipment link is done when that gear is packed for the trip, and
+  /// its own is_done column is ignored. A peer below 383 drops the link and
+  /// reads the stale is_done, so it shows packed gear as not packed, and a
+  /// tick there writes is_done without packing anything. Held below the
+  /// floor until it updates. Its own payloads still arrive here and decode
+  /// cleanly: a missing link is null, a plain item.
+  static const int minimumCompatibleSchemaVersion = 383;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1795,6 +1803,7 @@ class AppDatabase extends _$AppDatabase {
     // no backfill; the floor does not move.
     382,
     // v383: optional inventory link on trip checklist items (issue #4934).
+    // The floor rises to 383 (see minimumCompatibleSchemaVersion).
     383,
   ];
 

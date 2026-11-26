@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart'
     as domain;
 import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
@@ -21,6 +22,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+const _log = LoggerService('tripChecklistsPanel');
 
 /// A trip's checklists (issue #3356): a list of collapsible
 /// [TripChecklistBlock]s, one per checklist, with a persistent "add
@@ -136,8 +139,10 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
                 packedStates: packedIds == null
                     ? const {}
                     : {
-                        for (final id in available.keys)
-                          id: packedIds.contains(id),
+                        for (final item in held.items)
+                          if (item.equipmentId case final id?
+                              when available.containsKey(id))
+                            id: packedIds.contains(id),
                       },
                 onTogglePacked: gear == null || inventory == null
                     ? null
@@ -265,6 +270,10 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
             : EquipmentPickerSheet(
                 scrollController: scrollController,
                 selectedEquipmentIds: plannedIds,
+                // As the Gear tab's Add offers it: a packed assembly takes
+                // its parts along, and spares would bury the gear itself.
+                hideSpare: true,
+                hideAssemblyParts: true,
                 onEquipmentConfirmed: (items) =>
                     Navigator.of(sheetContext).pop(items),
               ),
@@ -283,7 +292,12 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
                 .visibleIdsAmong(items.map((item) => item.id), diverId);
       if (!mounted || !identical(widget.editing, editing)) return;
       writes.addGear(checklistId, items.where((item) => ids.contains(item.id)));
-    } catch (_) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to add gear to a trip checklist',
+        error: e,
+        stackTrace: stackTrace,
+      );
       _showGearError(editing);
     }
   }
