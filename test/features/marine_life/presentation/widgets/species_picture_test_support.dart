@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_crop.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -32,7 +35,7 @@ MediaItem testPhoto(String id, {bool video = false}) => MediaItem(
   id: id,
   mediaType: video ? MediaType.video : MediaType.photo,
   sourceType: MediaSourceType.localFile,
-  localPath: '/tmp/$id.jpg',
+  localPath: p.join(Directory.systemTemp.path, '$id.jpg'),
   width: 4000,
   height: 3000,
   takenAt: DateTime(2026),
