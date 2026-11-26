@@ -92,6 +92,7 @@ class _SpeciesHeroState extends State<SpeciesHero> {
           SpeciesPictureView(
             picture: widget.picture,
             category: species.category,
+            targetSize: kSpeciesHeroTarget,
           ),
           if (zoomable != null)
             LayoutBuilder(
@@ -156,9 +157,11 @@ class _SpeciesHeroState extends State<SpeciesHero> {
   /// The original laid out so the padded box covers [hero], centred on the
   /// box, never leaving an edge of the hero uncovered.
   Widget _zoomed(SpeciesCrop crop, MediaItem media, Size hero) {
-    final known = (media.width ?? 0) > 0 && (media.height ?? 0) > 0
+    // The decoded size wins: stored dimensions can predate orientation.
+    final stored = (media.width ?? 0) > 0 && (media.height ?? 0) > 0
         ? Size(media.width!.toDouble(), media.height!.toDouble())
-        : _imageSize;
+        : null;
+    final known = _imageSize ?? stored;
     final aspect = known == null ? 4 / 3 : known.width / known.height;
     final source = heroSourceRect(crop.box);
     final width = math.max(
@@ -175,8 +178,10 @@ class _SpeciesHeroState extends State<SpeciesHero> {
       0.0,
     );
     return Opacity(
-      // Until the aspect is known the layout is a guess; draw nothing yet.
-      opacity: known == null ? 0 : 1,
+      // Drawn only once the original has decoded: until then (resolving,
+      // downloading, or a placeholder that never fails) the stored crop
+      // underneath stays in sight.
+      opacity: _imageSize == null ? 0 : 1,
       child: Stack(
         clipBehavior: Clip.hardEdge,
         children: [

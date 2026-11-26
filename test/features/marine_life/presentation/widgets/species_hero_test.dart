@@ -121,4 +121,45 @@ void main() {
     expect(find.byType(IdentificationCrop), findsOneWidget);
     expect(find.byType(MediaItemView), findsNothing);
   });
+
+  /// The opacity the zoomed original is drawn at.
+  double originalOpacity(WidgetTester tester) => tester
+      .widget<Opacity>(
+        find.ancestor(
+          of: find.byType(MediaItemView),
+          matching: find.byType(Opacity),
+        ),
+      )
+      .opacity;
+
+  testWidgets('an original still downloading leaves the stored crop showing', (
+    tester,
+  ) async {
+    await pumpPictures(
+      tester,
+      _hero(
+        SpeciesHero(
+          species: _grouper,
+          picture: CropPicture(testCrop('a', mediaId: 'p1')),
+          cropMedia: testPhoto('p1'),
+        ),
+      ),
+      resolverData: const UnavailableData(kind: UnavailableKind.stillFetching),
+    );
+    expect(find.byType(IdentificationCrop), findsOneWidget);
+    expect(originalOpacity(tester), 0);
+  });
+
+  testWidgets('a photo picture asks for a hero-sized rendition', (
+    tester,
+  ) async {
+    await pumpPictures(
+      tester,
+      _hero(
+        SpeciesHero(species: _grouper, picture: PhotoPicture(testPhoto('p1'))),
+      ),
+    );
+    final view = tester.widget<MediaItemView>(find.byType(MediaItemView));
+    expect(view.targetSize, kSpeciesHeroTarget);
+  });
 }
