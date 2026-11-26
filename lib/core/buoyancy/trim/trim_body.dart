@@ -72,6 +72,9 @@ class TrimBody {
   static const double _forearmLength = 0.146;
   static const double _handLength = 0.108;
 
+  /// Shoulder to wrist, as a fraction of height.
+  static const double wristFromShoulder = _upperArmLength + _forearmLength;
+
   /// Where along the torso, from the shoulder (0) to the hip (1), the diver
   /// floats from: the centre of buoyancy, at the lower chest with the lungs
   /// full. Winter's tables give no centre of buoyancy, so this is tuned
