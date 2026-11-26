@@ -97,15 +97,15 @@ void main() {
     const arch = SpeciesPlace(id: 'x', name: 'Arch');
     const wall = SpeciesPlace(id: 'w', name: 'Wall');
     const noSite = SpeciesPlace(id: null, name: '');
-    final places = SpeciesPlaces(
-      tripsBySpecies: const {},
-      sitesBySpecies: const {
+    const places = SpeciesPlaces(
+      tripsBySpecies: {},
+      sitesBySpecies: {
         'fish': [reef, wall, noSite],
         'shark': [reef, arch],
         'coral': [noSite],
       },
-      firstTripBySpecies: const {},
-      firstSiteBySpecies: const {},
+      firstTripBySpecies: {},
+      firstSiteBySpecies: {},
     );
     final groups = groupSeenSpecies(
       entries,
