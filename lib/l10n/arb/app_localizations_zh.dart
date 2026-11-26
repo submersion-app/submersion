@@ -18457,44 +18457,44 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesDetail_statsError => '无法加载目击统计';
 
   @override
-  String get marineLife_speciesDetail_firstSeenLabel => 'First seen';
+  String get marineLife_speciesDetail_firstSeenLabel => '首次看到';
 
   @override
-  String get marineLife_speciesDetail_lastSeenLabel => 'Last seen';
+  String get marineLife_speciesDetail_lastSeenLabel => '最近看到';
 
   @override
-  String get marineLife_speciesDetail_depthSeasonTitle => 'Depth and season';
+  String get marineLife_speciesDetail_depthSeasonTitle => '深度与季节';
 
   @override
-  String get marineLife_speciesDetail_photoDepths => 'Photo depths';
+  String get marineLife_speciesDetail_photoDepths => '照片深度';
 
   @override
-  String get marineLife_speciesDetail_diveMaxDepth => 'Dive max depth';
+  String get marineLife_speciesDetail_diveMaxDepth => '潜水最大深度';
 
   @override
-  String get marineLife_speciesDetail_byMonth => 'Dives by month';
+  String get marineLife_speciesDetail_byMonth => '每月潜水次数';
 
   @override
-  String get marineLife_speciesDetail_timelineTitle => 'Timeline';
+  String get marineLife_speciesDetail_timelineTitle => '时间线';
 
   @override
-  String get marineLife_speciesDetail_useAsCover => 'Use as cover';
+  String get marineLife_speciesDetail_useAsCover => '设为封面';
 
   @override
-  String get marineLife_speciesDetail_removeCover => 'Remove cover';
+  String get marineLife_speciesDetail_removeCover => '移除封面';
 
   @override
-  String get marineLife_speciesDetail_cover => 'Cover';
+  String get marineLife_speciesDetail_cover => '封面';
 
   @override
-  String get marineLife_speciesDetail_findPhotos => 'Find photos';
+  String get marineLife_speciesDetail_findPhotos => '查找照片';
 
   @override
-  String get marineLife_speciesDetail_openMedia => 'Open photo or video';
+  String get marineLife_speciesDetail_openMedia => '打开照片或视频';
 
   @override
   String marineLife_speciesDetail_timelineDive(String date) {
-    return 'Dive on $date';
+    return '$date 的潜水';
   }
 
   @override
@@ -18823,127 +18823,125 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesPage_retry => '重试';
 
   @override
-  String get marineLife_speciesPage_headerSpecies => 'Species';
+  String get marineLife_speciesPage_headerSpecies => '物种';
 
   @override
   String marineLife_speciesPage_headerNewIn(String year) {
-    return 'New in $year';
+    return '$year年新增';
   }
 
   @override
-  String get marineLife_speciesPage_headerGrowth => 'Life list growth';
+  String get marineLife_speciesPage_headerGrowth => '物种清单增长';
 
   @override
   String marineLife_speciesPage_withoutPhoto(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count without a photo',
-      one: '$count without a photo',
+      other: '$count 种没有照片',
     );
     return '$_temp0';
   }
 
   @override
-  String get marineLife_speciesPage_groupByTooltip => 'Group by';
+  String get marineLife_speciesPage_groupByTooltip => '分组方式';
 
   @override
-  String get marineLife_speciesPage_groupBy_none => 'No grouping';
+  String get marineLife_speciesPage_groupBy_none => '不分组';
 
   @override
-  String get marineLife_speciesPage_groupBy_category => 'Category';
+  String get marineLife_speciesPage_groupBy_category => '类别';
 
   @override
-  String get marineLife_speciesPage_groupBy_firstSeen => 'Year first seen';
+  String get marineLife_speciesPage_groupBy_firstSeen => '首次看到的年份';
 
   @override
-  String get marineLife_speciesPage_groupBy_trip => 'Trip';
+  String get marineLife_speciesPage_groupBy_trip => '行程';
 
   @override
-  String get marineLife_speciesPage_groupBy_site => 'Site';
+  String get marineLife_speciesPage_groupBy_site => '潜点';
 
   @override
-  String get marineLife_speciesPage_noTrip => 'No trip';
+  String get marineLife_speciesPage_noTrip => '无行程';
 
   @override
-  String get marineLife_speciesPage_noSite => 'No site';
+  String get marineLife_speciesPage_noSite => '无潜点';
 
   @override
-  String get marineLife_speciesPage_seeAll => 'See all';
+  String get marineLife_speciesPage_seeAll => '查看全部';
 
   @override
-  String get marineLife_speciesPage_showList => 'Show as list';
+  String get marineLife_speciesPage_showList => '以列表显示';
 
   @override
-  String get marineLife_speciesPage_showCards => 'Show as cards';
+  String get marineLife_speciesPage_showCards => '以卡片显示';
 
   @override
-  String get marineLife_speciesPage_practiceTooltip =>
-      'Practice naming species';
+  String get marineLife_speciesPage_practiceTooltip => '练习识别物种';
 
   @override
-  String get marineLife_speciesPage_firstSeenHere => 'First seen here';
+  String get marineLife_speciesPage_firstSeenHere => '首次在此看到';
 
   @override
-  String get marineLife_rarity_new => 'New';
+  String get marineLife_rarity_new => '新';
 
   @override
-  String get marineLife_rarity_seenOnce => 'Seen once';
+  String get marineLife_rarity_seenOnce => '只见过一次';
 
   @override
-  String get marineLife_rarity_notSeenLately => 'Not seen lately';
+  String get marineLife_rarity_notSeenLately => '许久未见';
 
   @override
-  String get marineLife_rarity_mastered => 'Mastered';
+  String get marineLife_rarity_mastered => '已掌握';
 
   @override
-  String get marineLife_practice_title => 'ID practice';
+  String get marineLife_practice_title => '物种识别练习';
 
   @override
   String get marineLife_practice_notEnough =>
-      'Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.';
+      '练习至少需要 4 个带有已确认照片裁剪的物种。请为看到的物种标记并确认照片，然后再回来。';
 
   @override
-  String get marineLife_practice_back => 'Back to species';
+  String get marineLife_practice_back => '返回物种';
 
   @override
   String marineLife_practice_progress(int current, int total) {
-    return '$current of $total';
+    return '第 $current / $total 题';
   }
 
   @override
-  String get marineLife_practice_question => 'Which species is this?';
+  String get marineLife_practice_question => '这是什么物种？';
 
   @override
-  String get marineLife_practice_scientificNames => 'Scientific names';
+  String get marineLife_practice_scientificNames => '学名';
 
   @override
-  String get marineLife_practice_right => 'Right';
+  String get marineLife_practice_right => '正确';
 
   @override
   String marineLife_practice_wrong(String name) {
-    return 'Not quite: it was $name';
+    return '差一点：正确答案是 $name';
   }
 
   @override
-  String get marineLife_practice_next => 'Next';
+  String get marineLife_practice_next => '下一题';
 
   @override
-  String get marineLife_practice_finish => 'See results';
+  String get marineLife_practice_finish => '查看结果';
 
   @override
   String marineLife_practice_score(int right, int total) {
-    return '$right of $total right';
+    return '$total 题答对 $right 题';
   }
 
   @override
-  String get marineLife_practice_missedTitle => 'To practise again';
+  String get marineLife_practice_missedTitle => '需要再练习';
 
   @override
-  String get marineLife_practice_again => 'Practise again';
+  String get marineLife_practice_again => '再练一次';
 
   @override
-  String get marineLife_practice_done => 'Done';
+  String get marineLife_practice_done => '完成';
 
   @override
   String get speciesMap_title => '物种地图';

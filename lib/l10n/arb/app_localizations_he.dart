@@ -18998,44 +18998,44 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לטעון את סטטיסטיקת התצפיות';
 
   @override
-  String get marineLife_speciesDetail_firstSeenLabel => 'First seen';
+  String get marineLife_speciesDetail_firstSeenLabel => 'נצפה לראשונה';
 
   @override
-  String get marineLife_speciesDetail_lastSeenLabel => 'Last seen';
+  String get marineLife_speciesDetail_lastSeenLabel => 'נצפה לאחרונה';
 
   @override
-  String get marineLife_speciesDetail_depthSeasonTitle => 'Depth and season';
+  String get marineLife_speciesDetail_depthSeasonTitle => 'עומק ועונה';
 
   @override
-  String get marineLife_speciesDetail_photoDepths => 'Photo depths';
+  String get marineLife_speciesDetail_photoDepths => 'עומקי התמונות';
 
   @override
-  String get marineLife_speciesDetail_diveMaxDepth => 'Dive max depth';
+  String get marineLife_speciesDetail_diveMaxDepth => 'עומק מרבי בצלילות';
 
   @override
-  String get marineLife_speciesDetail_byMonth => 'Dives by month';
+  String get marineLife_speciesDetail_byMonth => 'צלילות לפי חודש';
 
   @override
-  String get marineLife_speciesDetail_timelineTitle => 'Timeline';
+  String get marineLife_speciesDetail_timelineTitle => 'ציר זמן';
 
   @override
-  String get marineLife_speciesDetail_useAsCover => 'Use as cover';
+  String get marineLife_speciesDetail_useAsCover => 'הגדרה כתמונת שער';
 
   @override
-  String get marineLife_speciesDetail_removeCover => 'Remove cover';
+  String get marineLife_speciesDetail_removeCover => 'הסרת תמונת שער';
 
   @override
-  String get marineLife_speciesDetail_cover => 'Cover';
+  String get marineLife_speciesDetail_cover => 'תמונת שער';
 
   @override
-  String get marineLife_speciesDetail_findPhotos => 'Find photos';
+  String get marineLife_speciesDetail_findPhotos => 'חיפוש תמונות';
 
   @override
-  String get marineLife_speciesDetail_openMedia => 'Open photo or video';
+  String get marineLife_speciesDetail_openMedia => 'פתיחת התמונה או הסרטון';
 
   @override
   String marineLife_speciesDetail_timelineDive(String date) {
-    return 'Dive on $date';
+    return 'צלילה ב-$date';
   }
 
   @override
@@ -19374,127 +19374,126 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'ניסיון חוזר';
 
   @override
-  String get marineLife_speciesPage_headerSpecies => 'Species';
+  String get marineLife_speciesPage_headerSpecies => 'מינים';
 
   @override
   String marineLife_speciesPage_headerNewIn(String year) {
-    return 'New in $year';
+    return 'חדשים ב-$year';
   }
 
   @override
-  String get marineLife_speciesPage_headerGrowth => 'Life list growth';
+  String get marineLife_speciesPage_headerGrowth => 'צמיחת רשימת המינים';
 
   @override
   String marineLife_speciesPage_withoutPhoto(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count without a photo',
-      one: '$count without a photo',
+      other: '$count ללא תמונה',
+      one: 'מין אחד ללא תמונה',
     );
     return '$_temp0';
   }
 
   @override
-  String get marineLife_speciesPage_groupByTooltip => 'Group by';
+  String get marineLife_speciesPage_groupByTooltip => 'קיבוץ לפי';
 
   @override
-  String get marineLife_speciesPage_groupBy_none => 'No grouping';
+  String get marineLife_speciesPage_groupBy_none => 'ללא קיבוץ';
 
   @override
-  String get marineLife_speciesPage_groupBy_category => 'Category';
+  String get marineLife_speciesPage_groupBy_category => 'קטגוריה';
 
   @override
-  String get marineLife_speciesPage_groupBy_firstSeen => 'Year first seen';
+  String get marineLife_speciesPage_groupBy_firstSeen => 'שנת התצפית הראשונה';
 
   @override
-  String get marineLife_speciesPage_groupBy_trip => 'Trip';
+  String get marineLife_speciesPage_groupBy_trip => 'טיול';
 
   @override
-  String get marineLife_speciesPage_groupBy_site => 'Site';
+  String get marineLife_speciesPage_groupBy_site => 'אתר צלילה';
 
   @override
-  String get marineLife_speciesPage_noTrip => 'No trip';
+  String get marineLife_speciesPage_noTrip => 'ללא טיול';
 
   @override
-  String get marineLife_speciesPage_noSite => 'No site';
+  String get marineLife_speciesPage_noSite => 'ללא אתר';
 
   @override
-  String get marineLife_speciesPage_seeAll => 'See all';
+  String get marineLife_speciesPage_seeAll => 'הצג הכל';
 
   @override
-  String get marineLife_speciesPage_showList => 'Show as list';
+  String get marineLife_speciesPage_showList => 'הצג כרשימה';
 
   @override
-  String get marineLife_speciesPage_showCards => 'Show as cards';
+  String get marineLife_speciesPage_showCards => 'הצג ככרטיסים';
 
   @override
-  String get marineLife_speciesPage_practiceTooltip =>
-      'Practice naming species';
+  String get marineLife_speciesPage_practiceTooltip => 'תרגול זיהוי מינים';
 
   @override
-  String get marineLife_speciesPage_firstSeenHere => 'First seen here';
+  String get marineLife_speciesPage_firstSeenHere => 'נצפה כאן לראשונה';
 
   @override
-  String get marineLife_rarity_new => 'New';
+  String get marineLife_rarity_new => 'חדש';
 
   @override
-  String get marineLife_rarity_seenOnce => 'Seen once';
+  String get marineLife_rarity_seenOnce => 'נצפה פעם אחת';
 
   @override
-  String get marineLife_rarity_notSeenLately => 'Not seen lately';
+  String get marineLife_rarity_notSeenLately => 'לא נצפה מזמן';
 
   @override
-  String get marineLife_rarity_mastered => 'Mastered';
+  String get marineLife_rarity_mastered => 'נשלט';
 
   @override
-  String get marineLife_practice_title => 'ID practice';
+  String get marineLife_practice_title => 'תרגול זיהוי';
 
   @override
   String get marineLife_practice_notEnough =>
-      'Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.';
+      'התרגול דורש לפחות 4 מינים עם חיתוך תמונה מאושר. תייגו ואשרו תמונות של המינים שראיתם, ואז חזרו.';
 
   @override
-  String get marineLife_practice_back => 'Back to species';
+  String get marineLife_practice_back => 'חזרה למינים';
 
   @override
   String marineLife_practice_progress(int current, int total) {
-    return '$current of $total';
+    return '$current מתוך $total';
   }
 
   @override
-  String get marineLife_practice_question => 'Which species is this?';
+  String get marineLife_practice_question => 'איזה מין זה?';
 
   @override
-  String get marineLife_practice_scientificNames => 'Scientific names';
+  String get marineLife_practice_scientificNames => 'שמות מדעיים';
 
   @override
-  String get marineLife_practice_right => 'Right';
+  String get marineLife_practice_right => 'נכון';
 
   @override
   String marineLife_practice_wrong(String name) {
-    return 'Not quite: it was $name';
+    return 'כמעט: זה היה $name';
   }
 
   @override
-  String get marineLife_practice_next => 'Next';
+  String get marineLife_practice_next => 'הבא';
 
   @override
-  String get marineLife_practice_finish => 'See results';
+  String get marineLife_practice_finish => 'צפייה בתוצאות';
 
   @override
   String marineLife_practice_score(int right, int total) {
-    return '$right of $total right';
+    return '$right מתוך $total נכונות';
   }
 
   @override
-  String get marineLife_practice_missedTitle => 'To practise again';
+  String get marineLife_practice_missedTitle => 'לתרגול נוסף';
 
   @override
-  String get marineLife_practice_again => 'Practise again';
+  String get marineLife_practice_again => 'תרגול נוסף';
 
   @override
-  String get marineLife_practice_done => 'Done';
+  String get marineLife_practice_done => 'סיום';
 
   @override
   String get speciesMap_title => 'מפת מינים';
