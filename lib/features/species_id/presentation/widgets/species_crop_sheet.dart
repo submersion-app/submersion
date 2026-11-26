@@ -7,6 +7,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/services/species_crops.dart';
@@ -24,11 +25,16 @@ bool _opening = false;
 /// video (issue #5024): its crops in a sheet, or the species page when
 /// there is none to show (a tag added by hand, labels off, or a read that
 /// failed).
+///
+/// On a video, [onMoment] lets the sheet list when the species was seen
+/// (issue #5032): a tapped time closes it and is handed to [onMoment],
+/// which plays the video from there. Without it no times show.
 Future<void> openSpeciesCrops(
   BuildContext context,
   WidgetRef ref, {
   required MediaItem item,
   required SpeciesTagChip chip,
+  ValueChanged<Duration>? onMoment,
 }) async {
   final speciesPage = '/species/${chip.speciesId}';
   if (!marineLifeLabelsShown) {
@@ -59,12 +65,18 @@ Future<void> openSpeciesCrops(
     context.push(speciesPage);
     return;
   }
-  await showModalBottomSheet<void>(
+  final moment = await showModalBottomSheet<Duration>(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
-    builder: (_) => SpeciesCropSheet(item: item, chip: chip, crops: crops),
+    builder: (_) => SpeciesCropSheet(
+      item: item,
+      chip: chip,
+      crops: crops,
+      showMoments: onMoment != null,
+    ),
   );
+  if (moment != null) onMoment?.call(moment);
 }
 
 /// What one species looks like on a photo or video: its crops, large,
@@ -75,13 +87,20 @@ class SpeciesCropSheet extends ConsumerStatefulWidget {
     required this.item,
     required this.chip,
     required this.crops,
+    this.showMoments = false,
   });
 
   final MediaItem item;
   final SpeciesTagChip chip;
 
-  /// Never empty, in the order [cropsOfSpecies] gives.
+  /// Never empty, in the order [cropsOfSpecies] gives. On a video, every
+  /// track of the species, whether or not the cap kept its crop (issue
+  /// #5032).
   final List<MediaIdentification> crops;
+
+  /// Whether a video lists when the species was seen, each time closing
+  /// the sheet with that moment.
+  final bool showMoments;
 
   @override
   ConsumerState<SpeciesCropSheet> createState() => _SpeciesCropSheetState();
@@ -99,8 +118,23 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final chip = widget.chip;
-    final crops = widget.crops;
+    final all = widget.crops;
     final mediaId = widget.item.id;
+    final video = widget.item.isVideo;
+    // A video keeps only the clearest few crops of a species (issue #5032):
+    // the strip shows those, or the first track, whose crop falls back to a
+    // kept one of its group.
+    final present = video
+        ? ref.watch(presentCropIdsProvider(mediaId)).value
+        : null;
+    final kept = present == null
+        ? const <MediaIdentification>[]
+        : [
+            for (final i in all)
+              if (present.contains(i.id)) i,
+          ];
+    final crops = !video ? all : (kept.isEmpty ? [all.first] : kept);
+    final selected = _selected < crops.length ? _selected : 0;
     final scientific = ref
         .watch(speciesProvider(chip.speciesId))
         .value
@@ -132,22 +166,26 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
               constraints: const BoxConstraints(maxHeight: _largeHeight),
               child: IdentificationCrop(
                 // A new crop, not the last one's picture held over.
-                key: ValueKey(crops[_selected].id),
+                key: ValueKey(crops[selected].id),
                 mediaId: mediaId,
-                identificationId: crops[_selected].id,
+                identificationId: crops[selected].id,
                 fit: BoxFit.contain,
                 showReason: true,
               ),
             ),
           ),
-          if (crops.length > 1) ...[
+          if (all.length > 1) ...[
             const SizedBox(height: 12),
             Text(
-              widget.item.isVideo
-                  ? l10n.media_species_cropCountVideo(crops.length)
-                  : l10n.media_species_cropCountPhoto(crops.length),
+              !video
+                  ? l10n.media_species_cropCountPhoto(all.length)
+                  : kept.isNotEmpty && kept.length < all.length
+                  ? l10n.media_species_cropBestOfVideo(kept.length, all.length)
+                  : l10n.media_species_cropCountVideo(all.length),
               style: theme.textTheme.bodySmall,
             ),
+          ],
+          if (crops.length > 1) ...[
             const SizedBox(height: 8),
             SizedBox(
               height: _thumbSize + 8,
@@ -158,10 +196,11 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
                 itemCount: crops.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, index) =>
-                    _thumb(context, index, mediaId),
+                    _thumb(context, crops, index, selected, mediaId),
               ),
             ),
           ],
+          if (video && widget.showMoments) ..._moments(context, all),
           const SizedBox(height: 16),
           OutlinedButton.icon(
             key: const ValueKey('species_crop_species_page'),
@@ -181,18 +220,65 @@ class _SpeciesCropSheetState extends ConsumerState<SpeciesCropSheet> {
     );
   }
 
-  Widget _thumb(BuildContext context, int index, String mediaId) {
-    final selected = index == _selected;
-    final id = widget.crops[index].id;
+  /// When the species was seen in the video, each time a chip that closes
+  /// the sheet with its moment (issue #5032).
+  List<Widget> _moments(BuildContext context, List<MediaIdentification> all) {
+    final l10n = context.l10n;
+    final stretches = videoStretches(all);
+    if (stretches.isEmpty) return const [];
+    String time(int ms) => formatMoment(Duration(milliseconds: ms));
+    return [
+      const SizedBox(height: 16),
+      Text(
+        l10n.media_species_seenAt,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final s in stretches)
+            Semantics(
+              button: true,
+              label: l10n.media_species_playFrom(time(s.startMs)),
+              excludeSemantics: true,
+              child: ActionChip(
+                key: ValueKey('species_crop_moment_${s.startMs}'),
+                avatar: const Icon(Icons.play_arrow, size: 18),
+                label: Text(
+                  s.endMs - s.startMs < 1000
+                      ? time(s.startMs)
+                      : l10n.media_species_seenStretch(
+                          time(s.startMs),
+                          time(s.endMs),
+                        ),
+                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pop(Duration(milliseconds: s.startMs)),
+              ),
+            ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _thumb(
+    BuildContext context,
+    List<MediaIdentification> crops,
+    int index,
+    int current,
+    String mediaId,
+  ) {
+    final selected = index == current;
+    final id = crops[index].id;
     final scheme = Theme.of(context).colorScheme;
     void select() => setState(() => _selected = index);
     return Semantics(
       button: true,
       selected: selected,
-      label: context.l10n.media_species_cropThumb(
-        index + 1,
-        widget.crops.length,
-      ),
+      label: context.l10n.media_species_cropThumb(index + 1, crops.length),
       excludeSemantics: true,
       onTap: select,
       child: GestureDetector(

@@ -88063,6 +88063,30 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{{count} in this video} other{{count} in this video}}'**
   String media_species_cropCountVideo(int count);
 
+  /// Under a species' crops on a locked video when it keeps only the clearest few: how many show of how many times the species was followed (issue #5032).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{shown} best of {count} sightings}}'**
+  String media_species_cropBestOfVideo(int shown, int count);
+
+  /// Heading over the times a species was seen in a video, on its crop sheet (issue #5032).
+  ///
+  /// In en, this message translates to:
+  /// **'Seen at'**
+  String get media_species_seenAt;
+
+  /// A stretch of a video where a species was seen, as player times such as 0:04 to 0:31 (issue #5032).
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String media_species_seenStretch(String start, String end);
+
+  /// Screen reader label of a time on a species' crop sheet: tapping it plays the video from there (issue #5032).
+  ///
+  /// In en, this message translates to:
+  /// **'Play from {time}'**
+  String media_species_playFrom(String time);
+
   /// Button on a species' crop sheet that opens the species page (issue #5024).
   ///
   /// In en, this message translates to:

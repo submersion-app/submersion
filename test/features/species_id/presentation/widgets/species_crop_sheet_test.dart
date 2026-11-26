@@ -57,6 +57,7 @@ Future<void> pumpOpener(
   Set<String> missing = const {},
   MediaIdentificationRepository? repository,
   int taps = 1,
+  ValueChanged<Duration>? onMoment,
 }) async {
   final overrides = await getBaseOverrides();
   final item = testMediaItem(id: 'p1', diveId: 'd1', mediaType: type);
@@ -68,8 +69,13 @@ Future<void> pumpOpener(
         builder: (_, _) => Scaffold(
           body: Consumer(
             builder: (context, ref, _) => TextButton(
-              onPressed: () =>
-                  openSpeciesCrops(context, ref, item: item, chip: grunt),
+              onPressed: () => openSpeciesCrops(
+                context,
+                ref,
+                item: item,
+                chip: grunt,
+                onMoment: onMoment,
+              ),
               child: const Text('open'),
             ),
           ),
@@ -298,6 +304,144 @@ void main() {
         find.byKey(const ValueKey('species_crop_thumbs')),
       );
       expect(row.scrollDirection, Axis.horizontal);
+    });
+  });
+
+  group('a video (issue #5032)', () {
+    /// A grunt followed from [start] to [end] ms, with a box of [area].
+    MediaIdentification gruntTrack(
+      String id,
+      int start,
+      int end, {
+      int area = 100,
+    }) => gruntAt(id, 0.1).copyWith(
+      startMs: () => start,
+      endMs: () => end,
+      bestMs: () => start,
+      boxPixelWidth: area,
+      boxPixelHeight: 1,
+    );
+
+    Future<void> pumpVideo(
+      WidgetTester tester,
+      List<MediaIdentification> rows, {
+      required Set<String> present,
+      ValueChanged<Duration>? onMoment,
+    }) => pumpOpener(
+      tester,
+      rows: rows,
+      type: MediaType.video,
+      onMoment: onMoment,
+      extra: [presentCropIdsProvider.overrideWith((ref, _) async => present)],
+    );
+
+    Finder thumbs() => find.byWidgetPredicate(
+      (w) =>
+          w.key is ValueKey<String> &&
+          (w.key! as ValueKey<String>).value.startsWith('species_crop_thumb_'),
+    );
+
+    Finder moments() => find.byWidgetPredicate(
+      (w) =>
+          w.key is ValueKey<String> &&
+          (w.key! as ValueKey<String>).value.startsWith('species_crop_moment_'),
+    );
+
+    testWidgets('shows the kept crops and 3 best of 5 sightings', (
+      tester,
+    ) async {
+      await pumpVideo(
+        tester,
+        [
+          for (var k = 0; k < 5; k++)
+            gruntTrack('t$k', k * 1000, k * 1000 + 500),
+        ],
+        present: {'t0', 't2', 't4'},
+        onMoment: (_) {},
+      );
+      expect(thumbs(), findsNWidgets(3));
+      expect(find.text('3 best of 5 sightings'), findsOneWidget);
+    });
+
+    testWidgets('tapping a time chip closes the sheet and reports the '
+        'moment', (tester) async {
+      Duration? reported;
+      await pumpVideo(
+        tester,
+        [gruntTrack('a', 4000, 9000), gruntTrack('b', 30000, 31000)],
+        present: {'a', 'b'},
+        onMoment: (at) => reported = at,
+      );
+      expect(find.text('Seen at'), findsOneWidget);
+      expect(find.text('0:04 to 0:09'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('species_crop_moment_4000')));
+      await tester.pumpAndSettle();
+      expect(reported, const Duration(milliseconds: 4000));
+      expect(find.byKey(const ValueKey('species_crop_sheet')), findsNothing);
+    });
+
+    testWidgets('a track under a second is one time', (tester) async {
+      await pumpVideo(
+        tester,
+        [gruntTrack('a', 12000, 12400)],
+        present: {'a'},
+        onMoment: (_) {},
+      );
+      expect(find.text('0:12'), findsOneWidget);
+    });
+
+    testWidgets('without a way to jump there are no time chips', (
+      tester,
+    ) async {
+      await pumpVideo(tester, [gruntTrack('a', 4000, 9000)], present: {'a'});
+      expect(moments(), findsNothing);
+      expect(find.text('Seen at'), findsNothing);
+    });
+
+    testWidgets('a sheet whose tracks lost their crops still opens', (
+      tester,
+    ) async {
+      await pumpVideo(
+        tester,
+        [
+          for (var k = 0; k < 5; k++)
+            gruntTrack('t$k', k * 1000, k * 1000 + 500),
+        ],
+        present: const {},
+        onMoment: (_) {},
+      );
+      expect(find.byKey(const ValueKey('species_crop_sheet')), findsOneWidget);
+      expect(find.byKey(const ValueKey('species_crop_large')), findsOneWidget);
+      expect(find.text('5 in this video'), findsOneWidget);
+    });
+
+    testWidgets('15 stretches wrap on a phone without overflow', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(412, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pumpVideo(
+        tester,
+        [
+          for (var k = 0; k < 15; k++)
+            gruntTrack('t$k', k * 4000, k * 4000 + 1500),
+        ],
+        present: {'t0'},
+        onMoment: (_) {},
+      );
+      expect(tester.takeException(), isNull);
+      expect(moments(), findsNWidgets(15));
+    });
+
+    testWidgets('an hour-long video reads 1:02:05', (tester) async {
+      await pumpVideo(
+        tester,
+        [gruntTrack('a', 3725000, 3730000)],
+        present: {'a'},
+        onMoment: (_) {},
+      );
+      expect(find.text('1:02:05 to 1:02:10'), findsOneWidget);
     });
   });
 }
