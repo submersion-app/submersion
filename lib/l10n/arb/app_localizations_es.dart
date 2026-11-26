@@ -4996,6 +4996,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get checklists_addGearSet => 'Agregar conjunto de equipo';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Las botellas van en la pestaña Equipo.';
+
+  @override
   String get checklists_addItem => 'Agregar elemento';
 
   @override

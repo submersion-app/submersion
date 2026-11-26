@@ -1348,6 +1348,7 @@
   "checklists_empty_past": "Keine Checklisteneinträge",
   "checklists_addGear": "Ausrüstung hinzufügen",
   "checklists_addGearSet": "Ausrüstungsset hinzufügen",
+  "checklists_addGear_cylindersOnGearTab": "Flaschen kommen auf den Tab Ausrüstung.",
   "checklists_addItem": "Eintrag hinzufügen",
   "checklists_toPack": "Einzupacken",
   "checklists_packed": "Gepackt",

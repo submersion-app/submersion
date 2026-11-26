@@ -291,7 +291,20 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
                 .read(equipmentRepositoryProvider)
                 .visibleIdsAmong(items.map((item) => item.id), diverId);
       if (!mounted || !identical(widget.editing, editing)) return;
-      writes.addGear(checklistId, items.where((item) => ids.contains(item.id)));
+      final result = writes.addGear(
+        checklistId,
+        items.where((item) => ids.contains(item.id)),
+      );
+      // Said every time, "nothing new" too: a pick that only repeated
+      // planned gear, or only held cylinders, otherwise looks ignored.
+      final l10n = context.l10n;
+      final added = l10n.checklists_apply_success(result.added);
+      showChecklistSnackBar(
+        ScaffoldMessenger.of(context),
+        result.cylinders == 0
+            ? added
+            : '$added ${l10n.checklists_addGear_cylindersOnGearTab}',
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to add gear to a trip checklist',

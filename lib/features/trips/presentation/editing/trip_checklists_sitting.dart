@@ -560,13 +560,22 @@ class HeldTripChecklistWrites implements TripChecklistWrites {
     _held.withItem(item.id.isEmpty ? item.copyWith(id: _uuid.v4()) : item),
   );
 
-  /// Plans [gear] on [checklistId], once per item. Cylinders are left out:
-  /// a tank goes on the trip's cylinder board rather than being packed, so
-  /// a packing row could never follow it.
-  void addGear(String checklistId, Iterable<EquipmentItem> gear) {
+  /// Plans [gear] on [checklistId], once per item, and answers how many
+  /// rows it added and how many cylinders it left out. Cylinders are left
+  /// out because a tank goes on the trip's cylinder board rather than being
+  /// packed, so a packing row could never follow it; the count lets the
+  /// caller say so rather than drop them silently.
+  ({int added, int cylinders}) addGear(
+    String checklistId,
+    Iterable<EquipmentItem> gear,
+  ) {
     final held = _held;
+    final cylinders = {
+      for (final item in gear)
+        if (item.type == EquipmentType.tank) item.id,
+    }.length;
     if (!held.checklists.any((checklist) => checklist.id == checklistId)) {
-      return;
+      return (added: 0, cylinders: cylinders);
     }
     final planned = {
       for (final row in held.itemsOf(checklistId)) ?row.equipmentId,
@@ -576,6 +585,7 @@ class HeldTripChecklistWrites implements TripChecklistWrites {
         if (!planned.contains(item.id) && item.type != EquipmentType.tank)
           item.id: item,
     };
+    if (fresh.isEmpty) return (added: 0, cylinders: cylinders);
     final now = clock.now();
     _set(
       fresh.values.fold(
@@ -592,6 +602,7 @@ class HeldTripChecklistWrites implements TripChecklistWrites {
         ),
       ),
     );
+    return (added: fresh.length, cylinders: cylinders);
   }
 
   @override

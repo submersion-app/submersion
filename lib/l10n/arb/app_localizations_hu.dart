@@ -4972,6 +4972,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_addGearSet => 'Felszereléskészlet hozzáadása';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'A palackok a Felszerelés lapra kerülnek.';
+
+  @override
   String get checklists_addItem => 'Tétel hozzáadása';
 
   @override

@@ -3091,6 +3091,7 @@
   "checklists_replaceTemplate_confirm": "Replace",
   "checklists_addGear": "Add gear",
   "checklists_addGearSet": "Add gear set",
+  "checklists_addGear_cylindersOnGearTab": "Cylinders go on the Gear tab.",
   "checklists_addItem": "Add item",
   "checklists_toPack": "To pack",
   "checklists_packed": "Packed",

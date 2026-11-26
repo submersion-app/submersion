@@ -179,8 +179,12 @@ void main() {
       type: EquipmentType.tank,
     );
 
-    writesOf(session).addGear('c1', [wing, tank, wing]);
-    writesOf(session).addGear('c1', [wing]);
+    // The counts let the panel say what happened, a dropped tank included.
+    expect(writesOf(session).addGear('c1', [wing, tank, wing]), (
+      added: 1,
+      cylinders: 1,
+    ));
+    expect(writesOf(session).addGear('c1', [wing]), (added: 0, cylinders: 0));
 
     final held = heldChecklistsOf(session, list)!;
     expect([for (final i in held.itemsOf('c1')) i.title], ['Mask', 'Wing']);

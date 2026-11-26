@@ -1322,6 +1322,7 @@
   "checklists_empty_past": "Aucun élément de liste de contrôle",
   "checklists_addGear": "Ajouter du matériel",
   "checklists_addGearSet": "Ajouter un ensemble de matériel",
+  "checklists_addGear_cylindersOnGearTab": "Les blocs se gèrent dans l'onglet Matériel.",
   "checklists_addItem": "Ajouter un élément",
   "checklists_toPack": "À emballer",
   "checklists_packed": "Emballé",

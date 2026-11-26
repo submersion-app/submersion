@@ -1402,6 +1402,7 @@
   "checklists_empty_past": "暂无清单事项",
   "checklists_addGear": "添加装备",
   "checklists_addGearSet": "添加装备套装",
+  "checklists_addGear_cylindersOnGearTab": "气瓶请在装备标签页中添加。",
   "checklists_addItem": "添加事项",
   "checklists_toPack": "待打包",
   "checklists_packed": "已打包",

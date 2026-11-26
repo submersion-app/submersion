@@ -42,6 +42,9 @@ void main() {
       expect(row.read<String>('title'), 'Mask');
       expect(row.read<int>('is_done'), 1);
       expect(row.read<int>('completed_at'), 123);
+      // readNullable answers null for a column that is not there at all, so
+      // the column's presence is checked on its own.
+      expect(row.data, contains('equipment_id'));
       expect(row.readNullable<String>('equipment_id'), isNull);
       expect(AppDatabase.migrationVersions, contains(384));
     },

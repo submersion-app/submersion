@@ -5006,6 +5006,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get checklists_addGearSet => 'Ajouter un ensemble de matériel';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Les blocs se gèrent dans l\'onglet Matériel.';
+
+  @override
   String get checklists_addItem => 'Ajouter un élément';
 
   @override

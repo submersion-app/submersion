@@ -157,6 +157,7 @@ void main() {
       expect(find.byType(EquipmentPickerSheet), findsOneWidget);
       await openFoldedGroups(tester);
       await tickAndAdd(tester, [wing.name]);
+      expect(find.text(l.checklists_apply_success(1)), findsOneWidget);
       await tapText(tester, l.checklists_addGearSet);
       await tapText(tester, set.name);
 
@@ -181,6 +182,85 @@ void main() {
       expect(harness.gearWrites, ['pack wing']);
     },
   );
+
+  testWidgets('unticking packed gear unpacks it at Save and keeps the row', (
+    tester,
+  ) async {
+    const wing = EquipmentItem(
+      id: 'wing',
+      name: 'Travel wing',
+      type: EquipmentType.bcd,
+    );
+    final planned = TripChecklistsHeld(
+      checklists: packing.checklists,
+      items: [
+        TripChecklistItem(
+          id: 'g1',
+          checklistId: 'c1',
+          title: wing.name,
+          equipmentId: wing.id,
+          isDone: true,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+    final harness = await pumpTripPage(
+      tester,
+      checklists: planned,
+      packed: const [wing],
+      extraOverrides: [
+        allEquipmentProvider.overrideWith((ref) async => const [wing]),
+      ],
+    );
+    await unlock(tester);
+    await showChecklists(tester);
+    expect(find.text(l.checklists_packed), findsOneWidget);
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+    expect(find.text(l.checklists_toPack), findsOneWidget);
+    expect(harness.gearWrites, isEmpty);
+
+    await tapText(tester, l.forms_save);
+    expect(harness.gearWrites, ['unpack wing']);
+    expect(harness.checklistWrites, isEmpty);
+  });
+
+  testWidgets('a picked cylinder is left off with a word on where it goes', (
+    tester,
+  ) async {
+    const tank = EquipmentItem(
+      id: 'tank',
+      name: 'Steel 12',
+      type: EquipmentType.tank,
+    );
+    final harness = await pumpTripPage(
+      tester,
+      checklists: packing,
+      activeDiverId: 'd1',
+      extraOverrides: [
+        activeEquipmentProvider.overrideWith((ref) async => const [tank]),
+        allEquipmentProvider.overrideWith((ref) async => const [tank]),
+        equipmentRepositoryProvider.overrideWithValue(_Inventory()),
+      ],
+    );
+    await unlock(tester);
+    await showChecklists(tester);
+    await tapText(tester, l.checklists_addGear);
+    await openFoldedGroups(tester);
+    await tickAndAdd(tester, [tank.name]);
+
+    expect(
+      find.text(
+        '${l.checklists_apply_success(0)} '
+        '${l.checklists_addGear_cylindersOnGearTab}',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text(tank.name), findsNothing);
+    expect(harness.checklistWrites, isEmpty);
+  });
 
   testWidgets('Cancel after a tick writes nothing', (tester) async {
     final harness = await pumpTripPage(tester, checklists: packing);

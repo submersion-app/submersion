@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' hide Trip;
 import 'package:submersion/core/services/database_service.dart';
@@ -33,8 +34,14 @@ class TripChecklistRepository {
   final _log = LoggerService.forClass(TripChecklistRepository);
   final _sections = TripChecklistSectionRepository();
 
+  /// Ticks on equipment too: a gear item reads as a plain one while its
+  /// equipment is missing, and turns back when it arrives through sync.
   Stream<void> watchTripChecklistChanges() => _db.tableUpdates(
-    TableUpdateQuery.onAllTables([_db.tripChecklistItems, _db.tripEquipment]),
+    TableUpdateQuery.onAllTables([
+      _db.tripChecklistItems,
+      _db.tripEquipment,
+      _db.equipment,
+    ]),
   );
 
   Stream<void> watchTripChecklistSectionChanges() =>
@@ -187,24 +194,36 @@ class TripChecklistRepository {
     final items = _db.tripChecklistItems;
     final checklists = _db.tripChecklists;
     final packs = _db.tripEquipment;
+    final gear = _db.equipment;
     final query =
         _db.select(items).join([
-          innerJoin(checklists, checklists.id.equalsExp(items.checklistId)),
-          leftOuterJoin(
-            packs,
-            packs.tripId.equalsExp(checklists.tripId) &
-                packs.equipmentId.equalsExp(items.equipmentId),
-          ),
-        ])..orderBy([
-          OrderingTerm.asc(checklists.sortOrder),
-          OrderingTerm.asc(checklists.createdAt),
-          OrderingTerm.asc(items.sortOrder),
-        ]);
+            innerJoin(checklists, checklists.id.equalsExp(items.checklistId)),
+            leftOuterJoin(
+              packs,
+              packs.tripId.equalsExp(checklists.tripId) &
+                  packs.equipmentId.equalsExp(items.equipmentId),
+            ),
+            leftOuterJoin(
+              gear,
+              gear.id.equalsExp(items.equipmentId),
+              useColumns: false,
+            ),
+          ])
+          ..addColumns([gear.id])
+          ..orderBy([
+            OrderingTerm.asc(checklists.sortOrder),
+            OrderingTerm.asc(checklists.createdAt),
+            OrderingTerm.asc(items.sortOrder),
+          ]);
     if (tripId != null) query.where(checklists.tripId.equals(tripId));
     if (checklistId != null) query.where(items.checklistId.equals(checklistId));
     return query.map((row) {
       final item = _mapRow(row.readTable(items));
       if (item.equipmentId == null) return item;
+      // The equipment was deleted since it was planned, or has not synced
+      // here yet: the row reads as a plain item, ticked by its own is_done,
+      // so it never sits there unticked for good.
+      if (row.read(gear.id) == null) return item.copyWith(equipmentId: null);
       final packed = row.readTableOrNull(packs);
       return item.copyWith(
         isDone: packed != null,
@@ -255,11 +274,18 @@ class TripChecklistRepository {
         localUpdatedAt: now,
       );
       SyncEventBus.notifyLocalChange();
-      return item.copyWith(
+      final created = item.copyWith(
         id: id,
         sortOrder: sortOrder,
         createdAt: DateTime.fromMillisecondsSinceEpoch(now),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
+      );
+      if (item.equipmentId == null) return created;
+      // A gear item's tick is its gear's packing, not the caller's isDone:
+      // answer the row as every read will.
+      return (await _readItems(checklistId: item.checklistId)).firstWhere(
+        (i) => i.id == id,
+        orElse: () => created.copyWith(isDone: false, completedAt: null),
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -316,24 +342,28 @@ class TripChecklistRepository {
         innerJoin(checklists, checklists.id.equalsExp(items.checklistId)),
       ])..where(items.id.equals(id))).getSingleOrNull();
       final equipmentId = row?.readTable(items).equipmentId;
-      if (equipmentId != null) {
+      // The link is soft: equipment deleted since it was planned leaves a
+      // plain item, ticked below by is_done as every read shows it.
+      final status = equipmentId == null
+          ? null
+          : await (_db.selectOnly(_db.equipment)
+                  ..addColumns([_db.equipment.status])
+                  ..where(_db.equipment.id.equals(equipmentId)))
+                .map((r) => r.read(_db.equipment.status))
+                .getSingleOrNull();
+      if (equipmentId != null && status != null) {
         final tripId = row!.readTable(checklists).tripId;
         final packs = TripEquipmentRepository();
-        if (isDone) {
-          // The link is soft: the item may have been deleted since it was
-          // planned, and a pack must never point at gear that is not there.
-          final equipment =
-              await (_db.selectOnly(_db.equipment)
-                    ..addColumns([_db.equipment.id])
-                    ..where(_db.equipment.id.equals(equipmentId)))
-                  .getSingleOrNull();
-          if (equipment == null) {
-            throw StateError('Equipment $equipmentId no longer exists');
-          }
-          await packs.pack(tripId, [equipmentId]);
-        } else {
+        if (!isDone) {
           await packs.unpack(tripId, equipmentId);
+          return;
         }
+        // Gear on the wishlist is not owned yet (#2025), so it is never
+        // packed, as neither the Gear tab nor this list's tick packs it.
+        if (status == EquipmentStatus.wanted.name) {
+          throw StateError('Equipment $equipmentId is on the wishlist');
+        }
+        await packs.pack(tripId, [equipmentId]);
         return;
       }
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -682,10 +712,13 @@ class TripChecklistRepository {
       final rows = await _db
           .customSelect(
             'SELECT c.trip_id AS trip_id, COUNT(*) AS total, '
-            'SUM(CASE WHEN i.equipment_id IS NULL THEN i.is_done '
+            // A gear item whose equipment is gone counts by is_done, as
+            // _readItems reads it.
+            'SUM(CASE WHEN e.id IS NULL THEN i.is_done '
             'WHEN p.id IS NOT NULL THEN 1 ELSE 0 END) AS done '
             'FROM trip_checklist_items i '
             'JOIN trip_checklists c ON c.id = i.checklist_id '
+            'LEFT JOIN equipment e ON e.id = i.equipment_id '
             'LEFT JOIN trip_equipment p '
             'ON p.trip_id = c.trip_id AND p.equipment_id = i.equipment_id '
             'WHERE c.trip_id IN ($placeholders) '
@@ -695,6 +728,7 @@ class TripChecklistRepository {
               _db.tripChecklistItems,
               _db.tripChecklists,
               _db.tripEquipment,
+              _db.equipment,
             },
           )
           .get();

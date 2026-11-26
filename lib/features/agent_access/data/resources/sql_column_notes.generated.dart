@@ -783,6 +783,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'trip_checklist_items': {
     'due_date': 'Absolute due date, resolved from the template offset at apply time',
+    'equipment_id': 'The equipment row a gear item plans, whose packing for the trip (trip_equipment) is the item\'s tick while that equipment exists',
+    'is_done': 'The tick, kept false and ignored while equipment_id names existing equipment, whose trip_equipment row says instead whether it is packed',
     'section_id': 'The section this item is grouped under, if any',
   },
   'trip_cylinder_events': {

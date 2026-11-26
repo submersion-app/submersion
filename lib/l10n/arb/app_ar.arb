@@ -1322,6 +1322,7 @@
   "checklists_empty_past": "لا توجد عناصر في قائمة التحقق",
   "checklists_addGear": "إضافة معدات",
   "checklists_addGearSet": "إضافة مجموعة معدات",
+  "checklists_addGear_cylindersOnGearTab": "تُضاف الأسطوانات في تبويب المعدات.",
   "checklists_addItem": "إضافة عنصر",
   "checklists_toPack": "للتعبئة",
   "checklists_packed": "تمت التعبئة",

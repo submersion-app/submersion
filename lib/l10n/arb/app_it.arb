@@ -1322,6 +1322,7 @@
   "checklists_empty_past": "Nessun elemento nella lista di controllo",
   "checklists_addGear": "Aggiungi attrezzatura",
   "checklists_addGearSet": "Aggiungi set di attrezzatura",
+  "checklists_addGear_cylindersOnGearTab": "Le bombole vanno nella scheda Attrezzatura.",
   "checklists_addItem": "Aggiungi elemento",
   "checklists_toPack": "Da mettere in valigia",
   "checklists_packed": "In valigia",

@@ -1322,6 +1322,7 @@
   "checklists_empty_past": "Nenhum item na lista de verificação",
   "checklists_addGear": "Adicionar equipamento",
   "checklists_addGearSet": "Adicionar conjunto de equipamento",
+  "checklists_addGear_cylindersOnGearTab": "Os cilindros ficam na aba Equipamento.",
   "checklists_addItem": "Adicionar item",
   "checklists_toPack": "A embalar",
   "checklists_packed": "Embalado",

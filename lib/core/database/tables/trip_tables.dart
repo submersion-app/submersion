@@ -383,8 +383,10 @@ class TripChecklistItems extends Table {
   TextColumn get checklistId => text().references(TripChecklists, #id)();
   TextColumn get title => text()();
 
-  /// Inventory identity for a planned piece of gear. A soft reference keeps
-  /// the row usable when equipment is deleted or arrives later through sync.
+  /// The equipment row a gear item plans, whose packing for the trip
+  /// (trip_equipment) is the item's tick while that equipment exists. A soft
+  /// reference: once the equipment is gone the item reads as a plain one,
+  /// ticked by is_done, so deleting gear never strands it.
   TextColumn get equipmentId => text().nullable()();
 
   /// The section this item is grouped under, if any (issue #3360). Replaces
@@ -399,6 +401,9 @@ class TripChecklistItems extends Table {
 
   /// Absolute due date, resolved from the template offset at apply time.
   IntColumn get dueDate => integer().nullable()();
+
+  /// The tick, kept false and ignored while equipment_id names existing
+  /// equipment, whose trip_equipment row says instead whether it is packed.
   BoolColumn get isDone => boolean().withDefault(const Constant(false))();
   IntColumn get completedAt => integer().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();

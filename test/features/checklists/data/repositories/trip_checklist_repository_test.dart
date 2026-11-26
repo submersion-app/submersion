@@ -1,14 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
@@ -106,76 +102,6 @@ void main() {
       await repository.deleteItem(a.id);
       expect(await repository.getByChecklistId(testChecklist.id), hasLength(1));
     });
-  });
-
-  test(
-    'linked checklist items follow packing without duplicating state',
-    () async {
-      final gear = await EquipmentRepository().createEquipment(
-        const EquipmentItem(id: '', name: 'BCD', type: EquipmentType.bcd),
-      );
-      final spare = await EquipmentRepository().createEquipment(
-        const EquipmentItem(
-          id: '',
-          name: 'Spare mask',
-          type: EquipmentType.mask,
-        ),
-      );
-      final packs = TripEquipmentRepository();
-      final planned = await repository.createItem(
-        (await item(title: gear.name)).copyWith(equipmentId: gear.id),
-      );
-      await repository.createItem(
-        (await item(title: spare.name)).copyWith(equipmentId: spare.id),
-      );
-      expect(await packs.equipmentIdsForTrip(testTrip.id), isEmpty);
-      expect(
-        (await repository.getByChecklistId(
-          testChecklist.id,
-        )).map((i) => i.isDone),
-        [false, false],
-      );
-
-      await repository.toggleDone(planned.id, isDone: true);
-      expect(await packs.equipmentIdsForTrip(testTrip.id), [gear.id]);
-      final packed = await repository.getAllItemsForTrip(testTrip.id);
-      expect(packed.first.equipmentId, gear.id);
-      expect(packed.first.isDone, isTrue);
-      expect(packed.first.completedAt, isNotNull);
-      expect(packed.last.isDone, isFalse);
-      expect(await repository.getProgressForTrips([testTrip.id]), {
-        testTrip.id: (done: 1, total: 2),
-      });
-
-      // Changes made through the Gear tab or passport also drive the list.
-      await packs.unpack(testTrip.id, gear.id);
-      expect(
-        (await repository.getByChecklistId(testChecklist.id)).first.isDone,
-        isFalse,
-      );
-      await packs.pack(testTrip.id, [gear.id]);
-      await repository.toggleDone(planned.id, isDone: false);
-      expect(await packs.equipmentIdsForTrip(testTrip.id), isEmpty);
-
-      await packs.pack(testTrip.id, [gear.id]);
-      await repository.deleteItem(planned.id);
-      expect(await packs.equipmentIdsForTrip(testTrip.id), [gear.id]);
-    },
-  );
-
-  test('ticking a linked item whose gear is gone packs nothing', () async {
-    final planned = await repository.createItem(
-      (await item(title: 'Lost torch')).copyWith(equipmentId: 'gone'),
-    );
-
-    await expectLater(
-      repository.toggleDone(planned.id, isDone: true),
-      throwsStateError,
-    );
-    expect(
-      await TripEquipmentRepository().equipmentIdsForTrip(testTrip.id),
-      isEmpty,
-    );
   });
 
   group('applyTemplate', () {

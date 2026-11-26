@@ -5086,6 +5086,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_addGearSet => 'إضافة مجموعة معدات';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'تُضاف الأسطوانات في تبويب المعدات.';
+
+  @override
   String get checklists_addItem => 'إضافة عنصر';
 
   @override

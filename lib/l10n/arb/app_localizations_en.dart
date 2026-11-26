@@ -4916,6 +4916,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists_addGearSet => 'Add gear set';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Cylinders go on the Gear tab.';
+
+  @override
   String get checklists_addItem => 'Add item';
 
   @override

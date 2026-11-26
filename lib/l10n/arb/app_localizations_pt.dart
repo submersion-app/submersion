@@ -4996,6 +4996,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get checklists_addGearSet => 'Adicionar conjunto de equipamento';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Os cilindros ficam na aba Equipamento.';
+
+  @override
   String get checklists_addItem => 'Adicionar item';
 
   @override

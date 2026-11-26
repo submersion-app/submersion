@@ -4704,6 +4704,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_addGearSet => '添加装备套装';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab => '气瓶请在装备标签页中添加。';
+
+  @override
   String get checklists_addItem => '添加事项';
 
   @override

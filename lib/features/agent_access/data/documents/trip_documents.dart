@@ -108,6 +108,9 @@ Map<String, Object?> tripChecklistItemDocument(TripChecklistItem i) => {
   'id': i.id,
   'checklist_id': i.checklistId,
   'section_id': i.sectionId,
+  // A gear item's tick is its gear packed for the trip: setting is_done on
+  // one packs or unpacks that gear.
+  'equipment_id': i.equipmentId,
   'title': i.title,
   'notes': i.notes,
   'due_date': calendarDate(i.dueDate),

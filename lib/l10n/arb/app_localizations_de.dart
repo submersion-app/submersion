@@ -4990,6 +4990,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get checklists_addGearSet => 'Ausrüstungsset hinzufügen';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Flaschen kommen auf den Tab Ausrüstung.';
+
+  @override
   String get checklists_addItem => 'Eintrag hinzufügen';
 
   @override

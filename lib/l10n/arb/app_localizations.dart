@@ -7690,6 +7690,12 @@ abstract class AppLocalizations {
   /// **'Add gear set'**
   String get checklists_addGearSet;
 
+  /// No description provided for @checklists_addGear_cylindersOnGearTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders go on the Gear tab.'**
+  String get checklists_addGear_cylindersOnGearTab;
+
   /// No description provided for @checklists_addItem.
   ///
   /// In en, this message translates to:

@@ -4964,6 +4964,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_addGearSet => 'Uitrustingsset toevoegen';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Flessen horen op het tabblad Uitrusting.';
+
+  @override
   String get checklists_addItem => 'Item toevoegen';
 
   @override

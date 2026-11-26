@@ -1322,6 +1322,7 @@
   "checklists_empty_past": "No hay elementos en la lista de verificación",
   "checklists_addGear": "Agregar equipo",
   "checklists_addGearSet": "Agregar conjunto de equipo",
+  "checklists_addGear_cylindersOnGearTab": "Las botellas van en la pestaña Equipo.",
   "checklists_addItem": "Agregar elemento",
   "checklists_toPack": "Por empacar",
   "checklists_packed": "Empacado",

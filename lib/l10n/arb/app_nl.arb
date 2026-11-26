@@ -1322,6 +1322,7 @@
   "checklists_empty_past": "Geen checklist-items",
   "checklists_addGear": "Uitrusting toevoegen",
   "checklists_addGearSet": "Uitrustingsset toevoegen",
+  "checklists_addGear_cylindersOnGearTab": "Flessen horen op het tabblad Uitrusting.",
   "checklists_addItem": "Item toevoegen",
   "checklists_toPack": "In te pakken",
   "checklists_packed": "Ingepakt",

@@ -4795,6 +4795,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checklists_addGearSet => '器材セットを追加';
 
   @override
+  String get checklists_addGear_cylindersOnGearTab => 'タンクは器材タブで追加します。';
+
+  @override
   String get checklists_addItem => '項目を追加';
 
   @override
