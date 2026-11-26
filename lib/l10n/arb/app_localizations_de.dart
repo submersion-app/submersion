@@ -29801,7 +29801,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_decompression_ccrDialog_switchDepthHint =>
-      'Darunter hoher, darüber niedriger Setpoint';
+      'Darunter hoher, darüber niedriger Sollwert';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

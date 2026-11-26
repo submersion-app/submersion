@@ -8687,7 +8687,7 @@
   "settings_decompression_ccrDialog_diluentMod": "Dil-MOD",
   "settings_decompression_ccrDialog_diluentModHint": "ppO2, den das Diluentgas beim Spülen erreichen darf; bestimmt seine MOD",
   "settings_decompression_ccrDialog_switchDepth": "Setpoint-Wechseltiefe",
-  "settings_decompression_ccrDialog_switchDepthHint": "Darunter hoher, darüber niedriger Setpoint",
+  "settings_decompression_ccrDialog_switchDepthHint": "Darunter hoher, darüber niedriger Sollwert",
   "settings_decompression_ppO2Dialog_info": "Die ppO2-Obergrenzen für MOD, Gasplanung und Sauerstofftoxizitäts-Warnungen. Stelle sie passend zu den Grenzwerten deines Tauchcomputers ein.",
   "settings_decompression_ppO2Dialog_working": "Arbeits-ppO2",
   "settings_decompression_ppO2Dialog_workingHint": "Bodengas, aktiver Teil des Tauchgangs",

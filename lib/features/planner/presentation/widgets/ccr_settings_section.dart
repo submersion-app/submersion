@@ -29,7 +29,10 @@ class CcrSettingsSection extends ConsumerWidget {
     final settingsHigh = ref.watch(ccrSetpointHighProvider);
     final settingsDepth = ref.watch(ccrSetpointSwitchDepthProvider);
 
-    return Padding(
+    // Full width, so the controls start at the accordion's left edge rather
+    // than being centred by a parent that shrink-wraps them on a phone.
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.only(top: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
