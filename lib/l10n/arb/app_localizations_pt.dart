@@ -19413,6 +19413,47 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível carregar as estatísticas de avistamentos';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'First seen';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'Last seen';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => 'Depth and season';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'Photo depths';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth => 'Dive max depth';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'Dives by month';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'Timeline';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'Use as cover';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'Remove cover';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'Cover';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'Find photos';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'Open photo or video';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'Dive on $date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'Classe: $className';
   }

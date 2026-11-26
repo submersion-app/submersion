@@ -11740,6 +11740,27 @@
   "marineLife_speciesDetail_sightingStatsTitle": "Sighting Statistics",
   "marineLife_speciesDetail_sitesLabel": "Sites",
   "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
+  "marineLife_speciesDetail_firstSeenLabel": "First seen",
+  "marineLife_speciesDetail_lastSeenLabel": "Last seen",
+  "marineLife_speciesDetail_depthSeasonTitle": "Depth and season",
+  "marineLife_speciesDetail_photoDepths": "Photo depths",
+  "marineLife_speciesDetail_diveMaxDepth": "Dive max depth",
+  "marineLife_speciesDetail_byMonth": "Dives by month",
+  "marineLife_speciesDetail_timelineTitle": "Timeline",
+  "marineLife_speciesDetail_useAsCover": "Use as cover",
+  "marineLife_speciesDetail_removeCover": "Remove cover",
+  "marineLife_speciesDetail_cover": "Cover",
+  "marineLife_speciesDetail_findPhotos": "Find photos",
+  "marineLife_speciesDetail_openMedia": "Open photo or video",
+  "marineLife_speciesDetail_timelineDive": "Dive on {date}",
+  "@marineLife_speciesDetail_timelineDive": {
+    "description": "Accessibility label of one dot on a species' sightings timeline",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesEdit_addTitle": "Add Species",

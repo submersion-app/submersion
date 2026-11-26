@@ -30848,6 +30848,84 @@ abstract class AppLocalizations {
   /// **'Failed to load sighting statistics'**
   String get marineLife_speciesDetail_statsError;
 
+  /// No description provided for @marineLife_speciesDetail_firstSeenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First seen'**
+  String get marineLife_speciesDetail_firstSeenLabel;
+
+  /// No description provided for @marineLife_speciesDetail_lastSeenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen'**
+  String get marineLife_speciesDetail_lastSeenLabel;
+
+  /// No description provided for @marineLife_speciesDetail_depthSeasonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth and season'**
+  String get marineLife_speciesDetail_depthSeasonTitle;
+
+  /// No description provided for @marineLife_speciesDetail_photoDepths.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo depths'**
+  String get marineLife_speciesDetail_photoDepths;
+
+  /// No description provided for @marineLife_speciesDetail_diveMaxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive max depth'**
+  String get marineLife_speciesDetail_diveMaxDepth;
+
+  /// No description provided for @marineLife_speciesDetail_byMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by month'**
+  String get marineLife_speciesDetail_byMonth;
+
+  /// No description provided for @marineLife_speciesDetail_timelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get marineLife_speciesDetail_timelineTitle;
+
+  /// No description provided for @marineLife_speciesDetail_useAsCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Use as cover'**
+  String get marineLife_speciesDetail_useAsCover;
+
+  /// No description provided for @marineLife_speciesDetail_removeCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove cover'**
+  String get marineLife_speciesDetail_removeCover;
+
+  /// No description provided for @marineLife_speciesDetail_cover.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get marineLife_speciesDetail_cover;
+
+  /// No description provided for @marineLife_speciesDetail_findPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Find photos'**
+  String get marineLife_speciesDetail_findPhotos;
+
+  /// No description provided for @marineLife_speciesDetail_openMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Open photo or video'**
+  String get marineLife_speciesDetail_openMedia;
+
+  /// Accessibility label of one dot on a species' sightings timeline
+  ///
+  /// In en, this message translates to:
+  /// **'Dive on {date}'**
+  String marineLife_speciesDetail_timelineDive(String date);
+
   /// No description provided for @marineLife_speciesDetail_taxonomyClassLabel.
   ///
   /// In en, this message translates to:
