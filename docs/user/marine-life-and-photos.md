@@ -53,9 +53,27 @@ You can add as many sightings as you like to a single dive.
 
 ### The Species page
 
-**Species** in the navigation lists every species you have seen. Search it, and sort by **Most sightings**, **Recently seen**, **First seen**, or **Name**. Open a species to see its **Sighting Statistics** (sightings, dives, first and last seen), **Top Sites**, **Sighting Period**, **Depth Range**, and every sighting.
+**Species** in the navigation is your life list: every species you have seen, as a card showing its best picture. The picture is the cover you chose, else the largest crop the identification model cut from your photos and videos, else your newest tagged photo, else the category's colour and icon.
 
-A species page also gathers its **Photos**: **Tag photos** picks photos from that species' dives to tag with it, and **Add photos** links new ones.
+The header counts your species and the ones new this calendar year, with a line of how the list has grown. When some species still have no picture, a **without a photo** chip shows only those. The header always describes the whole list, whatever you search or filter.
+
+Search, the query filter, the category chips and the sort menu narrow and order the cards. **Group by** sets them out by **Category** (a scrolling shelf per category, with **See all**), **Year first seen**, **Trip** or **Site**; a species seen on several trips or sites appears under each, marked **First seen here** where you first logged it. The list button switches to compact rows. This device remembers both choices.
+
+A card's badge says what stands out: **New** (first seen in the last 90 days), **Seen once**, **Not seen lately** (over two years) or **Mastered** (see ID practice below).
+
+### A species' page
+
+A species' page opens on a large picture of the animal. For a crop of a photo, the page shows the original photo zoomed to the animal, so it stays sharp; when the original is not on this device it shows the stored crop. Below it, a strip holds every crop of the species, one per photo, newest first. Tap one to open the photo, or the video at the moment the animal appears. Long-press (or right-click) a crop to **Use as cover**, or to **Remove cover**. Covers are yours alone and sync to your other devices.
+
+Then come the facts (dives, sites, first and last seen), the description, **Where seen**, and **Depth and season**: a band of the depths you photographed it at (or, with no photo depths, the range of your dives' maximum depths, labelled as such) beside a bar of how many dives saw it in each month. A timeline shows every dive as a dot across the years; tap one to open the dive. The sightings list and **Photos** follow. On a wide window the page splits into two columns.
+
+A species with no picture offers **Find photos**, which opens the photos from the dives where you logged it, ready to tag.
+
+### ID practice
+
+**Practice** on the Species page asks you to name your own animals: up to ten rounds, each one of your confirmed crops and four names, chosen from the same category where possible. A switch shows scientific names instead. Practice needs at least four species with a confirmed crop.
+
+Practice remembers how you do. A right answer moves a species up a box and rests it for 1, 3, 7 and then 21 days; a wrong one brings it back at once. Each session starts with the species that are due, then the ones you have not practised. A species in the top box shows **Mastered** on its card.
 
 ### Species on dive sites
 
