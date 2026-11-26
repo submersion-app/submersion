@@ -115,6 +115,15 @@ final ConflictEnumLabeler weightTypeLabeler = enumLabeler(
   (l, v) => v.localizedName(l),
 );
 
+/// A weight's side (issue #5028); a null side (both) prints as empty.
+final ConflictEnumLabeler weightSideLabeler = enumLabeler(
+  WeightSide.values,
+  (l, v) => switch (v) {
+    WeightSide.left => l.diveLog_weight_side_left,
+    WeightSide.right => l.diveLog_weight_side_right,
+  },
+);
+
 final ConflictEnumLabeler profileEventTypeLabeler = enumLabeler(
   ProfileEventType.values,
   (l, v) => v.localizedName(l),
