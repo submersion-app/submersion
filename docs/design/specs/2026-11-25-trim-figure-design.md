@@ -386,3 +386,33 @@ build all six proposed changes in this PR:
 
 D and E move the model, so the four reference rigs in 7.5 are re-tuned and
 stay the acceptance tests; the tuned constants may change.
+
+As built: the valve's share comes out of the cylinder's own weight, so a
+tank's total is still the buoyancy model's. The rigs keep their verdicts
+with only the fin defaults moved, each inside measured pairs: paddle 0.3 kg
+(an Apeks RK3 HD pair), split 0.0 (splits sit near neutral), vented 1.2 (a
+Hollis F1 pair). Their pitches are 0.58, 1.07, 1.98 and -0.83 kg m. Lead
+moves in fixes step by 0.5 kg, or by a whole pound for a diver who weighs
+in pounds, and a roll gets its own fix: lead moved to the light side.
+
+## 15. The Trim Calculator (decided 2026-11-26)
+
+Eric moved the figure out of the dive page and into its own Planning tool:
+
+- **Planning:** a Trim Calculator sits beside the Weight Calculator, in the
+  detail pane on wide windows and as a pushed page on narrow ones
+  (`/planning/trim-calculator`). It is what section 9.4's try-out sheet
+  was, as a page: the figure, gauges, What would level you, arms, knees,
+  tank height, time, test items, the pieces list and Reset. Nothing is
+  saved.
+- **Which dive:** opened from Planning it shows the diver's latest dive,
+  with Change dive to pick another (recent dives, or a search). Eric chose
+  this over starting from an equipment set or building a rig from scratch.
+  A dive the model cannot weigh, a log with no dives and a dive that has
+  since been deleted each say so.
+- **The dive page:** the Weights and buoyancy card goes back to the lead
+  list and the modeled buoyancy, as before this work, with one Check trim
+  link once the model has an outcome. The link opens the calculator on that
+  dive (`?dive=<id>`), pushed so Back returns to the dive.
+
+This replaces section 9's figure on the card and the bottom sheet of 9.4.
