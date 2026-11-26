@@ -23,6 +23,7 @@ BailoutOutcome _outcome({
     schedule: const DecoSchedule(stops: [], ttsSeconds: 900),
   );
   return BailoutOutcome(
+    worstCaseCnsEnd: 0,
     points: [worst],
     worstCase: worst,
     availableLiters: availableLiters,
