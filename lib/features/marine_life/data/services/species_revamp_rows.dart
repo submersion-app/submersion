@@ -75,31 +75,14 @@ Future<void> moveSpeciesRevampRows(
       final oldId = row.data['id'] as String;
       final diverId = row.data['diver_id'] as String;
       final newId = spec.idOf(diverId, to);
-      final taken = await db
-          .customSelect(
-            'SELECT 1 FROM ${spec.table} WHERE id = ?',
-            variables: [Variable.withString(newId)],
-          )
-          .getSingleOrNull();
-      if (taken == null) {
-        // Copy every column, then re-key it onto the kept species.
-        await db.customStatement(
-          'CREATE TEMP TABLE IF NOT EXISTS _revamp_move AS '
-          'SELECT * FROM ${spec.table} WHERE 0',
+      if (!await _exists(db, spec.table, newId)) {
+        await _copyRow(
+          db,
+          spec.table,
+          oldId,
+          set: 'id = ?, species_id = ?, updated_at = ?',
+          values: [newId, to, now],
         );
-        await db.customStatement('DELETE FROM _revamp_move');
-        await db.customStatement(
-          'INSERT INTO _revamp_move SELECT * FROM ${spec.table} WHERE id = ?',
-          [oldId],
-        );
-        await db.customStatement(
-          'UPDATE _revamp_move SET id = ?, species_id = ?, updated_at = ?',
-          [newId, to, now],
-        );
-        await db.customStatement(
-          'INSERT INTO ${spec.table} SELECT * FROM _revamp_move',
-        );
-        await db.customStatement('DROP TABLE _revamp_move');
         await sync.markRecordPending(
           entityType: spec.entityType,
           recordId: newId,
@@ -112,4 +95,77 @@ Future<void> moveSpeciesRevampRows(
       await sync.logDeletion(entityType: spec.entityType, recordId: oldId);
     }
   }
+}
+
+/// Copies [from]'s rows of [table] (a [speciesRevampTables] table) onto [to]
+/// under the id derived for [to], for every species [to] has no row for yet,
+/// marked pending. A diver merge calls it before it deletes [from]'s rows, so
+/// the duplicate's covers and practice survive where the keeper has none.
+/// Returns the ids written, for undo.
+Future<List<String>> copySpeciesRevampRowsToDiver(
+  AppDatabase db,
+  SyncRepository sync, {
+  required String table,
+  required String from,
+  required String to,
+  required int now,
+}) async {
+  final spec = speciesRevampTables.where((s) => s.table == table).firstOrNull;
+  if (spec == null) return const [];
+  final rows = await db
+      .customSelect(
+        'SELECT id, species_id FROM $table WHERE diver_id = ?',
+        variables: [Variable.withString(from)],
+      )
+      .get();
+  final created = <String>[];
+  for (final row in rows) {
+    final newId = spec.idOf(to, row.data['species_id'] as String);
+    if (await _exists(db, table, newId)) continue;
+    await _copyRow(
+      db,
+      table,
+      row.data['id'] as String,
+      set: 'id = ?, diver_id = ?, updated_at = ?',
+      values: [newId, to, now],
+    );
+    await sync.markRecordPending(
+      entityType: spec.entityType,
+      recordId: newId,
+      localUpdatedAt: now,
+    );
+    created.add(newId);
+  }
+  return created;
+}
+
+Future<bool> _exists(AppDatabase db, String table, String id) async =>
+    await db
+        .customSelect(
+          'SELECT 1 FROM $table WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingleOrNull() !=
+    null;
+
+/// Inserts a copy of [table]'s row [id] with [set] applied to the copy.
+Future<void> _copyRow(
+  AppDatabase db,
+  String table,
+  String id, {
+  required String set,
+  required List<Object?> values,
+}) async {
+  await db.customStatement(
+    'CREATE TEMP TABLE IF NOT EXISTS _revamp_move AS '
+    'SELECT * FROM $table WHERE 0',
+  );
+  await db.customStatement('DELETE FROM _revamp_move');
+  await db.customStatement(
+    'INSERT INTO _revamp_move SELECT * FROM $table WHERE id = ?',
+    [id],
+  );
+  await db.customStatement('UPDATE _revamp_move SET $set', values);
+  await db.customStatement('INSERT INTO $table SELECT * FROM _revamp_move');
+  await db.customStatement('DROP TABLE _revamp_move');
 }

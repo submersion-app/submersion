@@ -71,4 +71,45 @@ void main() {
       speciesCoverId(dup, 'grouper'),
     ]);
   });
+
+  test("a species only the duplicate has moves to the keeper", () async {
+    await db
+        .into(db.species)
+        .insert(
+          SpeciesCompanion.insert(
+            id: 'snapper',
+            commonName: 'Snapper',
+            category: 'fish',
+          ),
+        );
+    await db
+        .into(db.speciesPractice)
+        .insert(
+          SpeciesPracticeCompanion.insert(
+            id: speciesPracticeId(dup, 'snapper'),
+            diverId: dup,
+            speciesId: 'snapper',
+            box: 4,
+            dueAt: 5,
+            rightCount: const Value(3),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+
+    final snapshot = await DiverMergeRepository().mergeDivers(
+      keeperId: keeper,
+      duplicateId: dup,
+    );
+
+    final row = await db.select(db.speciesPractice).getSingle();
+    expect(row.id, speciesPracticeId(keeper, 'snapper'));
+    expect(row.diverId, keeper);
+    expect(row.box, 4);
+    expect(row.rightCount, 3);
+
+    await DiverMergeRepository().undoMerge(snapshot);
+    final restored = await db.select(db.speciesPractice).get();
+    expect(restored.map((r) => r.id), [speciesPracticeId(dup, 'snapper')]);
+  });
 }
