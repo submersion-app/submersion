@@ -22920,6 +22920,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trim_title => 'Trim';
 
   @override
+  String get trim_tryout_button => 'Try placements';
+
+  @override
+  String get trim_tryout_title => 'Try placements';
+
+  @override
+  String get trim_tryout_hint =>
+      'Drag a chip to move it. Tap a chip to change its side. Nothing here is saved.';
+
+  @override
+  String get trim_tryout_arms => 'Arms';
+
+  @override
+  String get trim_tryout_armsSides => 'At your sides';
+
+  @override
+  String get trim_tryout_armsAhead => 'Reaching ahead';
+
+  @override
+  String get trim_tryout_knees => 'Knees';
+
+  @override
+  String get trim_tryout_kneesStraight => 'Straight';
+
+  @override
+  String get trim_tryout_kneesBent => 'Bent 90 degrees';
+
+  @override
+  String get trim_tryout_time => 'Time';
+
+  @override
+  String get trim_tryout_addTestItem => 'Add test item';
+
+  @override
+  String get trim_tryout_testName => 'Name';
+
+  @override
+  String get trim_tryout_nameRequired => 'Enter a name';
+
+  @override
+  String get trim_tryout_reset => 'Reset';
+
+  @override
+  String get trim_tryout_pieces => 'Pieces';
+
+  @override
+  String get trim_tryout_moveTo => 'Move to';
+
+  @override
+  String get trim_tryout_pieceMenu => 'Move or change side';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'Weight ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'Enter a weight from $min to $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'Pitch $pitch, roll $roll';
+  }
+
+  @override
   String get trim_verdict_level => 'Level';
 
   @override

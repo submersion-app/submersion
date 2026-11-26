@@ -23672,6 +23672,78 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trim_title => 'التوازن';
 
   @override
+  String get trim_tryout_button => 'جرّب المواضع';
+
+  @override
+  String get trim_tryout_title => 'جرّب المواضع';
+
+  @override
+  String get trim_tryout_hint =>
+      'اسحب الملصق لنقله. انقر عليه لتغيير الجانب. لا يُحفظ شيء هنا.';
+
+  @override
+  String get trim_tryout_arms => 'الذراعان';
+
+  @override
+  String get trim_tryout_armsSides => 'بجانبك';
+
+  @override
+  String get trim_tryout_armsAhead => 'ممدودتان للأمام';
+
+  @override
+  String get trim_tryout_knees => 'الركبتان';
+
+  @override
+  String get trim_tryout_kneesStraight => 'مستقيمتان';
+
+  @override
+  String get trim_tryout_kneesBent => 'مثنيتان 90 درجة';
+
+  @override
+  String get trim_tryout_time => 'الوقت';
+
+  @override
+  String get trim_tryout_addTestItem => 'أضف عنصرًا تجريبيًا';
+
+  @override
+  String get trim_tryout_testName => 'الاسم';
+
+  @override
+  String get trim_tryout_nameRequired => 'أدخل اسمًا';
+
+  @override
+  String get trim_tryout_reset => 'إعادة تعيين';
+
+  @override
+  String get trim_tryout_pieces => 'العناصر';
+
+  @override
+  String get trim_tryout_moveTo => 'انقل إلى';
+
+  @override
+  String get trim_tryout_pieceMenu => 'انقل أو غيّر الجانب';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'الوزن ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'أدخل وزنًا من $min إلى $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time، $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'الميل $pitch، الدوران $roll';
+  }
+
+  @override
   String get trim_verdict_level => 'مستوٍ';
 
   @override

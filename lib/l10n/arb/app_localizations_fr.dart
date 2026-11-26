@@ -23313,6 +23313,78 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trim_title => 'Assiette';
 
   @override
+  String get trim_tryout_button => 'Essayer des placements';
+
+  @override
+  String get trim_tryout_title => 'Essayer des placements';
+
+  @override
+  String get trim_tryout_hint =>
+      'Faites glisser une étiquette pour la déplacer. Touchez-la pour changer de côté. Rien n\'est enregistré ici.';
+
+  @override
+  String get trim_tryout_arms => 'Bras';
+
+  @override
+  String get trim_tryout_armsSides => 'Le long du corps';
+
+  @override
+  String get trim_tryout_armsAhead => 'Tendus devant';
+
+  @override
+  String get trim_tryout_knees => 'Genoux';
+
+  @override
+  String get trim_tryout_kneesStraight => 'Tendus';
+
+  @override
+  String get trim_tryout_kneesBent => 'Pliés à 90 degrés';
+
+  @override
+  String get trim_tryout_time => 'Temps';
+
+  @override
+  String get trim_tryout_addTestItem => 'Ajouter un objet test';
+
+  @override
+  String get trim_tryout_testName => 'Nom';
+
+  @override
+  String get trim_tryout_nameRequired => 'Saisissez un nom';
+
+  @override
+  String get trim_tryout_reset => 'Réinitialiser';
+
+  @override
+  String get trim_tryout_pieces => 'Éléments';
+
+  @override
+  String get trim_tryout_moveTo => 'Déplacer vers';
+
+  @override
+  String get trim_tryout_pieceMenu => 'Déplacer ou changer de côté';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'Poids ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'Saisissez un poids de $min à $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'Tangage $pitch, roulis $roll';
+  }
+
+  @override
   String get trim_verdict_level => 'À plat';
 
   @override

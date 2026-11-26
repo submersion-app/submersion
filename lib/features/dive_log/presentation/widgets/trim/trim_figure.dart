@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
+import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_builder.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_chip_layout.dart';
@@ -42,10 +43,20 @@ class TrimFigure extends StatelessWidget {
   final void Function(TrimFigureGeometry geometry, TrimChipLayout chips)?
   onLayout;
 
-  bool _chipped(TrimElement e) =>
-      showAllChips ||
-      e.kind == TrimElementKind.lead ||
-      e.kind == TrimElementKind.test;
+  /// Lead and test items always; with [showAllChips], tanks and any gear
+  /// heavy or light enough to matter too. Gear lighter than [minChipKg], and
+  /// a suit spread over the body, would only crowd the figure; the try-out
+  /// sheet's Pieces list names them.
+  bool _chipped(TrimElement e) => switch (e.kind) {
+    TrimElementKind.lead || TrimElementKind.test => true,
+    TrimElementKind.tank => showAllChips,
+    _ =>
+      showAllChips &&
+          e.spot != TrimSpot.floatPoint &&
+          e.sinkKg.abs() >= minChipKg,
+  };
+
+  static const double minChipKg = 0.2;
 
   String chipText(TrimElement e, BuildContext context) {
     final l10n = context.l10n;

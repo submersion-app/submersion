@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_trac
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_card_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_gauges.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_tryout_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -85,5 +86,24 @@ void main() {
   testWidgets('with no cursor it shows the rest anchor', (tester) async {
     await pump(tester);
     expect(find.byType(TrimFigure), findsOneWidget);
+  });
+
+  testWidgets('Try placements opens the sheet; closing it changes nothing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 4000);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await pump(tester);
+    final before = gauges(tester).result.pitchKgM;
+    await tester.tap(find.text('Try placements'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TrimTryoutView), findsOneWidget);
+    final sheet = tester.state<State>(find.byType(TrimTryoutView));
+    expect(sheet.mounted, isTrue);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(find.byType(TrimTryoutView), findsNothing);
+    expect(gauges(tester).result.pitchKgM, before);
   });
 }

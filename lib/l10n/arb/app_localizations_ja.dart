@@ -22411,6 +22411,78 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trim_title => 'トリム';
 
   @override
+  String get trim_tryout_button => '配置を試す';
+
+  @override
+  String get trim_tryout_title => '配置を試す';
+
+  @override
+  String get trim_tryout_hint =>
+      'ラベルをドラッグして移動します。タップすると左右が切り替わります。ここでの変更は保存されません。';
+
+  @override
+  String get trim_tryout_arms => '腕';
+
+  @override
+  String get trim_tryout_armsSides => '体の横';
+
+  @override
+  String get trim_tryout_armsAhead => '前に伸ばす';
+
+  @override
+  String get trim_tryout_knees => '膝';
+
+  @override
+  String get trim_tryout_kneesStraight => 'まっすぐ';
+
+  @override
+  String get trim_tryout_kneesBent => '90度に曲げる';
+
+  @override
+  String get trim_tryout_time => '時間';
+
+  @override
+  String get trim_tryout_addTestItem => 'テスト用アイテムを追加';
+
+  @override
+  String get trim_tryout_testName => '名前';
+
+  @override
+  String get trim_tryout_nameRequired => '名前を入力してください';
+
+  @override
+  String get trim_tryout_reset => 'リセット';
+
+  @override
+  String get trim_tryout_pieces => '構成';
+
+  @override
+  String get trim_tryout_moveTo => '移動先';
+
+  @override
+  String get trim_tryout_pieceMenu => '移動または左右を変更';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return '重さ（$unit）';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return '$minから$maxの重さを入力してください';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time、$depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'ピッチ $pitch、ロール $roll';
+  }
+
+  @override
   String get trim_verdict_level => '水平';
 
   @override

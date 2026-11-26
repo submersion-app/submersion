@@ -22075,6 +22075,77 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trim_title => '纵倾平衡';
 
   @override
+  String get trim_tryout_button => '尝试摆放';
+
+  @override
+  String get trim_tryout_title => '尝试摆放';
+
+  @override
+  String get trim_tryout_hint => '拖动标签以移动它。轻点标签以切换左右。此处的更改不会保存。';
+
+  @override
+  String get trim_tryout_arms => '手臂';
+
+  @override
+  String get trim_tryout_armsSides => '贴于身侧';
+
+  @override
+  String get trim_tryout_armsAhead => '向前伸展';
+
+  @override
+  String get trim_tryout_knees => '膝盖';
+
+  @override
+  String get trim_tryout_kneesStraight => '伸直';
+
+  @override
+  String get trim_tryout_kneesBent => '弯曲90度';
+
+  @override
+  String get trim_tryout_time => '时间';
+
+  @override
+  String get trim_tryout_addTestItem => '添加测试物品';
+
+  @override
+  String get trim_tryout_testName => '名称';
+
+  @override
+  String get trim_tryout_nameRequired => '请输入名称';
+
+  @override
+  String get trim_tryout_reset => '重置';
+
+  @override
+  String get trim_tryout_pieces => '部件';
+
+  @override
+  String get trim_tryout_moveTo => '移至';
+
+  @override
+  String get trim_tryout_pieceMenu => '移动或切换左右';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return '重量（$unit）';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return '请输入 $min 至 $max 之间的重量';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time，$depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return '俯仰 $pitch，侧倾 $roll';
+  }
+
+  @override
   String get trim_verdict_level => '水平';
 
   @override

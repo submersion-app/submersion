@@ -10,7 +10,9 @@ import 'package:submersion/features/dive_log/presentation/providers/active_sourc
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_figure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_gauges.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_tryout_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The trim figure's part of the Weights and buoyancy card (issue #5028):
 /// the logged rig in the standard pose at the profile cursor (the model's
@@ -24,15 +26,11 @@ class TrimCardSection extends ConsumerWidget {
     required this.stored,
     required this.outcome,
     required this.units,
-    this.trailing,
   });
 
   final Dive stored;
   final BuoyancyTwinOutcome outcome;
   final UnitFormatter units;
-
-  /// Shown under the gauges (the "Try placements" button).
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,13 +41,14 @@ class TrimCardSection extends ConsumerWidget {
     final seconds = cursor != null && cursor >= 0 && cursor < profile.length
         ? profile[cursor].timestamp
         : null;
-    final scene = buildTrimScene(
+    TrimScene sceneAt(int? t) => buildTrimScene(
       dive: stored,
       outcome: outcome,
-      timestamp: seconds,
+      timestamp: t,
       heightCm: height,
       bodyMassKg: mass,
     );
+    final scene = sceneAt(seconds);
     final result = scene.trimIn(TrimPose.standard);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -63,7 +62,23 @@ class TrimCardSection extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         TrimGauges(result: result),
-        ?trailing,
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: TextButton.icon(
+            icon: const Icon(Icons.open_with),
+            label: Text(context.l10n.trim_tryout_button),
+            onPressed: () => showTrimTryoutSheet(
+              context,
+              sceneAt: sceneAt,
+              openingTimestamp: seconds,
+              moments: [
+                for (final s in outcome.result.samples)
+                  TrimMoment(timestamp: s.timestamp, depthM: s.depthM),
+              ],
+              units: units,
+            ),
+          ),
+        ),
       ],
     );
   }

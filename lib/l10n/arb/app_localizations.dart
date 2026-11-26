@@ -36501,6 +36501,132 @@ abstract class AppLocalizations {
   /// **'Trim'**
   String get trim_title;
 
+  /// No description provided for @trim_tryout_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Try placements'**
+  String get trim_tryout_button;
+
+  /// No description provided for @trim_tryout_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Try placements'**
+  String get trim_tryout_title;
+
+  /// No description provided for @trim_tryout_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a chip to move it. Tap a chip to change its side. Nothing here is saved.'**
+  String get trim_tryout_hint;
+
+  /// No description provided for @trim_tryout_arms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms'**
+  String get trim_tryout_arms;
+
+  /// No description provided for @trim_tryout_armsSides.
+  ///
+  /// In en, this message translates to:
+  /// **'At your sides'**
+  String get trim_tryout_armsSides;
+
+  /// No description provided for @trim_tryout_armsAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaching ahead'**
+  String get trim_tryout_armsAhead;
+
+  /// No description provided for @trim_tryout_knees.
+  ///
+  /// In en, this message translates to:
+  /// **'Knees'**
+  String get trim_tryout_knees;
+
+  /// No description provided for @trim_tryout_kneesStraight.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight'**
+  String get trim_tryout_kneesStraight;
+
+  /// No description provided for @trim_tryout_kneesBent.
+  ///
+  /// In en, this message translates to:
+  /// **'Bent 90 degrees'**
+  String get trim_tryout_kneesBent;
+
+  /// No description provided for @trim_tryout_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get trim_tryout_time;
+
+  /// No description provided for @trim_tryout_addTestItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add test item'**
+  String get trim_tryout_addTestItem;
+
+  /// No description provided for @trim_tryout_testName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get trim_tryout_testName;
+
+  /// No description provided for @trim_tryout_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get trim_tryout_nameRequired;
+
+  /// No description provided for @trim_tryout_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get trim_tryout_reset;
+
+  /// No description provided for @trim_tryout_pieces.
+  ///
+  /// In en, this message translates to:
+  /// **'Pieces'**
+  String get trim_tryout_pieces;
+
+  /// No description provided for @trim_tryout_moveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to'**
+  String get trim_tryout_moveTo;
+
+  /// No description provided for @trim_tryout_pieceMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Move or change side'**
+  String get trim_tryout_pieceMenu;
+
+  /// No description provided for @trim_tryout_testWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight ({unit})'**
+  String trim_tryout_testWeight(String unit);
+
+  /// No description provided for @trim_tryout_weightRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a weight from {min} to {max}'**
+  String trim_tryout_weightRange(String min, String max);
+
+  /// No description provided for @trim_tryout_timeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{time}, {depth}'**
+  String trim_tryout_timeLabel(String time, String depth);
+
+  /// No description provided for @trim_tryout_moments.
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch {pitch}, roll {roll}'**
+  String trim_tryout_moments(String pitch, String roll);
+
   /// No description provided for @trim_verdict_level.
   ///
   /// In en, this message translates to:

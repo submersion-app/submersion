@@ -22760,6 +22760,78 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trim_title => 'איזון';
 
   @override
+  String get trim_tryout_button => 'נסה מיקומים';
+
+  @override
+  String get trim_tryout_title => 'נסה מיקומים';
+
+  @override
+  String get trim_tryout_hint =>
+      'גרור תווית כדי להזיז אותה. הקש עליה כדי להחליף צד. דבר כאן לא נשמר.';
+
+  @override
+  String get trim_tryout_arms => 'ידיים';
+
+  @override
+  String get trim_tryout_armsSides => 'לצד הגוף';
+
+  @override
+  String get trim_tryout_armsAhead => 'מושטות קדימה';
+
+  @override
+  String get trim_tryout_knees => 'ברכיים';
+
+  @override
+  String get trim_tryout_kneesStraight => 'ישרות';
+
+  @override
+  String get trim_tryout_kneesBent => 'כפופות ב-90 מעלות';
+
+  @override
+  String get trim_tryout_time => 'זמן';
+
+  @override
+  String get trim_tryout_addTestItem => 'הוסף פריט ניסיון';
+
+  @override
+  String get trim_tryout_testName => 'שם';
+
+  @override
+  String get trim_tryout_nameRequired => 'הזן שם';
+
+  @override
+  String get trim_tryout_reset => 'איפוס';
+
+  @override
+  String get trim_tryout_pieces => 'פריטים';
+
+  @override
+  String get trim_tryout_moveTo => 'העבר אל';
+
+  @override
+  String get trim_tryout_pieceMenu => 'הזז או החלף צד';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'משקל ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'הזן משקל מ-$min עד $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'עלרוד $pitch, גלגול $roll';
+  }
+
+  @override
   String get trim_verdict_level => 'מאוזן';
 
   @override

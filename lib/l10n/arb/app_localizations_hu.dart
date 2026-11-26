@@ -23166,6 +23166,78 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trim_title => 'Trimm';
 
   @override
+  String get trim_tryout_button => 'Elhelyezés kipróbálása';
+
+  @override
+  String get trim_tryout_title => 'Elhelyezés kipróbálása';
+
+  @override
+  String get trim_tryout_hint =>
+      'Húzd a címkét az áthelyezéshez. Koppints rá az oldal váltásához. Itt semmi sem mentődik.';
+
+  @override
+  String get trim_tryout_arms => 'Karok';
+
+  @override
+  String get trim_tryout_armsSides => 'Test mellett';
+
+  @override
+  String get trim_tryout_armsAhead => 'Előre nyújtva';
+
+  @override
+  String get trim_tryout_knees => 'Térdek';
+
+  @override
+  String get trim_tryout_kneesStraight => 'Nyújtva';
+
+  @override
+  String get trim_tryout_kneesBent => '90 fokban hajlítva';
+
+  @override
+  String get trim_tryout_time => 'Idő';
+
+  @override
+  String get trim_tryout_addTestItem => 'Tesztelem hozzáadása';
+
+  @override
+  String get trim_tryout_testName => 'Név';
+
+  @override
+  String get trim_tryout_nameRequired => 'Adj meg egy nevet';
+
+  @override
+  String get trim_tryout_reset => 'Visszaállítás';
+
+  @override
+  String get trim_tryout_pieces => 'Elemek';
+
+  @override
+  String get trim_tryout_moveTo => 'Áthelyezés ide';
+
+  @override
+  String get trim_tryout_pieceMenu => 'Áthelyezés vagy oldalváltás';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'Súly ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'Adj meg egy súlyt $min és $max között';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'Bólintás $pitch, dőlés $roll';
+  }
+
+  @override
   String get trim_verdict_level => 'Vízszintes';
 
   @override
