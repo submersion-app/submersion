@@ -220,7 +220,7 @@ void main() {
       );
     });
 
-    test('switching to CCR seeds the diver own CCR setpoints', () {
+    test('switching to CCR leaves the setpoints unset (#3793)', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith(
@@ -238,8 +238,10 @@ void main() {
           .updateMode(domain.PlanMode.ccr);
 
       final state = container.read(divePlanNotifierProvider);
-      expect(state.setpointLow, 0.6);
-      expect(state.setpointHigh, 1.2);
+      expect(state.setpointLow, isNull);
+      expect(state.setpointHigh, isNull);
+      expect(state.setpointSwitchDepth, isNull);
+      expect(state.setpointSwitchOff, isFalse);
     });
 
     group('CCR loop slots (#3220)', () {
@@ -622,7 +624,7 @@ void main() {
       expect(state.setpointHigh, 1.4);
     });
 
-    test('switching to CCR seeds only the half the diver never set', () {
+    test('switching to CCR leaves the half the diver never set unset', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith(
@@ -644,12 +646,11 @@ void main() {
 
       final state = container.read(divePlanNotifierProvider);
       expect(state.setpointLow, 0.9);
-      expect(state.setpointHigh, 1.2);
+      expect(state.setpointHigh, isNull);
     });
 
-    test('a CCR plan ignores later CCR setpoint settings; switching mode '
-        'already dirtied it, so unlike GF/water there is nothing pristine '
-        'left to adopt into', () {
+    test('entering CCR leaves the setpoints and switch depth unset, so the '
+        'plan follows the Settings through the engine config (#3793)', () {
       final settingsNotifier = _TestSettingsNotifier(
         ccrSetpointLow: 0.6,
         ccrSetpointHigh: 1.2,
@@ -667,8 +668,8 @@ void main() {
       settingsNotifier.updateCcrSetpointsForTest(0.9, 1.5);
 
       final state = container.read(divePlanNotifierProvider);
-      expect(state.setpointLow, 0.6);
-      expect(state.setpointHigh, 1.2);
+      expect(state.setpointLow, isNull);
+      expect(state.setpointHigh, isNull);
     });
 
     test('an OC plan ignores CCR setpoint settings', () {

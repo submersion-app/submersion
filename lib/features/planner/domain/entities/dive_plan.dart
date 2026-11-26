@@ -336,9 +336,15 @@ class DivePlan extends Equatable {
   /// diver's Settings and default to these constants; there is deliberately
   /// no getter here that falls back to them directly, because one would
   /// skip the Settings (issue #2801).
+  ///
+  /// [specSetpointSwitchDepth] is the same last resort for the depth where
+  /// the loop changes from the high to the low setpoint (10 m). An unset
+  /// [setpointSwitchDepth] resolves through
+  /// `PlanEngineConfig.setpointSwitchDepthFor`, which also honours
+  /// [setpointSwitchOff] and the diver's Settings (issue #3793).
   static const double specSetpointLow = 0.7;
   static const double specSetpointHigh = 1.3;
-  double get effectiveSetpointSwitchDepth => setpointSwitchDepth ?? 10.0;
+  static const double specSetpointSwitchDepth = 10.0;
 
   /// Bottom SAC: explicit value, otherwise the 15 L/min spec default - the
   /// last resort for a caller with no diver Settings to hand (same reason

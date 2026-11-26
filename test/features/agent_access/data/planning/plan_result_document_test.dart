@@ -199,6 +199,25 @@ void main() {
       'value': config.ccrSetpointHigh,
       'source': 'settings',
     });
+    expect(settings['setpoint_switch_depth_m'], {
+      'value': config.ccrSetpointSwitchDepth,
+      'source': 'settings',
+    });
+
+    final own = built.stored.dives.single.plan.copyWith(
+      setpointSwitchDepth: 6.0,
+    );
+    expect(effectiveSettings(own, config)['setpoint_switch_depth_m'], {
+      'value': 6.0,
+      'source': 'plan',
+    });
+    final off = built.stored.dives.single.plan.copyWith(
+      setpointSwitchOff: true,
+    );
+    expect(effectiveSettings(off, config)['setpoint_switch_depth_m'], {
+      'value': null,
+      'source': 'plan',
+    });
   });
 
   test('an SCR plan reports its loop flow and where it came from (#4660)', () {

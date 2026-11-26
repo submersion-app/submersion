@@ -352,7 +352,12 @@ class BailoutSolver {
           durationSeconds: chunk,
         );
 
-        for (final piece in splitAtSetpointSwitch(plan, segment, stretch)) {
+        for (final piece in splitAtSetpointSwitch(
+          plan,
+          segment,
+          stretch,
+          switchDepth: config.setpointSwitchDepthFor(plan),
+        )) {
           state = model.applySegment(
             state,
             piece,

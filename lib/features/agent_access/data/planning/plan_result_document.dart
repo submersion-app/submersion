@@ -272,6 +272,11 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
     if (plan.mode == PlanMode.ccr) ...{
       'setpoint_low_bar': fromSettings(resolved.setpointLowFor(plan)),
       'setpoint_high_bar': fromSettings(resolved.setpointHighFor(plan)),
+      // Null when the plan turns the switch off: the low setpoint holds
+      // throughout (issue #3793).
+      'setpoint_switch_depth_m': plan.setpointSwitchOff
+          ? {'value': null, 'source': 'plan'}
+          : own(plan.setpointSwitchDepth, resolved.ccrSetpointSwitchDepth),
     },
     // A constant mass flow loop's injection rate and VO2 (issue #4660).
     if (plan.mode == PlanMode.scr) ...{

@@ -68,6 +68,7 @@ void main() {
       startDepth: 45,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
     );
     expect(r.timestamps.first, 1500);
     expect(r.depths.first, 45);
@@ -107,6 +108,7 @@ void main() {
       startDepth: 45,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
     );
     expect(r.gasSegments.first.startTimestamp, 0);
     expect(r.gasSegments.first.fN2, airN2Fraction);
@@ -129,6 +131,7 @@ void main() {
       startDepth: 45,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
     );
     final longer = synthesizeRemainder(
       plan: plan,
@@ -137,6 +140,7 @@ void main() {
       startDepth: 45,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
       extraLastStopSeconds: 120,
     );
     expect(longer.timestamps.last - base.timestamps.last, 120);
@@ -155,6 +159,7 @@ void main() {
       startDepth: 45,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
       loop: const LoopSetpoints(
         low: 0.7,
         high: 1.3,
@@ -216,6 +221,7 @@ void main() {
       startDepth: 20,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
       loop: const LoopSetpoints(
         low: 0.7,
         high: 1.3,
@@ -289,6 +295,7 @@ void main() {
       startDepth: 30,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
     );
     final toB = r.tankSwitches.where((s) => s.tankId == 'b');
     expect(toB, hasLength(1));
@@ -306,6 +313,7 @@ void main() {
       startDepth: 45,
       ascentPlan: engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: domain.DivePlan.specSetpointSwitchDepth,
     );
     final s = spliceCounterfactual(
       actualTimestamps: const [0, 10, 20, 30, 40],

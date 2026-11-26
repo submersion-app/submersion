@@ -45,6 +45,12 @@ class PlannedLogEntry {
   final double? scrInjectionRate;
   final double? assumedVo2;
 
+  /// The setpoints a CCR plan breathes, resolved against the diver's
+  /// Settings so a plan that sets none still logs the ones it was computed
+  /// with (issue #3793). Null off the loop.
+  final double? setpointLow;
+  final double? setpointHigh;
+
   const PlannedLogEntry({
     required this.name,
     required this.outcome,
@@ -53,6 +59,8 @@ class PlannedLogEntry {
     this.scrType,
     this.scrInjectionRate,
     this.assumedVo2,
+    this.setpointLow,
+    this.setpointHigh,
   });
 
   /// The state's segments stop at the bottom; the engine computes the
@@ -86,6 +94,8 @@ class PlannedLogEntry {
         PlanMode.pscr => loop.pscrVo2Lpm,
         PlanMode.oc || PlanMode.ccr => null,
       },
+      setpointLow: mode == PlanMode.ccr ? config.setpointLowFor(plan) : null,
+      setpointHigh: mode == PlanMode.ccr ? config.setpointHighFor(plan) : null,
       profile: sampledPlanProfile([
         for (final point in canvas.profile)
           DiveProfilePoint(
@@ -115,8 +125,8 @@ class PlannedLogEntry {
     gradientFactorLow: state.gfLow,
     gradientFactorHigh: state.gfHigh,
     diveMode: _diveMode(state.mode),
-    setpointLow: _onLoop(state) ? state.setpointLow : null,
-    setpointHigh: _onLoop(state) ? state.setpointHigh : null,
+    setpointLow: setpointLow,
+    setpointHigh: setpointHigh,
     diluentGas: _diluent(state),
     scrType: scrType,
     scrInjectionRate: scrInjectionRate,
@@ -142,8 +152,8 @@ class PlannedLogEntry {
         gradientFactorLow: state.gfLow,
         gradientFactorHigh: state.gfHigh,
         diveMode: _diveMode(state.mode),
-        setpointLow: _onLoop(state) ? state.setpointLow : null,
-        setpointHigh: _onLoop(state) ? state.setpointHigh : null,
+        setpointLow: setpointLow,
+        setpointHigh: setpointHigh,
         clearSetpoints: !_onLoop(state),
         diluentGas: _diluent(state),
         clearDiluentGas: _diluent(state) == null,
@@ -179,8 +189,8 @@ class PlannedLogEntry {
         existing.gradientFactorLow == state.gfLow &&
         existing.gradientFactorHigh == state.gfHigh &&
         existing.diveMode == _diveMode(state.mode) &&
-        existing.setpointLow == (_onLoop(state) ? state.setpointLow : null) &&
-        existing.setpointHigh == (_onLoop(state) ? state.setpointHigh : null) &&
+        existing.setpointLow == setpointLow &&
+        existing.setpointHigh == setpointHigh &&
         existing.diluentGas == _diluent(state) &&
         existing.scrType == scrType &&
         existing.scrInjectionRate == scrInjectionRate &&
