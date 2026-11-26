@@ -177,6 +177,40 @@ class IdentificationCropStore {
     return synced.length == missing.length;
   }
 
+  /// Which of [identificationIds] on [mediaId] have a crop here, a file or
+  /// a synced one (issue #5032).
+  Future<Set<String>> presentAmong(
+    String mediaId,
+    List<String> identificationIds,
+  ) async {
+    if (identificationIds.isEmpty) return const {};
+    final present = <String>{};
+    final rest = <String>[];
+    for (final id in identificationIds) {
+      if (_files && await (await fileFor(mediaId, id)).exists()) {
+        present.add(id);
+      } else {
+        rest.add(id);
+      }
+    }
+    if (rest.isNotEmpty) {
+      present.addAll(await _table?.presentAmong(rest) ?? const <String>{});
+    }
+    return present;
+  }
+
+  /// The media holding more than [count] crops here, synced or as files:
+  /// the only ones a cap of [count] per species can trim (issue #5032).
+  Future<List<String>> mediaWithMoreThan(int count) async {
+    final found = <String>{
+      ...await _table?.mediaWithMoreThan(count) ?? const <String>[],
+      for (final MapEntry(key: mediaId, value: ids)
+          in (await fileIds()).entries)
+        if (ids.length > count) mediaId,
+    };
+    return found.toList();
+  }
+
   /// The media that have a crops folder here: the only ones whose crops
   /// can still be files to move into the logbook.
   Future<List<String>> mediaWithFiles() => _mediaFolders();
