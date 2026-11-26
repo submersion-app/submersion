@@ -193,6 +193,7 @@ extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
                 enabled: equipment.customReminderEnabled,
                 days: equipment.customReminderDays,
               ),
+              shown: _session,
             ),
           ),
         ],

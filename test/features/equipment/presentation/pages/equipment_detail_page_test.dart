@@ -33,6 +33,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/service_clock_snapshot_override.dart';
 
 void main() {
   // Dates format through the process-global Intl.defaultLocale, which
@@ -608,6 +609,8 @@ void main() {
               serviceClockStatusesProvider(
                 equipment.id,
               ).overrideWith((ref) async => clocks),
+            if (clocks != null)
+              serviceClockSnapshotOverride(equipment.id, statuses: clocks),
           ].cast(),
           child: MaterialApp(
             locale: const Locale('en'),

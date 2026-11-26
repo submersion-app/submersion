@@ -407,6 +407,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   enabled: equipment.customReminderEnabled,
                   days: equipment.customReminderDays,
                 ),
+                shown: _session,
               ),
             ),
             const SizedBox(height: 24),

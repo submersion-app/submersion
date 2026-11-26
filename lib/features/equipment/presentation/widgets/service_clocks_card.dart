@@ -2,17 +2,41 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_clocks_editor.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+
+/// The clocks a card draws and their verdicts, read together. [evaluated]
+/// is false for clocks there was no usage to evaluate over.
+typedef _ClockRows = ({
+  List<ServiceSchedule> schedules,
+  List<ServiceClockStatus> statuses,
+  bool evaluated,
+});
+
+/// The clocks and service records a sitting holds in place of the stored
+/// ones; null where it holds no change.
+typedef _HeldClocks = ({
+  List<ServiceSchedule>? clocks,
+  List<ServiceRecord>? records,
+});
 
 /// The Service clocks card on the equipment detail page: one row per
 /// schedule with severity dot and binding trigger text. It offers no action:
 /// the clocks are edited in the open card's editor (issue #4527, phase 3).
+///
+/// A closed card shows the clocks and service records a sitting ([shown])
+/// holds, evaluated over the item's usage (issue #5042).
 class ServiceClocksCard extends ConsumerWidget {
   final String equipmentId;
 
@@ -20,11 +44,30 @@ class ServiceClocksCard extends ConsumerWidget {
   /// on this card, so they are shown on it.
   final ({bool? enabled, List<int>? days})? customReminder;
 
+  /// The sitting whose clocks a closed card shows.
+  final EditSession<EquipmentItem>? shown;
+
   const ServiceClocksCard({
     super.key,
     required this.equipmentId,
     this.customReminder,
+    this.shown,
   });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sitting = shown;
+    if (sitting == null || sitting.isDisposed) {
+      return _build(context, ref, null);
+    }
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        gearItemClocksList.changes(sitting),
+        gearItemServiceRecordsList.changes(sitting),
+      ]),
+      builder: (context, _) => _build(context, ref, _heldIn(sitting)),
+    );
+  }
 
   List<String> _triggerLines(
     BuildContext context,
@@ -38,16 +81,51 @@ class ServiceClocksCard extends ConsumerWidget {
     usageByUnit: status.usageByUnit,
   );
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final statusesAsync = ref.watch(serviceClockStatusesProvider(equipmentId));
-    final schedulesAsync = ref.watch(
-      serviceSchedulesForEquipmentProvider(equipmentId),
-    );
+  /// What [sitting] holds, or null when it holds no clock or record change.
+  static _HeldClocks? _heldIn(EditSession<EquipmentItem> sitting) {
+    final clocks = gearItemClocksList.isChanged(sitting)
+        ? gearItemClocksList.current(sitting)
+        : null;
+    final records = gearItemServiceRecordsList.isChanged(sitting)
+        ? gearItemServiceRecordsList.current(sitting)
+        : null;
+    if (clocks == null && records == null) return null;
+    return (clocks: clocks, records: records);
+  }
+
+  Widget _build(BuildContext context, WidgetRef ref, _HeldClocks? held) {
+    final snapshotAsync = ref.watch(serviceClockSnapshotProvider(equipmentId));
+    final snapshot = snapshotAsync.value;
     final kindsAsync = ref.watch(serviceKindsProvider);
     final allKindsAsync = ref.watch(allServiceKindsByIdProvider);
     final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
+    final customReminder = this.customReminder;
+    // The rows and their verdicts come from one read, so a schedule list
+    // read after a write is never drawn beside verdicts from before it.
+    final heldClocks = held?.clocks;
+    final AsyncValue<_ClockRows> rowsAsync;
+    if (snapshot != null) {
+      rowsAsync = AsyncData((
+        schedules: heldClocks ?? snapshot.schedules,
+        statuses: snapshot.statusesFor(
+          schedules: heldClocks,
+          records: held?.records,
+        ),
+        evaluated: true,
+      ));
+    } else if (heldClocks != null) {
+      // An item not yet created has no usage to evaluate its clocks over.
+      rowsAsync = AsyncData((
+        schedules: heldClocks,
+        statuses: const [],
+        evaluated: false,
+      ));
+    } else {
+      rowsAsync = snapshotAsync.whenData(
+        (_) => (schedules: const [], statuses: const [], evaluated: true),
+      );
+    }
 
     return Card(
       child: Padding(
@@ -82,15 +160,16 @@ class ServiceClocksCard extends ConsumerWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
-            statusesAsync.when(
+            rowsAsync.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(16),
                 child: Center(child: CircularProgressIndicator()),
               ),
               error: (e, _) =>
                   Padding(padding: const EdgeInsets.all(8), child: Text('$e')),
-              data: (statuses) {
-                final schedules = schedulesAsync.value ?? const [];
+              data: (rows) {
+                final schedules = rows.schedules;
+                final statuses = rows.statuses;
                 final paused = schedules.where((s) => !s.enabled).toList();
                 // Every kind, so a shared item's schedule on its owner's
                 // custom kind keeps its name (issue #2046).
@@ -191,9 +270,9 @@ class ServiceClocksCard extends ConsumerWidget {
                           kindsById[schedule.serviceKindId]?.name ??
                               schedule.serviceKindId,
                         ),
-                        subtitle: Text(
-                          l10n.equipment_serviceClocks_unconfigured,
-                        ),
+                        subtitle: rows.evaluated
+                            ? Text(l10n.equipment_serviceClocks_unconfigured)
+                            : null,
                       ),
                     for (final schedule in paused)
                       ListTile(

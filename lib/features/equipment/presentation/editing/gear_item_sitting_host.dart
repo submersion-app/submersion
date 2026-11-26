@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_pas
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_sharing_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -118,6 +119,12 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
       afterCommit: gearItemAfterCommit(session),
       changedCardIds: changedCards,
     );
+    // The Service clocks card shows what the sitting holds until it ends:
+    // read the stored clocks again first, so it goes on to them rather than
+    // to a read from before the write (issue #5042).
+    if (changedCards.any(_serviceCards.contains)) {
+      await rereadServiceClockSnapshot(container, session.stored.id);
+    }
   }
 
   /// Offers to write the stored fill [fillId] (and its twin partner's) to
