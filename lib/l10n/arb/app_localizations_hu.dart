@@ -23163,6 +23163,153 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min. ledobható ólom';
 
   @override
+  String get trim_title => 'Trimm';
+
+  @override
+  String get trim_verdict_level => 'Vízszintes';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'Kissé lábnehéz';
+
+  @override
+  String get trim_verdict_feetHeavy => 'Lábnehéz';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'Kissé fejnehéz';
+
+  @override
+  String get trim_verdict_headHeavy => 'Fejnehéz';
+
+  @override
+  String get trim_roll_slightlyLeft => 'kissé balra dől';
+
+  @override
+  String get trim_roll_left => 'balra dől';
+
+  @override
+  String get trim_roll_slightlyRight => 'kissé jobbra dől';
+
+  @override
+  String get trim_roll_right => 'jobbra dől';
+
+  @override
+  String get trim_gauge_pitch => 'Bólintás';
+
+  @override
+  String get trim_gauge_roll => 'Dőlés';
+
+  @override
+  String get trim_gauge_headHeavy => 'Fejnehéz';
+
+  @override
+  String get trim_gauge_feetHeavy => 'Lábnehéz';
+
+  @override
+  String get trim_gauge_left => 'Bal';
+
+  @override
+  String get trim_gauge_right => 'Jobb';
+
+  @override
+  String get trim_chip_left => 'B';
+
+  @override
+  String get trim_chip_right => 'J';
+
+  @override
+  String get trim_testItem => 'Tesztelem';
+
+  @override
+  String get trim_spot_head => 'Fej';
+
+  @override
+  String get trim_spot_mouth => 'Száj';
+
+  @override
+  String get trim_spot_chest => 'Mellkas';
+
+  @override
+  String get trim_spot_chestClip => 'Mellkasi D-gyűrű';
+
+  @override
+  String get trim_spot_upperBack => 'Felső hát';
+
+  @override
+  String get trim_spot_backTank => 'Hát';
+
+  @override
+  String get trim_spot_wing => 'Wing';
+
+  @override
+  String get trim_spot_trimPockets => 'Trimmzsebek';
+
+  @override
+  String get trim_spot_backplate => 'Hátlap';
+
+  @override
+  String get trim_spot_buttDRing => 'Fenék D-gyűrű';
+
+  @override
+  String get trim_spot_waist => 'Derék';
+
+  @override
+  String get trim_spot_hipPockets => 'Csípőzsebek';
+
+  @override
+  String get trim_spot_sidemount => 'Oldal';
+
+  @override
+  String get trim_spot_stageClip => 'Stage-csatok';
+
+  @override
+  String get trim_spot_console => 'Konzol';
+
+  @override
+  String get trim_spot_thigh => 'Comb';
+
+  @override
+  String get trim_spot_calf => 'Vádli';
+
+  @override
+  String get trim_spot_ankles => 'Bokák';
+
+  @override
+  String get trim_spot_feet => 'Lábfej';
+
+  @override
+  String get trim_spot_fins => 'Uszonyok';
+
+  @override
+  String get trim_spot_hand => 'Kéz';
+
+  @override
+  String get trim_spot_wrist => 'Csukló';
+
+  @override
+  String get trim_spot_cameraArm => 'Kamerakar';
+
+  @override
+  String get trim_spot_floatPoint => 'A testen eloszolva';
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'Trimmábra: $verdict. Ólom: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'hely ismeretlen';
+
+  @override
   String get buoyancy_ditchWarning => 'Több, mint amennyit ledobhatsz';
 
   @override

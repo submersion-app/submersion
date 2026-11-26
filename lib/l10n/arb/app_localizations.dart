@@ -36495,6 +36495,288 @@ abstract class AppLocalizations {
   /// **'Min ditchable weight'**
   String get buoyancy_minDitchable;
 
+  /// No description provided for @trim_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get trim_title;
+
+  /// No description provided for @trim_verdict_level.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get trim_verdict_level;
+
+  /// No description provided for @trim_verdict_slightlyFeetHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Slightly feet-heavy'**
+  String get trim_verdict_slightlyFeetHeavy;
+
+  /// No description provided for @trim_verdict_feetHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Feet-heavy'**
+  String get trim_verdict_feetHeavy;
+
+  /// No description provided for @trim_verdict_slightlyHeadHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Slightly head-heavy'**
+  String get trim_verdict_slightlyHeadHeavy;
+
+  /// No description provided for @trim_verdict_headHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Head-heavy'**
+  String get trim_verdict_headHeavy;
+
+  /// No description provided for @trim_roll_slightlyLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'rolls slightly left'**
+  String get trim_roll_slightlyLeft;
+
+  /// No description provided for @trim_roll_left.
+  ///
+  /// In en, this message translates to:
+  /// **'rolls left'**
+  String get trim_roll_left;
+
+  /// No description provided for @trim_roll_slightlyRight.
+  ///
+  /// In en, this message translates to:
+  /// **'rolls slightly right'**
+  String get trim_roll_slightlyRight;
+
+  /// No description provided for @trim_roll_right.
+  ///
+  /// In en, this message translates to:
+  /// **'rolls right'**
+  String get trim_roll_right;
+
+  /// No description provided for @trim_gauge_pitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch'**
+  String get trim_gauge_pitch;
+
+  /// No description provided for @trim_gauge_roll.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll'**
+  String get trim_gauge_roll;
+
+  /// No description provided for @trim_gauge_headHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Head-heavy'**
+  String get trim_gauge_headHeavy;
+
+  /// No description provided for @trim_gauge_feetHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Feet-heavy'**
+  String get trim_gauge_feetHeavy;
+
+  /// No description provided for @trim_gauge_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get trim_gauge_left;
+
+  /// No description provided for @trim_gauge_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get trim_gauge_right;
+
+  /// No description provided for @trim_chip_left.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get trim_chip_left;
+
+  /// No description provided for @trim_chip_right.
+  ///
+  /// In en, this message translates to:
+  /// **'R'**
+  String get trim_chip_right;
+
+  /// No description provided for @trim_testItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Test item'**
+  String get trim_testItem;
+
+  /// No description provided for @trim_spot_head.
+  ///
+  /// In en, this message translates to:
+  /// **'Head'**
+  String get trim_spot_head;
+
+  /// No description provided for @trim_spot_mouth.
+  ///
+  /// In en, this message translates to:
+  /// **'Mouth'**
+  String get trim_spot_mouth;
+
+  /// No description provided for @trim_spot_chest.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest'**
+  String get trim_spot_chest;
+
+  /// No description provided for @trim_spot_chestClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest D-ring'**
+  String get trim_spot_chestClip;
+
+  /// No description provided for @trim_spot_upperBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper back'**
+  String get trim_spot_upperBack;
+
+  /// No description provided for @trim_spot_backTank.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get trim_spot_backTank;
+
+  /// No description provided for @trim_spot_wing.
+  ///
+  /// In en, this message translates to:
+  /// **'Wing'**
+  String get trim_spot_wing;
+
+  /// No description provided for @trim_spot_trimPockets.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim pockets'**
+  String get trim_spot_trimPockets;
+
+  /// No description provided for @trim_spot_backplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Backplate'**
+  String get trim_spot_backplate;
+
+  /// No description provided for @trim_spot_buttDRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Butt D-ring'**
+  String get trim_spot_buttDRing;
+
+  /// No description provided for @trim_spot_waist.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist'**
+  String get trim_spot_waist;
+
+  /// No description provided for @trim_spot_hipPockets.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip pockets'**
+  String get trim_spot_hipPockets;
+
+  /// No description provided for @trim_spot_sidemount.
+  ///
+  /// In en, this message translates to:
+  /// **'Side'**
+  String get trim_spot_sidemount;
+
+  /// No description provided for @trim_spot_stageClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage clips'**
+  String get trim_spot_stageClip;
+
+  /// No description provided for @trim_spot_console.
+  ///
+  /// In en, this message translates to:
+  /// **'Console'**
+  String get trim_spot_console;
+
+  /// No description provided for @trim_spot_thigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Thigh'**
+  String get trim_spot_thigh;
+
+  /// No description provided for @trim_spot_calf.
+  ///
+  /// In en, this message translates to:
+  /// **'Calf'**
+  String get trim_spot_calf;
+
+  /// No description provided for @trim_spot_ankles.
+  ///
+  /// In en, this message translates to:
+  /// **'Ankles'**
+  String get trim_spot_ankles;
+
+  /// No description provided for @trim_spot_feet.
+  ///
+  /// In en, this message translates to:
+  /// **'Feet'**
+  String get trim_spot_feet;
+
+  /// No description provided for @trim_spot_fins.
+  ///
+  /// In en, this message translates to:
+  /// **'Fins'**
+  String get trim_spot_fins;
+
+  /// No description provided for @trim_spot_hand.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand'**
+  String get trim_spot_hand;
+
+  /// No description provided for @trim_spot_wrist.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrist'**
+  String get trim_spot_wrist;
+
+  /// No description provided for @trim_spot_cameraArm.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera arm'**
+  String get trim_spot_cameraArm;
+
+  /// No description provided for @trim_spot_floatPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Spread over the body'**
+  String get trim_spot_floatPoint;
+
+  /// No description provided for @trim_verdictLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{pitch}, {roll}'**
+  String trim_verdictLine(String pitch, String roll);
+
+  /// No description provided for @trim_figure_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim figure: {verdict}. Lead: {lead}.'**
+  String trim_figure_summary(String verdict, String lead);
+
+  /// No description provided for @trim_chip_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {weight}'**
+  String trim_chip_weight(String name, String weight);
+
+  /// Marks a lead chip whose carry spot is not known, so it is drawn at the waist
+  ///
+  /// In en, this message translates to:
+  /// **'spot not known'**
+  String get trim_chip_note;
+
   /// No description provided for @buoyancy_ditchWarning.
   ///
   /// In en, this message translates to:

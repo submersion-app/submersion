@@ -23669,6 +23669,153 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buoyancy_minDitchable => 'أدنى وزن قابل للإسقاط';
 
   @override
+  String get trim_title => 'التوازن';
+
+  @override
+  String get trim_verdict_level => 'مستوٍ';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'ثقيل القدمين قليلاً';
+
+  @override
+  String get trim_verdict_feetHeavy => 'ثقيل القدمين';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'ثقيل الرأس قليلاً';
+
+  @override
+  String get trim_verdict_headHeavy => 'ثقيل الرأس';
+
+  @override
+  String get trim_roll_slightlyLeft => 'يميل قليلاً لليسار';
+
+  @override
+  String get trim_roll_left => 'يميل لليسار';
+
+  @override
+  String get trim_roll_slightlyRight => 'يميل قليلاً لليمين';
+
+  @override
+  String get trim_roll_right => 'يميل لليمين';
+
+  @override
+  String get trim_gauge_pitch => 'الميل';
+
+  @override
+  String get trim_gauge_roll => 'الدوران';
+
+  @override
+  String get trim_gauge_headHeavy => 'ثقيل الرأس';
+
+  @override
+  String get trim_gauge_feetHeavy => 'ثقيل القدمين';
+
+  @override
+  String get trim_gauge_left => 'يسار';
+
+  @override
+  String get trim_gauge_right => 'يمين';
+
+  @override
+  String get trim_chip_left => 'ي';
+
+  @override
+  String get trim_chip_right => 'م';
+
+  @override
+  String get trim_testItem => 'عنصر تجريبي';
+
+  @override
+  String get trim_spot_head => 'الرأس';
+
+  @override
+  String get trim_spot_mouth => 'الفم';
+
+  @override
+  String get trim_spot_chest => 'الصدر';
+
+  @override
+  String get trim_spot_chestClip => 'حلقة D الصدرية';
+
+  @override
+  String get trim_spot_upperBack => 'أعلى الظهر';
+
+  @override
+  String get trim_spot_backTank => 'الظهر';
+
+  @override
+  String get trim_spot_wing => 'الجناح';
+
+  @override
+  String get trim_spot_trimPockets => 'جيوب التوازن';
+
+  @override
+  String get trim_spot_backplate => 'اللوح الخلفي';
+
+  @override
+  String get trim_spot_buttDRing => 'حلقة D الخلفية';
+
+  @override
+  String get trim_spot_waist => 'الخصر';
+
+  @override
+  String get trim_spot_hipPockets => 'جيوب الورك';
+
+  @override
+  String get trim_spot_sidemount => 'الجانب';
+
+  @override
+  String get trim_spot_stageClip => 'مشابك الأسطوانة الإضافية';
+
+  @override
+  String get trim_spot_console => 'لوحة العدادات';
+
+  @override
+  String get trim_spot_thigh => 'الفخذ';
+
+  @override
+  String get trim_spot_calf => 'ربلة الساق';
+
+  @override
+  String get trim_spot_ankles => 'الكاحلان';
+
+  @override
+  String get trim_spot_feet => 'القدمان';
+
+  @override
+  String get trim_spot_fins => 'الزعانف';
+
+  @override
+  String get trim_spot_hand => 'اليد';
+
+  @override
+  String get trim_spot_wrist => 'المعصم';
+
+  @override
+  String get trim_spot_cameraArm => 'ذراع الكاميرا';
+
+  @override
+  String get trim_spot_floatPoint => 'موزّع على الجسم';
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch، $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'شكل التوازن: $verdict. الرصاص: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'الموضع غير معروف';
+
+  @override
   String get buoyancy_ditchWarning => 'أكثر مما يمكنك إسقاطه';
 
   @override

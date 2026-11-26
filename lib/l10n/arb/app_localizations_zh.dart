@@ -22072,6 +22072,153 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_minDitchable => '最小可抛弃配重';
 
   @override
+  String get trim_title => '纵倾平衡';
+
+  @override
+  String get trim_verdict_level => '水平';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => '略微脚重';
+
+  @override
+  String get trim_verdict_feetHeavy => '脚重';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => '略微头重';
+
+  @override
+  String get trim_verdict_headHeavy => '头重';
+
+  @override
+  String get trim_roll_slightlyLeft => '略向左侧倾';
+
+  @override
+  String get trim_roll_left => '向左侧倾';
+
+  @override
+  String get trim_roll_slightlyRight => '略向右侧倾';
+
+  @override
+  String get trim_roll_right => '向右侧倾';
+
+  @override
+  String get trim_gauge_pitch => '俯仰';
+
+  @override
+  String get trim_gauge_roll => '侧倾';
+
+  @override
+  String get trim_gauge_headHeavy => '头重';
+
+  @override
+  String get trim_gauge_feetHeavy => '脚重';
+
+  @override
+  String get trim_gauge_left => '左';
+
+  @override
+  String get trim_gauge_right => '右';
+
+  @override
+  String get trim_chip_left => '左';
+
+  @override
+  String get trim_chip_right => '右';
+
+  @override
+  String get trim_testItem => '测试物品';
+
+  @override
+  String get trim_spot_head => '头部';
+
+  @override
+  String get trim_spot_mouth => '口部';
+
+  @override
+  String get trim_spot_chest => '胸部';
+
+  @override
+  String get trim_spot_chestClip => '胸部D环';
+
+  @override
+  String get trim_spot_upperBack => '上背部';
+
+  @override
+  String get trim_spot_backTank => '背部';
+
+  @override
+  String get trim_spot_wing => '背飞';
+
+  @override
+  String get trim_spot_trimPockets => '配平袋';
+
+  @override
+  String get trim_spot_backplate => '背板';
+
+  @override
+  String get trim_spot_buttDRing => '臀部D环';
+
+  @override
+  String get trim_spot_waist => '腰部';
+
+  @override
+  String get trim_spot_hipPockets => '臀部袋';
+
+  @override
+  String get trim_spot_sidemount => '侧挂';
+
+  @override
+  String get trim_spot_stageClip => '备用瓶挂扣';
+
+  @override
+  String get trim_spot_console => '仪表台';
+
+  @override
+  String get trim_spot_thigh => '大腿';
+
+  @override
+  String get trim_spot_calf => '小腿';
+
+  @override
+  String get trim_spot_ankles => '脚踝';
+
+  @override
+  String get trim_spot_feet => '脚';
+
+  @override
+  String get trim_spot_fins => '脚蹼';
+
+  @override
+  String get trim_spot_hand => '手';
+
+  @override
+  String get trim_spot_wrist => '手腕';
+
+  @override
+  String get trim_spot_cameraArm => '相机臂';
+
+  @override
+  String get trim_spot_floatPoint => '分布于全身';
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch，$roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return '纵倾图：$verdict。配重：$lead。';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => '位置未知';
+
+  @override
   String get buoyancy_ditchWarning => '超过可抛弃的量';
 
   @override

@@ -23116,6 +23116,153 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min. afwerpbaar lood';
 
   @override
+  String get trim_title => 'Trim';
+
+  @override
+  String get trim_verdict_level => 'Horizontaal';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'Iets voetzwaar';
+
+  @override
+  String get trim_verdict_feetHeavy => 'Voetzwaar';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'Iets hoofdzwaar';
+
+  @override
+  String get trim_verdict_headHeavy => 'Hoofdzwaar';
+
+  @override
+  String get trim_roll_slightlyLeft => 'kantelt iets naar links';
+
+  @override
+  String get trim_roll_left => 'kantelt naar links';
+
+  @override
+  String get trim_roll_slightlyRight => 'kantelt iets naar rechts';
+
+  @override
+  String get trim_roll_right => 'kantelt naar rechts';
+
+  @override
+  String get trim_gauge_pitch => 'Stampen';
+
+  @override
+  String get trim_gauge_roll => 'Rollen';
+
+  @override
+  String get trim_gauge_headHeavy => 'Hoofdzwaar';
+
+  @override
+  String get trim_gauge_feetHeavy => 'Voetzwaar';
+
+  @override
+  String get trim_gauge_left => 'Links';
+
+  @override
+  String get trim_gauge_right => 'Rechts';
+
+  @override
+  String get trim_chip_left => 'L';
+
+  @override
+  String get trim_chip_right => 'R';
+
+  @override
+  String get trim_testItem => 'Testitem';
+
+  @override
+  String get trim_spot_head => 'Hoofd';
+
+  @override
+  String get trim_spot_mouth => 'Mond';
+
+  @override
+  String get trim_spot_chest => 'Borst';
+
+  @override
+  String get trim_spot_chestClip => 'Borst-D-ring';
+
+  @override
+  String get trim_spot_upperBack => 'Bovenrug';
+
+  @override
+  String get trim_spot_backTank => 'Rug';
+
+  @override
+  String get trim_spot_wing => 'Wing';
+
+  @override
+  String get trim_spot_trimPockets => 'Trimzakken';
+
+  @override
+  String get trim_spot_backplate => 'Backplate';
+
+  @override
+  String get trim_spot_buttDRing => 'Bil-D-ring';
+
+  @override
+  String get trim_spot_waist => 'Taille';
+
+  @override
+  String get trim_spot_hipPockets => 'Heupzakken';
+
+  @override
+  String get trim_spot_sidemount => 'Zij';
+
+  @override
+  String get trim_spot_stageClip => 'Stageclips';
+
+  @override
+  String get trim_spot_console => 'Console';
+
+  @override
+  String get trim_spot_thigh => 'Dij';
+
+  @override
+  String get trim_spot_calf => 'Kuit';
+
+  @override
+  String get trim_spot_ankles => 'Enkels';
+
+  @override
+  String get trim_spot_feet => 'Voeten';
+
+  @override
+  String get trim_spot_fins => 'Vinnen';
+
+  @override
+  String get trim_spot_hand => 'Hand';
+
+  @override
+  String get trim_spot_wrist => 'Pols';
+
+  @override
+  String get trim_spot_cameraArm => 'Camera-arm';
+
+  @override
+  String get trim_spot_floatPoint => 'Over het lichaam verdeeld';
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'Trimfiguur: $verdict. Lood: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'plek onbekend';
+
+  @override
   String get buoyancy_ditchWarning => 'Meer dan je kunt afwerpen';
 
   @override

@@ -18,7 +18,11 @@ class TrimElement {
     this.itemId,
     this.weightType,
     this.pieceIds = const [],
+    this.color = defaultColor,
   });
+
+  /// Black, the gear figure's default for most gear.
+  static const int defaultColor = 0xFF2A2A2E;
 
   final String id;
   final String label;
@@ -38,6 +42,9 @@ class TrimElement {
   /// The side-view artwork drawn for it; empty when it is drawn as a chip.
   final List<String> pieceIds;
 
+  /// ARGB for its artwork's item colour, as the gear figure colours it.
+  final int color;
+
   TrimElement copyWith({TrimSpot? spot, TrimLateral? lateral}) => TrimElement(
     id: id,
     label: label,
@@ -48,6 +55,7 @@ class TrimElement {
     itemId: itemId,
     weightType: weightType,
     pieceIds: pieceIds,
+    color: color,
   );
 }
 

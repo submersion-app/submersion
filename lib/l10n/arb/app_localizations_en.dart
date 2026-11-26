@@ -22917,6 +22917,153 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_minDitchable => 'Min ditchable weight';
 
   @override
+  String get trim_title => 'Trim';
+
+  @override
+  String get trim_verdict_level => 'Level';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'Slightly feet-heavy';
+
+  @override
+  String get trim_verdict_feetHeavy => 'Feet-heavy';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'Slightly head-heavy';
+
+  @override
+  String get trim_verdict_headHeavy => 'Head-heavy';
+
+  @override
+  String get trim_roll_slightlyLeft => 'rolls slightly left';
+
+  @override
+  String get trim_roll_left => 'rolls left';
+
+  @override
+  String get trim_roll_slightlyRight => 'rolls slightly right';
+
+  @override
+  String get trim_roll_right => 'rolls right';
+
+  @override
+  String get trim_gauge_pitch => 'Pitch';
+
+  @override
+  String get trim_gauge_roll => 'Roll';
+
+  @override
+  String get trim_gauge_headHeavy => 'Head-heavy';
+
+  @override
+  String get trim_gauge_feetHeavy => 'Feet-heavy';
+
+  @override
+  String get trim_gauge_left => 'Left';
+
+  @override
+  String get trim_gauge_right => 'Right';
+
+  @override
+  String get trim_chip_left => 'L';
+
+  @override
+  String get trim_chip_right => 'R';
+
+  @override
+  String get trim_testItem => 'Test item';
+
+  @override
+  String get trim_spot_head => 'Head';
+
+  @override
+  String get trim_spot_mouth => 'Mouth';
+
+  @override
+  String get trim_spot_chest => 'Chest';
+
+  @override
+  String get trim_spot_chestClip => 'Chest D-ring';
+
+  @override
+  String get trim_spot_upperBack => 'Upper back';
+
+  @override
+  String get trim_spot_backTank => 'Back';
+
+  @override
+  String get trim_spot_wing => 'Wing';
+
+  @override
+  String get trim_spot_trimPockets => 'Trim pockets';
+
+  @override
+  String get trim_spot_backplate => 'Backplate';
+
+  @override
+  String get trim_spot_buttDRing => 'Butt D-ring';
+
+  @override
+  String get trim_spot_waist => 'Waist';
+
+  @override
+  String get trim_spot_hipPockets => 'Hip pockets';
+
+  @override
+  String get trim_spot_sidemount => 'Side';
+
+  @override
+  String get trim_spot_stageClip => 'Stage clips';
+
+  @override
+  String get trim_spot_console => 'Console';
+
+  @override
+  String get trim_spot_thigh => 'Thigh';
+
+  @override
+  String get trim_spot_calf => 'Calf';
+
+  @override
+  String get trim_spot_ankles => 'Ankles';
+
+  @override
+  String get trim_spot_feet => 'Feet';
+
+  @override
+  String get trim_spot_fins => 'Fins';
+
+  @override
+  String get trim_spot_hand => 'Hand';
+
+  @override
+  String get trim_spot_wrist => 'Wrist';
+
+  @override
+  String get trim_spot_cameraArm => 'Camera arm';
+
+  @override
+  String get trim_spot_floatPoint => 'Spread over the body';
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'Trim figure: $verdict. Lead: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'spot not known';
+
+  @override
   String get buoyancy_ditchWarning => 'More than you can ditch';
 
   @override

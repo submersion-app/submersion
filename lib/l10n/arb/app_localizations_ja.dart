@@ -22408,6 +22408,153 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buoyancy_minDitchable => '最小投棄可能ウェイト';
 
   @override
+  String get trim_title => 'トリム';
+
+  @override
+  String get trim_verdict_level => '水平';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'やや足が重い';
+
+  @override
+  String get trim_verdict_feetHeavy => '足が重い';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'やや頭が重い';
+
+  @override
+  String get trim_verdict_headHeavy => '頭が重い';
+
+  @override
+  String get trim_roll_slightlyLeft => 'やや左に傾く';
+
+  @override
+  String get trim_roll_left => '左に傾く';
+
+  @override
+  String get trim_roll_slightlyRight => 'やや右に傾く';
+
+  @override
+  String get trim_roll_right => '右に傾く';
+
+  @override
+  String get trim_gauge_pitch => 'ピッチ';
+
+  @override
+  String get trim_gauge_roll => 'ロール';
+
+  @override
+  String get trim_gauge_headHeavy => '頭が重い';
+
+  @override
+  String get trim_gauge_feetHeavy => '足が重い';
+
+  @override
+  String get trim_gauge_left => '左';
+
+  @override
+  String get trim_gauge_right => '右';
+
+  @override
+  String get trim_chip_left => '左';
+
+  @override
+  String get trim_chip_right => '右';
+
+  @override
+  String get trim_testItem => 'テスト用アイテム';
+
+  @override
+  String get trim_spot_head => '頭';
+
+  @override
+  String get trim_spot_mouth => '口';
+
+  @override
+  String get trim_spot_chest => '胸';
+
+  @override
+  String get trim_spot_chestClip => '胸のDリング';
+
+  @override
+  String get trim_spot_upperBack => '背中上部';
+
+  @override
+  String get trim_spot_backTank => '背中';
+
+  @override
+  String get trim_spot_wing => 'ウイング';
+
+  @override
+  String get trim_spot_trimPockets => 'トリムポケット';
+
+  @override
+  String get trim_spot_backplate => 'バックプレート';
+
+  @override
+  String get trim_spot_buttDRing => '腰のDリング';
+
+  @override
+  String get trim_spot_waist => '腰';
+
+  @override
+  String get trim_spot_hipPockets => '腰ポケット';
+
+  @override
+  String get trim_spot_sidemount => '側面';
+
+  @override
+  String get trim_spot_stageClip => 'ステージクリップ';
+
+  @override
+  String get trim_spot_console => 'コンソール';
+
+  @override
+  String get trim_spot_thigh => '太もも';
+
+  @override
+  String get trim_spot_calf => 'ふくらはぎ';
+
+  @override
+  String get trim_spot_ankles => '足首';
+
+  @override
+  String get trim_spot_feet => '足';
+
+  @override
+  String get trim_spot_fins => 'フィン';
+
+  @override
+  String get trim_spot_hand => '手';
+
+  @override
+  String get trim_spot_wrist => '手首';
+
+  @override
+  String get trim_spot_cameraArm => 'カメラアーム';
+
+  @override
+  String get trim_spot_floatPoint => '体全体に分散';
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch、$roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'トリム図：$verdict。ウエイト：$lead。';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => '位置不明';
+
+  @override
   String get buoyancy_ditchWarning => '投棄できる量を超えています';
 
   @override

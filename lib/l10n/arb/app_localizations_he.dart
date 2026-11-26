@@ -22757,6 +22757,153 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_minDitchable => 'משקל מזערי הניתן להשלכה';
 
   @override
+  String get trim_title => 'איזון';
+
+  @override
+  String get trim_verdict_level => 'מאוזן';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'מעט כבד ברגליים';
+
+  @override
+  String get trim_verdict_feetHeavy => 'כבד ברגליים';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'מעט כבד בראש';
+
+  @override
+  String get trim_verdict_headHeavy => 'כבד בראש';
+
+  @override
+  String get trim_roll_slightlyLeft => 'נוטה מעט שמאלה';
+
+  @override
+  String get trim_roll_left => 'נוטה שמאלה';
+
+  @override
+  String get trim_roll_slightlyRight => 'נוטה מעט ימינה';
+
+  @override
+  String get trim_roll_right => 'נוטה ימינה';
+
+  @override
+  String get trim_gauge_pitch => 'עלרוד';
+
+  @override
+  String get trim_gauge_roll => 'גלגול';
+
+  @override
+  String get trim_gauge_headHeavy => 'כבד בראש';
+
+  @override
+  String get trim_gauge_feetHeavy => 'כבד ברגליים';
+
+  @override
+  String get trim_gauge_left => 'שמאל';
+
+  @override
+  String get trim_gauge_right => 'ימין';
+
+  @override
+  String get trim_chip_left => 'ש';
+
+  @override
+  String get trim_chip_right => 'י';
+
+  @override
+  String get trim_testItem => 'פריט ניסיון';
+
+  @override
+  String get trim_spot_head => 'ראש';
+
+  @override
+  String get trim_spot_mouth => 'פה';
+
+  @override
+  String get trim_spot_chest => 'חזה';
+
+  @override
+  String get trim_spot_chestClip => 'טבעת D בחזה';
+
+  @override
+  String get trim_spot_upperBack => 'גב עליון';
+
+  @override
+  String get trim_spot_backTank => 'גב';
+
+  @override
+  String get trim_spot_wing => 'כנף';
+
+  @override
+  String get trim_spot_trimPockets => 'כיסי איזון';
+
+  @override
+  String get trim_spot_backplate => 'לוח גב';
+
+  @override
+  String get trim_spot_buttDRing => 'טבעת D אחורית';
+
+  @override
+  String get trim_spot_waist => 'מותניים';
+
+  @override
+  String get trim_spot_hipPockets => 'כיסי מותן';
+
+  @override
+  String get trim_spot_sidemount => 'צד';
+
+  @override
+  String get trim_spot_stageClip => 'תפסי מכל במה';
+
+  @override
+  String get trim_spot_console => 'קונסולה';
+
+  @override
+  String get trim_spot_thigh => 'ירך';
+
+  @override
+  String get trim_spot_calf => 'שוק';
+
+  @override
+  String get trim_spot_ankles => 'קרסוליים';
+
+  @override
+  String get trim_spot_feet => 'כפות רגליים';
+
+  @override
+  String get trim_spot_fins => 'סנפירים';
+
+  @override
+  String get trim_spot_hand => 'יד';
+
+  @override
+  String get trim_spot_wrist => 'פרק כף היד';
+
+  @override
+  String get trim_spot_cameraArm => 'זרוע מצלמה';
+
+  @override
+  String get trim_spot_floatPoint => 'פזור על הגוף';
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'תרשים איזון: $verdict. משקולות: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'מיקום לא ידוע';
+
+  @override
   String get buoyancy_ditchWarning => 'יותר ממה שניתן להשליך';
 
   @override
