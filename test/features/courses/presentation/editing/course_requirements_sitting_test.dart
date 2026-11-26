@@ -115,6 +115,40 @@ void main() {
     }
   });
 
+  test(
+    'held rows show the stored count while their condition is unchanged',
+    () {
+      CourseRequirementProgress derived(
+        String id,
+        int amount, {
+        String name = 'CCR time',
+        String? equipmentId = 'rb-1',
+      }) => CourseRequirementProgress(
+        requirement: row(
+          id,
+          kind: RequirementKind.ccrHours,
+        ).requirement.copyWith(name: name, equipmentId: () => equipmentId),
+        linkedDives: const [],
+        derivedAmount: amount,
+      );
+
+      final shown = withStoredDerivedAmounts(
+        [
+          // Renamed in the sitting: the count does not depend on the name.
+          derived('a', 0, name: 'Renamed'),
+          // Moved to another rebreather: the stored count is for the old one.
+          derived('b', 30, equipmentId: 'rb-2'),
+          // Added in the sitting: nothing stored yet.
+          derived('c', 45),
+        ],
+        [derived('a', 120), derived('b', 90)],
+      );
+
+      expect([for (final r in shown) r.derivedAmount], [120, 30, 45]);
+      expect(shown.first.requirement.name, 'Renamed');
+    },
+  );
+
   test('turning a checklist into a dive requirement clears its tick', () {
     final rows = withRequirementEdited(
       [row('a', kind: RequirementKind.checklist, completedAt: now)],

@@ -61,9 +61,13 @@ class CourseRequirementsSection extends ConsumerWidget {
     final held = sitting == null
         ? null
         : courseRequirementsList.current(sitting);
+    // Held rows show the live derived counts (see withStoredDerivedAmounts).
     final progress = held == null
         ? stored
-        : CourseProgress(courseId: courseId, requirements: held);
+        : CourseProgress(
+            courseId: courseId,
+            requirements: withStoredDerivedAmounts(held, stored.requirements),
+          );
     final storedSuggestions = suggestionsAsync.value ?? const [];
     final suggestions = held == null
         ? storedSuggestions

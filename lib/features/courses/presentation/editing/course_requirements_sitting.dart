@@ -220,6 +220,37 @@ Set<String> _creditedDiveIds(List<CourseRequirementProgress> rows) => {
     for (final d in r.linkedDives) d.diveId,
 };
 
+/// [held] with each derived count taken from [stored], the live progress,
+/// wherever the requirement still counts what it did when stored (the same
+/// kind, rebreather and dive search). The sitting reads its rows once and
+/// without preparing the query caches a search may read, so its own counts
+/// can be stale or read an unwritten cache; a row whose condition changed in
+/// the sitting keeps the count it was edited with.
+List<CourseRequirementProgress> withStoredDerivedAmounts(
+  List<CourseRequirementProgress> held,
+  List<CourseRequirementProgress> stored,
+) {
+  final byId = {for (final s in stored) s.requirement.id: s};
+  bool sameCondition(CourseRequirement a, CourseRequirement b) =>
+      a.kind == b.kind &&
+      a.equipmentId == b.equipmentId &&
+      a.queryJson == b.queryJson;
+  return [
+    for (final r in held)
+      switch (byId[r.requirement.id]) {
+        final s?
+            when r.requirement.kind.isDerived &&
+                sameCondition(r.requirement, s.requirement) =>
+          CourseRequirementProgress(
+            requirement: r.requirement,
+            linkedDives: r.linkedDives,
+            derivedAmount: s.derivedAmount,
+          ),
+        _ => r,
+      },
+  ];
+}
+
 /// The stored suggestions less the dives credited in the sitting.
 List<RequirementDiveSummary> suggestionsInSitting(
   List<RequirementDiveSummary> stored,
