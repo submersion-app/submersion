@@ -19,6 +19,7 @@ Future<void> _pump(
     locale: const Locale('en'),
     child: SpeciesBrowseControls(
       summary: '60 species · 231 sightings',
+      shortSummary: '60 species',
       groupBy: SpeciesGroupBy.category,
       grid: true,
       sort: SeenSpeciesSort.mostDives,
@@ -92,5 +93,22 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await _pump(tester, withoutPhoto: 122);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a phone shows the short count line', (tester) async {
+    tester.view.physicalSize = const Size(390, 200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await _pump(tester, withoutPhoto: 22);
+    expect(find.text('60 species'), findsOneWidget);
+    expect(find.text('60 species · 231 sightings'), findsNothing);
+  });
+
+  testWidgets('a wide window shows the full count line', (tester) async {
+    tester.view.physicalSize = const Size(1280, 200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await _pump(tester, withoutPhoto: 22);
+    expect(find.text('60 species · 231 sightings'), findsOneWidget);
   });
 }

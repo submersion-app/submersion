@@ -203,6 +203,9 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
           summary:
               '${l10n.marineLife_speciesPage_speciesCount(visible.length)} · '
               '${l10n.marineLife_speciesPage_sightingsCount(sightings)}',
+          shortSummary: l10n.marineLife_speciesPage_speciesCount(
+            visible.length,
+          ),
           groupBy: groupBy,
           grid: grid,
           sort: _sort,

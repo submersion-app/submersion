@@ -32,6 +32,7 @@ class SpeciesBrowseControls extends StatelessWidget {
   const SpeciesBrowseControls({
     super.key,
     required this.summary,
+    required this.shortSummary,
     required this.groupBy,
     required this.grid,
     required this.sort,
@@ -47,6 +48,12 @@ class SpeciesBrowseControls extends StatelessWidget {
 
   /// The count line, e.g. "42 species · 310 sightings".
   final String summary;
+
+  /// The count line where room is short (a phone), e.g. "42 species".
+  final String shortSummary;
+
+  /// Narrower than this, [shortSummary] is shown.
+  static const _fullSummaryWidth = 600.0;
   final SpeciesGroupBy groupBy;
   final bool grid;
   final SeenSpeciesSort sort;
@@ -76,7 +83,9 @@ class SpeciesBrowseControls extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  summary,
+                  MediaQuery.sizeOf(context).width < _fullSummaryWidth
+                      ? shortSummary
+                      : summary,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall,
