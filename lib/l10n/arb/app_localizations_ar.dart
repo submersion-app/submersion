@@ -19705,6 +19705,47 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تحميل إحصائيات المشاهدات';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => 'أول مشاهدة';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => 'آخر مشاهدة';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => 'العمق والموسم';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => 'أعماق الصور';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth => 'أقصى عمق للغطسات';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => 'الغطسات حسب الشهر';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'الخط الزمني';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => 'استخدام كغلاف';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => 'إزالة الغلاف';
+
+  @override
+  String get marineLife_speciesDetail_cover => 'الغلاف';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => 'البحث عن صور';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => 'فتح الصورة أو الفيديو';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return 'غطسة في $date';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return 'الصنف: $className';
   }
@@ -20063,6 +20104,132 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'إعادة المحاولة';
+
+  @override
+  String get marineLife_speciesPage_headerSpecies => 'الأنواع';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return 'جديدة في $year';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => 'نمو قائمة الأنواع';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع بلا صورة',
+      many: '$count نوعًا بلا صورة',
+      few: '$count أنواع بلا صورة',
+      two: 'نوعان بلا صورة',
+      one: 'نوع واحد بلا صورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'التجميع حسب';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'بدون تجميع';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'الفئة';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => 'سنة أول مشاهدة';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => 'الرحلة';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'موقع الغوص';
+
+  @override
+  String get marineLife_speciesPage_noTrip => 'بدون رحلة';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'بدون موقع';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'عرض الكل';
+
+  @override
+  String get marineLife_speciesPage_showList => 'العرض كقائمة';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'العرض كبطاقات';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip =>
+      'التدرب على تسمية الأنواع';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'شوهد هنا أول مرة';
+
+  @override
+  String get marineLife_rarity_new => 'جديد';
+
+  @override
+  String get marineLife_rarity_seenOnce => 'شوهد مرة واحدة';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'لم يُشاهد منذ مدة';
+
+  @override
+  String get marineLife_rarity_mastered => 'متقن';
+
+  @override
+  String get marineLife_practice_title => 'التدرب على التعرف';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      'يتطلب التدريب 4 أنواع على الأقل لكل منها قص صورة مؤكد. ضع وسومًا على صور الأنواع التي شاهدتها وأكدها، ثم عد إلى هنا.';
+
+  @override
+  String get marineLife_practice_back => 'العودة إلى الأنواع';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current من $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'ما هذا النوع؟';
+
+  @override
+  String get marineLife_practice_scientificNames => 'الأسماء العلمية';
+
+  @override
+  String get marineLife_practice_right => 'صحيح';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return 'ليس تمامًا: كان $name';
+  }
+
+  @override
+  String get marineLife_practice_next => 'التالي';
+
+  @override
+  String get marineLife_practice_finish => 'عرض النتائج';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$right من $total صحيحة';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'للتدرب مجددًا';
+
+  @override
+  String get marineLife_practice_again => 'التدرب مجددًا';
+
+  @override
+  String get marineLife_practice_done => 'تم';
 
   @override
   String get speciesMap_title => 'خريطة الأنواع';
@@ -22915,12 +23082,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_chartMode_bailout => 'Bailout';
-
-  @override
-  String get plannerCanvas_chartMode_ccr => 'CCR';
-
-  @override
-  String get plannerCanvas_chartMode_scr => 'SCR';
 
   @override
   String plannerCanvas_scrub_tts(String minutes) {
@@ -27502,6 +27663,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_mediaIdentifications_decisionHlc =>
       'ساعة القرار';
+
+  @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      'قص الغلاف';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => 'صندوق التدريب';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => 'موعد التدريب';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount =>
+      'الإجابات الصحيحة';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount =>
+      'الإجابات الخاطئة';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt =>
+      'آخر تدريب';
 
   @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => 'القصاصة';
@@ -47002,6 +47185,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_selection_deselectAllTooltip => 'إلغاء تحديد الكل';
 
   @override
+  String get common_selection_selectAllLoadFailed =>
+      'تعذّر تحميل جميع العناصر، لذا لم يُطبَّق تحديد الكل. حاول مرة أخرى.';
+
+  @override
   String common_bulkDelete_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -57392,13 +57579,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_labels_action => 'تسميات الأنواع';
 
   @override
-  String get media_labels_names => 'الأسماء';
+  String get media_labels_names => 'الأسماء والحيوانات المحتملة';
 
   @override
-  String get media_labels_allLife => 'كل الكائنات';
+  String get media_labels_allLife => 'كل ما تم اكتشافه';
 
   @override
-  String get media_labels_off => 'إيقاف';
+  String get media_labels_off => 'بلا تسميات';
 
   @override
   String get media_labels_analyse => 'تحليل';
@@ -57481,7 +57668,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'إظهار كل الكائنات';
+  String get media_labels_showAllLife => 'إظهار كل ما تم اكتشافه';
 
   @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
@@ -57489,6 +57676,42 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get media_species_cropUnavailable =>
       'الصورة غير موجودة على هذا الجهاز';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count في هذه الصورة',
+      many: '$count في هذه الصورة',
+      few: '$count في هذه الصورة',
+      two: '$count في هذه الصورة',
+      one: '$count في هذه الصورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count في هذا الفيديو',
+      many: '$count في هذا الفيديو',
+      few: '$count في هذا الفيديو',
+      two: '$count في هذا الفيديو',
+      one: '$count في هذا الفيديو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'صفحة النوع';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'الصورة $index من $count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'موسومة في هذه الصورة';

@@ -24,6 +24,7 @@ import 'package:submersion/features/planner/domain/services/plan_state_outcome.d
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -180,7 +181,7 @@ class PlanCanvasSeries {
 enum ChartDisplayMode { ccr, bailout }
 
 /// Which picture the chart draws: the live CCR plan, or -- toggled by the
-/// chart's Bailout/CCR button -- the worst-case bailout picture (CCR up to
+/// chart's Bailout chip -- the worst-case bailout picture (CCR up to
 /// the worst-case instant, then the OC ascent it was sized from).
 ///
 /// The selection belongs to the plan it was made on: watching the plan's id
@@ -537,7 +538,7 @@ final selectedContingencyProvider = Provider<CombinedContingencyOutcome?>((
   ref,
 ) {
   final selection = ref.watch(contingencySelectionProvider);
-  if (selection.isEmpty) return null;
+  if (selection.isEmpty || ref.watch(planBailoutViewProvider)) return null;
 
   final state = ref.watch(divePlanNotifierProvider);
   final config = ref.watch(planEngineConfigProvider);

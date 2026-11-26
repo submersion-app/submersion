@@ -285,3 +285,10 @@ flutter:
     - family: Submersion Equipment
       fonts:
         - asset: assets/fonts/submersion-equipment.ttf
+    # The logo's face (Inter Display ExtraBold, as scripts/brand draws the
+    # wordmark), for the app name beside the icon only. SIL OFL 1.1; the
+    # licence is in assets/licenses/ and on the license page.
+    - family: Inter Display
+      fonts:
+        - asset: assets/fonts/InterDisplay-ExtraBold.ttf
+          weight: 800

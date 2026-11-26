@@ -21,10 +21,14 @@ void main() {
     FutureOr<BulkActionOutcome> Function()? onDelete,
     int maxInlineActions = 3,
     List<String> selectableIds = const ['a', 'b', 'c'],
+    Future<List<String>> Function()? loadAllIds,
+    bool hasUnloadedRows = false,
   }) {
     final bar = SelectionAppBar(
       controller: controller,
       selectableIds: selectableIds,
+      loadAllIds: loadAllIds,
+      hasUnloadedRows: hasUnloadedRows,
       actions: actions,
       shell: shell,
       onDelete: onDelete ?? () => BulkActionOutcome.completed,
@@ -87,6 +91,35 @@ void main() {
         find.byKey(const ValueKey('selection_select_all')),
       );
       expect(button.onPressed, isNull);
+    });
+
+    testWidgets('select all on a paged surface checks every loaded id', (
+      tester,
+    ) async {
+      controller.enterExplicit();
+      await tester.pumpWidget(
+        host(
+          selectableIds: const ['a', 'b'],
+          loadAllIds: () async => const ['a', 'b', 'c', 'd'],
+          hasUnloadedRows: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      expect(controller.value.checkedIds, {'a', 'b', 'c', 'd'});
+    });
+
+    testWidgets('select all stays on while rows past the page are unloaded', (
+      tester,
+    ) async {
+      controller.selectAll(const ['a', 'b', 'c']);
+      await tester.pumpWidget(host(hasUnloadedRows: true));
+      await tester.pumpAndSettle();
+      final button = tester.widget<IconButton>(
+        find.byKey(const ValueKey('selection_select_all')),
+      );
+      expect(button.onPressed, isNotNull);
     });
 
     testWidgets('deselect all is disabled at zero checked', (tester) async {

@@ -466,4 +466,32 @@ void main() {
       expect(state().entries, hasLength(pageSize + 2));
     });
   });
+
+  // Select All loads every row first (issue #5022), and must not take a
+  // failed read for the end of the library.
+  group('loadRest', () {
+    test('returns every id once the rows past the cursor are in', () async {
+      await loadPageOne();
+
+      final rest = notifier().loadRest();
+      await settle();
+      repo.reads.last.answer(_rows('b', 3));
+      final ids = await rest;
+
+      expect(ids, hasLength(pageSize + 3));
+      expect(state().hasMore, isFalse);
+    });
+
+    test('returns null when a read fails with rows still missing', () async {
+      await loadPageOne();
+
+      final rest = notifier().loadRest();
+      await settle();
+      repo.reads.last.fail(StateError('database is busy'));
+
+      expect(await rest, isNull);
+      expect(state().entries, hasLength(pageSize));
+      expect(state().nextCursor?.id, 'a59');
+    });
+  });
 }

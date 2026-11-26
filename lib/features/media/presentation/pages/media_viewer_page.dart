@@ -120,12 +120,17 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// a gear photo backs up (issue #3355); null or an empty result shows none.
   final String? Function(MediaItem)? captionFor;
 
+  /// Where the initial item starts when it is a video: a species crop's
+  /// moment (issue #5027). Applied once, to that item only.
+  final Duration? initialVideoPosition;
+
   const MediaViewerPage({
     super.key,
     required this.mediaList,
     required this.initialMediaId,
     this.showGoToDive = false,
     this.captionFor,
+    this.initialVideoPosition,
   });
 
   @override
@@ -230,8 +235,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     } else {
       watchVideoPlayState(controller);
       setState(() => _videoControllers[mediaId] = controller);
+      final start = widget.initialVideoPosition;
+      if (start != null && !_startApplied && mediaId == widget.initialMediaId) {
+        _startApplied = true;
+        unawaited(controller.seekTo(start));
+      }
     }
   }
+
+  /// Whether [MediaViewerPage.initialVideoPosition] has been applied.
+  bool _startApplied = false;
 
   /// Resolves the live record for the item on screen when the caller passed a
   /// lean one.

@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/features/marine_life/data/services/species_revamp_rows.dart';
 
 /// Folds each retired built-in species into the row that replaces it
 /// (issue #4966): sightings, photo tags, expected species and the marine
@@ -80,6 +81,9 @@ class RetiredSpeciesMerger {
         _carryNotes,
       );
       await _moveIdentifications(from, to, now);
+      // Covers and practice records (#5027) are keyed by species too, so they
+      // move under the kept species' id; the delete below would cascade them.
+      await moveSpeciesRevampRows(_db, _sync, from: from, to: to, now: now);
       // Nothing points at the row now, so no cascade takes diver data. No
       // deletion is published: every device retires it at its own upgrade,
       // and one still on the old catalog must keep it for its own sightings.

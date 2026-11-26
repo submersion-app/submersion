@@ -266,13 +266,25 @@ class PlanResultsSheet extends ConsumerWidget {
       );
     }
 
+    // The contingencies are not in effect in Bailout view (#5018), so a row
+    // picked there puts its own in effect: back to the plan, the row on.
+    final inBailoutView = ref.watch(planBailoutViewProvider);
+    VoidCallback pick(bool selected, VoidCallback toggle) => () {
+      if (!inBailoutView) return toggle();
+      ref.read(chartDisplayModeProvider.notifier).state = ChartDisplayMode.ccr;
+      if (!selected) toggle();
+    };
+
     final rows = [
       for (final deviation in deviations.value ?? const <DeviationOutcome>[])
         row(
           key: deviation.key,
           label: deviationLabel(deviation.key),
           selected: selectedDeviation == deviation.key,
-          onSelect: () => toggleDeviation(deviation.key),
+          onSelect: pick(
+            selectedDeviation == deviation.key,
+            () => toggleDeviation(deviation.key),
+          ),
           outcome: deviation.outcome,
         ),
       for (final lost in lostGas.value ?? const <LostGasOutcome>[])
@@ -282,7 +294,10 @@ class PlanResultsSheet extends ConsumerWidget {
             lost.tank.gasMix.name,
           ),
           selected: selection.lostTankIds.contains(lost.tank.id),
-          onSelect: () => selectionNotifier.toggleLostGas(lost.tank.id),
+          onSelect: pick(
+            selection.lostTankIds.contains(lost.tank.id),
+            () => selectionNotifier.toggleLostGas(lost.tank.id),
+          ),
           outcome: lost.outcome,
         ),
     ];

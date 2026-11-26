@@ -11746,6 +11746,27 @@
   "marineLife_speciesDetail_sightingStatsTitle": "Sighting Statistics",
   "marineLife_speciesDetail_sitesLabel": "Sites",
   "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
+  "marineLife_speciesDetail_firstSeenLabel": "First seen",
+  "marineLife_speciesDetail_lastSeenLabel": "Last seen",
+  "marineLife_speciesDetail_depthSeasonTitle": "Depth and season",
+  "marineLife_speciesDetail_photoDepths": "Photo depths",
+  "marineLife_speciesDetail_diveMaxDepth": "Dive max depth",
+  "marineLife_speciesDetail_byMonth": "Dives by month",
+  "marineLife_speciesDetail_timelineTitle": "Timeline",
+  "marineLife_speciesDetail_useAsCover": "Use as cover",
+  "marineLife_speciesDetail_removeCover": "Remove cover",
+  "marineLife_speciesDetail_cover": "Cover",
+  "marineLife_speciesDetail_findPhotos": "Find photos",
+  "marineLife_speciesDetail_openMedia": "Open photo or video",
+  "marineLife_speciesDetail_timelineDive": "Dive on {date}",
+  "@marineLife_speciesDetail_timelineDive": {
+    "description": "Accessibility label of one dot on a species' sightings timeline",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
   "marineLife_speciesEdit_addTitle": "Add Species",
@@ -11947,6 +11968,87 @@
     }
   },
   "marineLife_speciesPage_retry": "Retry",
+  "marineLife_speciesPage_headerSpecies": "Species",
+  "marineLife_speciesPage_headerNewIn": "New in {year}",
+  "@marineLife_speciesPage_headerNewIn": {
+    "description": "Header tile: species first seen this calendar year",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "marineLife_speciesPage_headerGrowth": "Life list growth",
+  "marineLife_speciesPage_withoutPhoto": "{count, plural, one{{count} without a photo} other{{count} without a photo}}",
+  "@marineLife_speciesPage_withoutPhoto": {
+    "description": "Chip filtering to seen species that have no picture",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_speciesPage_groupByTooltip": "Group by",
+  "marineLife_speciesPage_groupBy_none": "No grouping",
+  "marineLife_speciesPage_groupBy_category": "Category",
+  "marineLife_speciesPage_groupBy_firstSeen": "Year first seen",
+  "marineLife_speciesPage_groupBy_trip": "Trip",
+  "marineLife_speciesPage_groupBy_site": "Site",
+  "marineLife_speciesPage_noTrip": "No trip",
+  "marineLife_speciesPage_noSite": "No site",
+  "marineLife_speciesPage_seeAll": "See all",
+  "marineLife_speciesPage_showList": "Show as list",
+  "marineLife_speciesPage_showCards": "Show as cards",
+  "marineLife_speciesPage_practiceTooltip": "Practice naming species",
+  "marineLife_speciesPage_firstSeenHere": "First seen here",
+  "marineLife_rarity_new": "New",
+  "marineLife_rarity_seenOnce": "Seen once",
+  "marineLife_rarity_notSeenLately": "Not seen lately",
+  "marineLife_rarity_mastered": "Mastered",
+  "marineLife_practice_title": "ID practice",
+  "marineLife_practice_notEnough": "Practice needs at least 4 species with a confirmed photo crop. Tag and confirm photos of the species you have seen, then come back.",
+  "marineLife_practice_back": "Back to species",
+  "marineLife_practice_progress": "{current} of {total}",
+  "@marineLife_practice_progress": {
+    "description": "Practice round counter",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_practice_question": "Which species is this?",
+  "marineLife_practice_scientificNames": "Scientific names",
+  "marineLife_practice_right": "Right",
+  "marineLife_practice_wrong": "Not quite: it was {name}",
+  "@marineLife_practice_wrong": {
+    "description": "Shown after a wrong practice answer",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "marineLife_practice_next": "Next",
+  "marineLife_practice_finish": "See results",
+  "marineLife_practice_score": "{right} of {total} right",
+  "@marineLife_practice_score": {
+    "description": "Practice session score",
+    "placeholders": {
+      "right": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "marineLife_practice_missedTitle": "To practise again",
+  "marineLife_practice_again": "Practise again",
+  "marineLife_practice_done": "Done",
   "speciesMap_title": "Species Map",
   "speciesMap_openTooltip": "Species map",
   "speciesMap_pickSpeciesTooltip": "Pick a species",
@@ -14386,8 +14488,6 @@
     }
   },
   "plannerCanvas_chartMode_bailout": "Bailout",
-  "plannerCanvas_chartMode_ccr": "CCR",
-  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "@plannerCanvas_scrub_tts": {
     "placeholders": {
@@ -16377,6 +16477,12 @@
   "settings_conflict_field_mediaIdentifications_specific": "Looks like something in particular",
   "settings_conflict_field_mediaIdentifications_runId": "Analysis",
   "settings_conflict_field_mediaIdentifications_decisionHlc": "Decision clock",
+  "settings_conflict_field_speciesCovers_identificationId": "Cover crop",
+  "settings_conflict_field_speciesPractice_box": "Practice box",
+  "settings_conflict_field_speciesPractice_dueAt": "Practice due",
+  "settings_conflict_field_speciesPractice_rightCount": "Named right",
+  "settings_conflict_field_speciesPractice_wrongCount": "Named wrong",
+  "settings_conflict_field_speciesPractice_lastPractisedAt": "Last practised",
   "settings_conflict_field_mediaIdentificationCrops_jpeg": "Crop",
   "settings_conflict_field_medicalClearanceExpiryDate": "Medical clearance expiry",
   "settings_conflict_field_medicalNotes": "Medical notes",
@@ -28608,6 +28714,7 @@
   "common_selection_exitTooltip": "Exit selection",
   "common_selection_selectAllTooltip": "Select all",
   "common_selection_deselectAllTooltip": "Deselect all",
+  "common_selection_selectAllLoadFailed": "Could not load every item, so Select all was not applied. Try again.",
   "@common_selection_countSelected": {
     "placeholders": {
       "count": {
@@ -33737,9 +33844,12 @@
   "@media_species_moreChips": {"description": "Screen reader label of the chip that counts the species left off the viewer's one line (issue #4825); the chip itself reads +N.", "placeholders": {"count": {"type": "int"}}},
   "media_species_listLocked": "Unlock to add or dismiss",
   "media_labels_action": "Species labels",
-  "media_labels_names": "Names",
-  "media_labels_allLife": "All life",
-  "media_labels_off": "Off",
+  "media_labels_names": "Names and likely animals",
+  "@media_labels_names": {"description": "Labels menu in the media viewer (issue #5023), first of three choices for what is drawn over the photo or video: a name label on each animal the app can name or the diver tagged, and a small dot on an unnamed animal that looks like a particular species (on a photo, or on a paused video once it has been followed for a second), so the diver can stop and name it. Vaguer detections, such as a fin or a bubble, get nothing. 'Likely animals' means those probable but unnamed ones; the wording must contrast with media_labels_allLife, which marks every detection."},
+  "media_labels_allLife": "Everything detected",
+  "@media_labels_allLife": {"description": "Labels menu in the media viewer (issue #5023), second of three choices: the name labels, plus a dot on everything the app detected that it cannot name, however vague (a fin, a bubble), while the video plays too. The wording must contrast with media_labels_names, which marks only the likely animals. Never 'all of life' or 'a lifetime'."},
+  "media_labels_off": "No labels",
+  "@media_labels_off": {"description": "Labels menu in the media viewer (issue #5023), third of three choices: draw no labels over the photo or video."},
   "media_labels_analyse": "Analyse",
   "media_labels_analyseAgain": "Analyse again",
   "media_labels_statusNoModel": "No species model installed",
@@ -33763,10 +33873,18 @@
   "@media_labels_buttonAnalysed": {"description": "Tooltip of the viewer's species labels button once the item on screen is analysed; the icon is drawn green (issue #4958)."},
   "media_labels_foundNoneNamed": "{count, plural, =1{{count} found, none named} other{{count} found, none named}}",
   "@media_labels_foundNoneNamed": {"description": "Brief message after the diver asks for a photo or video to be analysed and it finds animals it cannot name, so no name label is drawn (issue #4872).", "placeholders": {"count": {"type": "int"}}},
-  "media_labels_showAllLife": "Show all life",
-  "@media_labels_showAllLife": {"description": "Action on that message: switch the labels to All life, which draws the unnamed animals too."},
+  "media_labels_showAllLife": "Show everything detected",
+  "@media_labels_showAllLife": {"description": "Action on the notice shown when an analysis finds animals it cannot name: switch the labels menu to its 'Everything detected' choice (media_labels_allLife), which marks the unnamed detections too."},
   "media_species_possibleMatches": "Possible matches",
   "media_species_cropUnavailable": "Image not on this device",
+  "media_species_cropCountPhoto": "{count, plural, =1{{count} in this photo} other{{count} in this photo}}",
+  "@media_species_cropCountPhoto": {"description": "Under a species' crops on a locked photo: how many of that species the app found on it (issue #5024).", "placeholders": {"count": {"type": "int"}}},
+  "media_species_cropCountVideo": "{count, plural, =1{{count} in this video} other{{count} in this video}}",
+  "@media_species_cropCountVideo": {"description": "Under a species' crops on a locked video: how many of that species the app followed in it (issue #5024).", "placeholders": {"count": {"type": "int"}}},
+  "media_species_openSpeciesPage": "Species page",
+  "@media_species_openSpeciesPage": {"description": "Button on a species' crop sheet that opens the species page (issue #5024)."},
+  "media_species_cropThumb": "Image {index} of {count}",
+  "@media_species_cropThumb": {"description": "Screen reader label of one thumbnail on a species' crop sheet (issue #5024).", "placeholders": {"index": {"type": "int"}, "count": {"type": "int"}}},
   "media_species_taggedOnPhoto": "Tagged on this photo",
   "media_species_removeTag": "Remove {name}",
   "@media_species_removeTag": {"placeholders": {"name": {"type": "String"}}},

@@ -12,6 +12,7 @@ import 'package:submersion/features/marine_life/data/services/species_seed_servi
 import 'package:submersion/features/marine_life/domain/entities/bundled_species_catalog.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
+import 'package:submersion/features/marine_life/domain/species_revamp_ids.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
@@ -310,6 +311,61 @@ void main() {
     expect(row.decidedSpeciesId, 'sp_manta');
     expect(row.claimedSpeciesId, 'sp_manta');
     expect(await records('mediaIdentifications', 'pending'), ['i1']);
+  });
+
+  test('a cover on the twin moves to the kept species', () async {
+    await insertTestDiver('diver-a');
+    await db
+        .into(db.speciesCovers)
+        .insert(
+          SpeciesCoversCompanion.insert(
+            id: speciesCoverId('diver-a', 'sp_twin'),
+            diverId: 'diver-a',
+            speciesId: 'sp_twin',
+            mediaId: const Value('m1'),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+
+    await upgrade();
+
+    final row = await db.select(db.speciesCovers).getSingle();
+    expect(row.id, speciesCoverId('diver-a', 'sp_manta'));
+    expect(row.speciesId, 'sp_manta');
+    expect(row.mediaId, 'm1');
+    expect(await records('speciesCovers', 'pending'), [row.id]);
+    expect(await deletions('speciesCovers'), [
+      speciesCoverId('diver-a', 'sp_twin'),
+    ]);
+  });
+
+  test('a practice row is dropped when the kept species has one', () async {
+    await insertTestDiver('diver-a');
+    for (final species in ['sp_twin', 'sp_manta']) {
+      await db
+          .into(db.speciesPractice)
+          .insert(
+            SpeciesPracticeCompanion.insert(
+              id: speciesPracticeId('diver-a', species),
+              diverId: 'diver-a',
+              speciesId: species,
+              box: species == 'sp_manta' ? 4 : 1,
+              dueAt: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+
+    await upgrade();
+
+    final row = await db.select(db.speciesPractice).getSingle();
+    expect(row.speciesId, 'sp_manta');
+    expect(row.box, 4);
+    expect(await deletions('speciesPractice'), [
+      speciesPracticeId('diver-a', 'sp_twin'),
+    ]);
   });
 
   test('a twin the diver edited stays, with its sightings', () async {

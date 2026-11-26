@@ -59,7 +59,7 @@ void main() {
     expect(painter.stopTags, isEmpty);
   });
 
-  testWidgets('the Bailout view keeps its own tags under a preview', (
+  testWidgets('the Bailout view keeps its own tags, with no preview', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -104,19 +104,15 @@ void main() {
                 .widget<CustomPaint>(find.byKey(const Key('planChartSeries')))
                 .painter
             as PlanChartSeriesPainter;
-    // The ghost is the live CCR plan's contingency, not a variant of the
-    // bailout picture, so the bailout stops keep their own plain tags.
+    // The contingencies are not in effect in Bailout view (#5018): no ghost,
+    // and the bailout stops keep their own plain tags.
     (double, double, int) stop(CanvasMarker m) =>
         (m.timeSeconds, m.depth, m.durationSeconds);
     final bailout = container.read(planCanvasSeriesProvider);
-    final ghost = container.read(contingencyGhostSeriesProvider)!;
+    expect(container.read(contingencyGhostSeriesProvider), isNull);
     expect(
       painter.stopTags.map((t) => stop(t.marker)),
       orderedEquals(bailout.stopLabels.map(stop)),
-    );
-    expect(
-      bailout.stopLabels.map(stop),
-      isNot(orderedEquals(ghost.stopLabels.map(stop))),
     );
     expect(painter.stopTags.every((t) => t.change == null && !t.isNew), isTrue);
   });

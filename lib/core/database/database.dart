@@ -29,6 +29,7 @@ import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
+import 'package:submersion/core/database/tables/species_revamp_tables.dart';
 import 'package:submersion/core/database/tables/nearby_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/rule_tables.dart';
@@ -70,6 +71,7 @@ export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
+export 'package:submersion/core/database/tables/species_revamp_tables.dart';
 export 'package:submersion/core/database/tables/nearby_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/rule_tables.dart';
@@ -302,6 +304,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteShares,
     // Insight observation dismissals (v265)
     InsightObservationDismissals,
+    // Species covers and ID practice (v383, issue #5027)
+    SpeciesCovers,
+    SpeciesPractice,
     // Certification currency (v271, issue #2267)
     CertificationCurrencyRules,
     CertificationCurrencyPrefs,
@@ -333,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 383;
+  static const int currentSchemaVersion = 384;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1794,10 +1799,14 @@ class AppDatabase extends _$AppDatabase {
     // by hand, which a re-parse and a resync keep (issue #4909). Nullable,
     // no backfill; the floor does not move.
     382,
-    // v383: dive_weights.side and weight_preset_entries.side, the side a
+    // v383: species_covers and species_practice, a diver's cover crop and
+    // ID practice boxes per species (issue #5027). Additive; the floor does
+    // not move.
+    383,
+    // v384: dive_weights.side and weight_preset_entries.side, the side a
     // weight is carried on, for the trim figure's roll (issue #5028).
     // Nullable, null meaning both sides; no backfill, the floor does not move.
-    383,
+    384,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

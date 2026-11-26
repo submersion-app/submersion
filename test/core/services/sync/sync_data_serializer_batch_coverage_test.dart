@@ -188,6 +188,8 @@ void main() {
             type: 'insightObservationDismissals',
             table: db.insightObservationDismissals.actualTableName,
           ),
+          (type: 'speciesCovers', table: db.speciesCovers.actualTableName),
+          (type: 'speciesPractice', table: db.speciesPractice.actualTableName),
           (
             type: 'mediaSmartAlbums',
             table: db.mediaSmartAlbums.actualTableName,

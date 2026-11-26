@@ -175,6 +175,7 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
   bool openUnlocked = false,
   Locale locale = const Locale('en'),
   SpeciesLookupOutcome? lookupAnswer,
+  List<Override> extra = const [],
 }) async {
   tester.view.physicalSize = const Size(600, 1200);
   tester.view.devicePixelRatio = 1;
@@ -249,6 +250,7 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
         speciesLookupLauncherProvider.overrideWithValue(
           (context, query) async => lookupAnswer,
         ),
+        ...extra,
       ],
       child: ValueListenableBuilder<bool>(
         valueListenable: pageShown,

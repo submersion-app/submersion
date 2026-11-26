@@ -52,16 +52,10 @@ class PlanStopTag {
 /// The stops the chart shows, tagged on the profile or, on a phone, listed
 /// in the readouts. While a contingency is previewed they are its stops,
 /// compared with the plan's, as the table and stats then describe the
-/// preview. The Bailout view keeps its own, as the issue (#4981) asks: the
-/// ghost is a variant of the live plan, not of the bailout picture.
+/// preview. The Bailout view has no preview (#5018), so it keeps its own.
 final planChartStopTagsProvider = Provider<List<PlanStopTag>>((ref) {
   final series = ref.watch(planCanvasSeriesProvider);
-  final showingBailout = ref.watch(
-    planChartBailoutProvider.select((c) => c.picture != null),
-  );
-  final ghost = showingBailout
-      ? null
-      : ref.watch(contingencyGhostSeriesProvider);
+  final ghost = ref.watch(contingencyGhostSeriesProvider);
   final units = ref.watch(unitFormatterProvider);
   return planStopTags(
     series: series,

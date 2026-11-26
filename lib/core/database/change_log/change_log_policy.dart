@@ -101,6 +101,8 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'imported_files': ChangeLogClass.tracked,
   'incidents': ChangeLogClass.tracked,
   'insight_observation_dismissals': ChangeLogClass.tracked,
+  'species_covers': ChangeLogClass.tracked,
+  'species_practice': ChangeLogClass.tracked,
   'library_site_notes': ChangeLogClass.tracked,
   'liveaboard_detail_records': ChangeLogClass.tracked,
   'media': ChangeLogClass.tracked,

@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -25,6 +26,8 @@ class ContingencyChips extends ConsumerWidget {
     final selection = ref.watch(contingencySelectionProvider);
     final losable = ref.watch(planLosableTanksProvider);
     final notifier = ref.read(contingencySelectionProvider.notifier);
+    // Not in effect in Bailout view, so held as they are, dimmed (#5018).
+    final held = ref.watch(planBailoutViewProvider);
     final units = ref.watch(unitFormatterProvider);
 
     // The plan's own deviation, else the diver's Settings default (#3552).
@@ -41,18 +44,21 @@ class ContingencyChips extends ConsumerWidget {
         selection.longer ||
         selection.lostTankIds.any(losableIds.contains);
 
-    Widget chip(String label, bool on, VoidCallback? onTap) => Semantics(
-      selected: on,
-      enabled: onTap != null,
-      child: Opacity(
-        opacity: onTap == null ? 0.4 : 1,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: PlanChip(label: label, emphasized: on),
+    Widget chip(String label, bool on, VoidCallback? toggle) {
+      final onTap = held ? null : toggle;
+      return Semantics(
+        selected: on,
+        enabled: onTap != null,
+        child: Opacity(
+          opacity: onTap == null ? 0.4 : 1,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: PlanChip(label: label, emphasized: on),
+          ),
         ),
-      ),
-    );
+      );
+    }
 
     Widget lostChip(DiveTank tank) {
       final on = selection.lostTankIds.contains(tank.id);

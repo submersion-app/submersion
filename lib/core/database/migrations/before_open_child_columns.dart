@@ -75,7 +75,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v382: dives.hand_set_fields (issue #4909), for the same reason.
     await _assertDiveHandSetFieldsColumn();
 
-    // v383: dive_weights.side and weight_preset_entries.side (issue #5028).
+    // v384: dive_weights.side and weight_preset_entries.side (issue #5028).
     // Every weight and preset entry read selects the whole row, for the same
     // reason.
     await _assertWeightSideColumns();
