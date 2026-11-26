@@ -183,4 +183,12 @@ void main() {
       expect(el(c, 'tank').shiftM, 0);
     });
   });
+
+  test('fixes are worked out once per scene and pose', () {
+    final c = controller();
+    final first = c.fixes(0.5);
+    expect(identical(c.fixes(0.5), first), isTrue);
+    c.move('lead', TrimSpot.trimPockets);
+    expect(identical(c.fixes(0.5), first), isFalse);
+  });
 }

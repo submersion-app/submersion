@@ -43,8 +43,15 @@ class TrimCalculatorPage extends ConsumerStatefulWidget {
 }
 
 class _TrimCalculatorPageState extends ConsumerState<TrimCalculatorPage> {
-  /// The dive picked with Change dive, which outranks the one opened on.
+  /// The dive picked with Change dive, which outranks the one opened on
+  /// until another is handed in.
   String? _picked;
+
+  @override
+  void didUpdateWidget(TrimCalculatorPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.diveId != widget.diveId) _picked = null;
+  }
 
   Future<void> _changeDive() async {
     final id = await showTrimDivePicker(context);
@@ -168,6 +175,12 @@ class _DiveTrimState extends ConsumerState<_DiveTrim> {
       if (diveAsync.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
+      if (diveAsync.hasError) {
+        return _Message(
+          text: diveAsync.error.toString(),
+          onChangeDive: widget.onChangeDive,
+        );
+      }
       return _Message(
         text: l10n.trim_calculator_diveMissing,
         onChangeDive: widget.onChangeDive,
@@ -201,6 +214,11 @@ class _DiveTrimState extends ConsumerState<_DiveTrim> {
       body = const Padding(
         padding: EdgeInsets.all(32),
         child: Center(child: CircularProgressIndicator()),
+      );
+    } else if (outcomeAsync.hasError) {
+      body = Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(outcomeAsync.error.toString()),
       );
     } else {
       body = Padding(

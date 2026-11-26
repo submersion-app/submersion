@@ -169,4 +169,53 @@ void main() {
     ).where((f) => f.kind == TrimFixKind.moveLead).firstOrNull;
     if (move != null) expect(move.result.roll, RollVerdict.level);
   });
+
+  test('a tank already slid to the end is not slid further', () {
+    final s = scene([
+      tank.copyWith(shiftM: kTrimTankShiftMaxM),
+      lead('belt', 8, TrimSpot.waist),
+      fins,
+    ]);
+    for (final f in fixes(s).where((f) => f.kind == TrimFixKind.tankHeight)) {
+      expect(
+        (kTrimTankShiftMaxM + f.metres!).abs(),
+        lessThanOrEqualTo(kTrimTankShiftMaxM + 1e-9),
+      );
+    }
+  });
+
+  test('when no amount levels a roll, the best amount is offered', () {
+    // One-sided lead with a sided tank: no move of lead alone levels it.
+    final s = scene([
+      const TrimElement(
+        id: 'pony',
+        label: 'Pony',
+        kind: TrimElementKind.tank,
+        sinkKg: 3,
+        spot: TrimSpot.sidemount,
+        lateral: TrimLateral.right,
+      ),
+      lead('right', 1.5, TrimSpot.hipPockets, lateral: TrimLateral.right),
+      lead('trim', 2, TrimSpot.trimPockets),
+    ]);
+    final roll = fixes(
+      s,
+    ).where((f) => f.kind == TrimFixKind.moveAcross).singleOrNull;
+    if (roll == null) return;
+    for (final kg in [0.5, 1.0, 1.5]) {
+      final other = s
+          .copyWith(
+            elements: [
+              for (final e in s.elements)
+                e.id == 'right' ? e.copyWith(sinkKg: e.sinkKg - kg) : e,
+              lead('moved', kg, TrimSpot.hipPockets, lateral: TrimLateral.left),
+            ],
+          )
+          .trimIn(pose);
+      expect(
+        roll.result.rollKgM.abs(),
+        lessThanOrEqualTo(other.rollKgM.abs() + 1e-9),
+      );
+    }
+  });
 }

@@ -4,10 +4,10 @@ import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_builder.dart';
+import 'package:submersion/features/trim_calculator/domain/trim_fixes.dart';
 
-/// How far a back-mounted tank may slide along its band either way, metres
-/// (spec section 14 C): instructors move it by an inch or two at a time.
-const double kTrimTankShiftMaxM = 0.10;
+export 'package:submersion/features/trim_calculator/domain/trim_fixes.dart'
+    show kTrimTankShiftMaxM;
 
 /// Builds the logged scene at a moment of the dive (null: the rest anchor).
 typedef TrimSceneAt = TrimScene Function(int? timestamp);
@@ -30,6 +30,7 @@ class TrimTryoutController extends ChangeNotifier {
   double _tankShiftM = 0;
   TrimScene? _scene;
   TrimResult? _result;
+  ({double step, List<TrimFix> fixes})? _fixes;
 
   /// Where a tank may go.
   static const tankSpots = [
@@ -54,6 +55,16 @@ class TrimTryoutController extends ChangeNotifier {
   /// The logged scene at [timestamp] with every move and test item applied.
   TrimScene get scene => _scene ??= _build();
   TrimResult get result => _result ??= scene.trimIn(_pose);
+
+  /// What would level the diver now, lead moving in [leadStepKg]; worked
+  /// out once per scene and pose, not on every frame of a drag.
+  List<TrimFix> fixes(double leadStepKg) {
+    final cached = _fixes;
+    if (cached != null && cached.step == leadStepKg) return cached.fixes;
+    final found = suggestTrimFixes(scene, _pose, leadStepKg: leadStepKg);
+    _fixes = (step: leadStepKg, fixes: found);
+    return found;
+  }
 
   TrimScene _build() {
     final base = sceneAt(_timestamp);
@@ -91,6 +102,7 @@ class TrimTryoutController extends ChangeNotifier {
   void _changed() {
     _scene = null;
     _result = null;
+    _fixes = null;
     notifyListeners();
   }
 
@@ -175,6 +187,7 @@ class TrimTryoutController extends ChangeNotifier {
   void setPose(TrimPose pose) {
     _pose = pose;
     _result = null;
+    _fixes = null;
     notifyListeners();
   }
 

@@ -250,9 +250,11 @@ class TrimBody {
     List<double> panelsMm = const [],
   }) {
     final cover = shorty ? _shortySuit : _fullSuit;
-    double panel(int i) => panelsMm.isEmpty
-        ? 1
-        : panelsMm[i < panelsMm.length ? i : panelsMm.length - 1];
+    // A label that gives no thickness (none, or all zero) spreads the lift
+    // by coverage alone.
+    final even = !panelsMm.any((mm) => mm > 0);
+    double panel(int i) =>
+        even ? 1 : panelsMm[i < panelsMm.length ? i : panelsMm.length - 1];
     final torso = cover.torso * panel(0);
     final arms = cover.arms * panel(2);
     final thighs = cover.thighs * panel(1);

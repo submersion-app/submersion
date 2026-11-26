@@ -5,7 +5,6 @@ import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/trim_calculator/domain/trim_fixes.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_chip_layout.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_geometry.dart';
@@ -205,11 +204,7 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
           style: theme.textTheme.bodySmall,
         ),
         TrimFixesList(
-          fixes: suggestTrimFixes(
-            _c.scene,
-            _c.pose,
-            leadStepKg: trimLeadStepKg(widget.units),
-          ),
+          fixes: _c.fixes(trimLeadStepKg(widget.units)),
           units: widget.units,
         ),
         const SizedBox(height: 8),

@@ -143,4 +143,17 @@ void main() {
       expect(torso(const [5]), closeTo(0.42 / 0.995, 0.01));
     });
   });
+
+  test('a suit labelled 0 mm spreads its lift by coverage, not NaN', () {
+    final body = TrimBody(heightCm: 175, bodyMassKg: 80);
+    for (final panels in const [
+      [0.0],
+      [0.0, 0.0],
+    ]) {
+      final shares = body.suitShares(TrimPose.standard, panelsMm: panels);
+      final total = shares.fold(0.0, (sum, s) => sum + s.$2);
+      expect(total, closeTo(1, 1e-9));
+      expect(shares.every((s) => s.$2.isFinite), isTrue);
+    }
+  });
 }

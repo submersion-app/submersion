@@ -35,6 +35,7 @@ void main() {
     List<DiveSummary> recent = const [],
     DiverSex? sex,
     bool embedded = false,
+    List<Object> overrides = const [],
   }) async {
     tester.view.physicalSize = const Size(800, 6000);
     tester.view.devicePixelRatio = 2;
@@ -57,6 +58,7 @@ void main() {
             diveProvider(e.key).overrideWith((ref) async => e.value),
           for (final e in outcomes.entries)
             buoyancyTwinProvider(e.key).overrideWith((ref) async => e.value),
+          ...overrides,
         ],
         child: TrimCalculatorPage(diveId: diveId, embedded: embedded),
       ),
@@ -159,6 +161,79 @@ void main() {
     );
     expect(find.byType(PlanningToolPane), findsOneWidget);
     expect(find.text('Trim Calculator'), findsOneWidget);
+  });
+
+  testWidgets('a dive that fails to load says so, not that it is gone', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      diveId: 'd1',
+      overrides: [
+        diveProvider(
+          'd1',
+        ).overrideWith((ref) async => throw StateError('disk')),
+      ],
+    );
+    expect(find.textContaining('disk'), findsOneWidget);
+    expect(find.textContaining('no longer in your log'), findsNothing);
+  });
+
+  testWidgets('a model that fails says so, not that the rig is bare', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      diveId: 'd1',
+      dives: {'d1': dive('d1', 12)},
+      overrides: [
+        buoyancyTwinProvider(
+          'd1',
+        ).overrideWith((ref) async => throw StateError('model')),
+      ],
+    );
+    expect(find.textContaining('model'), findsOneWidget);
+    expect(find.textContaining('no tanks or exposure suit'), findsNothing);
+  });
+
+  testWidgets('a dive handed in later replaces the picked one', (tester) async {
+    final dives = {
+      'd1': dive('d1', 12),
+      'd2': dive('d2', 40),
+      'd3': dive('d3', 55),
+    };
+    final outcomes = {
+      'd1': buoyancyOutcome(),
+      'd2': buoyancyOutcome(),
+      'd3': buoyancyOutcome(),
+    };
+    final recent = [
+      DiveSummary(
+        id: 'd2',
+        dateTime: when,
+        sortTimestamp: when.millisecondsSinceEpoch,
+        diveNumber: 40,
+      ),
+    ];
+    await pump(
+      tester,
+      diveId: 'd1',
+      dives: dives,
+      outcomes: outcomes,
+      recent: recent,
+    );
+    await tester.tap(find.byKey(TrimCalculatorPage.changeDiveKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, '#40'));
+    await tester.pumpAndSettle();
+    await pump(
+      tester,
+      diveId: 'd3',
+      dives: dives,
+      outcomes: outcomes,
+      recent: recent,
+    );
+    expect(find.text('#55'), findsOneWidget);
   });
 
   group('trimDiveLabel', () {

@@ -50,6 +50,10 @@ class TrimFix {
 /// is offered: a little either way is ordinary.
 const double kTrimOverweightKg = 1.5;
 
+/// How far a back-mounted tank may slide along its band either way, metres
+/// (spec section 14 C): instructors move it by an inch or two at a time.
+const double kTrimTankShiftMaxM = 0.10;
+
 /// How much lead a move may shift, at most.
 const double kTrimMaxLeadMoveKg = 2;
 
@@ -166,7 +170,10 @@ TrimFix? _tankHeight(TrimScene scene, TrimPose pose, TrimResult now) {
       e.kind == TrimElementKind.tank && e.spot == TrimSpot.backTank;
   if (!scene.elements.any(back)) return null;
   TrimFix? best;
+  // The slide so far, which a fix adds to and must keep within the band.
+  final now0 = scene.elements.firstWhere(back).shiftM;
   for (final m in const [0.05, -0.05, 0.10, -0.10]) {
+    if ((now0 + m).abs() > kTrimTankShiftMaxM + 1e-9) continue;
     final after = scene
         .copyWith(
           elements: [
@@ -315,7 +322,10 @@ TrimFix? _moveAcross(
       fromSide: heavy,
     );
     if (after.roll == RollVerdict.level) return fix;
-    best = fix;
+    // Past the best amount, more overshoots toward the other side.
+    if (best == null || after.rollKgM.abs() < best.result.rollKgM.abs()) {
+      best = fix;
+    }
   }
   return best;
 }
