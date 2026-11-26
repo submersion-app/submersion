@@ -5,26 +5,15 @@ import 'package:submersion/features/marine_life/domain/life_list_summary.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Species page header (issue #5027): how many species the diver has
-/// seen, how many are new this year, and how the life list has grown. A
-/// chip filters to the species that still have no picture.
+/// seen, how many are new this year, and how the life list has grown.
 /// Height of the header tiles at the default text size.
 const _tileHeight = 76.0;
 
 class LifeListHeader extends StatelessWidget {
-  const LifeListHeader({
-    super.key,
-    required this.summary,
-    required this.year,
-    required this.withoutPhoto,
-    required this.noPhotoFilterOn,
-    required this.onNoPhotoFilter,
-  });
+  const LifeListHeader({super.key, required this.summary, required this.year});
 
   final LifeListSummary summary;
   final int year;
-  final int withoutPhoto;
-  final bool noPhotoFilterOn;
-  final ValueChanged<bool> onNoPhotoFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -61,22 +50,6 @@ class LifeListHeader extends StatelessWidget {
               ],
             ),
           ),
-          // Kept while the filter is on, so it can always be turned off.
-          if (withoutPhoto > 0 || noPhotoFilterOn) ...[
-            const SizedBox(height: 8),
-            FilterChip(
-              key: const ValueKey('species_no_photo_chip'),
-              avatar: const Icon(Icons.hide_image_outlined, size: 18),
-              // The checkmark would be drawn over the icon; the selected
-              // colour says the filter is on.
-              showCheckmark: false,
-              label: Text(
-                l10n.marineLife_speciesPage_withoutPhoto(withoutPhoto),
-              ),
-              selected: noPhotoFilterOn,
-              onSelected: onNoPhotoFilter,
-            ),
-          ],
         ],
       ),
     );

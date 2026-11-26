@@ -15,24 +15,13 @@ LifeListSummary _summary({int points = 3}) => LifeListSummary(
   ],
 );
 
-Future<void> _pump(
-  WidgetTester tester, {
-  LifeListSummary? summary,
-  int withoutPhoto = 0,
-  bool filterOn = false,
-  ValueChanged<bool>? onFilter,
-}) => tester.pumpWidget(
-  testApp(
-    locale: const Locale('en'),
-    child: LifeListHeader(
-      summary: summary ?? _summary(),
-      year: 2026,
-      withoutPhoto: withoutPhoto,
-      noPhotoFilterOn: filterOn,
-      onNoPhotoFilter: onFilter ?? (_) {},
-    ),
-  ),
-);
+Future<void> _pump(WidgetTester tester, {LifeListSummary? summary}) =>
+    tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: LifeListHeader(summary: summary ?? _summary(), year: 2026),
+      ),
+    );
 
 void main() {
   testWidgets('shows total, new this year and the growth line', (tester) async {
@@ -46,40 +35,5 @@ void main() {
   testWidgets('one first-seen day draws no growth line', (tester) async {
     await _pump(tester, summary: _summary(points: 1));
     expect(find.byType(LineChart), findsNothing);
-  });
-
-  testWidgets('hides the chip at zero', (tester) async {
-    await _pump(tester);
-    expect(find.byType(FilterChip), findsNothing);
-  });
-
-  testWidgets('the chip counts species without a photo and toggles', (
-    tester,
-  ) async {
-    bool? toggled;
-    await _pump(tester, withoutPhoto: 12, onFilter: (v) => toggled = v);
-    expect(find.text('12 without a photo'), findsOneWidget);
-    await tester.tap(find.byType(FilterChip));
-    expect(toggled, isTrue);
-  });
-
-  testWidgets('the chip stays while its filter is on, even at zero', (
-    tester,
-  ) async {
-    bool? toggled;
-    await _pump(tester, filterOn: true, onFilter: (v) => toggled = v);
-    expect(find.byType(FilterChip), findsOneWidget);
-    await tester.tap(find.byType(FilterChip));
-    expect(toggled, isFalse);
-  });
-
-  testWidgets('the selected chip draws no checkmark over its icon', (
-    tester,
-  ) async {
-    await _pump(tester, withoutPhoto: 3, filterOn: true);
-    expect(
-      tester.widget<FilterChip>(find.byType(FilterChip)).showCheckmark,
-      isFalse,
-    );
   });
 }

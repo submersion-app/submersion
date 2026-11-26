@@ -16,6 +16,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_b
 import 'package:submersion/features/marine_life/presentation/providers/species_gallery_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/life_list_header.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_category_chips.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -193,6 +194,7 @@ void main() {
       });
 
   Future<void> typeInto(WidgetTester tester, String text) async {
+    await openSearch(tester);
     await tester.enterText(find.byType(TextField), text);
     await tester.pump();
     await tester.pump(kEntitySearchDebounce);
@@ -230,7 +232,11 @@ void main() {
     await _pumpPage(tester, const []);
 
     expect(find.text('No species yet'), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
+    // Search stays one tap away, as on every other list.
+    expect(
+      find.byKey(const ValueKey('entity-search-action-species')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('shows the no-match state for a query nothing matches', (
@@ -268,6 +274,8 @@ void main() {
   testWidgets('the manage action opens the catalog manager', (tester) async {
     await _pumpPage(tester, [_whaleShark]);
 
+    await tester.tap(find.byKey(const ValueKey('species_more_menu')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('manage_catalog')));
     await tester.pumpAndSettle();
     expect(find.text('MANAGE PAGE'), findsOneWidget);
@@ -277,6 +285,7 @@ void main() {
     await _pumpPage(tester, [_whaleShark, _turtle], locale: const Locale('de'));
     expect(find.text('Walhai'), findsOneWidget);
 
+    await openSearch(tester);
     await tester.enterText(find.byType(TextField), 'walh');
     await tester.pump();
     expect(find.text('Walhai'), findsOneWidget);
@@ -316,7 +325,7 @@ void main() {
       [_whaleShark, _turtle],
       covers: {'sp_whale_shark': testMediaItem(id: 'p1', diveId: 'd1')},
     );
-    expect(find.text('1 without a photo'), findsOneWidget);
+    expect(find.byTooltip('1 without a photo'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('species_no_photo_chip')));
     await tester.pumpAndSettle();
@@ -326,8 +335,11 @@ void main() {
   });
 
   testWidgets('header ignores the category filter', (tester) async {
-    await _pumpPage(tester, [_whaleShark, _turtle]);
-    await tester.tap(find.text('Shark').first);
+    await _pumpPage(tester, [
+      _whaleShark,
+      _turtle,
+    ], groupBy: SpeciesGroupBy.category);
+    await tester.tap(find.text('See all').first);
     await tester.pumpAndSettle();
 
     expect(find.text('Green Sea Turtle'), findsNothing);
@@ -418,4 +430,45 @@ void main() {
     addTearDown(container.dispose);
     expect(container.read(speciesGroupByProvider), SpeciesGroupBy.category);
   });
+
+  testWidgets('search stays hidden until its icon is tapped', (tester) async {
+    await _pumpPage(tester, [_whaleShark]);
+    expect(find.byType(TextField), findsNothing);
+
+    await openSearch(tester);
+
+    expect(find.byType(TextField), findsOneWidget);
+  });
+
+  testWidgets('no row of category chips', (tester) async {
+    await _pumpPage(tester, [_whaleShark, _turtle]);
+    expect(find.byType(SpeciesCategoryChips), findsNothing);
+  });
+
+  testWidgets('See all shows its category as a chip that clears it', (
+    tester,
+  ) async {
+    await _pumpPage(tester, [
+      _whaleShark,
+      _turtle,
+    ], groupBy: SpeciesGroupBy.category);
+    await tester.tap(find.text('See all').first);
+    await tester.pumpAndSettle();
+    final chip = find.byKey(const ValueKey('species_category_filter'));
+    expect(chip, findsOneWidget);
+    expect(find.text('Green Sea Turtle'), findsNothing);
+
+    await tester.tap(
+      find.descendant(of: chip, matching: find.byIcon(Icons.close)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(chip, findsNothing);
+    expect(find.text('Green Sea Turtle'), findsOneWidget);
+  });
+}
+
+Future<void> openSearch(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('entity-search-action-species')));
+  await tester.pumpAndSettle();
 }
