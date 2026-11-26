@@ -57181,6 +57181,10 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'أفضل $shown من $count مشاهدة',
+      many: 'أفضل $shown من $count مشاهدة',
+      few: 'أفضل $shown من $count مشاهدة',
+      two: 'أفضل $shown من $count مشاهدة',
+      one: 'أفضل $shown من $count مشاهدة',
     );
     return '$_temp0';
   }
