@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -12,6 +11,10 @@ import 'package:submersion/features/courses/domain/entities/course_requirement.d
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/query/presentation/dive_query_editor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart'
+    show numberInputFormatters;
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart'
+    as number_input;
 
 /// Input collected by the add/edit requirement sheet. The caller owns the
 /// repository write.
@@ -62,7 +65,17 @@ class _AddRequirementSheetState extends ConsumerState<_AddRequirementSheet> {
   late final TextEditingController _nameController;
   late RequirementKind _kind;
   late final TextEditingController _targetController;
-  int? get _targetCount => int.tryParse(_targetController.text);
+
+  /// The target as typed, or null while it is blank, fractional, negative
+  /// or unreadable (which keeps Save disabled).
+  int? get _targetCount => switch (number_input.readNumber(
+    _targetController.text,
+    integer: true,
+    allowNegative: false,
+  )) {
+    number_input.NumberValue(:final value) => value.toInt(),
+    number_input.NumberBlank() || number_input.NumberInvalid() => null,
+  };
   String? _equipmentId;
   QueryNode? _query;
   bool _queryValid = true;
@@ -219,7 +232,7 @@ class _AddRequirementSheetState extends ConsumerState<_AddRequirementSheet> {
                 border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              inputFormatters: numberInputFormatters(),
               onChanged: (_) => setState(() {}),
             ),
           ],
