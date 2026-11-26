@@ -2611,20 +2611,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Check every dive of the trip [tripId], whose loaded dives are
   /// [loadedIds].
   ///
-  /// Only the last trip on screen can go on past the loaded pages, so only
-  /// its header loads the rest of the list first (#5022), and only while it
-  /// holds fewer dives than the trip has; any other trip is all there. Until
-  /// the trips' dive counts arrive that is unknown, so it may go on.
+  /// A trip that goes on past the loaded pages loads the rest of the list
+  /// first (#5022); see [_tripMayContinue].
   void _checkTrip(String tripId, List<String> loadedIds) {
-    final last = _lastSections.isEmpty ? null : _lastSections.last;
-    final hasMore = ref.read(paginatedDiveListProvider).value?.hasMore ?? false;
-    final countsKnown = ref.read(tripDiveCountsProvider).hasValue;
-    final mayContinue =
-        hasMore &&
-        last is TripSection &&
-        last.tripId == tripId &&
-        (!countsKnown || last.isPartial);
-    if (!mayContinue) {
+    if (!_tripMayContinue(tripId)) {
       _selection.selectAll([..._selectedIds, ...loadedIds]);
       return;
     }
@@ -2643,6 +2633,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
+  /// Whether the trip [tripId] may have dives past the loaded pages.
+  ///
+  /// Only the last trip on screen can go on past them, and only while it
+  /// holds fewer dives than the trip has; any other trip is all there. Until
+  /// the trips' dive counts arrive that is unknown, so it may go on.
+  bool _tripMayContinue(String tripId) {
+    final last = _lastSections.isEmpty ? null : _lastSections.last;
+    final hasMore = ref.read(paginatedDiveListProvider).value?.hasMore ?? false;
+    final countsKnown = ref.read(tripDiveCountsProvider).hasValue;
+    return hasMore &&
+        last is TripSection &&
+        last.tripId == tripId &&
+        (!countsKnown || last.isPartial);
+  }
+
   /// One trip: a faint full-bleed band behind a pinned header and its dives.
   ///
   /// The band is a [DecoratedSliver] rather than a widget wrapping the rows,
@@ -2659,9 +2664,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     final scheme = Theme.of(context).colorScheme;
     final groupIds = section.entries.map((e) => e.dive.id).toList();
     final checkedInGroup = groupIds.where(_selectedIds.contains).length;
+    // A trip going on past the loaded pages is not all checked while the
+    // dives there are not: it reads mixed, and a tap checks the rest rather
+    // than clearing the loaded ones.
+    final allChecked =
+        checkedInGroup == groupIds.length && !_tripMayContinue(section.tripId);
     final bool? groupChecked = checkedInGroup == 0
         ? false
-        : (checkedInGroup == groupIds.length ? true : null);
+        : (allChecked ? true : null);
 
     return DecoratedSliver(
       decoration: BoxDecoration(
@@ -2696,7 +2706,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               isSelectionMode: _isSelectionMode,
               groupChecked: groupChecked,
               onGroupCheckedChanged: (_) {
-                if (checkedInGroup == groupIds.length) {
+                if (allChecked) {
                   _selection.replaceChecked(
                     _selectedIds.where((id) => !groupIds.contains(id)).toList(),
                   );

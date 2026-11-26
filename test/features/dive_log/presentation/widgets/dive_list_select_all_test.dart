@@ -228,6 +228,29 @@ void main() {
     expect(find.text('3 selected'), findsOneWidget);
   });
 
+  testWidgets('a cut-off trip with its loaded dives checked reads mixed', (
+    tester,
+  ) async {
+    final notifier = await _pumpTripList(tester, lastDiveOnTrip: true);
+    await _enterSelection(tester);
+    for (final id in ['d2', 'd3']) {
+      await tester.tap(
+        find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id),
+      );
+      await _settle(tester);
+    }
+
+    expect(tester.widget<Checkbox>(_tripHeaderCheckbox).value, isNull);
+
+    // A tap reaches the dive past the page instead of clearing the two.
+    await tester.tap(_tripHeaderCheckbox);
+    await _settle(tester);
+
+    expect(notifier.restLoads, 1);
+    expect(find.text('3 selected'), findsOneWidget);
+    expect(tester.widget<Checkbox>(_tripHeaderCheckbox).value, isTrue);
+  });
+
   testWidgets('a trip shown whole checks without loading the rest', (
     tester,
   ) async {
