@@ -104,8 +104,12 @@ class ServiceClocksCard extends ConsumerWidget {
     // The rows and their verdicts come from one read, so a schedule list
     // read after a write is never drawn beside verdicts from before it.
     final heldClocks = held?.clocks;
+    // A read that failed is said, as before, unless the sitting holds clocks
+    // to draw instead.
+    final failed =
+        held == null && snapshotAsync.hasError && !snapshotAsync.isLoading;
     final AsyncValue<_ClockRows> rowsAsync;
-    if (snapshot != null) {
+    if (snapshot != null && !failed) {
       rowsAsync = AsyncData((
         schedules: heldClocks ?? snapshot.schedules,
         statuses: snapshot.statusesFor(

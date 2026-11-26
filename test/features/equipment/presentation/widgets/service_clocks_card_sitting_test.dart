@@ -218,4 +218,27 @@ void main() {
     expect(find.text('Yearly reg check'), findsOneWidget);
     expect(find.text('Hose swap'), findsNothing);
   });
+
+  testWidgets('a read that fails after one that worked is said, not hidden '
+      'behind the earlier clocks', (tester) async {
+    var fail = false;
+    await pump(
+      tester,
+      ValueNotifier(null),
+      snapshot: () {
+        if (fail) throw StateError('database is locked');
+        return snapshotOf([clock('s1', 'k-annual')]);
+      },
+    );
+    expect(find.text('Yearly reg check'), findsOneWidget);
+
+    fail = true;
+    ProviderScope.containerOf(
+      tester.element(find.byType(ServiceClocksCard)),
+    ).invalidate(serviceClockSnapshotProvider('g1'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('database is locked'), findsOneWidget);
+    expect(find.text('Yearly reg check'), findsNothing);
+  });
 }
