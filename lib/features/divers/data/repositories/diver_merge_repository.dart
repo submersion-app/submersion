@@ -122,7 +122,17 @@ class DiverMergeRepository {
   /// `field_presets` is intentionally NOT in this set: those are user-named
   /// custom presets and losing them would be real data loss; they are
   /// repointed onto the keeper instead.
-  static const _singletonConfigTables = {'diver_settings', 'view_configs'};
+  ///
+  /// `species_covers` and `species_practice` (#5027) are keyed by an id
+  /// derived from (diver, species), so a repointed row would keep the
+  /// duplicate's id and could twin the keeper's. The keeper's cover and
+  /// practice record win; undo brings the duplicate's back.
+  static const _singletonConfigTables = {
+    'diver_settings',
+    'view_configs',
+    'species_covers',
+    'species_practice',
+  };
 
   /// Moved by [_recreateDuplicateShares] instead of the generic repoint.
   static const _sharesTable = 'equipment_shares';

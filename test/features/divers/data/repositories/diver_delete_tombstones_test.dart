@@ -369,6 +369,45 @@ void main() {
         ),
       ];
     },
+    'species covers and practice': () async {
+      await db
+          .into(db.species)
+          .insert(
+            SpeciesCompanion.insert(
+              id: 'sp-a',
+              commonName: 'Grouper',
+              category: 'fish',
+            ),
+          );
+      await db
+          .into(db.speciesCovers)
+          .insert(
+            SpeciesCoversCompanion.insert(
+              id: 'cover-a',
+              diverId: 'diver-a',
+              speciesId: 'sp-a',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.speciesPractice)
+          .insert(
+            SpeciesPracticeCompanion.insert(
+              id: 'practice-a',
+              diverId: 'diver-a',
+              speciesId: 'sp-a',
+              box: 2,
+              dueAt: stale,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        ('species_covers', 'speciesCovers', 'cover-a'),
+        ('species_practice', 'speciesPractice', 'practice-a'),
+      ];
+    },
     'gear with its service, component, check-in and finding rows': () async {
       await insertEquipment('reg-a');
       await insertEquipment('hose-a');
