@@ -23313,6 +23313,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trim_tryout_button => 'Essayer des placements';
 
   @override
+  String get trim_card_caption =>
+      'Pour la vérification au palier de sécurité, avec le gaz restant à ce moment. L\'inclinaison illustre la poussée, pas un angle.';
+
+  @override
   String get trim_tryout_title => 'Essayer des placements';
 
   @override

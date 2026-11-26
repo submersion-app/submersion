@@ -18,7 +18,7 @@ void main() {
   testWidgets('the verdict line names pitch and roll', (tester) async {
     await pump(
       tester,
-      const TrimResult(pitchKgM: 1.0, rollKgM: 1.0, balancingLiftKg: 0),
+      const TrimResult(pitchKgM: 1.0, rollKgM: 0.2, balancingLiftKg: 0),
     );
     expect(
       find.text('Slightly feet-heavy, rolls slightly right'),

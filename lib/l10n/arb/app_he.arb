@@ -6611,6 +6611,7 @@
   "buoyancy_wingWarning": "חורג מכוח הציפה הנקוב של האגף",
   "buoyancy_minDitchable": "משקל מזערי הניתן להשלכה",
   "trim_tryout_button": "נסה מיקומים",
+  "trim_card_caption": "לבדיקה בעצירת הבטיחות, עם הגז שנותר אז. ההטיה ממחישה את המשיכה, לא זווית.",
   "trim_tryout_title": "נסה מיקומים",
   "trim_tryout_hint": "גרור תווית כדי להזיז אותה. הקש עליה כדי להחליף צד. דבר כאן לא נשמר.",
   "trim_tryout_arms": "ידיים",

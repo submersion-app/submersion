@@ -2252,6 +2252,7 @@
   "buoyancy_wingWarning": "يتجاوز قدرة الرفع الاسمية لجناحك",
   "buoyancy_minDitchable": "أدنى وزن قابل للإسقاط",
   "trim_tryout_button": "جرّب المواضع",
+  "trim_card_caption": "لفحص التوقف الآمن، مع الغاز المتبقي حينها. يصوّر الميل قوة الشد، لا زاوية.",
   "trim_tryout_title": "جرّب المواضع",
   "trim_tryout_hint": "اسحب الملصق لنقله. انقر عليه لتغيير الجانب. لا يُحفظ شيء هنا.",
   "trim_tryout_arms": "الذراعان",

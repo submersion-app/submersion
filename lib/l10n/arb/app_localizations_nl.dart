@@ -23119,6 +23119,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trim_tryout_button => 'Plaatsing uitproberen';
 
   @override
+  String get trim_card_caption =>
+      'Voor de controle bij de veiligheidsstop, met het gas dat dan over is. De helling toont de kracht, geen hoek.';
+
+  @override
   String get trim_tryout_title => 'Plaatsing uitproberen';
 
   @override

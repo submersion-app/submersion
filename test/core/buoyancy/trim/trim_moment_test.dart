@@ -121,10 +121,10 @@ void main() {
       TrimVerdict.slightlyHeadHeavy,
     );
     expect(
-      verdictForRoll((kLevelBandKgM + kSlightBandKgM) / 2),
+      verdictForRoll((kRollLevelBandKgM + kRollSlightBandKgM) / 2),
       RollVerdict.slightlyRight,
     );
-    expect(verdictForRoll(-kSlightBandKgM * 2), RollVerdict.left);
+    expect(verdictForRoll(-kRollSlightBandKgM * 2), RollVerdict.left);
   });
 
   test('every spot has a point on the posed body', () {
@@ -192,5 +192,18 @@ void main() {
   test('a belt weight carried on one side rolls the diver', () {
     final r = trim([lead('a', 3, TrimSpot.waist, lateral: TrimLateral.left)]);
     expect(r.rollKgM, lessThan(0));
+  });
+
+  test('2 lb more on one hip reads as a slight roll (research A)', () {
+    final r = trim([
+      lead('a', 0.907, TrimSpot.hipPockets, lateral: TrimLateral.right),
+    ]);
+    expect(r.roll, RollVerdict.slightlyRight);
+  });
+
+  test('roll has its own, tighter bands', () {
+    expect(verdictForRoll(kRollLevelBandKgM / 2), RollVerdict.level);
+    expect(verdictForRoll(kRollSlightBandKgM * 1.1), RollVerdict.right);
+    expect(kRollSlightBandKgM, lessThan(kLevelBandKgM));
   });
 }

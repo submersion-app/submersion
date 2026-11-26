@@ -36501,6 +36501,12 @@ abstract class AppLocalizations {
   /// **'Try placements'**
   String get trim_tryout_button;
 
+  /// No description provided for @trim_card_caption.
+  ///
+  /// In en, this message translates to:
+  /// **'For the safety-stop check, with the gas left then. The tilt pictures the pull, not an angle.'**
+  String get trim_card_caption;
+
   /// No description provided for @trim_tryout_title.
   ///
   /// In en, this message translates to:

@@ -23672,6 +23672,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trim_tryout_button => 'جرّب المواضع';
 
   @override
+  String get trim_card_caption =>
+      'لفحص التوقف الآمن، مع الغاز المتبقي حينها. يصوّر الميل قوة الشد، لا زاوية.';
+
+  @override
   String get trim_tryout_title => 'جرّب المواضع';
 
   @override

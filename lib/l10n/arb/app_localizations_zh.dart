@@ -22075,6 +22075,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trim_tryout_button => '尝试摆放';
 
   @override
+  String get trim_card_caption => '用于安全停留时的检查，按当时剩余的气体计算。倾斜表示受力，而非角度。';
+
+  @override
   String get trim_tryout_title => '尝试摆放';
 
   @override

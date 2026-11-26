@@ -10995,6 +10995,7 @@
   "buoyancy_wingWarning": "Dépasse la portance nominale de votre wing",
   "buoyancy_minDitchable": "Lest largable minimal",
   "trim_tryout_button": "Essayer des placements",
+  "trim_card_caption": "Pour la vérification au palier de sécurité, avec le gaz restant à ce moment. L'inclinaison illustre la poussée, pas un angle.",
   "trim_tryout_title": "Essayer des placements",
   "trim_tryout_hint": "Faites glisser une étiquette pour la déplacer. Touchez-la pour changer de côté. Rien n'est enregistré ici.",
   "trim_tryout_arms": "Bras",

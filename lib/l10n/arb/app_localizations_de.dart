@@ -23233,6 +23233,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trim_tryout_button => 'Platzierung testen';
 
   @override
+  String get trim_card_caption =>
+      'Für den Check am Sicherheitsstopp, mit dem dann verbleibenden Gas. Die Neigung zeigt den Zug, keinen Winkel.';
+
+  @override
   String get trim_tryout_title => 'Platzierung testen';
 
   @override

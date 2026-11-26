@@ -2418,6 +2418,7 @@
   "buoyancy_wingWarning": "超过浮力背心的额定浮力",
   "buoyancy_minDitchable": "最小可抛弃配重",
   "trim_tryout_button": "尝试摆放",
+  "trim_card_caption": "用于安全停留时的检查，按当时剩余的气体计算。倾斜表示受力，而非角度。",
   "trim_tryout_title": "尝试摆放",
   "trim_tryout_hint": "拖动标签以移动它。轻点标签以切换左右。此处的更改不会保存。",
   "trim_tryout_arms": "手臂",

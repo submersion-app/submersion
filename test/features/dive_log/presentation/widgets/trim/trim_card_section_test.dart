@@ -106,4 +106,17 @@ void main() {
     expect(find.byType(TrimTryoutView), findsNothing);
     expect(gauges(tester).result.pitchKgM, before);
   });
+
+  testWidgets('says what the verdict is for and what the tilt shows', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(
+      find.text(
+        'For the safety-stop check, with the gas left then. The tilt '
+        'pictures the pull, not an angle.',
+      ),
+      findsOneWidget,
+    );
+  });
 }

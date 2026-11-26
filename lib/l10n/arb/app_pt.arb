@@ -2344,6 +2344,7 @@
   "buoyancy_wingWarning": "Excede a sustentação nominal do seu wing",
   "buoyancy_minDitchable": "Lastro descartável mínimo",
   "trim_tryout_button": "Testar posições",
+  "trim_card_caption": "Para a verificação na parada de segurança, com o gás restante nesse momento. A inclinação ilustra o empuxo, não um ângulo.",
   "trim_tryout_title": "Testar posições",
   "trim_tryout_hint": "Arraste uma etiqueta para movê-la. Toque nela para mudar o lado. Nada aqui é salvo.",
   "trim_tryout_arms": "Braços",

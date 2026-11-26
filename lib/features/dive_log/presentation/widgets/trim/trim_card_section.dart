@@ -83,6 +83,13 @@ class _TrimCardSectionState extends ConsumerState<TrimCardSection> {
         ),
         const SizedBox(height: 8),
         TrimGauges(result: result),
+        const SizedBox(height: 4),
+        Text(
+          context.l10n.trim_card_caption,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
         Align(
           alignment: AlignmentDirectional.centerEnd,
           child: TextButton.icon(

@@ -2344,6 +2344,7 @@
   "buoyancy_wingWarning": "Overschrijdt de nominale lift van je wing",
   "buoyancy_minDitchable": "Min. afwerpbaar lood",
   "trim_tryout_button": "Plaatsing uitproberen",
+  "trim_card_caption": "Voor de controle bij de veiligheidsstop, met het gas dat dan over is. De helling toont de kracht, geen hoek.",
   "trim_tryout_title": "Plaatsing uitproberen",
   "trim_tryout_hint": "Sleep een label om het te verplaatsen. Tik erop om van kant te wisselen. Hier wordt niets bewaard.",
   "trim_tryout_arms": "Armen",

@@ -6768,6 +6768,7 @@
   "buoyancy_wingWarning": "ウィングの定格浮力を超えています",
   "buoyancy_minDitchable": "最小投棄可能ウェイト",
   "trim_tryout_button": "配置を試す",
+  "trim_card_caption": "安全停止でのチェック用で、その時点の残りガスでの状態です。傾きは引く力を表すもので、角度ではありません。",
   "trim_tryout_title": "配置を試す",
   "trim_tryout_hint": "ラベルをドラッグして移動します。タップすると左右が切り替わります。ここでの変更は保存されません。",
   "trim_tryout_arms": "腕",

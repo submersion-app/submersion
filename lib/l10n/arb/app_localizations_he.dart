@@ -22760,6 +22760,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trim_tryout_button => 'נסה מיקומים';
 
   @override
+  String get trim_card_caption =>
+      'לבדיקה בעצירת הבטיחות, עם הגז שנותר אז. ההטיה ממחישה את המשיכה, לא זווית.';
+
+  @override
   String get trim_tryout_title => 'נסה מיקומים';
 
   @override

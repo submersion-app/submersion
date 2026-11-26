@@ -11027,6 +11027,7 @@
   "buoyancy_wingWarning": "Supera la portanza nominale del tuo GAV",
   "buoyancy_minDitchable": "Zavorra sganciabile minima",
   "trim_tryout_button": "Prova posizioni",
+  "trim_card_caption": "Per la verifica alla sosta di sicurezza, con il gas rimasto in quel momento. L'inclinazione raffigura la spinta, non un angolo.",
   "trim_tryout_title": "Prova posizioni",
   "trim_tryout_hint": "Trascina un'etichetta per spostarla. Toccala per cambiare lato. Qui non viene salvato nulla.",
   "trim_tryout_arms": "Braccia",

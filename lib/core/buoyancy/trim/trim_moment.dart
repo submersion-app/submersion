@@ -89,6 +89,12 @@ const double kLevelBandKgM = 0.72;
 /// Up to this, "slightly"; beyond, heavy.
 const double kSlightBandKgM = 1.40;
 
+/// Roll has its own, tighter bands: a diver has no limbs to correct a roll
+/// with, and a 2 lb (0.9 kg) difference between sides visibly rolls one
+/// (research follow-up A, docs/design/findings/2026-11-26-scuba-trim-research.md).
+const double kRollLevelBandKgM = 0.12;
+const double kRollSlightBandKgM = 0.30;
+
 /// How far the figure tilts per kg·m of pitch, capped at [kMaxTiltDeg].
 const double kTiltDegPerKgM = 10;
 const double kMaxTiltDeg = 20;
@@ -105,8 +111,8 @@ TrimVerdict verdictForPitch(double kgM) {
 
 RollVerdict verdictForRoll(double kgM) {
   final a = kgM.abs();
-  if (a < kLevelBandKgM) return RollVerdict.level;
-  final heavy = a >= kSlightBandKgM;
+  if (a < kRollLevelBandKgM) return RollVerdict.level;
+  final heavy = a >= kRollSlightBandKgM;
   if (kgM > 0) return heavy ? RollVerdict.right : RollVerdict.slightlyRight;
   return heavy ? RollVerdict.left : RollVerdict.slightlyLeft;
 }

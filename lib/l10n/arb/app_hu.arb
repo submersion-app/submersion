@@ -10995,6 +10995,7 @@
   "buoyancy_wingWarning": "Meghaladja a szárnyad névleges felhajtóerejét",
   "buoyancy_minDitchable": "Min. ledobható ólom",
   "trim_tryout_button": "Elhelyezés kipróbálása",
+  "trim_card_caption": "A biztonsági megállónál végzett ellenőrzéshez, az akkor megmaradt gázzal. A dőlés a húzóerőt szemlélteti, nem egy szöget.",
   "trim_tryout_title": "Elhelyezés kipróbálása",
   "trim_tryout_hint": "Húzd a címkét az áthelyezéshez. Koppints rá az oldal váltásához. Itt semmi sem mentődik.",
   "trim_tryout_arms": "Karok",

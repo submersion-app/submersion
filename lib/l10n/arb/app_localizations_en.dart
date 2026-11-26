@@ -22920,6 +22920,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trim_tryout_button => 'Try placements';
 
   @override
+  String get trim_card_caption =>
+      'For the safety-stop check, with the gas left then. The tilt pictures the pull, not an angle.';
+
+  @override
   String get trim_tryout_title => 'Try placements';
 
   @override

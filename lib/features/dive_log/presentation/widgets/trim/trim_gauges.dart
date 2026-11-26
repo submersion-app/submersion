@@ -14,6 +14,9 @@ class TrimGauges extends StatelessWidget {
   /// The pull, in kg m, at which a bar reaches its end.
   static const double fullScaleKgM = kSlightBandKgM * 1.5;
 
+  /// Roll's full scale, from its own tighter bands.
+  static const double rollFullScaleKgM = kRollSlightBandKgM * 1.5;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -27,6 +30,7 @@ class TrimGauges extends StatelessWidget {
         _Gauge(
           label: l10n.trim_gauge_pitch,
           value: result.pitchKgM,
+          fullScale: fullScaleKgM,
           start: l10n.trim_gauge_headHeavy,
           end: l10n.trim_gauge_feetHeavy,
           color: theme.colorScheme.primary,
@@ -35,6 +39,7 @@ class TrimGauges extends StatelessWidget {
         _Gauge(
           label: l10n.trim_gauge_roll,
           value: result.rollKgM,
+          fullScale: rollFullScaleKgM,
           start: l10n.trim_gauge_left,
           end: l10n.trim_gauge_right,
           color: theme.colorScheme.tertiary,
@@ -48,6 +53,7 @@ class _Gauge extends StatelessWidget {
   const _Gauge({
     required this.label,
     required this.value,
+    required this.fullScale,
     required this.start,
     required this.end,
     required this.color,
@@ -55,6 +61,9 @@ class _Gauge extends StatelessWidget {
 
   final String label;
   final double value;
+
+  /// The pull, in kg m, at which the bar reaches its end.
+  final double fullScale;
   final String start;
   final String end;
   final Color color;
@@ -65,7 +74,7 @@ class _Gauge extends StatelessWidget {
     final small = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
-    final fraction = (value / TrimGauges.fullScaleKgM).clamp(-1.0, 1.0);
+    final fraction = (value / fullScale).clamp(-1.0, 1.0);
     // Head to feet and left to right are physical directions, drawn as the
     // figure faces: they never mirror in a right-to-left language.
     return Directionality(

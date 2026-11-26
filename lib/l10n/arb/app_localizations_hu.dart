@@ -23166,6 +23166,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trim_tryout_button => 'Elhelyezés kipróbálása';
 
   @override
+  String get trim_card_caption =>
+      'A biztonsági megállónál végzett ellenőrzéshez, az akkor megmaradt gázzal. A dőlés a húzóerőt szemlélteti, nem egy szöget.';
+
+  @override
   String get trim_tryout_title => 'Elhelyezés kipróbálása';
 
   @override

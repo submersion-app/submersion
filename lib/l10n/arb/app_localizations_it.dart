@@ -23259,6 +23259,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trim_tryout_button => 'Prova posizioni';
 
   @override
+  String get trim_card_caption =>
+      'Per la verifica alla sosta di sicurezza, con il gas rimasto in quel momento. L\'inclinazione raffigura la spinta, non un angolo.';
+
+  @override
   String get trim_tryout_title => 'Prova posizioni';
 
   @override

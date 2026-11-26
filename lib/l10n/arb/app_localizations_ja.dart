@@ -22411,6 +22411,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trim_tryout_button => '配置を試す';
 
   @override
+  String get trim_card_caption =>
+      '安全停止でのチェック用で、その時点の残りガスでの状態です。傾きは引く力を表すもので、角度ではありません。';
+
+  @override
   String get trim_tryout_title => '配置を試す';
 
   @override

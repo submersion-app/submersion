@@ -2370,6 +2370,7 @@
   "buoyancy_wingWarning": "Übersteigt die Nennauftriebskraft deines Wings",
   "buoyancy_minDitchable": "Min. abwerfbares Blei",
   "trim_tryout_button": "Platzierung testen",
+  "trim_card_caption": "Für den Check am Sicherheitsstopp, mit dem dann verbleibenden Gas. Die Neigung zeigt den Zug, keinen Winkel.",
   "trim_tryout_title": "Platzierung testen",
   "trim_tryout_hint": "Ziehe ein Etikett, um es zu verschieben. Tippe darauf, um die Seite zu wechseln. Hier wird nichts gespeichert.",
   "trim_tryout_arms": "Arme",
