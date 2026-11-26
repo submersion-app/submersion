@@ -151,18 +151,21 @@ class SelectionController extends ValueNotifier<SelectionState> {
   ///
   /// [loadAllIds] loads the rows not loaded yet and returns every id. A diver
   /// who leaves selection mode while it runs has given up on the selection,
-  /// so the ids that arrive afterwards check nothing.
+  /// so the ids that arrive afterwards check nothing, as they do once the
+  /// surface has gone and disposed this controller.
   Future<void> selectAllAfterLoading(
     Future<List<String>> Function() loadAllIds,
   ) async {
     final exits = _exits;
     final ids = await loadAllIds();
-    if (_exits != exits) return;
+    if (_disposed || _exits != exits) return;
     selectAll(ids);
   }
 
   /// Bumped by [exit], so a load started before it can tell.
   int _exits = 0;
+
+  bool _disposed = false;
 
   /// Replace the checked set with [ids], leaving the entry mode alone.
   ///
@@ -275,6 +278,7 @@ class SelectionController extends ValueNotifier<SelectionState> {
 
   @override
   void dispose() {
+    _disposed = true;
     _rowsSettled.dispose();
     super.dispose();
   }

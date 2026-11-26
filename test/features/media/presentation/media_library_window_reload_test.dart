@@ -119,9 +119,10 @@ void main() {
     await notifier().loadFirstPage();
     expect(ids(), hasLength(pageSize));
 
-    await notifier().loadRest();
+    final returned = await notifier().loadRest();
 
     expect(ids(), hasLength(pageSize * 3 + 7));
+    expect(returned, ids());
     expect(ids().toSet(), hasLength(ids().length), reason: 'no repeats');
     expect(container.read(mediaLibraryNotifierProvider).hasMore, isFalse);
   });

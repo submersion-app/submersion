@@ -347,6 +347,17 @@ void main() {
       },
     );
 
+    test('selectAllAfterLoading does nothing once disposed mid-load', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      final load = Completer<List<String>>();
+      final done = controller.selectAllAfterLoading(() => load.future);
+      // The surface goes away while the rest of the list loads.
+      controller.dispose();
+      load.complete(['a', 'b']);
+      await expectLater(done, completes);
+    });
+
     test('deselectAll clears but keeps an explicit mode active', () {
       final controller = SelectionController();
       controller.enterExplicit();

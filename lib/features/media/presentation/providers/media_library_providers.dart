@@ -163,16 +163,14 @@ final mediaLibraryNotifierProvider =
 /// Select All and Ctrl/Cmd-A (issue #5022).
 ///
 /// Takes the container, not a widget's ref, so a widget gone by the time the
-/// read finishes cannot fail it; the rows are read afresh, so a query
-/// changed meanwhile answers with what the Library now shows.
+/// read finishes cannot fail it. The ids come from the notifier that did the
+/// reading: a filter or sort changed meanwhile builds a new one whose first
+/// page may not be in yet, and checking "all" of its empty rows would clear
+/// the diver's checks. The old query's ids are pruned once the new rows land.
 Future<List<String>> loadAllLibraryIds(ProviderContainer container) async {
-  if (container.read(mediaLibraryNotifierProvider).hasMore) {
-    await container.read(mediaLibraryNotifierProvider.notifier).loadRest();
-  }
-  return [
-    for (final entry in container.read(mediaLibraryNotifierProvider).entries)
-      entry.item.id,
-  ];
+  final state = container.read(mediaLibraryNotifierProvider);
+  if (!state.hasMore) return [for (final entry in state.entries) entry.item.id];
+  return container.read(mediaLibraryNotifierProvider.notifier).loadRest();
 }
 
 class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
@@ -326,20 +324,32 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   /// Each read asks for twice the last, so a library of thousands takes a
   /// handful of reads rather than one per page. A failed read stops here
   /// with the rows it has, as a failed [loadMore] does.
-  Future<void> loadRest() => _enqueuePaging(() async {
-    var limit = MediaLibraryRepository.pageSize;
-    while (mounted) {
-      final cursor = state.nextCursor;
-      if (cursor == null) return;
-      final appended = await _appendAfter(
-        cursor,
-        limit: limit,
-        keepLoadingMore: true,
-      );
-      if (!appended) return;
-      limit *= 2;
-    }
-  });
+  ///
+  /// Returns the ids of the rows loaded once it is done, which are this
+  /// notifier's even if it has since been disposed.
+  Future<List<String>> loadRest() async {
+    var ids = _loadedIds();
+    await _enqueuePaging(() async {
+      var limit = MediaLibraryRepository.pageSize;
+      while (mounted) {
+        final cursor = state.nextCursor;
+        if (cursor == null) break;
+        final appended = await _appendAfter(
+          cursor,
+          limit: limit,
+          keepLoadingMore: true,
+        );
+        if (!appended) break;
+        limit *= 2;
+      }
+      if (mounted) ids = _loadedIds();
+    });
+    return ids;
+  }
+
+  List<String> _loadedIds() => [
+    for (final entry in state.entries) entry.item.id,
+  ];
 
   /// Appends up to [limit] rows after [cursor], reporting whether the read
   /// worked.

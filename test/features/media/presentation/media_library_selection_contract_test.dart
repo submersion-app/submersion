@@ -81,9 +81,10 @@ class _PagedLibraryNotifier extends StateNotifier<MediaLibraryState>
   int restLoads = 0;
 
   @override
-  Future<void> loadRest() async {
+  Future<List<String>> loadRest() async {
     restLoads++;
     state = MediaLibraryState(entries: [...state.entries, ...rest]);
+    return [for (final entry in state.entries) entry.item.id];
   }
 
   @override
