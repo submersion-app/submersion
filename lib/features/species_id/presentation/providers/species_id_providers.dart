@@ -24,6 +24,7 @@ import 'package:submersion/features/species_id/data/pack/species_pack_store.dart
 import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/data/services/auto_applier.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
@@ -33,6 +34,8 @@ import 'package:submersion/features/species_id/data/services/named_crop_backfill
 import 'package:submersion/features/species_id/data/services/naming_bars_fill.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
+import 'package:submersion/features/species_id/data/services/video_crop_capper.dart';
+import 'package:submersion/features/species_id/domain/services/video_crop_cap.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
@@ -301,6 +304,29 @@ Future<void> runIdentificationLaunchSteps(ProviderContainer container) async {
   );
   await fillIdentificationNamingBarsAtLaunch(container);
   await backfillNamedCropsAtLaunch(container);
+  await trimVideoCropsAtLaunch(container);
+}
+
+/// Trims every video this device analysed down to the crops it keeps
+/// (issue #5032): the clearest few of each species. After the backfill, so
+/// crops it moved into the logbook are counted. Only media holding more
+/// crops than one species may keep are read. Never throws.
+Future<void> trimVideoCropsAtLaunch(ProviderContainer container) async {
+  if (!marineLifeIdEnabled) return;
+  final identifications = container.read(mediaIdentificationRepositoryProvider);
+  final crops = container.read(identificationCropStoreProvider);
+  try {
+    await VideoCropCapper(
+      identifications: identifications,
+      crops: crops,
+      taggedSpecies: identifications.taggedSpecies,
+      deviceId: syncDeviceIdOrNull,
+    ).capAll(await crops.mediaWithMoreThan(videoCropsKept));
+  } on Object catch (e) {
+    LoggerService.forClass(
+      VideoCropCapper,
+    ).debug('Could not trim video crops at launch', error: e);
+  }
 }
 
 /// Moves the crops of named identifications this device analysed before
