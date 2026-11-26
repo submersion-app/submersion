@@ -51,6 +51,11 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
   SeenSpeciesSort _sort = SeenSpeciesSort.mostDives;
   bool _noPhotoOnly = false;
 
+  /// Whether a shelf's See all is showing its category as one flat grid.
+  /// For this visit only: the saved grouping is untouched, and comes back
+  /// when the category is cleared or another grouping is picked.
+  bool _seeAll = false;
+
   @override
   void dispose() {
     super.dispose();
@@ -168,7 +173,9 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
         ref.watch(speciesCoverMediaProvider).value ??
         const <String, MediaItem>{};
     final practice = ref.watch(speciesPracticeStatesProvider).value ?? const {};
-    final groupBy = ref.watch(speciesGroupByProvider);
+    final groupBy = _seeAll
+        ? SpeciesGroupBy.none
+        : ref.watch(speciesGroupByProvider);
     final grid = ref.watch(speciesBrowseGridProvider);
     final places =
         groupBy == SpeciesGroupBy.trip || groupBy == SpeciesGroupBy.site
@@ -214,11 +221,17 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
               : 0,
           noPhotoFilterOn: _noPhotoOnly,
           category: _category,
-          onGroupBy: (by) => ref.read(speciesGroupByProvider.notifier).set(by),
+          onGroupBy: (by) {
+            setState(() => _seeAll = false);
+            ref.read(speciesGroupByProvider.notifier).set(by);
+          },
           onGrid: (on) => ref.read(speciesBrowseGridProvider.notifier).set(on),
           onSort: (sort) => setState(() => _sort = sort),
           onNoPhotoFilter: (on) => setState(() => _noPhotoOnly = on),
-          onClearCategory: () => setState(() => _category = null),
+          onClearCategory: () => setState(() {
+            _category = null;
+            _seeAll = false;
+          }),
         ),
       ],
     );
@@ -243,10 +256,10 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
       rarityOf: (e) =>
           rarityFor(e, now: now, practiceBox: practice[e.species.id]?.box),
       onOpen: (e) => context.push('/species/${e.species.id}'),
-      onSeeAllCategory: (category) {
-        setState(() => _category = category);
-        ref.read(speciesGroupByProvider.notifier).set(SpeciesGroupBy.none);
-      },
+      onSeeAllCategory: (category) => setState(() {
+        _category = category;
+        _seeAll = true;
+      }),
     );
   }
 }

@@ -55,9 +55,9 @@ You can add as many sightings as you like to a single dive.
 
 **Species** in the navigation is your life list: every species you have seen, as a card showing its best picture. The picture is the cover you chose, else the largest crop the identification model cut from your photos and videos, else your newest tagged photo, else the category's colour and icon.
 
-The header counts your species and the ones new this calendar year, with a line of how the list has grown. When some species still have no picture, a **without a photo** chip shows only those. The header always describes the whole list, whatever you search or filter.
+The header counts your species and the ones new this calendar year, with a line of how the list has grown. It always describes the whole list, whatever you search or filter.
 
-Search, the query filter, the category chips and the sort menu narrow and order the cards. **Group by** sets them out by **Category** (a scrolling shelf per category, with **See all**), **Year first seen**, **Trip** or **Site**; a species seen on several trips or sites appears under each, marked **First seen here** where you first logged it. The list button switches to compact rows. This device remembers both choices.
+The search icon opens a search row, as on the other lists, and the filter narrows the cards with a query. Below the header, one row holds the rest: a chip with the number of species that still have no picture (tap it to show only those), the sort menu, **Group by** and the list button. **Group by** sets the cards out by **Category** (the default: a scrolling shelf per category), **Year first seen**, **Trip** or **Site**; a species seen on several trips or sites appears under each, marked **First seen here** where you first logged it. A shelf's **See all** shows that category as one grid, with a chip to clear it; your grouping comes back when you do. The list button switches to compact rows. This device remembers your grouping and the list choice.
 
 A card's badge says what stands out: **New** (first seen in the last 90 days), **Seen once**, **Not seen lately** (over two years) or **Mastered** (see ID practice below).
 

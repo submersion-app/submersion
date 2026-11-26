@@ -118,13 +118,19 @@ Top to bottom:
 1. The review banner and the model download prompt, unchanged.
 2. **Life list header**: species total, "New in <year>" (first seen this
    calendar year), and a growth line of cumulative species by first-seen date.
-   A "<n> without a photo" chip appears when n > 0; tapping it toggles a
-   filter to those species (the no-photo nudge, part 1). A "Practice" action
-   sits in the app bar (see 4).
-3. Search, the query filter (`QueryFilterAction`, `QueryChipsFrame`), the
-   category chips and the sort menu, unchanged in behaviour.
-4. A **Group by** control: None, Category, First seen, Trip, Site.
-5. The cards.
+3. **Controls row** (revised after review): the count line, a compact
+   "<n> without a photo" chip when n > 0 or its filter is on (the no-photo
+   nudge, part 1), the sort menu, the **Group by** control (None, Category,
+   First seen, Trip, Site; **Category by default**) and the grid or list
+   switch. A category chosen from See all shows under it as a chip that
+   clears it.
+4. The cards.
+
+The app bar holds search (`EntitySearchAction`: the search row opens from
+its icon and closes when empty, as on every other list), the query filter
+(`QueryFilterAction`, `QueryChipsFrame`), Practice (see 4), the species map,
+and a menu with Manage catalog. There is no row of category chips: the
+Category shelves and the filter cover it.
 
 **Cards** (a grid): the image fills the card; below it the localized name, the
 dive count, and at most one rarity badge. 2 columns on a phone, growing to 5
@@ -145,7 +151,8 @@ instead, for dense scanning; grouping still applies to it.
 
 - **Category**: shelves. One horizontally scrolling row per category in
   `SpeciesCategory` order, header "<Category> · <count>" with "See all", which
-  sets the category filter and Group by None.
+  shows that category as one flat grid for the visit, without changing the
+  saved grouping.
 - **First seen**: stacked sections, one per year, newest first, sticky and
   collapsible headers. Each species appears once.
 - **Trip**: stacked sections, one per trip that has a sighting, newest trip

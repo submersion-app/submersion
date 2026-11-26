@@ -466,6 +466,30 @@ void main() {
     expect(chip, findsNothing);
     expect(find.text('Green Sea Turtle'), findsOneWidget);
   });
+
+  testWidgets('See all keeps the saved grouping for the next visit', (
+    tester,
+  ) async {
+    await _pumpPage(tester, [
+      _whaleShark,
+      _turtle,
+    ], groupBy: SpeciesGroupBy.category);
+    await tester.tap(find.text('See all').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Shark · 1 species'), findsNothing);
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(kSpeciesGroupByKey), 'category');
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('species_category_filter')),
+        matching: find.byIcon(Icons.close),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Shark · 1 species'), findsOneWidget);
+  });
 }
 
 Future<void> openSearch(WidgetTester tester) async {
