@@ -8,7 +8,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_set_d
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
@@ -53,7 +53,7 @@ void main() {
     }
   }
 
-  Finder saveButton() => find.widgetWithText(AppBarTextAction, l.forms_save);
+  Finder saveButton() => find.widgetWithText(RecordEditAction, l.forms_save);
 
   /// Taps Save and lets its write, on the real database, finish.
   Future<void> save(WidgetTester tester) async {
@@ -361,7 +361,7 @@ void main() {
     await tester.enterText(name, 'Cold water');
     await tester.pumpAndSettle();
 
-    expect(tester.widget<AppBarTextAction>(saveButton()).onPressed, isNull);
+    expect(tester.widget<RecordEditAction>(saveButton()).onPressed, isNull);
   });
 
   group('hosts and operations', () {

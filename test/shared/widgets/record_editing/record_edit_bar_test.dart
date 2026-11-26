@@ -3,8 +3,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/contrast_ratio.dart';
+import 'package:submersion/core/theme/record_pencil_colors.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 Widget _host({
@@ -15,10 +16,18 @@ Widget _host({
   ThemeData? theme,
   List<Widget> actions = const [],
   String? saveLabel,
+  double textScale = 1,
+  Locale locale = const Locale('en'),
 }) {
   return MaterialApp(
     theme: theme,
-    locale: const Locale('en'),
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      child: child!,
+    ),
+    locale: locale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
@@ -35,9 +44,9 @@ Widget _host({
   );
 }
 
-AppBarTextAction _action(WidgetTester tester, String label) =>
-    tester.widget<AppBarTextAction>(
-      find.byWidgetPredicate((w) => w is AppBarTextAction && w.label == label),
+RecordEditAction _action(WidgetTester tester, String label) =>
+    tester.widget<RecordEditAction>(
+      find.byWidgetPredicate((w) => w is RecordEditAction && w.label == label),
     );
 
 void main() {
@@ -151,30 +160,134 @@ void main() {
     });
   }
 
+  // Cancel and Save wear the pencil's amber so they stand out (issue
+  // #5034): Save filled, the more prominent; Cancel a ring.
+  testWidgets('Cancel is a ring and Save is filled', (tester) async {
+    await tester.pumpWidget(_host());
+
+    expect(_action(tester, 'Cancel').style, RecordEditActionStyle.ring);
+    expect(_action(tester, 'Save').style, RecordEditActionStyle.filled);
+
+    await tester.pumpWidget(_host(saveLabel: 'Send'));
+
+    expect(_action(tester, 'Send').style, RecordEditActionStyle.filled);
+  });
+
   // Several presets give the app bar a coloured background with a light
-  // foreground. This bar brings its own pale background, so it must bring
-  // a foreground that reads on it too (#736, #1231).
+  // foreground. This bar brings its own pale background, so its title must
+  // bring a foreground that reads on it too (#736, #1231). Cancel's label
+  // and ring sit on the bar; Save's label sits on its own amber fill.
   for (final preset in AppThemeRegistry.presets) {
     for (final theme in [preset.lightTheme, preset.darkTheme]) {
-      testWidgets('the bar text reads on its background '
-          '(${preset.id}, ${theme.brightness.name})', (tester) async {
+      final mode = '${preset.id}, ${theme.brightness.name}';
+
+      testWidgets('the bar text reads on its ground ($mode)', (tester) async {
         await tester.pumpWidget(_host(theme: theme));
 
         final background = tester
             .widget<AppBar>(find.byType(AppBar))
             .backgroundColor!;
-        for (final label in ['Editing dive 214', 'Cancel', 'Save']) {
-          final text = tester.renderObject<RenderParagraph>(find.text(label));
-          final color = text.text.style!.color!;
-          expect(
-            contrastRatio(color, background),
-            greaterThanOrEqualTo(4.5),
-            reason: '$label on the bar',
-          );
-        }
+        final fill = RecordPencilColors.of(
+          tester.element(find.byType(AppBar)),
+        ).fill;
+        Color label(String text) => tester
+            .renderObject<RenderParagraph>(find.text(text))
+            .text
+            .style!
+            .color!;
+        final cancelRing =
+            (tester
+                        .widget<Material>(
+                          find
+                              .descendant(
+                                of: find.byWidgetPredicate(
+                                  (w) =>
+                                      w is RecordEditAction &&
+                                      w.label == 'Cancel',
+                                ),
+                                matching: find.byType(Material),
+                              )
+                              .first,
+                        )
+                        .shape!
+                    as OutlinedBorder)
+                .side
+                .color;
+
+        expect(
+          contrastRatio(label('Editing dive 214'), background),
+          greaterThanOrEqualTo(4.5),
+          reason: 'the title on the bar',
+        );
+        expect(
+          contrastRatio(label('Cancel'), background),
+          greaterThanOrEqualTo(4.5),
+          reason: "Cancel's label on the bar",
+        );
+        expect(
+          contrastRatio(cancelRing, background),
+          greaterThanOrEqualTo(3),
+          reason: "Cancel's ring against the bar",
+        );
+        expect(
+          contrastRatio(label('Save'), fill),
+          greaterThanOrEqualTo(4.5),
+          reason: "Save's label on its fill",
+        );
+      });
+
+      testWidgets('the saving spinner reads on the fill ($mode)', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_host(theme: theme, isSaving: true));
+
+        final fill = RecordPencilColors.of(
+          tester.element(find.byType(AppBar)),
+        ).fill;
+        final spinner = tester.widget<CircularProgressIndicator>(
+          find.byType(CircularProgressIndicator),
+        );
+
+        expect(contrastRatio(spinner.color!, fill), greaterThanOrEqualTo(3));
       });
     }
   }
+
+  // Dutch has the longest Cancel (Annuleren) of the app's languages. The
+  // test font draws every glyph as a full square, about twice a real
+  // font's width, so this is a harder fit than any real phone.
+  testWidgets('long labels fit a phone-width bar', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_host(locale: const Locale('nl')));
+
+    expect(tester.takeException(), isNull);
+    expect(
+      tester
+          .renderObject<RenderParagraph>(find.text('Editing dive 214'))
+          .didExceedMaxLines,
+      isTrue,
+      reason: 'the title gives way before the actions do',
+    );
+  });
+
+  testWidgets('the bar fits at 200% text', (tester) async {
+    await tester.pumpWidget(_host(textScale: 2));
+
+    expect(tester.takeException(), isNull);
+    final bar = tester.getRect(find.byType(AppBar));
+    for (final label in ['Cancel', 'Save']) {
+      final button = tester.getRect(
+        find.byWidgetPredicate(
+          (w) => w is RecordEditAction && w.label == label,
+        ),
+      );
+      expect(button.top, greaterThanOrEqualTo(bar.top), reason: label);
+      expect(button.bottom, lessThanOrEqualTo(bar.bottom), reason: label);
+    }
+  });
 
   // A sitting that ends otherwise (a reader's Send, issue #4527) names its
   // own Save.

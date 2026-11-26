@@ -211,7 +211,8 @@ void main() {
     expect(find.text('No cylinders on this trip yet'), findsOneWidget);
 
     // In the board's sitting (issue #4527): Add sits under the message.
-    await tester.tap(find.byType(FilledButton));
+    // Its own Add, not the bar's filled Save (issue #5034).
+    await tester.tap(find.widgetWithIcon(FilledButton, Icons.add));
     await tester.pumpAndSettle();
     expect(find.text('Rental'), findsOneWidget);
   });

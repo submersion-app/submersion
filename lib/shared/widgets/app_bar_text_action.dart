@@ -10,7 +10,9 @@ import 'package:flutter/material.dart';
 ///
 /// `test/shared/widgets/app_bar_text_action_adoption_test.dart` keeps every
 /// app bar text action on this widget, so the defect cannot come back on a
-/// page nobody thought to check.
+/// page nobody thought to check. The one other is an unlocked record's
+/// Cancel, Save and Done, `RecordEditAction`, which brings its own ground
+/// and label colours in the pencil's amber (issue #5034).
 class AppBarTextAction extends StatelessWidget {
   const AppBarTextAction({
     super.key,

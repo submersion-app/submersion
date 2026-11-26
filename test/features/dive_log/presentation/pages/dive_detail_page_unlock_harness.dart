@@ -20,7 +20,7 @@ import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart
 import 'package:submersion/features/weather/data/services/weather_service.dart';
 import 'package:submersion/features/weather/domain/entities/weather_data.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
@@ -330,9 +330,9 @@ Future<void> openNotes(WidgetTester tester) async {
   await settle(tester);
 }
 
-AppBarTextAction action(WidgetTester tester, String label) =>
-    tester.widget<AppBarTextAction>(
-      find.byWidgetPredicate((w) => w is AppBarTextAction && w.label == label),
+RecordEditAction action(WidgetTester tester, String label) =>
+    tester.widget<RecordEditAction>(
+      find.byWidgetPredicate((w) => w is RecordEditAction && w.label == label),
     );
 
 String location(GoRouter router) => router.state.uri.toString();

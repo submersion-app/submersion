@@ -18,7 +18,7 @@ import 'package:submersion/features/checklists/presentation/providers/checklist_
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
@@ -156,8 +156,8 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  AppBarTextAction save(WidgetTester tester) => tester
-      .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+  RecordEditAction save(WidgetTester tester) => tester
+      .widgetList<RecordEditAction>(find.byType(RecordEditAction))
       .firstWhere((a) => a.label == 'Save');
 
   Future<void> rename(WidgetTester tester, String name) async {
@@ -166,7 +166,7 @@ void main() {
   }
 
   Future<void> tapSave(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
   }
 
@@ -242,7 +242,7 @@ void main() {
 
     expect(find.byType(RecordEditBar), findsOneWidget);
     expect(save(tester).onPressed, isNull);
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('LIST'), findsOneWidget);
@@ -258,7 +258,7 @@ void main() {
     await tester.pump();
     expect(save(tester).onPressed, isNotNull);
 
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
     expect((await repo.getSectionsForTemplate(id)).single.title, 'Dive gear');
   });

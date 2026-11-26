@@ -12,7 +12,7 @@ import 'package:submersion/features/safety/domain/entities/emergency_info.dart';
 import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
 import 'package:submersion/features/safety/presentation/providers/emergency_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
@@ -109,12 +109,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  AppBarTextAction bar(WidgetTester tester, String label) => tester
-      .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+  RecordEditAction bar(WidgetTester tester, String label) => tester
+      .widgetList<RecordEditAction>(find.byType(RecordEditAction))
       .firstWhere((a) => a.label == label);
 
   Future<void> tapBar(WidgetTester tester, String label) async {
-    await tester.tap(find.widgetWithText(AppBarTextAction, label));
+    await tester.tap(find.widgetWithText(RecordEditAction, label));
     await tester.pumpAndSettle();
   }
 
@@ -145,7 +145,15 @@ void main() {
 
       expect(find.byType(RecordEditBar), findsOneWidget);
       expect(find.text('Add chamber'), findsOneWidget);
-      expect(find.byType(FilledButton), findsNothing);
+      // The bar's Save is filled (issue #5034); nothing in the body is.
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(RecordEditBar),
+          matching: find.byType(FilledButton),
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(BackButton), findsNothing);
     },
   );
