@@ -814,10 +814,10 @@ void main() {
         setpointLow: 0.7,
         setpointHigh: 1.3,
         diluentModPpO2: 1.6,
-        setpointSwitchDepth: 12.26,
+        setpointSwitchDepth: 12.2604,
       );
       s = container.read(settingsProvider);
-      expect(s.ccrSetpointSwitchDepth, 12.3);
+      expect(s.ccrSetpointSwitchDepth, 12.26);
     });
 
     test('setCcrPpO2Limits without a switch depth keeps the stored one '
