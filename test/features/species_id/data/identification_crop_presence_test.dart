@@ -41,6 +41,14 @@ void main() {
     });
   });
 
+  test('presentAmong reads a media\'s files with one listing, not one '
+      'look per id', () async {
+    await store.write('m1', 'a', jpeg);
+    final ids = [for (var k = 0; k < 500; k++) 'gone$k', 'a'];
+    expect(await store.presentAmong('m1', ids), {'a'});
+    expect(await store.presentAmong('m9', ids), isEmpty);
+  });
+
   test('presentAmong is empty for no ids', () async {
     expect(await store.presentAmong('m1', const []), isEmpty);
   });

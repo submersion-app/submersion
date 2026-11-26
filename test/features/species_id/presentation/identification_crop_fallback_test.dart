@@ -123,6 +123,22 @@ void main() {
     expect(await bytesOf(await cropOf(container, 'v1', 'dropped')), small);
   });
 
+  test('reads the rows without their track paths', () async {
+    final rows = [track('dropped'), track('kept')];
+    await store.write('v1', 'kept', large);
+    final repository = _PathSpy(rows);
+    final container = ProviderContainer(
+      overrides: [
+        identificationCropStoreProvider.overrideWithValue(store),
+        mediaIdentificationRepositoryProvider.overrideWithValue(repository),
+      ],
+    );
+    addTearDown(container.dispose);
+    expect(await bytesOf(await cropOf(container, 'v1', 'dropped')), large);
+    expect(repository.withPaths, everyElement(isFalse));
+    expect(repository.withPaths, isNotEmpty);
+  });
+
   test('a photo\'s missing crop stays missing', () async {
     final rows = [identification('a'), identification('b')];
     await store.write('m1', 'b', large);
@@ -142,4 +158,27 @@ class _Tagged extends FixedIdentifications {
 
   @override
   Future<List<TaggedSpecies>> taggedSpecies(String mediaId) async => tags;
+}
+
+/// Records how rows are read, and fails a read of whole rows.
+class _PathSpy extends FixedIdentifications {
+  _PathSpy(super.rows);
+
+  final withPaths = <bool>[];
+
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) =>
+      throw StateError('read whole rows');
+
+  @override
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) {
+    this.withPaths.add(withPaths);
+    return super.forMediaIdsWithRuns(mediaIds, withPaths: withPaths);
+  }
 }

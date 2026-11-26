@@ -571,7 +571,7 @@ final identificationCropProvider = FutureProvider.autoDispose
       // A video keeps only a few crops of each species (issue #5032): a
       // dropped one shows the largest kept crop of its group instead.
       final repository = ref.read(mediaIdentificationRepositoryProvider);
-      final rows = await repository.forMedia(key.$1);
+      final rows = await _rowsWithoutPaths(repository, key.$1);
       final row = rows.firstWhereOrNull((i) => i.id == key.$2);
       if (row == null || !row.isTrack || !ref.mounted) return null;
       // Its tags tell a track the diver accepted as another species, which
@@ -595,9 +595,21 @@ final presentCropIdsProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(
         ref.watch(identificationCropRepositoryProvider).watchChanges(),
       );
-      final rows = await repository.forMedia(mediaId);
+      final rows = await _rowsWithoutPaths(repository, mediaId);
       return store.presentAmong(mediaId, [for (final i in rows) i.id]);
     });
+
+/// [mediaId]'s identifications without their track paths, which only the
+/// labels over a playing video need.
+Future<List<MediaIdentification>> _rowsWithoutPaths(
+  MediaIdentificationRepository repository,
+  String mediaId,
+) async {
+  final (_, rows) = await repository.forMediaIdsWithRuns([
+    mediaId,
+  ], withPaths: false);
+  return rows[mediaId] ?? const [];
+}
 
 /// How many identifications the open logbook keeps.
 final identificationCountProvider = FutureProvider.autoDispose<int>((ref) {

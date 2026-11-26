@@ -255,6 +255,19 @@ void main() {
     expect(await upToDate([photo('v1', type: MediaType.video)]), {'v1'});
   });
 
+  test('a fish claimed from the frame after the cap dropped its crop does '
+      'not make the video scan again (issue #5032)', () async {
+    await storeScanned(
+      [
+        for (var k = 0; k < 4; k++) fx.track('t$k'),
+        fx.track('claimed', claimedSpeciesId: 'sp_grunt'),
+      ],
+      cropped: ['t0', 't1', 't2'],
+    );
+
+    expect(await upToDate([photo('v1', type: MediaType.video)]), {'v1'});
+  });
+
   test('a video whose named tracks have no crop at all is not: a restore '
       'lost them', () async {
     await storeScanned([

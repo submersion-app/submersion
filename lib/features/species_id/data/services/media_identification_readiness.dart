@@ -101,6 +101,7 @@ int? _regionCell(SpeciesPackManifest manifest, GeoPoint? location) =>
 /// track's crop counts per group ([cropGroupKey]): a group with an
 /// undecided track needs a crop on at least one of its tracks, never on
 /// every one, or a video would be scanned again for crops the cap dropped.
+/// A claimed track asks for none: its crop may be one the cap dropped.
 Future<bool> _cropsPresent(
   IdentificationCropStore crops,
   String mediaId,
@@ -111,7 +112,12 @@ Future<bool> _cropsPresent(
       if (i.decision == IdentificationDecision.undecided) i,
   ];
   final present = named.any((i) => i.isTrack)
-      ? await _groupsCropped(crops, mediaId, named, undecided)
+      ? await _groupsCropped(crops, mediaId, named, [
+          // A fish claimed from the frame is often one whose crop the cap
+          // dropped; claiming it must not scan the whole video again.
+          for (final i in undecided)
+            if (i.claimedSpeciesId == null) i,
+        ])
       : await crops.allPresent(mediaId, [for (final i in undecided) i.id]);
   return present &&
       (undecided.length == named.length ||

@@ -184,10 +184,18 @@ class IdentificationCropStore {
     List<String> identificationIds,
   ) async {
     if (identificationIds.isEmpty) return const {};
+    _checkId(mediaId);
+    // One listing of the media's folder, not one look per id: a video can
+    // hold hundreds of identifications.
+    final files = _files
+        ? (await cropIdsIn(
+            Directory(p.join((await root()).path, mediaId)),
+          )).toSet()
+        : const <String>{};
     final present = <String>{};
     final rest = <String>[];
     for (final id in identificationIds) {
-      if (_files && await (await fileFor(mediaId, id)).exists()) {
+      if (files.contains(id)) {
         present.add(id);
       } else {
         rest.add(id);
