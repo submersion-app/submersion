@@ -201,16 +201,22 @@ mixin _SpeciesDetailPageLayout
       coverMediaId: cover?.mediaId,
       onSetCover: (mediaId, identificationId) {
         if (diverId == null) return;
-        covers.setCover(
-          diverId: diverId,
-          speciesId: speciesId,
-          mediaId: mediaId,
-          identificationId: identificationId,
+        saveWithFeedback(
+          context,
+          () => covers.setCover(
+            diverId: diverId,
+            speciesId: speciesId,
+            mediaId: mediaId,
+            identificationId: identificationId,
+          ),
         );
       },
       onClearCover: () {
         if (diverId == null) return;
-        covers.clearCover(diverId: diverId, speciesId: speciesId);
+        saveWithFeedback(
+          context,
+          () => covers.clearCover(diverId: diverId, speciesId: speciesId),
+        );
       },
     );
   }

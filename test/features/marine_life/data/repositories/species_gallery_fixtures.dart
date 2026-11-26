@@ -65,13 +65,14 @@ Future<void> insertTestDepth({
   required String mediaId,
   required String diveId,
   double? depth,
+  String? id,
 }) async {
   final db = DatabaseService.instance.database;
   await db
       .into(db.mediaEnrichment)
       .insert(
         MediaEnrichmentCompanion(
-          id: Value('enr_$mediaId'),
+          id: Value(id ?? 'enr_$mediaId'),
           mediaId: Value(mediaId),
           diveId: Value(diveId),
           depthMeters: Value(depth),

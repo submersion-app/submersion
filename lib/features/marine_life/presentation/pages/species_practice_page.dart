@@ -12,6 +12,7 @@ import 'package:submersion/features/marine_life/domain/practice/leitner.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_gallery_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_write_feedback.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -132,12 +133,14 @@ class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
     final now = _now;
     final before =
         states[round.speciesId] ?? PracticeState.fresh(round.speciesId, now);
-    await ref
-        .read(speciesPracticeRepositoryProvider)
-        .save(
-          diverId,
-          applyAnswer(before, correct: picked == round.speciesId, now: now),
-        );
+    final repository = ref.read(speciesPracticeRepositoryProvider);
+    await saveWithFeedback(
+      context,
+      () => repository.save(
+        diverId,
+        applyAnswer(before, correct: picked == round.speciesId, now: now),
+      ),
+    );
   }
 
   Widget _notEnough(BuildContext context) {

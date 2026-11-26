@@ -158,10 +158,9 @@ final speciesPhotoDepthsProvider = FutureProvider.family<List<double>, String>((
 ) async {
   final diverId = ref.watch(currentDiverIdProvider);
   invalidateOnSeenSpeciesChanges(ref);
-  _invalidateOnGalleryChanges(ref);
-  return ref
-      .watch(speciesFactsRepositoryProvider)
-      .photoDepths(speciesId, diverId: diverId);
+  final facts = ref.watch(speciesFactsRepositoryProvider);
+  ref.invalidateSelfWhen(facts.watchDepthChanges());
+  return facts.photoDepths(speciesId, diverId: diverId);
 });
 
 /// The diver's practice record per species.

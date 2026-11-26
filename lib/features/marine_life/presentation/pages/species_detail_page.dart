@@ -51,6 +51,7 @@ import 'package:submersion/features/marine_life/presentation/widgets/species_dep
 import 'package:submersion/features/marine_life/presentation/widgets/species_facts_row.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_hero.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_sightings_timeline.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_write_feedback.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 part 'species_detail_page_creating.dart';

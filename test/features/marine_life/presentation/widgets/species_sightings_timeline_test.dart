@@ -66,4 +66,30 @@ void main() {
     await pump(tester, const []);
     expect(find.byKey(const ValueKey('species_timeline')), findsNothing);
   });
+
+  testWidgets('a long log thins its year labels to fit', (tester) async {
+    tester.view.physicalSize = const Size(390, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(tester, [
+      for (var year = 2000; year <= 2025; year++)
+        _record('d$year', DateTime.utc(year, 6, 1)),
+    ]);
+    final labels = [
+      for (var year = 2000; year <= 2025; year++)
+        if (find.text('$year').evaluate().isNotEmpty) year,
+    ];
+    expect(labels.first, 2000);
+    expect(labels.last, 2025);
+    expect(labels.length, lessThanOrEqualTo(390 ~/ 40));
+  });
+
+  testWidgets('dives on the same day share one dot', (tester) async {
+    await pump(tester, [
+      _record('d1', DateTime.utc(2025, 6, 1, 9)),
+      _record('d2', DateTime.utc(2025, 6, 1, 14)),
+    ]);
+    expect(find.byKey(const ValueKey('timeline_dot_d1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('timeline_dot_d2')), findsNothing);
+  });
 }

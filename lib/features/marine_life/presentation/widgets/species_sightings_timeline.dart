@@ -15,6 +15,22 @@ class SpeciesSightingsTimeline extends ConsumerWidget {
   final List<SpeciesSightingRecord> records;
 
   static const _dot = 10.0;
+
+  /// The room a year label needs.
+  static const _labelWidth = 40.0;
+
+  /// The years to label across [width]: the first, the last, and every
+  /// year of a step that keeps labels from overlapping.
+  static List<int> _labelYears(int first, int last, double width) {
+    final fit = (width / _labelWidth).floor().clamp(2, 1000);
+    final step = ((last - first + 1) / fit).ceil().clamp(1, 1000);
+    return [
+      for (var year = first; year <= last; year++)
+        if (year == last || ((year - first) % step == 0 && last - year >= step))
+          year,
+    ];
+  }
+
   static const _hit = 24.0;
 
   @override
@@ -29,6 +45,19 @@ class SpeciesSightingsTimeline extends ConsumerWidget {
     final last = years.reduce((a, b) => a > b ? a : b);
     final start = DateTime.utc(first).millisecondsSinceEpoch;
     final end = DateTime.utc(last + 1).millisecondsSinceEpoch;
+    // One dot per day: dives on the same day would sit on one another.
+    final days = <DateTime>{};
+    final dots = [
+      for (final r in records)
+        if (days.add(
+          DateTime.utc(
+            r.diveDateTime.year,
+            r.diveDateTime.month,
+            r.diveDateTime.day,
+          ),
+        ))
+          r,
+    ];
     double at(DateTime d) =>
         (DateTime.utc(d.year, d.month, d.day).millisecondsSinceEpoch - start) /
         (end - start);
@@ -50,6 +79,7 @@ class SpeciesSightingsTimeline extends ConsumerWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth - _hit;
+                final labels = _labelYears(first, last, width);
                 return Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -62,7 +92,7 @@ class SpeciesSightingsTimeline extends ConsumerWidget {
                         color: theme.colorScheme.outlineVariant,
                       ),
                     ),
-                    for (var year = first; year <= last; year++)
+                    for (final year in labels)
                       Positioned(
                         left: _hit / 2 + at(DateTime.utc(year)) * width,
                         top: _hit,
@@ -73,7 +103,7 @@ class SpeciesSightingsTimeline extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    for (final record in records)
+                    for (final record in dots)
                       Positioned(
                         left: at(record.diveDateTime) * width,
                         top: 0,

@@ -62,8 +62,16 @@ class SpeciesCropStrip extends StatelessWidget {
   final VoidCallback onClearCover;
   final SpeciesViewerOpener openViewer;
 
-  bool _isCover({String? identificationId, required String mediaId}) =>
-      coverMediaId == mediaId && coverIdentificationId == identificationId;
+  /// Whether a tile is the cover. A cover may name a smaller animal on a
+  /// photo than the one its tile shows (one tile per photo): then the photo
+  /// is the cover.
+  bool _isCover({String? identificationId, required String mediaId}) {
+    if (coverMediaId != mediaId) return false;
+    final inStrip = crops.any(
+      (c) => c.identificationId == coverIdentificationId,
+    );
+    return inStrip ? coverIdentificationId == identificationId : true;
+  }
 
   @override
   Widget build(BuildContext context) {

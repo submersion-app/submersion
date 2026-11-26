@@ -117,4 +117,22 @@ void main() {
       expect(depths, [8.5]);
     },
   );
+
+  test('a photo with two enrichment rows gives one depth', () async {
+    await insertTestMedia(id: 'p1', diveId: 'd1');
+    await insertTestTag(mediaId: 'p1', speciesId: 'grouper');
+    await insertTestDepth(mediaId: 'p1', diveId: 'd1', depth: 8);
+    await insertTestDepth(mediaId: 'p1', diveId: 'd1', depth: 9, id: 'enr_b');
+
+    final depths = await repository.photoDepths('grouper', diverId: 'diver-a');
+
+    expect(depths, hasLength(1));
+  });
+
+  test('depth changes tick', () async {
+    await insertTestMedia(id: 'p1', diveId: 'd1');
+    final tick = repository.watchDepthChanges().first;
+    await insertTestDepth(mediaId: 'p1', diveId: 'd1', depth: 8);
+    await expectLater(tick, completes);
+  });
 }

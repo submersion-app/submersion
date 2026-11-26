@@ -112,4 +112,21 @@ void main() {
     );
     expect(find.byType(ListView), findsNothing);
   });
+
+  testWidgets('a cover on a smaller animal of a photo still marks that photo', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      coverIdentificationId: 'small_on_p1',
+      coverMediaId: 'p1',
+    );
+    expect(
+      find.descendant(of: tile('i1'), matching: find.byIcon(Icons.star)),
+      findsOneWidget,
+    );
+    await tester.longPress(tile('i1'));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove cover'), findsOneWidget);
+  });
 }

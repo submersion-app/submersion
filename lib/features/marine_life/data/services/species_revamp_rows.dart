@@ -54,7 +54,12 @@ Future<void> tombstoneSpeciesRevampRows(
 }
 
 /// Moves every cover and practice row of [from] onto [to] under the id
-/// derived for [to]. A diver who already has a row on [to] keeps it and the
+/// derived for [to]. Unlike the species row, which the fold deletes without
+/// publishing so a device still on the old catalog keeps it, these rows ARE
+/// tombstoned: a peer on the old catalog loses its record for the retired
+/// species and receives the moved one, held by FK repair until its own
+/// upgrade adds the replacement. Accepted: practice and covers are small and
+/// rebuild themselves. A diver who already has a row on [to] keeps it and the
 /// moved one is dropped. Every row left behind is tombstoned and every row
 /// written is marked pending.
 Future<void> moveSpeciesRevampRows(

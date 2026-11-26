@@ -107,11 +107,12 @@ class SpeciesFactsRepository {
 
   /// The depths, in meters, at which media tagged with [speciesId] were
   /// taken on the diver's dives (from the profile match), shallowest first.
+  /// One depth per photo: a photo enriched on two devices averages them.
   Future<List<double>> photoDepths(String speciesId, {String? diverId}) async {
     final rows = await _db
         .customSelect(
           '''
-      SELECT DISTINCT me.media_id, me.depth_meters
+      SELECT me.media_id, AVG(me.depth_meters) AS depth_meters
       FROM media_species ms
       JOIN media m ON m.id = ms.media_id
       JOIN dives d ON d.id = m.dive_id
@@ -119,7 +120,8 @@ class SpeciesFactsRepository {
       WHERE ms.species_id = ?
         AND me.depth_meters IS NOT NULL
         ${_diverClause(diverId)}${DiveStatsScope.and(alias: 'd')}
-      ORDER BY me.depth_meters ASC
+      GROUP BY me.media_id
+      ORDER BY depth_meters ASC
     ''',
           variables: [
             Variable.withString(speciesId),
@@ -129,6 +131,11 @@ class SpeciesFactsRepository {
         .get();
     return [for (final row in rows) row.read<double>('depth_meters')];
   }
+
+  /// Ticks when a photo's depth or tags change.
+  Stream<void> watchDepthChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([_db.mediaEnrichment, _db.mediaSpecies]),
+  );
 
   String _diverClause(String? diverId) =>
       diverId == null ? '' : 'AND d.diver_id = ?';
