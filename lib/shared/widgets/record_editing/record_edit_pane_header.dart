@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
 /// The list pane's header row while its record is unlocked (issue #4527):
 /// Cancel, what is being edited, the record's menu and Save, as the full
-/// page's editing bar has them.
+/// page's editing bar has them, Cancel and Save in the pencil's amber.
 ///
 /// It is laid over the locked row, which keeps its place beneath it, so the
 /// header is the same height locked and unlocked and nothing below moves.
@@ -59,9 +59,10 @@ class RecordEditPaneHeader extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
-            AppBarTextAction(
+            RecordEditAction(
               label: l10n.forms_cancel,
               onPressed: waiting ? null : onCancel,
+              style: RecordEditActionStyle.ring,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -75,7 +76,7 @@ class RecordEditPaneHeader extends StatelessWidget {
               ),
             ),
             menu,
-            AppBarTextAction(
+            RecordEditAction(
               label: saveLabel ?? l10n.forms_save,
               onPressed: canSave && !waiting ? onSave : null,
               busy: isSaving,

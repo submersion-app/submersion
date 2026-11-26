@@ -98,4 +98,34 @@ void main() {
     ]);
     expect(ids(cropsOfSpecies(all, 'sp_grunt')), ['a', 'b']);
   });
+
+  group('videoStretches (issue #5032)', () {
+    MediaIdentification seen(String id, int start, int end) => ruleId(
+      id,
+      decision: accepted,
+      decidedSpeciesId: 'sp_grunt',
+    ).copyWith(startMs: () => start, endMs: () => end, bestMs: () => start);
+
+    test('merges overlapping and near tracks', () {
+      expect(
+        videoStretches([
+          seen('a', 4000, 9000),
+          seen('b', 2000, 5000),
+          seen('c', 9500, 12000),
+        ]),
+        [(startMs: 2000, endMs: 12000)],
+      );
+    });
+
+    test('keeps far tracks apart', () {
+      expect(videoStretches([seen('b', 20000, 21000), seen('a', 0, 3000)]), [
+        (startMs: 0, endMs: 3000),
+        (startMs: 20000, endMs: 21000),
+      ]);
+    });
+
+    test('leaves out photos', () {
+      expect(videoStretches([ruleId('photo')]), isEmpty);
+    });
+  });
 }

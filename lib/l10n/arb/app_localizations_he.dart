@@ -55678,6 +55678,29 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$shown הטובות מתוך $count תצפיות',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => 'נראה ב';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start עד $end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return 'הפעלה מ־$time';
+  }
+
+  @override
   String get media_species_openSpeciesPage => 'דף המין';
 
   @override

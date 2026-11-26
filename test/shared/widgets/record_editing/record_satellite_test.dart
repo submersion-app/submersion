@@ -7,6 +7,7 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
@@ -264,6 +265,22 @@ void main() {
 
     expect(find.byType(RecordSatelliteBar), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  // The bar's only way out, in the pencil's amber (issue #5034).
+  testWidgets("the bar's Done is filled", (tester) async {
+    await pumpFakeNotes(tester, const FakeNotePage());
+    await unlock(tester);
+    await openSatellite(tester);
+
+    final done = tester.widget<RecordEditAction>(
+      find.descendant(
+        of: find.byType(RecordSatelliteBar),
+        matching: find.byType(RecordEditAction),
+      ),
+    );
+    expect(done.label, l.common_action_done);
+    expect(done.style, RecordEditActionStyle.filled);
   });
 
   testWidgets('Done waits while the sitting is busy', (tester) async {

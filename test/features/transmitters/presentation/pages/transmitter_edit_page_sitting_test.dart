@@ -16,7 +16,7 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_saved.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -106,8 +106,8 @@ void main() {
     ),
   );
 
-  AppBarTextAction save(WidgetTester tester) => tester
-      .widgetList<AppBarTextAction>(find.byType(AppBarTextAction))
+  RecordEditAction save(WidgetTester tester) => tester
+      .widgetList<RecordEditAction>(find.byType(RecordEditAction))
       .firstWhere((a) => a.label == 'Save');
 
   Future<void> type(WidgetTester tester, String field, String text) async {
@@ -116,7 +116,7 @@ void main() {
   }
 
   Future<void> tapSave(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
     await tester.pumpAndSettle();
   }
 
