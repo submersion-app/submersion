@@ -4,7 +4,10 @@ import 'package:submersion/features/checklists/data/repositories/trip_checklist_
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -157,23 +160,84 @@ void main() {
     );
   });
 
-  test(
-    'ticking a gear item whose equipment is on the wishlist packs nothing',
-    () async {
-      final drysuit = await gear(
-        'Drysuit',
-        type: EquipmentType.drysuit,
-        status: EquipmentStatus.wanted,
-      );
-      final planned = await repository.createItem(
-        item(drysuit.name, equipmentId: drysuit.id),
-      );
+  test('a gear item whose equipment is on the wishlist reads and ticks as a '
+      'plain item, packing nothing', () async {
+    final drysuit = await gear(
+      'Drysuit',
+      type: EquipmentType.drysuit,
+      status: EquipmentStatus.wanted,
+    );
+    final planned = await repository.createItem(
+      item(drysuit.name, equipmentId: drysuit.id),
+    );
 
-      await expectLater(
-        repository.toggleDone(planned.id, isDone: true),
-        throwsStateError,
-      );
-      expect(await packs.equipmentIdsForTrip(testTrip.id), isEmpty);
-    },
-  );
+    await repository.toggleDone(planned.id, isDone: true);
+    expect(await packs.equipmentIdsForTrip(testTrip.id), isEmpty);
+    final read = (await repository.getByChecklistId(testChecklist.id)).single;
+    expect(read.equipmentId, isNull);
+    expect(read.isDone, isTrue);
+    expect(await repository.getProgressForTrips([testTrip.id]), {
+      testTrip.id: (done: 1, total: 1),
+    });
+  });
+
+  test('gear the trip diver cannot use reads as a plain item until it is '
+      'shared with them', () async {
+    Future<Diver> diver(String name) => DiverRepository().createDiver(
+      Diver(
+        id: '',
+        name: name,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
+    );
+    final owner = await diver('Owner');
+    final buddy = await diver('Buddy');
+    final start = DateTime(2026, 10, 1);
+    final trip = await TripRepository().createTrip(
+      Trip(
+        id: '',
+        name: 'Buddy trip',
+        diverId: buddy.id,
+        startDate: start,
+        endDate: start.add(const Duration(days: 3)),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    final checklist = await TripChecklistsRepository().createChecklist(
+      tripId: trip.id,
+      name: 'Packing',
+    );
+    final wing = await EquipmentRepository().createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+        diverId: owner.id,
+      ),
+    );
+    final planned = await repository.createItem(
+      item(wing.name, equipmentId: wing.id).copyWith(checklistId: checklist.id),
+    );
+
+    await repository.toggleDone(planned.id, isDone: true);
+    expect(await packs.equipmentIdsForTrip(trip.id), isEmpty);
+    expect(
+      (await repository.getByChecklistId(checklist.id)).single.equipmentId,
+      isNull,
+    );
+
+    await EquipmentShareRepository().shareMany(
+      equipmentIds: [wing.id],
+      diverIds: [buddy.id],
+      actingDiverId: owner.id,
+    );
+    final shared = (await repository.getByChecklistId(checklist.id)).single;
+    expect(shared.equipmentId, wing.id);
+    expect(shared.isDone, isFalse);
+
+    await repository.toggleDone(planned.id, isDone: true);
+    expect(await packs.equipmentIdsForTrip(trip.id), [wing.id]);
+  });
 }
