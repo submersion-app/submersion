@@ -159,4 +159,150 @@ void main() {
     await tester.tap(find.text('bb'));
     expect(tapped, 1);
   });
+
+  group('sizing for its parent', () {
+    Widget host(Widget child) => Directionality(
+      textDirection: TextDirection.ltr,
+      child: MediaQuery(
+        data: const MediaQueryData(),
+        child: DefaultTextStyle(
+          style: _style,
+          child: Align(alignment: Alignment.topLeft, child: child),
+        ),
+      ),
+    );
+
+    testWidgets('its natural width is the items and dots on one line', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          const IntrinsicWidth(
+            child: DotJoinedWrap(children: [Text('aa'), Text('bb')]),
+          ),
+        ),
+      );
+
+      // 'aa' + ' · ' + 'bb': 20 + 30 + 20.
+      expect(tester.getSize(find.byType(DotJoinedWrap)).width, 70);
+      final render = _render(tester);
+      expect(render.getMinIntrinsicWidth(double.infinity), 20);
+      expect(render.getMaxIntrinsicWidth(double.infinity), 70);
+    });
+
+    testWidgets('its natural height follows the lines at a width', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          const SizedBox(
+            width: 60,
+            child: IntrinsicHeight(
+              child: DotJoinedWrap(children: [Text('aaaa'), Text('bbbb')]),
+            ),
+          ),
+        ),
+      );
+
+      // Two 10 px lines with 2 px between them.
+      expect(tester.getSize(find.byType(DotJoinedWrap)).height, 22);
+      final render = _render(tester);
+      expect(render.getMinIntrinsicHeight(60), 22);
+      expect(render.getMaxIntrinsicHeight(60), 22);
+      expect(
+        render.getDryLayout(const BoxConstraints(maxWidth: 60)).height,
+        22,
+      );
+    });
+
+    testWidgets('it lines up on its first item\'s baseline', (tester) async {
+      await tester.pumpWidget(
+        host(
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text('x', style: TextStyle(fontSize: 30, height: 1)),
+              DotJoinedWrap(children: [Text('aa'), Text('bb')]),
+            ],
+          ),
+        ),
+      );
+
+      // The test font's ascent is 0.75 em, so a baseline sits that far
+      // below each text's top.
+      expect(
+        tester.getTopLeft(find.text('aa')).dy + 0.75 * 10,
+        tester.getTopLeft(find.text('x')).dy + 0.75 * 30,
+      );
+    });
+  });
+
+  group('when its surroundings change', () {
+    Future<void> pumpWith(
+      WidgetTester tester, {
+      TextStyle style = _style,
+      double scale = 1,
+      bool bold = false,
+      TextDirection direction = TextDirection.ltr,
+    }) => tester.pumpWidget(
+      Directionality(
+        textDirection: direction,
+        child: MediaQuery(
+          data: MediaQueryData(
+            textScaler: TextScaler.linear(scale),
+            boldText: bold,
+          ),
+          child: DefaultTextStyle(
+            style: style,
+            child: const Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: 400,
+                child: DotJoinedWrap(children: [Text('aa'), Text('bb')]),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('a larger text size widens the dots', (tester) async {
+      await pumpWith(tester);
+      expect(_render(tester).separatorRects.single.width, 30);
+
+      await pumpWith(tester, scale: 2);
+      expect(_render(tester).separatorRects.single.width, 60);
+    });
+
+    testWidgets('a new text style redraws the dots in it', (tester) async {
+      await pumpWith(tester);
+      await pumpWith(tester, style: _style.copyWith(fontSize: 20));
+      expect(_render(tester).separatorRects.single.width, 60);
+    });
+
+    testWidgets('a new direction moves the dots', (tester) async {
+      await pumpWith(tester);
+      final before = _render(tester).separatorRects.single.left;
+      await pumpWith(tester, direction: TextDirection.rtl);
+      expect(_render(tester).separatorRects.single.left, isNot(before));
+    });
+
+    testWidgets('bold text draws the dots bold, as the items are', (
+      tester,
+    ) async {
+      await pumpWith(tester, bold: true);
+      final widget = tester.widget<MultiChildRenderObjectWidget>(
+        find
+            .descendant(
+              of: find.byType(DotJoinedWrap),
+              matching: find.byWidgetPredicate(
+                (w) => w is MultiChildRenderObjectWidget,
+              ),
+            )
+            .first,
+      );
+      expect((widget as dynamic).separatorStyle.fontWeight, FontWeight.bold);
+    });
+  });
 }
