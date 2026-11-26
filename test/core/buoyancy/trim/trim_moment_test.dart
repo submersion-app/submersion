@@ -188,4 +188,9 @@ void main() {
     );
     expect(at(1.000).pitchKgM, greaterThan(at(1.025).pitchKgM));
   });
+
+  test('a belt weight carried on one side rolls the diver', () {
+    final r = trim([lead('a', 3, TrimSpot.waist, lateral: TrimLateral.left)]);
+    expect(r.rollKgM, lessThan(0));
+  });
 }

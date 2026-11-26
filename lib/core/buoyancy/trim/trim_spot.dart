@@ -22,7 +22,8 @@ enum TrimSpot {
   trimPockets(TrimSegment.torso, 0.25, 0.09, lateral: 0.05),
   backplate(TrimSegment.torso, 0.30, 0.07),
   buttDRing(TrimSegment.torso, 0.47, 0.06),
-  waist(TrimSegment.torso, 0.43, -0.05),
+  // Belt pockets sit toward the hips, so a belt weight can take a side.
+  waist(TrimSegment.torso, 0.43, -0.05, lateral: 0.08),
   hipPockets(TrimSegment.torso, 0.45, -0.02, lateral: 0.10),
   sidemount(TrimSegment.torso, 0.38, -0.02, lateral: 0.13),
   stageClip(TrimSegment.torso, 0.36, -0.08, lateral: 0.12),

@@ -58,7 +58,7 @@ class TrimPiecesList extends StatelessWidget {
                           child: Text(l10n.trim_tryout_moveTo),
                         ),
                       if (e.spot.sided) ...[
-                        const PopupMenuDivider(),
+                        if (controller.canMove(e)) const PopupMenuDivider(),
                         for (final (lateral, label) in [
                           (TrimLateral.centre, l10n.diveLog_weight_side_both),
                           (TrimLateral.left, l10n.diveLog_weight_side_left),

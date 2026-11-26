@@ -148,7 +148,8 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
 
   /// The dragged chip's outline, following the finger.
   Rect? _dragGhostRect() {
-    if (!_moving) return null;
+    final e = _dragged;
+    if (!_moving || e == null || !_c.canMove(e)) return null;
     final chip = _chips?.chips.where((c) => c.elementId == _dragId).firstOrNull;
     return chip?.rect.shift(_dragAt! - _downAt!);
   }

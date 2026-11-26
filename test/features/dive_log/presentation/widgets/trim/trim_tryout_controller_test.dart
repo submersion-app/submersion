@@ -81,7 +81,9 @@ void main() {
   });
 
   test('a centred spot ignores a side change', () {
-    final c = controller()..cycleSide('lead');
+    final c = controller()
+      ..move('lead', TrimSpot.backplate)
+      ..cycleSide('lead');
     expect(el(c, 'lead').lateral, TrimLateral.centre);
   });
 
