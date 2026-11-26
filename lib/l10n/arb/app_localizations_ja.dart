@@ -22467,6 +22467,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trim_tryout_kneesBent => '90度に曲げる';
 
   @override
+  String get trim_tryout_tankHeight => 'タンクの高さ';
+
+  @override
+  String get trim_tryout_tankUp => 'バンドの上へ';
+
+  @override
+  String get trim_tryout_tankDown => 'バンドの下へ';
+
+  @override
+  String get trim_tryout_tankAsLogged => '記録どおり';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance 上';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance 下';
+  }
+
+  @override
   String get trim_tryout_time => '時間';
 
   @override

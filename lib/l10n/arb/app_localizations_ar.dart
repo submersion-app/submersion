@@ -23731,6 +23731,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trim_tryout_kneesBent => 'مثنيتان 90 درجة';
 
   @override
+  String get trim_tryout_tankHeight => 'ارتفاع الأسطوانة';
+
+  @override
+  String get trim_tryout_tankUp => 'أعلى في الحزام';
+
+  @override
+  String get trim_tryout_tankDown => 'أسفل في الحزام';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'كما سُجّل';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance لأعلى';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance لأسفل';
+  }
+
+  @override
   String get trim_tryout_time => 'الوقت';
 
   @override

@@ -36603,6 +36603,42 @@ abstract class AppLocalizations {
   /// **'Bent 90 degrees'**
   String get trim_tryout_kneesBent;
 
+  /// No description provided for @trim_tryout_tankHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank height'**
+  String get trim_tryout_tankHeight;
+
+  /// No description provided for @trim_tryout_tankUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up the band'**
+  String get trim_tryout_tankUp;
+
+  /// No description provided for @trim_tryout_tankDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Down the band'**
+  String get trim_tryout_tankDown;
+
+  /// No description provided for @trim_tryout_tankAsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'As logged'**
+  String get trim_tryout_tankAsLogged;
+
+  /// No description provided for @trim_tryout_tankShiftUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} up'**
+  String trim_tryout_tankShiftUp(String distance);
+
+  /// No description provided for @trim_tryout_tankShiftDown.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} down'**
+  String trim_tryout_tankShiftDown(String distance);
+
   /// No description provided for @trim_tryout_time.
   ///
   /// In en, this message translates to:

@@ -50,6 +50,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     UnitFormatter units = metric,
+    TrimSceneAt? at,
     List<TrimMoment> moments = const [
       TrimMoment(timestamp: 0, depthM: 0),
       TrimMoment(timestamp: 600, depthM: 18),
@@ -59,7 +60,10 @@ void main() {
     tester.view.physicalSize = const Size(800, 6000);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
-    controller = TrimTryoutController(sceneAt: sceneAt, openingTimestamp: 600);
+    controller = TrimTryoutController(
+      sceneAt: at ?? sceneAt,
+      openingTimestamp: 600,
+    );
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       testApp(
@@ -394,5 +398,54 @@ void main() {
       controller.scene.elements.singleWhere((e) => e.id == 'belt').spot,
       TrimSpot.waist,
     );
+  });
+
+  group('tank height (research C)', () {
+    TrimScene withTank(int? t) {
+      final base = sceneAt(t);
+      return base.copyWith(
+        elements: [
+          ...base.elements,
+          const TrimElement(
+            id: 'tank',
+            label: 'AL80',
+            kind: TrimElementKind.tank,
+            sinkKg: -1,
+            spot: TrimSpot.backTank,
+          ),
+        ],
+      );
+    }
+
+    Slider tankSlider(WidgetTester tester) =>
+        tester.widget<Slider>(find.byKey(TrimTryoutView.tankKey));
+
+    testWidgets('no back tank, no slider', (tester) async {
+      await pump(tester);
+      expect(find.byKey(TrimTryoutView.tankKey), findsNothing);
+    });
+
+    testWidgets('slides the tank and says how far', (tester) async {
+      await pump(tester, at: withTank);
+      expect(find.text('As logged'), findsOneWidget);
+      tankSlider(tester).onChanged!(-0.05);
+      await tester.pumpAndSettle();
+      expect(controller.tankShiftM, closeTo(-0.05, 1e-9));
+      expect(find.text('5 cm up'), findsOneWidget);
+      tankSlider(tester).onChanged!(0.03);
+      await tester.pumpAndSettle();
+      expect(find.text('3 cm down'), findsOneWidget);
+    });
+
+    testWidgets('in inches with feet for depth', (tester) async {
+      await pump(
+        tester,
+        at: withTank,
+        units: const UnitFormatter(AppSettings(depthUnit: DepthUnit.feet)),
+      );
+      tankSlider(tester).onChanged!(-0.0508);
+      await tester.pumpAndSettle();
+      expect(find.text('2 in up'), findsOneWidget);
+    });
   });
 }

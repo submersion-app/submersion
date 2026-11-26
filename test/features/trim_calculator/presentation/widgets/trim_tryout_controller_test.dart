@@ -32,6 +32,7 @@ void main() {
         kind: TrimElementKind.tank,
         sinkKg: (t ?? 60) == 0 ? 1.0 : -1.0,
         spot: TrimSpot.backTank,
+        valveSinkKg: 0.7,
       ),
     ],
     modelNetKg: -1,
@@ -137,5 +138,49 @@ void main() {
       ..setTimestamp(0)
       ..reset();
     expect(n, 6);
+  });
+
+  group('tank height (research C)', () {
+    test('a moved tank keeps its valve', () {
+      final c = controller()..move('tank', TrimSpot.sidemount);
+      expect(el(c, 'tank').valveSinkKg, 0.7);
+    });
+
+    test('slides a back-mounted tank along the band, and only the tank', () {
+      final c = controller();
+      final before = c.result.pitchKgM;
+      c.setTankShift(-0.05);
+      expect(el(c, 'tank').shiftM, -0.05);
+      expect(el(c, 'lead').shiftM, 0);
+      expect(c.tankShiftM, -0.05);
+      expect(c.result.pitchKgM, isNot(closeTo(before, 1e-9)));
+    });
+
+    test('stays within 10 cm either way', () {
+      final c = controller()..setTankShift(0.5);
+      expect(c.tankShiftM, kTrimTankShiftMaxM);
+      c.setTankShift(-0.5);
+      expect(c.tankShiftM, -kTrimTankShiftMaxM);
+    });
+
+    test('a tank moved off the back does not slide', () {
+      final c = controller()
+        ..move('tank', TrimSpot.sidemount)
+        ..setTankShift(0.05);
+      expect(el(c, 'tank').shiftM, 0);
+      expect(c.hasBackTank, isFalse);
+    });
+
+    test('there is a back tank to slide as logged', () {
+      expect(controller().hasBackTank, isTrue);
+    });
+
+    test('Reset puts the tank back', () {
+      final c = controller()
+        ..setTankShift(0.08)
+        ..reset();
+      expect(c.tankShiftM, 0);
+      expect(el(c, 'tank').shiftM, 0);
+    });
   });
 }

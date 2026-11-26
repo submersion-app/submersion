@@ -8,6 +8,7 @@ import 'package:submersion/features/trim_calculator/presentation/widgets/trim_ch
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_geometry.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_paths.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_piece_data.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_space.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_palette.dart';
 
 /// The colours a chip is drawn in.
@@ -32,6 +33,12 @@ bool trimOnFarSide(TrimElement e) =>
 /// Whether [e] is drawn on the near (left) side.
 bool trimOnNearSide(TrimElement e) =>
     !e.spot.sided || e.lateral != TrimLateral.right;
+
+/// How far [e]'s pieces are drawn from where its spot puts them, in side
+/// units: a tank slid along its band moves along the body.
+Offset trimShiftOffset(TrimElement e, TrimBody body) => e.shiftM == 0
+    ? Offset.zero
+    : Offset(e.shiftM / body.heightM * kTrimUnitsPerHeight, 0);
 
 /// How far each element drawn with others at the same place is set apart,
 /// in side units, so three stages on one clip read as three. The first at
@@ -144,7 +151,11 @@ class TrimFigurePainter extends CustomPainter {
         for (final id in e.pieceIds) {
           final piece = trimArtwork[id];
           if (piece != null && piece.segment == segment) {
-            out.add((piece, e.color, _stack[e.id] ?? Offset.zero));
+            out.add((
+              piece,
+              e.color,
+              (_stack[e.id] ?? Offset.zero) + trimShiftOffset(e, geometry.body),
+            ));
           }
         }
       }

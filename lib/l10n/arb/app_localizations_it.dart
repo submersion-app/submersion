@@ -23318,6 +23318,28 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trim_tryout_kneesBent => 'Piegate a 90 gradi';
 
   @override
+  String get trim_tryout_tankHeight => 'Altezza della bombola';
+
+  @override
+  String get trim_tryout_tankUp => 'Più in alto nel cinghiolo';
+
+  @override
+  String get trim_tryout_tankDown => 'Più in basso nel cinghiolo';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'Come registrato';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance più in alto';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance più in basso';
+  }
+
+  @override
   String get trim_tryout_time => 'Tempo';
 
   @override

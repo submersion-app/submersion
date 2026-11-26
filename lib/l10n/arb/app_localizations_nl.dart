@@ -23178,6 +23178,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trim_tryout_kneesBent => '90 graden gebogen';
 
   @override
+  String get trim_tryout_tankHeight => 'Fleshoogte';
+
+  @override
+  String get trim_tryout_tankUp => 'Hoger in de band';
+
+  @override
+  String get trim_tryout_tankDown => 'Lager in de band';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'Zoals gelogd';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance hoger';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance lager';
+  }
+
+  @override
   String get trim_tryout_time => 'Tijd';
 
   @override

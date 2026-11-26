@@ -12,6 +12,7 @@ import 'package:submersion/features/trim_calculator/presentation/widgets/trim_ga
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_pieces_list.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_test_item_form.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_controller.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One sample of the dive the time slider can stop at.
@@ -41,6 +42,7 @@ class TrimTryoutView extends StatefulWidget {
   static const armsKey = ValueKey('trim-arms');
   static const kneesKey = ValueKey('trim-knees');
   static const timeKey = ValueKey('trim-time');
+  static const tankKey = ValueKey('trim-tank-height');
 
   @override
   State<TrimTryoutView> createState() => _TrimTryoutViewState();
@@ -209,6 +211,23 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
       ? '${formatFixedForDisplay(kgM * _lbFtPerKgM, 2)} lb·ft'
       : '${formatFixedForDisplay(kgM, 2)} kg·m';
 
+  /// How far the tank is slid, up the band (toward the head) or down it, in
+  /// centimetres or, with feet for depth, inches.
+  String _tankReadout(AppLocalizations l10n, double m) {
+    if (m.abs() < 0.0005) return l10n.trim_tryout_tankAsLogged;
+    final String distance;
+    if (widget.units.settings.depthUnit == DepthUnit.feet) {
+      final inches = (m.abs() / 0.0254 * 10).round() / 10;
+      final whole = inches == inches.roundToDouble();
+      distance = '${formatFixedForDisplay(inches, whole ? 0 : 1)} in';
+    } else {
+      distance = '${formatFixedForDisplay(m.abs() * 100, 0)} cm';
+    }
+    return m < 0
+        ? l10n.trim_tryout_tankShiftUp(distance)
+        : l10n.trim_tryout_tankShiftDown(distance);
+  }
+
   /// 1 kg m in pound-feet.
   static const _lbFtPerKgM = 2.20462262 * 3.2808399;
 
@@ -228,14 +247,18 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
       required String start,
       required String end,
       required ValueChanged<double> onChanged,
+      double min = 0,
+      String? readout,
       int? divisions,
     }) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(label, style: theme.textTheme.labelLarge),
+        if (readout != null) Text(readout, style: small),
         Slider(
           key: key,
           value: value,
+          min: min,
           max: max,
           divisions: divisions,
           onChanged: onChanged,
@@ -278,6 +301,22 @@ class _TrimTryoutViewState extends State<TrimTryoutView> {
           end: l10n.trim_tryout_kneesBent,
           onChanged: (v) => _c.setPose(_c.pose.copyWith(kneeBendDeg: v)),
         ),
+        // Instructors move a back-mounted cylinder on its band before they
+        // move lead (spec section 14 C).
+        if (_c.hasBackTank)
+          slider(
+            key: TrimTryoutView.tankKey,
+            label: l10n.trim_tryout_tankHeight,
+            readout: _tankReadout(l10n, _c.tankShiftM),
+            value: _c.tankShiftM,
+            min: -kTrimTankShiftMaxM,
+            max: kTrimTankShiftMaxM,
+            // One centimetre a step.
+            divisions: (kTrimTankShiftMaxM * 200).round(),
+            start: l10n.trim_tryout_tankUp,
+            end: l10n.trim_tryout_tankDown,
+            onChanged: _c.setTankShift,
+          ),
         if (moments.length > 1) ...[
           Text(l10n.trim_tryout_time, style: theme.textTheme.labelLarge),
           Text(

@@ -10,7 +10,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_builder.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_chip_layout.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_geometry.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_painter.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_space.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_strings.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -419,5 +421,36 @@ void main() {
         .label;
     expect(label, contains('Left'));
     expect(label, isNot(contains(' L ')));
+  });
+
+  group('a tank slid along its band (research C)', () {
+    final body = TrimBody(heightCm: 175, bodyMassKg: 80);
+    const slid = TrimElement(
+      id: 't',
+      label: 'AL80',
+      kind: TrimElementKind.tank,
+      sinkKg: 1,
+      spot: TrimSpot.backTank,
+      shiftM: 0.1,
+    );
+    const along = 0.1 / 1.75 * kTrimUnitsPerHeight;
+
+    test('draws its pieces that far along the body', () {
+      final offset = trimShiftOffset(slid, body);
+      expect(offset.dx, closeTo(along, 1e-9));
+      expect(offset.dy, 0);
+    });
+
+    test('anchors its chip where it now sits', () {
+      final g = TrimFigureGeometry(
+        box: const Rect.fromLTWH(0, 0, 550, 280),
+        body: body,
+        pose: TrimPose.standard,
+        tiltDeg: 0,
+      );
+      final moved = g.anchorOfElement(slid) - g.anchorOf(TrimSpot.backTank);
+      expect(moved.dx, closeTo(along * g.scale, 1e-6));
+      expect(moved.dy, closeTo(0, 1e-6));
+    });
   });
 }

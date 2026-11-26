@@ -5,6 +5,10 @@ import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/features/dive_log/domain/services/trim/trim_scene_builder.dart';
 
+/// How far a back-mounted tank may slide along its band either way, metres
+/// (spec section 14 C): instructors move it by an inch or two at a time.
+const double kTrimTankShiftMaxM = 0.10;
+
 /// Builds the logged scene at a moment of the dive (null: the rest anchor).
 typedef TrimSceneAt = TrimScene Function(int? timestamp);
 
@@ -23,6 +27,7 @@ class TrimTryoutController extends ChangeNotifier {
   TrimPose _pose = TrimPose.standard;
   Map<String, ({TrimSpot spot, TrimLateral lateral})> _moves = const {};
   List<TrimElement> _tests = const [];
+  double _tankShiftM = 0;
   TrimScene? _scene;
   TrimResult? _result;
 
@@ -36,33 +41,50 @@ class TrimTryoutController extends ChangeNotifier {
   int? get timestamp => _timestamp;
   TrimPose get pose => _pose;
 
+  /// How far back-mounted tanks are slid along the band, metres toward the
+  /// feet.
+  double get tankShiftM => _tankShiftM;
+
+  /// Whether a tank sits on the back, for the tank height slider to move.
+  bool get hasBackTank => scene.elements.any(_slides);
+
+  static bool _slides(TrimElement e) =>
+      e.kind == TrimElementKind.tank && e.spot == TrimSpot.backTank;
+
   /// The logged scene at [timestamp] with every move and test item applied.
   TrimScene get scene => _scene ??= _build();
   TrimResult get result => _result ??= scene.trimIn(_pose);
 
   TrimScene _build() {
     final base = sceneAt(_timestamp);
+    final placed = [
+      for (final e in base.elements)
+        if (_moves[e.id] case final m?)
+          // Its drawing belongs where it was; moved, it shows as its chip.
+          TrimElement(
+            id: e.id,
+            label: e.label,
+            kind: e.kind,
+            sinkKg: e.sinkKg,
+            spot: m.spot,
+            lateral: m.lateral,
+            itemId: e.itemId,
+            weightType: e.weightType,
+            color: e.color,
+            movableTo: e.movableTo,
+            valveSinkKg: e.valveSinkKg,
+          )
+        else
+          e,
+      ..._tests,
+    ];
     return base.copyWith(
-      elements: [
-        for (final e in base.elements)
-          if (_moves[e.id] case final m?)
-            // Its drawing belongs where it was; moved, it shows as its chip.
-            TrimElement(
-              id: e.id,
-              label: e.label,
-              kind: e.kind,
-              sinkKg: e.sinkKg,
-              spot: m.spot,
-              lateral: m.lateral,
-              itemId: e.itemId,
-              weightType: e.weightType,
-              color: e.color,
-              movableTo: e.movableTo,
-            )
-          else
-            e,
-        ..._tests,
-      ],
+      elements: _tankShiftM == 0
+          ? placed
+          : [
+              for (final e in placed)
+                _slides(e) ? e.copyWith(shiftM: _tankShiftM) : e,
+            ],
     );
   }
 
@@ -156,6 +178,13 @@ class TrimTryoutController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Slides back-mounted tanks [m] along the band (toward the feet when
+  /// positive), within [kTrimTankShiftMaxM].
+  void setTankShift(double m) {
+    _tankShiftM = m.clamp(-kTrimTankShiftMaxM, kTrimTankShiftMaxM);
+    _changed();
+  }
+
   void setTimestamp(int? timestamp) {
     _timestamp = timestamp;
     _changed();
@@ -164,6 +193,7 @@ class TrimTryoutController extends ChangeNotifier {
   void reset() {
     _moves = const {};
     _tests = const [];
+    _tankShiftM = 0;
     _pose = TrimPose.standard;
     _timestamp = openingTimestamp;
     _changed();

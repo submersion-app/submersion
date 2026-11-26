@@ -132,7 +132,7 @@ class TrimFigure extends StatelessWidget {
                     for (final e in chipped)
                       TrimChipRequest(
                         elementId: e.id,
-                        anchor: g.anchorOf(e.spot),
+                        anchor: g.anchorOfElement(e),
                         size: _measure(
                           texts[e.id]!,
                           textStyle,

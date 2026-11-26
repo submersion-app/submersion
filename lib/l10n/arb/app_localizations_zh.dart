@@ -22128,6 +22128,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trim_tryout_kneesBent => '弯曲90度';
 
   @override
+  String get trim_tryout_tankHeight => '气瓶高度';
+
+  @override
+  String get trim_tryout_tankUp => '绑带上移';
+
+  @override
+  String get trim_tryout_tankDown => '绑带下移';
+
+  @override
+  String get trim_tryout_tankAsLogged => '按记录';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '上移 $distance';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '下移 $distance';
+  }
+
+  @override
   String get trim_tryout_time => '时间';
 
   @override

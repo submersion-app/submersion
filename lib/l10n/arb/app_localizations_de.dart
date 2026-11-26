@@ -23292,6 +23292,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trim_tryout_kneesBent => 'Um 90 Grad gebeugt';
 
   @override
+  String get trim_tryout_tankHeight => 'Flaschenhöhe';
+
+  @override
+  String get trim_tryout_tankUp => 'Höher im Band';
+
+  @override
+  String get trim_tryout_tankDown => 'Tiefer im Band';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'Wie erfasst';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance höher';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance tiefer';
+  }
+
+  @override
   String get trim_tryout_time => 'Zeit';
 
   @override

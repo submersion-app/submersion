@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
+import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
 import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
 import 'package:submersion/features/trim_calculator/presentation/widgets/trim_space.dart';
@@ -55,6 +56,13 @@ class TrimFigureGeometry {
   /// Where [spot] is on the posed, tilted figure.
   Offset anchorOf(TrimSpot spot) =>
       toCanvas(trimSpaceOf(spot.pointOn(body, pose), body));
+
+  /// Where [e] is on the posed, tilted figure: its spot, slid along the body
+  /// by its shift (a tank moved on its band).
+  Offset anchorOfElement(TrimElement e) {
+    final p = e.spot.pointOn(body, pose);
+    return toCanvas(trimSpaceOf(TrimPoint(p.s + e.shiftM, p.z), body));
+  }
 
   /// Moves [canvas] into tilted side space.
   void enter(Canvas canvas) {

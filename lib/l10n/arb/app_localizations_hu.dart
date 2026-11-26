@@ -23225,6 +23225,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trim_tryout_kneesBent => '90 fokban hajlítva';
 
   @override
+  String get trim_tryout_tankHeight => 'Palack magassága';
+
+  @override
+  String get trim_tryout_tankUp => 'Feljebb a pántban';
+
+  @override
+  String get trim_tryout_tankDown => 'Lejjebb a pántban';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'Ahogy rögzítve';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance feljebb';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance lejjebb';
+  }
+
+  @override
   String get trim_tryout_time => 'Idő';
 
   @override
