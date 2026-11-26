@@ -206,4 +206,31 @@ void main() {
     expect(verdictForRoll(kRollSlightBandKgM * 1.1), RollVerdict.right);
     expect(kRollSlightBandKgM, lessThan(kLevelBandKgM));
   });
+
+  test("a tank's valve weighs at its top end (research C)", () {
+    TrimResult tank({double valve = 0, double shift = 0}) => trim([
+      TrimElement(
+        id: 't',
+        label: 't',
+        kind: TrimElementKind.tank,
+        sinkKg: -1,
+        spot: TrimSpot.backTank,
+        valveSinkKg: valve,
+        shiftM: shift,
+      ),
+    ]);
+    final valveAt =
+        TrimSpot.backTank.pointOn(body, pose).s -
+        kTankValveOffsetM -
+        body.floatPoint.s;
+    expect(
+      tank(valve: 0.7).pitchKgM - tank().pitchKgM,
+      closeTo(0.7 * valveAt, 1e-9),
+    );
+    // Moved 10 cm toward the feet, a floating cylinder lifts the feet more.
+    expect(
+      tank(shift: 0.1).pitchKgM - tank().pitchKgM,
+      closeTo(-1 * 0.1, 1e-9),
+    );
+  });
 }

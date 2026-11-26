@@ -21,6 +21,8 @@ class TrimElement {
     this.color = defaultColor,
     this.spotUnknown = false,
     this.movableTo,
+    this.valveSinkKg = 0,
+    this.shiftM = 0,
   });
 
   /// Black, the gear figure's default for most gear.
@@ -56,7 +58,21 @@ class TrimElement {
   /// test items), empty when it stays put.
   final List<TrimSpot>? movableTo;
 
-  TrimElement copyWith({TrimSpot? spot, TrimLateral? lateral}) => TrimElement(
+  /// A cylinder's valve: its in-water weight, acting [kTankValveOffsetM]
+  /// toward the head from the cylinder's centre. The element weighs
+  /// [sinkKg] plus this in all; [sinkKg] is the rest, at the centre (spec
+  /// section 14 C). 0 for anything that is not a cylinder.
+  final double valveSinkKg;
+
+  /// How far it is moved along the body from its spot, metres toward the
+  /// feet: a cylinder slid up or down its band in try-out.
+  final double shiftM;
+
+  TrimElement copyWith({
+    TrimSpot? spot,
+    TrimLateral? lateral,
+    double? shiftM,
+  }) => TrimElement(
     id: id,
     label: label,
     kind: kind,
@@ -69,6 +85,8 @@ class TrimElement {
     color: color,
     spotUnknown: spotUnknown,
     movableTo: movableTo,
+    valveSinkKg: valveSinkKg,
+    shiftM: shiftM ?? this.shiftM,
   );
 }
 
@@ -88,6 +106,12 @@ const double kLevelBandKgM = 0.72;
 
 /// Up to this, "slightly"; beyond, heavy.
 const double kSlightBandKgM = 1.40;
+
+/// A cylinder valve's in-water weight and how far toward the head of the
+/// cylinder's centre it sits: a brass valve of about 0.8 kg at the top of an
+/// 0.66 m cylinder (spec section 14 C).
+const double kTankValveSinkKg = 0.7;
+const double kTankValveOffsetM = 0.34;
 
 /// Roll has its own, tighter bands: a diver has no limbs to correct a roll
 /// with, and a 2 lb (0.9 kg) difference between sides visibly rolls one
@@ -161,25 +185,32 @@ TrimResult computeTrim({
   required TrimSpot liftSpot,
   double suitLiftKg = 0,
   bool shortySuit = false,
+  List<double> suitPanelsMm = const [],
   double waterDensity = TrimBody.defaultWaterDensity,
 }) {
   final float = body.floatPoint;
-  var pitch = 0.0;
+  // The head and torso's own measured pull, then each element's.
+  var pitch = body.torsoCoupleKgM;
   var roll = 0.0;
   var extraSink = 0.0;
   for (final e in elements) {
-    final p = e.spot.pointOn(body, pose);
-    pitch += e.sinkKg * (p.s - float.s);
+    final s = e.spot.pointOn(body, pose).s + e.shiftM;
+    pitch += e.sinkKg * (s - float.s);
+    pitch += e.valveSinkKg * (s - kTankValveOffsetM - float.s);
     if (e.spot.sided && e.lateral != TrimLateral.centre) {
       final side = e.lateral == TrimLateral.right ? 1.0 : -1.0;
-      roll += e.sinkKg * side * e.spot.lateralM(body);
+      roll += (e.sinkKg + e.valveSinkKg) * side * e.spot.lateralM(body);
     }
     if (e.kind == TrimElementKind.test) extraSink += e.sinkKg;
   }
   for (final limb in body.limbMasses(pose, waterDensity: waterDensity)) {
     pitch += limb.inWaterKg * (limb.centre.s - float.s);
   }
-  for (final (point, share) in body.suitShares(pose, shorty: shortySuit)) {
+  for (final (point, share) in body.suitShares(
+    pose,
+    shorty: shortySuit,
+    panelsMm: suitPanelsMm,
+  )) {
     pitch -= suitLiftKg * share * (point.s - float.s);
   }
   final lift = extraSink - modelNetKg;

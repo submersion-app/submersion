@@ -449,10 +449,61 @@ void main() {
       timestamp: null,
     );
     expect(scene.timestamp, -1);
+    final cylinder = only(scene, TrimElementKind.tank);
     expect(
-      only(scene, TrimElementKind.tank).sinkKg,
+      cylinder.sinkKg + cylinder.valveSinkKg,
       closeTo(-twinTankKgAt(tank, 150), 1e-9),
     );
+  });
+
+  test('a cylinder carries its valve at its top end (research C)', () {
+    const tank = TwinTankInput(
+      id: 't1',
+      label: 'AL80',
+      volumeL: 11.1,
+      workingPressureBar: 207,
+      material: TankMaterial.aluminum,
+      startPressureBar: 200,
+      endPressureBar: 50,
+    );
+    final scene = build(
+      Dive(
+        id: 'd1',
+        dateTime: when,
+        tanks: const [DiveTank(id: 't1', volume: 11.1)],
+      ),
+      tanks: const [tank],
+    );
+    final cylinder = only(scene, TrimElementKind.tank);
+    expect(cylinder.valveSinkKg, kTankValveSinkKg);
+  });
+
+  test("the diver's sex reaches the body (research D)", () {
+    final scene = buildTrimScene(
+      dive: Dive(id: 'd1', dateTime: when),
+      outcome: buoyancyOutcome(),
+      timestamp: null,
+      sex: DiverSex.female,
+    );
+    expect(scene.body.sex, DiverSex.female);
+  });
+
+  test("a wetsuit's panel thicknesses reach the scene (research E)", () {
+    Dive suit(String? thickness) => Dive(
+      id: 'd1',
+      dateTime: when,
+      gear: [
+        GearLink(
+          item: item(
+            'suit',
+            EquipmentType.wetsuit,
+            choices: {EquipmentAttrKeys.thicknessMm: ?thickness},
+          ),
+        ),
+      ],
+    );
+    expect(build(suit('7/5 mm')).suitPanelsMm, [7, 5]);
+    expect(build(suit(null)).suitPanelsMm, isEmpty);
   });
 
   test('the scene carries the water density', () {

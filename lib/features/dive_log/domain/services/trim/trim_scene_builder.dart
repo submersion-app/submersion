@@ -1,4 +1,5 @@
 import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
+import 'package:submersion/core/buoyancy/gear_buoyancy_traits.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
 import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
@@ -32,6 +33,7 @@ class TrimScene {
     required this.timestamp,
     this.suitLiftKg = 0,
     this.shortySuit = false,
+    this.suitPanelsMm = const [],
     this.waterDensity = TrimBody.defaultWaterDensity,
   });
 
@@ -42,6 +44,10 @@ class TrimScene {
 
   /// A shorty covers no forearms or shins.
   final bool shortySuit;
+
+  /// The wetsuit's panel thicknesses, torso first ("7/5" is [7, 5]), which
+  /// weight where its lift acts; empty spreads it evenly.
+  final List<double> suitPanelsMm;
 
   /// kg/L, for the limbs' in-water weight.
   final double waterDensity;
@@ -65,6 +71,7 @@ class TrimScene {
     timestamp: timestamp,
     suitLiftKg: suitLiftKg,
     shortySuit: shortySuit,
+    suitPanelsMm: suitPanelsMm,
     waterDensity: waterDensity,
   );
 
@@ -77,6 +84,7 @@ class TrimScene {
     liftSpot: liftSpot,
     suitLiftKg: suitLiftKg,
     shortySuit: shortySuit,
+    suitPanelsMm: suitPanelsMm,
     waterDensity: waterDensity,
   );
 }
@@ -93,11 +101,13 @@ TrimScene buildTrimScene({
   required int? timestamp,
   double? heightCm,
   double? bodyMassKg,
+  DiverSex? sex,
 }) => TrimSceneBase(
   dive: dive,
   outcome: outcome,
   heightCm: heightCm,
   bodyMassKg: bodyMassKg,
+  sex: sex,
 ).at(timestamp);
 
 /// The part of a dive's trim that does not change through the dive (lead,
@@ -110,22 +120,29 @@ class TrimSceneBase {
     required this.outcome,
     this.heightCm,
     this.bodyMassKg,
+    this.sex,
   }) : _fixed = [
          ..._lead(dive),
          ..._gear(dive, outcome.result.input.staticTerms),
        ],
        _lift = _liftSpot(dive.equipment),
-       _body = TrimBody(heightCm: heightCm, bodyMassKg: bodyMassKg),
-       _shorty = _isShorty(dive.equipment);
+       _body = TrimBody(heightCm: heightCm, bodyMassKg: bodyMassKg, sex: sex),
+       _shorty = _isShorty(dive.equipment),
+       _panels = _suitPanelsMm(dive.equipment);
 
   final Dive dive;
   final BuoyancyTwinOutcome outcome;
   final double? heightCm;
   final double? bodyMassKg;
+
+  /// The diver's sex, which sets the body's own feet-down pull (spec
+  /// section 14 D); null takes the mean.
+  final DiverSex? sex;
   final List<TrimElement> _fixed;
   final TrimSpot _lift;
   final TrimBody _body;
   final bool _shorty;
+  final List<double> _panels;
 
   /// The scene at [timestamp] (null: the rest anchor).
   TrimScene at(int? timestamp) {
@@ -144,6 +161,7 @@ class TrimSceneBase {
           ? _suitAtAnchor(result.input, verdict)
           : _nearest(result.samples, at)?.suitKg ?? 0,
       shortySuit: _shorty,
+      suitPanelsMm: _panels,
       waterDensity: result.input.environment.waterDensityKgM3 / 1000,
     );
   }
@@ -256,6 +274,19 @@ bool _isShorty(List<EquipmentItem> items) => items.any(
       ),
 );
 
+/// The first wetsuit's panel thicknesses, as the buoyancy model reads them.
+List<double> _suitPanelsMm(List<EquipmentItem> items) {
+  for (final item in items) {
+    if (item.type != EquipmentType.wetsuit) continue;
+    final text = item.attributes
+        .where((a) => a.key == EquipmentAttrKeys.thicknessMm)
+        .firstOrNull
+        ?.valueText;
+    return text == null ? const [] : GearBuoyancyTraits.parsePanelsMm(text);
+  }
+  return const [];
+}
+
 TrimElement _gearElement(
   GearNode node,
   Map<String, double> priorById,
@@ -350,7 +381,10 @@ TrimElement _tankElement({
     id: 'tank:$id',
     label: label,
     kind: TrimElementKind.tank,
-    sinkKg: -twinTankKgAt(twin, pressureBar),
+    // The valve's share of the cylinder's weight sits at its top end; the
+    // total is the model's (spec section 14 C).
+    sinkKg: -twinTankKgAt(twin, pressureBar) - kTankValveSinkKg,
+    valveSinkKg: kTankValveSinkKg,
     spot: place.spot,
     lateral: place.lateral,
     itemId: cylinder?.id,

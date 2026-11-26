@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
 import 'package:submersion/core/buoyancy/trim/trim_body.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/buoyancy/trim/trim_spot.dart';
+import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
 
 /// The posable body the trim figure balances (issue #5028).
 void main() {
@@ -101,5 +104,43 @@ void main() {
   test('a taller diver has longer levers', () {
     final tall = TrimBody(heightCm: 195, bodyMassKg: 80);
     expect(tall.knee.s, greaterThan(body.knee.s));
+  });
+
+  group('measured body (research D, E)', () {
+    test('the float point sits at the measured 0.385 of height', () {
+      expect(body.floatPoint.s / body.heightM, closeTo(0.385, 0.002));
+    });
+
+    test('in the measured pose the bare body has the measured torque', () {
+      const streamline = (armReach: 1.0, kneeBendDeg: 0.0);
+      for (final (sex, mass, d) in [
+        (DiverSex.male, 80.0, 0.0193),
+        (DiverSex.female, 60.0, 0.0136),
+        (null, 70.0, 0.0165),
+      ]) {
+        final b = TrimBody(heightCm: 175, bodyMassKg: mass, sex: sex);
+        final pitch = computeTrim(
+          body: b,
+          pose: TrimPose(
+            armReach: streamline.armReach,
+            kneeBendDeg: streamline.kneeBendDeg,
+          ),
+          elements: const [],
+          modelNetKg: 0,
+          liftSpot: TrimSpot.floatPoint,
+          waterDensity: 1.0,
+        ).pitchKgM;
+        expect(pitch, closeTo(mass * d, 1e-6), reason: '$sex');
+      }
+    });
+
+    test('a suit\'s lift is split by coverage and thickness', () {
+      double torso(List<double> panels) =>
+          body.suitShares(TrimPose.standard, panelsMm: panels).first.$2;
+      final shares = body.suitShares(TrimPose.standard, panelsMm: const [7, 5]);
+      expect(shares.fold(0.0, (s, e) => s + e.$2), closeTo(1, 1e-9));
+      expect(torso(const [7, 5]), greaterThan(torso(const [5])));
+      expect(torso(const [5]), closeTo(0.42 / 0.995, 0.01));
+    });
   });
 }

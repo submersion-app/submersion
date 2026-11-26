@@ -232,7 +232,10 @@ List<String> _tankPieces(TrimSpot spot) => switch (spot) {
 /// A pair of fins' in-water weight (positive sinks) when the diver entered
 /// none. The buoyancy model leaves fins at 0 (they fold into the personal
 /// term), which would hide the "heavy fins" case trim is for. Tuned with the
-/// reference rigs (spec 7.5); vented is the jet-fin style.
+/// reference rigs (spec 7.5) inside measured pairs (scuba trim findings,
+/// 2026-11-26): a Hollis F1 pair sinks 1.18 kg, an Apeks RK3 HD pair 0.3,
+/// a Scubapro Jet pair 0.6 to 0.9, and splits sit near neutral. Vented is
+/// the F1 style.
 double trimFinSinkKg(Map<String, String?> attributes) =>
     switch (attributes['blade_style']) {
       'vented' => kVentedFinSinkKg,
@@ -240,9 +243,9 @@ double trimFinSinkKg(Map<String, String?> attributes) =>
       _ => kPaddleFinSinkKg,
     };
 
-const double kPaddleFinSinkKg = 0.6;
-const double kSplitFinSinkKg = 0.2;
-const double kVentedFinSinkKg = 1.4;
+const double kPaddleFinSinkKg = 0.3;
+const double kSplitFinSinkKg = 0.0;
+const double kVentedFinSinkKg = 1.2;
 
 /// Camera parts the gear figure leaves in the tray; on the trim figure they
 /// weigh where the camera is (a float arm trims the camera rig).

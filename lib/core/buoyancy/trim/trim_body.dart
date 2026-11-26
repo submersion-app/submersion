@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
+import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/buoyancy/trim/trim_pose.dart';
 
 /// A point on the prone diver, in metres, in the body frame (issue #5028).
@@ -47,12 +48,14 @@ class TrimLimbMass {
 /// segment masses as fractions of body mass, centres of mass as fractions of
 /// segment length from the proximal joint; densities after Dempster).
 class TrimBody {
-  factory TrimBody({double? heightCm, double? bodyMassKg}) => TrimBody._(
-    (heightCm ?? defaultHeightCm) / 100,
-    bodyMassKg ?? BuoyancyPhysics.defaultBodyMassKg,
-  );
+  factory TrimBody({double? heightCm, double? bodyMassKg, DiverSex? sex}) =>
+      TrimBody._(
+        (heightCm ?? defaultHeightCm) / 100,
+        bodyMassKg ?? BuoyancyPhysics.defaultBodyMassKg,
+        sex,
+      );
 
-  TrimBody._(this.heightM, this.massKg);
+  TrimBody._(this.heightM, this.massKg, this.sex);
 
   /// The height used when the diver has none on file.
   static const double defaultHeightCm = 175;
@@ -76,22 +79,35 @@ class TrimBody {
   static const double wristFromShoulder = _upperArmLength + _forearmLength;
 
   /// Where along the torso, from the shoulder (0) to the hip (1), the diver
-  /// floats from: the centre of buoyancy of the body and the torso's share of
-  /// the suit, at the upper abdomen (0.36 of height from the crown, between
-  /// the nipple line and the navel). Winter's tables give no centre of
-  /// buoyancy, so this is tuned against the reference rigs of the trim
-  /// design (spec 7.5).
-  static const double kFloatPointTorsoFraction = 0.63;
+  /// floats from: the bare body's measured centre of buoyancy, 0.385 of
+  /// height from the crown (Watanabe et al., 9 men, streamline; McLean and
+  /// Hinrichs 1998), spec section 14 D.
+  static const double kFloatPointTorsoFraction = 0.705;
 
-  /// How an exposure suit's lift is spread over the body, by the share of
-  /// skin each part covers (the rule of nines without the head): torso 40%,
-  /// arms 20%, thighs 24%, shins 16%. A shorty covers the torso, upper arms
-  /// and thighs only.
-  static const _fullSuit = (torso: 0.40, arms: 0.20, thighs: 0.24, shins: 0.16);
+  /// The measured distance from the centre of mass to the centre of
+  /// buoyancy of a bare body lying level, lungs at neutral buoyancy
+  /// (Watanabe et al. 2014: 1.93 cm men, 1.36 cm women; their mean when sex
+  /// is not on file). Body mass times it is the body's measured feet-down
+  /// torque (Pendergast et al. 1977 found 1.44 and 0.70 kg m).
+  static double measuredCobOffsetM(DiverSex? sex) => switch (sex) {
+    DiverSex.male => 0.0193,
+    DiverSex.female => 0.0136,
+    null => 0.0165,
+  };
+
+  /// The skin each part of a suit covers (Lund-Browder adult chart, no
+  /// hood, gloves or boots): torso 42%, arms 17%, thighs 23.5%, shins 17%.
+  /// A shorty covers the torso, the upper arms and the upper thighs.
+  static const _fullSuit = (
+    torso: 0.42,
+    arms: 0.17,
+    thighs: 0.235,
+    shins: 0.17,
+  );
   static const _shortySuit = (
-    torso: 0.55,
-    arms: 0.10,
-    thighs: 0.35,
+    torso: 0.42,
+    arms: 0.07,
+    thighs: 0.12,
     shins: 0.0,
   );
 
@@ -106,6 +122,23 @@ class TrimBody {
 
   final double heightM;
   final double massKg;
+
+  /// Null when the diver's profile does not say.
+  final DiverSex? sex;
+
+  /// The head and torso's own feet-down pull, as a couple: what the measured
+  /// body torque leaves once the limbs (counted in [limbMasses]) are taken
+  /// out, in the pose and water it was measured in (streamline: arms
+  /// overhead, legs straight, fresh water).
+  late final double torsoCoupleKgM = () {
+    final streamline = TrimPose(armReach: 1, kneeBendDeg: 0);
+    final float = floatPoint.s;
+    var limbs = 0.0;
+    for (final l in limbMasses(streamline, waterDensity: 1.0)) {
+      limbs += l.inWaterKg * (l.centre.s - float);
+    }
+    return massKg * measuredCobOffsetM(sex) - limbs;
+  }();
 
   TrimPoint get shoulder => TrimPoint(_shoulderFromCrown * heightM, 0);
   TrimPoint get hip => TrimPoint(_hipFromCrown * heightM, 0);
@@ -206,18 +239,33 @@ class TrimBody {
     ];
   }
 
-  /// Where a suit's lift acts and the share at each place: the torso's share
-  /// at the float point, the rest at the limbs, both sides.
-  List<(TrimPoint, double)> suitShares(TrimPose pose, {bool shorty = false}) {
-    final shares = shorty ? _shortySuit : _fullSuit;
+  /// Where a suit's lift acts and the share at each place, both sides: each
+  /// part's skin coverage times its neoprene thickness, normalised.
+  /// [panelsMm] reads as a suit is labelled: the first panel is the torso,
+  /// the second the legs, the third the arms, a missing one taking the last
+  /// given; none means an even thickness.
+  List<(TrimPoint, double)> suitShares(
+    TrimPose pose, {
+    bool shorty = false,
+    List<double> panelsMm = const [],
+  }) {
+    final cover = shorty ? _shortySuit : _fullSuit;
+    double panel(int i) => panelsMm.isEmpty
+        ? 1
+        : panelsMm[i < panelsMm.length ? i : panelsMm.length - 1];
+    final torso = cover.torso * panel(0);
+    final arms = cover.arms * panel(2);
+    final thighs = cover.thighs * panel(1);
+    final shins = cover.shins * panel(1);
+    final total = torso + arms + thighs + shins;
     final armAt = shorty
         ? alongArm(pose, _upperArmLength / 2)
         : alongArm(pose, (_upperArmLength + _forearmLength) / 2);
     return [
-      (floatPoint, shares.torso),
-      (armAt, shares.arms),
-      (hip + TrimPoint((knee.s - hip.s) / 2, 0), shares.thighs),
-      if (shares.shins > 0) (alongShin(pose, 0.5), shares.shins),
+      (floatPoint, torso / total),
+      (armAt, arms / total),
+      (hip + TrimPoint((knee.s - hip.s) / 2, 0), thighs / total),
+      if (shins > 0) (alongShin(pose, 0.5), shins / total),
     ];
   }
 }

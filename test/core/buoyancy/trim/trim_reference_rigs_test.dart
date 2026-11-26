@@ -35,15 +35,20 @@ void main() {
     spot: spot,
   );
 
-  final al80 = el(
-    'al80',
-    tankSinkKg('al80', TankMaterial.aluminum, 11.1),
-    TrimSpot.backTank,
+  // A cylinder carries its valve at its top end (spec section 14 C).
+  TrimElement tank(String id, double kg) => TrimElement(
+    id: id,
+    label: id,
+    kind: TrimElementKind.tank,
+    sinkKg: kg - kTankValveSinkKg,
+    spot: TrimSpot.backTank,
+    valveSinkKg: kTankValveSinkKg,
   );
-  final steel15 = el(
+
+  final al80 = tank('al80', tankSinkKg('al80', TankMaterial.aluminum, 11.1));
+  final steel15 = tank(
     'steel15',
     tankSinkKg('steel15', TankMaterial.steel, 15),
-    TrimSpot.backTank,
   );
 
   TrimResult rig(List<TrimElement> elements, {TrimPose? pose}) => computeTrim(
@@ -138,9 +143,10 @@ void main() {
     expect(s, inInclusiveRange(0.28, 0.40));
   });
 
-  test('fin defaults stay physically plausible', () {
+  test('fin defaults stay inside measured pairs', () {
+    // Splits near neutral up to a Hollis F1 pair (1.18 kg), with slack.
     for (final kg in [kPaddleFinSinkKg, kSplitFinSinkKg, kVentedFinSinkKg]) {
-      expect(kg, inInclusiveRange(0.2, 1.8));
+      expect(kg, inInclusiveRange(0.0, 1.3));
     }
   });
 }
