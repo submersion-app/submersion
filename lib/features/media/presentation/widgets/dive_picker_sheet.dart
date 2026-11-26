@@ -13,15 +13,34 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
-/// Modal dive picker used by "Move to dive" and inbox linking. Resolves to
-/// the chosen dive id, or null on dismiss.
-Future<String?> showDivePickerSheet(BuildContext context) {
-  return showModalBottomSheet<String>(
+/// Modal dive picker for choosing a dive by id: import review, a file whose
+/// time cannot be read, a gear check-in. Resolves to the chosen dive id, or
+/// null on dismiss.
+Future<String?> showDivePickerSheet(BuildContext context) =>
+    showDivePickerRowSheet(context).then((row) => row?.id);
+
+/// As [showDivePickerSheet], resolving to the picked row, for a caller that
+/// names the dive afterwards (the library's Move to dive asks first).
+Future<DivePickerRow?> showDivePickerRowSheet(BuildContext context) {
+  return showModalBottomSheet<DivePickerRow>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     builder: (_) => const _DivePickerSheet(),
   );
+}
+
+/// '#42 Blue Hole': the dive's number, then its name or its site's. Empty
+/// for a dive with none of them.
+String divePickerRowLabel(DivePickerRow dive) {
+  final parts = <String>[
+    if (dive.diveNumber != null) '#${dive.diveNumber}',
+    if (dive.name != null && dive.name!.isNotEmpty)
+      dive.name!
+    else if (dive.siteName != null)
+      dive.siteName!,
+  ];
+  return parts.join(' ');
 }
 
 class _DivePickerSheet extends ConsumerStatefulWidget {
@@ -165,17 +184,6 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
     return false;
   }
 
-  String _label(DivePickerRow dive) {
-    final parts = <String>[
-      if (dive.diveNumber != null) '#${dive.diveNumber}',
-      if (dive.name != null && dive.name!.isNotEmpty)
-        dive.name!
-      else if (dive.siteName != null)
-        dive.siteName!,
-    ];
-    return parts.join(' ');
-  }
-
   @override
   Widget build(BuildContext context) {
     final units = ref.watch(unitFormatterProvider);
@@ -259,9 +267,9 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
           }
           final dive = rows[index];
           return ListTile(
-            title: Text(_label(dive)),
+            title: Text(divePickerRowLabel(dive)),
             subtitle: Text(units.formatDate(dive.dateTime)),
-            onTap: () => Navigator.of(context).pop(dive.id),
+            onTap: () => Navigator.of(context).pop(dive),
           );
         },
       ),

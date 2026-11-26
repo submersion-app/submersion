@@ -69,5 +69,9 @@ String healthReasonText(
       name.isEmpty
           ? l10n.settings_photos_status_pausedUnreachable
           : l10n.settings_photos_status_unreachable(name),
+    HealthReason.mediaSubscriptionNeedsPassword =>
+      l10n.dataHealth_media_subscriptionPassword(name),
+    HealthReason.mediaSubscriptionFailing =>
+      l10n.dataHealth_media_subscriptionFailing(name),
   };
 }

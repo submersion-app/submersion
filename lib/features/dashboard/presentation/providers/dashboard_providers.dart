@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -170,4 +171,30 @@ final onThisDayProvider = FutureProvider<List<Dive>>((ref) async {
   );
   // The card shows year, site or name, depth and runtime: row values.
   return _diveRowsInOrder(repository, ids);
+});
+
+const _countriesLog = LoggerService('HomeCountriesVisited');
+
+/// How many countries the diver has dived in, for the welcome banner's
+/// desktop stats (issue #5003), or null when the query fails: the banner
+/// then leaves the count out rather than showing an error. Counts every row
+/// (a null limit), so the ranking's default of 10 never caps it.
+final homeCountriesVisitedProvider = FutureProvider<int?>((ref) async {
+  final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
+  final diverId = ref.watch(currentDiverIdProvider);
+  try {
+    final countries = await repository.getCountriesVisited(
+      diverId: diverId,
+      limit: null,
+    );
+    return countries.length;
+  } catch (e, stackTrace) {
+    _countriesLog.error(
+      'Failed to count the countries visited',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return null;
+  }
 });

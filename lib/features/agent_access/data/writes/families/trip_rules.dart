@@ -13,7 +13,8 @@ import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 /// A block for [check]'s days or parent: a start not after the end, a day
 /// trip one day long, days from 1950 to 2100, and a parent the repository
 /// would keep (not itself, not a side trip, not when this trip has side
-/// trips), as the edit page and `writableParentId` allow.
+/// trips), as the edit page and `writableParentId` allow. A parent named as
+/// it is stored is no change, and passes (issue #4941).
 Future<PlanBlock?> tripProblem(WriteCheck check) async {
   for (final key in const ['start_date', 'end_date']) {
     if (dayRangeProblem(
@@ -51,6 +52,7 @@ Future<PlanBlock?> tripProblem(WriteCheck check) async {
       DatabaseService.instance.database,
       tripId: check.id ?? '',
       parentId: parent,
+      storedParentId: check.document?['parent_trip_id'] as String?,
     );
     if (kept == null) {
       return const PlanBlock(

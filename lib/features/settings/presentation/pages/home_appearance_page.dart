@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dashboard/presentation/home_header_style.dart';
 import 'package:submersion/features/dashboard/presentation/home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/home_panel_labels.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
@@ -123,9 +124,75 @@ class HomeAppearancePage extends ConsumerWidget {
     };
 
     final tilesShown = KeyNumbersPanel.enabledTiles(hiddenTiles).length;
+    final headerPhone = homeHeaderStyleFromName(
+      ref.watch(settingsProvider.select((s) => s.homeHeaderStylePhone)),
+    );
+    final headerWide = homeHeaderStyleFromName(
+      ref.watch(settingsProvider.select((s) => s.homeHeaderStyleWide)),
+    );
+
+    // One width's header choice (issue #5003), saved on this device.
+    Widget headerChoice({
+      required Key key,
+      required IconData icon,
+      required String label,
+      required HomeHeaderStyle value,
+      required bool phone,
+    }) => ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: SegmentedButton<HomeHeaderStyle>(
+            key: key,
+            segments: [
+              ButtonSegment(
+                value: HomeHeaderStyle.compact,
+                label: Text(l10n.settings_homeHeader_compact),
+              ),
+              ButtonSegment(
+                value: HomeHeaderStyle.banner,
+                label: Text(l10n.settings_homeHeader_banner),
+              ),
+            ],
+            selected: {value},
+            onSelectionChanged: (selection) => notifier.setHomeHeaderStyle(
+              phone: phone,
+              style: selection.first.name,
+            ),
+          ),
+        ),
+      ),
+    );
 
     final content = CustomScrollView(
       slivers: [
+        SliverToBoxAdapter(
+          child: sectionHeader(l10n.settings_homeHeader_sectionTitle),
+        ),
+        SliverToBoxAdapter(
+          child: headerChoice(
+            key: const ValueKey('home-header-phone'),
+            icon: Icons.phone_iphone,
+            label: l10n.settings_homeHeader_phone,
+            value: headerPhone,
+            phone: true,
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: headerChoice(
+            key: const ValueKey('home-header-wide'),
+            icon: Icons.desktop_windows_outlined,
+            label: l10n.settings_homeHeader_wide,
+            value: headerWide,
+            phone: false,
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: sectionDescription(l10n.settings_homeHeader_description),
+        ),
         SliverToBoxAdapter(
           child: sectionHeader(l10n.settings_homeLayout_sectionTitle),
         ),

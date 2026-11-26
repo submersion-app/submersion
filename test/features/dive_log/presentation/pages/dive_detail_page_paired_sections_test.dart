@@ -34,14 +34,6 @@ Finder _pairContaining(String label) => find.ancestor(
   matching: find.byType(ResponsiveSectionPair),
 );
 
-/// Top-left of the card holding [label].
-///
-/// Compares cards rather than titles where a header carries a button that
-/// sets its title lower than its neighbour's, as Buoyancy's does.
-Offset _cardTopLeft(WidgetTester tester, String label) => tester.getTopLeft(
-  find.ancestor(of: find.text(label), matching: find.byType(Card)).first,
-);
-
 /// A dive with environment data so the Environment (Conditions) card renders.
 Dive _diveWithConditions(String id) => Dive(
   id: id,
@@ -104,6 +96,12 @@ Dive _diveWithGasAndProfile(String id) => Dive(
 
 const _sacTitle = 'Gas consumption by segment';
 const _buoyancyTitle = 'BUOYANCY';
+const _mergedTitle = 'Weights and buoyancy';
+const _leadTitle = 'Lead for next time';
+
+/// The card holding [label].
+Finder _cardWith(String label) =>
+    find.ancestor(of: find.text(label), matching: find.byType(Card));
 
 /// One time-interval SAC segment, so the Gas consumption card has a row.
 final _sacAnalysis = ProfileAnalysis.empty().copyWith(
@@ -640,51 +638,6 @@ void main() {
       expect((cylPos.dy - sacPos.dy).abs(), lessThan(4));
     });
 
-    testWidgets('stays paired while the model reloads', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1000, 3000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      final dive = _diveWithGasAndWeights('weights-buoyancy-reload');
-      final settings = _settingsWithOrder([
-        DiveDetailSectionId.weights,
-        DiveDetailSectionId.buoyancy,
-      ]);
-      // The model reloads behind every refresh of the dive it reads. The
-      // gate holds that reload open so it spans a frame.
-      final trigger = StateProvider<int>((ref) => 0);
-      final gate = Completer<void>();
-
-      await tester.pumpWidget(
-        pairedDetailPage(
-          dive: dive,
-          settings: settings,
-          extraOverrides: [
-            ...pairedRenderOverrides(dive.id, prefs),
-            buoyancyTwinProvider(dive.id).overrideWith((ref) async {
-              if (ref.watch(trigger) > 0) await gate.future;
-              return buoyancyOutcome();
-            }),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(_pairContaining(_buoyancyTitle), findsOneWidget);
-
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(DiveDetailPage)),
-      );
-      container.read(trigger.notifier).state = 1;
-      await tester.pump();
-
-      expect(container.read(buoyancyTwinProvider(dive.id)).isReloading, isTrue);
-      expect(_pairContaining(_buoyancyTitle), findsOneWidget);
-      expect(_pairContaining('Weight'), findsOneWidget);
-
-      gate.complete();
-      await tester.pumpAndSettle();
-      expect(_pairContaining(_buoyancyTitle), findsOneWidget);
-    });
-
     testWidgets('fits side by side at the 700px threshold', (tester) async {
       // 732px pane => 700px content width, the narrowest the row renders at.
       await tester.binding.setSurfaceSize(const Size(732, 3000));
@@ -983,190 +936,145 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The card title and the row title.
-      expect(find.text('Weight'), findsNWidgets(2));
+      // The row title; the card is titled Weights and buoyancy (#5005).
+      expect(find.text('Weight'), findsOneWidget);
     });
   });
 
-  group('Weights + Buoyancy pairing', () {
-    testWidgets('pairs side by side on a wide pane', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+  group('Weights and buoyancy card (#5005)', () {
+    Future<void> pumpCard(
+      WidgetTester tester,
+      Dive dive,
+      BuoyancyTwinOutcome? outcome, {
+      Size size = const Size(1000, 3000),
+    }) async {
+      await tester.binding.setSurfaceSize(size);
       addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      final dive = _diveWithGasAndWeights('weights-buoyancy-wide');
-      final settings = _settingsWithOrder([
-        DiveDetailSectionId.weights,
-        DiveDetailSectionId.buoyancy,
-      ]);
-
       await tester.pumpWidget(
         pairedDetailPage(
           dive: dive,
-          settings: settings,
+          settings: _settingsWithOrder([DiveDetailSectionId.weights]),
           extraOverrides: [
             ...pairedRenderOverrides(dive.id, prefs),
-            _buoyancyOverride(dive, buoyancyOutcome()),
+            _buoyancyOverride(dive, outcome),
           ],
         ),
       );
       await tester.pumpAndSettle();
+    }
 
-      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
-      expect(_pairContaining('Weight'), findsOneWidget);
-      expect(_pairContaining(_buoyancyTitle), findsOneWidget);
-
-      final weightPos = _cardTopLeft(tester, 'Weight');
-      final buoyancyPos = _cardTopLeft(tester, _buoyancyTitle);
-      expect(weightPos.dx, lessThan(buoyancyPos.dx));
-      expect((weightPos.dy - buoyancyPos.dy).abs(), lessThan(4));
-    });
-
-    testWidgets('fits side by side at the 700px threshold', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(732, 3000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      final dive = _diveWithGasAndWeights('weights-buoyancy-threshold');
-      final settings = _settingsWithOrder([
-        DiveDetailSectionId.weights,
-        DiveDetailSectionId.buoyancy,
-      ]);
-
-      await tester.pumpWidget(
-        pairedDetailPage(
-          dive: dive,
-          settings: settings,
-          extraOverrides: [
-            ...pairedRenderOverrides(dive.id, prefs),
-            _buoyancyOverride(dive, buoyancyOutcome()),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final weightPos = _cardTopLeft(tester, 'Weight');
-      final buoyancyPos = _cardTopLeft(tester, _buoyancyTitle);
-      expect(weightPos.dx, lessThan(buoyancyPos.dx));
-      expect((weightPos.dy - buoyancyPos.dy).abs(), lessThan(4));
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('keeps Weights on the left when Buoyancy is ordered first', (
+    testWidgets('one full-width card holds the weights and the model', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(1000, 3000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      final dive = _diveWithGasAndWeights('weights-buoyancy-reversed');
-      final settings = _settingsWithOrder([
-        DiveDetailSectionId.buoyancy,
-        DiveDetailSectionId.weights,
-      ]);
-
-      await tester.pumpWidget(
-        pairedDetailPage(
-          dive: dive,
-          settings: settings,
-          extraOverrides: [
-            ...pairedRenderOverrides(dive.id, prefs),
-            _buoyancyOverride(dive, buoyancyOutcome()),
-          ],
-        ),
+      await pumpCard(
+        tester,
+        _diveWithGasAndWeights('weights-buoyancy-wide'),
+        buoyancyOutcome(),
       );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
-      final weightPos = _cardTopLeft(tester, 'Weight');
-      final buoyancyPos = _cardTopLeft(tester, _buoyancyTitle);
-      expect(weightPos.dx, lessThan(buoyancyPos.dx));
-      expect((weightPos.dy - buoyancyPos.dy).abs(), lessThan(4));
-    });
-
-    testWidgets('stacks Weights directly above Buoyancy on a narrow pane', (
-      tester,
-    ) async {
-      await tester.binding.setSurfaceSize(const Size(700, 3000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      final dive = _diveWithGasAndWeights('weights-buoyancy-narrow');
-      final settings = _settingsWithOrder([
-        DiveDetailSectionId.weights,
-        DiveDetailSectionId.buoyancy,
-      ]);
-
-      await tester.pumpWidget(
-        pairedDetailPage(
-          dive: dive,
-          settings: settings,
-          extraOverrides: [
-            ...pairedRenderOverrides(dive.id, prefs),
-            _buoyancyOverride(dive, buoyancyOutcome()),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
-      final weightY = tester.getTopLeft(find.text('Weight')).dy;
-      final buoyancyY = tester.getTopLeft(find.text(_buoyancyTitle)).dy;
-      expect(weightY, lessThan(buoyancyY));
-    });
-
-    testWidgets('no pairing when the buoyancy model has no result', (
-      tester,
-    ) async {
-      await tester.binding.setSurfaceSize(const Size(1000, 3000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      final dive = _diveWithGasAndWeights('weights-no-buoyancy');
-      final settings = _settingsWithOrder([
-        DiveDetailSectionId.weights,
-        DiveDetailSectionId.buoyancy,
-      ]);
-
-      await tester.pumpWidget(
-        pairedDetailPage(
-          dive: dive,
-          settings: settings,
-          extraOverrides: [
-            ...pairedRenderOverrides(dive.id, prefs),
-            _buoyancyOverride(dive, null),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
 
       expect(find.byType(ResponsiveSectionPair), findsNothing);
-      expect(find.text('Weight'), findsOneWidget);
+      final card = _cardWith(_mergedTitle);
+      expect(card, findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.text('Weight Belt')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: find.text(_leadTitle)),
+        findsOneWidget,
+      );
+      // Full width: the 1000px pane less the page padding.
+      expect(tester.getSize(card).width, greaterThan(900));
       expect(find.text(_buoyancyTitle), findsNothing);
     });
 
-    testWidgets('no pairing when the dive carries no weights', (tester) async {
+    testWidgets('fits a 700px pane', (tester) async {
+      await pumpCard(
+        tester,
+        _diveWithGasAndWeights('weights-buoyancy-narrow'),
+        buoyancyOutcome(),
+        size: const Size(700, 3000),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(_cardWith(_mergedTitle), findsOneWidget);
+    });
+
+    testWidgets('weights with no model still show, alone', (tester) async {
+      await pumpCard(
+        tester,
+        _diveWithGasAndWeights('weights-no-buoyancy'),
+        null,
+      );
+
+      expect(_cardWith(_mergedTitle), findsOneWidget);
+      expect(find.text('Weight Belt'), findsOneWidget);
+      expect(find.text(_leadTitle), findsNothing);
+      expect(find.text('What if?'), findsNothing);
+    });
+
+    testWidgets('cylinders and no lead show the model alone', (tester) async {
+      await pumpCard(
+        tester,
+        _diveWithGasAndWeights('buoyancy-only').copyWith(weights: const []),
+        buoyancyOutcome(leadKg: 0, droppableLeadKg: 0),
+      );
+
+      expect(_cardWith(_mergedTitle), findsOneWidget);
+      expect(find.text('Weight Belt'), findsNothing);
+      expect(find.text(_leadTitle), findsOneWidget);
+      expect(find.textContaining('No lead recorded'), findsOneWidget);
+    });
+
+    testWidgets('no weights and no model: no card', (tester) async {
+      await pumpCard(
+        tester,
+        Dive(id: 'nothing', dateTime: DateTime(2026, 3, 15, 10, 0)),
+        null,
+      );
+
+      expect(find.text(_mergedTitle), findsNothing);
+    });
+
+    testWidgets('keeps its model while the model reloads', (tester) async {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGasAndWeights(
-        'buoyancy-only',
-      ).copyWith(weights: const []);
-      final settings = _settingsWithOrder([
-        DiveDetailSectionId.weights,
-        DiveDetailSectionId.buoyancy,
-      ]);
+      final dive = _diveWithGasAndWeights('weights-buoyancy-reload');
+      // The model reloads behind every refresh of the dive it reads. The
+      // gate holds that reload open so it spans a frame.
+      final trigger = StateProvider<int>((ref) => 0);
+      final gate = Completer<void>();
 
       await tester.pumpWidget(
         pairedDetailPage(
           dive: dive,
-          settings: settings,
+          settings: _settingsWithOrder([DiveDetailSectionId.weights]),
           extraOverrides: [
             ...pairedRenderOverrides(dive.id, prefs),
-            _buoyancyOverride(dive, buoyancyOutcome()),
+            buoyancyTwinProvider(dive.id).overrideWith((ref) async {
+              if (ref.watch(trigger) > 0) await gate.future;
+              return buoyancyOutcome();
+            }),
           ],
         ),
       );
       await tester.pumpAndSettle();
+      expect(find.text(_leadTitle), findsOneWidget);
 
-      expect(find.byType(ResponsiveSectionPair), findsNothing);
-      expect(find.text('Weight'), findsNothing);
-      expect(find.text(_buoyancyTitle), findsOneWidget);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      container.read(trigger.notifier).state = 1;
+      await tester.pump();
+
+      expect(container.read(buoyancyTwinProvider(dive.id)).isReloading, isTrue);
+      expect(find.text(_leadTitle), findsOneWidget);
+      expect(find.text('Weight Belt'), findsOneWidget);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(find.text(_leadTitle), findsOneWidget);
     });
   });
 }

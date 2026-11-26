@@ -35,6 +35,11 @@ import 'package:flutter/foundation.dart';
 /// route, and the per-dive / per-trip / photo-viewer scan and "Open in
 /// Lightroom" actions. If Adobe permanently rejects the integration, the
 /// Lightroom code and this flag can be deleted together in a follow-up cleanup.
+///
+/// Before it is turned on, the dive page's Lightroom suggestions row
+/// (`lightroom_suggestions_row.dart`) must hold Accept and Dismiss in the
+/// dive's Media card and hide them while the dive is locked: today they write
+/// at once (issue #4527, the media library design note, "Left for later").
 bool lightroomUiEnabled = false;
 
 /// Whether marine life identification is surfaced in the UI (issue #4668):

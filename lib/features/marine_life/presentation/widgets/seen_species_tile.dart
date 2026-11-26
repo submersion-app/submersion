@@ -20,11 +20,16 @@ class SeenSpeciesTile extends ConsumerWidget {
   final MediaItem? cover;
   final VoidCallback? onTap;
 
+  /// Drawn in place of the [cover] or category avatar: the species'
+  /// picture (its cover or best crop) on the Species page (issue #5027).
+  final Widget? leading;
+
   const SeenSpeciesTile({
     super.key,
     required this.entry,
     this.cover,
     this.onTap,
+    this.leading,
   });
 
   @override
@@ -41,7 +46,9 @@ class SeenSpeciesTile extends ConsumerWidget {
 
     final cover = this.cover;
     return ListTile(
-      leading: cover == null
+      leading: leading != null
+          ? ClipOval(child: SizedBox(width: 40, height: 40, child: leading))
+          : cover == null
           ? CircleAvatar(
               backgroundColor: colorForSpeciesCategory(
                 species.category,

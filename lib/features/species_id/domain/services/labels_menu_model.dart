@@ -24,9 +24,14 @@ enum MediaAnalysisState {
   /// Never looked at.
   notAnalysed,
 
-  /// Looked at, but not as the installed model would leave it: by another
-  /// model, for another place, or a video scanned only in part.
+  /// A video scanned only in part (issue #4958): what was found so far
+  /// shows, and Analyse carries on the scan.
   partial,
+
+  /// Looked at in full, but not as the installed model would leave it: by
+  /// another model, for another place, or with its crops not on this
+  /// device (issue #4958). Analyse brings it up to date.
+  outdated,
 
   /// Looked at; analysing it would find nothing to do.
   analysed,
@@ -48,6 +53,10 @@ enum LabelsStatusLine {
   analysing,
   analysingPercent,
   found,
+
+  /// Looked at only in part (issue #4958): what was found so far, and that
+  /// it is not done, as the icon's amber says.
+  partlyFound,
 }
 
 /// What the menu shows: its status line, with how many were found and how
@@ -86,12 +95,14 @@ LabelsMenuModel labelsMenuModel({
   final line = switch (state) {
     MediaAnalysisState.noModel => LabelsStatusLine.noModel,
     MediaAnalysisState.notAnalysed => LabelsStatusLine.notAnalysed,
-    // Looked at, even if only in part: what was found so far, nothing
-    // included.
+    // Looked at only in part: what was found so far, and that it is not
+    // done (issue #4958).
     MediaAnalysisState.partial ||
+    MediaAnalysisState.partFoundNoModel => LabelsStatusLine.partlyFound,
+    // Looked at in full: what was found, as for a finished analysis.
+    MediaAnalysisState.outdated ||
     MediaAnalysisState.analysed ||
-    MediaAnalysisState.foundNoModel ||
-    MediaAnalysisState.partFoundNoModel => LabelsStatusLine.found,
+    MediaAnalysisState.foundNoModel => LabelsStatusLine.found,
   };
   return (
     line: line,
@@ -115,9 +126,12 @@ enum LabelsButtonStatus {
   /// Queued or being analysed now.
   analysing,
 
-  /// Looked at, but not as the installed model would leave it, or a video
-  /// another device scanned only part way.
+  /// A video scanned only part way, here or on another device.
   partial,
+
+  /// Looked at in full, but not as the installed model would leave it
+  /// (issue #4958).
+  outdated,
 
   /// Looked at; analysing it would find nothing to do. Results another
   /// device found count too, where no model here can look again.
@@ -137,6 +151,7 @@ LabelsButtonStatus labelsButtonStatus({
     MediaAnalysisState.notAnalysed => LabelsButtonStatus.notAnalysed,
     MediaAnalysisState.partial ||
     MediaAnalysisState.partFoundNoModel => LabelsButtonStatus.partial,
+    MediaAnalysisState.outdated => LabelsButtonStatus.outdated,
     // Another device's results count: what it found is on the item.
     MediaAnalysisState.analysed ||
     MediaAnalysisState.foundNoModel => LabelsButtonStatus.analysed,

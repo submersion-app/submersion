@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/account_grou
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media_store/presentation/widgets/stop_keeping_copies_dialog.dart';
 
 /// Where Photos & videos lives, for the choice that sends the diver there.
 const _photosRoute = '/settings/photos-media';
@@ -337,7 +338,9 @@ class _MediaStoreReconnectSheetState
     );
   }
 
+  /// Asks first, as Photos and videos, Advanced does (issue #4527).
   Future<void> _detachCopies() async {
+    if (!await confirmStopKeepingCopies(context) || !mounted) return;
     final container = ref.container;
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);

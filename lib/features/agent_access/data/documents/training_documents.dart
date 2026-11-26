@@ -73,16 +73,22 @@ Map<String, Object?> currencyRuleDocument(CurrencyRule r) => {
   'advisory_text': r.advisoryText,
   'supersedes_rule_id': r.supersedesRuleId,
   'is_built_in': r.isBuiltIn,
+  // A scope array this build cannot read decodes to the empty "any" above;
+  // the app matches such a rule to no card (issue #4942).
+  'unreadable_scope': r.unreadableScope,
 };
 
+// A mapping this build cannot read is shown as inheriting the rule, which
+// is what the engine applies in its place, not as the "any dive" it
+// decodes to (issue #4942).
 Map<String, Object?> currencyPrefDocument(CurrencyPref p) => {
   'id': p.id,
   'certification_id': p.certificationId,
   'rule_id': p.ruleId,
   'lapse_days_override': p.lapseDaysOverride,
   'lead_days_override': p.leadDaysOverride,
-  'counted_dive_type_ids': p.countedDiveTypeIds,
-  'counted_dive_modes': p.countedDiveModes == null
+  'counted_dive_type_ids': p.unreadableMapping ? null : p.countedDiveTypeIds,
+  'counted_dive_modes': p.unreadableMapping || p.countedDiveModes == null
       ? null
       : [for (final m in p.countedDiveModes!) m.name],
   'muted': p.muted,

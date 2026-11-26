@@ -4,7 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_weight_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_card_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
@@ -113,13 +113,29 @@ void main() {
     );
   }
 
-  group('the Weight card', () {
+  group('the weight rows', () {
+    // The rows the Weights and buoyancy card lists above the model
+    // (issue #5005).
+    Finder totalRow(String amount) => find.ancestor(
+      of: find.text(amount),
+      matching: find.byWidgetPredicate(
+        (w) =>
+            w is Row &&
+            w.children.any(
+              (c) =>
+                  c is Expanded &&
+                  c.child is Text &&
+                  (c.child as Text).data == l.diveLog_detail_label_total,
+            ),
+      ),
+    );
+
     testWidgets('lists weights gear beside the rows and totals both', (
       tester,
     ) async {
       await pump(
         tester,
-        DiveWeightSection(
+        DiveWeightRows(
           dive: dive(weights: const [belt], gear: const [plate, bcd]),
         ),
       );
@@ -127,16 +143,20 @@ void main() {
       expect(find.text('Weighted backplate'), findsOneWidget);
       expect(find.text(l.diveLog_detail_weight_fromEquipment), findsOneWidget);
       expect(find.text('2.5 kg'), findsOneWidget);
-      expect(find.text('${l.diveLog_detail_label_total} 7.0 kg'), findsOne);
+      expect(totalRow('7.0 kg'), findsOneWidget);
       // A wing's own dry weight is not lead.
       expect(find.text('Wing'), findsNothing);
+      // No card or title of its own: the merged card draws those.
+      expect(find.byType(Card), findsNothing);
+      expect(find.text(l.diveLog_detail_section_weight), findsNothing);
     });
 
-    testWidgets('shows lead carried only as gear', (tester) async {
-      await pump(tester, DiveWeightSection(dive: dive(gear: const [plate])));
+    testWidgets('one entry shows no total row', (tester) async {
+      await pump(tester, DiveWeightRows(dive: dive(gear: const [plate])));
 
       expect(find.text('Weighted backplate'), findsOneWidget);
-      expect(find.text('${l.diveLog_detail_label_total} 2.5 kg'), findsOne);
+      expect(find.text('2.5 kg'), findsOneWidget);
+      expect(find.text(l.diveLog_detail_label_total), findsNothing);
     });
 
     testWidgets('leaves out weights gear that declares no mass', (
@@ -144,13 +164,14 @@ void main() {
     ) async {
       await pump(
         tester,
-        DiveWeightSection(
+        DiveWeightRows(
           dive: dive(weights: const [belt], gear: const [unweighed]),
         ),
       );
 
       expect(find.text('Trim block'), findsNothing);
-      expect(find.text('${l.diveLog_detail_label_total} 4.5 kg'), findsOne);
+      expect(find.text('4.5 kg'), findsOneWidget);
+      expect(find.text(l.diveLog_detail_label_total), findsNothing);
     });
   });
 

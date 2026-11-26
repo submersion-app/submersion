@@ -136,6 +136,7 @@ part 'helpers/safety_migrations.dart';
 part 'helpers/set_bundle_migrations.dart';
 part 'helpers/service_migrations.dart';
 part 'helpers/site_migrations.dart';
+part 'helpers/species_revamp_migrations.dart';
 part 'helpers/support_migrations.dart';
 part 'helpers/sync_migrations.dart';
 part 'helpers/tag_migrations.dart';

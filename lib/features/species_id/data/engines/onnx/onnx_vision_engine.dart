@@ -101,7 +101,17 @@ class OnnxVisionEngine
            ),
        _ignoreFloor = ignoreFloor,
        _is64Bit = is64Bit ?? processIs64Bit(),
-       _libraryLoads = libraryLoads ?? (() async => ortLibraryLoads());
+       _libraryLoads =
+           libraryLoads ??
+           (() async => debugLibraryLoadsOverride ?? ortLibraryLoads());
+
+  /// When set, whether ONNX Runtime loads for every engine built without
+  /// its own `libraryLoads`, read on each check. The test harness pins it to
+  /// false: `flutter test` builds the library in for a Linux host and not
+  /// for a Mac, so left to the host a widget test analyses the photos it
+  /// opens on one and not on the other.
+  @visibleForTesting
+  static bool? debugLibraryLoadsOverride;
 
   final TargetPlatform _platform;
 

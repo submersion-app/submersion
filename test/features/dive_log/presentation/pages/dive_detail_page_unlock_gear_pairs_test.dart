@@ -15,7 +15,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_deco_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_gas_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sac_segments_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_weights_buoyancy_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_rules.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_card_editor.dart';
@@ -223,21 +223,21 @@ void main() {
     );
   });
 
-  testWidgets('a weight added shows on the Weights half after Done; '
-      'Buoyancy keeps the stored dive', (tester) async {
-    await open(tester, const {
-      DiveDetailSectionId.weights,
-      DiveDetailSectionId.buoyancy,
-    });
-    final pair = find.byKey(const ValueKey('diveSectionPair_weights'));
-    expect(pair, findsOneWidget);
+  testWidgets('a weight added shows on the Weights and buoyancy card after '
+      'Done; its model keeps the stored dive', (tester) async {
+    // One card since issue #5005: the weights it lists can be edited, the
+    // model below them is worked out from the dive as stored.
+    await open(tester, const {DiveDetailSectionId.weights});
+    final card = find.byKey(const ValueKey('diveSection_weights'));
+    expect(card, findsOneWidget);
+    expect(find.byKey(const ValueKey('diveSectionPair_weights')), findsNothing);
     await unlock(tester);
     final before = tester.getRect(frameOf('weights'));
 
-    await tester.tap(find.byTooltip('Edit Weight'));
+    await tester.tap(find.byTooltip('Edit Weights and buoyancy'));
     await settle(tester);
     expect(
-      find.descendant(of: pair, matching: find.byType(DiveWeightsCardEditor)),
+      find.descendant(of: card, matching: find.byType(DiveWeightsCardEditor)),
       findsOneWidget,
     );
     expect(tester.getRect(frameOf('weights')).topLeft, before.topLeft);
@@ -246,18 +246,18 @@ void main() {
     await tester.tap(find.text('Done'));
     await settle(tester);
 
-    expect(pair, findsOneWidget);
+    expect(card, findsOneWidget);
     expect(
-      divesOf<DiveWeightSection>(
+      divesOf<DiveWeightsBuoyancyCard>(
         tester,
         (w) => w.dive,
       ).map((d) => d.weights.length),
       allOf(isNotEmpty, everyElement(2)),
     );
     expect(
-      divesOf<DiveDetailBuoyancySection>(
+      divesOf<DiveWeightsBuoyancyCard>(
         tester,
-        (w) => w.dive,
+        (w) => w.stored,
       ).map((d) => d.weights.length),
       allOf(isNotEmpty, everyElement(1)),
     );

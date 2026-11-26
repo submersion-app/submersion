@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -120,6 +121,7 @@ Future<void> _pump(
   bool isOrphaned = false,
   MediaItem? item,
   MediaStoreRuntime? runtime,
+  bool settle = true,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -150,7 +152,14 @@ Future<void> _pump(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    // A network image keeps a loading animation running, so settling would
+    // never finish; two frames carry the resolution through.
+    await tester.pump();
+    await tester.pump();
+  }
 }
 
 void main() {
@@ -179,6 +188,30 @@ void main() {
     );
 
     expect(repository.writes, [(id: 'x', isOrphaned: false)]);
+  });
+
+  testWidgets('a network resolution leaves an orphan flag alone', (
+    tester,
+  ) async {
+    // NetworkData only names a URL; nothing was fetched, so it is no
+    // evidence that a subscription entry the poll marked missing is back.
+    final repository = CapturingMediaRepository();
+
+    await _pump(
+      tester,
+      data: NetworkData(
+        url: Uri.parse('https://example.invalid/photo1.jpg'),
+        servedFrom: ServedFrom.networkUrl,
+      ),
+      repository: repository,
+      isOrphaned: true,
+      settle: false,
+    );
+
+    // The resolution finished and reached the network image, so a
+    // reconcile, had there been one, has already run.
+    expect(find.byType(CachedNetworkImage), findsOneWidget);
+    expect(repository.writes, isEmpty);
   });
 
   testWidgets('a healthy row that resolves writes nothing', (tester) async {

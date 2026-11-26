@@ -12361,6 +12361,67 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_backfill_offline => '場所の検索を利用できません。接続を確認して、もう一度お試しください。';
 
   @override
+  String get diveSites_backfill_confirm_mayStayEmpty =>
+      '一部の項目は空欄のままになることがあります。OpenStreetMapには、プール、セノーテ、採石場の水域や、沖合のサイトの町がないことがよくあります。';
+
+  @override
+  String diveSites_backfill_confirm_alreadyLookedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ほかのサイト$count件は検索済みで、OpenStreetMapに追加できる情報はありませんでした。',
+      one: 'ほかのサイト1件は検索済みで、OpenStreetMapに追加できる情報はありませんでした。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_nothingNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'サイト$count件に空欄の場所情報が残っていますが、OpenStreetMapに追加できる情報はありませんでした。サイトを移動するか項目を空にすると、再び対象になります。',
+      one:
+          'サイト1件に空欄の場所情報が残っていますが、OpenStreetMapに追加できる情報はありませんでした。サイトを移動するか項目を空にすると、再び対象になります。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のサイトを更新しました。',
+      one: '1件のサイトを更新しました。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_nothingToAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のサイトはOpenStreetMapに追加できる情報がありませんでした。',
+      one: '1件のサイトはOpenStreetMapに追加できる情報がありませんでした。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_backfill_summary_failed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の検索に失敗しました。',
+      one: '1件の検索に失敗しました。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_list_menu_refreshPlaceNames => '地名を更新';
 
   @override
@@ -18691,6 +18752,47 @@ class AppLocalizationsJa extends AppLocalizations {
   String get marineLife_speciesDetail_statsError => '観察統計を読み込めませんでした';
 
   @override
+  String get marineLife_speciesDetail_firstSeenLabel => '初めて見た日';
+
+  @override
+  String get marineLife_speciesDetail_lastSeenLabel => '最後に見た日';
+
+  @override
+  String get marineLife_speciesDetail_depthSeasonTitle => '水深と季節';
+
+  @override
+  String get marineLife_speciesDetail_photoDepths => '写真の水深';
+
+  @override
+  String get marineLife_speciesDetail_diveMaxDepth => 'ダイブの最大水深';
+
+  @override
+  String get marineLife_speciesDetail_byMonth => '月別のダイブ数';
+
+  @override
+  String get marineLife_speciesDetail_timelineTitle => 'タイムライン';
+
+  @override
+  String get marineLife_speciesDetail_useAsCover => '表紙に使う';
+
+  @override
+  String get marineLife_speciesDetail_removeCover => '表紙を外す';
+
+  @override
+  String get marineLife_speciesDetail_cover => '表紙';
+
+  @override
+  String get marineLife_speciesDetail_findPhotos => '写真を探す';
+
+  @override
+  String get marineLife_speciesDetail_openMedia => '写真または動画を開く';
+
+  @override
+  String marineLife_speciesDetail_timelineDive(String date) {
+    return '$dateのダイブ';
+  }
+
+  @override
   String marineLife_speciesDetail_taxonomyClassLabel(Object className) {
     return '綱：$className';
   }
@@ -19019,6 +19121,127 @@ class AppLocalizationsJa extends AppLocalizations {
   String get marineLife_speciesPage_retry => '再試行';
 
   @override
+  String get marineLife_speciesPage_headerSpecies => '種';
+
+  @override
+  String marineLife_speciesPage_headerNewIn(String year) {
+    return '$year年の新種';
+  }
+
+  @override
+  String get marineLife_speciesPage_headerGrowth => '種リストの推移';
+
+  @override
+  String marineLife_speciesPage_withoutPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '写真なし$count種',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get marineLife_speciesPage_groupByTooltip => 'グループ化';
+
+  @override
+  String get marineLife_speciesPage_groupBy_none => 'グループ化しない';
+
+  @override
+  String get marineLife_speciesPage_groupBy_category => 'カテゴリ';
+
+  @override
+  String get marineLife_speciesPage_groupBy_firstSeen => '初めて見た年';
+
+  @override
+  String get marineLife_speciesPage_groupBy_trip => '旅行';
+
+  @override
+  String get marineLife_speciesPage_groupBy_site => 'ダイブサイト';
+
+  @override
+  String get marineLife_speciesPage_noTrip => '旅行なし';
+
+  @override
+  String get marineLife_speciesPage_noSite => 'ダイブサイトなし';
+
+  @override
+  String get marineLife_speciesPage_seeAll => 'すべて表示';
+
+  @override
+  String get marineLife_speciesPage_showList => 'リスト表示';
+
+  @override
+  String get marineLife_speciesPage_showCards => 'カード表示';
+
+  @override
+  String get marineLife_speciesPage_practiceTooltip => '種の名前を練習';
+
+  @override
+  String get marineLife_speciesPage_firstSeenHere => 'ここで初めて見た';
+
+  @override
+  String get marineLife_rarity_new => '新規';
+
+  @override
+  String get marineLife_rarity_seenOnce => '1回だけ';
+
+  @override
+  String get marineLife_rarity_notSeenLately => 'しばらく見ていない';
+
+  @override
+  String get marineLife_rarity_mastered => '習得済み';
+
+  @override
+  String get marineLife_practice_title => '種の識別練習';
+
+  @override
+  String get marineLife_practice_notEnough =>
+      '練習するには、確認済みの写真の切り抜きがある種が4種以上必要です。見た種の写真にタグを付けて確認してから、もう一度お試しください。';
+
+  @override
+  String get marineLife_practice_back => '種に戻る';
+
+  @override
+  String marineLife_practice_progress(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get marineLife_practice_question => 'この種は何ですか?';
+
+  @override
+  String get marineLife_practice_scientificNames => '学名';
+
+  @override
+  String get marineLife_practice_right => '正解';
+
+  @override
+  String marineLife_practice_wrong(String name) {
+    return '惜しい: 正解は$name';
+  }
+
+  @override
+  String get marineLife_practice_next => '次へ';
+
+  @override
+  String get marineLife_practice_finish => '結果を見る';
+
+  @override
+  String marineLife_practice_score(int right, int total) {
+    return '$total問中$right問正解';
+  }
+
+  @override
+  String get marineLife_practice_missedTitle => 'もう一度練習';
+
+  @override
+  String get marineLife_practice_again => 'もう一度練習する';
+
+  @override
+  String get marineLife_practice_done => '完了';
+
+  @override
   String get speciesMap_title => '生物マップ';
 
   @override
@@ -19294,7 +19517,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_diveMediaSection_replaceEditedTitle => 'ファイルの内容が異なります';
 
   @override
-  String get media_diveMediaSection_unlinkButton => 'リンク解除';
+  String get media_diveMediaSection_unlinkButton => 'リンクを解除';
 
   @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
@@ -19634,6 +19857,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_photoPicker_tab_url => 'URL';
+
+  @override
+  String get media_photoPicker_feedElsewhereHint =>
+      '写真フィードを追加するには、メディア画面のインポートを使用してください。';
+
+  @override
+  String get media_photoPicker_galleryOnlyHint =>
+      'ファイルやリンクを追加するには、メディア画面のインポートを使用してください。';
+
+  @override
+  String get media_photoPicker_galleryOnlyLinksHint =>
+      'リンクを追加するには、メディア画面のインポートを使用してください。';
 
   @override
   String get media_photoPicker_clearSelectionButton => 'クリア';
@@ -20133,6 +20368,95 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get media_viewer_playOriginal => 'オリジナルを再生';
+
+  @override
+  String get media_viewer_playMotion => 'モーションを再生';
+
+  @override
+  String get media_viewer_motionUnplayable => 'このデバイスではこの写真のモーションを再生できません';
+
+  @override
+  String media_subscriptionBanner_message(
+    int count,
+    String name,
+    String error,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の写真の購読を更新できませんでした（「$name」など）：$error',
+      one: '写真の購読「$name」を更新できませんでした：$error',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_subscriptionBanner_open => '開く';
+
+  @override
+  String media_pollInterval_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count分',
+      one: '$count分',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count時間',
+      one: '$count時間',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_pollInterval_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count日',
+      one: '$count日',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_sharePassword_title => '共有パスワード';
+
+  @override
+  String get media_sharePassword_needed => 'このSynology Photosの共有にはパスワードが必要です。';
+
+  @override
+  String get media_sharePassword_rejected =>
+      '共有がパスワードを受け付けませんでした。もう一度入力してください。';
+
+  @override
+  String get media_sharePassword_field => 'パスワード';
+
+  @override
+  String get media_sharePassword_save => '保存して取得';
+
+  @override
+  String get media_sharePassword_keychainNote =>
+      'このデバイスのキーチェーンに保存され、同期されることはありません。';
+
+  @override
+  String get media_sharePassword_formSave => 'パスワードを保存して取得';
+
+  @override
+  String get media_pollInterval_checkEvery => '確認の間隔';
+
+  @override
+  String get media_sharePassword_rejectedStatus => '共有が保存済みのパスワードを受け付けませんでした。';
+
+  @override
   String get media_photoViewer_playPauseVideoLabel => '動画を再生または一時停止';
 
   @override
@@ -20395,6 +20719,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_sources_neverScanned => '未スキャン';
 
   @override
+  String get media_sources_removeFolderTitle => 'このフォルダの監視を停止しますか？';
+
+  @override
+  String media_sources_removeFolderBody(String folder) {
+    return 'Submersion は $folder で見つけたファイルを記録から外し、そこで見つからない写真を探さなくなります。写真やファイルは削除されません。';
+  }
+
+  @override
   String get media_source_gallery => '写真ライブラリ';
 
   @override
@@ -20438,6 +20770,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_smartAlbum_delete => 'アルバムを削除';
+
+  @override
+  String media_smartAlbum_deleteConfirmTitle(String name) {
+    return '「$name」を削除しますか？';
+  }
+
+  @override
+  String get media_smartAlbum_deleteConfirmBody =>
+      '保存したフィルターだけが削除されます。写真や動画は変わりません。';
 
   @override
   String get media_smartAlbum_deleteFailed => 'アルバムを削除できませんでした';
@@ -20637,6 +20978,44 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_divePicker_search => 'ダイブを検索';
+
+  @override
+  String media_library_moveConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件を移動しますか？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_library_moveConfirmBody(int count, String dive) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$diveに移動し、現在のダイブがあればそこから外れます。',
+    );
+    return '$_temp0ダイビングサイトと器材へのリンクはそのままです。';
+  }
+
+  @override
+  String get media_library_moveConfirmAction => '移動';
+
+  @override
+  String get media_library_moveDiveOpenHint =>
+      'この移動に含まれるダイブが編集中です。保存、キャンセル、またはロックしてから、もう一度お試しください。';
+
+  @override
+  String get media_library_moveFailed => '項目を移動できませんでした';
+
+  @override
+  String get media_library_unlinkFailed => 'リンクを解除できませんでした';
+
+  @override
+  String media_library_moveDiveName(String label, String date) {
+    return '$label、$date';
+  }
 
   @override
   String get media_library_moveToDive => 'ダイブに移動';
@@ -21502,12 +21881,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get plannerCanvas_chartMode_bailout => 'ベイルアウト';
 
   @override
-  String get plannerCanvas_chartMode_ccr => 'CCR';
-
-  @override
-  String get plannerCanvas_chartMode_scr => 'SCR';
-
-  @override
   String plannerCanvas_scrub_tts(String minutes) {
     return 'TTS $minutes′';
   }
@@ -22160,17 +22533,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_detail_coordinatesCopied => '座標をクリップボードにコピーしました';
 
   @override
-  String get diveDetailSection_weights_name => 'ウェイト';
+  String get diveDetailSection_weights_name => 'ウェイトと浮力';
 
   @override
-  String get diveDetailSection_weights_description => 'ウェイトの内訳、合計ウェイト';
+  String get diveDetailSection_weights_description =>
+      '携行したウェイト、ダイブ中の浮力、次回のウェイト量、投棄可能なウェイト';
 
   @override
   String get diveDetailSection_buoyancy_name => '浮力';
-
-  @override
-  String get diveDetailSection_buoyancy_description =>
-      'ダイブ中の浮力、次回のウェイト量、投棄可能なウェイト';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -25509,6 +25879,25 @@ class AppLocalizationsJa extends AppLocalizations {
       '判定のクロック';
 
   @override
+  String get settings_conflict_field_speciesCovers_identificationId =>
+      '表紙の切り抜き';
+
+  @override
+  String get settings_conflict_field_speciesPractice_box => '練習ボックス';
+
+  @override
+  String get settings_conflict_field_speciesPractice_dueAt => '練習予定日';
+
+  @override
+  String get settings_conflict_field_speciesPractice_rightCount => '正解回数';
+
+  @override
+  String get settings_conflict_field_speciesPractice_wrongCount => '不正解回数';
+
+  @override
+  String get settings_conflict_field_speciesPractice_lastPractisedAt => '最終練習日';
+
+  @override
   String get settings_conflict_field_mediaIdentificationCrops_jpeg => '切り抜き';
 
   @override
@@ -28019,6 +28408,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get dataHealth_media_transfersPaused => '写真の転送を一時停止中';
+
+  @override
+  String dataHealth_media_subscriptionPassword(String name) {
+    return '写真の購読$nameにはパスワードが必要です';
+  }
+
+  @override
+  String dataHealth_media_subscriptionFailing(String name) {
+    return '写真の購読$nameを更新できませんでした';
+  }
 
   @override
   String dataHealth_facts_dives(int count) {
@@ -43544,6 +43943,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_mediaStorage_quality_reuploadQueued => '再アップロードを予約しました';
 
   @override
+  String get settings_mediaStorage_quality_downgradeTitle =>
+      'フル画質のコピーを置き換えますか？';
+
+  @override
+  String settings_mediaStorage_quality_downgradeBody(String level) {
+    return 'ストレージに保存されたオリジナルは $level のコピーに置き換えられます。この端末の写真はそのまま残ります。';
+  }
+
+  @override
+  String get settings_mediaStorage_quality_downgradeConfirm => '置き換える';
+
+  @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       '動画を圧縮するにはffmpegをインストールしてください。それまではオリジナルがアップロードされます。';
 
@@ -43839,6 +44250,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get common_selection_deselectAllTooltip => 'すべての選択を解除';
+
+  @override
+  String get common_selection_selectAllLoadFailed =>
+      'すべての項目を読み込めなかったため、すべて選択は適用されませんでした。もう一度お試しください。';
 
   @override
   String common_bulkDelete_title(int count) {
@@ -46868,34 +47283,6 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get species_convict_tang_desc =>
       '6本の黒い横帯を持つ淡い色のニザダイの仲間で、インド太平洋のリーフフラットで大群になって藻を食べる姿がよく見られます。';
-
-  @override
-  String get species_great_hammerhead_name => 'アカシュモクザメ';
-
-  @override
-  String get species_great_hammerhead_desc =>
-      '縁が波打ったハンマー形の頭を持つ特徴的なサメで、海山や沖合の島で大きな群れを作ります。';
-
-  @override
-  String get species_wobbegong_name => 'スポッテッドウォビゴン';
-
-  @override
-  String get species_wobbegong_desc =>
-      '口の周りに房状の皮弁を持つ、平たくカモフラージュの巧みなテンジクザメの仲間です。オーストラリアの温帯のリーフに見られます。';
-
-  @override
-  String get species_manta_ray_name => 'ナンヨウマンタ';
-
-  @override
-  String get species_manta_ray_desc =>
-      '翼幅5mに達する優雅な巨体で、インド太平洋のリーフのクリーニングステーションを訪れ、プランクトンを食べます。';
-
-  @override
-  String get species_oceanic_manta_name => 'オニイトマキエイ';
-
-  @override
-  String get species_oceanic_manta_desc =>
-      '翼幅7mを超える最大のエイで、沖合の海山やクリーニングステーションで出会えます。';
 
   @override
   String get species_undulated_moray_name => 'アミメウツボ';
@@ -50106,6 +50493,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get media_credentials_secretMissing => 'このデバイスにパスワードがありません';
+
+  @override
   String get media_credentials_deleteBody =>
       '保存された認証情報を削除します。このホスト経由でリンクされた項目は、再追加するまで「サインインが必要です」と表示されます。';
 
@@ -53054,6 +53444,29 @@ class AppLocalizationsJa extends AppLocalizations {
       'プロファイルのリビジョンを削除できませんでした。';
 
   @override
+  String get diveLog_profileEditor_removeSource => 'このソースを削除';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHint =>
+      'プロファイルを削除するには、変更を保存するか元に戻してください。';
+
+  @override
+  String get diveLog_profileEditor_unsavedEditsHintWithSource =>
+      'プロファイルの削除やこのソースの削除を行うには、変更を保存するか元に戻してください。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_notPrimary =>
+      '「プロファイル全体を削除」で削除できるのは、プライマリソースのプロファイルのリビジョンだけです。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_onlyRevision =>
+      'これはこのダイブの唯一のプロファイルリビジョンのため、削除できません。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_historyFailed =>
+      'プロファイルのリビジョンを読み込めなかったため、現在は削除できません。';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'リビジョン履歴の導入前に保存。コンピューターとは関連付けられていません';
 
@@ -53720,13 +54133,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_labels_action => '種のラベル';
 
   @override
-  String get media_labels_names => '名前';
+  String get media_labels_names => '名前と可能性の高い動物';
 
   @override
-  String get media_labels_allLife => 'すべての生物';
+  String get media_labels_allLife => '検出されたものすべて';
 
   @override
-  String get media_labels_off => 'オフ';
+  String get media_labels_off => 'ラベルなし';
 
   @override
   String get media_labels_analyse => '解析';
@@ -53761,6 +54174,33 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String media_labels_statusPartlyFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '一部解析済み、$count件検出',
+      one: '一部解析済み、$count件検出',
+      zero: '一部解析済み、見つかりませんでした',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_labels_buttonNotAnalysed => '種のラベル：未解析';
+
+  @override
+  String get media_labels_buttonAnalysing => '種のラベル：解析中';
+
+  @override
+  String get media_labels_buttonPartlyAnalysed => '種のラベル：一部解析済み';
+
+  @override
+  String get media_labels_buttonOutdated => '種のラベル：最新ではありません';
+
+  @override
+  String get media_labels_buttonAnalysed => '種のラベル：解析済み';
+
+  @override
   String media_labels_foundNoneNamed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -53772,13 +54212,66 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'すべての生物を表示';
+  String get media_labels_showAllLife => '検出されたものをすべて表示';
 
   @override
   String get media_species_possibleMatches => '一致する可能性のある種';
 
   @override
   String get media_species_cropUnavailable => '画像がこのデバイスにありません';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'この写真に$count件',
+      one: 'この写真に$count件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'この動画に$count件',
+      one: 'この動画に$count件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropBestOfVideo(int shown, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の目撃のうち上位$shown件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_seenAt => '見られた時刻';
+
+  @override
+  String media_species_seenStretch(String start, String end) {
+    return '$start〜$end';
+  }
+
+  @override
+  String media_species_playFrom(String time) {
+    return '$timeから再生';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => '種のページ';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return '画像 $index/$count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'この写真でタグ付け済み';
@@ -54352,6 +54845,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_info_checkUnavailable => '現在は確認できません';
+
+  @override
+  String get media_info_checkNeedsPassword => 'パスワードがないか、受け付けられませんでした';
 
   @override
   String get media_info_backupQueued => 'アップロード待ちに追加しました';
@@ -56418,6 +56914,23 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get backup_unrecognized_explanation =>
       'これらのファイルはバックアップフォルダにありますが、この端末のバックアップ履歴にはありません。ここで削除できるのはこの端末が書き込んだファイルのみです。それ以外は別の端末の唯一のコピーである可能性があります。';
+
+  @override
+  String get backup_unrecognized_explanation_appPrivate =>
+      'これらのファイルはバックアップフォルダにありますが、この端末のバックアップ履歴にはありません。このフォルダはこの端末の Submersion 専用のため、ほかの端末がこれらのファイルを使うことはなく、どれでもここで削除できます。';
+
+  @override
+  String backup_unrecognized_confirm_foreignWarning(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '選択した $count 件のファイルは、別の端末、以前のインストール、または古いバージョンの Submersion が作成したものかもしれません。ほかに保存していないダイブが含まれている場合、そのダイブは失われます。',
+      one:
+          '選択した 1 件のファイルは、別の端末、以前のインストール、または古いバージョンの Submersion が作成したものかもしれません。ほかに保存していないダイブが含まれている場合、そのダイブは失われます。',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_unrecognized_empty => '認識できないバックアップファイルはありません。';
@@ -60052,6 +60565,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_setUpDevice_item_signInAction => 'サインイン';
 
   @override
+  String settings_setUpDevice_item_subscriptionPassword(String name) {
+    return '写真アルバム$nameには、このデバイスでパスワードが必要です。';
+  }
+
+  @override
+  String get settings_setUpDevice_item_enterPasswordAction => 'パスワードを入力';
+
+  @override
   String get settings_setUpDevice_item_reconnectAction => '再接続';
 
   @override
@@ -60840,6 +61361,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => '重複したタンクを削除';
+
+  @override
+  String get changeLog_label_moveMedia => '別のダイブに移動';
+
+  @override
+  String get changeLog_label_unlinkMedia => 'ライブラリからリンクを解除';
+
+  @override
+  String get changeLog_label_removeGearPhotos => '器材の写真を削除';
 
   @override
   String get changeLog_label_updatePlannedDives => '予定ダイブを更新';
@@ -63460,4 +63990,101 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeKeyNumbers_description =>
       'ホームの上部に表示する数値を選択します。表示するデータがまだない数値は省略されます。';
+
+  @override
+  String get dashboard_greeting_morning => 'おはようございます';
+
+  @override
+  String get dashboard_greeting_afternoon => 'こんにちは';
+
+  @override
+  String get dashboard_greeting_evening => 'こんばんは';
+
+  @override
+  String dashboard_greeting_withName(Object greeting, Object name) {
+    return '$greeting、$nameさん！';
+  }
+
+  @override
+  String dashboard_greeting_withoutName(Object greeting) {
+    return '$greeting！';
+  }
+
+  @override
+  String get dashboard_hero_divesLoggedOne => '1本のダイブを記録';
+
+  @override
+  String dashboard_hero_divesLoggedOther(Object count) {
+    return '$count本のダイブを記録';
+  }
+
+  @override
+  String get dashboard_hero_divesTotalOne => '1本のダイブ';
+
+  @override
+  String dashboard_hero_divesTotalOther(Object count) {
+    return '$count本のダイブ';
+  }
+
+  @override
+  String get dashboard_hero_error => '海の深みを探検する準備はできましたか？';
+
+  @override
+  String dashboard_hero_hoursUnderwater(Object hours) {
+    return '水中で$hours時間';
+  }
+
+  @override
+  String get dashboard_hero_loading => 'ダイブ統計を読み込み中...';
+
+  @override
+  String dashboard_hero_minutesUnderwater(Object minutes) {
+    return '水中で$minutes分';
+  }
+
+  @override
+  String get dashboard_hero_noDives => '最初のダイブを記録しましょう';
+
+  @override
+  String get dashboard_hero_diverFallbackName => 'ダイバー';
+
+  @override
+  String get dashboard_hero_statDives => 'ダイブ';
+
+  @override
+  String get dashboard_hero_statHours => '時間';
+
+  @override
+  String get dashboard_hero_statSites => 'サイト';
+
+  @override
+  String get dashboard_hero_statCountries => 'か国';
+
+  @override
+  String get dashboard_semantics_greetingBanner => 'ダッシュボードのあいさつバナー';
+
+  @override
+  String get dashboard_quickActions_sectionTitle => 'クイックアクション';
+
+  @override
+  String get dashboard_quickActions_insights => 'インサイト';
+
+  @override
+  String get settings_homeHeader_sectionTitle => 'ヘッダー';
+
+  @override
+  String get settings_homeHeader_phone => 'スマートフォン幅';
+
+  @override
+  String get settings_homeHeader_wide => 'より広い画面';
+
+  @override
+  String get settings_homeHeader_compact => 'コンパクト';
+
+  @override
+  String get settings_homeHeader_banner => 'バナー';
+
+  @override
+  String get settings_homeHeader_description =>
+      'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
 }

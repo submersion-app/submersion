@@ -61,9 +61,9 @@ class UnrecognizedBackupService {
   /// draws for the same reason: an Android SAF location is a content:// tree
   /// URI with no directory behind it, and reporting it as clean would tell the
   /// user there is nothing to reclaim when nothing was ever looked at.
-  Future<List<UnrecognizedBackup>?> find() => _access.use((path) async {
-    if (path == null) return null;
-    return _scanIn(path).find();
+  Future<List<UnrecognizedBackup>?> find() => _access.useFolder((folder) async {
+    if (folder == null) return null;
+    return _scanIn(folder).find();
   });
 
   /// Deletes the reclaimable entries in [selection], returning bytes freed.
@@ -71,12 +71,16 @@ class UnrecognizedBackupService {
   /// The scan re-checks every entry, so a selection that has gone stale (the
   /// user leaving the page open while a backup runs) cannot delete anything it
   /// was not entitled to delete when it was built.
+  ///
+  /// Whether the folder is private to this app is decided again here, from the
+  /// lease taken for the delete, rather than read off the entries.
   Future<int> reclaim(Iterable<UnrecognizedBackup> selection) =>
-      _access.use((path) => _scanIn(path).reclaim(selection));
+      _access.useFolder((folder) => _scanIn(folder).reclaim(selection));
 
-  OrphanedBackupScan _scanIn(String? directoryPath) => OrphanedBackupScan(
-    backupsDirectory: () async => directoryPath,
+  OrphanedBackupScan _scanIn(BackupsFolder? folder) => OrphanedBackupScan(
+    backupsDirectory: () async => folder?.path,
     knownPaths: _knownPaths,
     thisDeviceId: _thisDeviceId,
+    appPrivateFolder: folder?.isAppPrivate ?? false,
   );
 }

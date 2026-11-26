@@ -2147,6 +2147,18 @@ class SyncService {
             records: data.mediaIdentificationCrops,
             hasUpdatedAt: false,
           ),
+          // Species covers and practice (v383, issue #5027): after species
+          // and media. Deterministic ids, so last writer wins by clock.
+          (
+            type: 'speciesCovers',
+            records: data.speciesCovers,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'speciesPractice',
+            records: data.speciesPractice,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'siteFeatures',
             records: data.siteFeatures,
@@ -3229,6 +3241,8 @@ class SyncService {
     'ruleRuns': true,
     'ruleRunChanges': true,
     'insightObservationDismissals': true,
+    'speciesCovers': true,
+    'speciesPractice': true,
     'species': false,
     'tags': true,
     'courses': true,
@@ -3762,6 +3776,13 @@ class SyncService {
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
     ],
+    // v383 (issue #5027): media and identification are soft references a
+    // stale cover ignores, so only the species is checked; diverId is left
+    // to repairDanglingForeignKeys like every diver key.
+    'speciesCovers': [(field: 'speciesId', parent: 'species', nullable: false)],
+    'speciesPractice': [
+      (field: 'speciesId', parent: 'species', nullable: false),
+    ],
     // v326: people tagged on photos and videos (issue #1745). buddyId is
     // nullable (a Me tag has none), so a tag whose buddy is gone arrives
     // with the reference cleared; diverId is left to repairDanglingForeignKeys
@@ -4011,6 +4032,8 @@ class SyncService {
         }
       }
     }
+    // Before anything fills a key the peer left out (issue #4954).
+    await _serializer.noteIncomingRows(entityType, records);
     records = await _keepLibrarySiteLinks(entityType, records);
     records = await _keepLibraryMembershipKeys(entityType, records);
 
@@ -4884,6 +4907,7 @@ class SyncService {
   /// derives the same result from the same rows.
   Future<void> _applyConflictRow(String entityType, Map<String, dynamic> row) =>
       _serializer.applyInDeferredFkTransaction(() async {
+        await _serializer.noteIncomingRows(entityType, [row]);
         await _serializer.upsertRecord(entityType, row);
         await _serializer.repairAfterRowWrite(entityType);
       });
@@ -5743,6 +5767,10 @@ class SyncService {
       }
     }
 
+    // The holds describe the copy being replaced (issue #4954). None is left
+    // for the rows written here to settle, so this adopt notes none of them.
+    await _serializer.discardHeldReferences();
+
     // Upsert every restored record.
     for (final entry in restored.entries) {
       for (final record in entry.value.values) {
@@ -5903,6 +5931,9 @@ class SyncService {
       if (inboundOnlyLegacyEntities.containsKey(entity)) continue;
       await _serializer.deleteAllRecords(entity);
     }
+    // The holds describe the copy being replaced (issue #4954). None is left
+    // for the rows written here to settle, so this adopt notes none of them.
+    await _serializer.discardHeldReferences();
 
     // Batched upsert of a table's rows (skipping null-id rows, matching the
     // in-memory path). Batching is the throughput lever: a large adopt is

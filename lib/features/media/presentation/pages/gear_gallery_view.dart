@@ -97,7 +97,7 @@ class _GearGalleryViewState extends ConsumerState<GearGalleryView> {
     final confirmed = await confirmRemoveGearPhotos(context, ids.length);
     if (!confirmed || !mounted) return BulkActionOutcome.cancelled;
     try {
-      await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment(ids);
+      await ref.read(mediaUnlinkServiceProvider).removeGearPhotos(ids);
       ref.invalidate(gearGalleryProvider);
       return BulkActionOutcome.completed;
     } catch (e) {

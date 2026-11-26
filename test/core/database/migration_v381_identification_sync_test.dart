@@ -73,10 +73,13 @@ void _seed380(Database raw) {
 }
 
 void main() {
-  test('v381 is in the ladder and is the floor', () {
+  test('v381 is in the ladder and the floor is at least v381', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(381));
     expect(AppDatabase.migrationVersions, contains(381));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 381);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(381),
+    );
   });
 
   test('a fresh database has the sync columns and the crops table', () async {

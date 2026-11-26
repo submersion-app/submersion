@@ -8,6 +8,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_overview_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
@@ -18,8 +19,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
-/// The whole trip on one page: its dates, its totals, a line per day that
-/// opens that day, then the vessel, the notes and the documents.
+/// The whole trip on one page: its dates, the line of its type, location,
+/// resort and sharing, its totals, a line per day that opens that day, then
+/// the vessel, the notes and the documents.
 ///
 /// This is where everything about the trip as a whole lives, so that a day's
 /// page can be about the day alone. The trip's name is not repeated here; it
@@ -122,6 +124,13 @@ class TripStoryTripPage extends ConsumerWidget {
                 ],
               ],
             ),
+          ),
+          // The trip's type, where it is, its resort and who it is shared
+          // with, on one line under the dates, and the header block's
+          // editor (issue #4927).
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: framed(TripCardId.header, TripHeaderRows(trip: trip)),
           ),
           if (story.isEmpty) ...[
             // A trip under way with nothing logged yet still has cylinders

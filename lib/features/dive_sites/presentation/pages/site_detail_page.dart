@@ -613,10 +613,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               context,
               ref,
               item,
+              // The attachment opens under its own lock (issue #4527).
               editableSiteId: site.id,
-              // The page edits in place, so the attachment opens under its
-              // own lock (issue #4527, phase 2).
-              attachmentLock: true,
             ),
           ),
       // Tags (issue #1765), after media as on a dive. Shown only when the
@@ -794,9 +792,21 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     WidgetRef ref,
     DiveSite site,
   ) async {
-    final membership = await ref.read(
-      currentMembershipProvider(site.sharedLibraryId!).future,
-    );
+    // The prefix only prefills the connect form: a membership that cannot
+    // be read opens it empty rather than not at all.
+    SharedLibraryMembership? membership;
+    try {
+      membership = await ref.read(
+        currentMembershipProvider(site.sharedLibraryId!).future,
+      );
+    } catch (e, stack) {
+      _editLog.warning(
+        'Could not read the library membership for Connect',
+        error: e,
+        stackTrace: stack,
+      );
+      membership = null;
+    }
     final prefix = membership?.prefixHint ?? '';
     if (!context.mounted) return;
     context.push(

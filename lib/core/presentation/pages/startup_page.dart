@@ -57,6 +57,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/core/theme/brand_typography.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -2220,13 +2221,14 @@ class _StartupWrapperState extends State<StartupWrapper>
             child: Image.asset('assets/icon/icon.png', width: 120, height: 120),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Submersion',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              decoration: TextDecoration.none,
+            style: BrandTypography.wordmark(
+              const TextStyle(
+                fontSize: 28,
+                color: Colors.white,
+                decoration: TextDecoration.none,
+              ),
             ),
           ),
           const SizedBox(height: 32),

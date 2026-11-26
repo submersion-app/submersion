@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
+import 'package:submersion/core/services/sync/held_references.dart';
 
 void main() {
   group('withoutDeviceLocalColumns', () {
@@ -35,6 +36,13 @@ void main() {
 
   test('active_diver_id is a device-local settings key', () {
     expect(deviceLocalSettingsKeys, contains('active_diver_id'));
+  });
+
+  test('the held references stay on each device', () {
+    expect(
+      deviceLocalSettingsKeys,
+      containsAll([heldLinksSettingsKey, heldOrphansSettingsKey]),
+    );
   });
 
   test('the notification settings and theme mode are device-local', () {

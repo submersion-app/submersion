@@ -551,10 +551,17 @@ class SiteRepository {
   /// geocoded in another place name language are brought back into line.
   /// The rule itself lives in [mergeLocationDetails]. Returns true when a
   /// column was written; the row is marked pending for sync only then.
+  ///
+  /// With [onlyAt], nothing is written unless the row is still at those
+  /// coordinates, checked inside the write's transaction: [found] answers
+  /// for the point that was looked up, and a site moved meanwhile (a sync,
+  /// another edit) must not take place names from where it used to be
+  /// (issue #4992).
   Future<bool> applyLocationDetails(
     String siteId,
     PlaceLookup found, {
     required bool overwrite,
+    domain.GeoPoint? onlyAt,
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -570,6 +577,11 @@ class SiteRepository {
           _db.diveSites,
         )..where((t) => t.id.equals(siteId))).getSingleOrNull();
         if (row == null) return false;
+        if (onlyAt != null &&
+            (row.latitude != onlyAt.latitude ||
+                row.longitude != onlyAt.longitude)) {
+          return false;
+        }
 
         final merged = mergeLocationDetails(
           current: SiteLocationDetails.ofSite(_mapRowToSite(row)),

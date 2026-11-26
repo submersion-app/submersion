@@ -320,28 +320,17 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     String sourceName,
   ) {
     final container = ProviderScope.containerOf(context, listen: false);
-    void afterChange() {
-      final active = container.read(activeDiveSourceProvider(dive.id).notifier);
-      if (active.state == sourceId) active.state = null;
-      final overlays = container.read(overlaySourcesProvider(dive.id).notifier);
-      if (overlays.state.contains(sourceId)) {
-        overlays.state = {...overlays.state}..remove(sourceId);
-      }
-      scheduleQualityScan([dive.id]);
-      scheduleSensorSummaryRefresh([dive.id], force: true);
-      scheduleDerivedMetricsRefresh([dive.id], force: true);
-      _refreshDive(container, dive.id);
-      container.invalidate(paginatedDiveListProvider);
-      container.invalidate(divesProvider);
-    }
-
     return removeSourceWithUndo(
       context,
       ref,
       diveId: dive.id,
       sourceId: sourceId,
       sourceName: sourceName,
-      afterChange: afterChange,
+      afterChange: () => refreshAfterSourceRemoval(
+        container,
+        diveId: dive.id,
+        sourceId: sourceId,
+      ),
       offerUndo: false,
     );
   }

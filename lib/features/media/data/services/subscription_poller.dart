@@ -17,14 +17,17 @@
 // row's `updatedAt` advance only on real changes.
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/dive_link_matcher.dart';
+import 'package:submersion/features/media/data/services/manifest_entry_adoption.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/network_import_targets.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 /// Drives one polling cycle across all active-due manifest subscriptions.
@@ -84,10 +87,55 @@ class SubscriptionPoller {
   Future<bool> pollNow(String subscriptionId, DateTime now) async {
     final sub = await subscriptions.getById(subscriptionId);
     if (sub == null) return false;
+    await _pollShared(sub, now);
+    return true;
+  }
+
+  /// Run one polling cycle. Returns the number of subscriptions visited
+  /// (success + 304 + failure all counted). The caller is responsible for
+  /// scheduling the next cycle (Task 12).
+  ///
+  /// Demo mode polls nothing: the cycle runs on a timer, and demo mode
+  /// seals every way data comes in (issue #3708).
+  Future<int> pollAllDue(DateTime now) async {
+    if (DemoModeGate.instance.isActive) return 0;
+    final due = await subscriptions.listActiveDue(now);
+    for (final sub in due) {
+      await _pollShared(sub, now);
+    }
+    return due.length;
+  }
+
+  /// Polls running now, by subscription id, shared by every poller in the
+  /// process. The scheduler's cycles, Poll now and the password flows can
+  /// reach one subscription at the same time, and a provider rebuild makes
+  /// a new poller while the old one's cycle still runs; two runs would both
+  /// read the same rows and both import the same new entries.
+  static final Map<String, Future<void>> _running = {};
+
+  /// Polls [sub], or joins the poll of it already under way.
+  Future<void> _pollShared(ManifestSubscription sub, DateTime now) {
+    final running = _running[sub.id];
+    if (running != null) return running;
+    late final Future<void> run;
+    run = _pollIsolated(sub, now).whenComplete(() {
+      if (identical(_running[sub.id], run)) _running.remove(sub.id);
+    });
+    _running[sub.id] = run;
+    return run;
+  }
+
+  /// One subscription's poll, its failure recorded rather than thrown so one
+  /// bad feed does not stop the others.
+  Future<void> _pollIsolated(ManifestSubscription sub, DateTime now) async {
     try {
       await _pollOne(sub, now);
     } catch (e, st) {
-      _log.error('pollNow failed: $subscriptionId', error: e, stackTrace: st);
+      _log.error(
+        'Subscription poll failed: ${sub.id}',
+        error: e,
+        stackTrace: st,
+      );
       try {
         await subscriptions.recordPollFailure(
           sub.id,
@@ -99,36 +147,6 @@ class SubscriptionPoller {
         // Already in error path; swallow secondary failure.
       }
     }
-    return true;
-  }
-
-  /// Run one polling cycle. Returns the number of subscriptions visited
-  /// (success + 304 + failure all counted). The caller is responsible for
-  /// scheduling the next cycle (Task 12).
-  Future<int> pollAllDue(DateTime now) async {
-    final due = await subscriptions.listActiveDue(now);
-    for (final sub in due) {
-      try {
-        await _pollOne(sub, now);
-      } catch (e, st) {
-        _log.error(
-          'Subscription poll failed (continuing): ${sub.id}',
-          error: e,
-          stackTrace: st,
-        );
-        try {
-          await subscriptions.recordPollFailure(
-            sub.id,
-            pollIntervalSeconds: sub.pollIntervalSeconds,
-            error: '$e',
-            now: now,
-          );
-        } catch (_) {
-          // Already in error path; swallow secondary failure.
-        }
-      }
-    }
-    return due.length;
   }
 
   Future<void> _pollOne(ManifestSubscription sub, DateTime now) async {
@@ -146,6 +164,12 @@ class SubscriptionPoller {
           now: now,
         );
       case ManifestFetchFailure():
+        // The subscription id, never the URL: a share link carries its code.
+        _log.warning(
+          'Poll of subscription ${sub.id} failed'
+          '${outcome.statusCode == null ? '' : ' (HTTP ${outcome.statusCode})'}'
+          ': ${outcome.message}',
+        );
         await subscriptions.recordPollFailure(
           sub.id,
           pollIntervalSeconds: sub.pollIntervalSeconds,
@@ -153,7 +177,31 @@ class SubscriptionPoller {
           now: now,
         );
       case ManifestFetchSuccess():
+        final warnings = outcome.parsed.warnings;
+        if (warnings.isNotEmpty) {
+          _log.warning(
+            'Poll of subscription ${sub.id}: ${warnings.length} entries '
+            'skipped, e.g. ${warnings.take(3).join(' | ')}',
+          );
+        }
+        if (outcome.parsed.entries.isEmpty && await _holdsLiveRows(sub.id)) {
+          // A feed that suddenly lists nothing has far more likely changed
+          // its format or lost its contents by accident than been emptied
+          // on purpose, and taking it at its word marks every photo of the
+          // subscription missing on every device.
+          const error =
+              'The feed listed no entries; nothing was marked missing';
+          _log.warning('Poll of subscription ${sub.id}: $error');
+          await subscriptions.recordPollFailure(
+            sub.id,
+            pollIntervalSeconds: sub.pollIntervalSeconds,
+            error: error,
+            now: now,
+          );
+          return;
+        }
         await _applyDiff(sub, outcome.parsed, now);
+        await _nameAfterAlbum(sub, outcome.parsed.title);
         await subscriptions.recordPollSuccess(
           sub.id,
           pollIntervalSeconds: sub.pollIntervalSeconds,
@@ -162,6 +210,29 @@ class SubscriptionPoller {
           now: now,
         );
     }
+  }
+
+  /// Gives a shared album's subscription the album's name when it has none,
+  /// so the app can tell two albums on one NAS apart (a subscription made
+  /// before imports named it, or one whose album could not be read until
+  /// its password was entered). A name the user gave is never replaced.
+  Future<void> _nameAfterAlbum(ManifestSubscription sub, String? title) async {
+    final name = sub.displayName;
+    if (name != null && name.isNotEmpty) return;
+    if (title == null || title.trim().isEmpty) return;
+    if (SynologyShareLink.tryParseShareUrl(sub.manifestUrl) == null) {
+      return;
+    }
+    await subscriptions.updateUrlAndDisplayName(
+      sub.id,
+      manifestUrl: sub.manifestUrl,
+      displayName: title.trim(),
+    );
+  }
+
+  Future<bool> _holdsLiveRows(String subscriptionId) async {
+    final rows = await mediaRepo.getAllBySubscription(subscriptionId);
+    return rows.any((m) => !m.isOrphaned);
   }
 
   Future<void> _applyDiff(
@@ -195,6 +266,9 @@ class SubscriptionPoller {
         width: entry.width ?? existingRow.width,
         height: entry.height ?? existingRow.height,
         durationSeconds: entry.durationSeconds ?? existingRow.durationSeconds,
+        // Filled in when the row has none (rows from before the feed sent
+        // one); a name the row already carries is left alone.
+        originalFilename: existingRow.originalFilename ?? entry.filename,
       );
       if (patched != existingRow) {
         await mediaRepo.updateMedia(patched);
@@ -237,8 +311,17 @@ class SubscriptionPoller {
     // confident dive match: nobody is here to pick a dive, and a row with
     // no dive has no place in the library. Anything skipped is still absent
     // from the DB, so the next poll sees it as new and tries again.
-    if (newEntries.isNotEmpty) {
-      final resolved = await pipeline.resolveManifestEntries(newEntries);
+    //
+    // Rows a deleted subscription left at the same URLs are taken over first:
+    // they already carry a dive, and importing them again would show every
+    // photo twice.
+    final plan = await planManifestAdoption(mediaRepo, newEntries);
+    final adopted = await applyManifestAdoption(mediaRepo, plan, sub.id);
+    if (adopted > 0) {
+      _log.info('Polled ${sub.id}: took over $adopted detached entries');
+    }
+    if (plan.fresh.isNotEmpty) {
+      final resolved = await pipeline.resolveManifestEntries(plan.fresh);
       final decided = await requestsForConfidentMatches(
         resolved,
         diveLinkMatcher,

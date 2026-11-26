@@ -139,6 +139,9 @@ class SpeciesPhotoImportHelper {
               diveStartTime: MediaImportView.libraryWindowStart,
               diveEndTime: DateTime.now().add(const Duration(days: 1)),
               buffer: Duration.zero,
+              // Only the Gallery's choice comes back here; Files and URL
+              // would write rows past the species' sitting (issue #4527).
+              galleryOnly: true,
             )) ??
         const <AssetInfo>[];
     if (assets.isEmpty || !context.mounted) return null;

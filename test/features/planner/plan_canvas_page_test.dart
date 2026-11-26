@@ -30,6 +30,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_stop_list.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
@@ -104,6 +105,33 @@ void main() {
     expect(find.byType(BackButton), findsNothing);
   });
 
+  testWidgets('a phone chart too short for the stop list still leaves its '
+      'stops untagged', (tester) async {
+    // 30% of a short body clamps the chart to its 160 dp floor, where a deco
+    // plan's issues pill leaves the readouts no room for a stop row. Tags
+    // there cover each other and the readouts, so the stops are left to the
+    // full-screen chart and the Results tab instead.
+    await setSize(tester, const Size(420, 560));
+    await tester.pumpWidget(harness());
+    ProviderScope.containerOf(tester.element(find.byType(PlanCanvasPage)))
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 50, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PlanStopList), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(PlanStopList)).height,
+      0,
+      reason: 'no stop row fits',
+    );
+    expect(
+      tester
+          .widget<PlanProfileChart>(find.byType(PlanProfileChart))
+          .showStopTags,
+      isFalse,
+    );
+  });
+
   testWidgets('phone layout shows chart, readouts, tab deck, no chip rows', (
     tester,
   ) async {
@@ -113,6 +141,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PlanProfileChart), findsOneWidget);
+    // The stops are listed in the readouts instead of tagged on the chart.
+    expect(
+      tester
+          .widget<PlanProfileChart>(find.byType(PlanProfileChart))
+          .showStopTags,
+      isFalse,
+    );
     expect(find.byType(PlanChartReadouts), findsOneWidget);
     expect(find.byType(PlanStatusChips), findsNothing);
     expect(find.text('Base'), findsOneWidget);

@@ -11,12 +11,14 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series_revi
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_owner.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/refresh_after_source_removal.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_context_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_toolbar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_editor_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/remove_source_flow.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for editing a dive profile's depth data.
@@ -49,6 +51,11 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   _editorProvider;
   List<DiveProfilePoint>? _lastProfile;
   bool _didApplyProfileChange = false;
+
+  /// Remove This Source is running: the editor may not be left until it
+  /// reports, and once the source is gone the editor keeps showing its last
+  /// profile through the exit transition rather than "no profile data".
+  bool _removingSource = false;
 
   void _initializeProvider(List<DiveProfilePoint> profile) {
     final previous = _lastProfile;
@@ -312,7 +319,10 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         ),
       ),
       data: (profiles) {
-        final points = profiles[sourceId]?.points ?? const [];
+        final points =
+            profiles[sourceId]?.points ??
+            (_removingSource ? _lastProfile : null) ??
+            const [];
         if (points.isEmpty) {
           return Scaffold(
             appBar: AppBar(
@@ -339,9 +349,10 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   Widget _buildEditor({bool showRevisions = true}) {
     final state = ref.watch(_editorProvider);
     final notifier = ref.read(_editorProvider.notifier);
-    final history = showRevisions
-        ? ref.watch(profileSeriesHistoryProvider(widget.diveId)).valueOrNull
+    final historyAsync = showRevisions
+        ? ref.watch(profileSeriesHistoryProvider(widget.diveId))
         : null;
+    final history = historyAsync?.valueOrNull;
     final activeRevision = (history == null || history.isEmpty)
         ? null
         : history.firstWhere((r) => r.isActive, orElse: () => history.first);
@@ -351,11 +362,33 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         history != null &&
         history.length > 1 &&
         activeRevision != null;
+    final l10n = context.l10n;
+    final removableSource = _removableSource();
+    // Said under the Cleanup buttons, since a disabled button alone left
+    // divers thinking the editor could not remove anything (issue #4972).
+    final String? deleteProfileHint;
+    if (state.hasChanges) {
+      // Names what waits: the outlier and trim tools keep working.
+      deleteProfileHint = removableSource != null
+          ? l10n.diveLog_profileEditor_unsavedEditsHintWithSource
+          : l10n.diveLog_profileEditor_unsavedEditsHint;
+    } else if (!showRevisions) {
+      deleteProfileHint = l10n.diveLog_profileEditor_deleteProfile_notPrimary;
+    } else if (history == null && (historyAsync?.hasError ?? false)) {
+      deleteProfileHint =
+          l10n.diveLog_profileEditor_deleteProfile_historyFailed;
+    } else if (history != null && history.length == 1) {
+      // An empty history has no revision to call the only one, so it says
+      // nothing rather than something untrue.
+      deleteProfileHint = l10n.diveLog_profileEditor_deleteProfile_onlyRevision;
+    } else {
+      deleteProfileHint = null;
+    }
 
     return PopScope(
-      canPop: !state.hasChanges,
+      canPop: !state.hasChanges && !_removingSource,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
+        if (didPop || _removingSource) return;
         final shouldPop = await _onWillPop();
         if (shouldPop && mounted) {
           context.pop(_didApplyProfileChange);
@@ -444,11 +477,80 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
                           activeRevision.revisionKind == 'computer_import',
                     )
                   : null,
+              deleteProfileHint: deleteProfileHint,
+              showRemoveSource: removableSource != null,
+              onRemoveSource:
+                  removableSource != null &&
+                      !state.hasChanges &&
+                      !_removingSource
+                  ? () => _handleRemoveSource(removableSource)
+                  : null,
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// The source this editor started from, when Remove This Source can take
+  /// it off the dive: the dive has another source, and this one does not
+  /// share its computer with another, which the removal refuses. Null for
+  /// the dive's profile on a single-source dive.
+  DiveDataSource? _removableSource() {
+    final sourceId = widget.sourceId;
+    if (sourceId == null) return null;
+    final sources =
+        ref.watch(diveDataSourcesProvider(widget.diveId)).value ?? const [];
+    if (sources.length < 2) return null;
+    final source = sources.where((s) => s.id == sourceId).firstOrNull;
+    if (source == null) return null;
+    // Asked of the raw rows, which the display list above collapses. Not
+    // offered until the answer is in, nor when it could not be read.
+    final sharesComputer = ref
+        .watch(
+          sourceSharesComputerProvider((
+            diveId: widget.diveId,
+            sourceId: sourceId,
+          )),
+        )
+        .valueOrNull;
+    return sharesComputer == false ? source : null;
+  }
+
+  /// Removes the source being edited with everything it owns, through the
+  /// flow the Data Sources menu runs (issue #4393), then leaves the editor:
+  /// the profile it shows is gone. Like that menu on the dive page, it
+  /// offers no Undo; the removal reverts from History (issue #4527).
+  Future<void> _handleRemoveSource(DiveDataSource source) async {
+    // A second tap while the first removal is still running would start a
+    // second flow, whose failure would clear the flag the first relies on.
+    if (_removingSource) return;
+    final container = ProviderScope.containerOf(context, listen: false);
+    final diveId = widget.diveId;
+    setState(() => _removingSource = true);
+    var removed = false;
+    try {
+      removed = await removeSourceWithUndo(
+        context,
+        ref,
+        diveId: diveId,
+        sourceId: source.id,
+        sourceName: resolveSourceName(source, sourceNameLabelsFor(context)),
+        afterChange: () => refreshAfterSourceRemoval(
+          container,
+          diveId: diveId,
+          sourceId: source.id,
+        ),
+        offerUndo: false,
+      );
+    } finally {
+      // Kept after a removal, so the editor stays as it was through the
+      // exit transition.
+      if (!removed && mounted) setState(() => _removingSource = false);
+    }
+    if (!removed || !mounted) return;
+    _didApplyProfileChange = true;
+    context.pop(true);
   }
 
   /// Switching revisions reloads the editor, so [enabled] is false while

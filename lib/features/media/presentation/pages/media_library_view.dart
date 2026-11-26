@@ -12,6 +12,7 @@ import 'package:submersion/features/media/presentation/widgets/media_map_content
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_missing_banner.dart';
+import 'package:submersion/features/media/presentation/widgets/media_subscription_error_banner.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_row_height_builder.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -71,6 +72,8 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     super.dispose();
   }
 
+  Future<List<String>?> _loadAllIds() => _loadAllLibraryIdsOrSay(context);
+
   void _openViewer(
     BuildContext context,
     List<MediaLibraryEntry> entries,
@@ -117,6 +120,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     return SelectableListScope(
       controller: _selection,
       selectableIds: visibleIds,
+      loadAllIds: _loadAllIds,
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
         builder: (context, selection, _) => Column(
@@ -125,6 +129,8 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
               MediaSelectionBar(
                 controller: _selection,
                 selectableIds: visibleIds,
+                loadAllIds: _loadAllIds,
+                hasUnloadedRows: state.hasMore,
                 selectedItems: state.entries
                     .where((e) => selection.isChecked(e.item.id))
                     .map((e) => e.item)
@@ -136,6 +142,9 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
                 child: MediaLibraryHeaderToolbar(selection: _selection),
               ),
             const MediaLibraryActiveFilterChips(),
+            // Shown at every width: on desktop the toolbar moves into the
+            // page header, the banner does not.
+            const MediaSubscriptionErrorBanner(),
             if (showingMissing)
               MediaMissingBanner(isEmpty: state.entries.isEmpty),
             Expanded(
@@ -270,7 +279,21 @@ class MediaLibraryHeaderToolbar extends ConsumerWidget {
     return SelectableListScope(
       controller: selection,
       selectableIds: [for (final e in entries) e.item.id],
+      loadAllIds: () => _loadAllLibraryIdsOrSay(context),
       child: toolbar,
     );
   }
+}
+
+/// [loadAllLibraryIds] for Select All, saying so when a read failed and
+/// nothing new was checked (issue #5022).
+Future<List<String>?> _loadAllLibraryIdsOrSay(BuildContext context) async {
+  // Read before the await: the widget can be gone once the rows are in.
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final message = context.l10n.common_selection_selectAllLoadFailed;
+  final ids = await loadAllLibraryIds(
+    ProviderScope.containerOf(context, listen: false),
+  );
+  if (ids == null) messenger?.showSnackBar(SnackBar(content: Text(message)));
+  return ids;
 }

@@ -54,6 +54,7 @@ List<ImportCandidate> candidatesFor(
         title:
             title?.call(m) ??
             (m.entry?.caption ??
+                m.entry?.filename ??
                 m.uri.pathSegments.lastOrNull ??
                 m.uri.toString()),
         takenAt: m.takenAt,

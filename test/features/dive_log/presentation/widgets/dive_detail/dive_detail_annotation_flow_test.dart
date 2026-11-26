@@ -266,7 +266,9 @@ void main() {
       ),
       '7:30',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    // The sheet's Save, above the page: the bar's Save is filled too
+    // (issue #5034).
+    await tester.tap(find.widgetWithText(FilledButton, 'Save').last);
     await settle(tester);
     await save(tester);
 

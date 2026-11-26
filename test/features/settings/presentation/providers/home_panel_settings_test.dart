@@ -55,6 +55,25 @@ class _EmptyDiverRepository extends DiverRepository {
   Future<Diver?> getDiverById(String id) async => null;
 }
 
+class _OneDiverRepository extends DiverRepository {
+  final _diver = Diver(
+    id: 'diver-2',
+    name: 'Second Diver',
+    createdAt: DateTime.utc(2024),
+    updatedAt: DateTime.utc(2024),
+  );
+
+  @override
+  Future<List<Diver>> getAllDivers() async => [_diver];
+
+  @override
+  Future<Diver?> getDefaultDiver() async => _diver;
+
+  @override
+  Future<Diver?> getDiverById(String id) async =>
+      id == _diver.id ? _diver : null;
+}
+
 class _NullDiverIdNotifier extends StateNotifier<String?>
     implements CurrentDiverIdNotifier {
   _NullDiverIdNotifier() : super(null);
@@ -70,7 +89,7 @@ void main() {
   group('Home panel settings persistence', () {
     late ProviderContainer container;
 
-    Future<void> makeContainer() async {
+    Future<void> makeContainer({DiverRepository? divers}) async {
       final prefs = await SharedPreferences.getInstance();
       container = ProviderContainer(
         overrides: [
@@ -78,7 +97,9 @@ void main() {
           diverSettingsRepositoryProvider.overrideWithValue(
             _InMemorySettingsRepository(),
           ),
-          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          diverRepositoryProvider.overrideWithValue(
+            divers ?? _EmptyDiverRepository(),
+          ),
           currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
         ],
       );
@@ -156,6 +177,69 @@ void main() {
       final settings = container.read(settingsProvider);
       expect(settings.homePanelOrder, isNull);
       expect(settings.hiddenHomeKeyNumbers, isNull);
+    });
+
+    test('header styles load as null with nothing stored', () async {
+      SharedPreferences.setMockInitialValues({});
+      await makeContainer();
+      final settings = container.read(settingsProvider);
+      expect(settings.homeHeaderStylePhone, isNull);
+      expect(settings.homeHeaderStyleWide, isNull);
+    });
+
+    test('setHomeHeaderStyle writes only the chosen width', () async {
+      SharedPreferences.setMockInitialValues({});
+      await makeContainer();
+      await container
+          .read(settingsProvider.notifier)
+          .setHomeHeaderStyle(phone: true, style: 'banner');
+      final settings = container.read(settingsProvider);
+      expect(settings.homeHeaderStylePhone, 'banner');
+      expect(settings.homeHeaderStyleWide, isNull);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(SettingsKeys.homeHeaderStylePhone), 'banner');
+      expect(prefs.containsKey(SettingsKeys.homeHeaderStyleWide), isFalse);
+    });
+
+    test('stored header styles load on startup', () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.homeHeaderStylePhone: 'compact',
+        SettingsKeys.homeHeaderStyleWide: 'banner',
+      });
+      await makeContainer();
+      final settings = container.read(settingsProvider);
+      expect(settings.homeHeaderStylePhone, 'compact');
+      expect(settings.homeHeaderStyleWide, 'banner');
+    });
+
+    test('a wrong-typed header style loads as null', () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.homeHeaderStyleWide: 7,
+        SettingsKeys.homePanelOrder: ['keyNumbers'],
+      });
+      await makeContainer();
+      final settings = container.read(settingsProvider);
+      expect(settings.homeHeaderStyleWide, isNull);
+      expect(settings.homePanelOrder, ['keyNumbers']);
+    });
+
+    test('header styles survive switching to a diver', () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.homeHeaderStyleWide: 'banner',
+      });
+      await makeContainer(divers: _OneDiverRepository());
+      await container
+          .read(settingsProvider.notifier)
+          .setHomeHeaderStyle(phone: true, style: 'banner');
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver('diver-2');
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final settings = container.read(settingsProvider);
+      expect(settings.homeHeaderStylePhone, 'banner');
+      expect(settings.homeHeaderStyleWide, 'banner');
     });
 
     test('setHiddenHomeKeyNumbers persists the set', () async {

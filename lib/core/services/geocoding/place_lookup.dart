@@ -12,6 +12,8 @@ class PlaceLookup {
     this.locality,
     this.bodyOfWater,
     this.networkFailed = false,
+    this.bodyOfWaterUnknown = false,
+    this.addressUnknown = false,
   });
 
   const PlaceLookup.empty() : this();
@@ -28,23 +30,40 @@ class PlaceLookup {
   final String? bodyOfWater;
   final bool networkFailed;
 
+  /// True when the body-of-water lookup itself failed (a throttled or
+  /// unreachable natural layer), so an empty [bodyOfWater] means "not
+  /// asked", not "no water here". The address fields are unaffected.
+  final bool bodyOfWaterUnknown;
+
+  /// True when the address request reached the geocoder but failed in a way
+  /// it could not classify (a TLS error, a malformed or stalled response),
+  /// so empty [country], [region] and [locality] mean "not answered", not
+  /// "nothing here". A body of water may still be present: the bundled sea
+  /// table answers without the network.
+  final bool addressUnknown;
+
   bool get isEmpty =>
       country == null &&
       region == null &&
       locality == null &&
       bodyOfWater == null;
 
-  PlaceLookup copyWith({String? bodyOfWater}) => PlaceLookup(
-    country: country,
-    countryCode: countryCode,
-    region: region,
-    locality: locality,
-    bodyOfWater: bodyOfWater ?? this.bodyOfWater,
-    networkFailed: networkFailed,
-  );
+  PlaceLookup copyWith({String? bodyOfWater, bool? bodyOfWaterUnknown}) =>
+      PlaceLookup(
+        country: country,
+        countryCode: countryCode,
+        region: region,
+        locality: locality,
+        bodyOfWater: bodyOfWater ?? this.bodyOfWater,
+        networkFailed: networkFailed,
+        bodyOfWaterUnknown: bodyOfWaterUnknown ?? this.bodyOfWaterUnknown,
+        addressUnknown: addressUnknown,
+      );
 
   @override
   String toString() =>
       'PlaceLookup(country: $country, countryCode: $countryCode, region: $region, locality: $locality, '
-      'bodyOfWater: $bodyOfWater, networkFailed: $networkFailed)';
+      'bodyOfWater: $bodyOfWater, networkFailed: $networkFailed, '
+      'bodyOfWaterUnknown: $bodyOfWaterUnknown, '
+      'addressUnknown: $addressUnknown)';
 }

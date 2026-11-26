@@ -306,12 +306,12 @@ class CourseRequirements extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
-  /// v383: the rebreather an hours-on-CCR requirement counts, null for any
+  /// v384: the rebreather an hours-on-CCR requirement counts, null for any
   /// unit. Deliberately no foreign key: a removed item must leave the
   /// requirement unmet rather than silently widen it.
   TextColumn get equipmentId => text().nullable()();
 
-  /// v383: the dive query of a dive-query requirement, as queryNodeToJson
+  /// v384: the dive query of a dive-query requirement, as queryNodeToJson
   /// writes it.
   TextColumn get queryJson => text().nullable()();
 

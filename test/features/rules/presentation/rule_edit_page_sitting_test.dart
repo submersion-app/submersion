@@ -17,7 +17,7 @@ import 'package:submersion/features/rules/presentation/pages/rule_edit_page.dart
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
@@ -116,10 +116,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Finder saveFinder() => find.widgetWithText(AppBarTextAction, 'Save');
+  Finder saveFinder() => find.widgetWithText(RecordEditAction, 'Save');
 
-  AppBarTextAction save(WidgetTester tester) =>
-      tester.widget<AppBarTextAction>(saveFinder());
+  RecordEditAction save(WidgetTester tester) =>
+      tester.widget<RecordEditAction>(saveFinder());
 
   Future<void> tapSave(WidgetTester tester) async {
     await tester.tap(saveFinder());
@@ -231,7 +231,7 @@ void main() {
     await pump(tester);
 
     expect(find.byType(RecordEditBar), findsOneWidget);
-    await tester.tap(find.widgetWithText(AppBarTextAction, 'Cancel'));
+    await tester.tap(find.widgetWithText(RecordEditAction, 'Cancel'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('LIST'), findsOneWidget);

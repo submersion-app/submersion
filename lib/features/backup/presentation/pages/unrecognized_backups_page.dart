@@ -16,9 +16,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// what may be the only copy of someone's dive log. The navigation step buys
 /// room to say which files are safe to remove and why the rest are not.
 ///
-/// Only [BackupOwnership.thisDevice] entries are selectable. The service
-/// re-checks that on the way through, so this widget's job is to avoid
-/// offering the choice at all, not to be the thing that enforces it.
+/// Only [UnrecognizedBackup.isReclaimable] entries are selectable: this
+/// device's own files, plus every file when the folder is private to the app.
+/// The service re-checks that on the way through, so this widget's job is to
+/// avoid offering the choice at all, not to be the thing that enforces it.
 class UnrecognizedBackupsPage extends ConsumerStatefulWidget {
   const UnrecognizedBackupsPage({super.key});
 
@@ -39,9 +40,10 @@ class _UnrecognizedBackupsPageState
     final scan = ref.watch(unrecognizedBackupsProvider);
 
     // Drop ticks the list no longer offers, before anything reads them. That
-    // means gone, and it also means still listed but no longer this device's:
+    // means gone, and it also means still listed but no longer reclaimable:
     // a sync reset changes the device id, so the next scan classifies the same
-    // file as another device's. Pruning on presence alone would leave it ticked
+    // file as another device's, which outside the app-private folder takes
+    // its checkbox away. Pruning on presence alone would leave it ticked
     // behind a tile that shows "Another device" and no checkbox, with the bar
     // still counting it and a confirm reporting "Freed 0 B" once the service
     // refused it.
@@ -98,12 +100,34 @@ class _UnrecognizedBackupsPageState
     // removes the gap entirely rather than guarding it.
     final service = ref.read(unrecognizedBackupServiceProvider);
 
+    // Only reachable for a folder private to the app, where such a file is
+    // most likely this device before a reinstall. It may still hold dives
+    // that exist nowhere else, so the diver is told before, not after.
+    final foreign = selection.where((entry) => entry.isForeign).length;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        // Two paragraphs when the warning shows; at a large text scale on a
+        // phone they can outgrow the dialog, so let the content scroll.
+        scrollable: true,
         title: Text(l10n.backup_unrecognized_confirm_title),
-        content: Text(
-          l10n.backup_unrecognized_confirm_message(selection.length),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (foreign > 0) ...[
+              Text(
+                l10n.backup_unrecognized_confirm_foreignWarning(foreign),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            Text(l10n.backup_unrecognized_confirm_message(selection.length)),
+          ],
         ),
         actions: [
           TextButton(
@@ -181,8 +205,12 @@ class _List extends StatelessWidget {
         if (index == 0) {
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            // Every entry comes from the same folder, so any one of them
+            // speaks for all.
             child: Text(
-              context.l10n.backup_unrecognized_explanation,
+              entries.any((entry) => entry.inAppPrivateFolder)
+                  ? context.l10n.backup_unrecognized_explanation_appPrivate
+                  : context.l10n.backup_unrecognized_explanation,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -225,43 +253,72 @@ class _BackupTile extends ConsumerWidget {
       ),
     );
 
+    // Below the name rather than beside it: a trailing label took width the
+    // name needed, and in the private folder it now sits next to a checkbox.
+    final ownership = switch (entry.ownership) {
+      BackupOwnership.thisDevice => null,
+      BackupOwnership.otherDevice =>
+        l10n.backup_unrecognized_ownership_otherDevice,
+      _ => l10n.backup_unrecognized_ownership_unattributed,
+    };
+
     return ListTile(
-      title: Text(entry.filename, overflow: TextOverflow.ellipsis),
-      isThreeLine: note != null,
-      subtitle: note == null
-          ? detail
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  note,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                detail,
-              ],
+      // Wrapped, never ellipsized: the timestamp and the device tag sit at the
+      // END of the name, so a truncated name hides exactly the parts that tell
+      // two entries apart (issue #4973).
+      // The label keeps the break characters away from screen readers.
+      title: Text(
+        _breakAfterUnderscores(entry.filename),
+        semanticsLabel: entry.filename,
+      ),
+      isThreeLine: note != null || ownership != null,
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (ownership != null)
+            Text(
+              ownership,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+          if (note != null)
+            Text(
+              note,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium,
+            ),
+          detail,
+        ],
+      ),
       trailing: entry.isReclaimable
           ? Checkbox(
               value: selected,
               onChanged: (value) => onToggle(value ?? false),
             )
-          : Text(
-              switch (entry.ownership) {
-                BackupOwnership.otherDevice =>
-                  l10n.backup_unrecognized_ownership_otherDevice,
-                _ => l10n.backup_unrecognized_ownership_unattributed,
-              },
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
+          : null,
       onTap: entry.isReclaimable ? () => onToggle(!selected) : null,
     );
   }
 }
+
+/// [filename] with a zero-width space after each run of underscores.
+///
+/// A backup name has no spaces, so without these the line breaker can only
+/// wrap it mid-segment, splitting the date, the time or the device tag. The
+/// underscores are the name's own segment boundaries, so a break after one
+/// keeps every segment whole. A run gets one break, after its last underscore,
+/// so the `__d` device marker is never split between its two underscores.
+/// Display only: the characters are invisible and the file is still addressed
+/// by its path.
+String _breakAfterUnderscores(String filename) =>
+    filename.replaceAllMapped(_underscoreRun, (match) => '${match[0]}\u200B');
+
+/// A run of underscores, compiled once rather than on every tile build.
+final RegExp _underscoreRun = RegExp('_+');
 
 class _DeleteBar extends StatelessWidget {
   const _DeleteBar({required this.selection, required this.onDelete});

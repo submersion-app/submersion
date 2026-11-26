@@ -32,7 +32,9 @@ import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dar
 import 'package:submersion/features/dive_log/presentation/widgets/tank_surface_breathing_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_editor_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_field_grid.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_mnd_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_regulator_pickers.dart';
@@ -117,6 +119,11 @@ class TankEditor extends ConsumerStatefulWidget {
   /// is shown at (issue #3752). Open circuit where the editor has no dive.
   final DiveMode diveMode;
 
+  /// Draws the editor on its own card. False where the host already frames
+  /// it, such as the outlined `TankRow` of the Cylinders card: a card inside
+  /// that outline left a phone too little width (issue #4962).
+  final bool framed;
+
   const TankEditor({
     super.key,
     required this.tank,
@@ -135,6 +142,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.suggested = false,
     this.diveId,
     this.diveMode = DiveMode.oc,
+    this.framed = true,
   });
 
   @override
@@ -555,238 +563,217 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
     final gasMix = _currentGasMix();
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with tank number, gas name, and remove button
-            _buildHeader(gasMix),
-            const SizedBox(height: 16),
+    final content = Padding(
+      padding: widget.framed
+          ? const EdgeInsets.all(16)
+          : const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with tank number, gas name, and remove button
+          _buildHeader(gasMix),
+          const SizedBox(height: 16),
 
-            // Tank preset and role
-            _buildPresetAndRoleRow(units),
-            const SizedBox(height: 16),
+          // Tank preset and role
+          _buildPresetAndRoleRow(units),
+          const SizedBox(height: 16),
 
-            // Volume, material, working pressure
-            _buildTankSpecsRow(units),
-            const SizedBox(height: 4),
+          // Volume, material, working pressure
+          _buildTankSpecsRow(units),
+          const SizedBox(height: 4),
 
-            // Save the current specs as a reusable custom preset.
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: _saveAsPreset,
-                icon: const Icon(Icons.bookmark_add_outlined, size: 18),
-                label: Text(context.l10n.diveLog_tank_saveAsPreset),
-              ),
+          // Save the current specs as a reusable custom preset.
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _saveAsPreset,
+              icon: const Icon(Icons.bookmark_add_outlined, size: 18),
+              label: Text(context.l10n.diveLog_tank_saveAsPreset),
             ),
-            const SizedBox(height: 12),
+          ),
+          const SizedBox(height: 12),
 
-            // Regulator breathed from this cylinder (v202), so high-O2
-            // contact reaches the regulator's service clocks.
-            if (widget.tripCylinderStates case final states?)
-              _buildTripCylinderPicker(states),
-            TankRegulatorPickers(
-              regulatorIds: _regulatorIds,
-              onChanged: (ids) {
-                setState(() => _regulatorIds = ids);
-                _notifyChange();
-              },
-            ),
-            const SizedBox(height: 12),
+          // Regulator breathed from this cylinder (v202), so high-O2
+          // contact reaches the regulator's service clocks.
+          if (widget.tripCylinderStates case final states?)
+            _buildTripCylinderPicker(states),
+          TankRegulatorPickers(
+            regulatorIds: _regulatorIds,
+            onChanged: (ids) {
+              setState(() => _regulatorIds = ids);
+              _notifyChange();
+            },
+          ),
+          const SizedBox(height: 12),
 
-            // Gas mix with templates
-            _buildGasMixSection(),
+          // Gas mix with templates
+          _buildGasMixSection(),
 
-            // MND input for trimix planning
-            if (gasMix.he > 0) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TankMndField(
-                      gas: gasMix,
-                      units: units,
-                      onHeChanged: _setHeFromMnd,
-                    ),
-                  ),
-                  const Spacer(flex: 2),
-                ],
-              ),
-            ],
-
-            if (widget.showPressures) ...[
-              const SizedBox(height: 16),
-
-              // Start/end pressure
-              _buildPressureRow(units),
-
-              // Breathed after the computer stopped logging (issue #2930); a
-              // suit inflation bottle is not breathed, and a transmitter's
-              // last reading holds none of that gas.
-              if (_showsSurfaceBreathing) ...[
-                const SizedBox(height: 12),
-                TankSurfaceBreathingField(
-                  value: _surfaceBreathing,
-                  onChanged: (value) {
-                    _surfaceBreathing = value;
-                    _notifyChange();
-                  },
+          // MND input for trimix planning
+          if (gasMix.he > 0) ...[
+            const SizedBox(height: 8),
+            // One column of the O2 / He / N2 row above.
+            TankFieldGrid(
+              slots: 3,
+              spacing: 16,
+              children: [
+                TankMndField(
+                  gas: gasMix,
+                  units: units,
+                  onHeChanged: _setHeFromMnd,
                 ),
               ],
-            ],
-
-            // MOD display: a suit inflation bottle is not breathed, so it
-            // has no MOD (issue #4243).
-            if (_role.isBreathingGas)
-              _buildModInfo(gasMix, units, units.settings),
+            ),
           ],
-        ),
+
+          if (widget.showPressures) ...[
+            const SizedBox(height: 16),
+
+            // Start/end pressure
+            _buildPressureRow(units),
+
+            // Breathed after the computer stopped logging (issue #2930); a
+            // suit inflation bottle is not breathed, and a transmitter's
+            // last reading holds none of that gas.
+            if (_showsSurfaceBreathing) ...[
+              const SizedBox(height: 12),
+              TankSurfaceBreathingField(
+                value: _surfaceBreathing,
+                onChanged: (value) {
+                  _surfaceBreathing = value;
+                  _notifyChange();
+                },
+              ),
+            ],
+          ],
+
+          // MOD display: a suit inflation bottle is not breathed, so it
+          // has no MOD (issue #4243).
+          if (_role.isBreathingGas)
+            _buildModInfo(gasMix, units, units.settings),
+        ],
       ),
     );
+    return widget.framed ? Card(child: content) : content;
   }
 
   Widget _buildHeader(GasMix gasMix) {
     final onContainer = Theme.of(context).colorScheme.onPrimaryContainer;
     final headerTitle = widget.headerTitle;
-    return Row(
-      children: [
-        CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: headerTitle != null
-              ? Icon(Icons.layers_outlined, color: onContainer)
-              : Text(
-                  '${widget.tankNumber}',
-                  style: TextStyle(
-                    color: onContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                headerTitle ??
-                    context.l10n.diveLog_tank_title(widget.tankNumber),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Text(
-                gasMix.name,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w500,
+    final onRemove = widget.onRemove;
+    return TankEditorHeader(
+      leading: CircleAvatar(
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        child: headerTitle != null
+            ? Icon(Icons.layers_outlined, color: onContainer)
+            : Text(
+                '${widget.tankNumber}',
+                style: TextStyle(
+                  color: onContainer,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
-        ),
+      ),
+      title: headerTitle ?? context.l10n.diveLog_tank_title(widget.tankNumber),
+      subtitle: gasMix.name,
+      actions: [
         // The bridge from the diver's gear to this tank (issue #2599): only
         // offered where the host records the cylinder as dive gear too.
         // Retired and sold cylinders count too: the picker offers them on
         // request, for a dive that used one (#3210).
         if (widget.onOwnCylinderUsed != null &&
             (_ownCylinders().isNotEmpty || _leftKitCylinders().isNotEmpty))
-          IconButton(
+          TankHeaderAction(
             key: const Key('tank-from-own-cylinder'),
-            icon: const Icon(Icons.inventory_2_outlined),
-            tooltip: context.l10n.diveLog_tank_fromOwnCylinder,
+            icon: Icons.inventory_2_outlined,
+            label: context.l10n.diveLog_tank_fromOwnCylinder,
             onPressed: _pickOwnCylinder,
           ),
-        IconButton(
+        TankHeaderAction(
           key: const Key('tank-scan-tag'),
-          icon: const Icon(Icons.qr_code_scanner),
-          tooltip: context.l10n.passport_scan_title,
+          icon: Icons.qr_code_scanner,
+          label: context.l10n.passport_scan_title,
           onPressed: _scanCylinder,
         ),
-        if (widget.canRemove && widget.onRemove != null)
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            color: Theme.of(context).colorScheme.error,
-            onPressed: widget.onRemove,
-            tooltip: context.l10n.diveLog_tank_tooltip_remove,
+        if (widget.canRemove && onRemove != null)
+          TankHeaderAction(
+            key: const Key('tank-remove'),
+            icon: Icons.delete_outline,
+            label: context.l10n.diveLog_tank_tooltip_remove,
+            onPressed: onRemove,
+            destructive: true,
           ),
       ],
     );
   }
 
   Widget _buildPresetAndRoleRow(UnitFormatter units) {
-    return Row(
+    return TankFieldGrid(
+      spacing: 16,
       children: [
-        Expanded(
-          child: TankPresetDropdown(
-            key: const Key('tank-preset-dropdown'),
-            presetName: _selectedPreset?.name ?? widget.tank.presetName,
-            // Like the "My cylinders" button, only where the host records
-            // the cylinder as dive gear too.
-            cylinders: widget.onOwnCylinderUsed == null
-                ? const []
-                : cylindersWithSpec(_ownCylinders()),
-            onPresetChanged: (preset) {
-              if (preset != null) {
-                _applyPreset(preset);
-              } else {
-                _specChoice++;
-                setState(() {
-                  _selectedPreset = null;
-                  _nameCylinders(null);
-                });
-                _notifyChange();
-              }
-            },
-            onCylinderChosen: _chooseOwnCylinder,
-          ),
+        TankPresetDropdown(
+          key: const Key('tank-preset-dropdown'),
+          presetName: _selectedPreset?.name ?? widget.tank.presetName,
+          // Like the "My cylinders" button, only where the host records
+          // the cylinder as dive gear too.
+          cylinders: widget.onOwnCylinderUsed == null
+              ? const []
+              : cylindersWithSpec(_ownCylinders()),
+          onPresetChanged: (preset) {
+            if (preset != null) {
+              _applyPreset(preset);
+            } else {
+              _specChoice++;
+              setState(() {
+                _selectedPreset = null;
+                _nameCylinders(null);
+              });
+              _notifyChange();
+            }
+          },
+          onCylinderChosen: _chooseOwnCylinder,
         ),
-        if (widget.showRole) ...[
-          const SizedBox(width: 16),
-          _buildRoleDropdown(),
-        ],
+        if (widget.showRole) _buildRoleDropdown(),
       ],
     );
   }
 
   Widget _buildRoleDropdown() {
-    return Expanded(
-      child: DropdownButtonFormField<TankRole>(
-        // Keyed by the role, so a role set by a twin set pick (issue
-        // #4242) shows; initialValue is read once per field.
-        key: ValueKey('tank-role-${_role.name}'),
-        initialValue: _role,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: context.l10n.diveLog_tank_label_role,
-          isDense: true,
-        ),
-        items: TankRole.values
-            .map(
-              (role) => DropdownMenuItem(
-                value: role,
-                child: TankRoleOption(role: role),
-              ),
-            )
-            .toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              _role = value;
-              // A CCR oxygen supply cylinder feeds pure O2 into the loop
-              // by definition, so there's nothing to analyze -- default
-              // it instead of making the diver enter 100% by hand (#726).
-              if (value == TankRole.oxygenSupply) {
-                _lastValidO2 = 100.0;
-                _lastValidHe = 0.0;
-                _o2Controller.text = formatDecimalForInput(_lastValidO2);
-                _heController.text = formatDecimalForInput(_lastValidHe);
-              }
-            });
-            _notifyChange();
-          }
-        },
+    return DropdownButtonFormField<TankRole>(
+      // Keyed by the role, so a role set by a twin set pick (issue
+      // #4242) shows; initialValue is read once per field.
+      key: ValueKey('tank-role-${_role.name}'),
+      initialValue: _role,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: context.l10n.diveLog_tank_label_role,
+        isDense: true,
       ),
+      items: TankRole.values
+          .map(
+            (role) => DropdownMenuItem(
+              value: role,
+              child: TankRoleOption(role: role),
+            ),
+          )
+          .toList(),
+      onChanged: (value) {
+        if (value != null) {
+          setState(() {
+            _role = value;
+            // A CCR oxygen supply cylinder feeds pure O2 into the loop
+            // by definition, so there's nothing to analyze -- default
+            // it instead of making the diver enter 100% by hand (#726).
+            if (value == TankRole.oxygenSupply) {
+              _lastValidO2 = 100.0;
+              _lastValidHe = 0.0;
+              _o2Controller.text = formatDecimalForInput(_lastValidO2);
+              _heController.text = formatDecimalForInput(_lastValidHe);
+            }
+          });
+          _notifyChange();
+        }
+      },
     );
   }
 
@@ -867,68 +854,60 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildTankSpecsRow(UnitFormatter units) {
-    return Row(
+    return TankFieldGrid(
       children: [
         // Volume
-        Expanded(
-          child: NumberField(
-            controller: _volumeController,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_tank_label_volume,
-              suffixText: _effectiveVolumeSuffix(units),
-              isDense: true,
-            ),
-            onChanged: (_) {
-              _clearPreset();
-              _notifyChange();
-            },
+        NumberField(
+          controller: _volumeController,
+          decoration: InputDecoration(
+            labelText: context.l10n.diveLog_tank_label_volume,
+            suffixText: _effectiveVolumeSuffix(units),
+            isDense: true,
           ),
+          onChanged: (_) {
+            _clearPreset();
+            _notifyChange();
+          },
         ),
-        const SizedBox(width: 12),
         // Material
-        Expanded(
-          child: DropdownButtonFormField<TankMaterial?>(
-            key: ValueKey(_material?.name),
-            initialValue: _material,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_tank_label_material,
-              isDense: true,
-            ),
-            items: [
-              DropdownMenuItem<TankMaterial?>(
-                value: null,
-                child: Text(context.l10n.diveLog_edit_notSpecified),
-              ),
-              ...TankMaterial.values.map(
-                (mat) => DropdownMenuItem(
-                  value: mat,
-                  child: Text(mat.localizedName(context.l10n)),
-                ),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() => _material = value);
-              _clearPreset();
-              _notifyChange();
-            },
+        DropdownButtonFormField<TankMaterial?>(
+          key: ValueKey(_material?.name),
+          initialValue: _material,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: context.l10n.diveLog_tank_label_material,
+            isDense: true,
           ),
+          items: [
+            DropdownMenuItem<TankMaterial?>(
+              value: null,
+              child: Text(context.l10n.diveLog_edit_notSpecified),
+            ),
+            ...TankMaterial.values.map(
+              (mat) => DropdownMenuItem(
+                value: mat,
+                child: Text(mat.localizedName(context.l10n)),
+              ),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() => _material = value);
+            _clearPreset();
+            _notifyChange();
+          },
         ),
-        const SizedBox(width: 12),
         // Working pressure
-        Expanded(
-          child: NumberField(
-            controller: _workingPressureController,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_tank_label_workingPressure,
-              suffixText: units.pressureSymbol,
-              isDense: true,
-            ),
-            onChanged: (_) {
-              _clearPreset();
-              _notifyChange();
-            },
+        NumberField(
+          controller: _workingPressureController,
+          decoration: InputDecoration(
+            labelText: context.l10n.diveLog_tank_label_workingPressure,
+            suffixText: units.pressureSymbol,
+            isDense: true,
           ),
+          onChanged: (_) {
+            _clearPreset();
+            _notifyChange();
+          },
         ),
       ],
     );
@@ -955,64 +934,57 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         ),
         const SizedBox(height: 12),
         // Manual gas entry
-        Row(
+        TankFieldGrid(
+          spacing: 16,
           children: [
-            Expanded(
-              child: TextFormField(
-                controller: _o2Controller,
-                decoration: InputDecoration(
-                  labelText: context.l10n.diveLog_tank_label_o2,
-                  suffixText: '%',
-                  isDense: true,
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: _validateGasPercent,
-                onChanged: (value) {
-                  if (readNumber(value) case NumberValue(:final value)) {
-                    _lastValidO2 = value;
-                  }
-                  setState(() {});
-                  _notifyChange();
-                },
+            TextFormField(
+              controller: _o2Controller,
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_tank_label_o2,
+                suffixText: '%',
+                isDense: true,
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextFormField(
-                controller: _heController,
-                decoration: InputDecoration(
-                  labelText: context.l10n.diveLog_tank_label_he,
-                  suffixText: '%',
-                  isDense: true,
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: _validateGasPercent,
-                onChanged: (value) {
-                  if (readNumber(value) case NumberValue(:final value)) {
-                    _lastValidHe = value;
-                  }
-                  setState(() {});
-                  _notifyChange();
-                },
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: _validateGasPercent,
+              onChanged: (value) {
+                if (readNumber(value) case NumberValue(:final value)) {
+                  _lastValidO2 = value;
+                }
+                setState(() {});
+                _notifyChange();
+              },
             ),
-            const SizedBox(width: 16),
+            TextFormField(
+              controller: _heController,
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_tank_label_he,
+                suffixText: '%',
+                isDense: true,
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: _validateGasPercent,
+              onChanged: (value) {
+                if (readNumber(value) case NumberValue(:final value)) {
+                  _lastValidHe = value;
+                }
+                setState(() {});
+                _notifyChange();
+              },
+            ),
             // N2 display (computed)
-            Expanded(
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: context.l10n.diveLog_tank_label_n2,
-                  suffixText: '%',
-                  isDense: true,
-                ),
-                child: Text(_currentGasMix().n2.toStringAsFixed(0)),
+            InputDecorator(
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_tank_label_n2,
+                suffixText: '%',
+                isDense: true,
               ),
+              child: Text(_currentGasMix().n2.toStringAsFixed(0)),
             ),
           ],
         ),
@@ -1050,30 +1022,26 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildPressureRow(UnitFormatter units) {
-    return Row(
+    return TankFieldGrid(
+      spacing: 16,
       children: [
-        Expanded(
-          child: NumberField(
-            controller: _startPressureController,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_tank_label_startPressure,
-              suffixText: units.pressureSymbol,
-              isDense: true,
-            ),
-            onChanged: (_) => _notifyChange(),
+        NumberField(
+          controller: _startPressureController,
+          decoration: InputDecoration(
+            labelText: context.l10n.diveLog_tank_label_startPressure,
+            suffixText: units.pressureSymbol,
+            isDense: true,
           ),
+          onChanged: (_) => _notifyChange(),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: NumberField(
-            controller: _endPressureController,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_tank_label_endPressure,
-              suffixText: units.pressureSymbol,
-              isDense: true,
-            ),
-            onChanged: (_) => _notifyChange(),
+        NumberField(
+          controller: _endPressureController,
+          decoration: InputDecoration(
+            labelText: context.l10n.diveLog_tank_label_endPressure,
+            suffixText: units.pressureSymbol,
+            isDense: true,
           ),
+          onChanged: (_) => _notifyChange(),
         ),
       ],
     );

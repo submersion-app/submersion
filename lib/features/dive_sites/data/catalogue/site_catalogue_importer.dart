@@ -34,8 +34,9 @@ const kSiteCatalogueMetaVersion = 'version';
 /// text. 3: the search text marks where the name ends. 4: the file's
 /// withdrawn records are stored (`kSiteCatalogueMetaWithdrawn`). 5: the
 /// search text folds Latin Extended-A letters and drops combining accents
-/// (#4498), as the picker's needle now does.
-const kSiteCatalogueImportRevision = 5;
+/// (#4498), as the picker's needle now does. 6: the sea table names each
+/// sea in Japanese too (#4917).
+const kSiteCatalogueImportRevision = 6;
 
 /// The meta row holding the catalogue's sources, as JSON.
 const kSiteCatalogueMetaSources = 'sources';

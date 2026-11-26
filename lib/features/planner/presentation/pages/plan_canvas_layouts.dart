@@ -228,7 +228,14 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     return Stack(
       children: [
         const Positioned.fill(
-          child: Padding(padding: EdgeInsets.all(8), child: PlanProfileChart()),
+          child: Padding(
+            padding: EdgeInsets.all(8),
+            // The readouts list the stops. The chart never tags them: on a
+            // phone tags cover each other and the readouts, even when the
+            // list has no room for a row (the full-screen chart and the
+            // Results tab still show every stop then).
+            child: PlanProfileChart(showStopTags: false),
+          ),
         ),
         PlanChartReadouts(
           onIssuesTap: () =>
@@ -243,8 +250,8 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
             // Both chip groups scroll together, not just
             // ContingencyChips' own inner scroll view: nested inside
             // a plain Row here, that inner view took its full
-            // natural width instead of yielding to the Bailout/CCR
-            // chips, overflowing this bar on a narrow phone (the
+            // natural width instead of yielding to the Bailout
+            // chip, overflowing this bar on a narrow phone (the
             // combined width of every chip no longer fits #3130).
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -253,7 +260,7 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
                 children: [
                   ContingencyChips(overlay: true),
                   SizedBox(width: 6),
-                  ChartModeToggle(),
+                  ChartModeToggle(overlay: true),
                 ],
               ),
             ),

@@ -27,6 +27,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
@@ -46,9 +47,20 @@ class NetworkThumbnail extends ConsumerWidget {
   final double size;
   final BoxFit fit;
 
+  /// The URL to paint: a Synology share renders a small version itself, so a
+  /// review row does not download a multi-megabyte original.
+  String get _displayUrl {
+    final uri = Uri.tryParse(url);
+    final small = uri == null
+        ? null
+        : SynologyShareLink.thumbnailFor(uri, SynologyThumbnailSize.sm);
+    return small?.toString() ?? url;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final headers = ref.watch(networkThumbnailHeadersProvider(url));
+    final displayUrl = _displayUrl;
+    final headers = ref.watch(networkThumbnailHeadersProvider(displayUrl));
     if (headers.isLoading && !headers.hasValue) return _Pending(size: size);
     return CachedNetworkImage(
       // The image provider's identity ignores headers, so without this key an
@@ -56,7 +68,7 @@ class NetworkThumbnail extends ConsumerWidget {
       // ObjectKey because widget descriptions print a key's value, and those
       // reach the logs: a ValueKey here would write the credential there.
       key: ObjectKey(headers.value),
-      imageUrl: url,
+      imageUrl: displayUrl,
       httpHeaders: headers.value,
       width: size,
       height: size,

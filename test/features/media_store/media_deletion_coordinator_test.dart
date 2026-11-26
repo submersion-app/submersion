@@ -86,6 +86,23 @@ void main() {
     expect(kicks, 1);
   });
 
+  // The library's Unlink deletes inside its History entry and drains after
+  // it closes, so the worker's uploads are not filed under the Unlink
+  // (issue #4527).
+  test('deferDrain: the row goes and its intent is queued, but the worker '
+      'waits for drainHeldDeletes', () async {
+    await repo.createMedia(
+      photo('m1', hash: 'aa', uploadedAt: DateTime(2026, 2)),
+    );
+    await coordinator.deleteMultipleMedia(['m1'], deferDrain: true);
+    expect(await repo.getMediaById('m1'), isNull);
+    expect((await queue.allForTesting()).single.direction, 'delete');
+    expect(kicks, 0);
+
+    await coordinator.drainHeldDeletes();
+    expect(kicks, 1);
+  });
+
   // A held delete whose transaction rolls back has still queued its intent
   // and purged the copies this device remakes (issue #4527). The intent is
   // harmless: the drain re-counts the rows by hash and finds the restored
@@ -264,6 +281,18 @@ void main() {
         ['p5'],
       ]);
       expect(undoables, [true, false]);
+    });
+
+    test('a delete whose drain is deferred is not undoable, so every copy '
+        'goes', () async {
+      await repo.createMedia(photo('p8', hash: 'a8'));
+
+      await purging().deleteMultipleMedia(['p8'], deferDrain: true);
+
+      expect(purged, [
+        ['p8'],
+      ]);
+      expect(undoables, [false]);
     });
 
     test('a row keepIf spares is not purged: it is still in the '

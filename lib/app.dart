@@ -49,6 +49,7 @@ import 'package:submersion/features/cylinder_passports/presentation/services/rec
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
+import 'package:submersion/features/media/presentation/providers/subscription_polling.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
@@ -236,6 +237,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       DerivedMetricsScheduler.instance.scheduleStaleSweep();
       ChangeLogSettleScheduler.instance.start();
       _pruneChangeLog();
+      startSubscriptionPolling(ref);
       unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
       unawaited(_runHealthImport());
     });

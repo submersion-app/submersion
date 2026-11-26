@@ -325,6 +325,71 @@ void main() {
       },
     );
 
+    test('selectAllAfterLoading checks the ids the load returns', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      await controller.selectAllAfterLoading(() async => ['a', 'b', 'c']);
+      expect(controller.value.checkedIds, {'a', 'b', 'c'});
+    });
+
+    test(
+      'selectAllAfterLoading checks nothing after an exit mid-load',
+      () async {
+        final controller = SelectionController();
+        controller.enterExplicit();
+        final load = Completer<List<String>>();
+        final done = controller.selectAllAfterLoading(() => load.future);
+        // The diver closes the bar while the rest of the list loads.
+        controller.exit();
+        load.complete(['a', 'b']);
+        await done;
+        expect(controller.value.isActive, isFalse);
+      },
+    );
+
+    test('selectAllAfterLoading checks nothing when the load fails', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      controller.toggle('a');
+      await controller.selectAllAfterLoading(() async => null);
+      expect(controller.value.checkedIds, {'a'});
+    });
+
+    test('selectAllAfterLoading keeps a check made mid-load', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      final load = Completer<List<String>>();
+      final done = controller.selectAllAfterLoading(() => load.future);
+      // The diver checks one row while the rest of the list loads.
+      controller.toggle('a');
+      load.complete(['a', 'b', 'c']);
+      await done;
+      expect(controller.value.checkedIds, {'a'});
+    });
+
+    test('selectAllAfterLoading still checks all through a prune', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      controller.toggle('a');
+      final load = Completer<List<String>>();
+      final done = controller.selectAllAfterLoading(() => load.future);
+      controller.pruneTo(const ['a', 'b']);
+      load.complete(['a', 'b']);
+      await done;
+      expect(controller.value.checkedIds, {'a', 'b'});
+    });
+
+    test('selectAllAfterLoading does nothing once disposed mid-load', () async {
+      final controller = SelectionController();
+      controller.enterExplicit();
+      final load = Completer<List<String>>();
+      final done = controller.selectAllAfterLoading(() => load.future);
+      // The surface goes away while the rest of the list loads.
+      controller.dispose();
+      load.complete(['a', 'b']);
+      await expectLater(done, completes);
+    });
+
     test('deselectAll clears but keeps an explicit mode active', () {
       final controller = SelectionController();
       controller.enterExplicit();

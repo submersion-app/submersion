@@ -31,7 +31,14 @@ class SpeciesSeedService {
         isBuiltIn: true,
       );
     }).toList();
-    return BundledSpeciesCatalog(version: version, species: species);
+    final retired = data['retired'] is Map
+        ? Map<String, String>.unmodifiable(data['retired'] as Map)
+        : const <String, String>{};
+    return BundledSpeciesCatalog(
+      version: version,
+      species: species,
+      retired: retired,
+    );
   }
 
   /// Load the bundled catalog, cached after the first read (the reset and

@@ -13,6 +13,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
+import 'package:submersion/features/media/data/services/manifest_url_identity.dart';
 
 /// Domain entity joining `MediaSubscriptions` (synced) with
 /// `MediaSubscriptionState` (per-device).
@@ -70,6 +71,18 @@ class ManifestSubscription extends Equatable {
     lastError,
     lastErrorAt,
   ];
+}
+
+/// How a subscription is named where the app reports it (health, setup):
+/// its display name, else its link without the scheme. The host alone left
+/// two albums on one NAS indistinguishable. Shown on this device only; logs
+/// name subscriptions by id, never by link, which carries a share's code.
+extension ManifestSubscriptionLabel on ManifestSubscription {
+  String get label {
+    final name = displayName;
+    if (name != null && name.isNotEmpty) return name;
+    return manifestUrl.replaceFirst(RegExp(r'^https?://'), '');
+  }
 }
 
 class ManifestSubscriptionRepository {
@@ -192,6 +205,33 @@ class ManifestSubscriptionRepository {
   /// `SubscriptionPollerScheduler` to compute the polling cadence (the
   /// scheduler needs to see *all* active subs' `pollIntervalSeconds`, not
   /// just the ones currently due).
+  /// Every subscription, paused ones included, oldest first. For what
+  /// describes a subscription rather than polls it (the album name a saved
+  /// share password row is shown under): pausing a feed changes neither.
+  Future<List<ManifestSubscription>> listAll() async {
+    try {
+      final query = _db.select(_db.mediaSubscriptions).join([
+        leftOuterJoin(
+          _db.mediaSubscriptionState,
+          _db.mediaSubscriptionState.subscriptionId.equalsExp(
+            _db.mediaSubscriptions.id,
+          ),
+        ),
+      ])..orderBy([OrderingTerm.asc(_db.mediaSubscriptions.createdAt)]);
+      final rows = await query.get();
+      return [
+        for (final r in rows)
+          _toEntity(
+            r.readTable(_db.mediaSubscriptions),
+            r.readTableOrNull(_db.mediaSubscriptionState),
+          ),
+      ];
+    } catch (e, st) {
+      _log.error('listAll failed', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
   Future<List<ManifestSubscription>> listAllActive() async {
     try {
       final query = _db.select(_db.mediaSubscriptions).join([
@@ -217,6 +257,58 @@ class ManifestSubscriptionRepository {
     }
   }
 
+  /// The subscription that already reads [manifestUrl], active or not, or
+  /// null. URLs are compared through [canonicalManifestUrl], so a share link
+  /// pasted with a trailing slash still finds its subscription.
+  ///
+  /// Read in full and compared here rather than in SQL: the comparison form
+  /// is Dart logic, and a device holds a handful of subscriptions.
+  Future<ManifestSubscription?> findByManifestUrl(String manifestUrl) async {
+    try {
+      final wanted = canonicalManifestUrl(manifestUrl);
+      final query = _db.select(_db.mediaSubscriptions).join([
+        leftOuterJoin(
+          _db.mediaSubscriptionState,
+          _db.mediaSubscriptionState.subscriptionId.equalsExp(
+            _db.mediaSubscriptions.id,
+          ),
+        ),
+      ])..orderBy([OrderingTerm.asc(_db.mediaSubscriptions.createdAt)]);
+      for (final r in await query.get()) {
+        final row = r.readTable(_db.mediaSubscriptions);
+        if (canonicalManifestUrl(row.manifestUrl) == wanted) {
+          return _toEntity(row, r.readTableOrNull(_db.mediaSubscriptionState));
+        }
+      }
+      return null;
+    } catch (e, st) {
+      _log.error('findByManifestUrl failed', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
+  /// Writes this device's polling state for [id], creating the row when it
+  /// is missing. Only [createSubscription] inserts one, so a subscription
+  /// that arrived by sync (or was created before the row existed) has none,
+  /// and a plain UPDATE would drop every poll outcome on that device: no
+  /// recorded error, so no password prompt or health mark, and no next poll
+  /// time, so every scheduler cycle would poll it again. A subscription
+  /// deleted meanwhile gets no row.
+  Future<void> _writeState(String id, MediaSubscriptionStateCompanion values) =>
+      _db.transaction(() async {
+        final updated = await (_db.update(
+          _db.mediaSubscriptionState,
+        )..where((t) => t.subscriptionId.equals(id))).write(values);
+        if (updated > 0) return;
+        final subscription = await (_db.select(
+          _db.mediaSubscriptions,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        if (subscription == null) return;
+        await _db
+            .into(_db.mediaSubscriptionState)
+            .insert(values.copyWith(subscriptionId: Value(id)));
+      });
+
   Future<void> recordPollSuccess(
     String id, {
     required int pollIntervalSeconds,
@@ -227,9 +319,8 @@ class ManifestSubscriptionRepository {
     try {
       final nowMs = now.millisecondsSinceEpoch;
       final next = now.add(Duration(seconds: pollIntervalSeconds));
-      await (_db.update(
-        _db.mediaSubscriptionState,
-      )..where((t) => t.subscriptionId.equals(id))).write(
+      await _writeState(
+        id,
         MediaSubscriptionStateCompanion(
           lastPolledAt: Value(nowMs),
           nextPollAt: Value(next.millisecondsSinceEpoch),
@@ -253,9 +344,8 @@ class ManifestSubscriptionRepository {
     try {
       final nowMs = now.millisecondsSinceEpoch;
       final next = now.add(Duration(seconds: pollIntervalSeconds));
-      await (_db.update(
-        _db.mediaSubscriptionState,
-      )..where((t) => t.subscriptionId.equals(id))).write(
+      await _writeState(
+        id,
         MediaSubscriptionStateCompanion(
           lastPolledAt: Value(nowMs),
           nextPollAt: Value(next.millisecondsSinceEpoch),
@@ -269,6 +359,15 @@ class ManifestSubscriptionRepository {
     }
   }
 
+  /// How long a failed poll waits before the next try: twice the interval,
+  /// at most a day. Shared by [recordPollFailure] and a later interval
+  /// change, so both compute the same retry.
+  static Duration _failureBackoff(int pollIntervalSeconds) {
+    const cap = Duration(hours: 24);
+    final backoff = Duration(seconds: pollIntervalSeconds * 2);
+    return backoff > cap ? cap : backoff;
+  }
+
   Future<void> recordPollFailure(
     String id, {
     required int pollIntervalSeconds,
@@ -276,13 +375,10 @@ class ManifestSubscriptionRepository {
     required DateTime now,
   }) async {
     try {
-      const cap = Duration(hours: 24);
-      final backoff = Duration(seconds: pollIntervalSeconds * 2);
-      final delay = backoff > cap ? cap : backoff;
+      final delay = _failureBackoff(pollIntervalSeconds);
       final nowMs = now.millisecondsSinceEpoch;
-      await (_db.update(
-        _db.mediaSubscriptionState,
-      )..where((t) => t.subscriptionId.equals(id))).write(
+      await _writeState(
+        id,
         MediaSubscriptionStateCompanion(
           lastError: Value(error),
           lastErrorAt: Value(nowMs),
@@ -344,6 +440,70 @@ class ManifestSubscriptionRepository {
         error: e,
         stackTrace: st,
       );
+      rethrow;
+    }
+  }
+
+  /// The next poll after the interval changed to [pollIntervalSeconds], in
+  /// ms since epoch, counted from whichever came last: a successful poll
+  /// (plus the interval) or a failed one (plus the same backoff
+  /// [recordPollFailure] applies). Null when neither happened on this
+  /// device: no next poll means due.
+  static int? _nextPollAfterIntervalChange({
+    required int? lastPolledAt,
+    required int? lastErrorAt,
+    required int pollIntervalSeconds,
+  }) {
+    if (lastErrorAt != null &&
+        (lastPolledAt == null || lastErrorAt > lastPolledAt)) {
+      return lastErrorAt + _failureBackoff(pollIntervalSeconds).inMilliseconds;
+    }
+    if (lastPolledAt != null) return lastPolledAt + pollIntervalSeconds * 1000;
+    return null;
+  }
+
+  /// Changes how often [id] is polled. The next poll moves with it, so a
+  /// shorter interval takes effect now instead of after the old one ran
+  /// out, also while the last poll failed and is waiting out its backoff
+  /// (see [_nextPollAfterIntervalChange]).
+  Future<void> setPollInterval(String id, int pollIntervalSeconds) async {
+    if (pollIntervalSeconds <= 0) {
+      throw ArgumentError.value(
+        pollIntervalSeconds,
+        'pollIntervalSeconds',
+        'must be positive',
+      );
+    }
+    try {
+      final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.mediaSubscriptions,
+        )..where((t) => t.id.equals(id))).write(
+          MediaSubscriptionsCompanion(
+            pollIntervalSeconds: Value(pollIntervalSeconds),
+            updatedAt: Value(nowMs),
+          ),
+        );
+        final state = await (_db.select(
+          _db.mediaSubscriptionState,
+        )..where((t) => t.subscriptionId.equals(id))).getSingleOrNull();
+        final nextPollAt = _nextPollAfterIntervalChange(
+          lastPolledAt: state?.lastPolledAt,
+          lastErrorAt: state?.lastErrorAt,
+          pollIntervalSeconds: pollIntervalSeconds,
+        );
+        if (nextPollAt != null) {
+          await (_db.update(
+            _db.mediaSubscriptionState,
+          )..where((t) => t.subscriptionId.equals(id))).write(
+            MediaSubscriptionStateCompanion(nextPollAt: Value(nextPollAt)),
+          );
+        }
+      });
+      await _markPending(id, nowMs);
+    } catch (e, st) {
+      _log.error('setPollInterval failed: $id', error: e, stackTrace: st);
       rethrow;
     }
   }

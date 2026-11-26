@@ -73,21 +73,37 @@ SeriesReduction<R> _reduce<R>(
   ({List<DiveProfileSeriesRow> rows, SeriesReduce<R> reduce}) request,
 ) => reduceSeriesRows(request.rows, request.reduce);
 
-/// Reduces series to the points a reader of the whole dive sees: the
-/// superseded originals of a saved edit dropped, then every remaining
-/// source's samples interleaved by timestamp.
+/// What a merged read needs to know about a dive's `dive_data_sources` rows
+/// to place each series in the primary family ([dropSupersededSeries]):
+/// whether it has any, the computer of the first in shown order, every row's
+/// id, and the ids of the rows that show as that first source.
+typedef PrimarySourceFamily = ({
+  bool hasSources,
+  String? computerId,
+  Set<String> sourceRowIds,
+  Set<String> primarySourceRowIds,
+});
+
+/// Reduces series to the points a reader of the whole dive sees: the demoted
+/// series an active one superseded in the primary family dropped, then every
+/// remaining source's samples interleaved by timestamp.
 ///
-/// [hasSources] and [primaryComputerId] are what [dropSupersededSeries] needs
-/// to place each series in the primary family. Reading them is the caller's
-/// job, which is what keeps this free of the database.
+/// [hasSources], [primaryComputerId], [sourceRowIds] and
+/// [primarySourceRowIds] are what [dropSupersededSeries] needs to place each
+/// series in the primary family. Reading them is the caller's job, which is
+/// what keeps this free of the database.
 SeriesReduce<List<DiveProfilePoint>> mergedPointsReduction({
   required bool hasSources,
   required String? primaryComputerId,
+  required Set<String> sourceRowIds,
+  required Set<String> primarySourceRowIds,
 }) =>
     (series) => mergeSeriesPointsCollapsingDuplicates(
       dropSupersededSeries(
         series,
         hasSources: hasSources,
         primaryComputerId: primaryComputerId,
+        sourceRowIds: sourceRowIds,
+        primarySourceRowIds: primarySourceRowIds,
       ),
     );

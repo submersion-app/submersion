@@ -453,8 +453,11 @@ class LocationService {
       _log.warning('Web reverse geocoding refused: $e');
       return const PlaceLookup.unavailable();
     } catch (e) {
+      // Not "nothing here": a TLS error, a malformed body or a stalled
+      // response. Callers that remember answers must not remember this one
+      // (issue #4992).
       _log.warning('Web reverse geocoding failed: $e');
-      return const PlaceLookup.empty();
+      return const PlaceLookup(addressUnknown: true);
     }
   }
 
@@ -465,10 +468,14 @@ class LocationService {
     String languageCode,
   ) async {
     final water = await _lookupBodyOfWater(latitude, longitude, languageCode);
-    return water == null ? address : address.copyWith(bodyOfWater: water);
+    if (water.failed) return address.copyWith(bodyOfWaterUnknown: true);
+    final name = water.name;
+    return name == null ? address : address.copyWith(bodyOfWater: name);
   }
 
-  /// Best-effort: any failure here leaves the address result untouched.
+  /// Best-effort: any failure here leaves the address result untouched, and
+  /// is reported as `failed` so a caller can tell "no water here" from "the
+  /// natural layer could not be asked" (issue #4992).
   ///
   /// The bundled ocean and sea table answers first. OpenStreetMap has no
   /// ocean or sea polygons at all, so the natural layer used to answer
@@ -481,7 +488,7 @@ class LocationService {
   /// Inland and coastal fresh water is the other way round: lakes, quarries
   /// and fjord interiors are not in the IHO table, and the natural layer
   /// names them well, so a miss there falls through to the network.
-  Future<String?> _lookupBodyOfWater(
+  Future<({String? name, bool failed})> _lookupBodyOfWater(
     double latitude,
     double longitude,
     String languageCode,
@@ -490,7 +497,7 @@ class LocationService {
     final sea = index?.nameAt(latitude, longitude, languageCode: languageCode);
     if (sea != null) {
       _log.info('Sea area table: $sea');
-      return sea;
+      return (name: sea, failed: false);
     }
 
     try {
@@ -500,36 +507,51 @@ class LocationService {
       );
       final water = bodyOfWaterFromNaturalFeature(json);
       _log.info('Natural layer: ${water ?? 'no water feature'}');
-      return water;
+      return (name: water, failed: false);
     } catch (e) {
       _log.warning('Body of water lookup failed: $e');
-      return null;
+      return (name: null, failed: true);
     }
   }
 
+  /// How long one Nominatim request may take, connecting and answering
+  /// alike. A bare `HttpClient` has no timeout, so a connection that stalls
+  /// after the request is sent would hang a bulk lookup on one site, past
+  /// the reach of its Cancel button, which is only checked between sites.
+  static const Duration requestTimeout = Duration(seconds: 20);
+
   /// One Nominatim GET, decoded. Throws [_NominatimStatusException] on a
   /// non-200 status and lets socket errors propagate, so callers can tell
-  /// "offline" and "refused" from "nothing there". The client is closed in a
+  /// "offline" and "refused" from "nothing there"; a request that outlives
+  /// [requestTimeout] throws a [TimeoutException]. The client is closed in a
   /// finally so its sockets are released even when the body or the JSON
-  /// decode throws.
+  /// decode throws. On any failure it is closed with force: a plain close
+  /// lets an outstanding request run on, so a stalled connection that just
+  /// timed out would keep its socket open until the server gave up.
   Future<Map<String, dynamic>> _fetchNominatimJson(
     Uri url,
     String languageCode,
   ) async {
     await throttle.wait();
-    final client = HttpClient();
+    final client = HttpClient()..connectionTimeout = requestTimeout;
     client.userAgent = 'Submersion Dive Log App';
+    var answered = false;
     try {
       final request = await client.getUrl(url);
       request.headers.set('Accept-Language', languageCode);
-      final response = await request.close();
+      final response = await request.close().timeout(requestTimeout);
       if (response.statusCode != 200) {
         throw _NominatimStatusException(response.statusCode);
       }
-      final body = await response.transform(utf8.decoder).join();
-      return jsonDecode(body) as Map<String, dynamic>;
+      final body = await response
+          .transform(utf8.decoder)
+          .join()
+          .timeout(requestTimeout);
+      final json = jsonDecode(body) as Map<String, dynamic>;
+      answered = true;
+      return json;
     } finally {
-      client.close();
+      client.close(force: !answered);
     }
   }
 

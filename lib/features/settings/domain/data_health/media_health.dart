@@ -9,6 +9,10 @@ const mediaSetupStore = 'store';
 /// marked on the Photos page's Photo sources row (#4561).
 const mediaSetupLightroom = 'lightroom';
 
+/// The subject of a finding about a photo subscription (a shared album or
+/// photo feed), marked on the Photos page's Network sources row.
+const mediaSetupSubscriptions = 'subscriptions';
+
 /// What the photos and media health rules read.
 class MediaHealthInputs {
   const MediaHealthInputs({
@@ -20,7 +24,22 @@ class MediaHealthInputs {
     required this.transfersWaitingWithReason,
     this.storeUnreachable = false,
     this.storeLabel,
+    this.subscriptionCount = 0,
+    this.subscriptionNeedingPassword,
+    this.subscriptionFailing,
   });
+
+  /// Active photo subscriptions (shared albums, photo feeds). One is enough
+  /// for the feature to count as in use.
+  final int subscriptionCount;
+
+  /// The name of an active subscription whose last poll here wanted a
+  /// password (none saved, or refused), or null when none did.
+  final String? subscriptionNeedingPassword;
+
+  /// The name of an active subscription whose last poll here failed for
+  /// another reason, or null when none did.
+  final String? subscriptionFailing;
 
   /// This device is attached to the library's announced media store.
   final bool storeAttachedHere;
@@ -72,7 +91,10 @@ FeatureHealth evaluateMediaHealth(MediaHealthInputs i) {
   // A pending media setup item (store to attach, Lightroom to sign in)
   // means the feature is in use but unfinished here; a dismissed one is the
   // diver's choice for this device and leaves it not set up.
-  if (!i.storeAttachedHere && !i.lightroomConnected && i.mediaSetupItems == 0) {
+  if (!i.storeAttachedHere &&
+      !i.lightroomConnected &&
+      i.mediaSetupItems == 0 &&
+      i.subscriptionCount == 0) {
     return health(HealthLevel.notSetUp, HealthReason.notSetUp);
   }
   return pickHealth(DataFeature.media, [
@@ -95,6 +117,20 @@ FeatureHealth evaluateMediaHealth(MediaHealthInputs i) {
         HealthLevel.attention,
         HealthReason.mediaStoreUnreachable,
         name: i.storeLabel,
+      ),
+    if (i.subscriptionNeedingPassword != null)
+      health(
+        HealthLevel.attention,
+        HealthReason.mediaSubscriptionNeedsPassword,
+        subjectId: mediaSetupSubscriptions,
+        name: i.subscriptionNeedingPassword,
+      ),
+    if (i.subscriptionFailing != null)
+      health(
+        HealthLevel.attention,
+        HealthReason.mediaSubscriptionFailing,
+        subjectId: mediaSetupSubscriptions,
+        name: i.subscriptionFailing,
       ),
   ]);
 }

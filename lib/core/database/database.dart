@@ -29,6 +29,7 @@ import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
+import 'package:submersion/core/database/tables/species_revamp_tables.dart';
 import 'package:submersion/core/database/tables/nearby_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/rule_tables.dart';
@@ -70,6 +71,7 @@ export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
+export 'package:submersion/core/database/tables/species_revamp_tables.dart';
 export 'package:submersion/core/database/tables/nearby_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/rule_tables.dart';
@@ -302,6 +304,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteShares,
     // Insight observation dismissals (v265)
     InsightObservationDismissals,
+    // Species covers and ID practice (v383, issue #5027)
+    SpeciesCovers,
+    SpeciesPractice,
     // Certification currency (v271, issue #2267)
     CertificationCurrencyRules,
     CertificationCurrencyPrefs,
@@ -333,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 383;
+  static const int currentSchemaVersion = 384;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -519,11 +524,11 @@ class AppDatabase extends _$AppDatabase {
   /// usually updates first. Held below the floor, it reads them all once it
   /// updates. Its own payloads still arrive here and decode cleanly.
   ///
-  /// Raised 381 -> 383 for derived course requirements: older readers treat
+  /// Raised 381 -> 384 for derived course requirements: older readers treat
   /// the new kinds as manually credited dives and discard the conditions.
   /// Holding those readers also prevents them from publishing explicit nulls
   /// for the discarded conditions after they upgrade.
-  static const int minimumCompatibleSchemaVersion = 383;
+  static const int minimumCompatibleSchemaVersion = 384;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1799,9 +1804,13 @@ class AppDatabase extends _$AppDatabase {
     // by hand, which a re-parse and a resync keep (issue #4909). Nullable,
     // no backfill; the floor does not move.
     382,
-    // v383: the equipment and dive query for derived course requirements.
-    // New kinds require the sync floor to rise to 383.
+    // v383: species_covers and species_practice, a diver's cover crop and
+    // ID practice boxes per species (issue #5027). Additive; the floor does
+    // not move.
     383,
+    // v384: the equipment and dive query for derived course requirements.
+    // New kinds require the sync floor to rise to 384.
+    384,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

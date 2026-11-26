@@ -31,6 +31,7 @@ import 'package:submersion/features/media/data/services/network_credentials_serv
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
+import 'package:submersion/features/media/data/synology/synology_share_sessions.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/utils/url_validator.dart';
 import 'package:submersion/features/media/domain/entities/extracted_metadata.dart';
@@ -296,14 +297,65 @@ final Provider<NetworkCredentialsService> networkCredentialsServiceProvider =
       (ref) => NetworkCredentialsService(
         repository: ref.watch(networkCredentialsRepositoryProvider),
         storage: ref.watch(flutterSecureStorageProvider),
+        synologySessions: ref.watch(synologyShareSessionsProvider),
         onCredentialsChanged: () {
           // Through the container: this provider's own ref cannot invalidate
           // something that depends on it.
           if (!ref.mounted) return;
-          ref.container.invalidate(networkThumbnailHeadersProvider);
+          _refreshNetworkHeaders(ref.container, host: null);
         },
       ),
     );
+
+/// Request headers handed out earlier that may have gone stale: those of
+/// one host when a share's session was replaced, or of every host when a
+/// saved secret changed (rare, and the user's own doing).
+class NetworkHeadersChange {
+  const NetworkHeadersChange(this.serial, {this.host});
+
+  /// Moves on every change, so listeners hear each one.
+  final int serial;
+
+  /// The host whose headers went stale; null for every host.
+  final String? host;
+
+  /// Whether a view showing [url] holds headers this change made stale.
+  bool affects(String? url) {
+    final stale = host;
+    if (stale == null) return true;
+    return url != null && Uri.tryParse(url)?.host == stale;
+  }
+}
+
+/// The latest [NetworkHeadersChange]. Views that resolved a network image
+/// with headers listen and resolve again when it concerns them.
+final networkHeadersEpochProvider = StateProvider<NetworkHeadersChange>(
+  (ref) => const NetworkHeadersChange(0),
+);
+
+void _refreshNetworkHeaders(
+  ProviderContainer container, {
+  required String? host,
+}) {
+  container.invalidate(networkThumbnailHeadersProvider);
+  final epoch = container.read(networkHeadersEpochProvider.notifier);
+  epoch.state = NetworkHeadersChange(epoch.state.serial + 1, host: host);
+}
+
+/// The one set of Synology Photos share sessions for the app. One instance
+/// matters: every login to a share ends the session the previous one opened,
+/// so two holders would keep knocking each other out.
+final synologyShareSessionsProvider = Provider<SynologyShareSessions>(
+  (ref) => SynologyShareSessions(
+    client: ref.watch(httpClientProvider),
+    // A renewed session ends the old one: headers already on screen carry
+    // a dead session cookie until they are asked for again.
+    onSessionChanged: (link) {
+      if (!ref.mounted) return;
+      _refreshNetworkHeaders(ref.container, host: link.origin.host);
+    },
+  ),
+);
 
 /// Headers for painting [url]: `null` when its host has no saved credentials.
 ///

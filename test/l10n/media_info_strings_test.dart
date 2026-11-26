@@ -73,6 +73,7 @@ void main() {
     l10n.media_info_checkFound,
     l10n.media_info_checkMissing,
     l10n.media_info_checkUnavailable,
+    l10n.media_info_checkNeedsPassword,
     l10n.media_info_backupQueued,
     l10n.media_status_broken,
     l10n.media_status_transferFailed,

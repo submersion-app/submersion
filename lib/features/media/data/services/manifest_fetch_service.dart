@@ -7,6 +7,8 @@ import 'package:submersion/features/media/data/parsers/json_manifest_parser.dart
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format_sniffer.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 
 /// Minimal interface expected from 3a's `NetworkCredentialsService`. We only
 /// need per-host headers; full credential management lives in 3a.
@@ -76,12 +78,18 @@ class ManifestFetchService {
     required http.Client client,
     required this.credentials,
     ManifestFormatSniffer? sniffer,
+    SynologyAlbumSource? synologyAlbums,
   }) : _client = client,
-       _sniffer = sniffer ?? ManifestFormatSniffer();
+       _sniffer = sniffer ?? ManifestFormatSniffer(),
+       _synologyAlbums = synologyAlbums;
 
   final http.Client _client;
   final ManifestCredentialsLookup credentials;
   final ManifestFormatSniffer _sniffer;
+
+  /// Reads Synology Photos share links. A share is recognised by its URL,
+  /// so the stored format and the conditional headers do not apply to it.
+  final SynologyAlbumSource? _synologyAlbums;
   final _log = LoggerService.forClass(ManifestFetchService);
 
   Future<ManifestFetchOutcome> fetch(
@@ -90,6 +98,11 @@ class ManifestFetchService {
     String? ifNoneMatch,
     String? ifModifiedSince,
   }) async {
+    final albums = _synologyAlbums;
+    final share = albums == null
+        ? null
+        : SynologyShareLink.tryParseShareLink(url);
+    if (albums != null && share != null) return albums.fetch(share);
     try {
       final headers = <String, String>{
         ...await credentials.headersFor(url),

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 /// The colours of the pencil that opens a card on an unlocked record page
 /// (issue #4527): a filled [fill] disc with an [onFill] glyph and an
 /// [outline] ring. The dot that marks a card's unsaved changes wears the
-/// same fill and ring, so the two read as one editing colour.
+/// same fill and ring, and so do Cancel and Save on the unlocked record's
+/// bar (`RecordEditAction`, issue #5034), so all of them read as one editing
+/// colour.
 ///
 /// Fixed hues rather than ColorScheme roles on purpose, as with
 /// StatusColors. Every role the presets offer is a shade of the page's own

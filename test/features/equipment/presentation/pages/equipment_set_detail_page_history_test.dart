@@ -13,7 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_provenance.da
 import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -349,7 +349,7 @@ void main() {
 /// Taps Save and waits, outside the fake clock, for the count of logged
 /// dives the question needs.
 Future<void> tapSave(WidgetTester tester) async {
-  await tester.tap(find.widgetWithText(AppBarTextAction, 'Save'));
+  await tester.tap(find.widgetWithText(RecordEditAction, 'Save'));
   await tester.runAsync(
     () => Future<void>.delayed(const Duration(milliseconds: 200)),
   );

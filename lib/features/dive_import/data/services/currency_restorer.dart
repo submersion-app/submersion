@@ -103,6 +103,12 @@ class CurrencyRestorer {
               final String raw => CurrencyScopeCodec.decodeModes(raw),
               _ => null,
             },
+            // The file's mapping as written, so one this build cannot read
+            // is restored as such rather than as "any dive" (issue #4942).
+            storedMapping: (
+              types: data['countedDiveTypeIds'] as String?,
+              modes: data['countedDiveModes'] as String?,
+            ),
             muted: data['muted'] as bool? ?? false,
             createdAt: now,
             updatedAt: now,
@@ -157,6 +163,7 @@ class CurrencyRestorer {
       diverId: diverId,
       name: data['name'] as String,
       clockKind: CurrencyClockKind.parse(data['clockKind'] as String),
+      storedClockKind: data['clockKind'] as String,
       agencies: CurrencyScopeCodec.decodeAgencies(
         data['applicableAgencies'] as String,
       ),
@@ -173,6 +180,14 @@ class CurrencyRestorer {
       ),
       advisoryText: data['advisoryText'] as String?,
       supersedesRuleId: data['supersedesRuleId'] as String?,
+      // The file's scope as written, so values this build cannot read are
+      // restored as such rather than as "any" (issue #4942).
+      storedScope: (
+        agencies: data['applicableAgencies'] as String,
+        levels: data['applicableLevels'] as String,
+        types: data['countedDiveTypeIds'] as String,
+        modes: data['countedDiveModes'] as String,
+      ),
       createdAt: now,
       updatedAt: now,
     );

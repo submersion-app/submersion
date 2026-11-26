@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
@@ -19,6 +20,8 @@ import 'package:submersion/features/dashboard/presentation/providers/home_panel_
 import 'package:submersion/features/dashboard/presentation/providers/home_outings_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_banner_row.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
@@ -449,5 +452,150 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
+  });
+
+  group('header style (issue #5003)', () {
+    const phoneBanner = AppSettings(
+      homeHeaderStylePhone: 'banner',
+      homeHeaderStyleWide: 'compact',
+    );
+
+    void expectBanner(bool banner) {
+      expect(find.byType(HeroHeader), banner ? findsOneWidget : findsNothing);
+      expect(
+        find.byType(HomeBannerRow),
+        banner ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.byType(HomeHeaderBar),
+        banner ? findsNothing : findsOneWidget,
+      );
+    }
+
+    testWidgets('compact by default', (tester) async {
+      await pumpHome(tester, width: 390);
+      expectBanner(false);
+      expect(find.byType(HomeStatusStrip), findsOneWidget);
+    });
+
+    testWidgets('banner on phone when the phone choice is banner', (
+      tester,
+    ) async {
+      await pumpHome(tester, width: 390, settings: phoneBanner);
+      expectBanner(true);
+      expect(find.byType(HomeStatusStrip), findsNothing);
+    });
+
+    testWidgets('desktop ignores the phone choice', (tester) async {
+      await pumpHome(tester, width: 1400, settings: phoneBanner);
+      expectBanner(false);
+    });
+
+    testWidgets('the wide choice drives desktop', (tester) async {
+      await pumpHome(
+        tester,
+        width: 1400,
+        settings: const AppSettings(homeHeaderStyleWide: 'banner'),
+      );
+      expectBanner(true);
+    });
+
+    testWidgets('switches header when resized across 800', (tester) async {
+      await pumpHome(tester, width: 390, settings: phoneBanner);
+      expectBanner(true);
+      tester.view.physicalSize = const Size(1000, 3000);
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expectBanner(false);
+      tester.view.physicalSize = const Size(390, 3000);
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expectBanner(true);
+    });
+
+    testWidgets('the banner row stays pinned when the banner scrolls away', (
+      tester,
+    ) async {
+      await pumpHome(tester, width: 390, height: 800, settings: phoneBanner);
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, -600),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      final row = tester.getRect(find.byType(HomeBannerRow));
+      expect(row.top, 0);
+      final banner = find.byType(HeroHeader);
+      expect(
+        banner.evaluate().isEmpty || tester.getRect(banner).bottom <= row.top,
+        isTrue,
+      );
+    });
+
+    for (final width in [320.0, 390.0, 1280.0]) {
+      testWidgets('banner mode: no overflow at text scale 2, $width wide', (
+        tester,
+      ) async {
+        await pumpHome(
+          tester,
+          width: width,
+          textScale: 2,
+          settings: const AppSettings(
+            homeHeaderStylePhone: 'banner',
+            homeHeaderStyleWide: 'banner',
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.byType(HeroHeader), findsOneWidget);
+      });
+    }
+
+    // The ocean animates on a 30 fps timer; scrolled away under the pinned
+    // row it would keep an idle Home producing frames for nothing.
+    testWidgets('the banner animation pauses while scrolled away', (
+      tester,
+    ) async {
+      await pumpHome(tester, width: 390, height: 800, settings: phoneBanner);
+      bool ticking() => TickerMode.valuesOf(
+        tester.element(find.byType(OceanBackground, skipOffstage: false)),
+      ).enabled;
+      expect(ticking(), isTrue);
+
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, -600),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(ticking(), isFalse);
+
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, 600),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(ticking(), isTrue);
+    });
+
+    testWidgets('banner page order: demo card, banner, row, panels', (
+      tester,
+    ) async {
+      await pumpHome(
+        tester,
+        width: 1280,
+        settings: const AppSettings(homeHeaderStyleWide: 'banner'),
+        demo: true,
+      );
+      final demo = tester.getRect(find.byType(DemoModeDashboardCard));
+      final banner = tester.getRect(find.byType(HeroHeader));
+      final row = tester.getRect(find.byType(HomeBannerRow));
+      final keys = tester.getRect(find.byType(KeyNumbersPanel));
+      expect(demo.bottom, lessThanOrEqualTo(banner.top));
+      expect(banner.bottom, lessThanOrEqualTo(row.top));
+      expect(row.bottom, lessThanOrEqualTo(keys.top));
+    });
   });
 }

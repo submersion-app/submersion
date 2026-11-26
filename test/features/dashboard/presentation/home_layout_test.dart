@@ -145,4 +145,15 @@ void main() {
     expect(homeWidthTierForWidth(1199), HomeWidthTier.tablet);
     expect(homeWidthTierForWidth(1200), HomeWidthTier.desktop);
   });
+
+  test('a row holding quick actions takes the extra tall height', () {
+    final rows = packHomeRows([
+      HomePanelType.quickActions,
+      HomePanelType.gearService,
+      HomePanelType.comingDue,
+    ], HomeWidthTier.desktop);
+    expect(rows, hasLength(1));
+    expect(rows.single.height, HomePanelHeight.extraTall);
+    expect(rows.single.units.reduce((a, b) => a + b), homeRowUnits);
+  });
 }
