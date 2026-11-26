@@ -1,5 +1,6 @@
 <img src="assets/brand/readme-banner.png" alt="Submersion: Dive safe. Log everything." width="100%">
 
+[![Website](https://img.shields.io/badge/Website-submersion.app-0a7ea4?logo=safari&logoColor=white)](https://submersion.app)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
 
@@ -8,7 +9,9 @@ with the gas you actually have, log who you dove with and what you saw, and keep
 every bit of it on your own hardware. Rec or tech, single tank or rebreather, it
 all fits in the same logbook.
 
-Free and open source, on iOS, Android, macOS, Windows and Linux.
+Free and open source, on iOS, Android, macOS, Windows and Linux. Downloads,
+the user guide and the dive computer support matrix are at
+[submersion.app](https://submersion.app).
 
 <img align="left" width="50%" src="docs/assets/screenshots/readme/01-dive-logging.jpg" alt="Dive list beside a dive detail pane with header statistics, the dive profile with events, deco status, oxygen exposure and tissue loading">
 
