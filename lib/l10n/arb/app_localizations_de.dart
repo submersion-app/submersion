@@ -56093,13 +56093,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_labels_action => 'Arten-Beschriftungen';
 
   @override
-  String get media_labels_names => 'Namen';
+  String get media_labels_names => 'Namen und wahrscheinliche Tiere';
 
   @override
-  String get media_labels_allLife => 'Alle Lebewesen';
+  String get media_labels_allLife => 'Alles Erkannte';
 
   @override
-  String get media_labels_off => 'Aus';
+  String get media_labels_off => 'Keine Beschriftungen';
 
   @override
   String get media_labels_analyse => 'Analysieren';
@@ -56175,7 +56175,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Alle Lebewesen zeigen';
+  String get media_labels_showAllLife => 'Alles Erkannte anzeigen';
 
   @override
   String get media_species_possibleMatches => 'Mögliche Treffer';

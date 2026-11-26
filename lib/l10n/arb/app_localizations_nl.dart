@@ -55869,13 +55869,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_labels_action => 'Labels voor soorten';
 
   @override
-  String get media_labels_names => 'Namen';
+  String get media_labels_names => 'Namen en waarschijnlijke dieren';
 
   @override
-  String get media_labels_allLife => 'Al het leven';
+  String get media_labels_allLife => 'Alles wat is gedetecteerd';
 
   @override
-  String get media_labels_off => 'Uit';
+  String get media_labels_off => 'Geen labels';
 
   @override
   String get media_labels_analyse => 'Analyseren';
@@ -55951,7 +55951,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Al het leven tonen';
+  String get media_labels_showAllLife => 'Alles tonen wat is gedetecteerd';
 
   @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';

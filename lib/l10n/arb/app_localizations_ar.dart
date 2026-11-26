@@ -57049,13 +57049,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_labels_action => 'تسميات الأنواع';
 
   @override
-  String get media_labels_names => 'الأسماء';
+  String get media_labels_names => 'الأسماء والحيوانات المحتملة';
 
   @override
-  String get media_labels_allLife => 'كل الكائنات';
+  String get media_labels_allLife => 'كل ما تم اكتشافه';
 
   @override
-  String get media_labels_off => 'إيقاف';
+  String get media_labels_off => 'بلا تسميات';
 
   @override
   String get media_labels_analyse => 'تحليل';
@@ -57138,7 +57138,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'إظهار كل الكائنات';
+  String get media_labels_showAllLife => 'إظهار كل ما تم اكتشافه';
 
   @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
