@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -209,6 +211,23 @@ void main() {
     expect(find.text('3 selected'), findsOneWidget);
   });
 
+  testWidgets('a trip header loads the rest before trip counts arrive', (
+    tester,
+  ) async {
+    final notifier = await _pumpTripList(
+      tester,
+      lastDiveOnTrip: true,
+      countsPending: true,
+    );
+    await _enterSelection(tester);
+
+    await tester.tap(_tripHeaderCheckbox);
+    await _settle(tester);
+
+    expect(notifier.restLoads, 1);
+    expect(find.text('3 selected'), findsOneWidget);
+  });
+
   testWidgets('a trip shown whole checks without loading the rest', (
     tester,
   ) async {
@@ -231,9 +250,12 @@ final _tripHeaderCheckbox = find.descendant(
 /// A loose dive, then trip t1's dives d2 and d3 on page one, with d4 held
 /// back. [lastDiveOnTrip] puts d4 on the trip, which then goes on past the
 /// page; otherwise d4 is a loose dive and the trip is whole on screen.
+/// [countsPending] holds the trips' dive counts back, as on a list just
+/// opened.
 Future<_PagedNotifier> _pumpTripList(
   WidgetTester tester, {
   required bool lastDiveOnTrip,
+  bool countsPending = false,
 }) async {
   DiveSummary tripDive(String id, int day) => DiveSummary(
     id: id,
@@ -267,7 +289,9 @@ Future<_PagedNotifier> _pumpTripList(
       overrides: [
         ...base,
         tripDiveCountsProvider.overrideWith(
-          (ref) async => {'t1': lastDiveOnTrip ? 3 : 2},
+          (ref) => countsPending
+              ? Completer<Map<String, int>>().future
+              : Future.value({'t1': lastDiveOnTrip ? 3 : 2}),
         ),
         paginatedDiveListProvider.overrideWith((ref) => notifier),
       ],
