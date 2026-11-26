@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -90,6 +92,7 @@ Future<void> _pumpPage(
   Map<String, MediaItem> covers = const {},
   List<Override> extra = const [],
   VoidCallback? onBestCrops,
+  bool settle = true,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -124,7 +127,12 @@ Future<void> _pumpPage(
       ],
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+    await tester.pump();
+  }
 }
 
 /// Where [text] reads in the grid: by row, then left to right.
@@ -379,5 +387,19 @@ void main() {
       );
       expect(find.byType(QueryNoMatchState), findsOneWidget);
     });
+  });
+
+  testWidgets('no photo count waits for the pictures', (tester) async {
+    await _pumpPage(
+      tester,
+      [_whaleShark, _turtle],
+      extra: [
+        speciesPicturesProvider.overrideWith(
+          (ref) => Completer<Map<String, SpeciesPicture>>().future,
+        ),
+      ],
+      settle: false,
+    );
+    expect(find.byKey(const ValueKey('species_no_photo_chip')), findsNothing);
   });
 }

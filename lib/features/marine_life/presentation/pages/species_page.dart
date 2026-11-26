@@ -166,9 +166,11 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
     }
     // Pictures, covers and practice load beside the cards, not ahead of
     // them: until they arrive a card shows its category tile.
-    final pictures =
-        ref.watch(speciesPicturesProvider).value ??
-        const <String, SpeciesPicture>{};
+    final picturesAsync = ref.watch(speciesPicturesProvider);
+    final pictures = picturesAsync.value ?? const <String, SpeciesPicture>{};
+    // Until the pictures arrive nothing is known to lack one: no count, and
+    // no filtering on it.
+    final picturesKnown = picturesAsync.hasValue;
     final covers =
         ref.watch(speciesCoverMediaProvider).value ??
         const <String, MediaItem>{};
@@ -194,7 +196,7 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
         sort: _sort,
         nameOf: (species) => species.localizedCommonName(l10n),
       ))
-        if (!_noPhotoOnly || !hasPicture(e)) e,
+        if (!_noPhotoOnly || !picturesKnown || !hasPicture(e)) e,
     ];
     final sightings = visible.fold<int>(0, (sum, e) => sum + e.totalSightings);
     final header = Column(
@@ -203,7 +205,9 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
         LifeListHeader(
           summary: summarizeLifeList(all, now: now),
           year: now.year,
-          withoutPhoto: all.where((e) => !hasPicture(e)).length,
+          withoutPhoto: picturesKnown
+              ? all.where((e) => !hasPicture(e)).length
+              : 0,
           noPhotoFilterOn: _noPhotoOnly,
           onNoPhotoFilter: (on) => setState(() => _noPhotoOnly = on),
         ),

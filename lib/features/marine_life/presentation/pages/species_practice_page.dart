@@ -37,17 +37,23 @@ class SpeciesPracticePage extends ConsumerStatefulWidget {
 }
 
 class _Round {
-  _Round({required this.speciesId, required this.crop, required this.choices});
+  const _Round({
+    required this.speciesId,
+    required this.crop,
+    required this.choices,
+  });
 
   final String speciesId;
   final SpeciesCrop crop;
   final List<String> choices;
-  String? picked;
 }
 
 class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
   late final Random _random = widget.random ?? Random();
   List<_Round>? _rounds;
+
+  /// The name picked in each round answered so far, by round index.
+  Map<int, String> _picks = const {};
   int _index = 0;
   bool _scientific = false;
 
@@ -56,9 +62,18 @@ class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final pool = ref.watch(speciesPracticePoolProvider).value;
-    final states = ref.watch(speciesPracticeStatesProvider).value;
-    final seen = ref.watch(seenSpeciesProvider).value;
+    final poolAsync = ref.watch(speciesPracticePoolProvider);
+    final statesAsync = ref.watch(speciesPracticeStatesProvider);
+    final seenAsync = ref.watch(seenSpeciesProvider);
+    final failure = [
+      poolAsync,
+      statesAsync,
+      seenAsync,
+    ].where((a) => a.hasError).firstOrNull;
+    if (failure != null) return _failed(context, failure.error!);
+    final pool = poolAsync.value;
+    final states = statesAsync.value;
+    final seen = seenAsync.value;
     final ready = pool != null && states != null && seen != null;
     final bySpecies = {
       for (final e in seen ?? const <SeenSpecies>[]) e.species.id: e,
@@ -125,8 +140,8 @@ class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
   }
 
   Future<void> _answer(_Round round, String picked) async {
-    if (round.picked != null) return;
-    setState(() => round.picked = picked);
+    if (_picks.containsKey(_index)) return;
+    setState(() => _picks = {..._picks, _index: picked});
     final diverId = ref.read(currentDiverIdProvider);
     if (diverId == null) return;
     final states = ref.read(speciesPracticeStatesProvider).value ?? const {};
@@ -176,7 +191,7 @@ class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final round = rounds[_index];
-    final picked = round.picked;
+    final picked = _picks[_index];
     final last = _index == rounds.length - 1;
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -279,8 +294,14 @@ class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
   ) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final right = rounds.where((r) => r.picked == r.speciesId).length;
-    final missed = rounds.where((r) => r.picked != r.speciesId).toList();
+    final right = [
+      for (var i = 0; i < rounds.length; i++)
+        if (_picks[i] == rounds[i].speciesId) i,
+    ].length;
+    final missed = [
+      for (var i = 0; i < rounds.length; i++)
+        if (_picks[i] != rounds[i].speciesId) rounds[i],
+    ];
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -309,6 +330,7 @@ class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
             FilledButton(
               onPressed: () => setState(() {
                 _rounds = null;
+                _picks = const {};
                 _index = 0;
               }),
               child: Text(l10n.marineLife_practice_again),
@@ -320,6 +342,37 @@ class _SpeciesPracticePageState extends ConsumerState<SpeciesPracticePage> {
           ],
         ),
       ],
+    );
+  }
+
+  /// A load that failed: what went wrong and a way to try again.
+  Widget _failed(BuildContext context, Object error) {
+    final l10n = context.l10n;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.marineLife_practice_title)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l10n.marineLife_speciesPage_error(error.toString()),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              FilledButton.tonal(
+                onPressed: () {
+                  ref.invalidate(speciesPracticePoolProvider);
+                  ref.invalidate(speciesPracticeStatesProvider);
+                  ref.invalidate(seenSpeciesProvider);
+                },
+                child: Text(l10n.marineLife_speciesPage_retry),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

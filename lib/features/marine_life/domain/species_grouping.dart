@@ -17,6 +17,13 @@ class SpeciesPlace {
   /// A trip's start, for newest-first order. Unused for sites.
   final DateTime? sortDate;
 
+  SpeciesPlace copyWith({String? id, String? name, DateTime? sortDate}) =>
+      SpeciesPlace(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        sortDate: sortDate ?? this.sortDate,
+      );
+
   @override
   bool operator ==(Object other) => other is SpeciesPlace && other.id == id;
 
@@ -40,6 +47,18 @@ class SpeciesPlaces {
   /// dive had none.
   final Map<String, String?> firstTripBySpecies;
   final Map<String, String?> firstSiteBySpecies;
+
+  SpeciesPlaces copyWith({
+    Map<String, List<SpeciesPlace>>? tripsBySpecies,
+    Map<String, List<SpeciesPlace>>? sitesBySpecies,
+    Map<String, String?>? firstTripBySpecies,
+    Map<String, String?>? firstSiteBySpecies,
+  }) => SpeciesPlaces(
+    tripsBySpecies: tripsBySpecies ?? this.tripsBySpecies,
+    sitesBySpecies: sitesBySpecies ?? this.sitesBySpecies,
+    firstTripBySpecies: firstTripBySpecies ?? this.firstTripBySpecies,
+    firstSiteBySpecies: firstSiteBySpecies ?? this.firstSiteBySpecies,
+  );
 }
 
 /// One section of the grouped Species page. Exactly one of [category],
@@ -63,6 +82,22 @@ class SpeciesGroup {
 
   /// Species ids first seen on this group's trip or site.
   final Set<String> firstSeenHere;
+
+  SpeciesGroup copyWith({
+    String? key,
+    SpeciesCategory? category,
+    int? year,
+    SpeciesPlace? place,
+    List<SeenSpecies>? entries,
+    Set<String>? firstSeenHere,
+  }) => SpeciesGroup(
+    key: key ?? this.key,
+    category: category ?? this.category,
+    year: year ?? this.year,
+    place: place ?? this.place,
+    entries: entries ?? this.entries,
+    firstSeenHere: firstSeenHere ?? this.firstSeenHere,
+  );
 }
 
 /// Splits [sorted] into the sections of [by], keeping [sorted]'s order inside

@@ -130,4 +130,13 @@ void main() {
     expect(groups.single.place?.id, isNull);
     expect(groups.single.entries, [fish]);
   });
+
+  test('places and groups copy with changes', () {
+    const place = SpeciesPlace(id: 'a', name: 'Bonaire');
+    expect(place.copyWith(name: 'Curacao').name, 'Curacao');
+    expect(place.copyWith(name: 'Curacao').id, 'a');
+    final group = SpeciesGroup(key: 'k', entries: [fish]);
+    expect(group.copyWith(firstSeenHere: {'fish'}).firstSeenHere, {'fish'});
+    expect(group.copyWith(key: 'j').entries, [fish]);
+  });
 }

@@ -161,9 +161,11 @@ Future<void> _copyRow(
   required String set,
   required List<Object?> values,
 }) async {
+  // Dropped first: a copy that failed halfway may have left one shaped like
+  // the other table.
+  await db.customStatement('DROP TABLE IF EXISTS _revamp_move');
   await db.customStatement(
-    'CREATE TEMP TABLE IF NOT EXISTS _revamp_move AS '
-    'SELECT * FROM $table WHERE 0',
+    'CREATE TEMP TABLE _revamp_move AS SELECT * FROM $table WHERE 0',
   );
   await db.customStatement('DELETE FROM _revamp_move');
   await db.customStatement(

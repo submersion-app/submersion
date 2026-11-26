@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-final _log = LoggerService.forClass(Object);
+const _log = LoggerService('SpeciesWriteFeedback');
 
 /// Runs [write] (a cover chosen, a practice answer) and, if it fails, tells
 /// the diver instead of leaving an unhandled error (issue #5027).

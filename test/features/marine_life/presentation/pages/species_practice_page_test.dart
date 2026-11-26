@@ -60,6 +60,7 @@ void main() {
   Future<_RecordingPractice> pump(
     WidgetTester tester, {
     List<SeenSpecies>? seen,
+    bool poolFails = false,
   }) async {
     tester.view.physicalSize = const Size(600, 1400);
     tester.view.devicePixelRatio = 1;
@@ -94,15 +95,17 @@ void main() {
           speciesPracticeStatesProvider.overrideWith((ref) async => const {}),
           seenSpeciesProvider.overrideWith((ref) async => list),
           speciesPracticePoolProvider.overrideWith(
-            (ref) async => {
-              for (final s in list)
-                s.species.id: [
-                  testCrop(
-                    'crop_${s.species.id}',
-                    mediaId: 'm_${s.species.id}',
-                  ),
-                ],
-            },
+            (ref) async => poolFails
+                ? throw StateError('no database')
+                : {
+                    for (final s in list)
+                      s.species.id: [
+                        testCrop(
+                          'crop_${s.species.id}',
+                          mediaId: 'm_${s.species.id}',
+                        ),
+                      ],
+                  },
           ),
         ],
       ),
@@ -198,5 +201,12 @@ void main() {
     await tester.tap(find.byKey(ValueKey('practice_choice_${shown(tester)}')));
     await tester.pumpAndSettle();
     expect(practice.saved, hasLength(1));
+  });
+
+  testWidgets('a failed load says so instead of spinning', (tester) async {
+    await pump(tester, poolFails: true);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.textContaining('Could not load your species'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
   });
 }

@@ -16,6 +16,16 @@ class LifeListSummary {
 
   /// Species seen so far, one point per first-seen day, oldest first.
   final List<({DateTime date, int cumulative})> growth;
+
+  LifeListSummary copyWith({
+    int? total,
+    int? newThisYear,
+    List<({DateTime date, int cumulative})>? growth,
+  }) => LifeListSummary(
+    total: total ?? this.total,
+    newThisYear: newThisYear ?? this.newThisYear,
+    growth: growth ?? this.growth,
+  );
 }
 
 /// Summarizes the whole life list [entries] as of [now].

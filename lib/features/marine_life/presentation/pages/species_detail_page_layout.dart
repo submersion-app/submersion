@@ -124,8 +124,11 @@ mixin _SpeciesDetailPageLayout
     final cropMedia = picture is CropPicture
         ? media.where((m) => m.id == picture.crop.mediaId).firstOrNull
         : null;
+    // Only a species with no picture can offer Find photos, so only then is
+    // the candidate query worth running.
     final canFind =
         !isCreating &&
+        picture is NoPicture &&
         (ref.watch(speciesTagCandidatesProvider(speciesId)).value ?? const [])
             .isNotEmpty;
     return ClipRRect(
