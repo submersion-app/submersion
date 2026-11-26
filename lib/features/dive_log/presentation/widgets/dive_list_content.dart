@@ -34,6 +34,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/widgets/misplaced_logbook_banner.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -2607,6 +2608,34 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
+  /// Check every dive of the trip [tripId], whose loaded dives are
+  /// [loadedIds].
+  ///
+  /// Only the last trip on screen can go on past the loaded pages, so only
+  /// its header loads the rest of the list first (#5022); any other trip is
+  /// all there already.
+  void _checkTrip(String tripId, List<String> loadedIds) {
+    final last = _lastSections.isEmpty ? null : _lastSections.last;
+    final hasMore = ref.read(paginatedDiveListProvider).value?.hasMore ?? false;
+    if (!hasMore || last is! TripSection || last.tripId != tripId) {
+      _selection.selectAll([..._selectedIds, ...loadedIds]);
+      return;
+    }
+    logFailure(
+      _selection.selectAllAfterLoading(() async {
+        final kept = _selectedIds.toList();
+        final dives = await _loadAllDives();
+        return [
+          ...kept,
+          for (final dive in dives)
+            if (dive.tripId == tripId) dive.id,
+        ];
+      }),
+      DiveListContent,
+      'check a trip',
+    );
+  }
+
   /// One trip: a faint full-bleed band behind a pinned header and its dives.
   ///
   /// The band is a [DecoratedSliver] rather than a widget wrapping the rows,
@@ -2660,14 +2689,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               isSelectionMode: _isSelectionMode,
               groupChecked: groupChecked,
               onGroupCheckedChanged: (_) {
-                // Loaded dives only, matching the existing select-all: the
-                // list can only act on rows it holds.
                 if (checkedInGroup == groupIds.length) {
                   _selection.replaceChecked(
                     _selectedIds.where((id) => !groupIds.contains(id)).toList(),
                   );
                 } else {
-                  _selection.selectAll([..._selectedIds, ...groupIds]);
+                  _checkTrip(section.tripId, groupIds);
                 }
               },
             ),

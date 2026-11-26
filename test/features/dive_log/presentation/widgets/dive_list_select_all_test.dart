@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -191,5 +192,59 @@ void main() {
 
     expect(notifier.restLoads, 1);
     expect(find.text('2 selected'), findsOneWidget);
+  });
+
+  // The last trip on screen can go on past the loaded page: its header
+  // checkbox checked only the dives of it that were loaded.
+  testWidgets('a trip header checks its dives past the loaded page', (
+    tester,
+  ) async {
+    DiveSummary tripDive(String id, int day) => DiveSummary(
+      id: id,
+      dateTime: DateTime(2026, 6, day),
+      sortTimestamp: 0,
+      tripId: 't1',
+      tripName: 'Tassie',
+      tripStartDate: DateTime(2026, 6, 1),
+      tripEndDate: DateTime(2026, 6, 9),
+    );
+    final notifier = _PagedNotifier([
+      _summary('d1', DateTime(2026, 7, 1)),
+      tripDive('d2', 9),
+      tripDive('d3', 8),
+      tripDive('d4', 7),
+    ], pageSize: 3);
+    final base = await getBaseOverrides(
+      settingsNotifier: MockSettingsNotifier(
+        const AppSettings(
+          diveListViewMode: ListViewMode.detailed,
+          groupTripsInDiveList: true,
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          tripDiveCountsProvider.overrideWith((ref) async => const {'t1': 3}),
+          paginatedDiveListProvider.overrideWith((ref) => notifier),
+        ],
+        child: const DiveListContent(showAppBar: false),
+      ),
+    );
+    await _settle(tester);
+    await _enterSelection(tester);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(TripGroupHeader),
+        matching: find.byType(Checkbox),
+      ),
+    );
+    await _settle(tester);
+
+    expect(notifier.restLoads, 1);
+    expect(find.text('3 selected'), findsOneWidget);
   });
 }
