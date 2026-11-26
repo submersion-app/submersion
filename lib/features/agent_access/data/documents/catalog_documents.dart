@@ -63,6 +63,8 @@ Map<String, Object?> weightPresetEntryDocument(WeightPresetEntry e) => {
   'amount_kg': e.amountKg,
   'label': e.label,
   'notes': e.notes,
+  // Null is both sides (issue #5028).
+  'side': e.side?.name,
   'sort_order': e.sortOrder,
 };
 
