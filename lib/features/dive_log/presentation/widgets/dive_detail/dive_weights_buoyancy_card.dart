@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_header_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_weight_rows.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/trim/trim_card_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
-/// The dive page's Weights and buoyancy card: the lead the diver carried,
-/// then the modeled buoyancy of the dive (issue #5005).
+/// The dive page's Weights and buoyancy card: the lead the diver carried and
+/// the trim figure that shows where it sits (issue #5028), then the modeled
+/// buoyancy of the dive (issue #5005).
 ///
 /// It is the Weights section's card, so it can be edited in place: unlocked,
 /// its title row gains the pencil, which opens the weights editor in place of
@@ -49,6 +52,10 @@ class DiveWeightsBuoyancyCard extends ConsumerWidget {
   /// would fold into a column of single words.
   static const double _minTitleWidth = 96;
 
+  /// From this card width the weights list and the trim figure sit side by
+  /// side; narrower, the figure goes under the list.
+  static const double sideBySideWidth = 720;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // AsyncValue.value keeps the last outcome while the provider reloads, as
@@ -81,16 +88,46 @@ class DiveWeightsBuoyancyCard extends ConsumerWidget {
                 );
               },
             ),
-            if (showWeights) ...[
+            if (showWeights || outcome != null) ...[
               const SizedBox(height: 12),
-              DiveWeightRows(dive: dive),
+              _weightsAndTrim(outcome, units),
             ],
-            if (showWeights && outcome != null) const Divider(height: 24),
-            if (!showWeights && outcome != null) const SizedBox(height: 12),
+            // The trim figure leads whenever the model has an outcome, so a
+            // divider always parts it from the model.
+            if (outcome != null) const Divider(height: 24),
             BuoyancySection(diveId: stored.id, dive: stored, units: units),
           ],
         ),
       ),
+    );
+  }
+
+  /// The weights list and, once the model has an outcome, the trim figure:
+  /// side by side on a wide card, the figure under the list on a narrow one.
+  Widget _weightsAndTrim(BuoyancyTwinOutcome? outcome, UnitFormatter units) {
+    final weights = showWeights ? DiveWeightRows(dive: dive) : null;
+    final trim = outcome == null
+        ? null
+        : TrimCardSection(stored: stored, outcome: outcome, units: units);
+    if (trim == null) return weights!;
+    if (weights == null) return trim;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= sideBySideWidth) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: weights),
+              const SizedBox(width: 24),
+              Expanded(child: trim),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [weights, const SizedBox(height: 16), trim],
+        );
+      },
     );
   }
 }
