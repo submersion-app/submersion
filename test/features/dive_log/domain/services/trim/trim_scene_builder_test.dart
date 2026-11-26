@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
 
 import '../../../presentation/widgets/buoyancy_outcome_fixture.dart';
 
@@ -392,5 +393,29 @@ void main() {
       only(build(suit('shorty')), TrimElementKind.gear).pieceIds,
       contains('wetsuit_shorty_side_torso'),
     );
+  });
+
+  test('gear and tanks take the gear figure colours', () {
+    final suit = item('suit', EquipmentType.wetsuit);
+    final scene = build(
+      Dive(
+        id: 'd1',
+        dateTime: when,
+        gear: [GearLink(item: suit)],
+        tanks: const [
+          DiveTank(id: 't1', volume: 15, material: TankMaterial.steel),
+        ],
+      ),
+      tanks: const [
+        TwinTankInput(
+          id: 't1',
+          label: 'S15',
+          volumeL: 15,
+          material: TankMaterial.steel,
+        ),
+      ],
+    );
+    expect(only(scene, TrimElementKind.gear).color, FigureColors.darkBlue);
+    expect(only(scene, TrimElementKind.tank).color, FigureColors.steel);
   });
 }

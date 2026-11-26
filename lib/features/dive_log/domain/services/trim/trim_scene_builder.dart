@@ -17,6 +17,7 @@ import 'package:submersion/features/equipment/domain/services/equipment_lead.dar
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 
 /// Everything the trim figure weighs for one moment of one dive (issue
@@ -197,6 +198,7 @@ List<TrimElement> _gear(Dive dive, List<TwinStaticTerm> terms) {
         priorById,
         model.byId(node.link.item.id)?.zone,
         camera,
+        model.byId(node.link.item.id)?.color ?? TrimElement.defaultColor,
         trimPieceIdsForGearPieces(
           model.byId(node.link.item.id)?.pieceIds ?? const [],
           shorty: _isShorty(dive.equipment),
@@ -218,6 +220,7 @@ TrimElement _gearElement(
   Map<String, double> priorById,
   FigureZone? zone,
   TrimPlacement? camera,
+  int color,
   List<String> pieceIds,
 ) {
   final item = node.link.item;
@@ -244,6 +247,7 @@ TrimElement _gearElement(
     lateral: at.lateral,
     itemId: item.id,
     pieceIds: pieceIds,
+    color: color,
   );
 }
 
@@ -257,6 +261,7 @@ List<TrimElement> _tanks(Dive dive, TwinInput input, int at) {
           id: tank.id,
           label: tank.name ?? tank.presetName ?? '',
           role: tank.role,
+          material: tank.material,
           cylinder: itemsById[tank.equipmentId],
           twin: twin,
           pressureBar: at < 0
@@ -275,6 +280,7 @@ TrimElement _tankElement({
   required String id,
   required String label,
   required TankRole role,
+  required TankMaterial? material,
   required EquipmentItem? cylinder,
   required TwinTankInput twin,
   required double pressureBar,
@@ -295,6 +301,15 @@ TrimElement _tankElement({
     lateral: place.lateral,
     itemId: cylinder?.id,
     pieceIds: place.pieceIds,
+    color:
+        parseFigureColor(
+          cylinder == null
+              ? null
+              : figureAttributesOf(cylinder)[kFigureColorAttribute],
+        ) ??
+        (material == TankMaterial.steel
+            ? FigureColors.steel
+            : FigureColors.aluminium),
   );
 }
 
