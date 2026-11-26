@@ -119,9 +119,9 @@ void main() {
     await open(tester, mode: LabelMode.allLife);
     // Each mode says what it draws (issue #5023): bare "All life" read as
     // "a whole lifetime" once translated.
-    expect(find.text('Show names'), findsOneWidget);
-    expect(find.text('Show all animals'), findsOneWidget);
-    expect(find.text('Hide labels'), findsOneWidget);
+    expect(find.text('Named animals only'), findsOneWidget);
+    expect(find.text('Every animal found'), findsOneWidget);
+    expect(find.text('No labels'), findsOneWidget);
     expect(checked(tester, 'all_life'), isTrue);
     expect(checked(tester, 'names'), isFalse);
     expect(checked(tester, 'off'), isFalse);
@@ -131,9 +131,9 @@ void main() {
     tester,
   ) async {
     await open(tester, locale: const Locale('fr'));
-    expect(find.text('Afficher les noms'), findsOneWidget);
-    expect(find.text('Afficher tous les animaux'), findsOneWidget);
-    expect(find.text('Masquer les étiquettes'), findsOneWidget);
+    expect(find.text('Animaux nommés seulement'), findsOneWidget);
+    expect(find.text('Tous les animaux trouvés'), findsOneWidget);
+    expect(find.text('Aucune étiquette'), findsOneWidget);
     expect(find.text('Toute la vie'), findsNothing);
     expect(tester.takeException(), isNull);
   });

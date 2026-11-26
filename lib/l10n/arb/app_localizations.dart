@@ -87931,22 +87931,22 @@ abstract class AppLocalizations {
   /// **'Species labels'**
   String get media_labels_action;
 
-  /// Labels menu in the media viewer (issue #5023): draw a name label on each animal the app can name or the diver tagged (an unnamed one may still get a small dot). One of three choices for what is drawn over the photo or video; say what it shows, not just 'Names'.
+  /// Labels menu in the media viewer (issue #5023), first of three choices for what is drawn over the photo or video: a name label on each animal the app can name or the diver tagged, and nothing on the animals it cannot name (bar the odd small dot). The wording must contrast with media_labels_allLife: this one leaves the unnamed animals out.
   ///
   /// In en, this message translates to:
-  /// **'Show names'**
+  /// **'Named animals only'**
   String get media_labels_names;
 
-  /// Labels menu in the media viewer (issue #5023): draw the name labels, plus a dot on every other animal found. 'Animals' means the creatures detected in the photo, not 'all of life' or 'a lifetime'.
+  /// Labels menu in the media viewer (issue #5023), second of three choices: the name labels, plus a dot on every animal found that the app cannot name. The wording must contrast with media_labels_names: this one includes the unnamed animals. 'Animal' means a creature detected in the photo, never 'all of life' or 'a lifetime'.
   ///
   /// In en, this message translates to:
-  /// **'Show all animals'**
+  /// **'Every animal found'**
   String get media_labels_allLife;
 
-  /// Labels menu in the media viewer (issue #5023): draw no labels over the photo or video.
+  /// Labels menu in the media viewer (issue #5023), third of three choices: draw no labels over the photo or video.
   ///
   /// In en, this message translates to:
-  /// **'Hide labels'**
+  /// **'No labels'**
   String get media_labels_off;
 
   /// No description provided for @media_labels_analyse.
@@ -88033,10 +88033,10 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{{count} found, none named} other{{count} found, none named}}'**
   String media_labels_foundNoneNamed(int count);
 
-  /// Action on the notice shown when an analysis finds animals it cannot name: switch the labels menu to its 'Show all animals' choice, which draws the unnamed animals too. Use the same words as media_labels_allLife.
+  /// Action on the notice shown when an analysis finds animals it cannot name: switch the labels menu to its 'Every animal found' choice (media_labels_allLife), which marks the unnamed animals too.
   ///
   /// In en, this message translates to:
-  /// **'Show all animals'**
+  /// **'Show every animal'**
   String get media_labels_showAllLife;
 
   /// No description provided for @media_species_possibleMatches.

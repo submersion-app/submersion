@@ -56215,13 +56215,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_labels_action => 'Etichette delle specie';
 
   @override
-  String get media_labels_names => 'Mostra i nomi';
+  String get media_labels_names => 'Solo animali con nome';
 
   @override
-  String get media_labels_allLife => 'Mostra tutti gli animali';
+  String get media_labels_allLife => 'Tutti gli animali trovati';
 
   @override
-  String get media_labels_off => 'Nascondi le etichette';
+  String get media_labels_off => 'Nessuna etichetta';
 
   @override
   String get media_labels_analyse => 'Analizza';

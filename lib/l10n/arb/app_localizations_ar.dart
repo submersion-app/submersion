@@ -57049,13 +57049,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_labels_action => 'تسميات الأنواع';
 
   @override
-  String get media_labels_names => 'إظهار الأسماء';
+  String get media_labels_names => 'الحيوانات المسماة فقط';
 
   @override
-  String get media_labels_allLife => 'إظهار كل الحيوانات';
+  String get media_labels_allLife => 'كل الحيوانات التي عُثر عليها';
 
   @override
-  String get media_labels_off => 'إخفاء التسميات';
+  String get media_labels_off => 'بلا تسميات';
 
   @override
   String get media_labels_analyse => 'تحليل';

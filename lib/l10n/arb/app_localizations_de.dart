@@ -56093,13 +56093,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_labels_action => 'Arten-Beschriftungen';
 
   @override
-  String get media_labels_names => 'Namen anzeigen';
+  String get media_labels_names => 'Nur benannte Tiere';
 
   @override
-  String get media_labels_allLife => 'Alle Tiere anzeigen';
+  String get media_labels_allLife => 'Alle gefundenen Tiere';
 
   @override
-  String get media_labels_off => 'Beschriftungen ausblenden';
+  String get media_labels_off => 'Keine Beschriftungen';
 
   @override
   String get media_labels_analyse => 'Analysieren';

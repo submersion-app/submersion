@@ -53917,13 +53917,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_labels_action => '種のラベル';
 
   @override
-  String get media_labels_names => '名前を表示';
+  String get media_labels_names => '名前の分かる動物のみ';
 
   @override
-  String get media_labels_allLife => 'すべての動物を表示';
+  String get media_labels_allLife => '見つかったすべての動物';
 
   @override
-  String get media_labels_off => 'ラベルを非表示';
+  String get media_labels_off => 'ラベルなし';
 
   @override
   String get media_labels_analyse => '解析';

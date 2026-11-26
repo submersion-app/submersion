@@ -52682,13 +52682,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_labels_action => '物种标签';
 
   @override
-  String get media_labels_names => '显示名称';
+  String get media_labels_names => '仅已命名的动物';
 
   @override
-  String get media_labels_allLife => '显示所有动物';
+  String get media_labels_allLife => '找到的所有动物';
 
   @override
-  String get media_labels_off => '隐藏标签';
+  String get media_labels_off => '不显示标签';
 
   @override
   String get media_labels_analyse => '分析';

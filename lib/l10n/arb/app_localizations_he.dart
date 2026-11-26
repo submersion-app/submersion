@@ -55044,13 +55044,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_labels_action => 'תוויות מינים';
 
   @override
-  String get media_labels_names => 'הצגת שמות';
+  String get media_labels_names => 'רק בעלי חיים עם שם';
 
   @override
-  String get media_labels_allLife => 'הצגת כל בעלי החיים';
+  String get media_labels_allLife => 'כל בעלי החיים שנמצאו';
 
   @override
-  String get media_labels_off => 'הסתרת התוויות';
+  String get media_labels_off => 'ללא תוויות';
 
   @override
   String get media_labels_analyse => 'ניתוח';

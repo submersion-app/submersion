@@ -55895,13 +55895,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_labels_action => 'Fajok címkéi';
 
   @override
-  String get media_labels_names => 'Nevek mutatása';
+  String get media_labels_names => 'Csak a megnevezett állatok';
 
   @override
-  String get media_labels_allLife => 'Minden állat mutatása';
+  String get media_labels_allLife => 'Minden talált állat';
 
   @override
-  String get media_labels_off => 'Címkék elrejtése';
+  String get media_labels_off => 'Nincs címke';
 
   @override
   String get media_labels_analyse => 'Elemzés';

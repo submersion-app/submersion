@@ -56334,13 +56334,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_labels_action => 'Étiquettes d\'espèces';
 
   @override
-  String get media_labels_names => 'Afficher les noms';
+  String get media_labels_names => 'Animaux nommés seulement';
 
   @override
-  String get media_labels_allLife => 'Afficher tous les animaux';
+  String get media_labels_allLife => 'Tous les animaux trouvés';
 
   @override
-  String get media_labels_off => 'Masquer les étiquettes';
+  String get media_labels_off => 'Aucune étiquette';
 
   @override
   String get media_labels_analyse => 'Analyser';
