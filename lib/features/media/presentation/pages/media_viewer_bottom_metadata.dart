@@ -20,6 +20,7 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
       settings: settings,
       onMomentTap: (tag) => _showMoment(item, tag),
       sitting: photoSitting,
+      locked: photoLocked,
       onSuggestionTap: photoSitting == null
           ? null
           : () {
@@ -90,6 +91,10 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// while the photo is locked.
   final VoidCallback? onSuggestionTap;
 
+  /// The photo or video is locked: a species tag opens its crops (issue
+  /// #5024).
+  final bool locked;
+
   /// A video's scrub bar, drawn above everything else in the panel; null
   /// for a photo.
   final Widget? controls;
@@ -120,6 +125,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
     this.onMomentTap,
     this.sitting,
     this.onSuggestionTap,
+    this.locked = false,
     this.controls,
     this.controlsClearance = 0,
     this.chartClearance = 0,
@@ -217,6 +223,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                       sitting: sitting,
                       onSuggestionTap: onSuggestionTap,
                       item: item,
+                      tagsOpenCrops: locked,
                       // Every species, from the "+N" chip: the sheet while
                       // the photo is unlocked, else the list (issue #4825).
                       onMoreTap:

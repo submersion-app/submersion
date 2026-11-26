@@ -55227,13 +55227,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_labels_action => 'תוויות מינים';
 
   @override
-  String get media_labels_names => 'שמות';
+  String get media_labels_names => 'שמות ובעלי חיים סבירים';
 
   @override
-  String get media_labels_allLife => 'כל היצורים';
+  String get media_labels_allLife => 'כל מה שזוהה';
 
   @override
-  String get media_labels_off => 'כבוי';
+  String get media_labels_off => 'ללא תוויות';
 
   @override
   String get media_labels_analyse => 'ניתוח';
@@ -55306,13 +55306,43 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'הצגת כל היצורים';
+  String get media_labels_showAllLife => 'הצגת כל מה שזוהה';
 
   @override
   String get media_species_possibleMatches => 'התאמות אפשריות';
 
   @override
   String get media_species_cropUnavailable => 'התמונה לא נמצאת במכשיר זה';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בתמונה זו',
+      one: '$count בתמונה זו',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count בסרטון זה',
+      one: '$count בסרטון זה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'דף המין';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'תמונה $index מתוך $count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'מתויגים בתמונה זו';

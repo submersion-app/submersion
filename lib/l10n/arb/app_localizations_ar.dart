@@ -57238,13 +57238,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_labels_action => 'تسميات الأنواع';
 
   @override
-  String get media_labels_names => 'الأسماء';
+  String get media_labels_names => 'الأسماء والحيوانات المحتملة';
 
   @override
-  String get media_labels_allLife => 'كل الكائنات';
+  String get media_labels_allLife => 'كل ما تم اكتشافه';
 
   @override
-  String get media_labels_off => 'إيقاف';
+  String get media_labels_off => 'بلا تسميات';
 
   @override
   String get media_labels_analyse => 'تحليل';
@@ -57327,7 +57327,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'إظهار كل الكائنات';
+  String get media_labels_showAllLife => 'إظهار كل ما تم اكتشافه';
 
   @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
@@ -57335,6 +57335,42 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get media_species_cropUnavailable =>
       'الصورة غير موجودة على هذا الجهاز';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count في هذه الصورة',
+      many: '$count في هذه الصورة',
+      few: '$count في هذه الصورة',
+      two: '$count في هذه الصورة',
+      one: '$count في هذه الصورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count في هذا الفيديو',
+      many: '$count في هذا الفيديو',
+      few: '$count في هذا الفيديو',
+      two: '$count في هذا الفيديو',
+      one: '$count في هذا الفيديو',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'صفحة النوع';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'الصورة $index من $count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'موسومة في هذه الصورة';

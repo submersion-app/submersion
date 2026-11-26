@@ -56407,13 +56407,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_labels_action => 'Etichette delle specie';
 
   @override
-  String get media_labels_names => 'Nomi';
+  String get media_labels_names => 'Nomi e animali probabili';
 
   @override
-  String get media_labels_allLife => 'Tutta la vita';
+  String get media_labels_allLife => 'Tutto ciò che è rilevato';
 
   @override
-  String get media_labels_off => 'Disattivate';
+  String get media_labels_off => 'Nessuna etichetta';
 
   @override
   String get media_labels_analyse => 'Analizza';
@@ -56492,7 +56492,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Mostra tutta la vita';
+  String get media_labels_showAllLife => 'Mostra tutto ciò che è rilevato';
 
   @override
   String get media_species_possibleMatches => 'Possibili corrispondenze';
@@ -56500,6 +56500,36 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get media_species_cropUnavailable =>
       'Immagine non presente su questo dispositivo';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count in questa foto',
+      one: '$count in questa foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count in questo video',
+      one: '$count in questo video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'Pagina della specie';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'Immagine $index di $count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'Taggate in questa foto';

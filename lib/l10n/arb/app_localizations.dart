@@ -88255,22 +88255,22 @@ abstract class AppLocalizations {
   /// **'Species labels'**
   String get media_labels_action;
 
-  /// No description provided for @media_labels_names.
+  /// Labels menu in the media viewer (issue #5023), first of three choices for what is drawn over the photo or video: a name label on each animal the app can name or the diver tagged, and a small dot on an unnamed animal that looks like a particular species (on a photo, or on a paused video once it has been followed for a second), so the diver can stop and name it. Vaguer detections, such as a fin or a bubble, get nothing. 'Likely animals' means those probable but unnamed ones; the wording must contrast with media_labels_allLife, which marks every detection.
   ///
   /// In en, this message translates to:
-  /// **'Names'**
+  /// **'Names and likely animals'**
   String get media_labels_names;
 
-  /// No description provided for @media_labels_allLife.
+  /// Labels menu in the media viewer (issue #5023), second of three choices: the name labels, plus a dot on everything the app detected that it cannot name, however vague (a fin, a bubble), while the video plays too. The wording must contrast with media_labels_names, which marks only the likely animals. Never 'all of life' or 'a lifetime'.
   ///
   /// In en, this message translates to:
-  /// **'All life'**
+  /// **'Everything detected'**
   String get media_labels_allLife;
 
-  /// No description provided for @media_labels_off.
+  /// Labels menu in the media viewer (issue #5023), third of three choices: draw no labels over the photo or video.
   ///
   /// In en, this message translates to:
-  /// **'Off'**
+  /// **'No labels'**
   String get media_labels_off;
 
   /// No description provided for @media_labels_analyse.
@@ -88357,10 +88357,10 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{{count} found, none named} other{{count} found, none named}}'**
   String media_labels_foundNoneNamed(int count);
 
-  /// Action on that message: switch the labels to All life, which draws the unnamed animals too.
+  /// Action on the notice shown when an analysis finds animals it cannot name: switch the labels menu to its 'Everything detected' choice (media_labels_allLife), which marks the unnamed detections too.
   ///
   /// In en, this message translates to:
-  /// **'Show all life'**
+  /// **'Show everything detected'**
   String get media_labels_showAllLife;
 
   /// No description provided for @media_species_possibleMatches.
@@ -88374,6 +88374,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Image not on this device'**
   String get media_species_cropUnavailable;
+
+  /// Under a species' crops on a locked photo: how many of that species the app found on it (issue #5024).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} in this photo} other{{count} in this photo}}'**
+  String media_species_cropCountPhoto(int count);
+
+  /// Under a species' crops on a locked video: how many of that species the app followed in it (issue #5024).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} in this video} other{{count} in this video}}'**
+  String media_species_cropCountVideo(int count);
+
+  /// Button on a species' crop sheet that opens the species page (issue #5024).
+  ///
+  /// In en, this message translates to:
+  /// **'Species page'**
+  String get media_species_openSpeciesPage;
+
+  /// Screen reader label of one thumbnail on a species' crop sheet (issue #5024).
+  ///
+  /// In en, this message translates to:
+  /// **'Image {index} of {count}'**
+  String media_species_cropThumb(int index, int count);
 
   /// No description provided for @media_species_taggedOnPhoto.
   ///

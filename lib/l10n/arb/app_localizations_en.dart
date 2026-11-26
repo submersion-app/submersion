@@ -55535,13 +55535,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_labels_action => 'Species labels';
 
   @override
-  String get media_labels_names => 'Names';
+  String get media_labels_names => 'Names and likely animals';
 
   @override
-  String get media_labels_allLife => 'All life';
+  String get media_labels_allLife => 'Everything detected';
 
   @override
-  String get media_labels_off => 'Off';
+  String get media_labels_off => 'No labels';
 
   @override
   String get media_labels_analyse => 'Analyse';
@@ -55615,13 +55615,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get media_labels_showAllLife => 'Show all life';
+  String get media_labels_showAllLife => 'Show everything detected';
 
   @override
   String get media_species_possibleMatches => 'Possible matches';
 
   @override
   String get media_species_cropUnavailable => 'Image not on this device';
+
+  @override
+  String media_species_cropCountPhoto(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count in this photo',
+      one: '$count in this photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_cropCountVideo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count in this video',
+      one: '$count in this video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_species_openSpeciesPage => 'Species page';
+
+  @override
+  String media_species_cropThumb(int index, int count) {
+    return 'Image $index of $count';
+  }
 
   @override
   String get media_species_taggedOnPhoto => 'Tagged on this photo';

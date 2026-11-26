@@ -12,6 +12,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/theme/brand_typography.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -165,6 +166,36 @@ void main() {
     final date = tester.widget<Text>(inDialog(find.text('Built 9 Nov 2026')));
     expect(date.style?.fontSize, theme.textTheme.bodySmall?.fontSize);
     expect(date.style?.color, theme.colorScheme.onSurfaceVariant);
+  });
+
+  // Issue #5014: the name beside the icon is set in the logo's font, at the
+  // headline size the theme gives it; the lines under it keep the theme font.
+  testWidgets('the About dialog sets the app name in the logo font', (
+    tester,
+  ) async {
+    await pumpAbout(tester, buildDate: DateTime(2026, 11, 9));
+    await openAboutDialog(tester);
+
+    final theme = Theme.of(tester.element(find.byType(SubmersionAboutDialog)));
+    final name = tester.widget<Text>(inDialog(find.text('Submersion')));
+    expect(name.style?.fontFamily, BrandTypography.wordmarkFamily);
+    expect(name.style?.fontWeight, BrandTypography.wordmarkWeight);
+    expect(name.style?.fontSize, theme.textTheme.headlineSmall?.fontSize);
+
+    final version = tester.widget<Text>(
+      inDialog(find.text('Version 1.8.5.412')),
+    );
+    expect(version.style?.fontFamily, isNot(BrandTypography.wordmarkFamily));
+  });
+
+  testWidgets('the About card sets the app name in the logo font', (
+    tester,
+  ) async {
+    await pumpAbout(tester, buildDate: DateTime(2026, 11, 9));
+
+    final name = tester.widget<Text>(find.text('Submersion'));
+    expect(name.style?.fontFamily, BrandTypography.wordmarkFamily);
+    expect(name.style?.fontWeight, BrandTypography.wordmarkWeight);
   });
 
   testWidgets('the About dialog has no date line without a date', (
