@@ -224,7 +224,7 @@ jobs:
           echo "::add-mask::${basic}"
           # The header covers every github.com URL, so it is set only after
           # the lock is read from this repository: a token for the Pages
-          # repository alone would be refused here. No prompt: a refused
+          # repositories alone would be refused here. No prompt: a refused
           # token fails the step instead of waiting for input.
           {
             echo "GIT_TERMINAL_PROMPT=0"

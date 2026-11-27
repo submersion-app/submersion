@@ -30,7 +30,8 @@ Every beta is served the same way at <https://beta.web.submersion.app>
   downloads that release's `Web.zip`, stages it with
   `scripts/web/stage_hosted_site.py` (the bundle check, `CNAME`,
   `.nojekyll`), and force-pushes it to `submersion-app/web` as a single
-  commit, authenticated by a fine-grained token for that repository alone
+  commit, authenticated by a fine-grained token for the two Pages
+  repositories alone, `submersion-app/web` and `submersion-app/web-beta`
   (the organization turns deploy keys off). `promote.yml` calls it after
   every promotion, and `release.yml` for a stable tag pushed by hand.
 
