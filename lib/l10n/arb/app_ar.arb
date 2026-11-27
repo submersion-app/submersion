@@ -9886,9 +9886,9 @@
   "tankPresets_builtInPresets_description": "أوقف الإعدادات التي لا تستخدمها لإخفائها من قوائم اختيار الأسطوانة. يظهر الإعداد الافتراضي دائمًا.",
   "tankPresets_currentDefault": "الافتراضي الحالي",
   "tankPresets_customPresets": "الإعدادات المخصصة",
-  "tankPresets_defaultSettings": "الخزان الافتراضي",
-  "tankPresets_defaultSettings_description": "يُستخدم الإعداد المميز بنجمة كخزان افتراضي عند تسجيل غطسات جديدة.",
-  "tankPresets_deleteDefaultMessage": "هل أنت متأكد من حذف \"{name}\"؟ هذا هو إعداد الخزان الافتراضي الحالي وسيتم إعادته إلى AL80.",
+  "tankPresets_defaultSettings": "الأسطوانة الافتراضية",
+  "tankPresets_defaultSettings_description": "يُستخدم الإعداد المميز بنجمة كأسطوانة افتراضية عند تسجيل غطسات جديدة.",
+  "tankPresets_deleteDefaultMessage": "هل أنت متأكد من حذف \"{name}\"؟ هذا هو إعداد الأسطوانة الافتراضي الحالي وسيتم إعادته إلى AL80.",
   "@tankPresets_deleteDefaultMessage": {
     "placeholders": {
       "name": {
@@ -9931,9 +9931,9 @@
   "tankPresets_error": "خطأ: {error}",
   "tankPresets_errorDeleting": "خطأ في حذف الإعداد: {error}",
   "tankPresets_applyToImports": "تطبيق على الغطسات المستوردة أيضاً",
-  "tankPresets_applyToImports_subtitle": "ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي",
+  "tankPresets_applyToImports_subtitle": "ملء بيانات الأسطوانة المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي",
   "tankPresets_defaultStartPressure": "ضغط البداية الافتراضي",
-  "tankPresets_defaultStartPressure_subtitle": "يُملأ في الخزانات الجديدة، وفي الخزانات المستوردة التي ليس لها ضغط بداية عند تطبيق الخزان الافتراضي على الاستيراد",
+  "tankPresets_defaultStartPressure_subtitle": "يُملأ في الأسطوانات الجديدة، وفي الأسطوانات المستوردة التي ليس لها ضغط بداية عند تطبيق الأسطوانة الافتراضية على الاستيراد",
   "tankPresets_defaultStartPressure_range": "أدخل ضغطًا من {min} إلى {max}",
   "tankPresets_new_title": "إعداد أسطوانة جديد",
   "tankPresets_noPresets": "لا توجد إعدادات أسطوانات",

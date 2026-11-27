@@ -7311,7 +7311,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_combine_dataNote =>
-      'Los detalles provienen de la inmersión más antigua, y los espacios en blanco se completan con inmersiones posteriores. Las notas se combinan. Se conservan todos los tanques, el equipo, los compañeros, las etiquetas y los avistamientos.';
+      'Los detalles provienen de la inmersión más antigua, y los espacios en blanco se completan con inmersiones posteriores. Las notas se combinan. Se conservan todas las botellas, el equipo, los compañeros, las etiquetas y los avistamientos.';
 
   @override
   String get diveLog_combine_error =>
@@ -7650,7 +7650,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_delete_confirm =>
-      'Esta acción no se puede deshacer. La inmersión y todos los datos asociados (perfil, tanques, avistamientos) se eliminarán permanentemente.';
+      'Esta acción no se puede deshacer. La inmersión y todos los datos asociados (perfil, botellas, avistamientos) se eliminarán permanentemente.';
 
   @override
   String get diveLog_delete_delete => 'Eliminar';
@@ -7989,7 +7989,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_detail_section_tags => 'Etiquetas';
 
   @override
-  String get diveLog_detail_section_cylinders => 'Tanques';
+  String get diveLog_detail_section_cylinders => 'Botellas';
 
   @override
   String get diveLog_detail_section_tide => 'Marea';
@@ -8074,7 +8074,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_diveMode_ocDescription =>
-      'Buceo estándar de circuito abierto con tanques';
+      'Buceo estándar de circuito abierto con botellas';
 
   @override
   String get diveLog_diveMode_scrDescription =>
@@ -8111,7 +8111,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_edit_addCustomField => 'Añadir campo';
 
   @override
-  String get diveLog_edit_addTank => 'Agregar tanque';
+  String get diveLog_edit_addTank => 'Agregar botella';
 
   @override
   String get diveLog_edit_addWeightEntry => 'Agregar entrada de lastre';
@@ -11000,7 +11000,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_tank_managePresets => 'Gestionar presets';
 
   @override
-  String get diveLog_tank_label_tankPreset => 'Preajuste de tanque';
+  String get diveLog_tank_label_tankPreset => 'Preajuste de botella';
 
   @override
   String get diveLog_tank_label_volume => 'Volumen';
@@ -11139,7 +11139,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_tank_saveAsPreset_nameTitle =>
-      'Guardar preajuste de tanque';
+      'Guardar preajuste de botella';
 
   @override
   String get diveLog_tank_saveAsPreset_nameHint => 'p. ej. Mi AL80';
@@ -11151,11 +11151,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String diveLog_tank_title(Object number) {
-    return 'Tanque $number';
+    return 'Botella $number';
   }
 
   @override
-  String get diveLog_tank_tooltip_remove => 'Eliminar tanque';
+  String get diveLog_tank_tooltip_remove => 'Eliminar botella';
 
   @override
   String get diveLog_tank_fromOwnCylinder => 'Completar desde mis botellas';
@@ -11532,7 +11532,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String diveLog_sources_separateDialog_body(int count) {
-    return 'Esta inmersión se combinó a partir de $count inmersiones. El perfil, los eventos, los tanques y los cambios de gas de cada una vuelven a su propia inmersión. El resto de la entrada del cuaderno, incluidos los compañeros, las etiquetas, el equipo, los archivos multimedia, las notas y el número de inmersión, permanece en esta inmersión.';
+    return 'Esta inmersión se combinó a partir de $count inmersiones. El perfil, los eventos, las botellas y los cambios de gas de cada una vuelven a su propia inmersión. El resto de la entrada del cuaderno, incluidos los compañeros, las etiquetas, el equipo, los archivos multimedia, las notas y el número de inmersión, permanece en esta inmersión.';
   }
 
   @override
@@ -11591,7 +11591,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get divePlanner_error_reserveExceedsTank =>
-      'Excede la presión del tanque';
+      'Excede la presión de la botella';
 
   @override
   String get divePlanner_error_reserveMustBePositive => 'Debe ser mayor que 0';
@@ -14400,7 +14400,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_searchWords_tankBand => 'cincha de tanque, cam band';
 
   @override
-  String get enum_equipmentType_tankBand => 'Cincha de tanque';
+  String get enum_equipmentType_tankBand => 'Cincha de botella';
 
   @override
   String get enum_equipmentType_weightPocket => 'Bolsillo de lastre';
@@ -14475,7 +14475,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentType_smb => 'SMB';
 
   @override
-  String get enum_equipmentType_tank => 'Tanque';
+  String get enum_equipmentType_tank => 'Botella';
 
   @override
   String get enum_equipmentType_weights => 'Lastre';
@@ -15830,7 +15830,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pdf_sectionProfile => 'Perfil';
 
   @override
-  String get pdf_sectionCylinders => 'Tanques';
+  String get pdf_sectionCylinders => 'Botellas';
 
   @override
   String get pdf_sectionConditions => 'Condiciones';
@@ -15896,7 +15896,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String pdf_cylinderNumber(String number) {
-    return 'Tanque $number';
+    return 'Botella $number';
   }
 
   @override
@@ -18815,7 +18815,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_tab_blender => 'Mezclador de trimix';
 
   @override
-  String get gasCalculators_blender_startCylinder => 'En el cilindro';
+  String get gasCalculators_blender_startCylinder => 'En la botella';
 
   @override
   String get gasCalculators_blender_targetFill => 'Llenado objetivo';
@@ -18858,18 +18858,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_blender_logFill => 'Registrar esta carga';
 
   @override
-  String get gasCalculators_blender_chooseCylinder => 'Elegir cilindro';
+  String get gasCalculators_blender_chooseCylinder => 'Elegir botella';
 
   @override
   String get gasCalculators_blender_scanTag => 'Escanear etiqueta';
 
   @override
   String get gasCalculators_blender_notYourCylinder =>
-      'Ese cilindro no figura en tu equipo';
+      'Esa botella no figura en tu equipo';
 
   @override
   String get gasCalculators_blender_cylinderFailed =>
-      'No se pudo abrir ese cilindro. Inténtalo de nuevo.';
+      'No se pudo abrir esa botella. Inténtalo de nuevo.';
 
   @override
   String gasCalculators_blender_cylinderNoVolume(String name) {
@@ -18878,7 +18878,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_noCylinders =>
-      'Aún no hay cilindros en tu equipo. Escribe el volumen de agua en su lugar.';
+      'Aún no hay botellas en tu equipo. Escribe el volumen de agua en su lugar.';
 
   @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
@@ -18907,16 +18907,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String gasCalculators_blender_error_drainTo(String pressure) {
-    return 'Demasiado gas en el cilindro para esta mezcla: vacía hasta $pressure y luego llena.';
+    return 'Demasiado gas en la botella para esta mezcla: vacía hasta $pressure y luego llena.';
   }
 
   @override
   String get gasCalculators_blender_error_drainEmpty =>
-      'El gas que hay en el cilindro no sirve para esta mezcla: vacíalo por completo y luego llena.';
+      'El gas que hay en la botella no sirve para esta mezcla: vacíala por completo y luego llena.';
 
   @override
   String get gasCalculators_blender_error_cannotRemoveHelium =>
-      'El cilindro contiene helio y la mezcla objetivo no. Rellenar diluye el helio pero no lo elimina: hay que vaciar el cilindro primero.';
+      'La botella contiene helio y la mezcla objetivo no. Rellenar diluye el helio pero no lo elimina: hay que vaciar la botella primero.';
 
   @override
   String get gasCalculators_blender_error_insufficientGases =>
@@ -18928,7 +18928,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
-      'El cilindro tiene presión pero ni oxígeno ni helio, lo que sería nitrógeno puro. Comprueba la mezcla que ya hay en el cilindro.';
+      'La botella tiene presión pero ni oxígeno ni helio, lo que sería nitrógeno puro. Comprueba la mezcla que ya hay en la botella.';
 
   @override
   String get gasCalculators_blender_conditions => 'Condiciones de mezcla';
@@ -18938,14 +18938,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_fillTempHelp =>
-      'La temperatura del cilindro mientras lo llenas. Cada presión del procedimiento es la lectura del manómetro a esta temperatura.';
+      'La temperatura de la botella mientras la llenas. Cada presión del procedimiento es la lectura del manómetro a esta temperatura.';
 
   @override
   String get gasCalculators_blender_settledTemp => 'Temperatura estabilizada';
 
   @override
   String get gasCalculators_blender_settledTempHelp =>
-      'La temperatura a la que acaba el cilindro. La presión objetivo es lo que marca una vez estabilizado.';
+      'La temperatura a la que acaba la botella. La presión objetivo es lo que marca una vez estabilizada.';
 
   @override
   String get gasCalculators_blender_gasModel => 'Modelo de gas';
@@ -18964,7 +18964,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_modelHelp =>
-      'El gas real (factor Z) es el más preciso a presiones de cilindro. El gas ideal coincide con la mayoría de las tablas de mezcla publicadas. Van der Waals se ofrece para comparar con otros programas de mezcla y se desvía varios por ciento a presión de llenado.';
+      'El gas real (factor Z) es el más preciso a presiones de botella. El gas ideal coincide con la mayoría de las tablas de mezcla publicadas. Van der Waals se ofrece para comparar con otros programas de mezcla y se desvía varios por ciento a presión de llenado.';
 
   @override
   String gasCalculators_blender_stepAdd(String gas) {
@@ -19046,7 +19046,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_cylinderVolume =>
-      'Volumen de agua del cilindro';
+      'Volumen de agua de la botella';
 
   @override
   String gasCalculators_blender_unitPrice(String unit) {
@@ -19058,7 +19058,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_costBasis =>
-      'Se factura la presión suministrada (volumen de agua del cilindro × bar añadidos), tal como lo mide una estación de carga.';
+      'Se factura la presión suministrada (volumen de agua de la botella × bar añadidos), tal como lo mide una estación de carga.';
 
   @override
   String get gasCalculators_blender_costMissingPrice =>
@@ -19167,7 +19167,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsCylinder =>
-      'Introduce un volumen de cilindro.';
+      'Introduce un volumen de botella.';
 
   @override
   String get gasCalculators_blender_lineDescriptionOptional =>
@@ -23495,7 +23495,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buoyancy_tankMaterialAssumedHint =>
-      'Material de la botella sin definir, así que se asumió aluminio: define el material o elige una plantilla de tanque';
+      'Material de la botella sin definir, así que se asumió aluminio: define el material o elige una plantilla de botella';
 
   @override
   String get buoyancy_chartNet => 'Neto';
@@ -23602,7 +23602,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String buoyancy_causeGas(String amount) {
-    return 'El gas respirado dejó los tanques $amount más ligeros';
+    return 'El gas respirado dejó las botellas $amount más ligeras';
   }
 
   @override
@@ -23662,11 +23662,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveDetailSection_tanks_name => 'Tanques';
+  String get diveDetailSection_tanks_name => 'Botellas';
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Lista de tanques, mezclas de gas, presiones, consumo por tanque';
+      'Lista de botellas, mezclas de gas, presiones, consumo por botella';
 
   @override
   String get diveDetailSection_buddies_name => 'Compañeros';
@@ -23911,7 +23911,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_estimatedTankPressure =>
-      'Presión estimada del tanque';
+      'Presión estimada de la botella';
 
   @override
   String get settings_appearance_metric_gasDensity => 'Densidad del gas';
@@ -23976,7 +23976,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_appearance_pressureThresholdMarkers_subtitleFull =>
-      'Mostrar marcadores cuando la presión del tanque cruza los umbrales de 2/3, 1/2 y 1/3';
+      'Mostrar marcadores cuando la presión de la botella cruza los umbrales de 2/3, 1/2 y 1/3';
 
   @override
   String get settings_appearance_metricsFollowViewport =>
@@ -25636,7 +25636,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_applyDefaultTankToImports =>
-      'Tanque predeterminado en inmersiones importadas';
+      'Botella predeterminada en inmersiones importadas';
 
   @override
   String get settings_conflict_field_ascentGasSet => 'Gases de ascenso';
@@ -26097,7 +26097,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_defaultShowEstimatedTankPressure =>
-      'El perfil muestra la presión estimada del tanque';
+      'El perfil muestra la presión estimada de la botella';
 
   @override
   String get settings_conflict_field_defaultShowEvents =>
@@ -26157,7 +26157,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_defaultShowPressure =>
-      'El perfil muestra la presión del tanque';
+      'El perfil muestra la presión de la botella';
 
   @override
   String get settings_conflict_field_defaultShowSac =>
@@ -26185,11 +26185,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_defaultTankPreset =>
-      'Plantilla de tanque predeterminada';
+      'Plantilla de botella predeterminada';
 
   @override
   String get settings_conflict_field_defaultTankVolume =>
-      'Volumen de tanque predeterminado';
+      'Volumen de botella predeterminado';
 
   @override
   String get settings_conflict_field_defaultTtsSource =>
@@ -26328,7 +26328,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_divePlanSegments_type => 'Tramo';
 
   @override
-  String get settings_conflict_field_divePlanTanks_role => 'Función del tanque';
+  String get settings_conflict_field_divePlanTanks_role =>
+      'Función de la botella';
 
   @override
   String get settings_conflict_field_diveProfileEvents_severity => 'Gravedad';
@@ -26647,7 +26648,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_hiddenTankPresetIds =>
-      'Plantillas de tanque ocultas';
+      'Plantillas de botella ocultas';
 
   @override
   String get settings_conflict_field_highO2ThresholdPercent =>
@@ -26876,7 +26877,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_matchConfidence => 'Coincidencia';
 
   @override
-  String get settings_conflict_field_material => 'Material del tanque';
+  String get settings_conflict_field_material => 'Material de la botella';
 
   @override
   String get settings_conflict_field_maxAscentRate =>
@@ -27258,7 +27259,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_presetJson => 'Ajuste predefinido';
 
   @override
-  String get settings_conflict_field_presetName => 'Plantilla de tanque';
+  String get settings_conflict_field_presetName => 'Plantilla de botella';
 
   @override
   String get settings_conflict_field_pressure => 'Presión';
@@ -27749,7 +27750,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceTankIndex =>
-      'Número de tanque en el registro de origen';
+      'Número de botella en el registro de origen';
 
   @override
   String get settings_conflict_field_sourceType => 'Origen';
@@ -27858,16 +27859,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_takenAt => 'Tomada';
 
   @override
-  String get settings_conflict_field_tankMaterial => 'Material del tanque';
+  String get settings_conflict_field_tankMaterial => 'Material de la botella';
 
   @override
-  String get settings_conflict_field_tankName => 'Nombre del tanque';
+  String get settings_conflict_field_tankName => 'Nombre de la botella';
 
   @override
-  String get settings_conflict_field_tankOrder => 'Orden del tanque';
+  String get settings_conflict_field_tankOrder => 'Orden de la botella';
 
   @override
-  String get settings_conflict_field_tankRole => 'Función del tanque';
+  String get settings_conflict_field_tankRole => 'Función de la botella';
 
   @override
   String get settings_conflict_field_targetCount => 'Objetivo';
@@ -27953,7 +27954,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_trimTankPressureAtSurfacing =>
-      'Presión del tanque recortada al salir a superficie';
+      'Presión de la botella recortada al salir a superficie';
 
   @override
   String get settings_conflict_field_tripChecklistItems_category => 'Categoría';
@@ -28740,7 +28741,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_ref_plannedTank => 'Tanque planificado';
+  String get settings_conflict_ref_plannedTank => 'Botella planificada';
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplate =>
@@ -28800,7 +28801,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_tag => 'Etiqueta';
 
   @override
-  String get settings_conflict_ref_tank => 'Tanque';
+  String get settings_conflict_ref_tank => 'Botella';
 
   @override
   String get settings_conflict_ref_weight => 'Lastre';
@@ -29048,7 +29049,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_qualityCategory_source => 'Origen';
 
   @override
-  String get enum_qualityCategory_tank => 'Tanque';
+  String get enum_qualityCategory_tank => 'Botella';
 
   @override
   String get enum_qualityCategory_temperature => 'Temperatura';
@@ -30397,11 +30398,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Administrar, fusionar y eliminar etiquetas';
 
   @override
-  String get settings_manage_tankPresets => 'Preajustes de tanques';
+  String get settings_manage_tankPresets => 'Preajustes de botellas';
 
   @override
   String get settings_manage_tankPresets_subtitle =>
-      'Administrar configuraciones de tanques personalizadas';
+      'Administrar configuraciones de botellas personalizadas';
 
   @override
   String get settings_manage_weightPresets => 'Preajustes de lastre';
@@ -31199,7 +31200,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_section_manage_subtitle =>
-      'Tipos de inmersión y preajustes de tanques';
+      'Tipos de inmersión y preajustes de botellas';
 
   @override
   String get settings_section_manage_title => 'Administrar';
@@ -31726,12 +31727,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String settings_units_gasConsumption_rmv_subtitle(String unit) {
-    return 'Volumen de gas respirado por minuto en superficie ($unit). Requiere el volumen del tanque.';
+    return 'Volumen de gas respirado por minuto en superficie ($unit). Requiere el volumen de la botella.';
   }
 
   @override
   String settings_units_gasConsumption_sac_subtitle(String unit) {
-    return 'Caída de presión del tanque por minuto ($unit). Funciona con cualquier presión registrada.';
+    return 'Caída de presión de la botella por minuto ($unit). Funciona con cualquier presión registrada.';
   }
 
   @override
@@ -35184,14 +35185,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tank_al30Stage_description =>
-      'Tanque stage de aluminio de 30 cu ft';
+      'Botella stage de aluminio de 30 cu ft';
 
   @override
   String get tank_al30Stage_displayName => 'AL30 Stage';
 
   @override
   String get tank_al40Stage_description =>
-      'Tanque stage de aluminio de 40 cu ft';
+      'Botella stage de aluminio de 40 cu ft';
 
   @override
   String get tank_al40Stage_displayName => 'AL40 Stage';
@@ -39032,7 +39033,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_segmentEditor_editTitle => 'Editar segmento';
 
   @override
-  String get divePlanner_segmentEditor_tankGas => 'Tanque / Gas';
+  String get divePlanner_segmentEditor_tankGas => 'Botella / Gas';
 
   @override
   String get divePlanner_segmentList_addSegment => 'Añadir segmento';
@@ -39159,7 +39160,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_rockBottom_stressedSacRates => 'RMV bajo estrés';
 
   @override
-  String get gasCalculators_rockBottom_tankSize => 'Tamaño del tanque';
+  String get gasCalculators_rockBottom_tankSize => 'Tamaño de la botella';
 
   @override
   String get gasCalculators_rockBottom_totalReserveNeeded =>
@@ -39735,14 +39736,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'El área cruza la línea de fecha. Mantenla a un lado o dibuja dos áreas.';
 
   @override
-  String get tankPresets_addPreset => 'Añadir preset de tanque';
+  String get tankPresets_addPreset => 'Añadir preset de botella';
 
   @override
   String get tankPresets_builtInPresets => 'Presets incluidos';
 
   @override
   String get tankPresets_builtInPresets_description =>
-      'Desactiva los presets que no uses para ocultarlos en los selectores de tanque. El preset predeterminado siempre se muestra.';
+      'Desactiva los presets que no uses para ocultarlos en los selectores de botella. El preset predeterminado siempre se muestra.';
 
   @override
   String get tankPresets_currentDefault => 'Predeterminado actual';
@@ -39751,15 +39752,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tankPresets_customPresets => 'Presets personalizados';
 
   @override
-  String get tankPresets_defaultSettings => 'Tanque predeterminado';
+  String get tankPresets_defaultSettings => 'Botella predeterminada';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'El preset marcado con estrella se usa como tanque predeterminado al registrar nuevas inmersiones.';
+      'El preset marcado con estrella se usa como botella predeterminada al registrar nuevas inmersiones.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return '¿Estás seguro de que quieres eliminar \"$name\"? Este es tu preset de tanque predeterminado actual y se restablecerá a AL80.';
+    return '¿Estás seguro de que quieres eliminar \"$name\"? Este es tu preset de botella predeterminado actual y se restablecerá a AL80.';
   }
 
   @override
@@ -39771,7 +39772,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tankPresets_deletePreset => 'Eliminar preset';
 
   @override
-  String get tankPresets_deleteTitle => 'Eliminar preset de tanque?';
+  String get tankPresets_deleteTitle => '¿Eliminar preset de botella?';
 
   @override
   String tankPresets_deleted(Object name) {
@@ -39796,7 +39797,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tankPresets_edit_descriptionHint =>
-      'p. ej., Mi tanque de alquiler de la tienda de buceo';
+      'p. ej., Mi botella de alquiler de la tienda de buceo';
 
   @override
   String get tankPresets_edit_descriptionOptional => 'Descripción (opcional)';
@@ -39812,7 +39813,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_edit_notFound => 'Este preset de tanque ya no existe.';
+  String get tankPresets_edit_notFound =>
+      'Este preset de botella ya no existe.';
 
   @override
   String tankPresets_edit_gasCapacity(Object capacity) {
@@ -39827,7 +39829,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tankPresets_edit_nameHelper =>
-      'Un nombre descriptivo para este preset de tanque';
+      'Un nombre descriptivo para este preset de botella';
 
   @override
   String get tankPresets_edit_nameHint => 'p. ej., Mi AL80';
@@ -39843,10 +39845,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tankPresets_edit_tankSpecifications =>
-      'Especificaciones del tanque';
+      'Especificaciones de la botella';
 
   @override
-  String get tankPresets_edit_title => 'Editar preset de tanque';
+  String get tankPresets_edit_title => 'Editar preset de botella';
 
   @override
   String tankPresets_edit_updated(Object name) {
@@ -39897,7 +39899,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'Completar datos de tanque faltantes en inmersiones importadas usando el preset predeterminado';
+      'Completar datos de botella faltantes en inmersiones importadas usando el preset predeterminado';
 
   @override
   String get tankPresets_defaultStartPressure =>
@@ -39905,7 +39907,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'Se aplica a los tanques nuevos y a los tanques importados sin presión inicial cuando el tanque predeterminado se aplica a las importaciones';
+      'Se aplica a las botellas nuevas y a las botellas importadas sin presión inicial cuando la botella predeterminada se aplica a las importaciones';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {
@@ -39913,19 +39915,20 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_new_title => 'Nuevo preset de tanque';
+  String get tankPresets_new_title => 'Nuevo preset de botella';
 
   @override
-  String get tankPresets_noPresets => 'No hay presets de tanque disponibles';
+  String get tankPresets_noPresets => 'No hay presets de botella disponibles';
 
   @override
   String get tankPresets_setAsDefault => 'Establecer como predeterminado';
 
   @override
-  String get tankPresets_showInPickers => 'Mostrar en los selectores de tanque';
+  String get tankPresets_showInPickers =>
+      'Mostrar en los selectores de botella';
 
   @override
-  String get tankPresets_title => 'Presets de tanque';
+  String get tankPresets_title => 'Presets de botella';
 
   @override
   String get tools_gpsLogger_title => 'Registrador GPS';
@@ -40266,7 +40269,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveField_category_gas => 'Gas';
 
   @override
-  String get diveField_category_tank => 'Tanque';
+  String get diveField_category_tank => 'Botella';
 
   @override
   String get diveField_category_weight => 'Lastre';
@@ -41681,7 +41684,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tools_weight_addGear => 'Añadir equipo';
 
   @override
-  String get tools_weight_addTank => 'Añadir tanque';
+  String get tools_weight_addTank => 'Añadir botella';
 
   @override
   String tools_weight_basedOnDives(int count) {
@@ -41749,7 +41752,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'de las especificaciones de tu equipo';
 
   @override
-  String get tools_weight_tanks => 'Tanques';
+  String get tools_weight_tanks => 'Botellas';
 
   @override
   String get tools_weight_useSet => 'Usar conjunto';
@@ -43661,11 +43664,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_detail_sacSegmentsNoPressure =>
-      'Solo se registraron las presiones inicial y final del tanque, así que el consumo de gas no se puede dividir en segmentos. Para ello hacen falta lecturas de presión durante la inmersión, por ejemplo de un transmisor. El promedio de toda la inmersión aparece en Tanques.';
+      'Solo se registraron las presiones inicial y final de la botella, así que el consumo de gas no se puede dividir en segmentos. Para ello hacen falta lecturas de presión durante la inmersión, por ejemplo de un transmisor. El promedio de toda la inmersión aparece en Botellas.';
 
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
-      'Sin presión del tanque registrada durante la inmersión';
+      'Sin presión de la botella registrada durante la inmersión';
 
   @override
   String get diveLog_detail_sacSegments_time => 'Tiempo';
@@ -43751,7 +43754,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
-    return 'Añade el volumen del cilindro para mostrar el RMV en $unit';
+    return 'Añade el volumen de la botella para mostrar el RMV en $unit';
   }
 
   @override
@@ -45233,7 +45236,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataQuality_chip_gas => 'Gas';
 
   @override
-  String get dataQuality_chip_tanks => 'Tanques';
+  String get dataQuality_chip_tanks => 'Botellas';
 
   @override
   String get dataQuality_chip_duplicates => 'Duplicados';
@@ -45273,7 +45276,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mezcla de gas imposible';
 
   @override
-  String get dataQuality_detector_tank_assignment => 'Tanque incorrecto';
+  String get dataQuality_detector_tank_assignment => 'Botella incorrecta';
 
   @override
   String get dataQuality_detector_missing_gas_switch =>
@@ -45427,7 +45430,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String dataQuality_msg_pressureEndpoint(String record, String series) {
-    return 'El registro del tanque indica $record, pero la serie del sensor muestra $series';
+    return 'El registro de la botella indica $record, pero la serie del sensor muestra $series';
   }
 
   @override
@@ -45473,7 +45476,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String o2,
     String he,
   ) {
-    return 'El tanque $tankNumber figura con $o2% de O2 y $he% de He, algo que ningún gas puede tener. Conviene corregir la mezcla en la inmersión.';
+    return 'La botella $tankNumber figura con $o2% de O2 y $he% de He, algo que ningún gas puede tener. Conviene corregir la mezcla en la inmersión.';
   }
 
   @override
@@ -45483,7 +45486,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String he,
     String gas,
   ) {
-    return 'El tanque $tankNumber figura con $o2% de O2 y $he% de He, algo que ningún gas puede tener. Lo más probable es que una importación anterior haya guardado $gas 100 veces más alto.';
+    return 'La botella $tankNumber figura con $o2% de O2 y $he% de He, algo que ningún gas puede tener. Lo más probable es que una importación anterior haya guardado $gas 100 veces más alto.';
   }
 
   @override
@@ -45493,7 +45496,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String dataQuality_msg_tankInactive(String drop) {
-    return 'Este tanque perdió $drop mientras la cronología de gas indica que no estaba en uso';
+    return 'Esta botella perdió $drop mientras la cronología de gas indica que no estaba en uso';
   }
 
   @override
@@ -45502,9 +45505,9 @@ class AppLocalizationsEs extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'No se registró ningún cambio de gas, pero las presiones de los tanques muestran estos cambios: $switches.',
+          'No se registró ningún cambio de gas, pero las presiones de las botellas muestran estos cambios: $switches.',
       one:
-          'No se registró ningún cambio de gas, pero las presiones de los tanques muestran este cambio: $switches.',
+          'No se registró ningún cambio de gas, pero las presiones de las botellas muestran este cambio: $switches.',
     );
     return '$_temp0';
   }
@@ -45516,7 +45519,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String time,
     String depth,
   ) {
-    return 'tanque $tankNumber ($gas) a los $time, $depth';
+    return 'botella $tankNumber ($gas) a los $time, $depth';
   }
 
   @override
@@ -45529,7 +45532,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'No se registró ningún cambio de gas. Las presiones de los tanques muestran un cambio al tanque $tankNumber ($gas) a $depth, más profundo que su MOD de $mod, por lo que no se sugiere un cambio a él.';
+    return 'No se registró ningún cambio de gas. Las presiones de las botellas muestran un cambio a la botella $tankNumber ($gas) a $depth, más profundo que su MOD de $mod, por lo que no se sugiere un cambio a ella.';
   }
 
   @override
@@ -45539,7 +45542,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Las presiones de los tanques también muestran un cambio al tanque $tankNumber ($gas) a $depth, más profundo que su MOD de $mod, por lo que no se sugiere un cambio a él.';
+    return 'Las presiones de las botellas también muestran un cambio a la botella $tankNumber ($gas) a $depth, más profundo que su MOD de $mod, por lo que no se sugiere un cambio a ella.';
   }
 
   @override
@@ -45548,7 +45551,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String gas,
     String time,
   ) {
-    return 'No se registró ningún cambio de gas. El tanque $tankNumber ($gas) se volvió a respirar desde $time tras una pausa, así que entretanto se respiró otro tanque, y con más de dos tanques las presiones no muestran cuál. Añade los cambios en el editor de inmersiones.';
+    return 'No se registró ningún cambio de gas. La botella $tankNumber ($gas) se volvió a respirar desde $time tras una pausa, así que entretanto se respiró otra botella, y con más de dos botellas las presiones no muestran cuál. Añade los cambios en el editor de inmersiones.';
   }
 
   @override
@@ -45560,12 +45563,12 @@ class AppLocalizationsEs extends AppLocalizations {
     String role,
     String ocDrop,
   ) {
-    return 'El tanque $tankNumber figura como $role según el nombre de su transmisor, pero perdió $ocDrop tras el cambio a circuito abierto y casi nada en el circuito cerrado, así que parece ser el bailout. Un bailout que no se respiró, o que se respiró sin cambio de gas en el ordenador, no se puede detectar así.';
+    return 'La botella $tankNumber figura como $role según el nombre de su transmisor, pero perdió $ocDrop tras el cambio a circuito abierto y casi nada en el circuito cerrado, así que parece ser el bailout. Un bailout que no se respiró, o que se respiró sin cambio de gas en el ordenador, no se puede detectar así.';
   }
 
   @override
   String get dataQuality_msg_twinTanks =>
-      'Dos tanques tienen una serie de presión casi idéntica';
+      'Dos botellas tienen una serie de presión casi idéntica';
 
   @override
   String dataQuality_msg_sourceDepth(String primary, String source) {
@@ -45790,11 +45793,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_swapSeries =>
-      'Intercambiar series de tanques';
+      'Intercambiar series de botellas';
 
   @override
   String get dataQuality_repairLabel_reassignSeries =>
-      'Mover la serie a otro tanque';
+      'Mover la serie a otra botella';
 
   @override
   String dataQuality_repairLabel_addGasSwitches(int count) {
@@ -53673,11 +53676,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_decompression_ascentGas_allCarried =>
-      'Todos los tanques llevados';
+      'Todas las botellas llevadas';
 
   @override
   String get settings_decompression_ascentGas_decoStage =>
-      'Tanque de deco/etapa + gas principal';
+      'Botella de deco/etapa + gas principal';
 
   @override
   String get settings_decompression_cnsSource => 'Origen del CNS';
@@ -53692,7 +53695,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_decompression_header_ascent_subtitle =>
-      'A qué tanques llevados puede cambiar el ascenso simulado (TTS, techo y paradas) en cada profundidad. Solo se tienen en cuenta los gases registrados en la inmersión.';
+      'A qué botellas llevadas puede cambiar el ascenso simulado (TTS, techo y paradas) en cada profundidad. Solo se tienen en cuenta los gases registrados en la inmersión.';
 
   @override
   String get settings_decompression_header_ascentRate => 'Velocidad de ascenso';
@@ -59483,11 +59486,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dataQuality_useAsBailout_title =>
-      '¿Convertir este tanque en el bailout?';
+      '¿Convertir esta botella en el bailout?';
 
   @override
   String dataQuality_useAsBailout_merge(int tankNumber) {
-    return 'Elimina el tanque de bailout duplicado (los cambios de gas pasan al tanque $tankNumber)';
+    return 'Elimina la botella de bailout duplicada (los cambios de gas pasan a la botella $tankNumber)';
   }
 
   @override

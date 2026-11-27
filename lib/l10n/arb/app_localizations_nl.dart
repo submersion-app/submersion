@@ -11518,7 +11518,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan niet omzetten: plan heeft kritieke waarschuwingen';
 
   @override
-  String get divePlanner_error_reserveExceedsTank => 'Overschrijdt tankdruk';
+  String get divePlanner_error_reserveExceedsTank => 'Overschrijdt flesdruk';
 
   @override
   String get divePlanner_error_reserveMustBePositive =>
@@ -39505,7 +39505,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tankPresets_edit_descriptionHint =>
-      'bijv. Mijn huurcilinder van de duikshop';
+      'bijv. Mijn huurfles van de duikshop';
 
   @override
   String get tankPresets_edit_descriptionOptional => 'Beschrijving (optioneel)';

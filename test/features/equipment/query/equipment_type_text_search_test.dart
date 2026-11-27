@@ -23,6 +23,10 @@ void main() {
     test('a translated cylinder word finds cylinders', () {
       expect(equipmentTypeNamesMatching('Flasche'), contains('tank'));
       expect(equipmentTypeNamesMatching('FLASCHE'), contains('tank'));
+      expect(equipmentTypeNamesMatching('botella'), contains('tank'));
+      expect(equipmentTypeNamesMatching('bloc'), contains('tank'));
+      // A dropped word stays a search word (issue #5106).
+      expect(equipmentTypeNamesMatching('bouteille'), contains('tank'));
     });
 
     test('any type is found by its name', () {

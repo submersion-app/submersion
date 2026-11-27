@@ -40277,15 +40277,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_customPresets => 'الإعدادات المخصصة';
 
   @override
-  String get tankPresets_defaultSettings => 'الخزان الافتراضي';
+  String get tankPresets_defaultSettings => 'الأسطوانة الافتراضية';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'يُستخدم الإعداد المميز بنجمة كخزان افتراضي عند تسجيل غطسات جديدة.';
+      'يُستخدم الإعداد المميز بنجمة كأسطوانة افتراضية عند تسجيل غطسات جديدة.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'هل أنت متأكد من حذف \"$name\"؟ هذا هو إعداد الخزان الافتراضي الحالي وسيتم إعادته إلى AL80.';
+    return 'هل أنت متأكد من حذف \"$name\"؟ هذا هو إعداد الأسطوانة الافتراضي الحالي وسيتم إعادته إلى AL80.';
   }
 
   @override
@@ -40420,14 +40420,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
+      'ملء بيانات الأسطوانة المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
 
   @override
   String get tankPresets_defaultStartPressure => 'ضغط البداية الافتراضي';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'يُملأ في الخزانات الجديدة، وفي الخزانات المستوردة التي ليس لها ضغط بداية عند تطبيق الخزان الافتراضي على الاستيراد';
+      'يُملأ في الأسطوانات الجديدة، وفي الأسطوانات المستوردة التي ليس لها ضغط بداية عند تطبيق الأسطوانة الافتراضية على الاستيراد';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {

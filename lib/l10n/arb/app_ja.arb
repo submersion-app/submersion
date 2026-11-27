@@ -7630,7 +7630,7 @@
   "settings_conflict_field_boatCaptain": "ボートの船長",
   "settings_conflict_field_boatName": "ボート名",
   "settings_conflict_field_bookmarkRef": "ファイルへのアクセス",
-  "settings_conflict_field_bottleLabel": "ボトル番号",
+  "settings_conflict_field_bottleLabel": "タンク番号",
   "settings_conflict_field_buddyListViewMode": "バディ一覧の表示",
   "settings_conflict_field_builtinKey": "組み込みテンプレート",
   "settings_conflict_field_buoyancyKg": "浮力",
@@ -10773,7 +10773,7 @@
   "trips_cylinders_action_fillSeveral": "まとめて充填",
   "trips_cylinders_action_adjust": "調整",
   "trips_cylinders_action_logDive": "ダイブを記録",
-  "trips_cylinders_bottle": "ボトル{label}",
+  "trips_cylinders_bottle": "タンク{label}",
   "@trips_cylinders_bottle": {
     "placeholders": {
       "label": {
@@ -10873,7 +10873,7 @@
   "trips_cylinders_fill_he": "He注文値（%）",
   "trips_cylinders_fill_analyzedO2": "O2分析値（%）",
   "trips_cylinders_fill_analyzedHe": "He分析値（%）",
-  "trips_cylinders_fill_bottle": "ボトル番号",
+  "trips_cylinders_fill_bottle": "タンク番号",
   "trips_cylinders_fill_cost": "料金",
   "trips_cylinders_fill_costEach": "タンク1本あたりの料金",
   "trips_cylinders_fill_currency": "通貨",

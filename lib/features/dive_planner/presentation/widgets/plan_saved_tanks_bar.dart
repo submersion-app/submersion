@@ -28,7 +28,11 @@ final savedTanksExpandedProvider = StateProvider<bool>((_) => false);
 /// renamed tanks to cylinders, by language. A folder still named one of them
 /// is the folder saves go to, so a diver who saved before does not get a
 /// second one.
-const kFormerSavedTanksFolderNames = {'Saved tanks'};
+const kFormerSavedTanksFolderNames = {
+  'Saved tanks',
+  'Bouteilles enregistrées',
+  'מכלים שמורים',
+};
 
 /// A bar above the plan's tanks that opens into the diver's saved cylinders.
 ///

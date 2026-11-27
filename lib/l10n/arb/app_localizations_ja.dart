@@ -24817,7 +24817,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_bookmarkRef => 'ファイルへのアクセス';
 
   @override
-  String get settings_conflict_field_bottleLabel => 'ボトル番号';
+  String get settings_conflict_field_bottleLabel => 'タンク番号';
 
   @override
   String get settings_conflict_field_buddyListViewMode => 'バディ一覧の表示';
@@ -35236,7 +35236,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_cylinders_bottle(String label) {
-    return 'ボトル$label';
+    return 'タンク$label';
   }
 
   @override
@@ -35359,7 +35359,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trips_cylinders_fill_analyzedHe => 'He分析値（%）';
 
   @override
-  String get trips_cylinders_fill_bottle => 'ボトル番号';
+  String get trips_cylinders_fill_bottle => 'タンク番号';
 
   @override
   String get trips_cylinders_fill_cost => '料金';
