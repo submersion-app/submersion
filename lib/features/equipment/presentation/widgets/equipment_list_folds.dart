@@ -69,28 +69,14 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
     return currentId;
   }
 
-  /// The fold keys over each item this build, from the layout: what a
-  /// folded heading's summaries count, nested parts included.
-  Map<String, List<String>> _foldKeysByItem = const {};
-
-  /// [_foldKeysByItem] inverted, built the first time a folded heading asks
-  /// this build, so a long list pays one pass rather than one per heading.
-  Map<String, List<String>>? _idsByFoldKey;
+  /// Every item each fold hides this build, by every path that reaches it,
+  /// from the layout: what a folded heading's summaries count.
+  Map<String, Set<String>> _itemsByFoldKey = const {};
 
   /// Every item [foldKey] hides when folded, parts under its assemblies
-  /// included (issue #5071).
-  List<String> _idsUnder(String foldKey) {
-    final index = _idsByFoldKey ??= () {
-      final byKey = <String, List<String>>{};
-      for (final entry in _foldKeysByItem.entries) {
-        for (final key in entry.value) {
-          byKey.putIfAbsent(key, () => []).add(entry.key);
-        }
-      }
-      return byKey;
-    }();
-    return index[foldKey] ?? const [];
-  }
+  /// included, and a part shared by two rigs under both (issue #5071).
+  Iterable<String> _idsUnder(String foldKey) =>
+      _itemsByFoldKey[foldKey] ?? const <String>{};
 
   /// Clears what the fold menu acts on, for a body with no rows.
   void _clearFoldTargets() {
@@ -163,8 +149,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
         if (row is EquipmentItemRow) row.item.id,
     }.toList();
     _assemblyIds = layout.assemblyIds;
-    _foldKeysByItem = layout.foldKeysByItem;
-    _idsByFoldKey = null;
+    _itemsByFoldKey = layout.itemsByFoldKey;
     return layout;
   }
 

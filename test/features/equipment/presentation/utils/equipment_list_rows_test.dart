@@ -506,5 +506,55 @@ void main() {
       expect(nested(layout), ['T type:other', 'A n0-']);
       expect(layout.foldKeysByItem.keys.toSet(), ids.toSet());
     });
+
+    test('a dense corrupt cycle lays out quickly while open', () {
+      final ids = [for (var i = 0; i < 11; i++) 'n$i'];
+      final nodes = [for (final id in ids) item(id, EquipmentType.other)];
+      var order = 0;
+      final parts = tree(nodes, [
+        for (final a in ids)
+          for (final b in ids)
+            if (a != b) edge(a, b, order++),
+      ]);
+      final clock = Stopwatch()..start();
+      final layout = layoutEquipmentRows(
+        groups: [EquipmentGroup(type: EquipmentType.other, items: nodes)],
+        collapsed: const {},
+        parts: parts,
+      );
+      expect(clock.elapsed, lessThan(const Duration(seconds: 2)));
+      final shown = layout.rows.whereType<EquipmentItemRow>().toList();
+      expect(shown.map((r) => r.item.id).toSet(), ids.toSet());
+      expect(shown.length, lessThan(ids.length * ids.length));
+    });
+
+    test('every heading over a shared part counts it', () {
+      final reg = item('reg', EquipmentType.regulator);
+      final rb = item('rb', EquipmentType.rebreather);
+      final stage = item('s', EquipmentType.secondStage);
+      final parts = tree(
+        [reg, rb, stage],
+        [edge('reg', 's', 0), edge('rb', 's', 0)],
+      );
+      final layout = layoutEquipmentRows(
+        groups: [
+          EquipmentGroup(type: EquipmentType.rebreather, items: [rb]),
+          EquipmentGroup(type: EquipmentType.regulator, items: [reg]),
+          EquipmentGroup(type: EquipmentType.secondStage, items: [stage]),
+        ],
+        collapsed: const {'type:rebreather', 'type:regulator'},
+        parts: parts,
+      );
+      expect(
+        layout.itemsByFoldKey['type:rebreather'],
+        containsAll(['rb', 's']),
+      );
+      expect(
+        layout.itemsByFoldKey['type:regulator'],
+        containsAll(['reg', 's']),
+      );
+      // Reveal still follows the first path only.
+      expect(layout.foldKeysByItem['s'], ['type:rebreather', 'asm:rb']);
+    });
   });
 }

@@ -109,6 +109,7 @@ class EquipmentRowLayout {
     this.itemIdByNavKey = const {},
     this.assemblyFoldByNavKey = const {},
     this.parentNavKeyOf = const {},
+    this.itemsByFoldKey = const {},
   });
 
   final List<EquipmentListRow> rows;
@@ -138,6 +139,12 @@ class EquipmentRowLayout {
   /// Each visible part row's stop, to the stop of the assembly row above it:
   /// where Left goes.
   final Map<String, String> parentNavKeyOf;
+
+  /// Every item each fold hides, by every path that reaches it: a part in
+  /// two rigs counts under both rigs' headings. What a folded heading's
+  /// summaries count; [foldKeysByItem] keeps only the first path, for the
+  /// reveal.
+  final Map<String, Set<String>> itemsByFoldKey;
 }
 
 /// The keyboard stop of the heading whose fold key is [foldKey].
@@ -171,6 +178,14 @@ EquipmentRowLayout layoutEquipmentRows({
   final parentNavKeyOf = <String, String>{};
   // Items with a row on screen already, so a repeated part gets its own stop.
   final shownIds = <String>{};
+  final itemsByFoldKey = <String, Set<String>>{};
+  void record(String id, List<String> keys) {
+    foldKeysByItem.putIfAbsent(id, () => List.unmodifiable(keys));
+    for (final key in keys) {
+      itemsByFoldKey.putIfAbsent(key, () => <String>{}).add(id);
+    }
+  }
+
   final nest = parts != null && parts.assemblyIds.isNotEmpty ? parts : null;
 
   /// Adds [item] (and, in the assembly view, the parts under it) under the
@@ -183,7 +198,7 @@ EquipmentRowLayout layoutEquipmentRows({
     AssemblyUnit? unit,
   }) {
     if (unit == null) {
-      foldKeysByItem[item.id] = keys;
+      record(item.id, keys);
       if (!visible) return;
       rows.add(EquipmentItemRow(item: item));
       navStops.addRow(item.id, header: header);
@@ -197,11 +212,8 @@ EquipmentRowLayout layoutEquipmentRows({
       outerKeys: keys,
       visible: visible,
       isShown: shownIds.contains,
-      isRecorded: foldKeysByItem.containsKey,
-      onItem: (item, foldKeys) => foldKeysByItem.putIfAbsent(
-        item.id,
-        () => List.unmodifiable(foldKeys),
-      ),
+      walkedInRoot: <String>{},
+      onItem: (item, foldKeys) => record(item.id, foldKeys),
       onAssembly: assemblyIds.add,
       onRow: (item, info) {
         rows.add(
@@ -350,5 +362,6 @@ EquipmentRowLayout layoutEquipmentRows({
     itemIdByNavKey: Map.unmodifiable(itemIdByNavKey),
     assemblyFoldByNavKey: Map.unmodifiable(assemblyFoldByNavKey),
     parentNavKeyOf: Map.unmodifiable(parentNavKeyOf),
+    itemsByFoldKey: Map.unmodifiable(itemsByFoldKey),
   );
 }

@@ -89,10 +89,14 @@ typedef AssemblyRowInfo = ({
 /// An assembly's parts are on screen only when the assembly is and its key
 /// is not in [collapsed]. [isShown] says whether an item already has a row
 /// on screen, so a repeated part gets [repeatedPartNavKey] and the first
-/// one keeps the item id. [isRecorded] says whether [onItem] has already
-/// seen an item: an item reached again off screen has nothing new below it,
-/// so the walk stops there, which keeps a corrupt dense cycle from being
-/// walked down every one of its paths.
+/// one keeps the item id.
+///
+/// [walkedInRoot] holds the items whose parts this top-level walk has
+/// already listed. An item met again within it gets its row but no parts
+/// below it and no fold, so each item's parts are walked once per top-level
+/// rig: a part shared by two rigs still shows its parts under both, and a
+/// corrupt dense cycle costs one visit per item and edge instead of one per
+/// path.
 void walkAssembly(
   EquipmentItem item, {
   required AssemblyUnit unit,
@@ -100,7 +104,7 @@ void walkAssembly(
   required List<String> outerKeys,
   required bool visible,
   required bool Function(String id) isShown,
-  required bool Function(String id) isRecorded,
+  required Set<String> walkedInRoot,
   required void Function(EquipmentItem item, AssemblyRowInfo info) onRow,
   required void Function(EquipmentItem item, List<String> foldKeys) onItem,
   required void Function(String assemblyId) onAssembly,
@@ -109,9 +113,11 @@ void walkAssembly(
   String? parentNavKey,
   Set<String> path = const {},
 }) {
-  final seenBefore = isRecorded(item.id);
+  final firstInRoot = walkedInRoot.add(item.id);
   final below = {...path, item.id};
-  final children = unit.childrenOf(item.id, below);
+  final children = firstInRoot
+      ? unit.childrenOf(item.id, below)
+      : const <String>[];
   final foldKey = children.isEmpty ? null : assemblyFoldKey(item.id);
   final isExpanded = foldKey != null && !collapsed.contains(foldKey);
   onItem(item, outerKeys);
@@ -131,7 +137,7 @@ void walkAssembly(
       partCount: children.length,
     ));
   }
-  if (foldKey == null || (!visible && seenBefore)) return;
+  if (foldKey == null) return;
   for (final child in children) {
     walkAssembly(
       unit.itemsById[child]!,
@@ -140,7 +146,7 @@ void walkAssembly(
       outerKeys: [...outerKeys, foldKey],
       visible: visible && isExpanded,
       isShown: isShown,
-      isRecorded: isRecorded,
+      walkedInRoot: walkedInRoot,
       onRow: onRow,
       onItem: onItem,
       onAssembly: onAssembly,
