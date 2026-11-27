@@ -64,8 +64,8 @@ A value that is deliberately off the scale is declared once as a named
 constant, with a doc comment saying why, beside the code that uses it. Never
 move it to a nearby step. One widget's value is a private constant in its
 file; a value a family of widgets shares goes in that family's style class,
-as the form system's do in `FormStyle` (`rowInset`, `rowPadding`,
-`groupRadius`). A constant built from the scales needs no comment
+as the form system's shared values do in `FormStyle` (`rowInset`,
+`rowPadding`, `groupRadius`). A constant built from the scales needs no comment
 (`EdgeInsets.fromLTRB(Spacing.s16, FormStyle.rowInset, Spacing.s16,
 Spacing.s6)`).
 
