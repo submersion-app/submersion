@@ -49,6 +49,7 @@ void main() {
     WidgetTester tester, {
     required Size size,
     List<ProfileSeriesRevision> Function(String diveId)? revisions,
+    double textScale = 1.0,
   }) async {
     final dive = diveWithProfile();
     final base = await getBaseOverrides();
@@ -59,6 +60,8 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    tester.platformDispatcher.textScaleFactorTestValue = textScale;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -134,6 +137,28 @@ void main() {
 
       expect(tester.widget<AppBar>(appBar).bottom, isNull);
     });
+
+    testWidgets('the revision row fits the selector at large text sizes', (
+      tester,
+    ) async {
+      await pumpEditor(tester, size: phone, textScale: 2.0);
+
+      expect(tester.takeException(), isNull);
+      expect(
+        inAppBar(find.textContaining('Edit: Profile editor')),
+        findsOneWidget,
+      );
+    });
+  });
+
+  testWidgets('large text moves the selector to its own row sooner', (
+    tester,
+  ) async {
+    await pumpEditor(tester, size: const Size(900, 900), textScale: 2.0);
+
+    expect(tester.takeException(), isNull);
+    expect(tester.widget<AppBar>(appBar).bottom, isNotNull);
+    expect(inAppBar(find.byTooltip('Save')), findsOneWidget);
   });
 
   testWidgets('a wide screen keeps the selector beside the title', (

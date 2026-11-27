@@ -396,8 +396,8 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         }
       },
       child: Scaffold(
-        appBar: ProfileEditorAppBar(
-          compact: ProfileEditorAppBar.isCompact(context),
+        appBar: ProfileEditorAppBar.forScreen(
+          context,
           // The revision history is the primary profile's lineage, so
           // switching it would reload a profile other than the source being
           // edited. A history known to be empty has nothing to show.

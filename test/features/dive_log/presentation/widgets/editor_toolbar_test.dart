@@ -49,6 +49,9 @@ void main() {
         expect(find.byTooltip(label), findsOneWidget);
       }
       expect(tester.takeException(), isNull);
+      // The active mode keeps its own icon rather than a check mark.
+      expect(find.byIcon(Icons.touch_app), findsOneWidget);
+      expect(find.byIcon(Icons.check), findsNothing);
 
       await tester.tap(find.byTooltip('Draw'));
       await tester.pumpAndSettle();

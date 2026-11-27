@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -11,12 +13,15 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// (issue #5056).
 class ProfileEditorAppBar extends StatelessWidget
     implements PreferredSizeWidget {
-  /// Screens narrower than this get the [compact] layout.
+  /// Screens narrower than this, at the default text size, get the
+  /// [compact] layout. Larger text widens it in step, since it grows the
+  /// title and Save beside the selector.
   static const double compactMaxWidth = 600;
 
-  static const double _revisionRowHeight = 44;
-
   final bool compact;
+
+  /// The text scale factor at 14 sp, which sizes the revision row.
+  final double textScale;
 
   /// The revision selector, or null when there is none to show: the editor
   /// is not on the primary source, or the dive has no revision history.
@@ -31,16 +36,36 @@ class ProfileEditorAppBar extends StatelessWidget
   const ProfileEditorAppBar({
     super.key,
     required this.compact,
+    this.textScale = 1.0,
     required this.revisionControl,
     required this.onUndo,
     required this.onSave,
   });
 
-  /// Whether the screen in [context] is narrow enough for [compact].
-  static bool isCompact(BuildContext context) =>
-      MediaQuery.sizeOf(context).width < compactMaxWidth;
+  /// The app bar for the screen and text size in [context].
+  factory ProfileEditorAppBar.forScreen(
+    BuildContext context, {
+    required Widget? revisionControl,
+    required VoidCallback? onUndo,
+    required VoidCallback? onSave,
+  }) {
+    final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    return ProfileEditorAppBar(
+      compact:
+          MediaQuery.sizeOf(context).width <
+          compactMaxWidth * math.max(1.0, textScale),
+      textScale: textScale,
+      revisionControl: revisionControl,
+      onUndo: onUndo,
+      onSave: onSave,
+    );
+  }
 
   bool get _revisionRow => compact && revisionControl != null;
+
+  /// Room for the selector pill (its 16 dp text line, scaled, and 8 dp of
+  /// padding) and 8 dp under it, with a little air above: 44 dp at 1x.
+  double get _revisionRowHeight => 28 + 16 * math.max(1.0, textScale);
 
   @override
   Size get preferredSize =>
@@ -63,7 +88,7 @@ class ProfileEditorAppBar extends StatelessWidget
             ),
       bottom: _revisionRow
           ? PreferredSize(
-              preferredSize: const Size.fromHeight(_revisionRowHeight),
+              preferredSize: Size.fromHeight(_revisionRowHeight),
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
                 child: Align(

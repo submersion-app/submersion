@@ -55,6 +55,9 @@ class EditorToolbar extends StatelessWidget {
             for (final (_, _, label) in modes) label,
           ], constraints.maxWidth);
           return SegmentedButton<EditorMode>(
+            // The selected check replaces the segment's icon, which alone
+            // names the mode when the labels are gone.
+            showSelectedIcon: showLabels,
             segments: [
               for (final (value, icon, label) in modes)
                 ButtonSegment(
