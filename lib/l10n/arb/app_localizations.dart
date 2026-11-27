@@ -28198,6 +28198,36 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} more firmware update} other{{count} more firmware updates}}'**
   String firmware_home_more(int count);
 
+  /// No description provided for @firmware_notify_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update for {item}'**
+  String firmware_notify_title(String item);
+
+  /// No description provided for @firmware_notify_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{version} is available. Tap for release notes.'**
+  String firmware_notify_body(String version);
+
+  /// No description provided for @firmware_notify_bodySafety.
+  ///
+  /// In en, this message translates to:
+  /// **'{version} is a safety update. Tap for release notes.'**
+  String firmware_notify_bodySafety(String version);
+
+  /// No description provided for @firmware_notify_summaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware updates available'**
+  String get firmware_notify_summaryTitle;
+
+  /// No description provided for @firmware_notify_summaryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see which gear has newer firmware.'**
+  String get firmware_notify_summaryBody;
+
   /// No description provided for @firmware_card_installed.
   ///
   /// In en, this message translates to:

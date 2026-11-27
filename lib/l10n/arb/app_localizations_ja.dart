@@ -17173,6 +17173,27 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String firmware_notify_title(String item) {
+    return '$item のファームウェア更新';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version が利用可能です。タップしてリリースノートを表示。';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version は安全に関わる更新です。タップしてリリースノートを表示。';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'ファームウェアの更新があります';
+
+  @override
+  String get firmware_notify_summaryBody => 'タップして新しいファームウェアがある器材を確認。';
+
+  @override
   String get firmware_card_installed => 'インストール済み';
 
   @override

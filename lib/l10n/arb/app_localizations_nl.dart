@@ -17679,6 +17679,28 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String firmware_notify_title(String item) {
+    return 'Firmware-update voor $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version is beschikbaar. Tik voor de release-opmerkingen.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version is een veiligheidsupdate. Tik voor de release-opmerkingen.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'Firmware-updates beschikbaar';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'Tik om te zien welke uitrusting nieuwere firmware heeft.';
+
+  @override
   String get firmware_card_installed => 'Geïnstalleerd';
 
   @override

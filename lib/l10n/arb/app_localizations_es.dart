@@ -17783,6 +17783,29 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String firmware_notify_title(String item) {
+    return 'Actualización de firmware para $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version está disponible. Toca para ver las notas de la versión.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version es una actualización de seguridad. Toca para ver las notas de la versión.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle =>
+      'Actualizaciones de firmware disponibles';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'Toca para ver qué equipo tiene firmware más reciente.';
+
+  @override
   String get firmware_card_installed => 'Instalado';
 
   @override

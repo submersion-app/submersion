@@ -17424,6 +17424,28 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String firmware_notify_title(String item) {
+    return 'עדכון קושחה עבור $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version זמינה. הקש להערות הגרסה.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version היא עדכון בטיחות. הקש להערות הגרסה.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'עדכוני קושחה זמינים';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'הקש כדי לראות לאיזה ציוד יש קושחה חדשה יותר.';
+
+  @override
   String get firmware_card_installed => 'מותקן';
 
   @override

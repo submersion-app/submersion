@@ -17728,6 +17728,28 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String firmware_notify_title(String item) {
+    return 'Firmware-frissítés: $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return 'Elérhető: $version. Koppints a kiadási megjegyzésekért.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version biztonsági frissítés. Koppints a kiadási megjegyzésekért.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'Firmware-frissítések érhetők el';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'Koppints, és megnézheted, melyik felszereléshez van újabb firmware.';
+
+  @override
   String get firmware_card_installed => 'Telepítve';
 
   @override

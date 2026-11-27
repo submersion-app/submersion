@@ -17537,6 +17537,28 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String firmware_notify_title(String item) {
+    return 'Firmware update for $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version is available. Tap for release notes.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version is a safety update. Tap for release notes.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'Firmware updates available';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'Tap to see which gear has newer firmware.';
+
+  @override
   String get firmware_card_installed => 'Installed';
 
   @override

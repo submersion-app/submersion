@@ -29,6 +29,10 @@ int _stableNotificationId(String key) {
 /// Payloads of the automatic Apple Health import's message (issue #637).
 const String kWatchDivePayloadPrefix = 'dive:';
 const String kWatchDivesPayload = 'dives';
+
+/// The payload of the summary notification for several firmware updates at
+/// once (issue #5104): it opens the equipment list.
+const String kFirmwareUpdatesPayload = 'firmware-updates';
 const String kHealthReviewPayload = 'healthReview';
 
 /// The payload prefix of a document reminder: `document:<id>`.
@@ -92,6 +96,7 @@ String? notificationPayloadRoute(String payload) {
     return id.isEmpty ? null : '/dives/$id';
   }
   if (payload == kWatchDivesPayload) return '/dives';
+  if (payload == kFirmwareUpdatesPayload) return '/equipment';
   if (payload == kHealthReviewPayload) return '/settings/wearable-import';
   if (payload.startsWith(_documentPayloadPrefix)) {
     final id = parseDocumentReminderPayload(payload)?.documentId;
@@ -477,6 +482,35 @@ class NotificationService {
           'watch_dives',
           'Apple Watch Dives',
           channelDescription: 'Dives imported from Apple Health',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+      ),
+      payload: payload,
+    );
+  }
+
+  /// Tells the diver a newer firmware release is listed (issue #5104).
+  /// [payload] is the item's id, which opens its page, or
+  /// [kFirmwareUpdatesPayload] for a summary. The id is stable per [key], so
+  /// a repeat replaces rather than stacks.
+  Future<void> showFirmwareUpdate({
+    required String key,
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    if (!_isMobilePlatform) return;
+    await _plugin.show(
+      id: _stableNotificationId('firmware:$key'),
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'firmware_updates',
+          'Firmware Updates',
+          channelDescription: 'Newer firmware for your gear',
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),

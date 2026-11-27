@@ -16934,6 +16934,27 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String firmware_notify_title(String item) {
+    return '$item 的固件更新';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version 已可用。点按查看发行说明。';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version 是安全更新。点按查看发行说明。';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => '有可用的固件更新';
+
+  @override
+  String get firmware_notify_summaryBody => '点按查看哪些装备有更新的固件。';
+
+  @override
   String get firmware_card_installed => '已安装';
 
   @override

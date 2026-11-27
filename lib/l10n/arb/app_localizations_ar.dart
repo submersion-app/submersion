@@ -18087,6 +18087,28 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String firmware_notify_title(String item) {
+    return 'تحديث البرنامج الثابت لـ $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version متاح. انقر لعرض ملاحظات الإصدار.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version تحديث أمان. انقر لعرض ملاحظات الإصدار.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'تتوفر تحديثات للبرامج الثابتة';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'انقر لمعرفة المعدات التي لها برنامج ثابت أحدث.';
+
+  @override
   String get firmware_card_installed => 'المثبت';
 
   @override

@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/stale_open_dra
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/firmware/presentation/providers/firmware_catalogue_providers.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_notification_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -217,6 +218,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     if (hasDesktopWindow()) {
       ref.listenManual(agentAccessControllerProvider, (_, _) {});
     }
+    // Firmware update notifications (issue #5104): one per item and new
+    // release, re-run as the catalogue, the gear or the switches change.
+    ref.listenManual(firmwareNotificationSyncProvider, (_, _) {});
     _diveMarks = startDiveMarkActionBridge(ref);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final launchSync = _maybeSyncOnLaunch();
