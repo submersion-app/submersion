@@ -24,6 +24,7 @@ import 'package:submersion/core/database/dive_water_temp_fill.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/database/snapshot_serial_heal.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/core/profile/surfacing_pressure.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
@@ -1654,6 +1655,11 @@ class DiveComputerRepository {
     // dive matched to an existing row keeps the trip the diver gave it, or
     // left it out of.
     String? tripId,
+    // The diver's "Tank pressure at surfacing" setting: a cylinder whose end
+    // pressure is derived from its own series below takes the reading at
+    // surfacing rather than whatever the computer logged on the surface
+    // afterwards, such as a closed valve's 0 bar (issue #5000).
+    bool trimTankPressureAtSurfacing = true,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -2270,11 +2276,21 @@ class DiveComputerRepository {
             final tank = tanks.firstWhere((t) => t.index == tankIndex);
             if (tank.startPressure == null || tank.endPressure == null) {
               // Signal dropouts at either end of the series must not become
-              // the recorded pressure (#2441).
-              final endpoints = cleanSeriesEndpoints([
+              // the recorded pressure (#2441), nor a valve closed on the
+              // surface after the dive (#5000).
+              final readings = [
                 for (final p in pressurePoints)
                   (t: p.timestamp, bar: p.pressure),
-              ]);
+              ];
+              final endpoints = trimTankPressureAtSurfacing
+                  ? seriesEndpointsAtSurfacing(
+                      readings,
+                      depths: [
+                        for (final p in points)
+                          (t: p.timestamp, depth: p.depth),
+                      ],
+                    )
+                  : cleanSeriesEndpoints(readings);
               if (endpoints == null) continue;
               final tankId = tankIdsByIndex[tankIndex]!;
               await (_db.update(
