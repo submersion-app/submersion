@@ -36,6 +36,7 @@ import 'package:submersion/features/dive_log/domain/services/series_source_owner
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
+import 'package:submersion/features/dive_computer/data/services/guessed_tank_role.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_computer/data/services/unused_oc_gas_cleanup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
@@ -1173,10 +1174,15 @@ class ReparseService {
     // sets the Hydrotank back to back gas sees it turned again by the next
     // re-parse, a limit the design accepts: in Avelo mode the T1 cylinder is
     // the Hydrotank.
+    //
+    // A stored role that is only the importer's O2 guess for a gas this parse
+    // corrects follows the corrected gas (issue #5057): an older import gave
+    // a back-gas transmitter the deco gas, and its roles with it.
     final hydrotanks = {
       for (final t in resolvedTanks)
         if (t.role == TankRole.hydrotank.name) t.index,
     };
+    final parsedByIndex = {for (final t in parsedTanks) t.index: t};
     bool roleIsComputers(DiveTank existing, int index) =>
         TankRoleSource.fromName(existing.roleSource) ==
             TankRoleSource.transmitterName ||
@@ -1184,7 +1190,9 @@ class ReparseService {
             existing.tankRole == nameDerivedRoles[index]) ||
         (existing.roleSource == null &&
             existing.tankRole == TankRole.backGas.name &&
-            hydrotanks.contains(index));
+            hydrotanks.contains(index)) ||
+        (parsedByIndex[index] != null &&
+            roleGuessedForCorrectedGas(existing, parsedByIndex[index]!));
 
     // With the diver's switch on, sort the stored rows of unused open-circuit
     // gases before the claim (issue #3668), judged against this parse rather
