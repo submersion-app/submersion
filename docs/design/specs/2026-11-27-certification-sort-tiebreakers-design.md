@@ -56,7 +56,8 @@ through the app's `TextCollator`, the collation the agency grouping already
 uses. The agency key is the agency's localized name (it was the English
 interchange name, compared case-sensitively, so a lowercase custom agency
 sorted after every built-in), and the title key folds accents (an initial
-like "É" sorted after "z").
+like "É" sorted after "z"). Two distinct agencies that show the same name
+compare by agency id, so each keeps its own block, as the grouping does.
 
 ## Left to the builder
 

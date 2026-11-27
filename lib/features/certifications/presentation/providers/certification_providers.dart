@@ -175,8 +175,13 @@ List<Certification> applyCertificationSorting(
   // Each key compares in reading order.
   int byDate(Certification a, Certification b) =>
       (b.issueDate ?? DateTime(1900)).compareTo(a.issueDate ?? DateTime(1900));
-  int byAgency(Certification a, Certification b) =>
-      collator.compare(agencyOf(a), agencyOf(b));
+  // Two agencies showing the same name stay in separate blocks, by id, as
+  // the agency grouping keeps them.
+  int byAgency(Certification a, Certification b) {
+    final byName = collator.compare(agencyOf(a), agencyOf(b));
+    return byName != 0 ? byName : a.agency.compareTo(b.agency);
+  }
+
   int byTitle(Certification a, Certification b) =>
       collator.compare(titleOf(a), titleOf(b));
 

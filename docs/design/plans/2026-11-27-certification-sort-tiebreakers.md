@@ -12,6 +12,12 @@
 
 ## Global Constraints
 
+> Superseded in review: the text keys now compare the shown names through
+> `TextCollator` (localized agency name, ties between same-named agencies by
+> agency id; accent-folded title). See the spec's follow-up section. The
+> "Key comparisons unchanged" line and the `interchangeName` Review Focus item
+> below describe the first iteration.
+
 - Reading order is `SortDirection.descending` for all three fields (newest first; A to Z for text).
 - Date Issued: date newest first, agency A to Z, title A to Z, id.
 - Agency: agency A to Z, date newest first, title A to Z, id.

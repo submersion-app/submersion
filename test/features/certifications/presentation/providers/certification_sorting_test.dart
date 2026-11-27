@@ -277,6 +277,57 @@ void main() {
       );
     });
 
+    // In French "Other" reads "Autre", which sorts before PADI; the English
+    // name would put it after.
+    test('agencies order by their name in the active locale', () {
+      expect(
+        applyCertificationSorting(
+          [
+            cert('padi', name: 'Nitrox', issueDate: day),
+            cert(
+              'other',
+              name: 'Nitrox',
+              agency: CertificationAgency.other,
+              issueDate: day,
+            ),
+          ],
+          const SortState(
+            field: CertificationSortField.dateIssued,
+            direction: SortDirection.descending,
+          ),
+          l10n: lookupAppLocalizations(const Locale('fr')),
+        ).map((c) => c.id),
+        ['other', 'padi'],
+      );
+    });
+
+    // Two agencies showing the same name stay in separate blocks, ordered by
+    // id, as the agency grouping keeps them.
+    test('same-named distinct agencies keep their own blocks', () {
+      Certification unknown(String id, String agency, DateTime date) =>
+          Certification(
+            id: id,
+            name: 'Nitrox',
+            agency: agency,
+            issueDate: date,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          );
+      // Non-slug ids both fall back to "Unknown agency".
+      expect(
+        order(
+          [
+            unknown('b1', 'b-agency', DateTime(2021)),
+            unknown('a1', 'a-agency', DateTime(2020)),
+            unknown('b2', 'b-agency', DateTime(2019)),
+          ],
+          CertificationSortField.agency,
+          SortDirection.descending,
+        ),
+        ['a1', 'b1', 'b2'],
+      );
+    });
+
     test('identical rows order by id whatever the input order', () {
       for (final field in CertificationSortField.values) {
         expect(order([twinY, twinX], field, SortDirection.descending), [
