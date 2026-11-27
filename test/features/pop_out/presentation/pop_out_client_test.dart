@@ -1,4 +1,5 @@
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -190,6 +191,29 @@ void main() {
     await pumpEventQueue();
     expect(prefs.getString('gone_key'), isNull);
     expect(c.read(currentDiverIdProvider), 'diver-1');
+  });
+
+  test('prefs of every kind arrive as the main window wrote them', () async {
+    await build(launchOn('a'), settings: _CountingSettings());
+    // As the channel hands it over: a string list decodes as List<Object?>.
+    final message = PopOutMessage.fromCall(
+      const MethodCall('prefs', {
+        'values': {
+          currentDiverIdKey: 'diver-1',
+          'a_bool': true,
+          'an_int': 7,
+          'a_double': 1.2,
+          'a_list': <Object?>['x', 'y'],
+        },
+      }),
+    );
+    channel.deliver(message!);
+    await pumpEventQueue();
+
+    expect(prefs.getBool('a_bool'), isTrue);
+    expect(prefs.getInt('an_int'), 7);
+    expect(prefs.getDouble('a_double'), 1.2);
+    expect(prefs.getStringList('a_list'), ['x', 'y']);
   });
 
   test('lock message sets locked', () async {
