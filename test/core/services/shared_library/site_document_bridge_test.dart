@@ -331,10 +331,10 @@ void main() {
   });
 
   group('contact details and opening hours (issue #5073)', () {
-    const hours = OpeningHours(alwaysOpen: true, note: 'Gate code 1234');
+    final hours = OpeningHours(alwaysOpen: true, note: 'Gate code 1234');
 
     test('a site reads them into its document', () {
-      const site = DiveSite(
+      final site = DiveSite(
         id: 's1',
         name: 'Stoney Cove',
         address: 'LE9 4DW',

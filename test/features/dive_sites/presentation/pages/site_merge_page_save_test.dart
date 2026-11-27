@@ -237,13 +237,13 @@ void main() {
   testWidgets('a merge keeps contact details and hours from either site', (
     tester,
   ) async {
-    const hours = OpeningHours(alwaysOpen: true, note: 'Gate code 1234');
+    final hours = OpeningHours(alwaysOpen: true, note: 'Gate code 1234');
     final sites = SiteRepository();
     await sites.createSite(
       const DiveSite(id: 'a', name: 'Stoney Cove', diverId: 'd2'),
     );
     await sites.createSite(
-      const DiveSite(
+      DiveSite(
         id: 'b',
         name: 'Stoney Cove North',
         diverId: 'd2',

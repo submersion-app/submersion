@@ -291,9 +291,9 @@ void main() {
   // Issue #5073: the contact columns edit, and a save keeps what the table
   // does not show.
   test('editing the phone keeps the address, website and hours', () async {
-    const hours = OpeningHours(alwaysOpen: true);
+    final hours = OpeningHours(alwaysOpen: true);
     await repo.createSite(
-      const DiveSite(
+      DiveSite(
         id: 'c1',
         name: 'Stoney Cove',
         address: 'LE9 4DW',

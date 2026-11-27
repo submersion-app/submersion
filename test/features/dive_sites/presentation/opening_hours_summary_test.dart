@@ -31,21 +31,27 @@ void main() {
   });
 
   test('a week closed every day is one group of seven', () {
-    final groups = groupDays(const OpeningSchedule(), weekOrder: mondayFirst);
+    final groups = groupDays(OpeningSchedule(), weekOrder: mondayFirst);
     expect(groups.single.weekdays, mondayFirst);
     expect(groups.single.hours.isClosed, isTrue);
   });
 
   test("today's schedule is listed first", () {
-    const summer = OpeningSchedule(
+    final summer = OpeningSchedule(
       name: 'Summer',
-      season: YearlyDateRange(start: MonthDay(4, 1), end: MonthDay(10, 31)),
+      season: const YearlyDateRange(
+        start: MonthDay(4, 1),
+        end: MonthDay(10, 31),
+      ),
     );
-    const winter = OpeningSchedule(
+    final winter = OpeningSchedule(
       name: 'Winter',
-      season: YearlyDateRange(start: MonthDay(11, 1), end: MonthDay(3, 31)),
+      season: const YearlyDateRange(
+        start: MonthDay(11, 1),
+        end: MonthDay(3, 31),
+      ),
     );
-    const hours = OpeningHours(schedules: [summer, winter]);
+    final hours = OpeningHours(schedules: [summer, winter]);
     expect(schedulesInDisplayOrder(hours, DateTime(2026, 12, 1)), [
       winter,
       summer,

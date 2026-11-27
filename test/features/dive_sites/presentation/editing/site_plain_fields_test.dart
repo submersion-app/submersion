@@ -10,10 +10,10 @@ import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 /// Every plain site value has a sitting field that reads and writes it
 /// exactly (issue #4527, phase 2, plan 2).
 void main() {
-  const full = DiveSite(
+  final full = DiveSite(
     id: 's1',
     name: 'Blue Hole',
-    location: GeoPoint(17.3, -87.5),
+    location: const GeoPoint(17.3, -87.5),
     minDepth: 5,
     maxDepth: 40,
     difficulty: SiteDifficulty.advanced,
@@ -36,12 +36,12 @@ void main() {
     openingHours: OpeningHours(
       note: 'Call first',
       schedules: [
-        OpeningSchedule(days: {DateTime.saturday: DayHours.open24h()}),
+        OpeningSchedule(days: const {DateTime.saturday: DayHours.open24h()}),
       ],
     ),
     altitude: 3,
-    entryMethods: [EntryMethod.backRoll],
-    exitMethods: [EntryMethod.ladder],
+    entryMethods: const [EntryMethod.backRoll],
+    exitMethods: const [EntryMethod.ladder],
   );
 
   // Each field is checked through a call typed for its own value: a field
@@ -108,7 +108,7 @@ void main() {
 
   test('empty opening hours write as none', () {
     expect(
-      siteOpeningHoursField.write(full, const OpeningHours()).openingHours,
+      siteOpeningHoursField.write(full, OpeningHours()).openingHours,
       isNull,
     );
   });

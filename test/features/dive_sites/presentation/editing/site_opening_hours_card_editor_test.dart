@@ -187,13 +187,13 @@ void main() {
     }
 
     final first = controllerFor(
-      const OpeningHours(
+      OpeningHours(
         note: 'Old note',
         schedules: [OpeningSchedule(name: 'Old')],
       ),
     );
     final second = controllerFor(
-      const OpeningHours(
+      OpeningHours(
         note: 'New note',
         schedules: [OpeningSchedule(name: 'New')],
       ),

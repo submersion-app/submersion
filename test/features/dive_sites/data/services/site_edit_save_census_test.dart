@@ -61,13 +61,13 @@ void main() {
   });
 
   test('a sitting carries every column it does not change', () async {
-    const first = DiveSite(
+    final first = DiveSite(
       id: 's1',
       diverId: 'me',
       name: 'Blue Hole',
       description: 'Wall',
       notes: 'Calm',
-      location: GeoPoint(17.3, -87.5),
+      location: const GeoPoint(17.3, -87.5),
       minDepth: 5,
       maxDepth: 40,
       difficulty: SiteDifficulty.advanced,
@@ -89,8 +89,8 @@ void main() {
       website: 'bluehole.bz',
       openingHours: OpeningHours(alwaysOpen: true),
       altitude: 3,
-      entryMethods: [EntryMethod.backRoll],
-      exitMethods: [EntryMethod.ladder],
+      entryMethods: const [EntryMethod.backRoll],
+      exitMethods: const [EntryMethod.ladder],
     );
     await sites.createSite(first);
     // Every value changed underneath, as a sync would, after the sitting
@@ -118,7 +118,7 @@ void main() {
       phone: '+52 984 555 0100',
       email: 'info@cenote.mx',
       website: 'cenote.mx',
-      openingHours: const OpeningHours(note: 'Mornings only'),
+      openingHours: OpeningHours(note: 'Mornings only'),
       altitude: 4,
       entryMethods: [EntryMethod.shore],
       exitMethods: [EntryMethod.shore],

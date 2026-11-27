@@ -31,6 +31,6 @@ void main() {
   });
 
   test('no hours are fine', () {
-    expect(invalidOpeningDays(const OpeningHours()), isEmpty);
+    expect(invalidOpeningDays(OpeningHours()), isEmpty);
   });
 }

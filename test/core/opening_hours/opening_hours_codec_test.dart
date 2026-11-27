@@ -92,14 +92,14 @@ void main() {
   });
 
   test('empty hours encode to null', () {
-    expect(encodeOpeningHours(const OpeningHours()), isNull);
-    expect(encodeOpeningHours(const OpeningHours(note: '  ')), isNull);
+    expect(encodeOpeningHours(OpeningHours()), isNull);
+    expect(encodeOpeningHours(OpeningHours(note: '  ')), isNull);
     expect(encodeOpeningHours(null), isNull);
   });
 
   test('always open alone is not empty', () {
-    final encoded = encodeOpeningHours(const OpeningHours(alwaysOpen: true));
-    expect(decodeOpeningHours(encoded), const OpeningHours(alwaysOpen: true));
+    final encoded = encodeOpeningHours(OpeningHours(alwaysOpen: true));
+    expect(decodeOpeningHours(encoded), OpeningHours(alwaysOpen: true));
   });
 
   test('a value that is not a JSON object decodes to null', () {
@@ -176,6 +176,31 @@ void main() {
         raw,
       )!.schedules.single.dayHours(DateTime.saturday).ranges,
       const [TimeRange(540, 720)],
+    );
+  });
+
+  test('a schedule and its hours keep their own copies (review)', () {
+    final days = <int, DayHours>{DateTime.saturday: const DayHours.open24h()};
+    final schedule = OpeningSchedule(days: days);
+    final schedules = [schedule];
+    final hours = OpeningHours(schedules: schedules);
+    final before = OpeningHours(
+      schedules: [
+        OpeningSchedule(days: const {DateTime.saturday: DayHours.open24h()}),
+      ],
+    );
+
+    days[DateTime.sunday] = const DayHours.open24h();
+    schedules.add(OpeningSchedule());
+
+    expect(hours, before);
+    expect(
+      () => hours.schedules.add(OpeningSchedule()),
+      throwsUnsupportedError,
+    );
+    expect(
+      () => schedule.days[DateTime.monday] = const DayHours.closed(),
+      throwsUnsupportedError,
     );
   });
 }

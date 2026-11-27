@@ -143,7 +143,18 @@ class OpeningSchedule extends Equatable {
   /// closed.
   final Map<int, DayHours> days;
 
-  const OpeningSchedule({this.name, this.season, this.days = const {}});
+  /// Keeps its own unmodifiable copy of [days], so the caller's map can
+  /// change afterwards without changing this value.
+  factory OpeningSchedule({
+    String? name,
+    YearlyDateRange? season,
+    Map<int, DayHours> days = const {},
+  }) => OpeningSchedule._(name, season, Map.unmodifiable(days));
+
+  const OpeningSchedule._(this.name, this.season, this.days);
+
+  /// A schedule with no name or season, closed every day.
+  static const OpeningSchedule closed = OpeningSchedule._(null, null, {});
 
   DayHours dayHours(int weekday) => days[weekday] ?? const DayHours.closed();
 
@@ -176,11 +187,18 @@ class OpeningHours extends Equatable {
   final List<OpeningSchedule> schedules;
   final String? note;
 
-  const OpeningHours({
-    this.alwaysOpen = false,
-    this.schedules = const [],
-    this.note,
-  });
+  /// Keeps its own unmodifiable copy of [schedules], so the caller's list
+  /// can change afterwards without changing this value.
+  factory OpeningHours({
+    bool alwaysOpen = false,
+    List<OpeningSchedule> schedules = const [],
+    String? note,
+  }) => OpeningHours._(alwaysOpen, List.unmodifiable(schedules), note);
+
+  const OpeningHours._(this.alwaysOpen, this.schedules, this.note);
+
+  /// No hours: not always open, no schedules, no note.
+  static const OpeningHours empty = OpeningHours._(false, [], null);
 
   /// Nothing worth storing.
   bool get isEmpty =>

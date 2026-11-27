@@ -116,14 +116,14 @@ void main() {
 
     await pumpCard(
       tester,
-      const DiveSite(
+      DiveSite(
         id: 's',
         name: 'X',
         openingHours: OpeningHours(
           schedules: [
             OpeningSchedule(
               name: 'Summer',
-              season: YearlyDateRange(
+              season: const YearlyDateRange(
                 start: MonthDay(4, 1),
                 end: MonthDay(10, 31),
               ),
@@ -155,7 +155,7 @@ void main() {
   testWidgets('always open shows only 24/7 and the note', (tester) async {
     await pumpCard(
       tester,
-      const DiveSite(
+      DiveSite(
         id: 's',
         name: 'Pier',
         openingHours: OpeningHours(alwaysOpen: true, note: 'Lights at night'),

@@ -11,11 +11,11 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 /// fixed (no clock, no time zone dependence) so the goldens are stable on
 /// every machine: dates are wall-clock values formatted by field, and the
 /// one epoch-millisecond attribute is a literal.
-const goldenSite = DiveSite(
+final goldenSite = DiveSite(
   id: 'site-1',
   name: 'Blue Hole',
   description: 'Sinkhole with an arch',
-  location: GeoPoint(17.316, -87.535),
+  location: const GeoPoint(17.316, -87.535),
   minDepth: 8.2,
   maxDepth: 40.5,
   difficulty: SiteDifficulty.advanced,
@@ -38,17 +38,17 @@ const goldenSite = DiveSite(
   openingHours: OpeningHours(
     note: 'Book ahead',
     schedules: [
-      OpeningSchedule(days: {DateTime.saturday: DayHours.open24h()}),
+      OpeningSchedule(days: const {DateTime.saturday: DayHours.open24h()}),
     ],
   ),
   waterType: WaterType.salt,
-  entryMethods: [EntryMethod.boat],
-  exitMethods: [EntryMethod.shore],
+  entryMethods: const [EntryMethod.boat],
+  exitMethods: const [EntryMethod.shore],
 );
 
-List<DiveSite> goldenSites() => const [
+List<DiveSite> goldenSites() => [
   goldenSite,
-  DiveSite(id: 'site-2', name: 'House Reef'),
+  const DiveSite(id: 'site-2', name: 'House Reef'),
 ];
 
 List<Dive> goldenDives() => [

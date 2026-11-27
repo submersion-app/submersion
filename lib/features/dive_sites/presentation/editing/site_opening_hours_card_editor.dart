@@ -35,7 +35,7 @@ class _SiteOpeningHoursCardEditorState
   int _nextId = 0;
 
   OpeningHours get _hours =>
-      widget.session.valueOf(siteOpeningHoursField) ?? const OpeningHours();
+      widget.session.valueOf(siteOpeningHoursField) ?? OpeningHours.empty;
 
   /// Hours with nothing in them are no hours.
   void _set(OpeningHours hours) =>
@@ -133,7 +133,7 @@ class _SiteOpeningHoursCardEditorState
                         hours.copyWith(
                           schedules: [
                             ...hours.schedules,
-                            const OpeningSchedule(),
+                            OpeningSchedule.closed,
                           ],
                         ),
                       );

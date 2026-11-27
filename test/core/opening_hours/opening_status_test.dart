@@ -141,7 +141,7 @@ void main() {
 
     test('always open has no closing time', () {
       expect(
-        openingStatusAt(const OpeningHours(alwaysOpen: true), _sat(3)),
+        openingStatusAt(OpeningHours(alwaysOpen: true), _sat(3)),
         const OpenNow(closesAt: null),
       );
     });
@@ -175,7 +175,7 @@ void main() {
 
     test('a note alone is unknown', () {
       expect(
-        openingStatusAt(const OpeningHours(note: 'Call ahead'), _sat(10)),
+        openingStatusAt(OpeningHours(note: 'Call ahead'), _sat(10)),
         const OpeningUnknown(),
       );
     });
