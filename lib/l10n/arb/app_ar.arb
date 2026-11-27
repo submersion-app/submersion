@@ -15768,6 +15768,7 @@
   "explore_unplaced_reason_unknownTime": "تعذّرت قراءة هذا الوقت",
   "explore_unresolved_noCandidates": "لا توجد مطابقة في سجلك",
   "diveLog_listPage_semanticsDiveAtSite": "الغوصة {diveNumber} في {siteName}",
+  "diveLog_listPage_siteWithCountry": "{siteName}، {country}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "غوصة مخططة في {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {

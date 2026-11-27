@@ -15920,6 +15920,7 @@
   "explore_unplaced_reason_unknownTime": "Diese Zeitangabe konnte nicht gelesen werden",
   "explore_unresolved_noCandidates": "Kein Treffer in deinem Logbuch",
   "diveLog_listPage_semanticsDiveAtSite": "Tauchgang {diveNumber} bei {siteName}",
+  "diveLog_listPage_siteWithCountry": "{siteName}, {country}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Geplanter Tauchgang bei {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {

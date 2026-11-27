@@ -36,15 +36,20 @@ String? unfilledDiveTitle(
 };
 
 /// A dive list tile's screen-reader label, for both list styles: an unfilled dive's leaves the number out,
-/// since the list's fallback number belongs to another dive.
+/// since the list's fallback number belongs to another dive. [country]
+/// follows the site when the row shows it only as a flag (issue #5001).
 String diveTileSemanticsLabel(
   BuildContext context,
   UnfilledDiveState? state,
   int diveNumber,
-  String? siteName,
-) {
+  String? siteName, {
+  String? country,
+}) {
   final l10n = context.l10n;
-  final site = siteName ?? l10n.diveLog_listPage_unknownSite;
+  final named = siteName ?? l10n.diveLog_listPage_unknownSite;
+  final site = country == null || country.isEmpty
+      ? named
+      : l10n.diveLog_listPage_siteWithCountry(named, country);
   return switch (state) {
     null => l10n.diveLog_listPage_semanticsDiveAtSite(diveNumber, site),
     UnfilledDiveState.planned =>

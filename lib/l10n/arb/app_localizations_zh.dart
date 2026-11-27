@@ -50142,6 +50142,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName、$country';
+  }
+
+  @override
   String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
     return '$siteName 的潜水草稿';
   }

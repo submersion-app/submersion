@@ -15768,6 +15768,7 @@
   "explore_unplaced_reason_unknownTime": "Ezt az időt nem sikerült beolvasni",
   "explore_unresolved_noCandidates": "Nincs egyezés a naplójában",
   "diveLog_listPage_semanticsDiveAtSite": "{diveNumber}. merülés itt: {siteName}",
+  "diveLog_listPage_siteWithCountry": "{siteName}, {country}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Tervezett merülés itt: {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {

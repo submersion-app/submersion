@@ -15768,6 +15768,7 @@
   "explore_unplaced_reason_unknownTime": "Impossible de lire cette période",
   "explore_unresolved_noCandidates": "Aucune correspondance dans votre carnet",
   "diveLog_listPage_semanticsDiveAtSite": "Plongée {diveNumber} sur {siteName}",
+  "diveLog_listPage_siteWithCountry": "{siteName}, {country}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Plongée planifiée à {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {

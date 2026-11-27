@@ -15768,6 +15768,7 @@
   "explore_unplaced_reason_unknownTime": "无法读取此时间",
   "explore_unresolved_noCandidates": "日志中没有匹配项",
   "diveLog_listPage_semanticsDiveAtSite": "第 {diveNumber} 次潜水，地点 {siteName}",
+  "diveLog_listPage_siteWithCountry": "{siteName}、{country}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "在 {siteName} 的计划潜水",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {

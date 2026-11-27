@@ -66,6 +66,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/shared/widgets/record_list_card.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/shared/widgets/record_list_chevron.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 
 /// Compute a single map tile URL for the given lat/lng at [zoom], via the
 /// shared slippy-map conversion.
@@ -514,6 +515,11 @@ class DiveListTile extends ConsumerWidget {
   final DateTime dateTime;
   final String? siteName;
   final String? siteLocation;
+
+  /// The site's country text and stored ISO code, for the flag beside
+  /// [siteLocation] (issue #5001).
+  final String? siteCountry;
+  final String? siteCountryCode;
   final double? maxDepth;
   final Duration? duration;
   final double? waterTemp;
@@ -589,6 +595,8 @@ class DiveListTile extends ConsumerWidget {
     required this.dateTime,
     this.siteName,
     this.siteLocation,
+    this.siteCountry,
+    this.siteCountryCode,
     this.maxDepth,
     this.duration,
     this.waterTemp,
@@ -947,11 +955,16 @@ class DiveListTile extends ConsumerWidget {
                             if (siteLocation != null &&
                                 siteLocation!.isNotEmpty) ...[
                               const SizedBox(height: 2),
-                              Text(
-                                siteLocation!,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: secondaryTextColor),
-                                overflow: TextOverflow.ellipsis,
+                              LocationWithFlag(
+                                section: FlagSection.dives,
+                                country: siteCountry,
+                                countryCode: siteCountryCode,
+                                text: Text(
+                                  siteLocation!,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: secondaryTextColor),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                             const SizedBox(height: 4),

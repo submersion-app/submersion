@@ -53519,6 +53519,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
+  }
+
+  @override
   String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
     return 'Brouillon de plongée à $siteName';
   }

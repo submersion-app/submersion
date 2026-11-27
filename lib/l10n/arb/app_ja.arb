@@ -16045,6 +16045,7 @@
   "explore_unplaced_reason_unknownTime": "この時刻を読み取れませんでした",
   "explore_unresolved_noCandidates": "ログブックに一致するものがありません",
   "diveLog_listPage_semanticsDiveAtSite": "{siteName}でのダイブ{diveNumber}",
+  "diveLog_listPage_siteWithCountry": "{siteName}、{country}",
   "diveLog_listPage_semanticsDraftDiveAtSite": "{siteName}での下書きのダイブ",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "{siteName}での予定のダイブ",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {

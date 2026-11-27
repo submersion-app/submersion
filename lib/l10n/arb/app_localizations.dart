@@ -84044,6 +84044,12 @@ abstract class AppLocalizations {
   /// **'Dive {diveNumber} at {siteName}'**
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName);
 
+  /// A dive row's site with its country, for the screen-reader label when the row shows the country only as a flag (issue #5001).
+  ///
+  /// In en, this message translates to:
+  /// **'{siteName}, {country}'**
+  String diveLog_listPage_siteWithCountry(String siteName, String country);
+
   /// No description provided for @diveLog_listPage_semanticsDraftDiveAtSite.
   ///
   /// In en, this message translates to:

@@ -31404,6 +31404,8 @@
   "explore_unplaced_reason_unknownTime": "Could not read this time",
   "explore_unresolved_noCandidates": "No match in your logbook",
   "diveLog_listPage_semanticsDiveAtSite": "Dive {diveNumber} at {siteName}",
+  "diveLog_listPage_siteWithCountry": "{siteName}, {country}",
+  "@diveLog_listPage_siteWithCountry": {"description": "A dive row's site with its country, for the screen-reader label when the row shows the country only as a flag (issue #5001).", "placeholders": {"siteName": {"type": "String"}, "country": {"type": "String"}}},
   "diveLog_listPage_semanticsDraftDiveAtSite": "Draft dive at {siteName}",
   "@diveLog_listPage_semanticsDraftDiveAtSite": {
     "placeholders": {

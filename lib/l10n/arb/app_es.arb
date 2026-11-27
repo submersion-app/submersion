@@ -15768,6 +15768,7 @@
   "explore_unplaced_reason_unknownTime": "No se pudo leer esta fecha",
   "explore_unresolved_noCandidates": "Sin coincidencias en tu bitácora",
   "diveLog_listPage_semanticsDiveAtSite": "Inmersión {diveNumber} en {siteName}",
+  "diveLog_listPage_siteWithCountry": "{siteName}, {country}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Inmersión planificada en {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {
