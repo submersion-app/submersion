@@ -165,4 +165,31 @@ void main() {
     expect(find.text('Body fat (measured)'), findsOneWidget);
     expect(find.textContaining('estimated from BMI'), findsNothing);
   });
+
+  testWidgets('a cylinder with no preset name reads as Cylinders (#5106)', (
+    tester,
+  ) async {
+    const unnamed = WeightPrediction(
+      totalKg: 1.0,
+      terms: [
+        PredictionTerm(label: 'tank', kg: 1.0, source: TermSource.physics),
+      ],
+      confidence: PredictionConfidence.medium,
+      supportingDives: 5,
+    );
+    await tester.pumpWidget(
+      localizedMaterialApp(
+        locale: const Locale('en'),
+        home: const SingleChildScrollView(
+          child: WeightPredictionCard(prediction: unnamed, units: units),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('How this was calculated'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cylinders (physics)'), findsOneWidget);
+    expect(find.textContaining('tank'), findsNothing);
+  });
 }

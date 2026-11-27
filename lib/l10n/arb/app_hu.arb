@@ -5260,6 +5260,8 @@
   "gasCalculators_consumption_avgDepth": "Átlagos mélység",
   "gasCalculators_consumption_breakdown": "Számítás részletezése",
   "gasCalculators_consumption_diveTime": "Merülési idő",
+  "gasCalculators_consumption_semantics": "Gázfogyasztás: {volume} {volumeSymbol}, {pressure} {pressureSymbol}",
+  "gasCalculators_consumption_semanticsExceeds": "Figyelem: meghaladja a palack kapacitását",
   "gasCalculators_consumption_exceedsTank": "Meghaladja a palack kapacitását ({pressure} {symbol})",
   "gasCalculators_consumption_gasAtDepth": "Gázfogyasztás mélységben",
   "gasCalculators_consumption_pressure": "Nyomás",

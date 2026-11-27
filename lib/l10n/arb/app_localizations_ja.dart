@@ -17780,6 +17780,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => '潜水時間';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+  ) {
+    return 'ガス消費量: $volume $volumeSymbol、$pressure $pressureSymbol';
+  }
+
+  @override
+  String get gasCalculators_consumption_semanticsExceeds => '警告: タンク容量を超えています';
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,

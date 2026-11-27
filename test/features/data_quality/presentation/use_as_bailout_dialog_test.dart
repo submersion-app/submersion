@@ -74,7 +74,7 @@ void main() {
     expect(find.text('Gas mix: O2 → Tx 18/45'), findsOneWidget);
     expect(
       find.text(
-        'Removes the duplicate Bailout cylinder (switches move to Tank 2)',
+        'Removes the duplicate Bailout cylinder (switches move to Cylinder 2)',
       ),
       findsOneWidget,
     );

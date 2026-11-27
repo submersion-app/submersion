@@ -18362,6 +18362,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'Merülési idő';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+  ) {
+    return 'Gázfogyasztás: $volume $volumeSymbol, $pressure $pressureSymbol';
+  }
+
+  @override
+  String get gasCalculators_consumption_semanticsExceeds =>
+      'Figyelem: meghaladja a palack kapacitását';
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,

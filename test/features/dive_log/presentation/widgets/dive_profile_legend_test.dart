@@ -326,7 +326,7 @@ void main() {
         expect(find.text('Cylinders'), findsOneWidget);
         expect(_inDialog(find.text('D80 (Air)')), findsOneWidget);
         expect(_inDialog(find.text('AL80 (EAN50)')), findsOneWidget);
-        expect(find.text('Tank Pressures'), findsNothing);
+        expect(find.text('Cylinder Pressures'), findsNothing);
       },
     );
 
@@ -419,7 +419,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      expect(find.text('Tank Pressures'), findsOneWidget);
+      expect(find.text('Cylinder Pressures'), findsOneWidget);
       expect(_inDialog(find.text('D80 (Air)')), findsOneWidget);
       expect(_inDialog(find.text('AL80 (EAN50)')), findsOneWidget);
     });

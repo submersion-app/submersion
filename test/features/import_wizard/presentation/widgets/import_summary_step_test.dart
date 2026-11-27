@@ -1389,7 +1389,7 @@ void main() {
       ]);
 
       expect(find.byKey(const Key('import_summary_notices')), findsOneWidget);
-      expect(find.text('Tank pressure not recorded'), findsOneWidget);
+      expect(find.text('Cylinder pressure not recorded'), findsOneWidget);
       expect(find.textContaining('SAC cannot be calculated'), findsOneWidget);
       expect(find.text('Affects 12 dives'), findsOneWidget);
     });

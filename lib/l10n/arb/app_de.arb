@@ -5510,6 +5510,8 @@
   "gasCalculators_consumption_avgDepth": "Durchschnittliche Tiefe",
   "gasCalculators_consumption_breakdown": "Berechnungsaufschlüsselung",
   "gasCalculators_consumption_diveTime": "Tauchzeit",
+  "gasCalculators_consumption_semantics": "Gasverbrauch: {volume} {volumeSymbol}, {pressure} {pressureSymbol}",
+  "gasCalculators_consumption_semanticsExceeds": "Warnung: übersteigt das Flaschenvolumen",
   "gasCalculators_consumption_exceedsTank": "Überschreitet Flaschenkapazität ({pressure} {symbol})",
   "gasCalculators_consumption_gasAtDepth": "Gasverbrauch in der Tiefe",
   "gasCalculators_consumption_pressure": "Druck",

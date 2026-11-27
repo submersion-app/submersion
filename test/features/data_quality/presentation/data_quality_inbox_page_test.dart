@@ -803,7 +803,7 @@ void main() {
     expect(find.text('Time (1)'), findsOneWidget);
     expect(find.text('Duplicates (1)'), findsOneWidget);
     expect(find.text('Profile (0)'), findsOneWidget);
-    expect(find.text('Tanks (0)'), findsOneWidget);
+    expect(find.text('Cylinders (0)'), findsOneWidget);
   });
 
   testWidgets('chip counts leave out closed findings on the filtered dive', (
@@ -926,9 +926,9 @@ void main() {
     }
 
     await openInbox();
-    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (0)'));
     await tester.pumpAndSettle();
-    expect(chipSelected(tester, 'Tanks (0)'), isTrue);
+    expect(chipSelected(tester, 'Cylinders (0)'), isTrue);
 
     navigatorKey.currentState!.pop();
     await tester.pumpAndSettle();
@@ -1011,7 +1011,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (0)'));
     await tester.pumpAndSettle();
 
     unawaited(
@@ -1027,7 +1027,7 @@ void main() {
 
     navigatorKey.currentState!.pop();
     await tester.pumpAndSettle();
-    expect(chipSelected(tester, 'Tanks (0)'), isTrue);
+    expect(chipSelected(tester, 'Cylinders (0)'), isTrue);
   });
 
   testWidgets('a chip that hides every finding says so and offers the rest', (
@@ -1049,7 +1049,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (0)'));
     await tester.pumpAndSettle();
 
     // The dive still has a Time finding, so the page must not call it clean.
@@ -1070,7 +1070,7 @@ void main() {
     final prefs = await _prefs();
     await tester.pumpWidget(_scope(prefs));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (0)'));
     await tester.pumpAndSettle();
 
     expect(find.text('All clear'), findsOneWidget);
@@ -2807,7 +2807,7 @@ void main() {
 
     // The picker lists the dive's other tank; choosing it dispatches the
     // reassignment (reported via a SnackBar).
-    await tester.tap(find.text('Tank 2'));
+    await tester.tap(find.text('Cylinder 2'));
     await tester.pumpAndSettle();
 
     expect(find.byType(SnackBar), findsWidgets);
@@ -2835,7 +2835,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(bulkRemoveDuplicatesKey), findsNothing);
-      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (1)'));
       await tester.pumpAndSettle();
       expect(find.byKey(bulkRemoveDuplicatesKey), findsOneWidget);
       expect(
@@ -2849,7 +2849,7 @@ void main() {
       await tester.pumpWidget(await _wrap(repo));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (1)'));
       await tester.pumpAndSettle();
       expect(find.byKey(bulkRemoveDuplicatesKey), findsNothing);
     });
@@ -2866,7 +2866,7 @@ void main() {
       await tester.pumpWidget(await _wrap(repo));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (1)'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(inboxOverflowMenuKey));
       await tester.pumpAndSettle();
@@ -2908,7 +2908,7 @@ void main() {
       final repo = _FakeFindingsRepository([twin()]);
       await tester.pumpWidget(await _wrap(repo));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (1)'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(bulkRemoveDuplicatesKey));
@@ -3001,7 +3001,7 @@ void main() {
       final prefs = await _prefs();
       await tester.pumpWidget(_scope(prefs, findings: [twin()]));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Cylinders (1)'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(bulkRemoveDuplicatesKey));

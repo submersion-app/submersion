@@ -151,10 +151,16 @@ class GasConsumptionCalculator extends ConsumerWidget {
 
               // Results card
               Semantics(
-                label:
-                    'Gas consumption: ${displayVolume.toStringAsFixed(0)} $volumeSymbol, '
-                    '${displayPressure.toStringAsFixed(0)} $pressureSymbol'
-                    '${result.exceedsTank ? '. Warning: exceeds tank capacity' : ''}',
+                label: [
+                  context.l10n.gasCalculators_consumption_semantics(
+                    displayVolume.toStringAsFixed(0),
+                    volumeSymbol,
+                    displayPressure.toStringAsFixed(0),
+                    pressureSymbol,
+                  ),
+                  if (result.exceedsTank)
+                    context.l10n.gasCalculators_consumption_semanticsExceeds,
+                ].join('. '),
                 child: Card(
                   color: result.exceedsTank
                       ? colorScheme.errorContainer

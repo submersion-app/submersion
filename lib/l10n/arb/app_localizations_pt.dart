@@ -18425,6 +18425,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'Tempo de Mergulho';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+  ) {
+    return 'Consumo de gás: $volume $volumeSymbol, $pressure $pressureSymbol';
+  }
+
+  @override
+  String get gasCalculators_consumption_semanticsExceeds =>
+      'Aviso: excede a capacidade do cilindro';
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,

@@ -5260,6 +5260,8 @@
   "gasCalculators_consumption_avgDepth": "Profondità Media",
   "gasCalculators_consumption_breakdown": "Riepilogo Calcolo",
   "gasCalculators_consumption_diveTime": "Tempo Immersione",
+  "gasCalculators_consumption_semantics": "Consumo di gas: {volume} {volumeSymbol}, {pressure} {pressureSymbol}",
+  "gasCalculators_consumption_semanticsExceeds": "Attenzione: supera la capacità della bombola",
   "gasCalculators_consumption_exceedsTank": "Supera la capacità della bombola ({pressure} {symbol})",
   "gasCalculators_consumption_gasAtDepth": "Consumo gas in profondità",
   "gasCalculators_consumption_pressure": "Pressione",

@@ -243,7 +243,7 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
 
     // Add a second tank, swap it to steel, then remove it.
-    await tester.tap(find.text('Add tank'));
+    await tester.tap(find.text('Add cylinder'));
     await tester.pumpAndSettle();
     expect(
       find.byType(DropdownButtonFormField<TankPresetEntity>),

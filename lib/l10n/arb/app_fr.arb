@@ -5260,6 +5260,8 @@
   "gasCalculators_consumption_avgDepth": "Profondeur moyenne",
   "gasCalculators_consumption_breakdown": "Détail du calcul",
   "gasCalculators_consumption_diveTime": "Temps de plongée",
+  "gasCalculators_consumption_semantics": "Consommation de gaz : {volume} {volumeSymbol}, {pressure} {pressureSymbol}",
+  "gasCalculators_consumption_semanticsExceeds": "Attention : dépasse la capacité du bloc",
   "gasCalculators_consumption_exceedsTank": "Dépasse la capacité de la bouteille ({pressure} {symbol})",
   "gasCalculators_consumption_gasAtDepth": "Consommation de gaz en profondeur",
   "gasCalculators_consumption_pressure": "Pression",

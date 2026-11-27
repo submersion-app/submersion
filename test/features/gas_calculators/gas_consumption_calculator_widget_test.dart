@@ -136,4 +136,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(InfoButton), findsWidgets);
   });
+
+  testWidgets('the result reads to a screen reader in the app language '
+      '(#5106)', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _host(
+        settings: const AppSettings(),
+        depthMeters: 40.0,
+        minutes: 90,
+        sacLpm: 25.0,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.bySemanticsLabel(
+        RegExp(r'^Gas consumption: .*Warning: exceeds cylinder capacity$'),
+      ),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
 }

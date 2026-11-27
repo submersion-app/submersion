@@ -5385,6 +5385,8 @@
   "gasCalculators_consumption_avgDepth": "Profundidad Promedio",
   "gasCalculators_consumption_breakdown": "Desglose del Cálculo",
   "gasCalculators_consumption_diveTime": "Tiempo de Inmersión",
+  "gasCalculators_consumption_semantics": "Consumo de gas: {volume} {volumeSymbol}, {pressure} {pressureSymbol}",
+  "gasCalculators_consumption_semanticsExceeds": "Advertencia: supera la capacidad de la botella",
   "gasCalculators_consumption_exceedsTank": "Excede la capacidad de la botella ({pressure} {symbol})",
   "gasCalculators_consumption_gasAtDepth": "Consumo de gas a profundidad",
   "gasCalculators_consumption_pressure": "Presión",
