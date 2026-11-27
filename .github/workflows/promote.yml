@@ -129,9 +129,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # This workflow runs from main but checks out the beta's commit,
+          # which can predate #5100 moving these two scripts into
+          # scripts/release/. Run main's copies, which read only their input.
+          RELEASE_TOOLS="$RUNNER_TEMP/release-tools"
+          mkdir -p "$RELEASE_TOOLS"
+          cp scripts/release/generate_release_notes_html.sh scripts/release/generate_appcast.sh "$RELEASE_TOOLS/"
           git checkout "${{ steps.resolve.outputs.sha }}"
           ./scripts/release/generate_changelog.sh --notes-only > release-notes.md
-          ./scripts/release/generate_release_notes_html.sh < release-notes.md > release-notes.html
+          "$RELEASE_TOOLS/generate_release_notes_html.sh" < release-notes.md > release-notes.html
           VERSION="${TAG_NAME#v}"
           export SPARKLE_EDDSA_SIGNATURE=$(python3 -c "import json;print(json.load(open('promoted/metadata.json'))['eddsaSignature'])")
           export SPARKLE_DMG_LENGTH=$(python3 -c "import json;print(json.load(open('promoted/metadata.json'))['dmgLength'])")
@@ -145,7 +151,7 @@ jobs:
             export SPARKLE_ALLOW_UNSIGNED_WINDOWS=1
           fi
           BASE="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}"
-          ./scripts/release/generate_appcast.sh "$VERSION" "${{ steps.resolve.outputs.build-number }}" \
+          "$RELEASE_TOOLS/generate_appcast.sh" "$VERSION" "${{ steps.resolve.outputs.build-number }}" \
             "$(date -R)" \
             "${BASE}/Submersion-${TAG_NAME}-macOS.dmg" \
             "${BASE}/Submersion-${TAG_NAME}-Windows-Setup.exe" \
