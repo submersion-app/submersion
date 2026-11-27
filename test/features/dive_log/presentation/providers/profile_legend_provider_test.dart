@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -180,6 +181,65 @@ void main() {
         container.read(profileLegendProvider).metricsFollowViewport,
         isFalse,
       );
+    });
+
+    // The Zoom choice (issue #5069) sets the viewport flag and the Time only
+    // flag together for this chart session.
+    test('zoomTimeOnly seeds from the global setting', () {
+      final container = containerWith(
+        const AppSettings(profileZoomTimeOnly: true),
+      );
+      final state = container.read(profileLegendProvider);
+      expect(state.zoomTimeOnly, isTrue);
+      expect(state.zoomMode, ProfileZoomMode.timeOnly);
+    });
+
+    test('choosing Time only keeps the viewport flag', () {
+      final container = containerWith(
+        const AppSettings(profileMetricsFollowViewport: true),
+      );
+      container
+          .read(profileLegendProvider.notifier)
+          .setZoomMode(ProfileZoomMode.timeOnly);
+      final state = container.read(profileLegendProvider);
+      expect(state.zoomTimeOnly, isTrue);
+      expect(state.metricsFollowViewport, isTrue);
+      expect(state.zoomMode, ProfileZoomMode.timeOnly);
+    });
+
+    test('choosing keep overlays in view leaves Time only', () {
+      final container = containerWith(
+        const AppSettings(profileZoomTimeOnly: true),
+      );
+      container
+          .read(profileLegendProvider.notifier)
+          .setZoomMode(ProfileZoomMode.keepOverlaysInView);
+      final state = container.read(profileLegendProvider);
+      expect(state.zoomTimeOnly, isFalse);
+      expect(state.metricsFollowViewport, isTrue);
+    });
+
+    test('choosing magnify overlays clears both flags', () {
+      final container = containerWith(
+        const AppSettings(
+          profileZoomTimeOnly: true,
+          profileMetricsFollowViewport: true,
+        ),
+      );
+      container
+          .read(profileLegendProvider.notifier)
+          .setZoomMode(ProfileZoomMode.magnifyOverlays);
+      final state = container.read(profileLegendProvider);
+      expect(state.zoomTimeOnly, isFalse);
+      expect(state.metricsFollowViewport, isFalse);
+    });
+
+    test('equality sees zoomTimeOnly', () {
+      const a = ProfileLegendState();
+      final b = a.copyWith(zoomTimeOnly: true);
+      expect(a == b, isFalse);
+      expect(b, a.copyWith(zoomTimeOnly: true));
+      expect(b.hashCode, a.copyWith(zoomTimeOnly: true).hashCode);
     });
 
     test('is a render mode, so it never counts as an active overlay', () {

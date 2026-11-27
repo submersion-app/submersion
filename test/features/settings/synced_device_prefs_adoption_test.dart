@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -252,6 +253,32 @@ void main() {
         .setProfileMetricsFollowViewport(true);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getBool(SettingsKeys.profileZoomTimeOnly), isTrue);
+  });
+
+  test('setProfileZoomMode writes the pair the mode stands for', () async {
+    final container = await containerWith({});
+    final notifier = container.read(settingsProvider.notifier);
+
+    await notifier.setProfileZoomMode(ProfileZoomMode.keepOverlaysInView);
+    expect(container.read(settingsProvider).profileMetricsFollowViewport, true);
+    expect(container.read(settingsProvider).profileZoomTimeOnly, false);
+
+    // Time only leaves the viewport flag alone, so going back restores it.
+    await notifier.setProfileZoomMode(ProfileZoomMode.timeOnly);
+    expect(container.read(settingsProvider).profileZoomTimeOnly, true);
+    expect(container.read(settingsProvider).profileMetricsFollowViewport, true);
+    expect(
+      container.read(settingsProvider).profileZoomMode,
+      ProfileZoomMode.timeOnly,
+    );
+    expect((await row('d1')).profileZoomTimeOnly, isTrue);
+
+    await notifier.setProfileZoomMode(ProfileZoomMode.magnifyOverlays);
+    expect(container.read(settingsProvider).profileZoomTimeOnly, false);
+    expect(
+      container.read(settingsProvider).profileMetricsFollowViewport,
+      false,
+    );
   });
 
   test('with no diver the prefs remain the store', () async {

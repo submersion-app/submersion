@@ -25,6 +25,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
@@ -845,6 +846,12 @@ class AppSettings implements UnitFormatterSettings {
   /// [profileMetricsFollowViewport], which it pairs with as one Zoom choice.
   /// Per-diver (synced) since v389.
   final bool profileZoomTimeOnly;
+
+  /// The Zoom choice the two flags above stand for.
+  ProfileZoomMode get profileZoomMode => ProfileZoomMode.fromFlags(
+    timeOnly: profileZoomTimeOnly,
+    followViewport: profileMetricsFollowViewport,
+  );
 
   /// Unit for the per-cell O2 traces on dives that log both a calibrated ppO2
   /// and the raw cell output. The two are the same measurement one calibration
@@ -3517,6 +3524,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setProfileMetricsFollowViewport(bool value) =>
       _update((s) => s.copyWith(profileMetricsFollowViewport: value));
+
+  /// Saves the Zoom choice as the pair of flags it stands for. Time only
+  /// leaves the viewport flag alone, so going back restores it.
+  Future<void> setProfileZoomMode(ProfileZoomMode mode) => _update(
+    (s) => switch (mode) {
+      ProfileZoomMode.timeOnly => s.copyWith(profileZoomTimeOnly: true),
+      ProfileZoomMode.keepOverlaysInView => s.copyWith(
+        profileZoomTimeOnly: false,
+        profileMetricsFollowViewport: true,
+      ),
+      ProfileZoomMode.magnifyOverlays => s.copyWith(
+        profileZoomTimeOnly: false,
+        profileMetricsFollowViewport: false,
+      ),
+    },
+  );
 
   Future<void> setO2CellUnit(O2CellUnit value) =>
       _update((s) => s.copyWith(o2CellUnit: value));
