@@ -29952,6 +29952,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_updates_joinBetaSubtitle => '通过 Beta 计划抢先体验新功能';
 
   @override
+  String get settings_updates_tryBetaWeb => '试用 Beta 版网页应用';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return '在 $address 抢先体验新功能。它有独立的资料库；同步后即可在那里看到您的潜水记录。';
+  }
+
+  @override
+  String get settings_updates_useStableWeb => '使用稳定版网页应用';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return '位于 $address。它有独立的资料库，与此处分开。';
+  }
+
+  @override
   String get settings_updates_lastChecked => '上次检查';
 
   @override

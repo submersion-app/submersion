@@ -51,6 +51,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/widgets/build_date_label.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/about_submersion.dart';
+import 'package:submersion/features/settings/presentation/widgets/hosted_web_site_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/settings_root_set_up_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/core/router/section_navigation.dart';
@@ -2181,6 +2182,8 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                     ),
                   ),
                 ],
+                // Submersion's own web sites point at each other (#4481).
+                const HostedWebSiteTile(),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.menu_book_outlined),

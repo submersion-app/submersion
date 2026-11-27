@@ -31805,6 +31805,22 @@ class AppLocalizationsPt extends AppLocalizations {
       'Receba novos recursos antes através do programa beta';
 
   @override
+  String get settings_updates_tryBetaWeb => 'Experimente o app web beta';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return 'Novos recursos antes, em $address. Ele tem sua própria biblioteca; sincronize para ver seus mergulhos lá.';
+  }
+
+  @override
+  String get settings_updates_useStableWeb => 'Usar o app web estável';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return 'Em $address. Ele tem sua própria biblioteca, separada desta.';
+  }
+
+  @override
   String get settings_updates_lastChecked => 'Última verificação';
 
   @override

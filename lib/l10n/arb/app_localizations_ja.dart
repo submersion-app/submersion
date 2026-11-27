@@ -30440,6 +30440,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_updates_joinBetaSubtitle => 'ベータプログラムで新機能をいち早く利用';
 
   @override
+  String get settings_updates_tryBetaWeb => 'ベータ版ウェブアプリを試す';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return '新機能をいち早く、$address で。独自のライブラリを持つため、同期するとそこでダイビングが表示されます。';
+  }
+
+  @override
+  String get settings_updates_useStableWeb => '安定版ウェブアプリを使う';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return '$address で利用できます。このライブラリとは別の、独自のライブラリを持ちます。';
+  }
+
+  @override
   String get settings_updates_lastChecked => '最終確認';
 
   @override

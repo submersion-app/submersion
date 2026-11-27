@@ -31038,6 +31038,22 @@ class AppLocalizationsHe extends AppLocalizations {
       'קבל תכונות חדשות מוקדם דרך תוכנית הבטא';
 
   @override
+  String get settings_updates_tryBetaWeb => 'נסו את אפליקציית הרשת בגרסת בטא';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return 'תכונות חדשות מוקדם, ב-$address. יש לה ספרייה משלה; סנכרנו כדי לראות שם את הצלילות שלכם.';
+  }
+
+  @override
+  String get settings_updates_useStableWeb => 'השתמשו באפליקציית הרשת היציבה';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return 'ב-$address. יש לה ספרייה משלה, נפרדת מזו.';
+  }
+
+  @override
   String get settings_updates_lastChecked => 'בדיקה אחרונה';
 
   @override

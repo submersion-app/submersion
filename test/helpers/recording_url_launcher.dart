@@ -13,6 +13,10 @@ class RecordingUrlLauncher extends UrlLauncherPlatform
   /// How each was asked to open, alongside [launched].
   final List<PreferredLaunchMode> modes = <PreferredLaunchMode>[];
 
+  /// The browser window each was asked to open in (`_blank` for a new tab),
+  /// alongside [launched]; null where none was named.
+  final List<String?> windowNames = <String?>[];
+
   @override
   LinkDelegate? get linkDelegate => null;
 
@@ -23,6 +27,7 @@ class RecordingUrlLauncher extends UrlLauncherPlatform
   Future<bool> launchUrl(String url, LaunchOptions options) async {
     launched.add(url);
     modes.add(options.mode);
+    windowNames.add(options.webOnlyWindowName);
     return true;
   }
 }
