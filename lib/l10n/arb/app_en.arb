@@ -27070,6 +27070,69 @@
       }
     }
   },
+  "equipmentCondition_exposure_lastDivedLabel": "Last dived",
+  "equipmentCondition_exposure_divesLabel": "Dives",
+  "equipmentCondition_exposure_hoursLabel": "Hours",
+  "equipmentCondition_exposure_today": "Today",
+  "equipmentCondition_exposure_daysAgo": "{count, plural, =1{{count} day ago} other{{count} days ago}}",
+  "@equipmentCondition_exposure_daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_monthsAgo": "{count, plural, =1{{count} month ago} other{{count} months ago}}",
+  "@equipmentCondition_exposure_monthsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_yearsAgo": "{count, plural, =1{{count} year ago} other{{count} years ago}}",
+  "@equipmentCondition_exposure_yearsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_lastDivedSemantic": "Last dived {ago}, on {date}",
+  "@equipmentCondition_exposure_lastDivedSemantic": {
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_range12Months": "12 months",
+  "equipmentCondition_exposure_rangeAllYears": "All years",
+  "equipmentCondition_exposure_last12Months": "{count, plural, =0{No dives in the last 12 months} =1{{count} dive in the last 12 months} other{{count} dives in the last 12 months}}",
+  "@equipmentCondition_exposure_last12Months": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_barTooltip": "{period}\n{dives}, {hours}",
+  "@equipmentCondition_exposure_barTooltip": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "dives": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentCondition_finding_cellOutputDeclining": "Cell {slot} output fell {percent} percent across {n} dives since {since}",
   "@equipmentCondition_finding_cellOutputDeclining": {
     "placeholders": {
@@ -38502,7 +38565,7 @@
   "info_surfaceIntervalTool_howToUse": "Set the first dive, the second dive and the surface interval. The result shows the minimum interval and the NDL for the second dive.",
   "info_equipment_trend_summary": "One point per dive, so a slow change in this item shows as a trend over its life.",
   "info_equipment_findings_summary": "Patterns in this item's dives and reported issues that the condition rules flagged.",
-  "info_equipment_exposure_summary": "How much use this item has seen, counted in each of the units its service clocks use.",
+  "info_equipment_exposure_summary": "How much use this item has seen, counted in each of the units its service clocks use. The chart counts its dives per month or per year, up to today.",
   "info_site_altitude_summary": "The site's height above sea level and the air pressure there, which the decompression model starts from.",
   "info_trips_scrubberMargin_summary": "How much rated scrubber time is left for the trip's planned rebreather dives.",
   "info_settings_gradientFactors_summary": "How conservative the app's decompression model is.",
