@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:submersion/core/services/export/uddf/uddf_sighting_time.dart';
 import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
@@ -3903,6 +3904,7 @@ class UddfEntityImporter {
           abundance: amount.abundance,
           count: amount.count,
           notes: entry['notes'] is String ? entry['notes'] as String : '',
+          seenAtSeconds: UddfSightingTime.of(entry),
         );
       } catch (e) {
         _log.warning('Could not import a sighting for dive $diveId: $e');
@@ -3927,6 +3929,7 @@ class UddfEntityImporter {
                 abundance: amount.abundance,
                 count: amount.count,
                 notes: sightingData['notes'] as String? ?? '',
+                seenAtSeconds: UddfSightingTime.of(sightingData),
               ),
     ];
   }

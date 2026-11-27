@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/uddf_sighting_time.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
@@ -1591,6 +1592,7 @@ class UddfFullImportService {
           sighting['speciesRef'] = sightingElement.getAttribute('speciesref');
           // An exact count, a Submersion abundance, or neither (Seen).
           sighting.addAll(UddfSightingAmount.parse(sightingElement));
+          sighting.addAll(UddfSightingTime.parse(sightingElement));
           sighting['notes'] =
               UddfImportParsers.getElementText(sightingElement, 'notes') ?? '';
           sightingsList.add(sighting);

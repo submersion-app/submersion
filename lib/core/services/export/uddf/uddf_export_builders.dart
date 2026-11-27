@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/uddf_sighting_time.dart';
 import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/currency_backup_data.dart';
@@ -493,6 +494,7 @@ class UddfExportBuilders {
                       attributes: {
                         'speciesref': 'species_${sighting.speciesId}',
                         ...UddfSightingAmount.attributes(sighting.amount),
+                        ...UddfSightingTime.attributes(sighting.seenAtSeconds),
                       },
                       nest: () {
                         if (sighting.notes.isNotEmpty) {

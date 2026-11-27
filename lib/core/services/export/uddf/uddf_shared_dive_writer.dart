@@ -1,5 +1,6 @@
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/uddf_sighting_time.dart';
 import 'package:submersion/core/constants/enums.dart' show DiveMode;
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
@@ -280,6 +281,7 @@ abstract final class UddfSharedDiveWriter {
                       attributes: {
                         'speciesref': 'species_${sighting.speciesId}',
                         ...UddfSightingAmount.attributes(sighting.amount),
+                        ...UddfSightingTime.attributes(sighting.seenAtSeconds),
                       },
                       nest: () {
                         if (sighting.notes.isNotEmpty) {

@@ -566,6 +566,11 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_scrubberType,
     FieldKind.shortText,
   ),
+  // A sighting's time (issue #5092).
+  'seenAtSeconds': ConflictField(
+    (l) => l.diveLog_editSighting_seenAt,
+    FieldKind.durationSeconds,
+  ),
   'setpointDeco': ConflictField(
     (l) => DiveField.setpointDeco.localizedDisplayName(l),
     FieldKind.partialPressure,
