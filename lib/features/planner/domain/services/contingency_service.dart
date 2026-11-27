@@ -185,6 +185,25 @@ class ContingencyService {
     );
   }
 
+  /// [plan] with +depth and/or +time applied, as [contingencyFor] applies
+  /// them, or null when neither applies (+time needs a bottom, see
+  /// [canLengthen]). No engine run: what a bailout of the deviated dive
+  /// solves from (issue #5020).
+  domain.DivePlan? deviatedPlan(
+    domain.DivePlan plan, {
+    bool deeper = false,
+    bool longer = false,
+  }) {
+    if (plan.segments.isEmpty) return null;
+    final resolved = const TankRoleResolver().apply(plan);
+    final lengthen = longer && canLengthen(resolved);
+    if (!deeper && !lengthen) return null;
+    var variant = resolved;
+    if (deeper) variant = _deepened(variant);
+    if (lengthen) variant = _lengthened(variant);
+    return variant;
+  }
+
   /// The deviation and lost cylinders applied together, or null when nothing
   /// applicable is selected. Stale or non-losable ids, lost gases on a loop
   /// plan and +time without a bottom (see [canLengthen]) are ignored.
@@ -203,11 +222,8 @@ class ContingencyService {
             for (final t in plan.tanks)
               if (lostTankIds.contains(t.id) && isLosable(t)) t,
           ];
-    final lengthen = longer && canLengthen(plan);
-
-    var variant = plan;
-    if (deeper) variant = _deepened(variant);
-    if (lengthen) variant = _lengthened(variant);
+    final deviated = deviatedPlan(inputPlan, deeper: deeper, longer: longer);
+    var variant = deviated ?? plan;
     // Losing every cylinder leaves nothing to breathe: the lost gases are
     // dropped and the deviation still applies.
     final without = losable.isEmpty
@@ -215,7 +231,7 @@ class ContingencyService {
         : _withoutTanks(variant, {for (final t in losable) t.id});
     final lostTanks = without == null ? const <DiveTank>[] : losable;
     if (without != null) variant = without;
-    if (!deeper && !lengthen && lostTanks.isEmpty) return null;
+    if (deviated == null && lostTanks.isEmpty) return null;
     return CombinedContingencyOutcome(
       lostTanks: lostTanks,
       plan: variant,

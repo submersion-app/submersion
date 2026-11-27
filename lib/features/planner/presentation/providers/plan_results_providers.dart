@@ -111,6 +111,14 @@ Future<void> _settle(Ref ref, Duration delay) {
 Future<PlanBackgroundResult<T>> _settled<T>(
   Ref ref,
   PlanComputation<T> computation,
+) => _settledOn(ref, computation, ref.watch(_planResultInputsProvider).plan);
+
+/// [_settled] for [plan], a variant of the plan the inputs give, such as a
+/// deviation of it: same settle, start state and config.
+Future<PlanBackgroundResult<T>> _settledOn<T>(
+  Ref ref,
+  PlanComputation<T> computation,
+  domain.DivePlan plan,
 ) async {
   final inputs = ref.watch(_planResultInputsProvider);
   final runner = ref.watch(planResultRunnerProvider);
@@ -123,11 +131,11 @@ Future<PlanBackgroundResult<T>> _settled<T>(
   try {
     final value = await runner.run(
       computation,
-      inputs.plan,
+      plan,
       startState,
       inputs.config,
     );
-    return PlanBackgroundResult(planId: inputs.plan.id, value: value);
+    return PlanBackgroundResult(planId: plan.id, value: value);
   } catch (e, st) {
     _log.error('Could not compute a plan result', error: e, stackTrace: st);
     rethrow;
@@ -192,6 +200,45 @@ final planLostGasProvider =
       return _nothingToCompute(ref, const []);
     }, retry: (_, _) => null);
 
+/// The deviation (+depth / +time) previewed on a loop plan that may have a
+/// bailout, as the plan the deviated dive's bailout solves from, or null.
+final _bailoutDeviationProvider = Provider<domain.DivePlan?>((ref) {
+  if (!ref.watch(planMayHaveBailoutProvider)) return null;
+  final (deeper, longer) = ref.watch(
+    contingencySelectionProvider.select((s) => (s.deeper, s.longer)),
+  );
+  if (!deeper && !longer) return null;
+  final inputs = ref.watch(_planResultInputsProvider);
+  return ContingencyService(
+    config: inputs.config,
+  ).deviatedPlan(inputs.plan, deeper: deeper, longer: longer);
+});
+
+/// Worst-case bailout of the previewed +depth / +time dive (issue #5020),
+/// worked out as [planBailoutProvider] works out the plan's. Null while no
+/// deviation is previewed on a loop plan.
+final planPreviewBailoutProvider =
+    FutureProvider<PlanBackgroundResult<BailoutOutcome?>>((ref) {
+      final deviated = ref.watch(_bailoutDeviationProvider);
+      if (deviated == null) return _nothingToCompute(ref, null);
+      return _settledOn(ref, computeBailout, deviated);
+    }, retry: (_, _) => null);
+
+/// The bailout of the dive on screen: the previewed deviation's while one is
+/// previewed on a loop plan, else the plan's.
+final planShownBailoutProvider = Provider<PlanResultView<BailoutOutcome?>>((
+  ref,
+) {
+  final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
+  final previewed = ref.watch(
+    _bailoutDeviationProvider.select((plan) => plan != null),
+  );
+  return planResultView(
+    ref.watch(previewed ? planPreviewBailoutProvider : planBailoutProvider),
+    planId,
+  );
+});
+
 /// Whether the chart is in Bailout view: the Bailout chip is on and still
 /// offered. The contingency toggles are not in effect then (#5018): the
 /// bailout picture is no variant of them, and their ghost over it would mix
@@ -225,24 +272,50 @@ final planChartBailoutProvider =
         BailoutGasGap? gasGap,
       })
     >((ref) {
-      const nothing = (picture: null, status: null, gasGap: null);
       if (ref.watch(chartDisplayModeProvider) != ChartDisplayMode.bailout) {
-        return nothing;
+        return _noChartBailout;
       }
-      if (!ref.watch(planMayHaveBailoutProvider)) return nothing;
-      final view = planResultView(
-        ref.watch(planBailoutProvider),
-        ref.watch(divePlanNotifierProvider.select((s) => s.id)),
-      );
-      final outcome = view.status == PlanResultStatus.failed
-          ? null
-          : view.value;
-      return (
-        picture: outcome?.gasGap == null ? outcome : null,
-        status: view.isMarked ? view.status : null,
-        gasGap: outcome?.gasGap,
+      if (!ref.watch(planMayHaveBailoutProvider)) return _noChartBailout;
+      return _chartBailoutOf(
+        planResultView(
+          ref.watch(planBailoutProvider),
+          ref.watch(divePlanNotifierProvider.select((s) => s.id)),
+        ),
       );
     });
+
+/// [planChartBailoutProvider] for the previewed +depth / +time dive's bailout
+/// (issue #5020): what the chart draws over the plan's bailout, by the same
+/// rules. All null outside Bailout view or with no deviation previewed.
+final planChartBailoutPreviewProvider =
+    Provider<
+      ({
+        BailoutOutcome? picture,
+        PlanResultStatus? status,
+        BailoutGasGap? gasGap,
+      })
+    >((ref) {
+      if (!ref.watch(planBailoutViewProvider)) return _noChartBailout;
+      if (ref.watch(_bailoutDeviationProvider) == null) return _noChartBailout;
+      return _chartBailoutOf(
+        planResultView(
+          ref.watch(planPreviewBailoutProvider),
+          ref.watch(divePlanNotifierProvider.select((s) => s.id)),
+        ),
+      );
+    });
+
+const _noChartBailout = (picture: null, status: null, gasGap: null);
+
+({BailoutOutcome? picture, PlanResultStatus? status, BailoutGasGap? gasGap})
+_chartBailoutOf(PlanResultView<BailoutOutcome?> view) {
+  final outcome = view.status == PlanResultStatus.failed ? null : view.value;
+  return (
+    picture: outcome?.gasGap == null ? outcome : null,
+    status: view.isMarked ? view.status : null,
+    gasGap: outcome?.gasGap,
+  );
+}
 
 /// What the chart draws: [planLiveCanvasSeriesProvider], or in
 /// [ChartDisplayMode.bailout] the worst-case bailout picture while there is
