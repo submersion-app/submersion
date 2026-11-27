@@ -3,6 +3,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/dive_sites/domain/services/site_suggestions.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The countries already written on the diver's buddies (issue #4457),
 /// read as one column so the edit form never hydrates every buddy for them.
@@ -14,9 +15,10 @@ final usedBuddyCountriesProvider = FutureProvider<List<String>>((ref) async {
 });
 
 /// The buddy Country field's suggestions (issue #4457): the countries
-/// already written on buddies and sites first, then the ISO list, as the
-/// site country field offers them. Worked out when buddies or sites change,
-/// not on every rebuild of the form.
+/// already written on buddies and sites first, then the other countries in
+/// the diver's place-name language (issue #5019), as the site country field
+/// offers them. Worked out when buddies, sites or that language change, not
+/// on every rebuild of the form.
 final buddyCountrySuggestionsProvider = FutureProvider<List<String>>((
   ref,
 ) async {
@@ -25,5 +27,5 @@ final buddyCountrySuggestionsProvider = FutureProvider<List<String>>((
   return suggestedCountryNames([
     ...buddies,
     for (final site in sites) site.country,
-  ]);
+  ], language: ref.watch(placeNameLanguageProvider));
 });

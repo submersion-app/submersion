@@ -1,3 +1,5 @@
+import 'package:submersion/core/geography/country_code.dart';
+import 'package:submersion/core/geography/country_display_names.generated.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_sites/domain/constants/iso_countries.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -18,27 +20,63 @@ List<String> suggestedSiteNames(List<DiveSite> sites, {String? excludeId}) {
 }
 
 /// Hybrid country suggestions: the user's distinct countries first (alpha),
-/// then ISO 3166 country names not already used (alpha).
-List<String> suggestedCountries(List<DiveSite> sites) =>
-    suggestedCountryNames(sites.map((site) => site.country));
+/// then the countries not already used, named in [language] (alpha).
+List<String> suggestedCountries(
+  List<DiveSite> sites, {
+  required String language,
+}) => suggestedCountryNames(
+  sites.map((site) => site.country),
+  language: language,
+);
 
 /// Country suggestions from any [used] country texts, such as buddies' and
 /// sites' (issue #4457): the distinct used names first (alpha, compared
-/// without case), then the ISO 3166 names not already used.
-List<String> suggestedCountryNames(Iterable<String?> used) {
+/// without case), then the countries of [isoCountryNames] not already used,
+/// named in the diver's place-name [language] (issue #5019).
+///
+/// A country counts as used whatever language its text is in, so a stored
+/// "Frankreich" keeps "France" out of the list rather than beside it.
+List<String> suggestedCountryNames(
+  Iterable<String?> used, {
+  required String language,
+}) {
   final seen = <String>{};
+  final usedCodes = <String>{};
   final userCountries = <String>[];
   for (final value in used) {
     final country = value?.trim() ?? '';
     if (country.isEmpty) continue;
-    if (seen.add(country.toLowerCase())) userCountries.add(country);
+    if (!seen.add(country.toLowerCase())) continue;
+    userCountries.add(country);
+    final code = countryCodeFor(country);
+    if (code != null) usedCodes.add(code);
   }
   userCountries.sort((a, b) => compareTextForSort(a, b));
-  final extras = isoCountryNames
-      .where((c) => !seen.contains(c.toLowerCase()))
-      .toList();
+  final extras = [
+    for (final (:code, :name) in _isoCountriesIn(language))
+      if (!usedCodes.contains(code) && !seen.contains(name.toLowerCase())) name,
+  ];
   return [...userCountries, ...extras];
 }
+
+/// [isoCountryNames] with each country's code, named in [language] and
+/// sorted: the generated CLDR name, or the English one for English, for a
+/// language the table lacks, and for a country it has no name for. Built
+/// once per language.
+List<({String code, String name})> _isoCountriesIn(String language) =>
+    _isoCountriesByLanguage[language] ??= () {
+      final names = cldrCountryDisplayNames[language];
+      final countries = [
+        for (final english in isoCountryNames)
+          if (countryCodeFor(english) case final code?)
+            (code: code, name: names?[code] ?? english),
+      ];
+      countries.sort((a, b) => compareTextForSort(a.name, b.name));
+      return List<({String code, String name})>.unmodifiable(countries);
+    }();
+
+final Map<String, List<({String code, String name})>> _isoCountriesByLanguage =
+    {};
 
 /// Distinct, alpha-sorted regions from [sites]. When [country] is non-empty,
 /// only regions used with that country (case-insensitive) are returned;
