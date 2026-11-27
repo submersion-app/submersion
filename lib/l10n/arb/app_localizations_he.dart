@@ -16650,50 +16650,49 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחשב צלילה או משדר מחוברים שומרים על הסוג שלהם.';
 
   @override
-  String get equipment_suggest_link => 'Can\'t find a fit? Suggest a category';
+  String get equipment_suggest_link => 'לא מוצאים סוג מתאים? הציעו קטגוריה';
 
   @override
-  String get equipment_suggest_title => 'Suggest a category';
+  String get equipment_suggest_title => 'הצעת קטגוריה';
 
   @override
   String get equipment_suggest_intro =>
-      'This opens a prefilled feature request on GitHub. You review it and post it from your browser.';
+      'תיפתח ב-GitHub בקשת תכונה ממולאת מראש. בודקים אותה ומפרסמים אותה מהדפדפן.';
 
   @override
-  String get equipment_suggest_kindQuestion => 'What are you suggesting?';
+  String get equipment_suggest_kindQuestion => 'מה ההצעה?';
 
   @override
-  String get equipment_suggest_kindCategory => 'New type of gear';
+  String get equipment_suggest_kindCategory => 'סוג ציוד חדש';
 
   @override
-  String get equipment_suggest_kindSubcategory => 'New kind of a type';
+  String get equipment_suggest_kindSubcategory => 'גרסה חדשה של סוג קיים';
 
   @override
-  String get equipment_suggest_nameLabel => 'Name';
+  String get equipment_suggest_nameLabel => 'שם';
 
   @override
-  String get equipment_suggest_parentSubcategoryLabel => 'A kind of';
+  String get equipment_suggest_parentSubcategoryLabel => 'גרסה של';
 
   @override
-  String get equipment_suggest_parentCategoryLabel => 'Closest existing type';
+  String get equipment_suggest_parentCategoryLabel => 'הסוג הקיים הקרוב ביותר';
 
   @override
-  String get equipment_suggest_parentNone => 'None';
+  String get equipment_suggest_parentNone => 'ללא';
 
   @override
-  String get equipment_suggest_reasonLabel => 'Why is it needed?';
+  String get equipment_suggest_reasonLabel => 'למה זה נחוץ?';
 
   @override
-  String get equipment_suggest_reasonHint =>
-      'What sets it apart from the existing types?';
+  String get equipment_suggest_reasonHint => 'במה זה שונה מהסוגים הקיימים?';
 
   @override
   String equipment_suggest_includeExample(String example) {
-    return 'Include this item as an example ($example)';
+    return 'לכלול את הפריט הזה כדוגמה ($example)';
   }
 
   @override
-  String get equipment_suggest_open => 'Open in GitHub';
+  String get equipment_suggest_open => 'פתיחה ב-GitHub';
 
   @override
   String get equipment_edit_useCustomReminders => 'השתמש בתזכורות מותאמות';

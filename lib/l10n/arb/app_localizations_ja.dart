@@ -16409,50 +16409,49 @@ class AppLocalizationsJa extends AppLocalizations {
       '接続済みのダイブコンピューターやトランスミッターの種類は変更できません。';
 
   @override
-  String get equipment_suggest_link => 'Can\'t find a fit? Suggest a category';
+  String get equipment_suggest_link => '合う種類がありませんか？カテゴリーを提案';
 
   @override
-  String get equipment_suggest_title => 'Suggest a category';
+  String get equipment_suggest_title => 'カテゴリーを提案';
 
   @override
   String get equipment_suggest_intro =>
-      'This opens a prefilled feature request on GitHub. You review it and post it from your browser.';
+      '入力済みの機能リクエストがGitHubで開きます。内容を確認し、ブラウザーから投稿してください。';
 
   @override
-  String get equipment_suggest_kindQuestion => 'What are you suggesting?';
+  String get equipment_suggest_kindQuestion => '何を提案しますか？';
 
   @override
-  String get equipment_suggest_kindCategory => 'New type of gear';
+  String get equipment_suggest_kindCategory => '新しい器材の種類';
 
   @override
-  String get equipment_suggest_kindSubcategory => 'New kind of a type';
+  String get equipment_suggest_kindSubcategory => '既存の種類の新しいタイプ';
 
   @override
-  String get equipment_suggest_nameLabel => 'Name';
+  String get equipment_suggest_nameLabel => '名前';
 
   @override
-  String get equipment_suggest_parentSubcategoryLabel => 'A kind of';
+  String get equipment_suggest_parentSubcategoryLabel => '親となる種類';
 
   @override
-  String get equipment_suggest_parentCategoryLabel => 'Closest existing type';
+  String get equipment_suggest_parentCategoryLabel => '最も近い既存の種類';
 
   @override
-  String get equipment_suggest_parentNone => 'None';
+  String get equipment_suggest_parentNone => 'なし';
 
   @override
-  String get equipment_suggest_reasonLabel => 'Why is it needed?';
+  String get equipment_suggest_reasonLabel => '必要な理由';
 
   @override
-  String get equipment_suggest_reasonHint =>
-      'What sets it apart from the existing types?';
+  String get equipment_suggest_reasonHint => '既存の種類とどう違いますか？';
 
   @override
   String equipment_suggest_includeExample(String example) {
-    return 'Include this item as an example ($example)';
+    return 'この器材を例として含める（$example）';
   }
 
   @override
-  String get equipment_suggest_open => 'Open in GitHub';
+  String get equipment_suggest_open => 'GitHubで開く';
 
   @override
   String get equipment_edit_useCustomReminders => 'カスタムリマインダーを使用';

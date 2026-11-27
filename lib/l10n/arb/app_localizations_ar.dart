@@ -17252,50 +17252,50 @@ class AppLocalizationsAr extends AppLocalizations {
       'يحتفظ حاسوب الغوص أو جهاز الإرسال المتصل بنوعه.';
 
   @override
-  String get equipment_suggest_link => 'Can\'t find a fit? Suggest a category';
+  String get equipment_suggest_link => 'لا يوجد نوع مناسب؟ اقترح فئة';
 
   @override
-  String get equipment_suggest_title => 'Suggest a category';
+  String get equipment_suggest_title => 'اقتراح فئة';
 
   @override
   String get equipment_suggest_intro =>
-      'This opens a prefilled feature request on GitHub. You review it and post it from your browser.';
+      'يفتح هذا طلب ميزة معبأً مسبقاً على GitHub. تراجعه وتنشره من متصفحك.';
 
   @override
-  String get equipment_suggest_kindQuestion => 'What are you suggesting?';
+  String get equipment_suggest_kindQuestion => 'ماذا تقترح؟';
 
   @override
-  String get equipment_suggest_kindCategory => 'New type of gear';
+  String get equipment_suggest_kindCategory => 'نوع معدات جديد';
 
   @override
-  String get equipment_suggest_kindSubcategory => 'New kind of a type';
+  String get equipment_suggest_kindSubcategory => 'صنف جديد من نوع موجود';
 
   @override
-  String get equipment_suggest_nameLabel => 'Name';
+  String get equipment_suggest_nameLabel => 'الاسم';
 
   @override
-  String get equipment_suggest_parentSubcategoryLabel => 'A kind of';
+  String get equipment_suggest_parentSubcategoryLabel => 'صنف من';
 
   @override
-  String get equipment_suggest_parentCategoryLabel => 'Closest existing type';
+  String get equipment_suggest_parentCategoryLabel => 'أقرب نوع موجود';
 
   @override
-  String get equipment_suggest_parentNone => 'None';
+  String get equipment_suggest_parentNone => 'لا شيء';
 
   @override
-  String get equipment_suggest_reasonLabel => 'Why is it needed?';
+  String get equipment_suggest_reasonLabel => 'لماذا هو مطلوب؟';
 
   @override
   String get equipment_suggest_reasonHint =>
-      'What sets it apart from the existing types?';
+      'ما الذي يميزه عن الأنواع الموجودة؟';
 
   @override
   String equipment_suggest_includeExample(String example) {
-    return 'Include this item as an example ($example)';
+    return 'تضمين هذه القطعة كمثال ($example)';
   }
 
   @override
-  String get equipment_suggest_open => 'Open in GitHub';
+  String get equipment_suggest_open => 'فتح في GitHub';
 
   @override
   String get equipment_edit_useCustomReminders => 'استخدام تذكيرات مخصصة';

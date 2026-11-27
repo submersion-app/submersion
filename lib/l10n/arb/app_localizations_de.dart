@@ -16978,50 +16978,51 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein verbundener Tauchcomputer oder Sender behält seinen Typ.';
 
   @override
-  String get equipment_suggest_link => 'Can\'t find a fit? Suggest a category';
+  String get equipment_suggest_link =>
+      'Nichts Passendes? Kategorie vorschlagen';
 
   @override
-  String get equipment_suggest_title => 'Suggest a category';
+  String get equipment_suggest_title => 'Kategorie vorschlagen';
 
   @override
   String get equipment_suggest_intro =>
-      'This opens a prefilled feature request on GitHub. You review it and post it from your browser.';
+      'Damit öffnet sich eine vorausgefüllte Funktionsanfrage auf GitHub. Du prüfst sie und sendest sie in deinem Browser ab.';
 
   @override
-  String get equipment_suggest_kindQuestion => 'What are you suggesting?';
+  String get equipment_suggest_kindQuestion => 'Was schlägst du vor?';
 
   @override
-  String get equipment_suggest_kindCategory => 'New type of gear';
+  String get equipment_suggest_kindCategory => 'Neue Ausrüstungsart';
 
   @override
-  String get equipment_suggest_kindSubcategory => 'New kind of a type';
+  String get equipment_suggest_kindSubcategory => 'Neue Variante einer Art';
 
   @override
   String get equipment_suggest_nameLabel => 'Name';
 
   @override
-  String get equipment_suggest_parentSubcategoryLabel => 'A kind of';
+  String get equipment_suggest_parentSubcategoryLabel => 'Eine Variante von';
 
   @override
-  String get equipment_suggest_parentCategoryLabel => 'Closest existing type';
+  String get equipment_suggest_parentCategoryLabel => 'Nächstliegende Art';
 
   @override
-  String get equipment_suggest_parentNone => 'None';
+  String get equipment_suggest_parentNone => 'Keine';
 
   @override
-  String get equipment_suggest_reasonLabel => 'Why is it needed?';
+  String get equipment_suggest_reasonLabel => 'Warum wird sie gebraucht?';
 
   @override
   String get equipment_suggest_reasonHint =>
-      'What sets it apart from the existing types?';
+      'Was unterscheidet sie von den vorhandenen Arten?';
 
   @override
   String equipment_suggest_includeExample(String example) {
-    return 'Include this item as an example ($example)';
+    return 'Dieses Teil als Beispiel angeben ($example)';
   }
 
   @override
-  String get equipment_suggest_open => 'Open in GitHub';
+  String get equipment_suggest_open => 'Auf GitHub öffnen';
 
   @override
   String get equipment_edit_useCustomReminders =>
