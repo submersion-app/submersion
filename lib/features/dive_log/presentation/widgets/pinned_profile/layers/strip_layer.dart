@@ -17,7 +17,11 @@ enum StripLayer {
   annotations,
   safetyFindings,
   plannedDepth,
-  sourceDepths;
+  sourceDepths,
+
+  /// The species selected in the Marine life card (issue #5092). In
+  /// [kAlwaysOnStripLayers]: it shows whenever one is selected.
+  species;
 
   /// Whether this layer is a line on a scale of its own. Only these grow
   /// the strip: bands, ticks, dots and ghost depth lines read fine at its
@@ -37,7 +41,8 @@ enum StripLayer {
     annotations ||
     safetyFindings ||
     plannedDepth ||
-    sourceDepths => false,
+    sourceDepths ||
+    species => false,
   };
 }
 
@@ -61,6 +66,10 @@ const Map<DiveDetailSectionId, List<StripLayer>> kStripLayersByCard = {
   DiveDetailSectionId.diveLab: [StripLayer.plannedDepth],
   DiveDetailSectionId.dataSources: [StripLayer.sourceDepths],
 };
+
+/// The layers that show whenever they have data, whichever cards are in
+/// view: the diver turned them on by selecting something (issue #5092).
+const Set<StripLayer> kAlwaysOnStripLayers = {StripLayer.species};
 
 /// Every layer the [cards] add, together.
 Set<StripLayer> stripLayersFor(Iterable<DiveDetailSectionId> cards) => {

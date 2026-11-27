@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
@@ -68,6 +69,7 @@ class StripLayerInputs {
     this.plan,
     this.otherSources = const [],
     this.sacScale = 1,
+    this.species,
   });
 
   /// The series the chart draws (the active source's).
@@ -92,6 +94,9 @@ class StripLayerInputs {
   /// as the full chart scales it (`calculateSacNormalizationFactor`).
   final double sacScale;
 
+  /// The species selected in the Marine life card, or null (issue #5092).
+  final SpeciesProfileHighlight? species;
+
   /// Whether every input is the same object as [other]'s, so data built
   /// from one serves the other.
   bool sameAs(StripLayerInputs other) =>
@@ -107,6 +112,7 @@ class StripLayerInputs {
       identical(findings, other.findings) &&
       identical(plan, other.plan) &&
       sacScale == other.sacScale &&
+      identical(species, other.species) &&
       _sameList(otherSources, other.otherSources);
 
   static bool _sameList<T>(List<T> a, List<T> b) {
@@ -212,6 +218,7 @@ PinnedStripLayerData buildStripLayerData(
     bands: List.unmodifiable([
       ..._phaseBands(inputs.phases, style),
       ..._findingBands(inputs.findings, style),
+      ..._speciesBands(inputs.species),
     ]),
     ticks: List.unmodifiable(_ticks(inputs, style)),
     dots: List.unmodifiable([
@@ -413,6 +420,19 @@ List<StripBand> _findingBands(
       ),
 ];
 
+/// The stretches the selected species was in view (issue #5092).
+List<StripBand> _speciesBands(SpeciesProfileHighlight? species) => [
+  if (species != null)
+    for (final s in species.positions.spans)
+      StripBand(
+        layer: StripLayer.species,
+        start: s.start,
+        end: s.end,
+        color: species.color,
+        alpha: kStripFindingAlpha,
+      ),
+];
+
 List<StripTick> _ticks(StripLayerInputs inputs, StripLayerStyle style) {
   const annotationColor = ProfileMetricColors.annotation;
   return [
@@ -447,6 +467,14 @@ List<StripTick> _ticks(StripLayerInputs inputs, StripLayerStyle style) {
           layer: StripLayer.safetyFindings,
           seconds: f.startTimestamp!,
           color: safetySeverityColor(f.severity, style.colorScheme),
+          edge: StripTickEdge.top,
+        ),
+    if (inputs.species case final species?)
+      for (final m in species.positions.moments)
+        StripTick(
+          layer: StripLayer.species,
+          seconds: m.seconds,
+          color: species.color,
           edge: StripTickEdge.top,
         ),
   ];

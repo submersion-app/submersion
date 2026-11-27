@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/dive_log/domain/services/species_profile_positions.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
@@ -56,6 +58,7 @@ PinnedStripLayerData _build({
   List<SafetyFinding> findings = const [],
   ChartSourceOverlay? plan,
   List<ChartSourceOverlay> otherSources = const [],
+  SpeciesProfileHighlight? species,
 }) => buildStripLayerData(
   StripLayerInputs(
     profile: profile ?? _profile,
@@ -70,6 +73,7 @@ PinnedStripLayerData _build({
     findings: findings,
     plan: plan,
     otherSources: otherSources,
+    species: species,
   ),
   _style,
 );
@@ -116,6 +120,28 @@ ChartSourceOverlay _overlay(String id, double maxDepth) => ChartSourceOverlay(
 );
 
 void main() {
+  test('a species highlight becomes bands and ticks in its colour', () {
+    // Issue #5092.
+    final data = _build(
+      species: const SpeciesProfileHighlight(
+        positions: SpeciesProfilePositions(
+          moments: [(seconds: 90, depthMeters: 9)],
+          spans: [(start: 60, end: 120, minDepth: 6, maxDepth: 12)],
+        ),
+        color: Colors.teal,
+      ),
+    );
+    final band = data.bands.singleWhere((b) => b.layer == StripLayer.species);
+    expect((band.start, band.end, band.color), (60, 120, Colors.teal));
+    final tick = data.ticks.singleWhere((t) => t.layer == StripLayer.species);
+    expect((tick.seconds, tick.color), (90, Colors.teal));
+    expect(data.hasData(StripLayer.species), isTrue);
+  });
+
+  test('no species highlight, no species layer', () {
+    expect(_build().hasData(StripLayer.species), isFalse);
+  });
+
   test('temperature line from profile temperatures', () {
     final line = _line(_build(), StripLayer.temperature);
     expect(line.color, _tempAuto);

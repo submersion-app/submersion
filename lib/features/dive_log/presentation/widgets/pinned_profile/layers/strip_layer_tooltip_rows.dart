@@ -107,7 +107,8 @@ List<TooltipRow> stripLayerTooltipRows({
     ],
     StripLayer.gasSwitches ||
     StripLayer.media ||
-    StripLayer.annotations => const [],
+    StripLayer.annotations ||
+    StripLayer.species => const [],
   };
 
   return [

@@ -122,7 +122,10 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
   /// growth is completed with it rather than left to run on.
   void _retarget({bool settling = false}) {
     final available = {
-      for (final layer in stripLayersFor(widget.cardsInView))
+      for (final layer in {
+        ...stripLayersFor(widget.cardsInView),
+        ...kAlwaysOnStripLayers,
+      })
         if (widget.data.hasData(layer)) layer,
     };
     final active = widget.settled ? available : const <StripLayer>{};
