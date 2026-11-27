@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/util/web_link.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_contact_rules.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_text_binding.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -10,20 +10,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 
-final RegExp _emailShape = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-
-/// Whether [text] can be a site's email address: blank, or one address.
-bool isValidSiteEmail(String? text) {
-  final value = text?.trim() ?? '';
-  return value.isEmpty || _emailShape.hasMatch(value);
-}
-
-/// Whether [text] can be a site's website: blank, or a web address that
-/// `parseWebLink` will open.
-bool isValidSiteWebsite(String? text) {
-  final value = text?.trim() ?? '';
-  return value.isEmpty || parseWebLink(value) != null;
-}
+export 'package:submersion/features/dive_sites/domain/services/site_contact_rules.dart';
 
 /// Whether the Contact card can be saved. A value that was already stored
 /// (from a sync or an import) does not block saving other changes.

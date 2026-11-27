@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
@@ -98,6 +99,11 @@ void main() {
       'access_notes': 'Boat only',
       'mooring_number': 'M4',
       'parking_info': 'Marina',
+      'street_address': 'Coast Road 1',
+      'phone': '+501 555 0100',
+      'email': 'dive@bluehole.bz',
+      'website': 'bluehole.bz',
+      'opening_hours': {'v': 1, 'alwaysOpen': true, 'schedules': <Object?>[]},
       'is_shared': true,
     };
     expect(samples.keys.toSet(), writes.fields.keys.toSet());
@@ -108,6 +114,69 @@ void main() {
     for (final MapEntry(:key, :value) in samples.entries) {
       expect(doc[key], value, reason: key);
     }
+  });
+
+  group('contact details and hours (issue #5073)', () {
+    test('a website that will not open is refused', () {
+      expect(
+        () => writes.fields['website']!.parse('javascript:alert(1)'),
+        throwsA(isA<FieldRefusal>()),
+      );
+      expect(writes.fields['website']!.parse('bluehole.bz'), 'bluehole.bz');
+    });
+
+    test('an email that is not one is refused', () {
+      expect(
+        () => writes.fields['email']!.parse('nope'),
+        throwsA(isA<FieldRefusal>()),
+      );
+    });
+
+    test('opening hours that cannot be read are refused', () {
+      final codec = writes.fields['opening_hours']!;
+      expect(() => codec.parse('Mon-Fri 9-5'), throwsA(isA<FieldRefusal>()));
+      expect(() => codec.parse({'v': 1}), throwsA(isA<FieldRefusal>()));
+      expect(codec.parse(null), isNull);
+    });
+
+    test('opening hours are stored normalised', () async {
+      await writes.update(
+        's1',
+        kDiverA,
+        const RecordUpdate(
+          values: {
+            'opening_hours': {
+              'schedules': [
+                {
+                  'days': {
+                    'sat': [
+                      [600, 840],
+                      [900, 800],
+                    ],
+                  },
+                  'junk': 1,
+                },
+              ],
+            },
+          },
+        ),
+      );
+
+      final doc = (await h.one('sites', 's1'))!;
+      expect(doc['opening_hours'], {
+        'v': 1,
+        'alwaysOpen': false,
+        'schedules': [
+          {
+            'days': {
+              'sat': [
+                [600, 840],
+              ],
+            },
+          },
+        ],
+      });
+    });
   });
 
   test('clearing both coordinates clears the position', () async {

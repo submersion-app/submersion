@@ -26629,6 +26629,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'חניה';
 
   @override
+  String get settings_conflict_field_address => 'Address';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Opening hours';
+
+  @override
   String get settings_conflict_field_passportId => 'דרכון הבלון';
 
   @override

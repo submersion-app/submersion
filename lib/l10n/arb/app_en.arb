@@ -16530,6 +16530,8 @@
   "settings_conflict_field_overnightHrvMs": "Overnight heart rate variability",
   "settings_conflict_field_params": "Details",
   "settings_conflict_field_parkingInfo": "Parking",
+  "settings_conflict_field_address": "Address",
+  "settings_conflict_field_openingHours": "Opening hours",
   "settings_conflict_field_passportId": "Cylinder passport",
   "settings_conflict_field_phone": "Phone",
   "settings_conflict_field_photo": "Photo",

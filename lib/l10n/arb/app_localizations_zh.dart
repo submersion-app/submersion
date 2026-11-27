@@ -25746,6 +25746,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => '停车';
 
   @override
+  String get settings_conflict_field_address => 'Address';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Opening hours';
+
+  @override
   String get settings_conflict_field_passportId => '气瓶护照';
 
   @override

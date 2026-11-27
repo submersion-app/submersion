@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:drift/drift.dart' show QueryRow, Variable;
 
+import 'package:submersion/core/opening_hours/opening_hours.dart';
+import 'package:submersion/features/agent_access/data/writes/json_object_codec.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_contact_rules.dart';
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart'
     show SharedItemKind;
@@ -54,6 +59,26 @@ class SiteWrites extends WritableEntry {
     'access_notes': const FieldCodec.text(nullable: true),
     'mooring_number': const FieldCodec.text(maxLength: 200, nullable: true),
     'parking_info': const FieldCodec.text(nullable: true),
+    // Contact details and opening hours (issue #5073).
+    'street_address': const FieldCodec.text(
+      maxLength: 500,
+      nullable: true,
+      trim: true,
+    ),
+    'phone': const FieldCodec.text(maxLength: 200, nullable: true, trim: true),
+    'email': const _CheckedTextCodec(
+      check: isValidSiteEmail,
+      shape: 'an email address',
+    ),
+    'website': const _CheckedTextCodec(
+      check: isValidSiteWebsite,
+      shape: 'a web address (http or https)',
+    ),
+    'opening_hours': const JsonObjectCodec(
+      shape: 'an opening hours object',
+      normalize: _openingHoursJson,
+      nullable: true,
+    ),
     'is_shared': const FieldCodec.flag(),
   };
 
@@ -438,6 +463,66 @@ class SiteWrites extends WritableEntry {
       clearMooringNumber: clears('mooring_number'),
       parkingInfo: value<String>('parking_info'),
       clearParkingInfo: clears('parking_info'),
+      address: value<String>('street_address'),
+      clearAddress: clears('street_address'),
+      phone: value<String>('phone'),
+      clearPhone: clears('phone'),
+      email: value<String>('email'),
+      clearEmail: clears('email'),
+      website: value<String>('website'),
+      clearWebsite: clears('website'),
+      openingHours: _openingHoursOf(v['opening_hours']),
+      clearOpeningHours: clears('opening_hours'),
     );
+  }
+}
+
+/// An agent's opening hours object, read the way the app reads stored hours
+/// and written back in the stored form; one with nothing readable in it is
+/// refused, since null is how hours are cleared.
+Map<String, Object?> _openingHoursJson(Map<String, Object?> raw) {
+  final encoded = encodeOpeningHours(decodeOpeningHours(jsonEncode(raw)));
+  if (encoded == null) {
+    throw const FieldRefusal(
+      'These opening hours hold nothing readable; send null to clear them.',
+    );
+  }
+  return (jsonDecode(encoded) as Map).cast<String, Object?>();
+}
+
+/// Opening hours as sent (an object) or as parsed (its JSON text).
+OpeningHours? _openingHoursOf(Object? raw) => switch (raw) {
+  final String json => decodeOpeningHours(json),
+  final Map<Object?, Object?> map => decodeOpeningHours(jsonEncode(map)),
+  _ => null,
+};
+
+/// Text that must pass [check] to be written: a site's email or website,
+/// which the site page hands to another app.
+class _CheckedTextCodec extends FieldCodec {
+  const _CheckedTextCodec({required this.check, required this.shape})
+    : super(nullable: true);
+
+  final bool Function(String text) check;
+  final String shape;
+
+  static const _text = FieldCodec.text(
+    maxLength: 200,
+    nullable: true,
+    trim: true,
+  );
+
+  @override
+  String get describe => shape;
+
+  @override
+  Object? parse(Object? raw) =>
+      raw is String && raw.trim().isEmpty ? null : super.parse(raw);
+
+  @override
+  Object parseValue(Object raw) {
+    final text = _text.parseValue(raw) as String;
+    if (!check(text)) throw FieldRefusal('This field takes $shape.');
+    return text;
   }
 }

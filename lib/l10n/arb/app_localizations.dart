@@ -42990,6 +42990,18 @@ abstract class AppLocalizations {
   /// **'Parking'**
   String get settings_conflict_field_parkingInfo;
 
+  /// No description provided for @settings_conflict_field_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get settings_conflict_field_address;
+
+  /// No description provided for @settings_conflict_field_openingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening hours'**
+  String get settings_conflict_field_openingHours;
+
   /// No description provided for @settings_conflict_field_passportId.
   ///
   /// In en, this message translates to:

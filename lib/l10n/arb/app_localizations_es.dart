@@ -27291,6 +27291,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'Aparcamiento';
 
   @override
+  String get settings_conflict_field_address => 'Address';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Opening hours';
+
+  @override
   String get settings_conflict_field_passportId => 'Pasaporte de botella';
 
   @override
