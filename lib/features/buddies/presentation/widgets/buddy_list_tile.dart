@@ -218,6 +218,7 @@ class BuddyListTile extends ConsumerWidget {
                             if (subtitle != null) ...[
                               const SizedBox(height: 2),
                               LocationWithFlag(
+                                section: FlagSection.buddies,
                                 country: flagBuddy?.country,
                                 countryCode: flagBuddy?.countryCode,
                                 text: Text(

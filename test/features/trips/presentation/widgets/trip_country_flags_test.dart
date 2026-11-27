@@ -28,7 +28,7 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         tripCountriesProvider.overrideWith((ref) async => countries),
-        showCountryFlagsProvider.overrideWithValue(flags),
+        showTripCountryFlagsProvider.overrideWithValue(flags),
       ],
       child: localizedMaterialApp(
         locale: locale,

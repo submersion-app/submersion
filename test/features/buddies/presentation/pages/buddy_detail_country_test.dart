@@ -24,7 +24,7 @@ void main() {
     tester.view.physicalSize = const Size(800, 2000);
     addTearDown(tester.view.reset);
     final settings = MockSettingsNotifier();
-    await settings.setShowCountryFlags(flags);
+    await settings.setShowBuddyCountryFlags(flags);
     final overrides = await getBaseOverrides(settingsNotifier: settings);
     await tester.pumpWidget(
       ProviderScope(

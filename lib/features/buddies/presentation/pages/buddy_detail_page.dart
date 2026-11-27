@@ -482,6 +482,7 @@ class _BuddyDetailContent extends ConsumerWidget {
   Widget _countryLeading(WidgetRef ref) {
     final code = shownFlagCode(
       ref,
+      section: FlagSection.buddies,
       country: buddy.country,
       code: buddy.countryCode,
     );
