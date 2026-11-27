@@ -8,6 +8,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
+import 'package:submersion/features/pop_out/domain/window_focus_arbiter.dart';
+import 'package:submersion/features/pop_out/presentation/providers/pop_out_host.dart';
+import 'package:submersion/features/pop_out/presentation/providers/pop_out_providers.dart';
 import 'package:submersion/features/data_quality/presentation/providers/launch_gas_mix_repair_provider.dart';
 import 'package:submersion/features/dive_import/presentation/health_auto_import_feedback.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -149,6 +152,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   final _staleDrafts = StaleOpenDraftPrompter();
   final _healthImports = HealthAutoImportThrottle();
 
+  /// Tells a click into the profile pop-out apart from leaving the app
+  /// (issue #5078); with no pop-out open it passes every change through.
+  late final WindowFocusArbiter _focusArbiter = WindowFocusArbiter(
+    onLeft: _onAppBackgrounded,
+    onReturned: _onAppResumed,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -253,6 +263,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void dispose() {
+    _focusArbiter.dispose();
     unawaited(_diveMarks.cancel());
     ChangeLogSettleScheduler.instance.stop();
     _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
@@ -296,6 +307,23 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     ref.invalidate(deviceRegionProvider);
   }
 
+  /// The diver left the app (both windows, with a pop-out open).
+  void _onAppBackgrounded() {
+    ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
+  }
+
+  /// The diver came back to the app.
+  void _onAppResumed() {
+    ref.read(appLockNotifierProvider.notifier).noteResumed();
+    _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
+    _resumeMediaTransfers();
+    unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
+    unawaited(_runHealthImport());
+    // NFC may have been turned on in the system settings meanwhile, as
+    // the passport screens tell the diver to do.
+    ref.invalidate(nfcSupportProvider);
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // The iOS NFC sheet over the app is not the diver leaving it.
@@ -305,16 +333,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     );
     switch (meaning) {
       case LifecycleMeaning.backgrounded:
-        ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
+        _focusArbiter.mainLeft();
       case LifecycleMeaning.resumed:
-        ref.read(appLockNotifierProvider.notifier).noteResumed();
-        _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
-        _resumeMediaTransfers();
-        unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
-        unawaited(_runHealthImport());
-        // NFC may have been turned on in the system settings meanwhile, as
-        // the passport screens tell the diver to do.
-        ref.invalidate(nfcSupportProvider);
+        _focusArbiter.mainReturned();
       case LifecycleMeaning.none:
         break;
     }
@@ -780,6 +801,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   Widget build(BuildContext context) {
+    // Keeps the profile pop-out's host listening for the life of the app,
+    // and tells the focus arbiter when a pop-out opens or takes focus.
+    ref.listen<bool>(popOutHostProvider, (_, open) {
+      _focusArbiter.popOutOpen = open;
+    });
+    ref.listen<bool>(popOutFocusedProvider, (_, focused) {
+      _focusArbiter.popOutFocus(focused);
+    });
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
     final themePreset = ref.watch(themePresetProvider);

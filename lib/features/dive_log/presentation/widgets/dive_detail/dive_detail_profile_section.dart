@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/pop_out/presentation/widgets/pop_out_profile_button.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -253,6 +254,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
             scope: scope,
             onPressed: onEditOutliers,
           ),
+        PopOutProfileButton(diveId: diveId),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,

@@ -26,6 +26,22 @@ void main() {
     });
   });
 
+  test('no pop-out open passes every change through, repeats included', () {
+    // As before pop-outs: inactive, hidden and paused each report leaving,
+    // and every resume reports returning.
+    fakeAsync((async) {
+      build();
+      arbiter
+        ..mainLeft()
+        ..mainLeft()
+        ..mainLeft()
+        ..mainReturned()
+        ..mainReturned();
+      expect(events, ['left', 'left', 'left', 'returned', 'returned']);
+      arbiter.dispose();
+    });
+  });
+
   test('focus hand-off to the pop-out within the grace is not leaving', () {
     fakeAsync((async) {
       build();

@@ -11,7 +11,7 @@ import 'dart:async';
 /// reported leave.
 ///
 /// With no pop-out open, the main window's own changes pass straight
-/// through, as before.
+/// through, every one of them, exactly as before pop-outs existed.
 class WindowFocusArbiter {
   WindowFocusArbiter({
     required void Function() onLeft,
@@ -41,7 +41,8 @@ class WindowFocusArbiter {
   void mainLeft() {
     _mainFocused = false;
     if (!_popOutOpen) {
-      _reportLeft();
+      _left = true;
+      _onLeft();
       return;
     }
     _scheduleCheck();
@@ -50,6 +51,11 @@ class WindowFocusArbiter {
   void mainReturned() {
     _mainFocused = true;
     _check?.cancel();
+    if (!_popOutOpen) {
+      _left = false;
+      _onReturned();
+      return;
+    }
     _reportReturned();
   }
 
