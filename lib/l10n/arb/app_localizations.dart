@@ -68366,12 +68366,6 @@ abstract class AppLocalizations {
   /// **'{minutes} min'**
   String diveLog_detail_sacSegments_axisMinutes(String minutes);
 
-  /// Shown under the time chart when no segment is selected
-  ///
-  /// In en, this message translates to:
-  /// **'Peak {rate} at {range}'**
-  String diveLog_detail_sacSegments_peak(String rate, String range);
-
   /// Collapsed subtitle of the gas consumption by segment card
   ///
   /// In en, this message translates to:
@@ -68383,6 +68377,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average'**
   String get diveLog_detail_sacSegments_summaryAverage;
+
+  /// Label on the line marking the dive average in the gas consumption by segment chart, such as avg 18. Keep it short: it sits inside the chart
+  ///
+  /// In en, this message translates to:
+  /// **'avg {rate}'**
+  String diveLog_detail_sacSegments_averageMark(String rate);
 
   /// Label over the highest segment rate in the gas consumption by segment card
   ///

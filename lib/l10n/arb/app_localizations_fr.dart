@@ -43734,17 +43734,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Pic de $rate à $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Moyenne $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Moyenne';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'moy. $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Pic';

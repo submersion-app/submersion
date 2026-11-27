@@ -26529,18 +26529,6 @@
       }
     }
   },
-  "diveLog_detail_sacSegments_peak": "Peak {rate} at {range}",
-  "@diveLog_detail_sacSegments_peak": {
-    "description": "Shown under the time chart when no segment is selected",
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      },
-      "range": {
-        "type": "String"
-      }
-    }
-  },
   "diveLog_detail_sacSegments_average": "Average {rate}",
   "@diveLog_detail_sacSegments_average": {
     "description": "Collapsed subtitle of the gas consumption by segment card",
@@ -26553,6 +26541,15 @@
   "diveLog_detail_sacSegments_summaryAverage": "Average",
   "@diveLog_detail_sacSegments_summaryAverage": {
     "description": "Label over the dive average rate in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_averageMark": "avg {rate}",
+  "@diveLog_detail_sacSegments_averageMark": {
+    "description": "Label on the line marking the dive average in the gas consumption by segment chart, such as avg 18. Keep it short: it sits inside the chart",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
   },
   "diveLog_detail_sacSegments_summaryPeak": "Peak",
   "@diveLog_detail_sacSegments_summaryPeak": {
