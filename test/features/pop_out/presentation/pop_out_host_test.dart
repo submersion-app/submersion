@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_frame.dart';
@@ -22,6 +23,7 @@ void main() {
   late SharedPreferences prefs;
   late FakePopOutWindows windows;
   late ProviderContainer container;
+  late List<bool> otherWindowHolds;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({
@@ -32,8 +34,16 @@ void main() {
     });
     prefs = await SharedPreferences.getInstance();
     windows = FakePopOutWindows();
+    otherWindowHolds = [];
     container = ProviderContainer(
       overrides: [
+        appExitGuardProvider.overrideWithValue(
+          AppExitGuard(
+            retryExit: () async {},
+            preventWindowClose: (_) async {},
+            holdForOtherWindows: (hold) async => otherWindowHolds.add(hold),
+          ),
+        ),
         sharedPreferencesProvider.overrideWithValue(prefs),
         popOutWindowsProvider.overrideWithValue(windows),
         mainWindowFrameProvider.overrideWithValue(() async => mainFrame),
@@ -203,5 +213,102 @@ void main() {
     container.dispose();
     expect(windows.channel.sentOf<CloseMessage>(), hasLength(1));
     // tearDown disposes again: harmless.
+  });
+
+  group('review round fixes', () {
+    test(
+      'the exit guard holds the main window while the pop-out is open',
+      () async {
+        await open();
+        windows.channel.deliver(const ClosedMessage());
+        await pumpEventQueue();
+        expect(otherWindowHolds, [true, false]);
+      },
+    );
+
+    test(
+      'opens focused, so the main window losing focus is no leave',
+      () async {
+        await open();
+        expect(container.read(popOutFocusedProvider), isTrue);
+      },
+    );
+
+    test('a second press while opening opens one window', () async {
+      container.read(mainWindowDiveIdProvider.notifier).state = 'dive-1';
+      await Future.wait([host().openOrFocus(), host().openOrFocus()]);
+      expect(windows.opened, hasLength(1));
+    });
+
+    test('a failed open rolls back', () async {
+      windows.failNextOpen = true;
+      await expectLater(host().openOrFocus(), throwsA(anything));
+      expect(container.read(popOutHostProvider), isFalse);
+      expect(otherWindowHolds.last, isFalse);
+      // And the next press opens normally.
+      await host().openOrFocus();
+      expect(windows.opened, hasLength(1));
+    });
+
+    test('a press when the window is gone opens a new one', () async {
+      await open();
+      windows.open = false; // Closed without telling us.
+      await host().openOrFocus();
+      expect(windows.opened, hasLength(2));
+    });
+
+    test('close waits for the pop-out to report closed', () async {
+      await open();
+      var done = false;
+      final closing = host().close().then((_) => done = true);
+      await pumpEventQueue();
+      expect(windows.channel.sentOf<CloseMessage>(), hasLength(1));
+      expect(done, isFalse);
+      windows.channel.deliver(const ClosedMessage());
+      await closing;
+      expect(done, isTrue);
+    });
+
+    test('close gives up waiting after its limit', () {
+      fakeAsync((async) {
+        open();
+        async.flushMicrotasks();
+        var done = false;
+        host().close().then((_) => done = true);
+        async.elapse(const Duration(seconds: 3));
+        expect(done, isTrue);
+        expect(container.read(popOutHostProvider), isFalse);
+      });
+    });
+
+    test('an unchanged prefs snapshot is not sent again', () async {
+      await open();
+      container.read(prefsTrigger.notifier).state++;
+      await container.pump();
+      expect(windows.channel.sentOf<PrefsMessage>(), isEmpty);
+      await prefs.setString('current_diver_id', 'diver-2');
+      container.read(prefsTrigger.notifier).state++;
+      await container.pump();
+      expect(windows.channel.sentOf<PrefsMessage>(), hasLength(1));
+    });
+
+    test('ready replays the dive, lock and prefs', () async {
+      await open();
+      container.read(locked.notifier).state = true;
+      await container.pump();
+      windows.channel.sent.clear();
+      windows.channel.deliver(const ReadyMessage());
+      expect(windows.channel.sentOf<ShowDiveMessage>(), [
+        const ShowDiveMessage('dive-1'),
+      ]);
+      expect(windows.channel.sentOf<LockMessage>(), [const LockMessage(true)]);
+      expect(windows.channel.sentOf<PrefsMessage>(), hasLength(1));
+    });
+
+    test('a refused write in the pop-out is logged here', () async {
+      await open();
+      windows.channel.deliver(const RefusedWriteMessage('UPDATE x SET y = 1'));
+      expect(container.read(popOutHostProvider), isTrue);
+    });
   });
 }

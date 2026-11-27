@@ -48,8 +48,15 @@ class FakePopOutWindows implements PopOutWindows {
 
   bool open = false;
 
+  /// Makes the next [openProfile] throw, as a failed window creation does.
+  bool failNextOpen = false;
+
   @override
   Future<void> openProfile(PopOutLaunch launch) async {
+    if (failNextOpen) {
+      failNextOpen = false;
+      throw StateError('window creation failed');
+    }
     opened.add(launch);
     open = true;
   }

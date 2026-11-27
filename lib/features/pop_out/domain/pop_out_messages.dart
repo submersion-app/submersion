@@ -57,6 +57,12 @@ sealed class PopOutMessage extends Equatable {
         return FrameMessage(frame);
       case ClosedMessage.name:
         return const ClosedMessage();
+      case ReadyMessage.name:
+        return const ReadyMessage();
+      case RefusedWriteMessage.name:
+        final statement = map['statement'];
+        if (statement is! String) return null;
+        return RefusedWriteMessage(statement);
     }
     return null;
   }
@@ -178,6 +184,33 @@ final class ClosedMessage extends PopOutMessage {
   Map<String, Object?> get arguments => const {};
   @override
   List<Object?> get props => const [];
+}
+
+/// Pop-out to main: the pop-out is listening. Anything sent while it was
+/// starting was lost, so the main window sends its current state again.
+final class ReadyMessage extends PopOutMessage {
+  static const name = 'ready';
+  const ReadyMessage();
+  @override
+  String get method => name;
+  @override
+  Map<String, Object?> get arguments => const {};
+  @override
+  List<Object?> get props => const [];
+}
+
+/// Pop-out to main: the pop-out's read-only connection refused a write, so
+/// the main window's log (the only one written to a file) records it.
+final class RefusedWriteMessage extends PopOutMessage {
+  static const name = 'refusedWrite';
+  final String statement;
+  const RefusedWriteMessage(this.statement);
+  @override
+  String get method => name;
+  @override
+  Map<String, Object?> get arguments => {'statement': statement};
+  @override
+  List<Object?> get props => [statement];
 }
 
 /// Keeps the values SharedPreferences can hold, with string lists typed.

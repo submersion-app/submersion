@@ -24,6 +24,8 @@ void main() {
       const FocusReportMessage(false),
       const FrameMessage(PopOutFrame(x: 10, y: 20, width: 900, height: 600)),
       const ClosedMessage(),
+      const ReadyMessage(),
+      const RefusedWriteMessage('UPDATE dives SET x = 1'),
     ];
 
     test('every message round-trips through toCall/fromCall', () {
