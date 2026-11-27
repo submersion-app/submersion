@@ -308,6 +308,7 @@ class DiverRepository {
                 divingSince: Value(diver.divingSince?.year),
                 socialHandle: Value(diver.socialHandle),
                 buddyCardShare: Value(diver.buddyCardShare),
+                emergencyTagShare: Value(diver.emergencyTagShare),
                 sex: Value(diver.sex?.name),
                 birthYear: Value(diver.birthYear),
               ),
@@ -411,6 +412,7 @@ class DiverRepository {
           divingSince: Value(diver.divingSince?.year),
           socialHandle: Value(diver.socialHandle),
           buddyCardShare: Value(diver.buddyCardShare),
+          emergencyTagShare: Value(diver.emergencyTagShare),
           sex: Value(diver.sex?.name),
           birthYear: Value(diver.birthYear),
         ),
@@ -1247,6 +1249,7 @@ class DiverRepository {
       divingSince: row.divingSince != null ? DateTime(row.divingSince!) : null,
       socialHandle: row.socialHandle,
       buddyCardShare: row.buddyCardShare,
+      emergencyTagShare: row.emergencyTagShare,
       // A name a newer build wrote reads as not given.
       sex: DiverSex.values.asNameMap()[row.sex],
       birthYear: row.birthYear,

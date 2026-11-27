@@ -44332,6 +44332,171 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات ملف الغواص. أضف جهات اتصال الطوارئ والبيانات الطبية والتأمين في ملف الغواص.';
 
   @override
+  String get emergencyTag_title => 'بطاقة NFC للطوارئ';
+
+  @override
+  String get emergencyTag_intro =>
+      'ضع بيانات الطوارئ الخاصة بك على بطاقة NFC أو بطاقة مطبوعة لمعداتك. يستطيع من يساعدك قراءتها بهاتفه، دون Submersion.';
+
+  @override
+  String get emergencyTag_warning =>
+      'يستطيع أي شخص يلمس البطاقة بهاتفه قراءة كل ما عليها في أي وقت، حتى تعيد كتابتها أو تزيلها.';
+
+  @override
+  String get emergencyTag_tap_title => 'عندما يلمس أحدهم البطاقة بهاتفه';
+
+  @override
+  String get emergencyTag_tap_link => 'فتح صفحة ويب';
+
+  @override
+  String get emergencyTag_tap_linkHint => 'تعرض بياناتك على أي هاتف فيه تغطية.';
+
+  @override
+  String get emergencyTag_tap_call => 'الاتصال برقم';
+
+  @override
+  String get emergencyTag_tap_callHint =>
+      'يعرض أي هاتف الاتصال به، حتى دون تغطية.';
+
+  @override
+  String get emergencyTag_tap_textNote =>
+      'تحمل البطاقة بياناتك أيضًا كنص عادي، تعرضه تطبيقات قراءة NFC دون تغطية.';
+
+  @override
+  String get emergencyTag_includeText => 'كتابة البيانات أيضًا كنص عادي';
+
+  @override
+  String get emergencyTag_includeText_hint =>
+      'تعرضه تطبيقات قراءة NFC دون إشارة. أوقفه لتتسع بيانات أكثر في الرابط.';
+
+  @override
+  String get emergencyTag_callTarget => 'الرقم المطلوب الاتصال به';
+
+  @override
+  String get emergencyTag_callTarget_contact1 => 'جهة اتصال الطوارئ 1';
+
+  @override
+  String get emergencyTag_callTarget_contact2 => 'جهة اتصال الطوارئ 2';
+
+  @override
+  String get emergencyTag_callTarget_insurer =>
+      'خط شركة التأمين على مدار 24 ساعة';
+
+  @override
+  String get emergencyTag_noCallNumber =>
+      'لاستخدام هذا، أضف رقم هاتف إلى جهة اتصال طوارئ، أو خط شركة التأمين على مدار 24 ساعة.';
+
+  @override
+  String get emergencyTag_include_title => 'ما يُكتب على البطاقة';
+
+  @override
+  String get emergencyTag_include_nameAlways => 'يُكتب اسمك دائمًا.';
+
+  @override
+  String get emergencyTag_field_birthYear => 'سنة الميلاد';
+
+  @override
+  String get emergencyTag_field_allergies => 'الحساسية';
+
+  @override
+  String get emergencyTag_field_medications => 'الأدوية';
+
+  @override
+  String get emergencyTag_field_bloodType => 'فصيلة الدم';
+
+  @override
+  String get emergencyTag_field_medicalNotes => 'ملاحظات طبية';
+
+  @override
+  String get emergencyTag_field_contact1 => 'جهة اتصال الطوارئ 1';
+
+  @override
+  String get emergencyTag_field_contact2 => 'جهة اتصال الطوارئ 2';
+
+  @override
+  String get emergencyTag_field_insurance => 'التأمين';
+
+  @override
+  String get emergencyTag_field_policy => 'رقم الوثيقة';
+
+  @override
+  String get emergencyTag_notRecorded => 'غير مسجَّل';
+
+  @override
+  String get emergencyTag_preview_title => 'معاينة';
+
+  @override
+  String emergencyTag_size(int bytes) {
+    final intl.NumberFormat bytesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bytesString = bytesNumberFormat.format(bytes);
+
+    return 'نحو $bytesString بايت على البطاقة.';
+  }
+
+  @override
+  String emergencyTag_size_fits(String tag) {
+    return 'تتسع لها بطاقة $tag أو أكبر.';
+  }
+
+  @override
+  String get emergencyTag_size_tooBig =>
+      'أكبر مما تتسع له البطاقات الشائعة. ستُحذف بعض التفاصيل لتتسع.';
+
+  @override
+  String get emergencyTag_write => 'كتابة بطاقة NFC';
+
+  @override
+  String get emergencyTag_print => 'طباعة بطاقة';
+
+  @override
+  String get emergencyTag_open => 'بطاقة NFC للطوارئ';
+
+  @override
+  String get emergencyTag_text_header => 'معلومات الطوارئ';
+
+  @override
+  String get emergencyTag_text_name => 'الاسم';
+
+  @override
+  String emergencyTag_text_born(String year) {
+    return 'مواليد $year';
+  }
+
+  @override
+  String get emergencyTag_text_contact => 'جهة اتصال الطوارئ';
+
+  @override
+  String emergencyTag_text_policy(String number) {
+    return 'وثيقة $number';
+  }
+
+  @override
+  String emergencyTag_text_assistanceLine(String number) {
+    return 'خط 24 ساعة $number';
+  }
+
+  @override
+  String emergencyTag_text_written(String date) {
+    return 'كُتبت في $date باستخدام Submersion';
+  }
+
+  @override
+  String get emergencyTag_text_someLeftOff =>
+      'حُذفت بعض التفاصيل لتتسع البطاقة.';
+
+  @override
+  String get emergencyTag_card_qrLink =>
+      'امسح الرمز لعرض هذه التفاصيل على الهاتف.';
+
+  @override
+  String get emergencyTag_card_qrCall => 'امسح الرمز للاتصال.';
+
+  @override
+  String get settings_conflict_field_emergencyTagShare =>
+      'خيارات بطاقة NFC للطوارئ';
+
+  @override
   String get addChamber_title => 'إضافة غرفة';
 
   @override

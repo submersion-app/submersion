@@ -26716,6 +26716,104 @@
   "emergencyCard_regionPicker_search": "Search countries",
   "emergencyCard_regionPicker_noMatches": "No matching countries",
   "emergencyCard_noDiverData": "No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.",
+  "emergencyTag_title": "Emergency tag",
+  "emergencyTag_intro": "Put your emergency details on an NFC tag or a printed card for your gear. Whoever helps you can read them with their own phone, without Submersion.",
+  "emergencyTag_warning": "Anyone who taps the tag can read everything on it, at any time, until you rewrite or remove it.",
+  "emergencyTag_tap_title": "When someone taps the tag",
+  "emergencyTag_tap_link": "Open a web page",
+  "emergencyTag_tap_linkHint": "Shows your details on any phone with a signal.",
+  "emergencyTag_tap_call": "Call a number",
+  "emergencyTag_tap_callHint": "Any phone offers to call it, even with no signal.",
+  "emergencyTag_tap_textNote": "The tag also carries your details as plain text, which NFC reader apps show without a signal.",
+  "emergencyTag_includeText": "Also write the details as plain text",
+  "emergencyTag_includeText_hint": "NFC reader apps show it with no signal. Turn it off to fit more details in the link.",
+  "emergencyTag_callTarget": "Number to call",
+  "emergencyTag_callTarget_contact1": "Emergency contact 1",
+  "emergencyTag_callTarget_contact2": "Emergency contact 2",
+  "emergencyTag_callTarget_insurer": "Insurer's 24-hour line",
+  "emergencyTag_noCallNumber": "Add a phone number to an emergency contact, or your insurer's 24-hour line, to use this.",
+  "emergencyTag_include_title": "What to include",
+  "emergencyTag_include_nameAlways": "Your name is always included.",
+  "emergencyTag_field_birthYear": "Year of birth",
+  "emergencyTag_field_allergies": "Allergies",
+  "emergencyTag_field_medications": "Medications",
+  "emergencyTag_field_bloodType": "Blood type",
+  "emergencyTag_field_medicalNotes": "Medical notes",
+  "emergencyTag_field_contact1": "Emergency contact 1",
+  "emergencyTag_field_contact2": "Emergency contact 2",
+  "emergencyTag_field_insurance": "Insurance",
+  "emergencyTag_field_policy": "Policy number",
+  "emergencyTag_notRecorded": "Not recorded",
+  "emergencyTag_preview_title": "Preview",
+  "emergencyTag_size": "About {bytes} bytes on the tag.",
+  "@emergencyTag_size": {
+    "description": "How many bytes the emergency tag takes",
+    "placeholders": {
+      "bytes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "emergencyTag_size_fits": "Fits an {tag} tag or larger.",
+  "@emergencyTag_size_fits": {
+    "description": "The smallest common NFC tag model that holds it, e.g. NTAG215",
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyTag_size_tooBig": "Too big for common tags. Some details will be left off to fit.",
+  "emergencyTag_write": "Write NFC tag",
+  "emergencyTag_print": "Print card",
+  "emergencyTag_open": "Emergency tag",
+  "emergencyTag_text_header": "EMERGENCY INFO",
+  "@emergencyTag_text_header": {
+    "description": "First line of the emergency tag text, in capitals so a responder sees it at once"
+  },
+  "emergencyTag_text_name": "Name",
+  "emergencyTag_text_born": "born {year}",
+  "@emergencyTag_text_born": {
+    "description": "Written on the tag after the name; lower case as it sits in parentheses",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyTag_text_contact": "Emergency contact",
+  "emergencyTag_text_policy": "policy {number}",
+  "@emergencyTag_text_policy": {
+    "description": "Insurance policy number on the tag",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyTag_text_assistanceLine": "24h line {number}",
+  "@emergencyTag_text_assistanceLine": {
+    "description": "Insurer's 24-hour assistance phone line on the tag",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyTag_text_written": "Written {date} with Submersion",
+  "@emergencyTag_text_written": {
+    "description": "Last line of the tag text",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyTag_text_someLeftOff": "Some details were left off to fit the tag.",
+  "emergencyTag_card_qrLink": "Scan for these details on a phone.",
+  "emergencyTag_card_qrCall": "Scan to call.",
+  "settings_conflict_field_emergencyTagShare": "Emergency tag choices",
   "addChamber_title": "Add chamber",
   "addChamber_name": "Name",
   "addChamber_country": "Country code (e.g. US)",

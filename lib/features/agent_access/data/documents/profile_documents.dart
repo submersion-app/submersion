@@ -14,6 +14,7 @@ Map<String, Object?> diverRecordDocument(Diver d) => {
   'phone': d.phone,
   'social_handle': d.socialHandle,
   'buddy_card_share': d.buddyCardShare,
+  'emergency_tag_share': d.emergencyTagShare,
   'photo_path': d.photoPath,
   'emergency_contact': _contact(d.emergencyContact),
   'emergency_contact_2': _contact(d.emergencyContact2),

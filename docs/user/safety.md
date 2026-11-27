@@ -205,6 +205,49 @@ from the first launch. On top of that you can:
 > tells you when there is nothing to show, and the day you need it is not the
 > day to find it empty.
 
+### Emergency tag
+
+If you are pulled out of the water unconscious, your phone may be lost, locked
+or flooded. An emergency tag puts your details on your gear instead: an NFC
+tag (a sticker or a key fob) on your BCD or backplate, or a printed card in
+your dry box. Whoever helps you reads it with their own phone, without
+Submersion.
+
+Open it with the NFC button at the top of the emergency card.
+
+1. **When someone taps the tag**, choose what their phone does:
+   - **Open a web page** shows your details on `submersion.app`. It works on
+     any phone, but needs a signal to load the page.
+   - **Call a number** offers to call one of your emergency contacts or your
+     insurer's 24-hour line. It works on any phone with no signal.
+
+   The tag also holds your details as plain text, which NFC reader apps show
+   with no signal. With **Open a web page** you can turn **Also write the
+   details as plain text** off: the link then has the whole tag to itself, so
+   more of your details fit on a small tag.
+2. **What to include:** your name is always on the tag. Switch on the details
+   you want a stranger to see: year of birth, allergies, medications, blood
+   type, medical notes, your emergency contacts and your insurance. A detail
+   you have not recorded stays off. Your choices are saved for next time.
+3. **Preview** shows the text exactly as it will be written, and how much room
+   it takes. Common stickers hold 144 bytes (NTAG213), 504 (NTAG215) or 888
+   (NTAG216).
+4. **Write NFC tag** and hold the tag against your phone. If it is too small,
+   details come off in a fixed order (medical notes first, then year of birth,
+   the second contact, the policy number, medications, blood type, insurance,
+   allergies, the first contact) and Submersion tells you which.
+5. **Print card** makes a card the size of a postcard (A6) with the same text
+   and a QR code, to cut out and laminate. It needs no phone at all.
+
+> [!WARNING]
+> **Anyone who taps the tag can read everything on it**, at any time, until
+> you rewrite or remove it. Put on it only what you want a stranger to know.
+> Rewrite the tag when your details change: it does not update itself.
+
+The web page reads your details from the link in the phone's browser and sends
+nothing to a server. The format is public: see
+[Emergency Tag Format](../developer/reference/formats/emergency-tag.md).
+
 ---
 
 ## Near-Miss Log
@@ -268,6 +311,7 @@ report stays private: an exported check-in never mentions the near-miss.
 | No-fly countdown | Planning > Flying after diving, and the Dashboard's No-fly chip |
 | Findings for one dive | The dive's details > Safety review |
 | Emergency card | The Dashboard's quick actions, or Settings > Diver Profile > Emergency card |
+| Emergency tag and printed card | Emergency card > the NFC button |
 | Medical details, contacts, insurance | Settings > Diver Profile |
 | Near-miss log | Settings > Diver Profile > Near-miss log, or a dive's menu |
 

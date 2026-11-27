@@ -70,6 +70,10 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_buddyCardShare,
     FieldKind.opaque,
   ),
+  'emergencyTagShare': ConflictField(
+    (l) => l.settings_conflict_field_emergencyTagShare,
+    FieldKind.opaque,
+  ),
   'builtinKey': ConflictField(
     (l) => l.settings_conflict_field_builtinKey,
     FieldKind.shortText,

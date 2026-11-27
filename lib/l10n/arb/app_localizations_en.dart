@@ -43054,6 +43054,170 @@ class AppLocalizationsEn extends AppLocalizations {
       'No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.';
 
   @override
+  String get emergencyTag_title => 'Emergency tag';
+
+  @override
+  String get emergencyTag_intro =>
+      'Put your emergency details on an NFC tag or a printed card for your gear. Whoever helps you can read them with their own phone, without Submersion.';
+
+  @override
+  String get emergencyTag_warning =>
+      'Anyone who taps the tag can read everything on it, at any time, until you rewrite or remove it.';
+
+  @override
+  String get emergencyTag_tap_title => 'When someone taps the tag';
+
+  @override
+  String get emergencyTag_tap_link => 'Open a web page';
+
+  @override
+  String get emergencyTag_tap_linkHint =>
+      'Shows your details on any phone with a signal.';
+
+  @override
+  String get emergencyTag_tap_call => 'Call a number';
+
+  @override
+  String get emergencyTag_tap_callHint =>
+      'Any phone offers to call it, even with no signal.';
+
+  @override
+  String get emergencyTag_tap_textNote =>
+      'The tag also carries your details as plain text, which NFC reader apps show without a signal.';
+
+  @override
+  String get emergencyTag_includeText => 'Also write the details as plain text';
+
+  @override
+  String get emergencyTag_includeText_hint =>
+      'NFC reader apps show it with no signal. Turn it off to fit more details in the link.';
+
+  @override
+  String get emergencyTag_callTarget => 'Number to call';
+
+  @override
+  String get emergencyTag_callTarget_contact1 => 'Emergency contact 1';
+
+  @override
+  String get emergencyTag_callTarget_contact2 => 'Emergency contact 2';
+
+  @override
+  String get emergencyTag_callTarget_insurer => 'Insurer\'s 24-hour line';
+
+  @override
+  String get emergencyTag_noCallNumber =>
+      'Add a phone number to an emergency contact, or your insurer\'s 24-hour line, to use this.';
+
+  @override
+  String get emergencyTag_include_title => 'What to include';
+
+  @override
+  String get emergencyTag_include_nameAlways => 'Your name is always included.';
+
+  @override
+  String get emergencyTag_field_birthYear => 'Year of birth';
+
+  @override
+  String get emergencyTag_field_allergies => 'Allergies';
+
+  @override
+  String get emergencyTag_field_medications => 'Medications';
+
+  @override
+  String get emergencyTag_field_bloodType => 'Blood type';
+
+  @override
+  String get emergencyTag_field_medicalNotes => 'Medical notes';
+
+  @override
+  String get emergencyTag_field_contact1 => 'Emergency contact 1';
+
+  @override
+  String get emergencyTag_field_contact2 => 'Emergency contact 2';
+
+  @override
+  String get emergencyTag_field_insurance => 'Insurance';
+
+  @override
+  String get emergencyTag_field_policy => 'Policy number';
+
+  @override
+  String get emergencyTag_notRecorded => 'Not recorded';
+
+  @override
+  String get emergencyTag_preview_title => 'Preview';
+
+  @override
+  String emergencyTag_size(int bytes) {
+    final intl.NumberFormat bytesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bytesString = bytesNumberFormat.format(bytes);
+
+    return 'About $bytesString bytes on the tag.';
+  }
+
+  @override
+  String emergencyTag_size_fits(String tag) {
+    return 'Fits an $tag tag or larger.';
+  }
+
+  @override
+  String get emergencyTag_size_tooBig =>
+      'Too big for common tags. Some details will be left off to fit.';
+
+  @override
+  String get emergencyTag_write => 'Write NFC tag';
+
+  @override
+  String get emergencyTag_print => 'Print card';
+
+  @override
+  String get emergencyTag_open => 'Emergency tag';
+
+  @override
+  String get emergencyTag_text_header => 'EMERGENCY INFO';
+
+  @override
+  String get emergencyTag_text_name => 'Name';
+
+  @override
+  String emergencyTag_text_born(String year) {
+    return 'born $year';
+  }
+
+  @override
+  String get emergencyTag_text_contact => 'Emergency contact';
+
+  @override
+  String emergencyTag_text_policy(String number) {
+    return 'policy $number';
+  }
+
+  @override
+  String emergencyTag_text_assistanceLine(String number) {
+    return '24h line $number';
+  }
+
+  @override
+  String emergencyTag_text_written(String date) {
+    return 'Written $date with Submersion';
+  }
+
+  @override
+  String get emergencyTag_text_someLeftOff =>
+      'Some details were left off to fit the tag.';
+
+  @override
+  String get emergencyTag_card_qrLink => 'Scan for these details on a phone.';
+
+  @override
+  String get emergencyTag_card_qrCall => 'Scan to call.';
+
+  @override
+  String get settings_conflict_field_emergencyTagShare =>
+      'Emergency tag choices';
+
+  @override
   String get addChamber_title => 'Add chamber';
 
   @override

@@ -301,5 +301,11 @@ extension RungsFromV340 on AppDatabase {
     // or null; re-asserted in beforeOpen. The floor does not move.
     if (from < 379) await _assertAveloLineColumns();
     if (from < 379) await reportProgress();
+
+    // v380: divers.emergency_tag_share, the diver's emergency tag choices
+    // as JSON (issue #5060). Nullable, no backfill, so the floor does not
+    // move. Re-asserted in beforeOpen.
+    if (from < 380) await _assertEmergencyTagColumn();
+    if (from < 380) await reportProgress();
   }
 }

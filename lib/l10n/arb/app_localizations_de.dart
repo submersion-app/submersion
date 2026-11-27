@@ -43690,6 +43690,174 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Taucherprofildaten. Notfallkontakte, medizinische Daten und Versicherung im Taucherprofil hinterlegen.';
 
   @override
+  String get emergencyTag_title => 'Notfall-Tag';
+
+  @override
+  String get emergencyTag_intro =>
+      'Speichere deine Notfalldaten auf einem NFC-Tag oder einer gedruckten Karte für deine Ausrüstung. Wer dir hilft, kann sie mit dem eigenen Telefon lesen, ohne Submersion.';
+
+  @override
+  String get emergencyTag_warning =>
+      'Jeder, der den Tag antippt, kann jederzeit alles darauf lesen, bis du ihn neu beschreibst oder entfernst.';
+
+  @override
+  String get emergencyTag_tap_title => 'Wenn jemand den Tag antippt';
+
+  @override
+  String get emergencyTag_tap_link => 'Webseite öffnen';
+
+  @override
+  String get emergencyTag_tap_linkHint =>
+      'Zeigt deine Daten auf jedem Telefon mit Empfang.';
+
+  @override
+  String get emergencyTag_tap_call => 'Nummer anrufen';
+
+  @override
+  String get emergencyTag_tap_callHint =>
+      'Jedes Telefon bietet den Anruf an, auch ohne Empfang.';
+
+  @override
+  String get emergencyTag_tap_textNote =>
+      'Der Tag enthält deine Daten auch als reinen Text, den NFC-Lese-Apps ohne Empfang anzeigen.';
+
+  @override
+  String get emergencyTag_includeText =>
+      'Angaben auch als reinen Text schreiben';
+
+  @override
+  String get emergencyTag_includeText_hint =>
+      'NFC-Lese-Apps zeigen ihn ohne Empfang an. Schalte ihn aus, damit mehr Angaben in den Link passen.';
+
+  @override
+  String get emergencyTag_callTarget => 'Anzurufende Nummer';
+
+  @override
+  String get emergencyTag_callTarget_contact1 => 'Notfallkontakt 1';
+
+  @override
+  String get emergencyTag_callTarget_contact2 => 'Notfallkontakt 2';
+
+  @override
+  String get emergencyTag_callTarget_insurer =>
+      '24-h-Notrufnummer der Versicherung';
+
+  @override
+  String get emergencyTag_noCallNumber =>
+      'Um das zu nutzen, ergänze bei einem Notfallkontakt eine Telefonnummer oder hinterlege die 24-h-Notrufnummer deiner Versicherung.';
+
+  @override
+  String get emergencyTag_include_title => 'Was drauf soll';
+
+  @override
+  String get emergencyTag_include_nameAlways =>
+      'Dein Name ist immer enthalten.';
+
+  @override
+  String get emergencyTag_field_birthYear => 'Geburtsjahr';
+
+  @override
+  String get emergencyTag_field_allergies => 'Allergien';
+
+  @override
+  String get emergencyTag_field_medications => 'Medikamente';
+
+  @override
+  String get emergencyTag_field_bloodType => 'Blutgruppe';
+
+  @override
+  String get emergencyTag_field_medicalNotes => 'Medizinische Hinweise';
+
+  @override
+  String get emergencyTag_field_contact1 => 'Notfallkontakt 1';
+
+  @override
+  String get emergencyTag_field_contact2 => 'Notfallkontakt 2';
+
+  @override
+  String get emergencyTag_field_insurance => 'Versicherung';
+
+  @override
+  String get emergencyTag_field_policy => 'Policennummer';
+
+  @override
+  String get emergencyTag_notRecorded => 'Nicht erfasst';
+
+  @override
+  String get emergencyTag_preview_title => 'Vorschau';
+
+  @override
+  String emergencyTag_size(int bytes) {
+    final intl.NumberFormat bytesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bytesString = bytesNumberFormat.format(bytes);
+
+    return 'Etwa $bytesString Byte auf dem Tag.';
+  }
+
+  @override
+  String emergencyTag_size_fits(String tag) {
+    return 'Passt auf einen $tag-Tag oder größer.';
+  }
+
+  @override
+  String get emergencyTag_size_tooBig =>
+      'Zu groß für gängige Tags. Einige Angaben werden weggelassen, damit es passt.';
+
+  @override
+  String get emergencyTag_write => 'NFC-Tag beschreiben';
+
+  @override
+  String get emergencyTag_print => 'Karte drucken';
+
+  @override
+  String get emergencyTag_open => 'Notfall-Tag';
+
+  @override
+  String get emergencyTag_text_header => 'NOTFALL-INFO';
+
+  @override
+  String get emergencyTag_text_name => 'Name';
+
+  @override
+  String emergencyTag_text_born(String year) {
+    return 'geb. $year';
+  }
+
+  @override
+  String get emergencyTag_text_contact => 'Notfallkontakt';
+
+  @override
+  String emergencyTag_text_policy(String number) {
+    return 'Police $number';
+  }
+
+  @override
+  String emergencyTag_text_assistanceLine(String number) {
+    return '24-h-Notruf $number';
+  }
+
+  @override
+  String emergencyTag_text_written(String date) {
+    return 'Geschrieben am $date mit Submersion';
+  }
+
+  @override
+  String get emergencyTag_text_someLeftOff =>
+      'Einige Angaben wurden weggelassen, damit sie auf den Tag passen.';
+
+  @override
+  String get emergencyTag_card_qrLink =>
+      'Scannen, um diese Daten auf dem Telefon zu sehen.';
+
+  @override
+  String get emergencyTag_card_qrCall => 'Scannen, um anzurufen.';
+
+  @override
+  String get settings_conflict_field_emergencyTagShare =>
+      'Auswahl für den Notfall-Tag';
+
+  @override
   String get addChamber_title => 'Kammer hinzufügen';
 
   @override

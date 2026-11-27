@@ -42718,6 +42718,170 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין נתוני פרופיל צולל. הוסף אנשי קשר לחירום, נתונים רפואיים וביטוח בפרופיל הצולל.';
 
   @override
+  String get emergencyTag_title => 'תג חירום';
+
+  @override
+  String get emergencyTag_intro =>
+      'שמרו את פרטי החירום שלכם על תג NFC או על כרטיס מודפס לציוד. מי שעוזר לכם יכול לקרוא אותם בטלפון שלו, בלי Submersion.';
+
+  @override
+  String get emergencyTag_warning =>
+      'כל מי שמצמיד טלפון לתג יכול לקרוא את כל מה שיש עליו, בכל עת, עד שתכתבו אותו מחדש או תסירו אותו.';
+
+  @override
+  String get emergencyTag_tap_title => 'כשמישהו מצמיד טלפון לתג';
+
+  @override
+  String get emergencyTag_tap_link => 'פתיחת דף אינטרנט';
+
+  @override
+  String get emergencyTag_tap_linkHint =>
+      'מציג את הפרטים שלכם בכל טלפון עם קליטה.';
+
+  @override
+  String get emergencyTag_tap_call => 'חיוג למספר';
+
+  @override
+  String get emergencyTag_tap_callHint =>
+      'כל טלפון מציע לחייג אליו, גם בלי קליטה.';
+
+  @override
+  String get emergencyTag_tap_textNote =>
+      'התג מכיל את הפרטים שלכם גם כטקסט פשוט, שאפליקציות לקריאת NFC מציגות בלי קליטה.';
+
+  @override
+  String get emergencyTag_includeText => 'לכתוב את הפרטים גם כטקסט רגיל';
+
+  @override
+  String get emergencyTag_includeText_hint =>
+      'אפליקציות לקריאת NFC מציגות אותו גם ללא קליטה. כבו את האפשרות כדי שיותר פרטים ייכנסו לקישור.';
+
+  @override
+  String get emergencyTag_callTarget => 'מספר לחיוג';
+
+  @override
+  String get emergencyTag_callTarget_contact1 => 'איש קשר לחירום 1';
+
+  @override
+  String get emergencyTag_callTarget_contact2 => 'איש קשר לחירום 2';
+
+  @override
+  String get emergencyTag_callTarget_insurer => 'קו 24 השעות של חברת הביטוח';
+
+  @override
+  String get emergencyTag_noCallNumber =>
+      'כדי להשתמש בזה, הוסיפו מספר טלפון לאיש קשר לחירום, או את קו 24 השעות של חברת הביטוח.';
+
+  @override
+  String get emergencyTag_include_title => 'מה לכלול';
+
+  @override
+  String get emergencyTag_include_nameAlways => 'השם שלכם תמיד נכלל.';
+
+  @override
+  String get emergencyTag_field_birthYear => 'שנת לידה';
+
+  @override
+  String get emergencyTag_field_allergies => 'אלרגיות';
+
+  @override
+  String get emergencyTag_field_medications => 'תרופות';
+
+  @override
+  String get emergencyTag_field_bloodType => 'סוג דם';
+
+  @override
+  String get emergencyTag_field_medicalNotes => 'הערות רפואיות';
+
+  @override
+  String get emergencyTag_field_contact1 => 'איש קשר לחירום 1';
+
+  @override
+  String get emergencyTag_field_contact2 => 'איש קשר לחירום 2';
+
+  @override
+  String get emergencyTag_field_insurance => 'ביטוח';
+
+  @override
+  String get emergencyTag_field_policy => 'מספר פוליסה';
+
+  @override
+  String get emergencyTag_notRecorded => 'לא נרשם';
+
+  @override
+  String get emergencyTag_preview_title => 'תצוגה מקדימה';
+
+  @override
+  String emergencyTag_size(int bytes) {
+    final intl.NumberFormat bytesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bytesString = bytesNumberFormat.format(bytes);
+
+    return 'כ-$bytesString בייטים על התג.';
+  }
+
+  @override
+  String emergencyTag_size_fits(String tag) {
+    return 'נכנס בתג $tag או גדול יותר.';
+  }
+
+  @override
+  String get emergencyTag_size_tooBig =>
+      'גדול מדי לתגים נפוצים. חלק מהפרטים יושמטו כדי שייכנס.';
+
+  @override
+  String get emergencyTag_write => 'כתיבת תג NFC';
+
+  @override
+  String get emergencyTag_print => 'הדפסת כרטיס';
+
+  @override
+  String get emergencyTag_open => 'תג חירום';
+
+  @override
+  String get emergencyTag_text_header => 'מידע לחירום';
+
+  @override
+  String get emergencyTag_text_name => 'שם';
+
+  @override
+  String emergencyTag_text_born(String year) {
+    return 'שנת לידה $year';
+  }
+
+  @override
+  String get emergencyTag_text_contact => 'איש קשר לחירום';
+
+  @override
+  String emergencyTag_text_policy(String number) {
+    return 'פוליסה $number';
+  }
+
+  @override
+  String emergencyTag_text_assistanceLine(String number) {
+    return 'קו 24 שעות $number';
+  }
+
+  @override
+  String emergencyTag_text_written(String date) {
+    return 'נכתב ב-$date עם Submersion';
+  }
+
+  @override
+  String get emergencyTag_text_someLeftOff =>
+      'חלק מהפרטים הושמטו כדי שייכנסו לתג.';
+
+  @override
+  String get emergencyTag_card_qrLink =>
+      'סרקו כדי לראות את הפרטים האלה בטלפון.';
+
+  @override
+  String get emergencyTag_card_qrCall => 'סרקו כדי לחייג.';
+
+  @override
+  String get settings_conflict_field_emergencyTagShare => 'אפשרויות תג החירום';
+
+  @override
   String get addChamber_title => 'הוסף תא לחץ';
 
   @override

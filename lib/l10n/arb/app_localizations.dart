@@ -68770,6 +68770,282 @@ abstract class AppLocalizations {
   /// **'No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.'**
   String get emergencyCard_noDiverData;
 
+  /// No description provided for @emergencyTag_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency tag'**
+  String get emergencyTag_title;
+
+  /// No description provided for @emergencyTag_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Put your emergency details on an NFC tag or a printed card for your gear. Whoever helps you can read them with their own phone, without Submersion.'**
+  String get emergencyTag_intro;
+
+  /// No description provided for @emergencyTag_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone who taps the tag can read everything on it, at any time, until you rewrite or remove it.'**
+  String get emergencyTag_warning;
+
+  /// No description provided for @emergencyTag_tap_title.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone taps the tag'**
+  String get emergencyTag_tap_title;
+
+  /// No description provided for @emergencyTag_tap_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a web page'**
+  String get emergencyTag_tap_link;
+
+  /// No description provided for @emergencyTag_tap_linkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows your details on any phone with a signal.'**
+  String get emergencyTag_tap_linkHint;
+
+  /// No description provided for @emergencyTag_tap_call.
+  ///
+  /// In en, this message translates to:
+  /// **'Call a number'**
+  String get emergencyTag_tap_call;
+
+  /// No description provided for @emergencyTag_tap_callHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Any phone offers to call it, even with no signal.'**
+  String get emergencyTag_tap_callHint;
+
+  /// No description provided for @emergencyTag_tap_textNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag also carries your details as plain text, which NFC reader apps show without a signal.'**
+  String get emergencyTag_tap_textNote;
+
+  /// No description provided for @emergencyTag_includeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Also write the details as plain text'**
+  String get emergencyTag_includeText;
+
+  /// No description provided for @emergencyTag_includeText_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC reader apps show it with no signal. Turn it off to fit more details in the link.'**
+  String get emergencyTag_includeText_hint;
+
+  /// No description provided for @emergencyTag_callTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Number to call'**
+  String get emergencyTag_callTarget;
+
+  /// No description provided for @emergencyTag_callTarget_contact1.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact 1'**
+  String get emergencyTag_callTarget_contact1;
+
+  /// No description provided for @emergencyTag_callTarget_contact2.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact 2'**
+  String get emergencyTag_callTarget_contact2;
+
+  /// No description provided for @emergencyTag_callTarget_insurer.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurer\'s 24-hour line'**
+  String get emergencyTag_callTarget_insurer;
+
+  /// No description provided for @emergencyTag_noCallNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a phone number to an emergency contact, or your insurer\'s 24-hour line, to use this.'**
+  String get emergencyTag_noCallNumber;
+
+  /// No description provided for @emergencyTag_include_title.
+  ///
+  /// In en, this message translates to:
+  /// **'What to include'**
+  String get emergencyTag_include_title;
+
+  /// No description provided for @emergencyTag_include_nameAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name is always included.'**
+  String get emergencyTag_include_nameAlways;
+
+  /// No description provided for @emergencyTag_field_birthYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year of birth'**
+  String get emergencyTag_field_birthYear;
+
+  /// No description provided for @emergencyTag_field_allergies.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies'**
+  String get emergencyTag_field_allergies;
+
+  /// No description provided for @emergencyTag_field_medications.
+  ///
+  /// In en, this message translates to:
+  /// **'Medications'**
+  String get emergencyTag_field_medications;
+
+  /// No description provided for @emergencyTag_field_bloodType.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type'**
+  String get emergencyTag_field_bloodType;
+
+  /// No description provided for @emergencyTag_field_medicalNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical notes'**
+  String get emergencyTag_field_medicalNotes;
+
+  /// No description provided for @emergencyTag_field_contact1.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact 1'**
+  String get emergencyTag_field_contact1;
+
+  /// No description provided for @emergencyTag_field_contact2.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact 2'**
+  String get emergencyTag_field_contact2;
+
+  /// No description provided for @emergencyTag_field_insurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get emergencyTag_field_insurance;
+
+  /// No description provided for @emergencyTag_field_policy.
+  ///
+  /// In en, this message translates to:
+  /// **'Policy number'**
+  String get emergencyTag_field_policy;
+
+  /// No description provided for @emergencyTag_notRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get emergencyTag_notRecorded;
+
+  /// No description provided for @emergencyTag_preview_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get emergencyTag_preview_title;
+
+  /// How many bytes the emergency tag takes
+  ///
+  /// In en, this message translates to:
+  /// **'About {bytes} bytes on the tag.'**
+  String emergencyTag_size(int bytes);
+
+  /// The smallest common NFC tag model that holds it, e.g. NTAG215
+  ///
+  /// In en, this message translates to:
+  /// **'Fits an {tag} tag or larger.'**
+  String emergencyTag_size_fits(String tag);
+
+  /// No description provided for @emergencyTag_size_tooBig.
+  ///
+  /// In en, this message translates to:
+  /// **'Too big for common tags. Some details will be left off to fit.'**
+  String get emergencyTag_size_tooBig;
+
+  /// No description provided for @emergencyTag_write.
+  ///
+  /// In en, this message translates to:
+  /// **'Write NFC tag'**
+  String get emergencyTag_write;
+
+  /// No description provided for @emergencyTag_print.
+  ///
+  /// In en, this message translates to:
+  /// **'Print card'**
+  String get emergencyTag_print;
+
+  /// No description provided for @emergencyTag_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency tag'**
+  String get emergencyTag_open;
+
+  /// First line of the emergency tag text, in capitals so a responder sees it at once
+  ///
+  /// In en, this message translates to:
+  /// **'EMERGENCY INFO'**
+  String get emergencyTag_text_header;
+
+  /// No description provided for @emergencyTag_text_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get emergencyTag_text_name;
+
+  /// Written on the tag after the name; lower case as it sits in parentheses
+  ///
+  /// In en, this message translates to:
+  /// **'born {year}'**
+  String emergencyTag_text_born(String year);
+
+  /// No description provided for @emergencyTag_text_contact.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contact'**
+  String get emergencyTag_text_contact;
+
+  /// Insurance policy number on the tag
+  ///
+  /// In en, this message translates to:
+  /// **'policy {number}'**
+  String emergencyTag_text_policy(String number);
+
+  /// Insurer's 24-hour assistance phone line on the tag
+  ///
+  /// In en, this message translates to:
+  /// **'24h line {number}'**
+  String emergencyTag_text_assistanceLine(String number);
+
+  /// Last line of the tag text
+  ///
+  /// In en, this message translates to:
+  /// **'Written {date} with Submersion'**
+  String emergencyTag_text_written(String date);
+
+  /// No description provided for @emergencyTag_text_someLeftOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Some details were left off to fit the tag.'**
+  String get emergencyTag_text_someLeftOff;
+
+  /// No description provided for @emergencyTag_card_qrLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan for these details on a phone.'**
+  String get emergencyTag_card_qrLink;
+
+  /// No description provided for @emergencyTag_card_qrCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to call.'**
+  String get emergencyTag_card_qrCall;
+
+  /// No description provided for @settings_conflict_field_emergencyTagShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency tag choices'**
+  String get settings_conflict_field_emergencyTagShare;
+
   /// No description provided for @addChamber_title.
   ///
   /// In en, this message translates to:

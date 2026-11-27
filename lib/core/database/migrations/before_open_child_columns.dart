@@ -37,6 +37,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v324: buddy card swap columns (issue #3728).
     await _assertBuddyCardColumns();
 
+    // v380: divers.emergency_tag_share (issue #5060).
+    await _assertEmergencyTagColumn();
+
     // v325: trips.parent_trip_id (issue #3658). Every trip read selects the
     // whole row, for the same reason as the tank columns.
     await _assertTripParentColumn();

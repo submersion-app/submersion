@@ -66,6 +66,7 @@ part 'before_open_table_backstops.dart';
 part 'before_open_view_configs.dart';
 part 'helpers/buddy_card_migrations.dart';
 part 'helpers/buddy_migrations.dart';
+part 'helpers/emergency_tag_migrations.dart';
 part 'helpers/certification_currency_migrations.dart';
 part 'helpers/change_log_migrations.dart';
 part 'helpers/checklist_section_migrations.dart';
