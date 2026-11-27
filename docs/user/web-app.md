@@ -83,9 +83,29 @@ tells you when the store refuses browser requests and shows the exact rule
 to add, with your site's address filled in and a **Copy rule** button.
 The rules below use `https://your-site` as that address. For Submersion's
 own sites it is `https://web.submersion.app`; to sync from the
-[beta web app](#the-beta-web-app) as well, list
-`https://beta.web.submersion.app` beside it (every rule below takes a list
-of addresses).
+[beta web app](#the-beta-web-app) as well, allow
+`https://beta.web.submersion.app` too. The S3, B2 and MinIO rules take a
+list (MinIO's server-wide setting a comma-separated one). The nginx and
+Apache rules set a header that names one address per response, so for
+both sites they answer with the request's own address when it is one of
+the two:
+
+```nginx
+# Outside the server block:
+map $http_origin $submersion_origin {
+    "https://web.submersion.app"      $http_origin;
+    "https://beta.web.submersion.app" $http_origin;
+}
+# Then, in place of the Allow-Origin line below:
+add_header Access-Control-Allow-Origin $submersion_origin always;
+add_header Vary Origin always;
+```
+
+```apache
+SetEnvIf Origin "^https://(beta\.)?web\.submersion\.app$" SUBMERSION_ORIGIN=$0
+Header always set Access-Control-Allow-Origin "%{SUBMERSION_ORIGIN}e" env=SUBMERSION_ORIGIN
+Header always merge Vary Origin
+```
 
 Dropbox needs nothing. iCloud Drive has no browser interface and Git is
 not offered in a browser in this release; the connect screen names both
