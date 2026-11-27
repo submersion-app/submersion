@@ -74,6 +74,8 @@ final exempt = <String, String>{
   'lib/features/trips/data/repositories/trip_equipment_repository.dart:packInBag':
       'a shortcut for pack then assignBag, which trips covers as '
       'equipment_ids and bag_contents',
+  'lib/features/trips/data/repositories/trip_equipment_repository.dart:assignBag':
+      'a one-item assignBags, which trips covers as bag_contents',
   '$gear/equipment_repository_impl.dart:createEquipmentWithTags':
       'the demo data seeder\'s create, which equipment covers as fields and '
       'a tags relation',

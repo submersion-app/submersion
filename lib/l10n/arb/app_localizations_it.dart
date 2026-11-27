@@ -27930,6 +27930,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Registro di caricamento';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Registro della borsa';
+
+  @override
   String get settings_conflict_field_url => 'Indirizzo';
 
   @override

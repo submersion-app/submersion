@@ -8203,6 +8203,7 @@
   "settings_conflict_field_turnPressureRule": "כלל לחץ החזרה",
   "settings_conflict_field_tzOffsetMinutes": "הפרש אזור זמן בדקות",
   "settings_conflict_field_uploadFactsHlc": "יומן העלאה",
+  "settings_conflict_field_bagHlc": "יומן התיק",
   "settings_conflict_field_url": "כתובת",
   "settings_conflict_field_usageDuration": "זמן נשימה",
   "settings_conflict_field_useDiveComputerCnsData": "CNS ממחשב הצלילה",

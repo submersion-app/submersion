@@ -27444,6 +27444,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Upload record';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Bag record';
+
+  @override
   String get settings_conflict_field_url => 'Address';
 
   @override

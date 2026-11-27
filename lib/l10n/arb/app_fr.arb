@@ -8074,6 +8074,7 @@
   "settings_conflict_field_turnPressureRule": "Règle de pression de demi-tour",
   "settings_conflict_field_tzOffsetMinutes": "Décalage de fuseau horaire en minutes",
   "settings_conflict_field_uploadFactsHlc": "Journal d'envoi",
+  "settings_conflict_field_bagHlc": "Journal du sac",
   "settings_conflict_field_url": "Adresse",
   "settings_conflict_field_usageDuration": "Temps respiré",
   "settings_conflict_field_useDiveComputerCnsData": "CNS de l'ordinateur de plongée",

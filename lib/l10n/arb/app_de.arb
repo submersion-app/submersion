@@ -8331,6 +8331,7 @@
   "settings_conflict_field_turnPressureRule": "Regel für den Umkehrdruck",
   "settings_conflict_field_tzOffsetMinutes": "Zeitzonenversatz in Minuten",
   "settings_conflict_field_uploadFactsHlc": "Upload-Protokoll",
+  "settings_conflict_field_bagHlc": "Taschen-Protokoll",
   "settings_conflict_field_url": "Adresse",
   "settings_conflict_field_usageDuration": "Geatmete Zeit",
   "settings_conflict_field_useDiveComputerCnsData": "CNS vom Tauchcomputer",

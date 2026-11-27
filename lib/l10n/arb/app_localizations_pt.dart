@@ -27897,6 +27897,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Registro de envio';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Registro da mala';
+
+  @override
   String get settings_conflict_field_url => 'Endereço';
 
   @override

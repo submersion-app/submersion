@@ -8199,6 +8199,7 @@
   "settings_conflict_field_turnPressureRule": "Regel voor de keerdruk",
   "settings_conflict_field_tzOffsetMinutes": "Tijdzoneverschil in minuten",
   "settings_conflict_field_uploadFactsHlc": "Uploadlog",
+  "settings_conflict_field_bagHlc": "Taslog",
   "settings_conflict_field_url": "Adres",
   "settings_conflict_field_usageDuration": "Geademde tijd",
   "settings_conflict_field_useDiveComputerCnsData": "CNS van de duikcomputer",

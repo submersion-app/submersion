@@ -8241,6 +8241,7 @@
   "settings_conflict_field_turnPressureRule": "ターンプレッシャーのルール",
   "settings_conflict_field_tzOffsetMinutes": "タイムゾーンのオフセット（分）",
   "settings_conflict_field_uploadFactsHlc": "アップロードの記録",
+  "settings_conflict_field_bagHlc": "バッグの記録",
   "settings_conflict_field_url": "アドレス",
   "settings_conflict_field_usageDuration": "呼吸した時間",
   "settings_conflict_field_useDiveComputerCnsData": "ダイブコンピューターのCNS",

@@ -26698,6 +26698,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'アップロードの記録';
 
   @override
+  String get settings_conflict_field_bagHlc => 'バッグの記録';
+
+  @override
   String get settings_conflict_field_url => 'アドレス';
 
   @override

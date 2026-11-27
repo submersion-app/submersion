@@ -8074,6 +8074,7 @@
   "settings_conflict_field_turnPressureRule": "Regola della pressione di ritorno",
   "settings_conflict_field_tzOffsetMinutes": "Scostamento del fuso orario in minuti",
   "settings_conflict_field_uploadFactsHlc": "Registro di caricamento",
+  "settings_conflict_field_bagHlc": "Registro della borsa",
   "settings_conflict_field_url": "Indirizzo",
   "settings_conflict_field_usageDuration": "Tempo respirato",
   "settings_conflict_field_useDiveComputerCnsData": "CNS dal computer subacqueo",

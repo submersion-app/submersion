@@ -27981,6 +27981,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Journal d\'envoi';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Journal du sac';
+
+  @override
   String get settings_conflict_field_url => 'Adresse';
 
   @override

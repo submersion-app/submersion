@@ -8199,6 +8199,7 @@
   "settings_conflict_field_turnPressureRule": "Regra da pressão de retorno",
   "settings_conflict_field_tzOffsetMinutes": "Deslocamento de fuso horário em minutos",
   "settings_conflict_field_uploadFactsHlc": "Registro de envio",
+  "settings_conflict_field_bagHlc": "Registro da mala",
   "settings_conflict_field_url": "Endereço",
   "settings_conflict_field_usageDuration": "Tempo respirado",
   "settings_conflict_field_useDiveComputerCnsData": "CNS do computador de mergulho",

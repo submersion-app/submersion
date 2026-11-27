@@ -27860,6 +27860,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Upload-Protokoll';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Taschen-Protokoll';
+
+  @override
   String get settings_conflict_field_url => 'Adresse';
 
   @override

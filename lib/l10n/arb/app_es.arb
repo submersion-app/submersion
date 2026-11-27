@@ -8199,6 +8199,7 @@
   "settings_conflict_field_turnPressureRule": "Regla de presión de retorno",
   "settings_conflict_field_tzOffsetMinutes": "Desfase de zona horaria en minutos",
   "settings_conflict_field_uploadFactsHlc": "Registro de subida",
+  "settings_conflict_field_bagHlc": "Registro de la bolsa",
   "settings_conflict_field_url": "Dirección",
   "settings_conflict_field_usageDuration": "Tiempo respirado",
   "settings_conflict_field_useDiveComputerCnsData": "CNS del ordenador de buceo",

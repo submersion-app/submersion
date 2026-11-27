@@ -26282,6 +26282,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => '上传记录';
 
   @override
+  String get settings_conflict_field_bagHlc => '装备包记录';
+
+  @override
   String get settings_conflict_field_url => '地址';
 
   @override

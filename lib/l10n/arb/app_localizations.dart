@@ -44094,6 +44094,12 @@ abstract class AppLocalizations {
   /// **'Upload record'**
   String get settings_conflict_field_uploadFactsHlc;
 
+  /// No description provided for @settings_conflict_field_bagHlc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bag record'**
+  String get settings_conflict_field_bagHlc;
+
   /// No description provided for @settings_conflict_field_url.
   ///
   /// In en, this message translates to:

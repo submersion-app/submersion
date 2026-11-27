@@ -16636,6 +16636,7 @@
   "settings_conflict_field_turnPressureRule": "Turn pressure rule",
   "settings_conflict_field_tzOffsetMinutes": "Time zone offset in minutes",
   "settings_conflict_field_uploadFactsHlc": "Upload record",
+  "settings_conflict_field_bagHlc": "Bag record",
   "settings_conflict_field_url": "Address",
   "settings_conflict_field_usageDuration": "Time breathed",
   "settings_conflict_field_useDiveComputerCnsData": "CNS from the dive computer",

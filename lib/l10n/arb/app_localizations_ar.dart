@@ -28229,6 +28229,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'سجل الرفع';
 
   @override
+  String get settings_conflict_field_bagHlc => 'سجل الحقيبة';
+
+  @override
   String get settings_conflict_field_url => 'العنوان';
 
   @override

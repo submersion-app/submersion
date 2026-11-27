@@ -8341,6 +8341,7 @@
   "settings_conflict_field_turnPressureRule": "返程压力规则",
   "settings_conflict_field_tzOffsetMinutes": "时区偏移（分钟）",
   "settings_conflict_field_uploadFactsHlc": "上传记录",
+  "settings_conflict_field_bagHlc": "装备包记录",
   "settings_conflict_field_url": "地址",
   "settings_conflict_field_usageDuration": "呼吸时长",
   "settings_conflict_field_useDiveComputerCnsData": "使用潜水电脑的 CNS",

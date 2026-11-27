@@ -8074,6 +8074,7 @@
   "settings_conflict_field_turnPressureRule": "Fordulónyomás szabálya",
   "settings_conflict_field_tzOffsetMinutes": "Időzóna-eltolás percben",
   "settings_conflict_field_uploadFactsHlc": "Feltöltési napló",
+  "settings_conflict_field_bagHlc": "Táskanapló",
   "settings_conflict_field_url": "Cím",
   "settings_conflict_field_usageDuration": "Belélegzett idő",
   "settings_conflict_field_useDiveComputerCnsData": "CNS a búvárkomputerből",

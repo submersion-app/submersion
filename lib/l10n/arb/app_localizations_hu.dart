@@ -27764,6 +27764,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Feltöltési napló';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Táskanapló';
+
+  @override
   String get settings_conflict_field_url => 'Cím';
 
   @override

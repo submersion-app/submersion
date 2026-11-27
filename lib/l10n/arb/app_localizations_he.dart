@@ -27210,6 +27210,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'יומן העלאה';
 
   @override
+  String get settings_conflict_field_bagHlc => 'יומן התיק';
+
+  @override
   String get settings_conflict_field_url => 'כתובת';
 
   @override

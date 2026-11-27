@@ -27743,6 +27743,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Uploadlog';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Taslog';
+
+  @override
   String get settings_conflict_field_url => 'Adres';
 
   @override

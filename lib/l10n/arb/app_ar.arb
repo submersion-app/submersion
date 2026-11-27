@@ -8199,6 +8199,7 @@
   "settings_conflict_field_turnPressureRule": "قاعدة ضغط العودة",
   "settings_conflict_field_tzOffsetMinutes": "فارق المنطقة الزمنية بالدقائق",
   "settings_conflict_field_uploadFactsHlc": "سجل الرفع",
+  "settings_conflict_field_bagHlc": "سجل الحقيبة",
   "settings_conflict_field_url": "العنوان",
   "settings_conflict_field_usageDuration": "وقت التنفس",
   "settings_conflict_field_useDiveComputerCnsData": "CNS من حاسوب الغوص",
