@@ -12031,6 +12031,27 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_detail_section_openingHours => 'Opening Hours';
 
   @override
+  String get diveSites_contact_mapsFailed => 'Could not open maps';
+
+  @override
+  String get diveSites_contact_linkFailed => 'Could not open the link';
+
+  @override
+  String get diveSites_contact_directions => 'Directions';
+
+  @override
+  String get diveSites_contact_address => 'Address';
+
+  @override
+  String get diveSites_contact_phone => 'Phone';
+
+  @override
+  String get diveSites_contact_email => 'Email';
+
+  @override
+  String get diveSites_contact_website => 'Website';
+
+  @override
   String get diveSites_detail_section_altitude => 'Altitude';
 
   @override

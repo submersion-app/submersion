@@ -19104,6 +19104,48 @@ abstract class AppLocalizations {
   /// **'Opening Hours'**
   String get diveSites_detail_section_openingHours;
 
+  /// No description provided for @diveSites_contact_mapsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open maps'**
+  String get diveSites_contact_mapsFailed;
+
+  /// No description provided for @diveSites_contact_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link'**
+  String get diveSites_contact_linkFailed;
+
+  /// No description provided for @diveSites_contact_directions.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get diveSites_contact_directions;
+
+  /// No description provided for @diveSites_contact_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get diveSites_contact_address;
+
+  /// No description provided for @diveSites_contact_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get diveSites_contact_phone;
+
+  /// No description provided for @diveSites_contact_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get diveSites_contact_email;
+
+  /// No description provided for @diveSites_contact_website.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get diveSites_contact_website;
+
   /// No description provided for @diveSites_detail_section_altitude.
   ///
   /// In en, this message translates to:
