@@ -19276,7 +19276,7 @@
   "settings_notifications_draftReminder": "Recordarme los borradores de inmersión",
   "settings_notifications_draftReminder_subtitle": "Tres días después de la salida de un borrador, si aún espera una descarga",
   "settings_notifications_firmwareChecks": "Buscar actualizaciones de firmware",
-  "settings_notifications_firmwareChecks_subtitle": "Lee la lista pública de firmware una vez al día. No se envía nada sobre ti.",
+  "settings_notifications_firmwareChecks_subtitle": "Lee la lista abierta de firmware una vez al día. No se envía nada sobre ti.",
   "settings_notifications_firmwareNotices": "Notificaciones de actualizaciones de firmware",
   "settings_notifications_firmwareNotices_subtitle": "Una vez por cada versión nueva de cada equipo",
   "universalImport_label_fillDraft": "Completar borrador",

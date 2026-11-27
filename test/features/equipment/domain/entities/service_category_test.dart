@@ -4,8 +4,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 
 void main() {
-  test('ServiceCategory keeps the ten values and their wire names', () {
-    expect(ServiceCategory.values, hasLength(10));
+  test('ServiceCategory keeps the eleven values and their wire names', () {
+    expect(ServiceCategory.values, hasLength(11));
     expect(ServiceCategory.values.map((c) => c.name).toList(), const [
       'annual',
       'repair',
@@ -14,6 +14,7 @@ void main() {
       'replacement',
       'cleaning',
       'calibration',
+      'firmwareUpdate',
       'warranty',
       'recall',
       'other',

@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
@@ -101,7 +102,7 @@ final firmwareUpdatesProvider = FutureProvider<List<FirmwareUpdateEntry>>((
       isSafetyUpdate(a.status) ? 1 : 0,
     );
     if (safety != 0) return safety;
-    return a.item.name.toLowerCase().compareTo(b.item.name.toLowerCase());
+    return compareTextForSort(a.item.name, b.item.name);
   });
   return updates;
 });

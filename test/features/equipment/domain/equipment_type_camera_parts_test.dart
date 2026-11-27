@@ -103,6 +103,9 @@ void main() {
       expect(keysFor(EquipmentType.strobe), [
         'depth_rating_m',
         'guide_number_m',
+        // Firmware (issue #5104): a strobe's maker publishes updates.
+        'firmware_version',
+        'firmware_page_url',
       ]);
     });
 

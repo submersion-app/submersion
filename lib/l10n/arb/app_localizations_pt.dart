@@ -30705,7 +30705,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_notifications_firmwareChecks_subtitle =>
-      'Lê a lista pública de firmware uma vez por dia. Nada sobre você é enviado.';
+      'Lê a lista aberta de firmware uma vez por dia. Nada sobre você é enviado.';
 
   @override
   String get settings_notifications_firmwareNotices =>
