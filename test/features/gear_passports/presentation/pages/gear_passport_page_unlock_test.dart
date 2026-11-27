@@ -14,6 +14,10 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/gear_passports/presentation/pages/gear_passport_page.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -28,7 +32,11 @@ void main() {
   final at = DateTime(2026, 3, 3);
 
   setUp(() async {
-    await setUpTestDatabase();
+    final db = await setUpTestDatabase();
+    await db.customStatement(
+      "INSERT INTO service_kinds (id, name, default_interval_days, "
+      "created_at, updated_at) VALUES ('k-hose', 'Hose swap', 730, 0, 0)",
+    );
     addTearDown(SyncCoordinator.reset);
   });
   tearDown(tearDownTestDatabase);
@@ -102,6 +110,39 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(l.gearPassport_recent_seeAll), findsNothing);
+  });
+
+  testWidgets('the closed Service clocks card shows the clocks the sitting '
+      'holds (issue #5042)', (tester) async {
+    await pump(tester, apex);
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    final host =
+        tester.state(find.byType(GearPassportPage))
+            as RecordEditHost<GearPassportPage, EquipmentItem>;
+    final session = host.editController.session!;
+    await tester.runAsync(() => gearItemClocksList.currentOrRead(session));
+    expect(find.text('Hose swap'), findsNothing);
+
+    holdClock(
+      session,
+      ServiceSchedule(
+        id: '',
+        equipmentId: apex.id,
+        serviceKindId: 'k-hose',
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(ServiceClocksCard),
+        matching: find.text('Hose swap'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a tank forwards to the cylinder passport', (tester) async {

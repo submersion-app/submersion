@@ -29,16 +29,16 @@ Future<void> _seedCourseFixture() async {
 }
 
 void main() {
-  test('v384 upgrades existing requirements without rewriting them', () async {
-    expect(AppDatabase.migrationVersions, contains(384));
+  test('v385 upgrades existing requirements without rewriting them', () async {
+    expect(AppDatabase.migrationVersions, contains(385));
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,
-      greaterThanOrEqualTo(384),
+      greaterThanOrEqualTo(385),
     );
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 383');
+          rawDb.execute('PRAGMA user_version = 384');
           rawDb.execute('''
           CREATE TABLE course_requirements (
             id TEXT NOT NULL PRIMARY KEY,

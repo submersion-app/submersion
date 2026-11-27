@@ -73,7 +73,7 @@ void _seed380(Database raw) {
 }
 
 void main() {
-  test('v381 is in the ladder and the floor is at least v381', () {
+  test('v381 is in the ladder and the floor is at least 381', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(381));
     expect(AppDatabase.migrationVersions, contains(381));
     expect(

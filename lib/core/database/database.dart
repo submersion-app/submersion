@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 384;
+  static const int currentSchemaVersion = 385;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -524,11 +524,19 @@ class AppDatabase extends _$AppDatabase {
   /// usually updates first. Held below the floor, it reads them all once it
   /// updates. Its own payloads still arrive here and decode cleanly.
   ///
-  /// Raised 381 -> 384 for derived course requirements: older readers treat
+  /// Raised 381 -> 384 by gear on trip checklists (#4934): a v384 item with
+  /// an equipment link is done when that gear is packed for the trip, and
+  /// its own is_done column is ignored. A peer below 384 drops the link and
+  /// reads the stale is_done, so it shows packed gear as not packed, and a
+  /// tick there writes is_done without packing anything. Held below the
+  /// floor until it updates. Its own payloads still arrive here and decode
+  /// cleanly: a missing link is null, a plain item.
+  ///
+  /// Raised 384 -> 385 for derived course requirements: older readers treat
   /// the new kinds as manually credited dives and discard the conditions.
   /// Holding those readers also prevents them from publishing explicit nulls
   /// for the discarded conditions after they upgrade.
-  static const int minimumCompatibleSchemaVersion = 384;
+  static const int minimumCompatibleSchemaVersion = 385;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1808,9 +1816,12 @@ class AppDatabase extends _$AppDatabase {
     // ID practice boxes per species (issue #5027). Additive; the floor does
     // not move.
     383,
-    // v384: the equipment and dive query for derived course requirements.
-    // New kinds require the sync floor to rise to 384.
+    // v384: optional inventory link on trip checklist items (issue #4934).
+    // The floor rises to 384 (see minimumCompatibleSchemaVersion).
     384,
+    // v385: the equipment and dive query for derived course requirements.
+    // New kinds require the sync floor to rise to 385.
+    385,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

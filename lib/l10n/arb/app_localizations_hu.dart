@@ -4966,7 +4966,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'Csere';
 
   @override
+  String get checklists_addGear => 'Felszerelés hozzáadása';
+
+  @override
+  String get checklists_addGearSet => 'Felszereléskészlet hozzáadása';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'A palackok a Felszerelés lapra kerülnek.';
+
+  @override
   String get checklists_addItem => 'Tétel hozzáadása';
+
+  @override
+  String get checklists_toPack => 'Bepakolandó';
+
+  @override
+  String get checklists_packed => 'Bepakolva';
 
   @override
   String get checklists_item_titleLabel => 'Cím';

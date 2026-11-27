@@ -31,8 +31,7 @@ void main() {
       AppDatabase.migrationStepCount(382),
       AppDatabase.migrationStepCount(383) + 1,
     );
-    // Additive tables: v383 left the floor at 381. v384 (derived course
-    // requirements) raised it later.
+    // Additive tables: v383 does not move the floor.
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,
       greaterThanOrEqualTo(381),

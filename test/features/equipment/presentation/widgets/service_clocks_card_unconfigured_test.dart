@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -32,12 +33,13 @@ void main() {
       ProviderScope(
         overrides: [
           // No evaluated statuses (interval-less => engine emits nothing).
-          serviceClockStatusesProvider(
-            'e1',
-          ).overrideWith((ref) async => const []),
-          serviceSchedulesForEquipmentProvider(
-            'e1',
-          ).overrideWith((ref) async => [schedule]),
+          serviceClockSnapshotProvider('e1').overrideWith(
+            (ref) async => ServiceClockSnapshot(
+              schedules: [schedule],
+              records: const [],
+              evaluate: (_, _) => const [],
+            ),
+          ),
           serviceKindsProvider.overrideWith((ref) async => [kind]),
         ],
         child: const MaterialApp(
