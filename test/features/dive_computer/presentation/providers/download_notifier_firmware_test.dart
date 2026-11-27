@@ -59,7 +59,7 @@ void main() {
   late StreamController<DownloadEvent> events;
   late List<(String, String)> reports;
   late List<DiveComputer> updates;
-  late Future<void> Function(String, String) reportFirmware;
+  late Future<void> Function(DiveComputer, String) reportFirmware;
   late DownloadNotifier notifier;
 
   setUp(() {
@@ -68,7 +68,8 @@ void main() {
     events = StreamController<DownloadEvent>.broadcast();
     reports = [];
     updates = [];
-    reportFirmware = (id, version) async => reports.add((id, version));
+    reportFirmware = (computer, version) async =>
+        reports.add((computer.equipmentId!, version));
     when(service.downloadEvents).thenAnswer((_) => events.stream);
     when(
       service.startDownload(any, fingerprint: anyNamed('fingerprint')),
@@ -79,7 +80,7 @@ void main() {
     notifier = DownloadNotifier(
       service: service,
       repository: repository,
-      reportFirmware: (id, version) => reportFirmware(id, version),
+      reportFirmware: (computer, version) => reportFirmware(computer, version),
     );
   });
 

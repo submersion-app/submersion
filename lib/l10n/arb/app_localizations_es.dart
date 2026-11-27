@@ -17862,6 +17862,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get firmware_log_notes => 'Notas';
 
   @override
+  String get firmware_log_saveFailed =>
+      'No se pudo guardar la actualización. Inténtalo de nuevo.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Servicio en garantía';
 
   @override

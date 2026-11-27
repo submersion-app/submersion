@@ -5128,6 +5128,7 @@
   "firmware_log_versionRequired": "Add meg a verziót",
   "firmware_log_date": "Dátum",
   "firmware_log_notes": "Megjegyzések",
+  "firmware_log_saveFailed": "Nem sikerült menteni a frissítést. Próbáld újra.",
   "equipment_serviceCategory_warranty": "Garanciális szerviz",
   "equipment_serviceCategory_recall": "Visszahívás/Biztonság",
   "equipment_serviceCategory_other": "Egyéb",

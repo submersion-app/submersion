@@ -17757,6 +17757,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get firmware_log_notes => 'Notities';
 
   @override
+  String get firmware_log_saveFailed =>
+      'Kan de update niet opslaan. Probeer het opnieuw.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Garantieservice';
 
   @override

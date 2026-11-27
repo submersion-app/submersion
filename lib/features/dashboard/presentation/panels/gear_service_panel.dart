@@ -69,31 +69,46 @@ class GearServicePanel extends ConsumerWidget {
         value: bars,
         isEmpty: (b) => b.isEmpty && updates.isEmpty,
         emptyText: emptyText,
-        builder: (b) => Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final bar in b.take(max))
-              HomeBarRow(
-                label: bar.itemName,
-                value: gearRemainingText(l10n, bar.status),
-                fraction: bar.fraction,
-                tone: switch (bar.status.severity) {
-                  ServiceClockSeverity.overdue => HomeBarTone.alert,
-                  ServiceClockSeverity.dueSoon => HomeBarTone.warn,
-                  _ => HomeBarTone.ok,
-                },
-              ),
-            if (updates.isNotEmpty)
-              HomeFirmwareRows(
-                updates: updates,
-                limit: max - b.take(max).length,
-              ),
-          ],
-        ),
+        builder: (b) {
+          // Due and overdue clocks first, then firmware updates (issue
+          // #5104), then the clocks with time to spare, within one cap.
+          final due = [
+            for (final bar in b)
+              if (bar.status.severity != ServiceClockSeverity.ok) bar,
+          ].take(max).toList();
+          final firmwareRoom = max - due.length;
+          final firmwareShown = updates.length < firmwareRoom
+              ? updates.length
+              : firmwareRoom;
+          final healthy = [
+            for (final bar in b)
+              if (bar.status.severity == ServiceClockSeverity.ok) bar,
+          ].take(firmwareRoom - firmwareShown);
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final bar in due) _barRow(l10n, bar),
+              if (updates.isNotEmpty)
+                HomeFirmwareRows(updates: updates, limit: firmwareRoom),
+              for (final bar in healthy) _barRow(l10n, bar),
+            ],
+          );
+        },
       ),
     );
   }
 }
+
+Widget _barRow(AppLocalizations l10n, GearServiceBar bar) => HomeBarRow(
+  label: bar.itemName,
+  value: gearRemainingText(l10n, bar.status),
+  fraction: bar.fraction,
+  tone: switch (bar.status.severity) {
+    ServiceClockSeverity.overdue => HomeBarTone.alert,
+    ServiceClockSeverity.dueSoon => HomeBarTone.warn,
+    _ => HomeBarTone.ok,
+  },
+);
 
 /// What is left on a service clock, in the measure that runs out first:
 /// days to the due date, else dives, else hours.

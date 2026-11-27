@@ -5253,6 +5253,7 @@
   "firmware_log_versionRequired": "Voer de versie in",
   "firmware_log_date": "Datum",
   "firmware_log_notes": "Notities",
+  "firmware_log_saveFailed": "Kan de update niet opslaan. Probeer het opnieuw.",
   "equipment_serviceCategory_warranty": "Garantieservice",
   "equipment_serviceCategory_recall": "Terugroepactie/Veiligheid",
   "equipment_serviceCategory_other": "Overig",

@@ -17011,6 +17011,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get firmware_log_notes => '备注';
 
   @override
+  String get firmware_log_saveFailed => '无法保存更新。请重试。';
+
+  @override
   String get equipment_serviceCategory_warranty => '保修服务';
 
   @override

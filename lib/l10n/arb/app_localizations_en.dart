@@ -17615,6 +17615,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firmware_log_notes => 'Notes';
 
   @override
+  String get firmware_log_saveFailed => 'Couldn\'t save the update. Try again.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Warranty Service';
 
   @override

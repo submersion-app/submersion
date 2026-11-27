@@ -17865,6 +17865,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get firmware_log_notes => 'Notas';
 
   @override
+  String get firmware_log_saveFailed =>
+      'Não foi possível salvar a atualização. Tente novamente.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Serviço em garantia';
 
   @override

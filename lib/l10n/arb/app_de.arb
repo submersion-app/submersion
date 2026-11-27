@@ -5378,6 +5378,7 @@
   "firmware_log_versionRequired": "Gib die Version ein",
   "firmware_log_date": "Datum",
   "firmware_log_notes": "Notizen",
+  "firmware_log_saveFailed": "Das Update konnte nicht gespeichert werden. Versuche es erneut.",
   "equipment_serviceCategory_warranty": "Garantieservice",
   "equipment_serviceCategory_recall": "Rückruf/Sicherheit",
   "equipment_serviceCategory_other": "Sonstiges",

@@ -341,4 +341,63 @@ void main() {
 
     expect(asked, ['suit']);
   });
+  // Issue #5104: a firmware update is not a service. The plan never counts
+  // it toward the item's last service date, and it fulfils no service type.
+  Future<void> firmwareRecord(String id, DateTime day) => db
+      .into(db.serviceRecords)
+      .insert(
+        ServiceRecordsCompanion.insert(
+          id: id,
+          equipmentId: 'suit',
+          serviceCategory: 'firmwareUpdate',
+          serviceDate: day.millisecondsSinceEpoch,
+          firmwareVersion: const Value('V95'),
+          createdAt: t,
+          updatedAt: t,
+        ),
+      );
+
+  test('a firmware record is no service in the plan', () async {
+    await h.run([createOp('service_records', record('2026-03-01'))]);
+    await firmwareRecord('fw', DateTime(2026, 10, 1));
+    expect(await lastService(), DateTime(2026, 3, 1));
+
+    final create = await h.preview([
+      createOp('service_records', record('2025-01-01')),
+    ]);
+    expect(create.items.single.alsoChanges, isEmpty);
+
+    final older = (await h.run([
+      createOp('service_records', record('2026-02-01')),
+    ])).created.single.id;
+    final delete = await h.preview([deleteOp('service_records', older)]);
+    expect(delete.items.single.alsoChanges, isEmpty);
+  });
+
+  test('a firmware update names no service type', () async {
+    final create = await h.preview([
+      createOp('service_records', {
+        ...record('2026-03-01'),
+        'category': 'firmwareUpdate',
+      }),
+    ]);
+    expect(create.items.single.block, isNotNull);
+
+    final id = (await h.run([
+      createOp('service_records', record('2026-03-01')),
+    ])).created.single.id;
+    final keepsType = await h.preview([
+      updateOp('service_records', id, {'category': 'firmwareUpdate'}),
+    ]);
+    expect(keepsType.items.single.block, isNotNull);
+
+    final dropsType = await h.preview([
+      updateOp('service_records', id, {
+        'category': 'firmwareUpdate',
+        'service_kind_id': null,
+        'firmware_version': 'V95',
+      }),
+    ]);
+    expect(dropsType.items.single.block, isNull);
+  });
 }

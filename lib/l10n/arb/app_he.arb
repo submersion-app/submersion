@@ -5128,6 +5128,7 @@
   "firmware_log_versionRequired": "הזן את הגרסה",
   "firmware_log_date": "תאריך",
   "firmware_log_notes": "הערות",
+  "firmware_log_saveFailed": "לא ניתן לשמור את העדכון. נסה שוב.",
   "equipment_serviceCategory_warranty": "שירות אחריות",
   "equipment_serviceCategory_recall": "ריקול/בטיחות",
   "equipment_serviceCategory_other": "אחר",

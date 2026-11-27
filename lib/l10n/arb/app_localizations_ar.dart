@@ -18165,6 +18165,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get firmware_log_notes => 'ملاحظات';
 
   @override
+  String get firmware_log_saveFailed => 'تعذر حفظ التحديث. حاول مرة أخرى.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'خدمة الضمان';
 
   @override

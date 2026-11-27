@@ -5253,6 +5253,7 @@
   "firmware_log_versionRequired": "أدخل الإصدار",
   "firmware_log_date": "التاريخ",
   "firmware_log_notes": "ملاحظات",
+  "firmware_log_saveFailed": "تعذر حفظ التحديث. حاول مرة أخرى.",
   "equipment_serviceCategory_warranty": "خدمة الضمان",
   "equipment_serviceCategory_recall": "استدعاء/سلامة",
   "equipment_serviceCategory_other": "أخرى",

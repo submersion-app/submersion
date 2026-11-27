@@ -18,7 +18,9 @@ import 'panel_harness.dart';
 /// The gear service panel lists firmware updates after the service bars
 /// (issue #5104), within the panel's row cap.
 void main() {
-  ServiceClockStatus clock() => ServiceClockStatus(
+  ServiceClockStatus clock([
+    ServiceClockSeverity severity = ServiceClockSeverity.ok,
+  ]) => ServiceClockStatus(
     schedule: ServiceSchedule(
       id: 's',
       equipmentId: 'e',
@@ -34,14 +36,17 @@ void main() {
     ),
     anchor: DateTime(2026),
     dueDate: DateTime.now().add(const Duration(days: 40, hours: 1)),
-    severity: ServiceClockSeverity.ok,
+    severity: severity,
     now: DateTime.now(),
   );
 
-  GearServiceBar bar(String id) => GearServiceBar(
+  GearServiceBar bar(
+    String id, [
+    ServiceClockSeverity severity = ServiceClockSeverity.ok,
+  ]) => GearServiceBar(
     itemId: id,
     itemName: 'Reg $id',
-    status: clock(),
+    status: clock(severity),
     fraction: 0.3,
   );
 
@@ -79,7 +84,10 @@ void main() {
       const GearServicePanel(),
       height: 320,
       overrides: overrides(
-        [bar('1'), bar('2')],
+        [
+          bar('1', ServiceClockSeverity.dueSoon),
+          bar('2', ServiceClockSeverity.dueSoon),
+        ],
         [
           update('a', 'Perdix 2', 'V95'),
           update('b', 'Teric', 'V40'),
@@ -131,5 +139,26 @@ void main() {
     expect(find.text('Reg 1'), findsOneWidget);
     expect(find.textContaining('firmware'), findsNothing);
     expect(find.textContaining('Firmware'), findsNothing);
+  });
+  testWidgets('a due bar comes first, then updates, then healthy bars', (
+    tester,
+  ) async {
+    await pumpPanel(
+      tester,
+      const GearServicePanel(),
+      height: 320,
+      overrides: overrides(
+        [bar('1', ServiceClockSeverity.overdue), bar('2'), bar('3')],
+        [update('a', 'Perdix 2', 'V95')],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final y = {
+      for (final t in ['Reg 1', 'Perdix 2', 'Reg 2'])
+        t: tester.getTopLeft(find.text(t)).dy,
+    };
+    expect(y['Reg 1']! < y['Perdix 2']!, isTrue);
+    expect(y['Perdix 2']! < y['Reg 2']!, isTrue);
+    expect(find.text('Reg 3'), findsNothing);
   });
 }

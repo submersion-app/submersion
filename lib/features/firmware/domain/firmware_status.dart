@@ -4,9 +4,13 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/firmware/domain/firmware_catalogue.dart';
 
 /// A maker or model name reduced to letters and digits, lower case, so
-/// "Perdix 2", "perdix2" and "PERDIX-2" compare equal.
-String normalizeFirmwareName(String s) =>
-    s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+/// "Perdix 2", "perdix2" and "PERDIX-2" compare equal. A `+` names a
+/// different model ("Puck Pro+" is not a "Puck Pro"), so it becomes "plus";
+/// letters beyond Latin are kept.
+String normalizeFirmwareName(String s) => s
+    .toLowerCase()
+    .replaceAll('+', 'plus')
+    .replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '');
 
 /// The catalogue model an item of [type] made by [brand] as [model] is, or
 /// null. The maker must match the model's maker or one of its aliases, the

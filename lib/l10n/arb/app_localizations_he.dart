@@ -17502,6 +17502,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get firmware_log_notes => 'הערות';
 
   @override
+  String get firmware_log_saveFailed => 'לא ניתן לשמור את העדכון. נסה שוב.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'שירות אחריות';
 
   @override

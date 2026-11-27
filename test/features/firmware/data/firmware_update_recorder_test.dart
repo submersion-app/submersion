@@ -149,6 +149,36 @@ void main() {
     },
   );
 
+  test('a gear twin with no maker of its own matches through the '
+      'download', () async {
+    await equipment.createEquipment(
+      EquipmentItem(
+        id: 'twin',
+        name: 'Perdix 2',
+        type: EquipmentType.computer,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: 'twin',
+            key: EquipmentAttrKeys.firmwareVersion,
+            valueText: 'V95',
+          ),
+        ],
+      ),
+    );
+
+    final outcome = await recorder.recordReported(
+      equipmentId: 'twin',
+      reportedVersion: '95',
+      at: at,
+      catalogue: catalogue,
+      fallbackBrand: 'Shearwater',
+      fallbackModel: 'Perdix 2',
+    );
+
+    expect(outcome, FirmwareReportOutcome.unchanged);
+    expect(await records.getRecordsForEquipment('twin'), isEmpty);
+  });
+
   test('a new version logs one entry', () async {
     await addComputer(firmware: 'V92');
 

@@ -5128,6 +5128,7 @@
   "firmware_log_versionRequired": "Inserisci la versione",
   "firmware_log_date": "Data",
   "firmware_log_notes": "Note",
+  "firmware_log_saveFailed": "Impossibile salvare l'aggiornamento. Riprova.",
   "equipment_serviceCategory_warranty": "Assistenza in garanzia",
   "equipment_serviceCategory_recall": "Richiamo/Sicurezza",
   "equipment_serviceCategory_other": "Altro",

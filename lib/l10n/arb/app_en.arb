@@ -10685,6 +10685,7 @@
   "firmware_log_versionRequired": "Enter the version",
   "firmware_log_date": "Date",
   "firmware_log_notes": "Notes",
+  "firmware_log_saveFailed": "Couldn't save the update. Try again.",
   "equipment_serviceCategory_warranty": "Warranty Service",
   "equipment_serviceCategory_recall": "Recall/Safety",
   "equipment_serviceCategory_other": "Other",

@@ -41,6 +41,16 @@ void main() {
       expect(normalizeFirmwareName(' Perdix-2 AI '), 'perdix2ai');
       expect(normalizeFirmwareName('OSTC 4'), 'ostc4');
     });
+
+    test('keeps a plus and letters beyond Latin apart', () {
+      expect(
+        normalizeFirmwareName('Puck Pro+'),
+        isNot(normalizeFirmwareName('Puck Pro')),
+      );
+      expect(normalizeFirmwareName('Puck Pro +'), 'puckproplus');
+      expect(normalizeFirmwareName('ダイブ 2'), 'ダイブ2');
+      expect(normalizeFirmwareName('Señor X'), 'señorx');
+    });
   });
 
   group('matchFirmwareModel', () {

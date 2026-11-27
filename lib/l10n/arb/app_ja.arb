@@ -5255,6 +5255,7 @@
   "firmware_log_versionRequired": "バージョンを入力してください",
   "firmware_log_date": "日付",
   "firmware_log_notes": "メモ",
+  "firmware_log_saveFailed": "更新を保存できませんでした。もう一度お試しください。",
   "equipment_serviceCategory_warranty": "保証修理",
   "equipment_serviceCategory_recall": "リコール/安全",
   "equipment_serviceCategory_other": "その他",

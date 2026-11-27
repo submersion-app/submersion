@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -127,5 +129,34 @@ void main() {
 
   test('the summary opens the equipment list', () {
     expect(notificationPayloadRoute(kFirmwareUpdatesPayload), '/equipment');
+  });
+  test('a re-run while a send is in flight does not send again', () async {
+    SharedPreferences.setMockInitialValues({});
+    final p = await SharedPreferences.getInstance();
+    final gate = Completer<void>();
+    var sends = 0;
+    final c = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(p),
+        firmwareUpdatesProvider.overrideWith(
+          (ref) async => [update('a', 'V95')],
+        ),
+        firmwareNoticeSenderProvider.overrideWithValue((notice) async {
+          sends++;
+          await gate.future;
+        }),
+        firmwareNoticeL10nProvider.overrideWithValue(AppLocalizationsEn()),
+      ],
+    );
+    addTearDown(c.dispose);
+    final first = c.read(firmwareNotificationSyncProvider.future);
+    await pumpEventQueue();
+    c.invalidate(firmwareNotificationSyncProvider);
+    final second = c.read(firmwareNotificationSyncProvider.future);
+    await pumpEventQueue();
+    gate.complete();
+    await first;
+    await second;
+    expect(sends, 1);
   });
 }

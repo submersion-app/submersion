@@ -17250,6 +17250,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get firmware_log_notes => 'メモ';
 
   @override
+  String get firmware_log_saveFailed => '更新を保存できませんでした。もう一度お試しください。';
+
+  @override
   String get equipment_serviceCategory_warranty => '保証修理';
 
   @override

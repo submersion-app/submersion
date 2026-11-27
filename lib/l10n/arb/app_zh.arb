@@ -5371,6 +5371,7 @@
   "firmware_log_versionRequired": "请输入版本",
   "firmware_log_date": "日期",
   "firmware_log_notes": "备注",
+  "firmware_log_saveFailed": "无法保存更新。请重试。",
   "equipment_serviceCategory_warranty": "保修服务",
   "equipment_serviceCategory_recall": "召回/安全",
   "equipment_serviceCategory_other": "其他",

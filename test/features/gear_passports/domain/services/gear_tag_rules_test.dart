@@ -38,6 +38,25 @@ void main() {
     );
   });
 
+  // Issue #5104: a firmware update is not a service, so a tag or label
+  // written after one still names the last real service.
+  test('a firmware update is not the last service', () {
+    final firmware = ServiceRecord(
+      id: 'fw',
+      equipmentId: 'eq',
+      serviceCategory: ServiceCategory.firmwareUpdate,
+      serviceDate: DateTime(2026, 11, 1),
+      firmwareVersion: 'V95',
+      createdAt: DateTime(2026, 11, 1),
+      updatedAt: DateTime(2026, 11, 1),
+    );
+    expect(
+      lastServiceDate([_record(DateTime(2026, 3, 2)), firmware]),
+      DateTime(2026, 3, 2),
+    );
+    expect(lastServiceDate([firmware]), isNull);
+  });
+
   test('the payload carries the row and the date written', () {
     final p = gearPayloadForItem(
       item: _item(),

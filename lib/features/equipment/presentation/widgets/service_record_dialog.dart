@@ -267,96 +267,98 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // The service type this record fulfills, which is also the
                 // clock it resets. Leads the form: it is the one thing the
                 // diver must choose, and the category below follows from it.
-                ref
-                    .watch(serviceKindsProvider)
-                    .whenData(offered)
-                    .maybeWhen(
-                      data: (kinds) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          DropdownButtonFormField<String?>(
-                            key: const Key('service-record-service-type'),
-                            initialValue:
-                                kinds.any((k) => k.id == _serviceKindId)
-                                ? _serviceKindId
-                                : null,
-                            decoration: InputDecoration(
-                              labelText: context
-                                  .l10n
-                                  .equipment_serviceDialog_serviceTypeLabel,
-                              helperText: context
-                                  .l10n
-                                  .equipment_serviceDialog_serviceTypeHelper,
-                              helperMaxLines: 2,
-                              prefixIcon: const Icon(Icons.build),
+                // A firmware update resets no clock (#5104), so it has none.
+                if (!_isFirmwareUpdate)
+                  ref
+                      .watch(serviceKindsProvider)
+                      .whenData(offered)
+                      .maybeWhen(
+                        data: (kinds) => Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            DropdownButtonFormField<String?>(
+                              key: const Key('service-record-service-type'),
+                              initialValue:
+                                  kinds.any((k) => k.id == _serviceKindId)
+                                  ? _serviceKindId
+                                  : null,
+                              decoration: InputDecoration(
+                                labelText: context
+                                    .l10n
+                                    .equipment_serviceDialog_serviceTypeLabel,
+                                helperText: context
+                                    .l10n
+                                    .equipment_serviceDialog_serviceTypeHelper,
+                                helperMaxLines: 2,
+                                prefixIcon: const Icon(Icons.build),
+                              ),
+                              // Required when creating, optional when editing:
+                              // forcing a pick on an existing record would
+                              // attach a clock and move its anchor.
+                              validator: (value) => !isEditing && value == null
+                                  ? context
+                                        .l10n
+                                        .equipment_serviceDialog_serviceTypeRequired
+                                  : null,
+                              items: [
+                                DropdownMenuItem<String?>(
+                                  value: null,
+                                  child: Text(
+                                    context
+                                        .l10n
+                                        .equipment_serviceDialog_serviceTypeNotSet,
+                                  ),
+                                ),
+                                for (final kind in kinds)
+                                  // The current selection stays offered even
+                                  // when it falls outside the narrowed list
+                                  // (e.g. its schedule got paused since), in
+                                  // both add and edit mode, so switching the
+                                  // filter can never silently drop it.
+                                  if (effectiveShowAllServiceTypes ||
+                                      configuredKindIds.contains(kind.id) ||
+                                      kind.id == _serviceKindId)
+                                    DropdownMenuItem<String?>(
+                                      value: kind.id,
+                                      child: Text(kind.name),
+                                    ),
+                              ],
+                              onChanged: (value) {
+                                setState(() => _serviceKindId = value);
+                              },
                             ),
-                            // Required when creating, optional when editing:
-                            // forcing a pick on an existing record would
-                            // attach a clock and move its anchor.
-                            validator: (value) => !isEditing && value == null
-                                ? context
-                                      .l10n
-                                      .equipment_serviceDialog_serviceTypeRequired
-                                : null,
-                            items: [
-                              DropdownMenuItem<String?>(
-                                value: null,
+                            SwitchListTile(
+                              key: const Key(
+                                'service-record-filter-configured-types',
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                              dense: true,
+                              title: Text(
+                                context
+                                    .l10n
+                                    .equipment_serviceDialog_filterToConfiguredTypes,
+                              ),
+                              value: !effectiveShowAllServiceTypes,
+                              onChanged: (value) =>
+                                  setState(() => _showAllServiceTypes = !value),
+                            ),
+                            Align(
+                              alignment: AlignmentDirectional.centerEnd,
+                              child: TextButton(
+                                onPressed: () =>
+                                    context.pushNamed('manageServiceTypes'),
                                 child: Text(
                                   context
                                       .l10n
-                                      .equipment_serviceDialog_serviceTypeNotSet,
+                                      .equipment_serviceDialog_manageServiceTypes,
                                 ),
                               ),
-                              for (final kind in kinds)
-                                // The current selection stays offered even
-                                // when it falls outside the narrowed list
-                                // (e.g. its schedule got paused since), in
-                                // both add and edit mode, so switching the
-                                // filter can never silently drop it.
-                                if (effectiveShowAllServiceTypes ||
-                                    configuredKindIds.contains(kind.id) ||
-                                    kind.id == _serviceKindId)
-                                  DropdownMenuItem<String?>(
-                                    value: kind.id,
-                                    child: Text(kind.name),
-                                  ),
-                            ],
-                            onChanged: (value) {
-                              setState(() => _serviceKindId = value);
-                            },
-                          ),
-                          SwitchListTile(
-                            key: const Key(
-                              'service-record-filter-configured-types',
                             ),
-                            contentPadding: EdgeInsets.zero,
-                            dense: true,
-                            title: Text(
-                              context
-                                  .l10n
-                                  .equipment_serviceDialog_filterToConfiguredTypes,
-                            ),
-                            value: !effectiveShowAllServiceTypes,
-                            onChanged: (value) =>
-                                setState(() => _showAllServiceTypes = !value),
-                          ),
-                          Align(
-                            alignment: AlignmentDirectional.centerEnd,
-                            child: TextButton(
-                              onPressed: () =>
-                                  context.pushNamed('manageServiceTypes'),
-                              child: Text(
-                                context
-                                    .l10n
-                                    .equipment_serviceDialog_manageServiceTypes,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                        orElse: () => const SizedBox.shrink(),
                       ),
-                      orElse: () => const SizedBox.shrink(),
-                    ),
 
                 // What kind of work it was. Secondary to the service type
                 // above, and prefilled from it.
@@ -619,6 +621,9 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
     }
   }
 
+  bool get _isFirmwareUpdate =>
+      _serviceCategory == ServiceCategory.firmwareUpdate;
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -630,7 +635,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
         id: widget.existingRecord?.id ?? '',
         equipmentId: widget.equipmentId,
         serviceCategory: _serviceCategory,
-        serviceKindId: _serviceKindId,
+        serviceKindId: _isFirmwareUpdate ? null : _serviceKindId,
         serviceDate: _serviceDate,
         provider: _providerController.text.trim().isEmpty
             ? null

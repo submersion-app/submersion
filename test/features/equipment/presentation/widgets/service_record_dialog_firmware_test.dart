@@ -150,4 +150,21 @@ void main() {
       'V94',
     );
   });
+  // A firmware update resets no service clock, so it carries no type even
+  // when the dialog was opened from a clock.
+  testWidgets('a firmware update drops the service type', (tester) async {
+    final saved = <ServiceRecord>[];
+    await pumpDialog(
+      tester,
+      serviceKindId: 'hydro',
+      onSave: (r) async => saved.add(r),
+    );
+    await pickCategory(tester, 'Firmware update');
+    expect(find.byKey(serviceTypeKey), findsNothing);
+
+    await tester.enterText(find.byKey(versionKey), 'V95');
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(saved.single.serviceKindId, isNull);
+  });
 }

@@ -1540,9 +1540,6 @@ class _NotificationsSectionContent extends ConsumerWidget {
             const SizedBox(height: 16),
             const DraftReminderSwitch(),
             const SizedBox(height: 16),
-            // Firmware update checks and notifications (issue #5104).
-            const FirmwareSettingsSwitches(),
-            const SizedBox(height: 16),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.luggage),
@@ -1583,6 +1580,11 @@ class _NotificationsSectionContent extends ConsumerWidget {
               ),
             ),
           ],
+          // Firmware update checks and notifications (issue #5104). Outside
+          // the service reminder block: they govern a network read and
+          // notices of their own, so they stay reachable when it is off.
+          const SizedBox(height: 16),
+          const FirmwareSettingsSwitches(),
         ],
       ),
     );

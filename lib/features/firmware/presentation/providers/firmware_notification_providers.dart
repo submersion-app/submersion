@@ -69,6 +69,13 @@ final firmwareNotificationSyncProvider = FutureProvider<void>((ref) async {
   final fresh = firmwareUpdatesToNotify(updates, notified);
   if (fresh.isEmpty) return;
 
+  // Claimed before anything is sent: a re-run that starts while a send is
+  // in flight then sees the pairs and sends nothing. A send that fails is
+  // not retried; the item page, list and dashboard still show the update.
+  await prefs.setStringList(SettingsKeys.firmwareNotifiedPairs, [
+    ...notified,
+    for (final u in fresh) _pairOf(u),
+  ]);
   final l10n = ref.read(firmwareNoticeL10nProvider);
   final send = ref.read(firmwareNoticeSenderProvider);
   try {
@@ -92,10 +99,6 @@ final firmwareNotificationSyncProvider = FutureProvider<void>((ref) async {
         ));
       }
     }
-    await prefs.setStringList(SettingsKeys.firmwareNotifiedPairs, [
-      ...notified,
-      for (final u in fresh) _pairOf(u),
-    ]);
   } catch (e, stackTrace) {
     _log.error(
       'Firmware update notification failed',

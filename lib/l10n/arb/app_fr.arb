@@ -5128,6 +5128,7 @@
   "firmware_log_versionRequired": "Saisissez la version",
   "firmware_log_date": "Date",
   "firmware_log_notes": "Notes",
+  "firmware_log_saveFailed": "Impossible d'enregistrer la mise à jour. Réessayez.",
   "equipment_serviceCategory_warranty": "Service sous garantie",
   "equipment_serviceCategory_recall": "Rappel/Sécurité",
   "equipment_serviceCategory_other": "Autre",

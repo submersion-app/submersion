@@ -17870,6 +17870,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get firmware_log_notes => 'Note';
 
   @override
+  String get firmware_log_saveFailed =>
+      'Impossibile salvare l\'aggiornamento. Riprova.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Assistenza in garanzia';
 
   @override

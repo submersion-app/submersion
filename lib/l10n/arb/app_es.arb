@@ -5253,6 +5253,7 @@
   "firmware_log_versionRequired": "Introduce la versión",
   "firmware_log_date": "Fecha",
   "firmware_log_notes": "Notas",
+  "firmware_log_saveFailed": "No se pudo guardar la actualización. Inténtalo de nuevo.",
   "equipment_serviceCategory_warranty": "Servicio en garantía",
   "equipment_serviceCategory_recall": "Retirada/Seguridad",
   "equipment_serviceCategory_other": "Otro",

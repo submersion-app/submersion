@@ -332,7 +332,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   /// the next one without rebuilding the notifier. Null means never
   /// (issue #1216).
   final bool Function(String? computerId)? _resolveClockSync;
-  final Future<void> Function(String equipmentId, String version)?
+  final Future<void> Function(DiveComputer computer, String version)?
   _reportFirmware;
 
   DownloadNotifier({
@@ -340,7 +340,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     required DiveComputerRepository repository,
     bool Function()? trimTankPressureAtSurfacing,
     bool Function(String? computerId)? resolveClockSync,
-    Future<void> Function(String equipmentId, String version)? reportFirmware,
+    Future<void> Function(DiveComputer computer, String version)?
+    reportFirmware,
   }) : _service = service,
        _repository = repository,
        _trimTankPressureAtSurfacing = trimTankPressureAtSurfacing,
@@ -610,10 +611,11 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     String? version,
   ) async {
     final report = _reportFirmware;
-    final equipmentId = computer.equipmentId;
-    if (report == null || version == null || equipmentId == null) return;
+    if (report == null || version == null || computer.equipmentId == null) {
+      return;
+    }
     try {
-      await report(equipmentId, version);
+      await report(computer, version);
     } catch (e, stackTrace) {
       _log.error(
         'Firmware history update failed for ${computer.displayName}',
@@ -721,13 +723,16 @@ final downloadNotifierProvider =
             ref.read(clockSyncSettingsNotifierProvider).resolve(computerId),
         // The cached catalogue tells two spellings of one release apart from
         // a real change (issue #5104).
-        reportFirmware: (equipmentId, version) => ref
+        reportFirmware: (computer, version) => ref
             .read(firmwareUpdateRecorderProvider)
             .recordReported(
-              equipmentId: equipmentId,
+              equipmentId: computer.equipmentId!,
               reportedVersion: version,
               at: DateTime.now(),
               catalogue: ref.read(firmwareCatalogueProvider).value,
+              // A gear twin may have no maker or model of its own.
+              fallbackBrand: computer.manufacturer,
+              fallbackModel: computer.model,
             ),
       );
     });

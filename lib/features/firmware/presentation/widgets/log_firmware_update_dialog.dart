@@ -42,6 +42,7 @@ class _LogFirmwareUpdateDialogState
   final TextEditingController _notes = TextEditingController();
   DateTime _date = DateTime.now();
   String? _error;
+  String? _saveError;
   bool _saving = false;
 
   @override
@@ -67,7 +68,10 @@ class _LogFirmwareUpdateDialogState
       setState(() => _error = context.l10n.firmware_log_versionRequired);
       return;
     }
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+      _saveError = null;
+    });
     try {
       await ref
           .read(firmwareUpdateRecorderProvider)
@@ -84,7 +88,12 @@ class _LogFirmwareUpdateDialogState
         error: e,
         stackTrace: stackTrace,
       );
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _saveError = context.l10n.firmware_log_saveFailed;
+        });
+      }
     }
   }
 
@@ -132,6 +141,14 @@ class _LogFirmwareUpdateDialogState
               maxLines: 4,
               decoration: InputDecoration(labelText: l10n.firmware_log_notes),
             ),
+            if (_saveError case final message?)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  message,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
           ],
         ),
       ),

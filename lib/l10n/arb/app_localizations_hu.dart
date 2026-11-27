@@ -17806,6 +17806,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get firmware_log_notes => 'Megjegyzések';
 
   @override
+  String get firmware_log_saveFailed =>
+      'Nem sikerült menteni a frissítést. Próbáld újra.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Garanciális szerviz';
 
   @override

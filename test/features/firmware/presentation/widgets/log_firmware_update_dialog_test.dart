@@ -27,8 +27,12 @@ void main() {
     type: EquipmentType.dpv,
   );
 
-  Future<_FakeRecorder> open(WidgetTester tester, {String? suggested}) async {
-    final recorder = _FakeRecorder();
+  Future<_FakeRecorder> open(
+    WidgetTester tester, {
+    String? suggested,
+    bool fails = false,
+  }) async {
+    final recorder = _FakeRecorder(fails: fails);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -90,6 +94,14 @@ void main() {
     );
     expect(find.text('Log firmware update'), findsNothing);
   });
+
+  testWidgets('a save that fails says so and stays open', (tester) async {
+    await open(tester, suggested: 'V95', fails: true);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text("Couldn't save the update. Try again."), findsOneWidget);
+    expect(find.text('Log firmware update'), findsOneWidget);
+  });
 }
 
 typedef _Call = ({
@@ -100,6 +112,9 @@ typedef _Call = ({
 });
 
 class _FakeRecorder extends FirmwareUpdateRecorder {
+  _FakeRecorder({this.fails = false});
+
+  final bool fails;
   final List<_Call> calls = [];
 
   @override
@@ -109,6 +124,7 @@ class _FakeRecorder extends FirmwareUpdateRecorder {
     required DateTime date,
     String notes = '',
   }) async {
+    if (fails) throw StateError('disk full');
     calls.add((
       equipmentId: equipmentId,
       version: version,

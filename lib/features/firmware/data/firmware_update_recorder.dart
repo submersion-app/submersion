@@ -43,8 +43,11 @@ class FirmwareUpdateRecorder {
     String notes = '',
   }) async {
     // The repository makes it the recorded version when it is the item's
-    // newest firmware update, so a back-dated entry never overwrites one.
-    await _log(equipmentId, version.trim(), date, notes: notes);
+    // newest firmware update, so a back-dated entry never overwrites one;
+    // the record and the version land together or not at all.
+    await DatabaseService.instance.database.transaction(
+      () => _log(equipmentId, version.trim(), date, notes: notes),
+    );
   }
 
   /// Records [reportedVersion], reported by a live download at [at]. A first
@@ -57,6 +60,8 @@ class FirmwareUpdateRecorder {
     required String reportedVersion,
     required DateTime at,
     FirmwareCatalogue? catalogue,
+    String? fallbackBrand,
+    String? fallbackModel,
   }) async {
     final reported = reportedVersion.trim();
     final item = await _equipment.getEquipmentById(equipmentId);
@@ -73,8 +78,8 @@ class FirmwareUpdateRecorder {
         : matchFirmwareModel(
             catalogue,
             type: item.type,
-            brand: item.brand,
-            model: item.model,
+            brand: _nonBlank(item.brand) ?? fallbackBrand,
+            model: _nonBlank(item.model) ?? fallbackModel,
           );
     if (sameFirmwareRelease(stored, reported, model: model)) {
       return FirmwareReportOutcome.unchanged;
@@ -107,6 +112,11 @@ class FirmwareUpdateRecorder {
       ),
     );
   }
+}
+
+String? _nonBlank(String? s) {
+  final t = s?.trim();
+  return t == null || t.isEmpty ? null : t;
 }
 
 /// How a firmware history entry reads: "Firmware updated to V95", or

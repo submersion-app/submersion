@@ -28324,6 +28324,12 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get firmware_log_notes;
 
+  /// No description provided for @firmware_log_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the update. Try again.'**
+  String get firmware_log_saveFailed;
+
   /// No description provided for @equipment_serviceCategory_warranty.
   ///
   /// In en, this message translates to:
