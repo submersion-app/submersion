@@ -320,6 +320,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       if (wasPlaying) {
         controller.pause();
       } else {
+        // Playing is the diver's choice too: a sighting lookup that lands
+        // after a quick play and pause leaves the video there (#5084).
+        markDiverMoved(controller);
         controller.play();
       }
     });

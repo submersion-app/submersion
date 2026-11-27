@@ -267,4 +267,37 @@ void main() {
     await tester.tap(playPause);
     await tester.pump(const Duration(milliseconds: 500));
   });
+
+  testWidgets('a video played and paused before the lookup lands stays put', (
+    tester,
+  ) async {
+    final player = _SeekRecorder();
+    final lookup = Completer<List<VideoStretch>>();
+    await pumpVideoViewer(
+      tester,
+      prefs,
+      platform: player,
+      focusSpeciesId: 's1',
+      overrides: [
+        videoSpeciesSightingsProvider((
+          mediaId: 'v1',
+          speciesId: 's1',
+        )).overrideWith((ref) => lookup.future),
+      ],
+    );
+
+    final playPause = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Play or pause video',
+    );
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(player.playing, isFalse);
+
+    lookup.complete(const [(startMs: 4200, endMs: 9000)]);
+    await settle(tester);
+
+    expect(player.seeks, isEmpty);
+  });
 }
