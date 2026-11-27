@@ -197,6 +197,25 @@ void main() {
     },
   );
 
+  test(
+    'the same release the registration held is recorded on the item',
+    () async {
+      await addComputer();
+
+      final outcome = await recorder.recordReported(
+        equipmentId: 'perdix',
+        reportedVersion: '95',
+        at: at,
+        catalogue: catalogue,
+        previousVersion: '95',
+      );
+
+      expect(outcome, FirmwareReportOutcome.unchanged);
+      expect((await item()).firmwareVersion, '95');
+      expect(await history(), isEmpty);
+    },
+  );
+
   test('a new version logs one entry', () async {
     await addComputer(firmware: 'V92');
 

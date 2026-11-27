@@ -86,6 +86,10 @@ class FirmwareUpdateRecorder {
             model: _nonBlank(item.model) ?? fallbackModel,
           );
     if (sameFirmwareRelease(stored, reported, model: model)) {
+      // Known only from the registration so far: now the item has it too.
+      if (_nonBlank(item.firmwareVersion) == null) {
+        await setRecordedFirmwareVersion(_equipment, equipmentId, stored);
+      }
       return FirmwareReportOutcome.unchanged;
     }
     // What the device reports is what it runs, whatever the history says.

@@ -148,6 +148,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   /// Lock screen Entered water and Surfaced taps (issue #637).
   late final StreamSubscription<void> _diveMarks;
+
+  /// Re-checks the firmware catalogue while the app stays open (issue
+  /// #5104): a desktop app may never be hidden and resumed for days. The
+  /// refresh itself is day-gated, so most ticks do nothing.
+  Timer? _firmwareTimer;
   final _staleDrafts = StaleOpenDraftPrompter();
   final _healthImports = HealthAutoImportThrottle();
 
@@ -222,6 +227,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // release, re-run as the catalogue, the gear or the switches change.
     ref.listenManual(firmwareNotificationSyncProvider, (_, _) {});
     _diveMarks = startDiveMarkActionBridge(ref);
+    _firmwareTimer = Timer.periodic(
+      const Duration(hours: 6),
+      (_) => _refreshFirmwareCatalogue(),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final launchSync = _maybeSyncOnLaunch();
       _runStorageCleanupAfter(launchSync, StorageGcTrigger.launch);
@@ -260,6 +269,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   @override
   void dispose() {
     unawaited(_diveMarks.cancel());
+    _firmwareTimer?.cancel();
     ChangeLogSettleScheduler.instance.stop();
     _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
     _shares.release();

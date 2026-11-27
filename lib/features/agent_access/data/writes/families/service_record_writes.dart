@@ -63,8 +63,10 @@ class ServiceRecordWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
+    // A firmware update (issue #5104) is the one record with no type.
     if (check.kind == ChangeKind.create &&
-        check.values['service_kind_id'] == null) {
+        check.values['service_kind_id'] == null &&
+        check.values['category'] != ServiceCategory.firmwareUpdate.name) {
       return const PlanBlock(
         BlockReason.invalidValue,
         'service_kind_id: a new record names its service type.',
@@ -165,7 +167,7 @@ class ServiceRecordWrites extends WritableEntry {
       ServiceRecord(
         id: '',
         equipmentId: values['equipment_id']! as String,
-        serviceKindId: values['service_kind_id']! as String,
+        serviceKindId: values['service_kind_id'] as String?,
         serviceCategory: ServiceCategory.values.byName(
           values['category'] as String? ?? ServiceCategory.annual.name,
         ),

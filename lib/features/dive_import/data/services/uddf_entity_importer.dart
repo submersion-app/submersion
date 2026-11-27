@@ -1090,7 +1090,8 @@ class UddfEntityImporter {
       );
 
       try {
-        await repository.createRecord(record);
+        // The backup restores the item's firmware version itself (#5104).
+        await repository.createRecord(record, followFirmware: false);
         count++;
       } catch (_) {
         // One bad record must not abort the import.

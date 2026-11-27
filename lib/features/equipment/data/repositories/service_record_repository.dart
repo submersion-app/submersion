@@ -91,7 +91,14 @@ class ServiceRecordRepository {
   }
 
   /// Create a new service record
-  Future<domain.ServiceRecord> createRecord(domain.ServiceRecord record) async {
+  ///
+  /// With [followFirmware] false, a firmware update leaves the item's
+  /// recorded version alone: a backup restore brings that back itself, and
+  /// its history may be older than it (issue #5104).
+  Future<domain.ServiceRecord> createRecord(
+    domain.ServiceRecord record, {
+    bool followFirmware = true,
+  }) async {
     final id = record.id.isEmpty ? _uuid.v4() : record.id;
     final now = DateTime.now();
 
@@ -127,7 +134,7 @@ class ServiceRecordRepository {
     // The newest record's date, so a record back-filled from paper does not
     // move the item's last service date back (issue #4201).
     await _refreshEquipmentLastServiceDate(record.equipmentId);
-    await _followFirmware(record.equipmentId, id);
+    if (followFirmware) await _followFirmware(record.equipmentId, id);
 
     return record.copyWith(id: id, createdAt: now, updatedAt: now);
   }

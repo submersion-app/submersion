@@ -400,4 +400,16 @@ void main() {
     ]);
     expect(dropsType.items.single.block, isNull);
   });
+
+  test('an agent logs a firmware update with no service type', () async {
+    final plan = await h.preview([
+      createOp('service_records', {
+        ...record('2026-03-01'),
+        'service_kind_id': null,
+        'category': 'firmwareUpdate',
+        'firmware_version': 'V95',
+      }),
+    ]);
+    expect(plan.items.single.block, isNull);
+  });
 }

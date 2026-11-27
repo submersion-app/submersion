@@ -158,6 +158,18 @@ void main() {
       expect(await version(), 'V95');
     });
 
+    test('an import can leave the restored version standing', () async {
+      await records.createRecord(
+        record(
+          ServiceCategory.firmwareUpdate,
+          DateTime(2026, 10, 1),
+          firmwareVersion: 'V94',
+        ),
+        followFirmware: false,
+      );
+      expect(await version(), isNull);
+    });
+
     test('a service record leaves the version alone', () async {
       await records.createRecord(
         record(ServiceCategory.annual, DateTime(2026, 11, 1)),
