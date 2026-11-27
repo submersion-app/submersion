@@ -42,12 +42,24 @@ final popOutAppLockedProvider = Provider<bool>(
 );
 
 /// Changes whenever a value the pop-out reads from SharedPreferences may have
-/// changed: the active diver, the display zoom, any setting.
+/// changed: the active diver, the display zoom, and the device-local
+/// settings the profile draws with. Settings kept in the diver's row reach
+/// the pop-out through the shared database instead.
 final popOutPrefsTriggerProvider = Provider<Object?>(
   (ref) => (
     ref.watch(currentDiverIdProvider),
     ref.watch(displayZoomNotifierProvider),
-    ref.watch(settingsProvider),
+    ref.watch(
+      settingsProvider.select(
+        (s) => (
+          s.o2CellUnit,
+          s.counterdiffusionShowAll,
+          s.perdixOverlayEnabled,
+          s.perdixOverlayX,
+          s.perdixOverlayY,
+        ),
+      ),
+    ),
   ),
 );
 

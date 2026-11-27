@@ -254,7 +254,9 @@ class DiveDetailProfileSection extends ConsumerWidget {
             scope: scope,
             onPressed: onEditOutliers,
           ),
-        PopOutProfileButton(diveId: diveId),
+        // A card too narrow for every button has no room for it either; the
+        // fullscreen button stays.
+        if (!narrow) PopOutProfileButton(diveId: diveId),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,
@@ -624,8 +626,9 @@ class _OutliersButton extends ConsumerWidget {
 /// The narrowest header row that holds the Profile card's full toolbar
 /// beside its title and, while unlocked, the pencil. Measured: a 375 px
 /// phone's 311 px row overflowed with the outliers button showing, a 393 px
-/// phone's 329 px row did not.
-const double _fullToolbarMinWidth = 328;
+/// phone's 329 px row did not. The desktop pop-out button (issue #5078)
+/// adds one compact icon button, 40 px more.
+const double _fullToolbarMinWidth = 368;
 
 /// The Profile card's two 3D scenes.
 enum _ProfileScene { dive, site }

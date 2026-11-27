@@ -428,163 +428,159 @@ class DiveProfileChartHost extends ConsumerWidget {
       annotationsInSitting ?? storedAnnotations,
     );
 
+    final chart = MouseRegion(
+      onExit: (event) {
+        // A drag that strays off the chart is still a scrub; the chart
+        // clears the cursor through onPointSelected when it ends (#4611).
+        if (isDragCrossing(event)) return;
+        ref.read(profileTrackingIndexProvider(diveId).notifier).state = null;
+      },
+      child: DiveProfileChart(
+        exportKey: exportKey,
+        profile: chartProfile,
+        overlays: overlays.isEmpty ? null : overlays,
+        hasPlannedProfile: planned.available,
+        activeComputerId: activeProfile?.computerId,
+        diveDuration: dive.effectiveRuntime,
+        maxDepth: dive.maxDepth,
+        legendLeading: legendLeading,
+        tooltipPresentation: tooltipPresentation,
+        onTooltipData: onTooltipData,
+        ceilingCurve: analysis?.ceilingCurve,
+        decoStopCurve: analysis?.decoStopCurve,
+        labelCeilingAsCalculated:
+            analysis?.computerStopsWithCalculatedCeiling ?? false,
+        ascentRates: analysis?.ascentRates,
+        events: chartEvents,
+        annotationPlacement: placement != null,
+        onAnnotationPlaced: annotations?.place,
+        onAnnotationTap: annotations?.onMarkerTap,
+        onSecondaryTapAt: annotations?.onSecondaryTap,
+        focusedAnnotationId: focusedAnnotation,
+        ndlCurve: analysis?.ndlCurve,
+        sacCurve: analysis?.smoothedSacCurve,
+        environment: analysis?.environment ?? DiveEnvironment.standard,
+        ppO2Curve: analysis?.ppO2Curve,
+        o2SensorCurves: analysis?.o2SensorCurves,
+        o2CellMvCurves: analysis?.o2CellMvCurves,
+        ppO2FromSensorAverage: analysis?.ppO2FromSensorAverage ?? false,
+        ppN2Curve: analysis?.ppN2Curve,
+        ppHeCurve: analysis?.ppHeCurve,
+        modCurve: analysis?.modCurve,
+        densityCurve: analysis?.densityCurve,
+        buoyancyCurve: buoyancy.curve,
+        buoyancyAvailable: buoyancy.available,
+        gfCurve: analysis?.gfCurve,
+        surfaceGfCurve: analysis?.surfaceGfCurve,
+        meanDepthCurve: analysis?.meanDepthCurve,
+        ttsCurve: analysis?.ttsCurve,
+        gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
+        counterdiffusion: analysis?.counterdiffusion,
+        gtrCurve: analysis?.gtrCurve,
+        cnsCurve: analysis?.cnsCurve,
+        otuCurve: analysis?.otuCurve,
+        // The curve is normalised to Dive.sac, in bar of the reference
+        // cylinder, so that cylinder's volume converts it (#3109).
+        tankVolume: dive.sacReferenceVolume,
+        sacNormalizationFactor: calculateSacNormalizationFactor(dive, analysis),
+        markers: markers,
+        photoMarkers: photoMarkers.isEmpty ? null : photoMarkers,
+        showMaxDepthMarker: showMaxDepthMarker,
+        showPressureThresholdMarkers: showPressureThresholdMarkers,
+        tanks: dive.tanks,
+        tankPressures: chartTankPressures?.pressures,
+        estimatedTankIds: chartTankPressures?.estimatedTankIds,
+        tankSourceColors: tankSourceColors,
+        gasSwitches: gasSwitches,
+        gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
+            ? null
+            : activeGasUsageSegments(
+                dive,
+                gasSwitches: gasSwitches,
+                profile: chartProfile,
+                computerId: resolvedActive?.computerId,
+              ),
+        diveDurationSeconds: chartProfile.isEmpty
+            ? null
+            : chartProfile.last.timestamp,
+        computerNames: computerNames,
+        // No playbackTimestamp: the inline chart is never on screen while
+        // playback runs. Playback is only ever activated by
+        // ProfileTransportControls, which exists solely inside
+        // FullscreenProfilePage, and that page is pushed onto the ROOT
+        // navigator, so it covers this chart completely. Feeding the cursor
+        // from here meant watching the 25ms ticker and re-running this whole
+        // build ~31 times a second behind an opaque page (#2231): a covered
+        // route skips layout and paint, but its elements stay in the tree and
+        // still rebuild. The fullscreen chart draws its own playback cursor
+        // from highlightedTimestamp, which ProfileTransportControls keeps in
+        // sync with the ticker.
+        //
+        // DiveProfileChart.playbackTimestamp stays a supported input, covered
+        // by dive_profile_chart_test.dart, for whenever inline playback
+        // returns (c4e70ae1814 removed the entry point "until the
+        // functionality can be more thought-out"). Whatever revives it needs
+        // to scope the subscription to the cursor rather than to the host.
+        //
+        // playbackIsPlaying is likewise not forwarded here for the same
+        // reason: there is no playback ticker subscription on this host to
+        // read it from any more (issue #2228 follow-up forwarded it briefly
+        // before #2231 removed the underlying watch).
+        highlightedTimestamp:
+            trackingIndex != null && trackingIndex < chartProfile.length
+            ? chartProfile[trackingIndex].timestamp
+            : null,
+        highlightRange: profileHighlightRangeFor(
+          visibleSelectedFinding,
+          Theme.of(context).colorScheme,
+        ),
+        secondaryRanges: cellDivergenceHighlightRanges(
+          sensorSummary,
+          Theme.of(context).colorScheme,
+        ),
+        safetyFindings: laneFindings.isEmpty ? null : laneFindings,
+        selectedSafetyFindingId: visibleSelectedFinding?.id,
+        onSafetyFindingTap: (finding) {
+          final notifier = ref.read(
+            selectedSafetyFindingProvider(diveId).notifier,
+          );
+          notifier.state = notifier.state?.id == finding.id ? null : finding;
+        },
+        onSafetyFindingDismiss: findingsDismissable
+            ? (finding) => setSafetyFindingDismissed(
+                ref,
+                finding: finding,
+                dismissed: true,
+              )
+            : null,
+        onSafetyFindingDetails: onSafetyFindingDetails,
+        // Range handles are drawn by the chart itself so they land on the
+        // plot rect at any zoom (#1579).
+        rangeSelection: rangeState.isEnabled
+            ? (
+                startSeconds:
+                    rangeState.startTimestamp ?? rangeState.minTimestamp,
+                endSeconds: rangeState.endTimestamp ?? rangeState.maxTimestamp,
+                minSeconds: rangeState.minTimestamp,
+                maxSeconds: rangeState.maxTimestamp,
+              )
+            : null,
+        onRangeChanged: (start, end) => ref
+            .read(rangeSelectionProvider(diveId).notifier)
+            .setRange(start, end),
+        onPointSelected: (index) {
+          ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
+        },
+        onPlotFrame: onPlotFrame,
+        viewport: viewport,
+        onViewportChanged: onViewportChanged,
+      ),
+    );
     // The profile pop-out shares this chart's cursor (issue #5078).
     return PopOutCursorBridge(
       diveId: diveId,
       chartProfile: chartProfile,
-      child: MouseRegion(
-        onExit: (event) {
-          // A drag that strays off the chart is still a scrub; the chart
-          // clears the cursor through onPointSelected when it ends (#4611).
-          if (isDragCrossing(event)) return;
-          ref.read(profileTrackingIndexProvider(diveId).notifier).state = null;
-        },
-        child: DiveProfileChart(
-          exportKey: exportKey,
-          profile: chartProfile,
-          overlays: overlays.isEmpty ? null : overlays,
-          hasPlannedProfile: planned.available,
-          activeComputerId: activeProfile?.computerId,
-          diveDuration: dive.effectiveRuntime,
-          maxDepth: dive.maxDepth,
-          legendLeading: legendLeading,
-          tooltipPresentation: tooltipPresentation,
-          onTooltipData: onTooltipData,
-          ceilingCurve: analysis?.ceilingCurve,
-          decoStopCurve: analysis?.decoStopCurve,
-          labelCeilingAsCalculated:
-              analysis?.computerStopsWithCalculatedCeiling ?? false,
-          ascentRates: analysis?.ascentRates,
-          events: chartEvents,
-          annotationPlacement: placement != null,
-          onAnnotationPlaced: annotations?.place,
-          onAnnotationTap: annotations?.onMarkerTap,
-          onSecondaryTapAt: annotations?.onSecondaryTap,
-          focusedAnnotationId: focusedAnnotation,
-          ndlCurve: analysis?.ndlCurve,
-          sacCurve: analysis?.smoothedSacCurve,
-          environment: analysis?.environment ?? DiveEnvironment.standard,
-          ppO2Curve: analysis?.ppO2Curve,
-          o2SensorCurves: analysis?.o2SensorCurves,
-          o2CellMvCurves: analysis?.o2CellMvCurves,
-          ppO2FromSensorAverage: analysis?.ppO2FromSensorAverage ?? false,
-          ppN2Curve: analysis?.ppN2Curve,
-          ppHeCurve: analysis?.ppHeCurve,
-          modCurve: analysis?.modCurve,
-          densityCurve: analysis?.densityCurve,
-          buoyancyCurve: buoyancy.curve,
-          buoyancyAvailable: buoyancy.available,
-          gfCurve: analysis?.gfCurve,
-          surfaceGfCurve: analysis?.surfaceGfCurve,
-          meanDepthCurve: analysis?.meanDepthCurve,
-          ttsCurve: analysis?.ttsCurve,
-          gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
-          counterdiffusion: analysis?.counterdiffusion,
-          gtrCurve: analysis?.gtrCurve,
-          cnsCurve: analysis?.cnsCurve,
-          otuCurve: analysis?.otuCurve,
-          // The curve is normalised to Dive.sac, in bar of the reference
-          // cylinder, so that cylinder's volume converts it (#3109).
-          tankVolume: dive.sacReferenceVolume,
-          sacNormalizationFactor: calculateSacNormalizationFactor(
-            dive,
-            analysis,
-          ),
-          markers: markers,
-          photoMarkers: photoMarkers.isEmpty ? null : photoMarkers,
-          showMaxDepthMarker: showMaxDepthMarker,
-          showPressureThresholdMarkers: showPressureThresholdMarkers,
-          tanks: dive.tanks,
-          tankPressures: chartTankPressures?.pressures,
-          estimatedTankIds: chartTankPressures?.estimatedTankIds,
-          tankSourceColors: tankSourceColors,
-          gasSwitches: gasSwitches,
-          gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
-              ? null
-              : activeGasUsageSegments(
-                  dive,
-                  gasSwitches: gasSwitches,
-                  profile: chartProfile,
-                  computerId: resolvedActive?.computerId,
-                ),
-          diveDurationSeconds: chartProfile.isEmpty
-              ? null
-              : chartProfile.last.timestamp,
-          computerNames: computerNames,
-          // No playbackTimestamp: the inline chart is never on screen while
-          // playback runs. Playback is only ever activated by
-          // ProfileTransportControls, which exists solely inside
-          // FullscreenProfilePage, and that page is pushed onto the ROOT
-          // navigator, so it covers this chart completely. Feeding the cursor
-          // from here meant watching the 25ms ticker and re-running this whole
-          // build ~31 times a second behind an opaque page (#2231): a covered
-          // route skips layout and paint, but its elements stay in the tree and
-          // still rebuild. The fullscreen chart draws its own playback cursor
-          // from highlightedTimestamp, which ProfileTransportControls keeps in
-          // sync with the ticker.
-          //
-          // DiveProfileChart.playbackTimestamp stays a supported input, covered
-          // by dive_profile_chart_test.dart, for whenever inline playback
-          // returns (c4e70ae1814 removed the entry point "until the
-          // functionality can be more thought-out"). Whatever revives it needs
-          // to scope the subscription to the cursor rather than to the host.
-          //
-          // playbackIsPlaying is likewise not forwarded here for the same
-          // reason: there is no playback ticker subscription on this host to
-          // read it from any more (issue #2228 follow-up forwarded it briefly
-          // before #2231 removed the underlying watch).
-          highlightedTimestamp:
-              trackingIndex != null && trackingIndex < chartProfile.length
-              ? chartProfile[trackingIndex].timestamp
-              : null,
-          highlightRange: profileHighlightRangeFor(
-            visibleSelectedFinding,
-            Theme.of(context).colorScheme,
-          ),
-          secondaryRanges: cellDivergenceHighlightRanges(
-            sensorSummary,
-            Theme.of(context).colorScheme,
-          ),
-          safetyFindings: laneFindings.isEmpty ? null : laneFindings,
-          selectedSafetyFindingId: visibleSelectedFinding?.id,
-          onSafetyFindingTap: (finding) {
-            final notifier = ref.read(
-              selectedSafetyFindingProvider(diveId).notifier,
-            );
-            notifier.state = notifier.state?.id == finding.id ? null : finding;
-          },
-          onSafetyFindingDismiss: findingsDismissable
-              ? (finding) => setSafetyFindingDismissed(
-                  ref,
-                  finding: finding,
-                  dismissed: true,
-                )
-              : null,
-          onSafetyFindingDetails: onSafetyFindingDetails,
-          // Range handles are drawn by the chart itself so they land on the
-          // plot rect at any zoom (#1579).
-          rangeSelection: rangeState.isEnabled
-              ? (
-                  startSeconds:
-                      rangeState.startTimestamp ?? rangeState.minTimestamp,
-                  endSeconds:
-                      rangeState.endTimestamp ?? rangeState.maxTimestamp,
-                  minSeconds: rangeState.minTimestamp,
-                  maxSeconds: rangeState.maxTimestamp,
-                )
-              : null,
-          onRangeChanged: (start, end) => ref
-              .read(rangeSelectionProvider(diveId).notifier)
-              .setRange(start, end),
-          onPointSelected: (index) {
-            ref.read(profileTrackingIndexProvider(diveId).notifier).state =
-                index;
-          },
-          onPlotFrame: onPlotFrame,
-          viewport: viewport,
-          onViewportChanged: onViewportChanged,
-        ),
-      ),
+      child: chart,
     );
   }
 }
