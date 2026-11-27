@@ -3534,6 +3534,7 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "الدور",
   "diveLog_tank_label_startPressure": "ضغط البداية",
+  "diveLog_tank_managePresets": "إدارة الإعدادات المسبقة",
   "diveLog_tank_label_tankPreset": "إعداد الأسطوانة المسبق",
   "diveLog_tank_label_volume": "الحجم",
   "diveLog_tank_label_workingPressure": "ضغط العمل",

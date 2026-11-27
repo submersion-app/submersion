@@ -6266,6 +6266,10 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "Role",
   "diveLog_tank_label_startPressure": "Start Pressure",
+  "diveLog_tank_managePresets": "Manage presets",
+  "@diveLog_tank_managePresets": {
+    "description": "Last entry of the tank editor's preset dropdown (issue #800): opens the presets page over the dive being edited. Not a preset, so choosing it leaves the cylinder's preset as it was."
+  },
   "diveLog_tank_label_tankPreset": "Tank Preset",
   "diveLog_tank_label_volume": "Volume",
   "diveLog_tank_label_workingPressure": "Working P",

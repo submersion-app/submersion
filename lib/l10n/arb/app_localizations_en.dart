@@ -10821,6 +10821,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Start Pressure';
 
   @override
+  String get diveLog_tank_managePresets => 'Manage presets';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Tank Preset';
 
   @override

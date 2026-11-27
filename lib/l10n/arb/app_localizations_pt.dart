@@ -10989,6 +10989,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Pressão Inicial';
 
   @override
+  String get diveLog_tank_managePresets => 'Gerenciar presets';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Preset do Cilindro';
 
   @override

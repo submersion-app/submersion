@@ -11145,6 +11145,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'ضغط البداية';
 
   @override
+  String get diveLog_tank_managePresets => 'إدارة الإعدادات المسبقة';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'إعداد الأسطوانة المسبق';
 
   @override

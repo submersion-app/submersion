@@ -3560,6 +3560,7 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "Rolle",
   "diveLog_tank_label_startPressure": "Anfangsdruck",
+  "diveLog_tank_managePresets": "Vorlagen verwalten",
   "diveLog_tank_label_tankPreset": "Flaschenvorlage",
   "diveLog_tank_label_volume": "Volumen",
   "diveLog_tank_label_workingPressure": "Betriebsdruck",

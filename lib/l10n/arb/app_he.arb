@@ -3409,6 +3409,7 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "תפקיד",
   "diveLog_tank_label_startPressure": "לחץ התחלה",
+  "diveLog_tank_managePresets": "ניהול תבניות",
   "diveLog_tank_label_tankPreset": "תבנית בלון",
   "diveLog_tank_label_volume": "נפח",
   "diveLog_tank_label_workingPressure": "לחץ עבודה",

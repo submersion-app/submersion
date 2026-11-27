@@ -3534,6 +3534,7 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "Función",
   "diveLog_tank_label_startPressure": "Presión inicial",
+  "diveLog_tank_managePresets": "Gestionar presets",
   "diveLog_tank_label_tankPreset": "Preajuste de tanque",
   "diveLog_tank_label_volume": "Volumen",
   "diveLog_tank_label_workingPressure": "Presión trab.",

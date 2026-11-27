@@ -10437,6 +10437,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_startPressure => '起始压力';
 
   @override
+  String get diveLog_tank_managePresets => '管理预设';
+
+  @override
   String get diveLog_tank_label_tankPreset => '气瓶预设';
 
   @override

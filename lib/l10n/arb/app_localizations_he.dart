@@ -10750,6 +10750,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'לחץ התחלה';
 
   @override
+  String get diveLog_tank_managePresets => 'ניהול תבניות';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'תבנית בלון';
 
   @override

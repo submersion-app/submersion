@@ -10583,6 +10583,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_tank_label_startPressure => '開始圧';
 
   @override
+  String get diveLog_tank_managePresets => 'プリセットを管理';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'タンクのプリセット';
 
   @override

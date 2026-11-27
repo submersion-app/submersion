@@ -3640,6 +3640,7 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "角色",
   "diveLog_tank_label_startPressure": "起始压力",
+  "diveLog_tank_managePresets": "管理预设",
   "diveLog_tank_label_tankPreset": "气瓶预设",
   "diveLog_tank_label_volume": "容积",
   "diveLog_tank_label_workingPressure": "工作压力",

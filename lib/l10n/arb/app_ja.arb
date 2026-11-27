@@ -3375,6 +3375,7 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "役割",
   "diveLog_tank_label_startPressure": "開始圧",
+  "diveLog_tank_managePresets": "プリセットを管理",
   "diveLog_tank_label_tankPreset": "タンクのプリセット",
   "diveLog_tank_label_volume": "容量",
   "diveLog_tank_label_workingPressure": "使用圧力",

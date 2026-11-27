@@ -17418,6 +17418,12 @@ abstract class AppLocalizations {
   /// **'Start Pressure'**
   String get diveLog_tank_label_startPressure;
 
+  /// Last entry of the tank editor's preset dropdown (issue #800): opens the presets page over the dive being edited. Not a preset, so choosing it leaves the cylinder's preset as it was.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage presets'**
+  String get diveLog_tank_managePresets;
+
   /// No description provided for @diveLog_tank_label_tankPreset.
   ///
   /// In en, this message translates to:

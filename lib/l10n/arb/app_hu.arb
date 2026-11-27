@@ -3409,6 +3409,7 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "Szerep",
   "diveLog_tank_label_startPressure": "Kezdőnyomás",
+  "diveLog_tank_managePresets": "Sablonok kezelése",
   "diveLog_tank_label_tankPreset": "Palack előre beállítás",
   "diveLog_tank_label_volume": "Térfogat",
   "diveLog_tank_label_workingPressure": "Üzemi ny.",

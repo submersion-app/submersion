@@ -10968,6 +10968,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Kezdőnyomás';
 
   @override
+  String get diveLog_tank_managePresets => 'Sablonok kezelése';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Palack előre beállítás';
 
   @override

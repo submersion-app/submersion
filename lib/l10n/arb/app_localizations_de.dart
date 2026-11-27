@@ -10985,6 +10985,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Anfangsdruck';
 
   @override
+  String get diveLog_tank_managePresets => 'Vorlagen verwalten';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Flaschenvorlage';
 
   @override

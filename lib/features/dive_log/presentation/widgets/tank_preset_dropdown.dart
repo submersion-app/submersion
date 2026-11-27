@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -16,6 +17,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// [onCylinderChosen], and the field goes back to showing [presetName],
 /// which the host sets to the preset the copied size matches. The tank never
 /// links to the cylinder, so that is also what reopening the dive shows.
+///
+/// The last entry opens the presets page over the editor (issue #800). It
+/// is not a preset either: the field goes back to [presetName] and neither
+/// callback fires, so the dive is not edited.
 class TankPresetDropdown extends ConsumerStatefulWidget {
   /// The preset the tank uses, or null for none.
   final String? presetName;
@@ -121,6 +126,25 @@ class _TankPresetDropdownState extends ConsumerState<TankPresetDropdown> {
                   preset.displayName,
             ),
           ),
+        // Set apart by a rule: an action, not a preset (issue #800).
+        DropdownMenuItem<_PresetChoice?>(
+          value: const _ManageEntry(),
+          child: DecoratedBox(
+            key: const Key('tank-preset-manage'),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Theme.of(context).dividerColor),
+              ),
+            ),
+            child: SizedBox(
+              height: kMinInteractiveDimension,
+              child: _IconLabel(
+                icon: Icons.settings_outlined,
+                label: context.l10n.diveLog_tank_managePresets,
+              ),
+            ),
+          ),
+        ),
       ],
       onChanged: (choice) {
         switch (choice) {
@@ -131,6 +155,11 @@ class _TankPresetDropdownState extends ConsumerState<TankPresetDropdown> {
           case _CylinderEntry(:final cylinder):
             setState(() => _generation++);
             widget.onCylinderChosen(cylinder);
+          case _ManageEntry():
+            // The editor stays mounted under the pushed page, so the dive
+            // being edited survives; presets changed there show on return.
+            setState(() => _generation++);
+            context.push('/tank-presets');
         }
       },
     );
@@ -154,6 +183,11 @@ final class _PresetEntry extends _PresetChoice {
 
   @override
   int get hashCode => Object.hash(_PresetEntry, preset.id);
+}
+
+/// The "Manage presets" entry: opens the presets page, chooses nothing.
+final class _ManageEntry extends _PresetChoice {
+  const _ManageEntry();
 }
 
 final class _CylinderEntry extends _PresetChoice {
