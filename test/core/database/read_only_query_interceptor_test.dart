@@ -123,6 +123,65 @@ void main() {
     expect(reported, ['DELETE FROM t']);
   });
 
+  test('the write paths drift reaches only on its own are refused', () async {
+    // Drift opens a transaction before a batch, and only an exclusive block
+    // opens one exclusively, so the existing calls are refused before these
+    // are reached. A future drift that took them directly must still fail.
+    final interceptor = ReadOnlyQueryInterceptor();
+    final executor = writer.executor;
+
+    await expectLater(
+      interceptor.runDelete(executor, 'DELETE FROM t', const []),
+      throwsA(isA<ReadOnlyViolation>()),
+    );
+    await expectLater(
+      interceptor.runBatched(
+        executor,
+        BatchedStatements(
+          ['DELETE FROM t'],
+          [ArgumentsForBatchedStatement(0, const [])],
+        ),
+      ),
+      throwsA(isA<ReadOnlyViolation>()),
+    );
+    expect(
+      () => interceptor.beginExclusive(executor),
+      throwsA(isA<ReadOnlyViolation>()),
+    );
+
+    final rows = await writer.customSelect('SELECT id FROM t').get();
+    expect(rows, hasLength(1));
+  });
+
+  test('a read sent as a statement goes through', () async {
+    await readOnly.customStatement('PRAGMA user_version');
+    await readOnly.customStatement('SELECT id FROM t');
+  });
+
+  test('a long refused statement is reported shortened', () async {
+    final reported = <String>[];
+    final reporting = _TinyDb(
+      DatabaseConnection(
+        writer.executor,
+      ).interceptWith(ReadOnlyQueryInterceptor(onRefused: reported.add)),
+    );
+    final long =
+        'DELETE FROM t WHERE id IN (${List.filled(40, '1').join(', ')})';
+    expect(long.length, greaterThan(80));
+
+    await expectLater(
+      reporting.customStatement(long),
+      throwsA(
+        isA<ReadOnlyViolation>().having(
+          (e) => e.message,
+          'message',
+          'read-only connection refused: ${long.substring(0, 80)}...',
+        ),
+      ),
+    );
+    expect(reported, ['${long.substring(0, 80)}...']);
+  });
+
   test('a write chained after a SELECT is refused', () async {
     await expectLater(
       readOnly.customStatement('SELECT 1; DELETE FROM t'),
