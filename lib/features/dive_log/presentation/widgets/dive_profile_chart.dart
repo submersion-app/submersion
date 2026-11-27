@@ -59,6 +59,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/partial_pressu
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_metric_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/right_axis_metric_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_tick_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_label.dart';
@@ -1315,6 +1316,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     widget.onViewportChanged?.call(value);
   }
 
+  // The metric the right axis shows (no hover), for the chart options'
+  // Right axis row (issue #5069). A notifier, not a config value: the options
+  // dialog stays open across picks and would otherwise show the axis as it
+  // was when it opened. Updated after the frame that resolves it.
+  final ValueNotifier<ProfileRightAxisMetric?> _shownRightAxisMetric =
+      ValueNotifier(null);
+
   // The zoom level alone, for what sits outside the plot (the legend's zoom
   // controls, the zoom hint): a pan leaves it unchanged and notifies nobody.
   final ValueNotifier<double> _zoomNotifier = ValueNotifier(
@@ -1850,6 +1858,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _legendSnapshot?.release(this);
     _viewportNotifier.dispose();
     _zoomNotifier.dispose();
+    _shownRightAxisMetric.dispose();
     _plotPointerTick.dispose();
     super.dispose();
   }
@@ -3389,7 +3398,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasGtrData: hasGtrData,
       hasCnsData: hasCnsData,
       hasOtuData: hasOtuData,
+      rightAxisChoices: _rightAxisChoices(),
+      shownRightAxisMetric: _shownRightAxisMetric,
     );
+    final shownRightAxis = switch (_preferredRightAxisMetric) {
+      final preferred? => _getEffectiveRightAxisMetric(preferred),
+      null => null,
+    };
+    if (shownRightAxis != _shownRightAxisMetric.value) {
+      // Not during build: the open options dialog listens to it.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _shownRightAxisMetric.value = shownRightAxis;
+      });
+    }
 
     // The card header's info icon lists the overlays drawn here.
     final snapshot = ProfileLegendSnapshotScope.maybeOf(context);
@@ -5684,6 +5705,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     ];
   }
 
+  /// The metrics the right axis can show on this dive, each with its line's
+  /// colour: those with data. The axis menu and the chart options' Right axis
+  /// row both list these (issue #5069).
+  List<RightAxisChoice> _rightAxisChoices() => [
+    for (final metric in ProfileRightAxisMetric.values)
+      if (_hasDataForMetric(metric))
+        (
+          metric: metric,
+          color: _palette.rightAxisColor(metric, singleTank: _isSingleTankDive),
+        ),
+  ];
+
   /// Show popup menu for selecting right axis metric
   void _showRightAxisMetricSelector(
     BuildContext context,
@@ -5691,132 +5724,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     ProfileRightAxisMetric currentMetric,
   ) {
     final legendNotifier = ref.read(profileLegendProvider.notifier);
-
-    // Build list of metrics grouped by category
-    final menuItems = <PopupMenuEntry<ProfileRightAxisMetric?>>[];
-
-    // Add "None" option to hide the axis.
-    // Use onTap instead of relying on the menu return value, because
-    // showMenu returns null both for "None" (value: null) and for
-    // dismissing the menu — we can't distinguish them otherwise.
-    menuItems.add(
-      PopupMenuItem<ProfileRightAxisMetric?>(
-        value: null,
-        onTap: () => legendNotifier.hideRightAxis(),
-        child: Row(
-          children: [
-            Icon(
-              Icons.visibility_off,
-              size: 16,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Text(context.l10n.diveLog_profile_rightAxis_none),
-          ],
-        ),
-      ),
-    );
-    menuItems.add(const PopupMenuDivider());
-
-    // Group metrics by category
-    for (final category in ProfileMetricCategory.values) {
-      final metricsInCategory = category.metrics;
-      final availableMetrics = metricsInCategory
-          .where(
-            (m) =>
-                // Ascent rate is offered too: its axis labels the bars' own
-                // fixed scale (issue #5069), and picking it turns them on.
-                _hasDataForMetric(m),
-          )
-          .toList();
-
-      if (availableMetrics.isEmpty) continue;
-
-      // Add divider before category (except first)
-      if (menuItems.length > 2) {
-        menuItems.add(const PopupMenuDivider());
-      }
-
-      // Add category header
-      menuItems.add(
-        PopupMenuItem<ProfileRightAxisMetric?>(
-          enabled: false,
-          height: 32,
-          child: Text(
-            profileMetricCategoryName(context.l10n, category),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      );
-
-      // Add metrics in this category
-      for (final metric in availableMetrics) {
-        final isSelected = metric == currentMetric;
-        final metricColor = _palette.rightAxisColor(
-          metric,
-          singleTank: _isSingleTankDive,
-        );
-
-        menuItems.add(
-          PopupMenuItem<ProfileRightAxisMetric?>(
-            value: metric,
-            child: Row(
-              children: [
-                Icon(
-                  isSelected ? Icons.check : Icons.show_chart,
-                  size: 16,
-                  color: isSelected
-                      ? metricColor
-                      : colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  width: 12,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: metricColor,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  profileMetricName(context.l10n, metric),
-                  style: TextStyle(
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-    }
-
-    // Show the popup menu
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final renderBox = context.findRenderObject()! as RenderBox;
     final offset = renderBox.localToGlobal(Offset.zero);
-
-    showMenu<ProfileRightAxisMetric?>(
-      context: context,
+    showRightAxisMetricMenu(
+      context,
       position: RelativeRect.fromLTRB(
         offset.dx + renderBox.size.width - 200,
         offset.dy,
         offset.dx + renderBox.size.width,
         offset.dy + renderBox.size.height,
       ),
-      items: menuItems,
-    ).then((selectedMetric) {
-      // "None" is handled via onTap on its PopupMenuItem.
-      // Here we only handle actual metric selections (non-null).
-      if (selectedMetric != null) {
-        legendNotifier.setRightAxisMetric(selectedMetric);
-      }
-    });
+      choices: _rightAxisChoices(),
+      current: currentMetric,
+      onPick: legendNotifier.setRightAxisMetric,
+      onNone: legendNotifier.hideRightAxis,
+    );
   }
 
   /// Build depth line segments for the active source ([widget.profile]).

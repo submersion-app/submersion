@@ -677,6 +677,12 @@ class ChartOptionsDialog extends StatelessWidget {
             legendState: legendState,
             legendNotifier: legendNotifier,
           ),
+          if (config.rightAxisChoices.isNotEmpty)
+            buildRightAxisRow(
+              context,
+              config: config,
+              legendNotifier: legendNotifier,
+            ),
           buildBehaviorItem(
             context,
             label: context.l10n.diveLog_chartOption_tooltipFollowsCursor,
