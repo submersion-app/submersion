@@ -124,7 +124,10 @@ class SacTooltipLayout extends SingleChildLayoutDelegate {
 class SacChartTooltip extends StatelessWidget {
   final String text;
 
-  const SacChartTooltip({super.key, required this.text});
+  /// The locale's own direction; the chart around it runs left to right.
+  final TextDirection? textDirection;
+
+  const SacChartTooltip({super.key, required this.text, this.textDirection});
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +141,7 @@ class SacChartTooltip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Text(
           text,
+          textDirection: textDirection,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: scheme.onInverseSurface),

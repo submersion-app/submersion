@@ -481,6 +481,32 @@ void main() {
       });
     }
 
+    testWidgets('reads in the locale\'s direction', (tester) async {
+      await pumpSacSegmentsView(
+        tester,
+        selectedTimestamp: 7 * 60,
+        locale: const Locale('ar'),
+      );
+
+      final tooltip = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(SacTimeColumns.tooltipKey),
+          matching: find.byType(Text),
+        ),
+      );
+      // The average tag, the one label in the chart with words in it.
+      final tag = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(SacTimeColumns.plotKey),
+          matching: find.textContaining(
+            '\u0627\u0644\u0645\u062a\u0648\u0633\u0637',
+          ),
+        ),
+      );
+      expect(tooltip.textDirection, TextDirection.rtl);
+      expect(tag.textDirection, TextDirection.rtl);
+    });
+
     testWidgets('wears the theme\'s tooltip colors', (tester) async {
       await pumpSacSegmentsView(tester, selectedTimestamp: 7 * 60);
       final scheme = Theme.of(

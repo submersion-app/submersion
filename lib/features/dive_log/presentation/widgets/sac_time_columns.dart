@@ -227,6 +227,9 @@ class SacTimeColumns extends StatelessWidget {
         MediaQuery.textScalerOf(context).scale(labelStyle?.fontSize ?? 11) *
             (labelStyle?.height ?? 1.2) +
         _labelGap;
+    // Time runs left to right in every locale, but words read in the
+    // locale's own direction.
+    final textDirection = Directionality.of(context);
 
     return Directionality(
       textDirection: TextDirection.ltr,
@@ -238,8 +241,13 @@ class SacTimeColumns extends StatelessWidget {
             key: plotKey,
             height: band * 2 + barsHeight,
             child: LayoutBuilder(
-              builder: (context, constraints) =>
-                  _plot(theme, labelStyle, constraints.maxWidth, band),
+              builder: (context, constraints) => _plot(
+                theme,
+                labelStyle,
+                constraints.maxWidth,
+                band,
+                textDirection,
+              ),
             ),
           ),
           const SizedBox(height: 2),
@@ -346,6 +354,7 @@ class SacTimeColumns extends StatelessWidget {
     TextStyle? style,
     String label,
     double width,
+    TextDirection textDirection,
   ) {
     final right =
         _labelNearEnd(width, fromRight: false) &&
@@ -363,13 +372,23 @@ class SacTimeColumns extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Text(label, style: style, softWrap: false),
+          child: Text(
+            label,
+            style: style,
+            softWrap: false,
+            textDirection: textDirection,
+          ),
         ),
       ),
     );
   }
 
-  Widget _tooltip(double width, double band, String details) {
+  Widget _tooltip(
+    double width,
+    double band,
+    String details,
+    TextDirection textDirection,
+  ) {
     final column = columns[activeIndex!];
     return CustomSingleChildLayout(
       delegate: SacTooltipLayout(
@@ -383,7 +402,11 @@ class SacTimeColumns extends StatelessWidget {
         bottom: barsHeight + band,
         maxWidth: _tooltipMaxWidth,
       ),
-      child: SacChartTooltip(key: tooltipKey, text: details),
+      child: SacChartTooltip(
+        key: tooltipKey,
+        text: details,
+        textDirection: textDirection,
+      ),
     );
   }
 
@@ -392,6 +415,7 @@ class SacTimeColumns extends StatelessWidget {
     TextStyle? labelStyle,
     double width,
     double band,
+    TextDirection textDirection,
   ) {
     final colorScheme = theme.colorScheme;
     final valueStyle = labelStyle?.copyWith(color: colorScheme.onSurface);
@@ -444,13 +468,21 @@ class SacTimeColumns extends StatelessWidget {
                         if (label.index >= 0 && label.index < columns.length)
                           _barLabel(label, valueStyle, width),
                       if (averageLabel != null)
-                        _averageTag(theme, labelStyle, averageLabel!, width),
+                        _averageTag(
+                          theme,
+                          labelStyle,
+                          averageLabel!,
+                          width,
+                          textDirection,
+                        ),
                     ],
                   ),
                 ),
               ),
               if (details != null)
-                IgnorePointer(child: _tooltip(width, band, details)),
+                IgnorePointer(
+                  child: _tooltip(width, band, details, textDirection),
+                ),
             ],
           ),
         ),
