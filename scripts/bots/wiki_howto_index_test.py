@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for wiki_howto_index.py.
 
-Run: python3 scripts/wiki_howto_index_test.py
+Run: python3 scripts/bots/wiki_howto_index_test.py
 
 The wiki Home page lists every How-to page, newest first, between two
 markers. The script must find those pages, link them the way the wiki names

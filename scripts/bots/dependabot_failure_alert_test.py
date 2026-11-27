@@ -24,7 +24,7 @@ def _load(name):
 
 alert = _load("dependabot_failure_alert")
 
-WORKFLOW = os.path.join(_HERE, "..", ".github", "workflows", "dependabot-alert.yml")
+WORKFLOW = os.path.join(_HERE, "..", "..", ".github", "workflows", "dependabot-alert.yml")
 REPO = "submersion-app/submersion"
 NOW = datetime.datetime(2026, 10, 17, 12, 0, tzinfo=datetime.timezone.utc)
 CONTEXT = {"repo": REPO, "assignee": "maintainer"}
@@ -475,7 +475,7 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("actions: read", self.text)
 
     def test_runs_this_script(self):
-        self.assertIn("python3 scripts/dependabot_failure_alert.py", self.text)
+        self.assertIn("python3 scripts/bots/dependabot_failure_alert.py", self.text)
         self.assertIn("DEPENDABOT_ALERT_ASSIGNEE", self.text)
 
 

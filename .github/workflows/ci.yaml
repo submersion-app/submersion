@@ -763,7 +763,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/ci/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/testing/bundle_tests.py,scripts/testing/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/testing/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/ci/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
+          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/ci/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/testing/bundle_tests.py,scripts/testing/filter_trivial_coverage.py,scripts/bots/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/testing/report_inherited_failures.py,scripts/bots/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/bots/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/ci/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/bots/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/bots/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/bots/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
           python3 -m coverage run --include="$guards" \
             scripts/checks/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -793,15 +793,15 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/testing/filter_trivial_coverage_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/beta_failure_alert_test.py
+            scripts/bots/beta_failure_alert_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/beta_failure_alert_timeout_test.py
+            scripts/bots/beta_failure_alert_timeout_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/release/play_beta_cooldown_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/testing/report_inherited_failures_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/export_support_matrix_catalog_test.py
+            scripts/bots/export_support_matrix_catalog_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/checks/check_no_skipped_tests_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -815,15 +815,15 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/ci/apt_mirror_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/dependabot_failure_alert_test.py
+            scripts/bots/dependabot_failure_alert_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/demo_data/fetch_demo_db_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/demo_package_age_alert_test.py
+            scripts/bots/demo_package_age_alert_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/demo_data/fetch_published_manifest_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/snapshot_downloads_test.py
+            scripts/bots/snapshot_downloads_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/checks/check_web_bundle_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -835,7 +835,7 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/web/stage_hosted_site_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/wiki_howto_index_test.py
+            scripts/bots/wiki_howto_index_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/geography/generate_country_names_test.py
           python3 -m coverage run --append --include="$guards" \

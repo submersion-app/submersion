@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Keep the how-to list on the wiki Home page current.
 
-Usage: python3 scripts/wiki_howto_index.py <path to a clone of the wiki>
+Usage: python3 scripts/bots/wiki_howto_index.py <path to a clone of the wiki>
 
 Every wiki page whose file name starts with "How-to-", in any markup the wiki
 renders and in any folder, is listed on Home.md, newest first, between START_MARKER and END_MARKER. Everything else on Home is
@@ -28,7 +28,7 @@ import subprocess
 import sys
 import urllib.parse
 
-USAGE = "Usage: python3 scripts/wiki_howto_index.py <path to a clone of the wiki>"
+USAGE = "Usage: python3 scripts/bots/wiki_howto_index.py <path to a clone of the wiki>"
 HOWTO_PREFIX = "how-to-"
 # Every markup the wiki editor can save a page in, plus the other Markdown
 # spellings and plain-text pages the wiki renders when pushed with git.

@@ -588,12 +588,12 @@ jobs:
   # Five red Beta runs in eleven hours went unnoticed until someone read the
   # Actions list (#2598). This job opens one rolling issue when any job above
   # fails, comments on it while it stays open, and closes it once a run
-  # publishes on every lane; scripts/beta_failure_alert.py has the details.
+  # publishes on every lane; scripts/bots/beta_failure_alert.py has the details.
   #
   # It needs every job in this workflow, not just the store lanes:
   # needs.*.result sees only the jobs listed here, and a failed build or
   # precheck skips every lane rather than failing it. A job added without being
-  # listed fails scripts/beta_failure_alert_test.py.
+  # listed fails scripts/bots/beta_failure_alert_test.py.
   #
   # The condition runs it only on a failure, a cancellation or a fully
   # published run, so the many runs gated off by precheck stay "skipped" in the
@@ -638,4 +638,4 @@ jobs:
           BETA_TAG: ${{ needs.precheck.outputs.tag }}
           BETA_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           BETA_ALERT_ASSIGNEE: ${{ vars.BETA_ALERT_ASSIGNEE }}
-        run: python3 scripts/beta_failure_alert.py
+        run: python3 scripts/bots/beta_failure_alert.py

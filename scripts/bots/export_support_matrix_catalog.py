@@ -2,11 +2,11 @@
 """Export the dive computer support matrix catalog for submersion.app/computers.
 
 Reads libdivecomputer's descriptor table and the per-platform transport rules
-in scripts/data/support_matrix_platform_rules.json, and writes catalog.json:
+in scripts/bots/support_matrix_platform_rules.json, and writes catalog.json:
 every model, and the transport families each platform can reach for it.
 
 Usage:
-  python3 scripts/export_support_matrix_catalog.py --out catalog.json \
+  python3 scripts/bots/export_support_matrix_catalog.py --out catalog.json \
       [--previous old-catalog.json]
 """
 
@@ -19,12 +19,12 @@ import sys
 from datetime import datetime, timezone
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(_HERE)
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
 LIBDC_DIR = os.path.join(
     _ROOT, "packages", "libdivecomputer_plugin", "third_party", "libdivecomputer"
 )
 DEFAULT_DESCRIPTOR = os.path.join(LIBDC_DIR, "src", "descriptor.c")
-DEFAULT_RULES = os.path.join(_HERE, "data", "support_matrix_platform_rules.json")
+DEFAULT_RULES = os.path.join(_HERE, "support_matrix_platform_rules.json")
 
 PLATFORMS = ("ios", "android", "macos", "windows", "linux")
 FAMILIES = ("bluetooth", "usb")

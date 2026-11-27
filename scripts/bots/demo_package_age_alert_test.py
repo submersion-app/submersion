@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for demo_package_age_alert.py.
 
-Run: python3 scripts/demo_package_age_alert_test.py
+Run: python3 scripts/bots/demo_package_age_alert_test.py
 
 The demo-mode sample logbook is built by hand and keeps its seasons only
 while it is young, so the alert must notice an old package, open one rolling
@@ -82,7 +82,7 @@ class AgeTest(unittest.TestCase):
         # demoSeasonSlackDays, and that dive falls in the week before the
         # build, so the package must be a week younger than the window.
         path = os.path.join(
-            _HERE, "..", "lib", "features", "demo_mode", "data",
+            _HERE, "..", "..", "lib", "features", "demo_mode", "data",
             "demo_date_columns.dart",
         )
         with open(path, encoding="utf-8") as f:
@@ -197,13 +197,13 @@ class PlumbingTest(unittest.TestCase):
 class WorkflowTest(unittest.TestCase):
     def test_a_scheduled_workflow_runs_the_alert(self):
         path = os.path.join(
-            _HERE, "..", ".github", "workflows", "demo-package-age.yml"
+            _HERE, "..", "..", ".github", "workflows", "demo-package-age.yml"
         )
         with open(path, encoding="utf-8") as f:
             workflow = f.read()
 
         self.assertIn("schedule:", workflow)
-        self.assertIn("python3 scripts/demo_package_age_alert.py", workflow)
+        self.assertIn("python3 scripts/bots/demo_package_age_alert.py", workflow)
         self.assertIn("issues: write", workflow)
 
 

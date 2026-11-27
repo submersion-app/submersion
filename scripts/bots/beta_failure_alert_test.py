@@ -12,9 +12,9 @@ import unittest
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def _load(name):
+def _load(name, folder=_HERE):
     spec = importlib.util.spec_from_file_location(
-        name, os.path.join(_HERE, f"{name}.py")
+        name, os.path.join(folder, f"{name}.py")
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -22,9 +22,9 @@ def _load(name):
 
 
 alert = _load("beta_failure_alert")
-gate = _load("check_ci_success_gate")
+gate = _load("check_ci_success_gate", os.path.join(_HERE, os.pardir, "checks"))
 
-BETA_WORKFLOW = os.path.join(_HERE, "..", ".github", "workflows", "beta.yml")
+BETA_WORKFLOW = os.path.join(_HERE, "..", "..", ".github", "workflows", "beta.yml")
 
 
 def needs(**results):
