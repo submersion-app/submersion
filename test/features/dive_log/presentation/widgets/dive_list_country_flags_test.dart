@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
-import 'package:submersion/features/dive_log/domain/entities/view_field_config.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
