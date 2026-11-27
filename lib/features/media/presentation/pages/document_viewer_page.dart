@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/media/data/services/pdf_in_memory.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/attachment_details_hold.dart';
@@ -13,6 +12,7 @@ import 'package:submersion/features/media/presentation/editing/photo_viewer_edit
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/in_memory_pdf_viewer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
@@ -93,11 +93,9 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return PdfViewer(
-                  inMemoryPdfDocumentRef(
-                    resolved.bytes!,
-                    sourceName: widget.item.id,
-                  ),
+                return inMemoryPdfViewer(
+                  resolved.bytes!,
+                  sourceName: widget.item.id,
                   params: PdfViewerParams(
                     // A corrupt file must degrade to the unavailable state,
                     // not crash the page.

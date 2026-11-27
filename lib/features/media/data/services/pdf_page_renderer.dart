@@ -38,6 +38,12 @@ class PdfPageRenderer {
   /// substitute [pdfrxInitialize] (which fetches a host pdfium build).
   static Future<void> Function() initializer = pdfrxFlutterInitialize;
 
+  /// Opens a bytes source. In memory, so pdfium never waits on the main
+  /// isolate for a block (issue #4785); readable so a test can pin it.
+  @visibleForTesting
+  static const Future<PdfDocument> Function(Uint8List bytes) openBytes =
+      openInMemoryPdf;
+
   /// JPEG-encodes a BGRA page bitmap on a background isolate.
   ///
   /// package:image is pure Dart: converting and encoding a large page render
@@ -105,7 +111,7 @@ class PdfPageRenderer {
       }
       document = file != null
           ? await PdfDocument.openFile(file.path)
-          : await openInMemoryPdf(bytes!);
+          : await openBytes(bytes!);
       if (document.pages.isEmpty) return null;
       final pageImage = await renderWholePage(document.pages[0], maxDimension);
       if (pageImage == null) return null;
