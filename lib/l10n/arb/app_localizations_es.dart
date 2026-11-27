@@ -23866,7 +23866,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipmentDetailSection_sharingHistory_description =>
-      'Quién usó el artículo y cada uso compartido';
+      'Quién ha usado el artículo y cada uso compartido';
 
   @override
   String get equipmentDetailSection_serviceHistory_description =>

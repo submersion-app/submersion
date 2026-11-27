@@ -2327,7 +2327,7 @@
   "equipmentDetailSection_components_description": "Las piezas que componen el artículo",
   "equipmentDetailSection_unitConfigurations_description": "Configuraciones guardadas del rebreather",
   "equipmentDetailSection_linkedFiles_description": "Archivos vinculados antes de existir Documentos",
-  "equipmentDetailSection_sharingHistory_description": "Quién usó el artículo y cada uso compartido",
+  "equipmentDetailSection_sharingHistory_description": "Quién ha usado el artículo y cada uso compartido",
   "equipmentDetailSection_serviceHistory_description": "Mantenimientos y reparaciones anteriores",
   "equipmentDetailSection_notes_description": "Tus notas sobre el artículo",
   "equipmentDetailSection_documents_description": "Manuales, facturas y certificados",
