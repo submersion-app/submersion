@@ -14953,7 +14953,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_tankRole_oxygenSupply => 'Alimentation O₂';
 
   @override
-  String get enum_tankRole_pony => 'Pony bottle';
+  String get enum_tankRole_pony => 'Pony';
 
   @override
   String get enum_tankRole_sidemountLeft => 'Sidemount gauche';

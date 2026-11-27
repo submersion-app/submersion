@@ -4468,7 +4468,7 @@
   "enum_tankRole_deco": "Deco",
   "enum_tankRole_diluent": "Diluente",
   "enum_tankRole_oxygenSupply": "Riserva O2",
-  "enum_tankRole_pony": "Pony bottle",
+  "enum_tankRole_pony": "Pony",
   "enum_tankRole_sidemountLeft": "Sidemount sinistra",
   "enum_tankRole_sidemountRight": "Sidemount destra",
   "enum_tankRole_stage": "Stage",
