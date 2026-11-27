@@ -40,8 +40,8 @@ class PlanChartSeriesPainter extends CustomPainter {
     required this.textDirection,
   });
 
-  /// The gas switches the flags mark: the previewed dive's when one is
-  /// shown, as the stop tags and the ceiling are.
+  /// The gas switches the flags mark: the previewed dive's when one is shown, or
+  /// the live plan's otherwise, as with the stop tags and the ceiling.
   List<CanvasMarker> get flaggedGasSwitches => (ghost ?? series).gasSwitches;
 
   @override
