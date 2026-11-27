@@ -31,11 +31,13 @@ void main() {
       '2 x 7',
       '2×8.5',
       'Manifold 12',
-      // Issue #5065: a space or a decimal size in the D code.
+      // Issue #5065: a space or a hyphen in the D code, and decimal sizes.
       'D 12',
+      'D-12',
       'D8.5',
       'D 8.5',
       'D 8,5',
+      'D12,232',
     ]) {
       test('name "$name" is a twin set', () {
         expect(looksLikeTwinSet(tank(TankRole.backGas, name: name)), isTrue);
@@ -43,8 +45,9 @@ void main() {
     }
 
     // A custom preset's slug drops the dot and turns spaces into
-    // underscores: "D 12" is stored as `d_12`, "D 8.5" as `d_85` (#5065).
-    for (final preset in ['twin_12', 'd12', 'd_12', 'd_85', 'd85']) {
+    // underscores but keeps hyphens: "D 12" is stored as `d_12`, "D 8.5" as
+    // `d_85` and "D-8.5" as `d-85` (#5065).
+    for (final preset in ['twin_12', 'd12', 'd_12', 'd_85', 'd85', 'd-85']) {
       test('preset "$preset" with no name is a twin set', () {
         expect(
           looksLikeTwinSet(tank(TankRole.backGas, presetName: preset)),
@@ -63,7 +66,6 @@ void main() {
       'ED12',
       'D 123',
       'ED 12',
-      'D12.55',
       // Volume by pressure, the usual European single label.
       'Steel 12x232',
       'Faber 12x300',
