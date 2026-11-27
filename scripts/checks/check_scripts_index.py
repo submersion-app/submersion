@@ -14,11 +14,13 @@ This guard keeps that true:
    file or as a folder holding one.
 3. Only README.md, setup.sh and requirements.txt sit at the top of scripts/.
 4. No file lives in a folder the cleanup retired.
-5. Every scripts/ or tool/ path named in .github/ or hooks/pre-push exists.
+5. Every scripts/ or tool/ path named in .github/, hooks/pre-push, a fastlane
+   Fastfile or an Xcode project exists (a glob's folder must hold a file).
    Some workflows run only on a schedule, a release or a tag, so a path that
    moved would otherwise fail days after the move. A path written behind a
-   shell variable ($GITHUB_WORKSPACE/scripts/x.py) counts; one after ../ or
-   another path segment (packages/foo/tool/x.dart) does not. A line carrying
+   shell variable ($GITHUB_WORKSPACE/scripts/x.py), an expression, a quote,
+   a subshell or ../ (a step run from ios/) counts; one after another path
+   segment (packages/foo/tool/x.dart) or ~/ does not. A line carrying
    the marker `scripts-layout: legacy` is skipped: the pre-push hook names
    the pre-#5100 paths on purpose, for branches cut before the move.
 
@@ -41,10 +43,13 @@ SCRIPT_EXTENSIONS = (".py", ".sh", ".rb", ".dart")
 NOT_SCRIPTS = {"conftest.py", "__init__.py"}
 
 _CODE_SPAN = re.compile(r"`([^`\n]+)`")
-_DART_MAIN = re.compile(r"^(?:void|Future<void>|Future)?\s*main\s*\(", re.MULTILINE)
-_WORKFLOW_PATH = re.compile(
-    r"(?:scripts|tool)/[\w./-]*?\.(?:py|sh|rb|dart|json|txt)(?![\w-])"
+_DART_MAIN = re.compile(
+    r"^(?:(?:void|Future<void>|Future)[ \t]+)?main[ \t]*\(", re.MULTILINE
 )
+_WORKFLOW_PATH = re.compile(
+    r"(?:scripts|tool)/[\w./-]*?\.(?:py|sh|rb|dart|json|txt|lock|ya?ml|md|toml)(?![\w-])"
+)
+_WORKFLOW_GLOB = re.compile(r"(?:scripts|tool)/[\w./-]*\*")
 _SHELL_VARIABLE_END = re.compile(r"\$(?:\w+|\{\w+\})$")
 LEGACY_MARKER = "scripts-layout: legacy"
 
@@ -83,25 +88,52 @@ def _index_entries(root, files):
 
 
 def _counts_as_path(text, start):
-    """True when the match at `start` is a repository-root path."""
+    """True when the match at `start` is a repository-root path.
+
+    It is when it starts a word, or follows "./", any run of "../" (a step
+    run from ios/, a Fastfile, an Xcode build phase), a shell variable, an
+    expression (`${{ ... }}/`), a closing quote (`"$ROOT"/`) or a subshell
+    (`$(pwd)/`). After a path segment (packages/foo/tool/) or `~/` it is
+    some other folder's.
+    """
     if start == 0:
         return True
     before = text[start - 1]
     if before != "/":
         return not (before.isalnum() or before in "_.-")
     head = text[: start - 1]
-    if _SHELL_VARIABLE_END.search(head):
+    if not head:
         return True
-    # "./scripts/x.sh" is root-relative; "../scripts/x.sh" is not.
-    return head.endswith(".") and not head.endswith("..") and (
-        len(head) == 1 or not (head[-2].isalnum() or head[-2] in "_/-")
+    if head.endswith("..") or _SHELL_VARIABLE_END.search(head):
+        return True
+    if head[-1] in "}\"')":
+        return True
+    # "./scripts/x.sh" is root-relative.
+    return head.endswith(".") and (
+        len(head) == 1 or not (head[-2].isalnum() or head[-2] in "_/-.")
     )
+
+
+def _scans_for_paths(rel):
+    """Files whose script paths must exist: CI, the hook, fastlane, Xcode."""
+    return (
+        rel.startswith(".github/")
+        or rel == "hooks/pre-push"
+        or rel.rsplit("/", 1)[-1] == "Fastfile"
+        or rel.endswith(".xcodeproj/project.pbxproj")
+    )
+
+
+def _on_legacy_line(text, match):
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    return LEGACY_MARKER in text[line_start : line_end if line_end != -1 else None]
 
 
 def _workflow_problems(root, files, file_set):
     problems = []
     for rel in files:
-        if not (rel.startswith(".github/") or rel == "hooks/pre-push"):
+        if not _scans_for_paths(rel):
             continue
         text = _read(root, rel)
         seen = set()
@@ -109,16 +141,24 @@ def _workflow_problems(root, files, file_set):
             path = match.group(0)
             if path in seen or path in file_set:
                 continue
-            if not _counts_as_path(text, match.start()):
-                continue
-            line_start = text.rfind("\n", 0, match.start()) + 1
-            line_end = text.find("\n", match.end())
-            if LEGACY_MARKER in text[line_start : line_end if line_end != -1 else None]:
+            if not _counts_as_path(text, match.start()) or _on_legacy_line(text, match):
                 continue
             seen.add(path)
             problems.append(
                 f"{rel}: names {path}, which does not exist: "
                 "the file moved or was deleted; update the path"
+            )
+        for match in _WORKFLOW_GLOB.finditer(text):
+            prefix = match.group(0).split("*", 1)[0]
+            prefix = prefix[: prefix.rfind("/") + 1]
+            if prefix in seen or any(f.startswith(prefix) for f in files):
+                continue
+            if not _counts_as_path(text, match.start()) or _on_legacy_line(text, match):
+                continue
+            seen.add(prefix)
+            problems.append(
+                f"{rel}: names the folder {prefix}, which holds no file: "
+                "the folder moved or was deleted; update the path"
             )
     return problems
 

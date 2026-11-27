@@ -76,6 +76,11 @@ class IndexTest(GuardCase):
         self.assertEqual(len(problems), 1)
         self.assertIn("tool/a.dart", problems[0])
 
+    def test_dart_file_that_only_calls_main_is_not_a_script(self):
+        self.index()
+        self.add("tool/src/helper.dart", "void run() {\n  main();\n}\n")
+        self.assertEqual(self.problems(), [])
+
     def test_dangling_index_entry_is_reported(self):
         self.index("scripts/gone.py")
         problems = self.problems()
@@ -154,13 +159,62 @@ class WorkflowPathTest(GuardCase):
         self.assertEqual(len(problems), 1)
         self.assertIn("scripts/gone.sh", problems[0])
 
-    def test_relative_and_nested_paths_are_ignored(self):
+    def test_nested_and_home_paths_are_ignored(self):
         self.index()
         self.add(
             ".github/workflows/w.yml",
-            "# see ../scripts/gone.sh\nrun: dart run packages/foo/tool/gone.dart\n",
+            "run: dart run packages/foo/tool/gone.dart\nrun: cat ~/scripts/gone.py\n",
         )
         self.assertEqual(self.problems(), [])
+
+    def test_parent_relative_path_is_checked(self):
+        # working-directory: ios, then ../scripts/release/x.sh is the root's.
+        self.index()
+        self.add(".github/workflows/w.yml", "run: ../scripts/release/gone.sh\n")
+        problems = self.problems()
+        self.assertEqual(len(problems), 1)
+        self.assertIn("scripts/release/gone.sh", problems[0])
+
+    def test_expression_quote_and_subshell_prefixes_are_checked(self):
+        self.index()
+        self.add(
+            ".github/workflows/w.yml",
+            "a: ${{ github.workspace }}/scripts/one.py\n"
+            'b: "$ROOT"/scripts/two.py\n'
+            "c: $(pwd)/scripts/three.py\n",
+        )
+        joined = "\n".join(self.problems())
+        for name in ("one.py", "two.py", "three.py"):
+            self.assertIn(f"scripts/{name}", joined)
+
+    def test_data_file_extensions_are_checked(self):
+        self.index()
+        self.add(".github/workflows/w.yml", "run: cat scripts/web/gone.lock\n")
+        problems = self.problems()
+        self.assertEqual(len(problems), 1)
+        self.assertIn("scripts/web/gone.lock", problems[0])
+
+    def test_glob_prefix_must_name_an_existing_folder(self):
+        self.index("scripts/release/x.sh")
+        self.add("scripts/release/x.sh")
+        self.add(
+            ".github/workflows/w.yml",
+            "paths:\n  - 'scripts/release/**'\n  - 'scripts/gone/**'\n",
+        )
+        problems = self.problems()
+        self.assertEqual(len(problems), 1)
+        self.assertIn("scripts/gone/", problems[0])
+
+    def test_fastfiles_and_xcode_projects_are_scanned(self):
+        self.index()
+        self.add("ios/fastlane/Fastfile", 'sh("../../scripts/gone.sh")\n')
+        self.add(
+            "macos/Runner.xcodeproj/project.pbxproj",
+            'shellScript = "python3 \\"${SRCROOT}/../scripts/ci/gone.py\\"";\n',
+        )
+        joined = "\n".join(self.problems())
+        self.assertIn("ios/fastlane/Fastfile", joined)
+        self.assertIn("scripts/ci/gone.py", joined)
 
 
 class MainTest(unittest.TestCase):
