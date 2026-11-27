@@ -27,10 +27,10 @@ void main() {
       displays: const [laptop],
       mainWindow: mainOnLaptop,
     );
-    expect(frame.width, 900);
-    expect(frame.height, 600);
-    expect(frame.x, (1728 - 900) / 2);
-    expect(frame.y, (1117 - 600) / 2);
+    expect(frame.width, 1000);
+    expect(frame.height, 720);
+    expect(frame.x, (1728 - 1000) / 2);
+    expect(frame.y, (1117 - 720) / 2);
   });
 
   test('no saved frame opens at the default size on the main display', () {
@@ -40,8 +40,8 @@ void main() {
       displays: const [laptop, external],
       mainWindow: mainOnExternal,
     );
-    expect(frame.x, 1728 + (2560 - 900) / 2);
-    expect(frame.y, -200 + (1440 - 600) / 2);
+    expect(frame.x, 1728 + (2560 - 1000) / 2);
+    expect(frame.y, -200 + (1440 - 720) / 2);
   });
 
   test('frame below the minimum is clamped', () {
@@ -69,16 +69,27 @@ void main() {
     expect(frame.y, isNot(-500));
   });
 
+  test('the default window is tall enough for the desktop layout', () {
+    // The fullscreen profile hides its playback bar below a 600 pt short
+    // side, and the title bar takes some of the window's height.
+    final frame = resolvePopOutFrame(
+      saved: null,
+      displays: const [laptop],
+      mainWindow: mainOnLaptop,
+    );
+    expect(frame.height - 40, greaterThanOrEqualTo(600));
+  });
+
   test('no displays at all keeps the default size near the main window', () {
     final frame = resolvePopOutFrame(
       saved: null,
       displays: const [],
       mainWindow: mainOnLaptop,
     );
-    expect(frame.width, 900);
-    expect(frame.height, 600);
-    expect(frame.x, 100 + (1280 - 900) / 2);
-    expect(frame.y, 50 + (900 - 600) / 2);
+    expect(frame.width, 1000);
+    expect(frame.height, 720);
+    expect(frame.x, 100 + (1280 - 1000) / 2);
+    expect(frame.y, 50 + (900 - 720) / 2);
   });
 
   test('frame map round-trips and rejects junk', () {

@@ -17,6 +17,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/pop_out/data/pop_out_channel.dart';
 import 'package:submersion/features/pop_out/data/pop_out_windows.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_frame.dart';
@@ -27,6 +28,8 @@ import 'package:submersion/features/pop_out/presentation/pop_out_overrides.dart'
 // Startup wiring that only runs in a real second window's engine; the parts
 // it puts together are tested on their own.
 // coverage:ignore-start
+
+const _log = LoggerService('PopOutBootstrap');
 
 /// What this engine was launched with, when it is a pop-out window; null for
 /// the main window and on phones and tablets.
@@ -118,6 +121,10 @@ Future<void> _placeWindow(PopOutLaunch launch) async {
     saved: launch.savedFrame,
     displays: displays,
     mainWindow: launch.mainFrame,
+  );
+  _log.info(
+    'Pop-out frame $frame from saved ${launch.savedFrame}, '
+    'main ${launch.mainFrame}, displays $displays',
   );
   await windowManager.setMinimumSize(const Size(480, 320));
   await windowManager.setBounds(

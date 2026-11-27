@@ -64,8 +64,10 @@ PopOutFrame resolvePopOutFrame({
   PopOutFrame? saved,
   required List<PopOutFrame> displays,
   required PopOutFrame mainWindow,
-  double defaultWidth = 900,
-  double defaultHeight = 600,
+  // Tall enough that the fullscreen profile keeps its desktop layout (it
+  // hides the playback bar below a 600 pt short side) under a title bar.
+  double defaultWidth = 1000,
+  double defaultHeight = 720,
   double minWidth = 480,
   double minHeight = 320,
 }) {
