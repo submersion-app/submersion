@@ -1,0 +1,55 @@
+{
+  "format": 1,
+  "generatedAt": "2026-11-27T00:00:00Z",
+  "models": [
+    {
+      "id": "example-perdix-2",
+      "manufacturer": "Shearwater",
+      "manufacturerAliases": ["Shearwater Research"],
+      "model": "Perdix 2",
+      "aliases": ["Perdix2"],
+      "equipmentTypes": ["computer"],
+      "firmwarePageUrl": "https://example.com/perdix-2/firmware",
+      "releases": [
+        {
+          "version": "V95",
+          "reportedAs": ["95"],
+          "date": "2026-10-01",
+          "notesUrl": "https://example.com/perdix-2/v95-notes",
+          "instructionsUrl": "https://example.com/perdix-2/how-to-update",
+          "summary": "Sample release used by tests in both repositories.",
+          "safety": true,
+          "source": "https://example.com/perdix-2/v95-notes"
+        },
+        {
+          "version": "V94",
+          "reportedAs": ["94"],
+          "date": "2026-06-15",
+          "notesUrl": "https://example.com/perdix-2/v94-notes",
+          "source": "https://example.com/perdix-2/v94-notes"
+        },
+        {
+          "version": "V92",
+          "reportedAs": ["92"],
+          "date": "2026-02-03",
+          "source": "https://example.com/perdix-2/firmware"
+        }
+      ]
+    },
+    {
+      "id": "example-dpv",
+      "manufacturer": "Example Scooters",
+      "model": "Seal 2",
+      "equipmentTypes": ["dpv"],
+      "releases": [
+        {
+          "version": "2.4.0",
+          "date": "2026-09-20",
+          "summary": "Battery gauge accuracy.",
+          "source": "https://example.com/seal-2/firmware",
+          "futureField": "ignored by the app"
+        }
+      ]
+    }
+  ]
+}
