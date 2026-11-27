@@ -40,6 +40,7 @@ Future<void> _pump(WidgetTester tester, List<DiveProfilePoint> profile) async {
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       ],
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
