@@ -59,6 +59,30 @@ void main() {
       expect(config.scrVo2Lpm, 1.3);
     });
 
+    test('the switch depth reaches the engine config, default 10 m', () {
+      expect(
+        const ScenarioSettings().engineConfigFor().ccrSetpointSwitchDepth,
+        10.0,
+      );
+      expect(
+        const ScenarioSettings(
+          ccrSetpointSwitchDepth: 6.0,
+        ).engineConfigFor().ccrSetpointSwitchDepth,
+        6.0,
+      );
+    });
+
+    test('the switch depth takes part in equality and copyWith', () {
+      expect(
+        const ScenarioSettings(ccrSetpointSwitchDepth: 6.0),
+        isNot(const ScenarioSettings()),
+      );
+      expect(
+        const ScenarioSettings().copyWith(ccrSetpointSwitchDepth: 6.0),
+        const ScenarioSettings(ccrSetpointSwitchDepth: 6.0),
+      );
+    });
+
     test('the defaults take part in equality', () {
       expect(
         const ScenarioSettings(defaultScrVo2Lpm: 2.0),

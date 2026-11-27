@@ -404,11 +404,12 @@ class ScenarioEngine {
           ? (engine.scrAscentPlanFor(plan) ?? engine.ocAscentPlanFor(plan))
           : engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
+      setpointSwitchDepth: engine.config.setpointSwitchDepthFor(plan),
       loop: plan.mode == domain.PlanMode.ccr
           ? LoopSetpoints(
               low: engine.config.setpointLowFor(plan),
               high: engine.config.setpointHighFor(plan),
-              switchDepth: plan.effectiveSetpointSwitchDepth,
+              switchDepth: engine.config.setpointSwitchDepthFor(plan),
               diluent: plan.segments.isEmpty
                   ? const GasMix()
                   : plan.segments.last.gasMix,

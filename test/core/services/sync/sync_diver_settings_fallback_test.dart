@@ -682,4 +682,40 @@ void main() {
     expect(row.defaultShowAveloGasRemaining, isFalse);
     expect(row.defaultShowComputerRmv, isFalse);
   });
+
+  test('applies a pre-v387 diver_settings payload missing the CCR setpoint '
+      'switch depth', () async {
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 'ds-switch',
+            diverId: 'diver-switch',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final exported = await serializer.fetchRecord('diverSettings', 'ds-switch');
+    expect(exported, isNotNull);
+
+    // A peer still on v386 exports no switch depth. The column is NOT NULL;
+    // the serializer's schema-default fill supplies its 10 m default, so
+    // the import does not throw in DiverSetting.fromJson (#3793).
+    final legacy = Map<String, dynamic>.from(exported!)
+      ..remove('ccrSetpointSwitchDepth');
+
+    await (db.delete(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-switch'))).go();
+
+    await serializer.upsertRecord('diverSettings', legacy);
+
+    final row = await (db.select(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-switch'))).getSingle();
+    expect(row.ccrSetpointSwitchDepth, 10.0);
+  });
 }

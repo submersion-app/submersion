@@ -403,8 +403,11 @@ void main() {
     final dive = await entry(result.selectedDiveId);
     expect(dive?.diveMode, DiveMode.ccr);
     expect(dive?.diluentGas, diluent.gasMix);
-    expect(dive?.setpointLow, plan.setpointLow);
-    expect(dive?.setpointHigh, plan.setpointHigh);
+    // Entering CCR leaves the plan's setpoints unset (#3793); the log takes
+    // the diver's Settings values they resolve to.
+    expect(plan.setpointLow, isNull);
+    expect(dive?.setpointLow, c.read(ccrSetpointLowProvider));
+    expect(dive?.setpointHigh, c.read(ccrSetpointHighProvider));
     expect(dive?.tanks.where((t) => t.role == TankRole.diluent), hasLength(1));
     expect(
       await c
