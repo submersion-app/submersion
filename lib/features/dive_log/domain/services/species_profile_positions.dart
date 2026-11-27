@@ -121,13 +121,18 @@ Map<String, SpeciesProfilePositions> speciesProfilePositions({
       } else if (duration != null && duration > 0) {
         spans.add((base, base + duration));
       } else {
-        moments.add((seconds: base, depthMeters: marker.depthMeters));
+        // A moment where its camera chip sits, clamped onto the profile.
+        moments.add((
+          seconds: marker.elapsedSeconds,
+          depthMeters: marker.depthMeters,
+        ));
       }
     }
 
     final merged = _merged([
       for (final (start, end) in spans)
-        if (start <= last) (math.max(start, 0), math.min(end, last)),
+        // A stretch wholly before or after the profile has no place.
+        if (start <= last && end > 0) (math.max(start, 0), math.min(end, last)),
     ]);
     if (moments.isEmpty && merged.isEmpty) continue;
     moments.sort((a, b) => a.seconds.compareTo(b.seconds));

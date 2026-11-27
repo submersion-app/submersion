@@ -202,6 +202,27 @@ void main() {
     expect((span.start, span.end), (10, 20));
   });
 
+  test('a clip of unknown length begun before the descent sits at 0', () {
+    final positions = place(
+      sightings: [sighting('turtle')],
+      media: [item('v1', type: MediaType.video, elapsed: -20, depth: 1)],
+      tags: [tag('v1', 'turtle')],
+    );
+    expect(positions['turtle']!.moments.single.seconds, 0);
+  });
+
+  test('a stretch that ends before the profile starts has no place', () {
+    final positions = place(
+      sightings: [sighting('shark')],
+      media: [item('v1', type: MediaType.video, elapsed: -25, duration: 60)],
+      tags: [tag('v1', 'shark')],
+      ids: {
+        'v1': [track('a', 'shark', startMs: 1000, endMs: 4000)],
+      },
+    );
+    expect(positions, isEmpty);
+  });
+
   test('a hand-tagged video with no track spans the whole clip', () {
     final positions = place(
       sightings: [sighting('turtle')],

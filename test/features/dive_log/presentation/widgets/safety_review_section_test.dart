@@ -319,6 +319,7 @@ void main() {
             ),
           ],
           child: localizedMaterialApp(
+            locale: const Locale('en'),
             home: Scaffold(
               body: SingleChildScrollView(
                 controller: controller,

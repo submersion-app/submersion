@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_sighting_time.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
+import 'package:submersion/features/dive_log/domain/services/sighting_time_bound.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -3289,7 +3290,14 @@ class UddfEntityImporter {
       // and its tanks, weights, custom fields and gear, and nothing else
       // persists Dive.sightings. Without this the marine life a source
       // carried is built, attached to the entity, and then dropped.
-      await _importSightings(diveData, dive.id, repos);
+      await _importSightings(
+        diveData,
+        dive.id,
+        repos,
+        // A time past the dive is dropped, as the editor would not take it
+        // (issue #5092); the merged profile, whichever series are stored.
+        maxSeenAtSeconds: sightingTimeMaxSeconds(dive, dive.profile),
+      );
 
       // createDive's companion deliberately omits computer_id, so attribution
       // has to be an explicit second write (#1288).
@@ -3869,8 +3877,9 @@ class UddfEntityImporter {
   Future<void> _importSightings(
     Map<String, dynamic> diveData,
     String diveId,
-    ImportRepositories repos,
-  ) async {
+    ImportRepositories repos, {
+    required int maxSeenAtSeconds,
+  }) async {
     final repository = repos.speciesRepository;
     if (repository == null) return;
     final raw = diveData['sightings'];
@@ -3904,7 +3913,10 @@ class UddfEntityImporter {
           abundance: amount.abundance,
           count: amount.count,
           notes: entry['notes'] is String ? entry['notes'] as String : '',
-          seenAtSeconds: UddfSightingTime.of(entry),
+          seenAtSeconds: switch (UddfSightingTime.of(entry)) {
+            final s? when s <= maxSeenAtSeconds => s,
+            _ => null,
+          },
         );
       } catch (e) {
         _log.warning('Could not import a sighting for dive $diveId: $e');

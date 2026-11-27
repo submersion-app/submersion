@@ -24,14 +24,19 @@ typedef DiveSpeciesMediaInputs = ({
 });
 
 /// [DiveSpeciesMediaInputs] for a dive, by dive id. Refreshes when a tag,
-/// a media row or an identification changes.
+/// a media row, its enrichment or an identification changes.
 final diveSpeciesMediaInputsProvider =
     FutureProvider.family<DiveSpeciesMediaInputs, String>((ref, diveId) async {
       final tags = ref.watch(mediaSpeciesRepositoryProvider);
       final identifications = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(tags.watchTagChanges());
       ref.invalidateSelfWhen(identifications.watchChanges());
-      final media = await ref.watch(mediaForDiveProvider(diveId).future);
+      // Media, their enrichment (the place on the profile) and links, read
+      // here rather than through mediaForDiveProvider: that one refreshes
+      // on the dive detail tick, which leaves the enrichment table out.
+      final mediaRepository = ref.watch(mediaRepositoryProvider);
+      ref.invalidateSelfWhen(mediaRepository.watchMediaChanges());
+      final media = await mediaRepository.getMediaForDive(diveId);
       final ids = [for (final m in media) m.id];
       if (ids.isEmpty) {
         return (

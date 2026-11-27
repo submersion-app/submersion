@@ -72,4 +72,40 @@ void main() {
       );
     },
   );
+
+  test('refreshes when a photo gets its place on the profile', () async {
+    // Enrichment is its own table, which the dive detail tick leaves out.
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final sub = container.listen(
+      diveSpeciesMediaInputsProvider('d1'),
+      (_, _) {},
+    );
+    addTearDown(sub.close);
+    final first = await container.read(
+      diveSpeciesMediaInputsProvider('d1').future,
+    );
+    expect(first.media.single.enrichment, isNull);
+
+    // A typed insert, as the app writes it: a raw statement announces no
+    // table update.
+    await db
+        .into(db.mediaEnrichment)
+        .insert(
+          MediaEnrichmentCompanion.insert(
+            id: 'e1',
+            mediaId: 'p1',
+            diveId: 'd1',
+            depthMeters: const Value(12.5),
+            elapsedSeconds: const Value(600),
+            createdAt: 0,
+          ),
+        );
+    // Past the media change tick's 300 ms debounce.
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    final second = await container.read(
+      diveSpeciesMediaInputsProvider('d1').future,
+    );
+    expect(second.media.single.enrichment?.elapsedSeconds, 600);
+  });
 }
