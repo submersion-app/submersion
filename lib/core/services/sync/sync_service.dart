@@ -1539,8 +1539,9 @@ class SyncService {
   /// combined dive, and a live series duplicating its source's own under
   /// another computer's label (issue #4847); both read the touched dives.
   /// One below v389 copies a site's altitude and water type onto a dive it
-  /// links, and leaves its entry and exit methods empty (issue #5040); both
-  /// repairs read the touched dives.
+  /// links (issue #5040); that clear reads the touched dives. The v389 fill
+  /// of empty entry and exit methods is not repeated here: it would put
+  /// back a method the diver cleared on another device.
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {
       final db = DatabaseService.instance.database;
@@ -1553,10 +1554,7 @@ class SyncService {
           0) {
         db.notifyUpdates({TableUpdate.onTable(db.dives)});
       }
-      final siteValues =
-          await clearSiteCopiedDiveValues(db, diveIds: touchedDiveIds) +
-          await fillDiveEntryExitFromSites(db, diveIds: touchedDiveIds);
-      if (siteValues > 0) {
+      if (await clearSiteCopiedDiveValues(db, diveIds: touchedDiveIds) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.dives)});
       }
       if (await stampCombinedDiveSourceSlots(db, diveIds: touchedDiveIds) > 0) {

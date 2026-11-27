@@ -60,6 +60,21 @@ double? siteAltitudeOf(EditSession<Dive> session) {
   return found?.siteId == site.id ? found!.meters : null;
 }
 
+/// [dive] with its site carrying the altitude a lookup in [session] found
+/// for it, while the site has none: what the dive page draws, so the
+/// Altitude card shows a looked-up altitude before the save gives it to the
+/// site (issue #5040). [dive] as it is otherwise.
+Dive withLookedUpSiteAltitude(EditSession<Dive>? session, Dive dive) {
+  final site = dive.site;
+  if (session == null || session.isDisposed) return dive;
+  if (site == null || site.altitude != null) return dive;
+  final found = session.recall<({String siteId, double meters})>(
+    _siteAltitudeLookupNoteKey,
+  );
+  if (found == null || found.siteId != site.id) return dive;
+  return dive.copyWith(site: site.copyWith(altitude: found.meters));
+}
+
 /// The altitude the dive in [session] is at: its own, else its site's.
 double? effectiveAltitudeOf(EditSession<Dive> session) =>
     session.valueOf(diveAltitudeField) ?? siteAltitudeOf(session);

@@ -536,7 +536,15 @@ class AppDatabase extends _$AppDatabase {
   /// the new kinds as manually credited dives and discard the conditions.
   /// Holding those readers also prevents them from publishing explicit nulls
   /// for the discarded conditions after they upgrade.
-  static const int minimumCompatibleSchemaVersion = 386;
+  ///
+  /// Raised 386 -> 389 by site-derived dive values (#5040): from v389 a
+  /// dive's altitude reads through to its site, so linking a site stores
+  /// none on the dive and the rung clears the copies older builds made. A
+  /// peer below 389 reads only the dive's own altitude, so it would show a
+  /// dive linked here with no altitude and replay its deco at sea level.
+  /// Held below the floor until it updates. Its own payloads still arrive
+  /// here, and the copies they carry are cleared after the apply.
+  static const int minimumCompatibleSchemaVersion = 389;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1832,8 +1840,8 @@ class AppDatabase extends _$AppDatabase {
     387,
     // v389 (issue #5040): a dive reads its site's altitude and water type;
     // the copies linking a site made are cleared and an empty entry or exit
-    // method is filled from a site listing one. Data only; the floor does
-    // not move. 388 is held by #5028.
+    // method is filled from a site listing one. The floor rises to 389 (see
+    // minimumCompatibleSchemaVersion). 388 is held by #5028.
     389,
   ];
 

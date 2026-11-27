@@ -13,12 +13,14 @@ import 'package:submersion/core/database/table_columns.dart';
 // dive's own (a site lists the possible ones, a dive the one used), so an
 // empty one is filled from a site that is unambiguous, as linking it does.
 //
-// Both run from the rung over the whole library, and again after each
-// inbound sync apply over the dives it touched: a peer below v389 still
-// copies on link, and a sync store written before it still holds the
-// copies. Neither moves the sync stamp (`updated_at`, `hlc`): every device
-// makes the same change, so they agree without a sync round, and the
-// dive's effective values are unchanged by either.
+// Both run from the rung over the whole library. The clear runs again after
+// each inbound sync apply over the dives it touched, since a sync store
+// written before v389 still holds the copies; a peer below v389 is held
+// below the sync floor. The fill runs from the rung only: repeated after a
+// sync it would put back a method the diver cleared on another device.
+// Neither moves the sync stamp (`updated_at`, `hlc`): every device makes the
+// same change at its rung, and the clear leaves the dive's effective values
+// as they were.
 //
 // Neither column needs an entry in `changeLogRewrittenColumns`. A revert
 // that puts back a cleared copy puts back the site's value as it was then,

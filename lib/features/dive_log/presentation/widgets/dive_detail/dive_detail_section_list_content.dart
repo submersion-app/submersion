@@ -78,6 +78,14 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
         if (!_onPage(ref, id, presence, stored, edit)) return null;
         return DiveEnvironmentSection(dive: dive, satelliteFor: stored);
       case DiveDetailSectionId.altitude:
+        // An altitude a lookup found for the site counts as the site's
+        // before the save gives it to the site (issue #5040). Not while an
+        // editor holds the layout: the card waits for it to close.
+        final session = edit?.session;
+        final drawn = withLookedUpSiteAltitude(session, dive);
+        if (edit?.layoutRecord == null) {
+          presence = withLookedUpSiteAltitude(session, presence);
+        }
         if (!diveCardIsShown(ref, id, presence)) {
           // Safety phase 2: the site is at altitude but the dive was not
           // altitude-adjusted: surface an informational note instead of
@@ -92,8 +100,8 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
         }
         // Emptied since the layout was fixed: closed, it has nothing to
         // draw, and the strip offers it again.
-        if (!diveCardIsShown(ref, id, dive)) return null;
-        return DiveAltitudeSection(dive: dive);
+        if (!diveCardIsShown(ref, id, drawn)) return null;
+        return DiveAltitudeSection(dive: drawn);
       case DiveDetailSectionId.tide:
         // The card decides for itself whether it has tides to show, from
         // the dive as stored.

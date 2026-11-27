@@ -325,9 +325,14 @@ void main() {
       return db;
     }
 
-    test('v389 is in the ladder', () {
+    test('v389 is in the ladder and raises the floor', () {
       expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(389));
       expect(AppDatabase.migrationVersions, contains(389));
+      // A peer below 389 reads no site altitude (see the floor's doc).
+      expect(
+        AppDatabase.minimumCompatibleSchemaVersion,
+        greaterThanOrEqualTo(389),
+      );
     });
 
     test('an upgrade clears the copies and fills the methods', () async {

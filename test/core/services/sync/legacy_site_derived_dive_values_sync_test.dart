@@ -17,10 +17,10 @@ import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
 
 /// Issue #5040. A dive reads its site's altitude and water type, and the
-/// v389 rung clears the copies linking a site made and fills an empty entry
-/// or exit method from a site listing one. The rung stamps nothing, so a
-/// sync store keeps the old shape, and a peer below v389 goes on copying on
-/// link. Applying such a dive has to make the same change.
+/// v389 rung clears the copies linking a site made. The rung stamps nothing,
+/// so a sync store keeps the copies. Applying such a dive has to clear them.
+/// The rung's fill of empty entry and exit methods is not repeated: it would
+/// put back a method the diver cleared on another device.
 void main() {
   late AppDatabase db;
   late SyncDataSerializer serializer;
@@ -91,8 +91,8 @@ void main() {
     expect(row['siteId'], 'lake');
     expect(row['altitude'], isNull);
     expect(row['waterType'], isNull);
-    expect(row['entryMethod'], 'shore');
-    expect(row['exitMethod'], 'shore');
+    expect(row['entryMethod'], isNull);
+    expect(row['exitMethod'], isNull);
   }
 
   test('a payload applied from an older peer is repaired', () async {
