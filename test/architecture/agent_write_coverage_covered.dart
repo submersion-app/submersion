@@ -423,7 +423,7 @@ final covered = <String, String>{
     'assignDivesToTrip',
   ])
     '$trips/trip_repository.dart:$method': 'trips',
-  for (final method in const ['pack', 'unpack'])
+  for (final method in const ['pack', 'unpack', 'assignBags'])
     '$trips/trip_equipment_repository.dart:$method': 'trips',
   '$trips/liveaboard_details_repository.dart:createOrUpdate':
       'liveaboard_details',

@@ -26313,6 +26313,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => '上传记录';
 
   @override
+  String get settings_conflict_field_bagHlc => '装备包记录';
+
+  @override
   String get settings_conflict_field_url => '地址';
 
   @override
@@ -27103,6 +27106,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_transmitter => '发射器';
+
+  @override
+  String get settings_conflict_ref_packedIn => '装在';
 
   @override
   String get settings_conflict_ref_trip => '行程';
@@ -34366,6 +34372,41 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => '选择装备包';
+
+  @override
+  String get trips_bags_none => '未分配';
+
+  @override
+  String get trips_bags_move => '移到装备包';
+
+  @override
+  String get trips_bags_section => '装备包';
+
+  @override
+  String trips_bags_total(String weight) {
+    return '总重量：$weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return '已知重量小计：$weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return '重量缺失：$items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => '、';
 
   @override
   String get trips_gear_add_action => '添加';

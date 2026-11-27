@@ -476,7 +476,14 @@ class EquipmentWrites extends WritableEntry {
           'OR transmitter_equipment_id != ?1)',
       id,
     );
+    // Gear packed in it on a trip comes out loose.
+    final bagContents = await countRows(
+      'trip_equipment',
+      'bag_equipment_id = ?1 AND equipment_id != ?1',
+      id,
+    );
     return DeleteReach(
+      touched: {if (bagContents > 0) 'trip_equipment': bagContents},
       records: {
         if (documents > 0) 'documents': documents,
         if (computers > 0) 'dive_computers': computers,

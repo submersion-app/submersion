@@ -816,6 +816,10 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'wind_direction': 'enum: CurrentDirection.name',
     'wind_speed': 'm/s',
   },
+  'trip_equipment': {
+    'bag_equipment_id': 'The inventory ID of the packed bag on this trip',
+    'bag_hlc': 'The clock of the last bag assignment, apart from hlc so a copy from a peer that does not know bags never outranks one',
+  },
   'trip_itinerary_days': {
     'date': 'Unix timestamp',
     'planned_dives': 'the day\'s planned dives for the fill forecast',

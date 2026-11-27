@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -91,6 +92,165 @@ void main() {
     });
     final rows = await db.select(db.tripEquipment).get();
     expect(rows.map((r) => r.id), ['aaa-peer']);
+  });
+
+  group('bag assignments', () {
+    const base = {
+      'id': 'gear',
+      'tripId': 't1',
+      'equipmentId': 'bcd',
+      'createdAt': 1,
+    };
+    String clock(int n) => '00000000000000$n:000000:peer';
+    Future<String?> bag() async =>
+        (await db.select(db.tripEquipment).get()).single.bagEquipmentId;
+
+    test('travel, keep the newer one, and allow explicit clears', () async {
+      await serializer.upsertRecord('tripEquipment', {
+        ...base,
+        'bagEquipmentId': 'roller',
+        'bagHlc': clock(1),
+        'hlc': clock(1),
+      });
+      await serializer.upsertRecords('tripEquipment', [
+        {
+          ...base,
+          'bagEquipmentId': 'carry-on',
+          'bagHlc': clock(2),
+          'hlc': clock(2),
+        },
+        {
+          ...base,
+          'id': 'earlier-id',
+          'bagEquipmentId': 'roller',
+          'bagHlc': clock(1),
+          'hlc': clock(4),
+        },
+      ]);
+      final fetched = await serializer.fetchRecord(
+        'tripEquipment',
+        'earlier-id',
+      );
+      expect(fetched?['bagEquipmentId'], 'carry-on');
+      expect(await db.select(db.tripEquipment).get(), hasLength(1));
+
+      await serializer.upsertRecord('tripEquipment', {
+        ...base,
+        'id': 'earlier-id',
+        'bagEquipmentId': null,
+        'bagHlc': clock(3),
+        'hlc': clock(3),
+      });
+      expect(await bag(), isNull);
+    });
+
+    // A peer on a build without bags sends no bag key, and its row clock
+    // says nothing about the bag.
+    final older = {
+      ...base,
+      'id': 'b-older',
+      'hlc': '000000000000004:000000:old',
+    };
+    final bagged = {
+      ...base,
+      'id': 'a-bagged',
+      'bagEquipmentId': 'duffel',
+      'bagHlc': '000000000000002:000000:new',
+      'hlc': '000000000000002:000000:new',
+    };
+
+    test('an older bag still lands after a newer row from a peer that does '
+        'not know bags', () async {
+      await serializer.upsertRecord('tripEquipment', older);
+      await serializer.upsertRecord('tripEquipment', bagged);
+      expect(await bag(), 'duffel');
+    });
+
+    test('and in the other order', () async {
+      await serializer.upsertRecord('tripEquipment', bagged);
+      await serializer.upsertRecord('tripEquipment', older);
+      expect(await bag(), 'duffel');
+    });
+
+    test('a bag set here and not yet published goes out under the peer '
+        'id', () async {
+      await db
+          .into(db.tripEquipment)
+          .insert(
+            TripEquipmentCompanion.insert(
+              id: 'z-local',
+              tripId: 't1',
+              equipmentId: 'bcd',
+              createdAt: 1,
+              bagEquipmentId: const Value('duffel'),
+              bagHlc: const Value('000000000000005:000000:here'),
+            ),
+          );
+      await SyncRepository().markRecordPending(
+        entityType: 'tripEquipment',
+        recordId: 'z-local',
+        localUpdatedAt: 1,
+      );
+      await serializer.upsertRecord('tripEquipment', {
+        ...base,
+        'id': 'a-peer',
+        'bagEquipmentId': null,
+        'bagHlc': null,
+        'hlc': '000000000000003:000000:peer',
+      });
+
+      final row = (await db.select(db.tripEquipment).get()).single;
+      expect((row.id, row.bagEquipmentId), ('a-peer', 'duffel'));
+      final marks = await (db.select(
+        db.syncRecords,
+      )..where((r) => r.entityType.equals('tripEquipment'))).get();
+      expect(marks.map((m) => (m.recordId, m.syncStatus)), [
+        ('a-peer', 'pending'),
+      ]);
+    });
+  });
+
+  test('a peer id another pair holds here leaves both rows standing', () async {
+    // Gear merged on this device can hold the peer's id under another pair.
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'fins',
+            name: 'Fins',
+            type: 'fins',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await pack('zzz-local');
+    await db
+        .into(db.tripEquipment)
+        .insert(
+          TripEquipmentCompanion.insert(
+            id: 'aaa-peer',
+            tripId: 't1',
+            equipmentId: 'fins',
+            createdAt: 1,
+          ),
+        );
+    await serializer.upsertRecords('tripEquipment', [
+      {
+        'id': 'aaa-peer',
+        'tripId': 't1',
+        'equipmentId': 'bcd',
+        'bagEquipmentId': 'roller',
+        'createdAt': 2,
+        'bagHlc': '000000000000001:000000:peer',
+        'hlc': '000000000000001:000000:peer',
+      },
+    ]);
+    final rows = {
+      for (final r in await db.select(db.tripEquipment).get())
+        r.id: (r.equipmentId, r.bagEquipmentId),
+    };
+    expect(rows, {'zzz-local': ('bcd', 'roller'), 'aaa-peer': ('fins', null)});
   });
 
   test('a trips tombstone drops its packed rows', () async {

@@ -142,5 +142,31 @@ void main() {
 
       expect(await TripEquipmentRepository().tripIdsForEquipment('c1'), {'t2'});
     });
+
+    test('written at Save, it packs into a bag and moves bags', () async {
+      await items.createEquipment(
+        const EquipmentItem(
+          id: 'duffel',
+          name: 'Duffel',
+          type: EquipmentType.bag,
+        ),
+      );
+      final packs = TripEquipmentRepository();
+      for (final trip in ['t1', 't2']) {
+        await packs.pack(trip, ['duffel']);
+      }
+      final current = gearItemTripsList.current(session)!;
+      gearItemTripsList.set(session, [
+        for (final row in current) (tripId: row.tripId, bagId: 'duffel'),
+      ]);
+      packForTripInSitting(session, 't2', bagId: 'duffel');
+
+      await db.transaction(session.runHeldWrites);
+
+      expect(await packs.packingForEquipment('c1'), [
+        (tripId: 't1', bagId: 'duffel'),
+        (tripId: 't2', bagId: 'duffel'),
+      ]);
+    });
   });
 }

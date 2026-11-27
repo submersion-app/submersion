@@ -16,6 +16,8 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_bag_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
@@ -41,8 +43,8 @@ typedef TripLeadChecklists = ({
 
 /// The Gear tab's one Add (#2845): a chooser that opens the equipment
 /// picker, the set picker, a tag scan (#2652), or the rental cylinder form. A cylinder picked
-/// from the diver's equipment becomes a slot on the board; anything else is
-/// packed.
+/// from the diver's equipment becomes a slot on the board. The bag picker
+/// can also record its physical packing.
 Future<void> showTripGearAddSheet(
   BuildContext context,
   WidgetRef ref, {
@@ -93,6 +95,7 @@ Future<void> showTripGearAddSheet(
         ref,
         trip,
         slots,
+        packed,
         picked,
         writes: writes,
         lead: lead,
@@ -116,6 +119,7 @@ Future<void> showTripGearAddSheet(
         ref,
         trip,
         slots,
+        packed,
         items,
         writes: writes,
         lead: lead,
@@ -128,7 +132,8 @@ Future<void> showTripGearAddSheet(
       final messenger = ScaffoldMessenger.of(context);
       final already =
           packed.any((p) => p.id == item.id) ||
-          slots.any((s) => s.equipmentId == item.id);
+          (tripPackingBags(packed).isEmpty &&
+              slots.any((s) => s.equipmentId == item.id));
       if (already) {
         messenger.showSnackBar(
           SnackBar(
@@ -142,6 +147,7 @@ Future<void> showTripGearAddSheet(
         ref,
         trip,
         slots,
+        packed,
         [item],
         writes: writes,
         lead: lead,
@@ -191,8 +197,10 @@ Future<List<EquipmentItem>?> _pickItems(
       scrollController: scrollController,
       selectedEquipmentIds: {
         for (final i in packed) i.id,
-        for (final s in slots)
-          if (s.equipmentId != null) s.equipmentId!,
+        // With a bag available, a board-only tank can be physically packed.
+        if (tripPackingBags(packed).isEmpty)
+          for (final s in slots)
+            if (s.equipmentId != null) s.equipmentId!,
       },
       hideSpare: true,
       hideAssemblyParts: true,
@@ -219,15 +227,15 @@ Future<(EquipmentSet, List<EquipmentItem>)?> _pickSet(BuildContext context) =>
       ),
     );
 
-/// Packs the non-cylinder items the diver may use and slots the cylinders
-/// not already on the board; says how many a set added, counting the slots
-/// with the packed items (#2877). A failure is logged and said. Returns
-/// how many items it packed or slotted, or null after a failure.
+/// Packs the selected gear and slots the cylinders missing from the board.
+/// With a bag choice, a cylinder gets a physical packing record too. The set
+/// total counts each item once. Returns null if packing is cancelled or fails.
 Future<int?> _apply(
   BuildContext context,
   WidgetRef ref,
   Trip trip,
   List<TripCylinder> slots,
+  List<EquipmentItem> packed,
   List<EquipmentItem> items, {
   required TripGearWrites writes,
   required TripLeadChecklists lead,
@@ -260,6 +268,27 @@ Future<int?> _apply(
       for (final i in items)
         if (ids.contains(i.id)) i,
     ];
+    final alreadyPacked = {for (final item in packed) item.id};
+    final bags = tripPackingBags([
+      ...packed,
+      ...usable.where((item) => !alreadyPacked.contains(item.id)),
+    ]);
+    String? bagId;
+    var chosePackingLocation = false;
+    if (bags.isNotEmpty &&
+        usable.any(
+          (item) =>
+              item.type != EquipmentType.bag &&
+              !alreadyPacked.contains(item.id),
+        )) {
+      if (!context.mounted) return null;
+      final choice = await pickTripBag(context, bags);
+      if (choice == null || !context.mounted) return null;
+      bagId = choice.bagId;
+      // A tank goes in a bag as packed gear; left loose it goes on the board
+      // only, as with no bag to choose.
+      chosePackingLocation = bagId != null;
+    }
     final slotted = {
       for (final s in slots)
         if (s.equipmentId != null) s.equipmentId!,
@@ -270,11 +299,11 @@ Future<int?> _apply(
     ];
     final others = [
       for (final i in usable)
-        if (i.type != EquipmentType.tank) i,
+        if (i.type != EquipmentType.tank || chosePackingLocation) i,
     ];
     var addedCount = 0;
     if (others.isNotEmpty) {
-      addedCount = await writes.pack(others);
+      addedCount = await writes.pack(others, bagId: bagId);
     }
     if (tanks.isNotEmpty) {
       final now = DateTime.now().toUtc();
@@ -291,7 +320,11 @@ Future<int?> _apply(
             now: now,
           ),
       ]);
-      addedCount += created.length;
+      addedCount += !chosePackingLocation
+          ? created.length
+          : created
+                .where((slot) => alreadyPacked.contains(slot.equipmentId))
+                .length;
     }
     var leadSkipped = false;
     if (bundle != null) {

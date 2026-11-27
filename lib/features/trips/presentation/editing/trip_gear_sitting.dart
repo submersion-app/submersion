@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/checklists/domain/services/checklist_rows.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -11,6 +13,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_append.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
@@ -18,33 +21,66 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
 const _uuid = Uuid();
+const _log = LoggerService('tripGearSitting');
+
+/// The trip's gear in a bag, or none when the read fails: the gear then
+/// shows loose, as the Gear tab shows it outside a sitting.
+Future<Map<String, String>> _bagAssignments(
+  TripEquipmentRepository packs,
+  String tripId,
+) async {
+  try {
+    return await packs.bagAssignmentsForTrip(tripId);
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to read the bags of trip gear',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return const {};
+  }
+}
 
 /// The gear packed for a trip, held in its sitting (issue #4527, phase 3):
 /// read through [read] (the Gear tab's own read) and written through
 /// [packs] at Save, packing the items the sitting added and unpacking the
 /// ones it took off. Both are idempotent per trip and item, so a passport
 /// sitting packing the same pair (phase 3 plan 7) never makes a second row.
-SittingList<Trip, EquipmentItem> tripPackedGearList({
+SittingList<Trip, TripPackedItem> tripPackedGearList({
   required Future<List<EquipmentItem>> Function(String tripId) read,
   required TripEquipmentRepository packs,
-}) => SittingList<Trip, EquipmentItem>(
+}) => SittingList<Trip, TripPackedItem>(
   key: 'trip.packedGear',
   cardId: TripCardId.packedGear.name,
-  read: (trip) => read(trip.id),
-  write: (trip, loaded, current) async {
-    final before = {for (final i in loaded) i.id};
-    final after = {for (final i in current) i.id};
-    final added = [
-      for (final id in after)
-        if (!before.contains(id)) id,
-    ];
-    if (added.isNotEmpty) await packs.pack(trip.id, added);
-    for (final id in before) {
-      if (!after.contains(id)) await packs.unpack(trip.id, id);
-    }
-    return added.isNotEmpty || before.difference(after).isNotEmpty;
+  read: (trip) async {
+    final gear = await read(trip.id);
+    final assignments = tripPackingBags(gear).isEmpty
+        ? const <String, String>{}
+        : await _bagAssignments(packs, trip.id);
+    return [for (final item in gear) (item: item, bagId: assignments[item.id])];
   },
-  same: (a, b) => sameIdSets(a, b, (i) => i.id),
+  write: (trip, loaded, current) async {
+    final before = {for (final row in loaded) row.item.id: row.bagId};
+    final after = {for (final row in current) row.item.id: row.bagId};
+    final added = after.keys.toSet().difference(before.keys.toSet());
+    final removed = before.keys.toSet().difference(after.keys.toSet());
+    if (added.isNotEmpty) await packs.pack(trip.id, added);
+    for (final id in removed) {
+      await packs.unpack(trip.id, id);
+    }
+    var moved = false;
+    for (final row in after.entries) {
+      if (before[row.key] != row.value) {
+        await packs.assignBag(trip.id, row.key, row.value, orLoose: true);
+        moved = true;
+      }
+    }
+    return added.isNotEmpty || removed.isNotEmpty || moved;
+  },
+  same: (a, b) => setEquals(
+    {for (final row in a) (row.item.id, row.bagId)},
+    {for (final row in b) (row.item.id, row.bagId)},
+  ),
 );
 
 /// What a fill's copy to its cylinder's passport needs besides the fill,
@@ -358,7 +394,9 @@ Future<bool> writeTripCylinders({
 /// sitting (issue #4527, [HeldTripGearWrites]).
 abstract interface class TripGearWrites {
   /// Packs [items]; answers how many were not packed already.
-  Future<int> pack(List<EquipmentItem> items);
+  Future<int> pack(List<EquipmentItem> items, {String? bagId});
+
+  void assignBag(String equipmentId, String? bagId);
 
   Future<void> unpack(String equipmentId);
 
@@ -383,18 +421,18 @@ class HeldTripGearWrites implements TripGearWrites {
   });
 
   final EditSession<Trip> session;
-  final SittingList<Trip, EquipmentItem> packed;
+  final SittingList<Trip, TripPackedItem> packed;
   final SittingList<Trip, TripCylindersHeld> board;
 
   TripCylindersHeld get _board =>
       heldCylindersOf(session, board) ?? const TripCylindersHeld();
 
   @override
-  Future<int> pack(List<EquipmentItem> items) async {
+  Future<int> pack(List<EquipmentItem> items, {String? bagId}) async {
     final current = packed.current(session);
     // Before the packed gear is read nothing can be held.
     if (current == null) return 0;
-    final have = {for (final i in current) i.id};
+    final have = {for (final row in current) row.item.id};
     final added = [
       for (final i in items)
         if (have.add(i.id)) i,
@@ -402,17 +440,31 @@ class HeldTripGearWrites implements TripGearWrites {
     if (added.isNotEmpty) {
       packed.set(
         session,
-        [...current, ...added]
-          ..sort((a, b) => compareTextForSort(a.name, b.name)),
+        [
+          ...current,
+          for (final item in added)
+            (item: item, bagId: item.type == EquipmentType.bag ? null : bagId),
+        ]..sort((a, b) => compareTextForSort(a.item.name, b.item.name)),
       );
     }
     return added.length;
   }
 
   @override
+  void assignBag(String equipmentId, String? bagId) {
+    final current = packed.current(session);
+    if (current == null) return;
+    packed.set(session, [
+      for (final row in current)
+        if (row.item.id == equipmentId) (item: row.item, bagId: bagId) else row,
+    ]);
+  }
+
+  @override
   Future<void> unpack(String equipmentId) async => packed.set(session, [
-    for (final i in packed.current(session) ?? const <EquipmentItem>[])
-      if (i.id != equipmentId) i,
+    for (final row in packed.current(session) ?? const <TripPackedItem>[])
+      if (row.item.id != equipmentId)
+        row.bagId == equipmentId ? (item: row.item, bagId: null) : row,
   ]);
 
   @override

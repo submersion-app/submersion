@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Variable;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -83,6 +83,140 @@ void main() {
     await packs.unpack(t1, bcd);
     expect(await packs.equipmentIdsForTrip(t1), isEmpty);
     expect(await tombstones(), 1);
+  });
+
+  test('bag assignments move, clear, and stay on the selected trip', () async {
+    final first = await item('Roller', EquipmentType.bag);
+    final second = await item('Carry-on', EquipmentType.bag);
+    await packs.pack(t1, [first, second]);
+    await packs.pack(t2, [first]);
+
+    await packs.packInBag(t1, bcd, first);
+    expect(await packs.bagAssignmentsForTrip(t1), {bcd: first});
+    expect(await packs.bagAssignmentsForTrip(t2), isEmpty);
+    await packs.assignBag(t1, bcd, second);
+    expect(await packs.bagAssignmentsForTrip(t1), {bcd: second});
+
+    await expectLater(packs.assignBag(t1, bcd, tank), throwsStateError);
+    await packs.unpack(t1, second);
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+    expect(await packs.equipmentIdsForTrip(t1), unorderedEquals([first, bcd]));
+
+    await packs.assignBag(t1, bcd, first);
+    await packs.unpack(t1, bcd);
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+  });
+
+  test('a bag chosen before it left the trip packs the gear loose', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.pack(t2, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+
+    // Unpacked elsewhere, while a sitting still held it as the choice.
+    await packs.unpack(t2, roller);
+    await packs.packInBag(t2, tank, roller);
+    expect((await packs.equipmentIdsForTrip(t2)).toSet(), {tank});
+    expect(await packs.bagAssignmentsForTrip(t2), isEmpty);
+
+    await packs.unpack(t1, roller);
+    await packs.pack(t1, [roller]);
+    await packs.assignBag(t1, tank, roller, orLoose: true);
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+  });
+
+  test('gear whose bag stopped being a bag reads loose', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+    await db.customStatement(
+      "UPDATE equipment SET type = 'other' WHERE id = ?",
+      [roller],
+    );
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+  });
+
+  test(
+    'gear whose bag row was dropped by an older client reads loose',
+    () async {
+      final roller = await item('Roller', EquipmentType.bag);
+      await packs.pack(t1, [roller]);
+      await packs.packInBag(t1, bcd, roller);
+      await db.customStatement(
+        'DELETE FROM trip_equipment WHERE trip_id = ? AND equipment_id = ?',
+        [t1, roller],
+      );
+      expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+      // Packed again, the bag starts empty rather than taking it back.
+      await packs.pack(t1, [roller]);
+      expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+      expect(
+        (await (db.select(
+          db.tripEquipment,
+        )..where((r) => r.equipmentId.equals(bcd))).getSingle()).bagEquipmentId,
+        isNull,
+      );
+    },
+  );
+
+  test('gear that has itself become a bag is in no bag', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+    await db.customStatement("UPDATE equipment SET type = 'bag' WHERE id = ?", [
+      bcd,
+    ]);
+    expect(await packs.bagAssignmentsForTrip(t1), isEmpty);
+  });
+
+  test('a bag that is not packed is refused even when it is the one '
+      'stored', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+    await db.customStatement(
+      'DELETE FROM trip_equipment WHERE trip_id = ? AND equipment_id = ?',
+      [t1, roller],
+    );
+    await expectLater(packs.assignBag(t1, bcd, roller), throwsStateError);
+  });
+
+  test('a bag change stamps one clock, for the row and the bag', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    await packs.pack(t1, [roller]);
+    await packs.packInBag(t1, bcd, roller);
+    final row = await (db.select(
+      db.tripEquipment,
+    )..where((r) => r.equipmentId.equals(bcd))).getSingle();
+    expect(row.bagHlc, isNotNull);
+    expect(row.bagHlc, row.hlc);
+  });
+
+  test('assignBags moves many items in one go, and a bad bag writes '
+      'none of them', () async {
+    final roller = await item('Roller', EquipmentType.bag);
+    final fins = await item('Fins', EquipmentType.fins);
+    await packs.pack(t1, [roller, bcd, tank, fins]);
+    await packs.pack(t2, [fins]);
+
+    var ticks = 0;
+    final sub = packs.watchChanges().listen((_) => ticks++);
+    addTearDown(sub.cancel);
+    await packs.assignBags(t1, {bcd: roller, tank: roller, 'unpacked': null});
+    expect(await packs.bagAssignmentsForTrip(t1), {bcd: roller, tank: roller});
+    await pumpEventQueue();
+    expect(ticks, 1);
+
+    await expectLater(
+      packs.assignBags(t1, {bcd: null, fins: tank}),
+      throwsStateError,
+    );
+    await expectLater(packs.assignBags(t1, {roller: roller}), throwsStateError);
+    expect(await packs.bagAssignmentsForTrip(t1), {bcd: roller, tank: roller});
+
+    await packs.assignBags(t1, {bcd: null, fins: tank}, orLoose: true);
+    expect(await packs.bagAssignmentsForTrip(t1), {tank: roller});
+    await packs.assignBags(t1, const {});
   });
 
   test('tripIdsForEquipment lists the trips an item is packed for', () async {

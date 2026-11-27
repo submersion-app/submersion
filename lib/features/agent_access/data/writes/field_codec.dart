@@ -109,7 +109,13 @@ abstract class FieldCodec {
   /// An object of ids, each to a list of ids, such as a dive's buddies to
   /// their roles. The parsed value is the map as JSON, keys and lists
   /// sorted, so it compares with a document's whatever order either is in.
-  const factory FieldCodec.idLists({int maxKeys, int maxItems}) = _IdListsCodec;
+  /// With [dropEmpty], an id with an empty list is left out, for a document
+  /// that does not list one, such as a trip's empty bags.
+  const factory FieldCodec.idLists({
+    int maxKeys,
+    int maxItems,
+    bool dropEmpty,
+  }) = _IdListsCodec;
 
   /// The id of a record of [refEntity]. The planner checks it as it checks
   /// a relation's links: the record must exist and be the owner's to use.
@@ -510,10 +516,15 @@ class _TextObjectCodec extends FieldCodec {
 }
 
 class _IdListsCodec extends FieldCodec {
-  const _IdListsCodec({this.maxKeys = 100, this.maxItems = 20});
+  const _IdListsCodec({
+    this.maxKeys = 100,
+    this.maxItems = 20,
+    this.dropEmpty = false,
+  });
 
   final int maxKeys;
   final int maxItems;
+  final bool dropEmpty;
 
   @override
   String get describe => 'an object of ids, each to a list of ids';
@@ -538,7 +549,7 @@ class _IdListsCodec extends FieldCodec {
       if (ids.length != value.length) {
         throw FieldRefusal('$key names an id more than once.');
       }
-      sorted[key] = ids.toList()..sort();
+      if (ids.isNotEmpty || !dropEmpty) sorted[key] = ids.toList()..sort();
     }
     return jsonEncode(sorted);
   }
