@@ -63039,6 +63039,62 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ancora nessuna attrezzatura nell\'inventario';
 
   @override
+  String get media_library_linkToGear => 'Collega all\'attrezzatura';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Attrezzatura su $count elementi multimediali',
+      one: 'Attrezzatura su 1 elemento multimediale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collegamento a tutti i $count elementi multimediali',
+      one: 'Collegamento a 1 elemento multimediale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Scollegamento da tutti i $count elementi multimediali',
+      one: 'Scollegamento da 1 elemento multimediale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Attrezzatura aggiornata su $count elementi multimediali',
+      one: 'Attrezzatura aggiornata su 1 elemento multimediale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Impossibile aggiornare l\'attrezzatura: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'Impossibile annullare la modifica dell\'attrezzatura.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mostra i media con il tag $tagName';
   }

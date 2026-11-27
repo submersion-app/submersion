@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/text/text_sort.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/providers/media_gear_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/gear_checklist.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -67,8 +62,6 @@ class MediaGearSheet extends ConsumerStatefulWidget {
 }
 
 class _MediaGearSheetState extends ConsumerState<MediaGearSheet> {
-  String _query = '';
-
   @override
   Widget build(BuildContext context) {
     final sitting = widget.sitting;
@@ -80,8 +73,6 @@ class _MediaGearSheetState extends ConsumerState<MediaGearSheet> {
   }
 
   Widget _sheet(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
     final sitting = widget.sitting;
     final ended = sitting.isDisposed;
     final chosen = ended
@@ -89,114 +80,17 @@ class _MediaGearSheetState extends ConsumerState<MediaGearSheet> {
                   const <String>[])
               .toSet()
         : sitting.working.gearIds.toSet();
-    final all =
-        ref.watch(allEquipmentProvider).value ?? const <EquipmentItem>[];
     final diveId = widget.item.diveId;
-    final onDiveIds = diveId == null
+    final onDive = diveId == null
         ? const <String>{}
         : ref.watch(gearOnDiveProvider(diveId)).value ?? const <String>{};
-    final query = _query.trim().toLowerCase();
-    bool matches(EquipmentItem g) =>
-        query.isEmpty ||
-        [
-          g.name,
-          g.brand,
-          g.model,
-        ].any((s) => s != null && s.toLowerCase().contains(query));
-    final shown = [
-      for (final g in all)
-        if (matches(g)) g,
-    ];
-    final onDive = sortedByText([
-      for (final g in shown)
-        if (onDiveIds.contains(g.id)) g,
-    ], (g) => g.name);
-    final rest = [
-      for (final g in shown)
-        if (!onDiveIds.contains(g.id)) g,
-    ];
-    final byType = <EquipmentType, List<EquipmentItem>>{};
-    for (final g in rest) {
-      byType.putIfAbsent(g.type, () => []).add(g);
-    }
-
-    Widget row(EquipmentItem g) => CheckboxListTile(
-      key: ValueKey('media_gear_row_${g.id}'),
-      value: chosen.contains(g.id),
-      onChanged: ended ? null : (_) => _toggle(g.id),
-      secondary: Icon(equipmentItemIcon(g)),
-      title: Text(g.name, overflow: TextOverflow.ellipsis),
-      subtitle: _subtitle(g),
-      controlAffinity: ListTileControlAffinity.trailing,
+    return GearChecklist(
+      title: context.l10n.media_gearSheet_title,
+      chosen: chosen,
+      firstIds: onDive,
+      scrollController: widget.scrollController,
+      onToggle: ended ? null : _toggle,
     );
-
-    Widget header(String text) => Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        text,
-        style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.primary,
-        ),
-      ),
-    );
-
-    return ListView(
-      controller: widget.scrollController,
-      padding: const EdgeInsets.only(bottom: 16),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            l10n.media_gearSheet_title,
-            style: theme.textTheme.titleLarge,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: TextField(
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search),
-              hintText: l10n.media_gearSheet_search,
-              border: const OutlineInputBorder(),
-              isDense: true,
-            ),
-            onChanged: (value) => setState(() => _query = value),
-          ),
-        ),
-        if (all.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(l10n.media_gearSheet_empty),
-          ),
-        if (onDive.isNotEmpty) ...[
-          header(l10n.media_gearSheet_onThisDive),
-          for (final g in onDive) row(g),
-        ],
-        if (rest.isNotEmpty) ...[
-          header(l10n.media_gearSheet_yourGear),
-          for (final type in byType.keys.sortedByLocalizedName(l10n)) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Text(
-                type.localizedName(l10n),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-            for (final g in sortedByText(byType[type]!, (g) => g.name)) row(g),
-          ],
-        ],
-      ],
-    );
-  }
-
-  Widget? _subtitle(EquipmentItem g) {
-    final parts = [
-      g.brand,
-      g.model,
-    ].whereType<String>().where((s) => s.trim().isNotEmpty);
-    return parts.isEmpty ? null : Text(parts.join(' '));
   }
 
   /// Holds [id] linked or unlinked in the sitting.

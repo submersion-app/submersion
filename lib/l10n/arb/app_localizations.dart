@@ -98650,6 +98650,48 @@ abstract class AppLocalizations {
   /// **'No gear in your inventory yet'**
   String get media_gearSheet_empty;
 
+  /// No description provided for @media_library_linkToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to gear'**
+  String get media_library_linkToGear;
+
+  /// No description provided for @media_bulkGear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Gear on 1 media item} other{Gear on {count} media items}}'**
+  String media_bulkGear_title(int count);
+
+  /// No description provided for @media_bulkGear_confirmAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Linking to 1 media item} other{Linking to all {count} media items}}'**
+  String media_bulkGear_confirmAdding(int count);
+
+  /// No description provided for @media_bulkGear_confirmRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Unlinking from 1 media item} other{Unlinking from all {count} media items}}'**
+  String media_bulkGear_confirmRemoving(int count);
+
+  /// No description provided for @media_bulkGear_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated gear on 1 media item} other{Updated gear on {count} media items}}'**
+  String media_bulkGear_applied(int count);
+
+  /// No description provided for @media_bulkGear_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update gear: {error}'**
+  String media_bulkGear_failed(String error);
+
+  /// No description provided for @media_bulkGear_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo the gear change.'**
+  String get media_bulkGear_undoFailed;
+
   /// No description provided for @media_info_showWithTag.
   ///
   /// In en, this message translates to:

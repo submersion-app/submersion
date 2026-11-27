@@ -63076,6 +63076,62 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_gearSheet_empty => 'Aún no hay equipo en tu inventario';
 
   @override
+  String get media_library_linkToGear => 'Vincular a equipo';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Equipo en $count elementos multimedia',
+      one: 'Equipo en 1 elemento multimedia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vinculando a los $count elementos multimedia',
+      one: 'Vinculando a 1 elemento multimedia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Desvinculando de los $count elementos multimedia',
+      one: 'Desvinculando de 1 elemento multimedia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Equipo actualizado en $count elementos multimedia',
+      one: 'Equipo actualizado en 1 elemento multimedia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'No se pudo actualizar el equipo: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'No se pudo deshacer el cambio de equipo.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mostrar multimedia con la etiqueta $tagName';
   }

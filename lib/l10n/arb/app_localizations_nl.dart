@@ -62650,6 +62650,62 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_gearSheet_empty => 'Nog geen uitrusting in je inventaris';
 
   @override
+  String get media_library_linkToGear => 'Koppelen aan uitrusting';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Uitrusting op $count media-items',
+      one: 'Uitrusting op 1 media-item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Koppelen aan alle $count media-items',
+      one: 'Koppelen aan 1 media-item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ontkoppelen van alle $count media-items',
+      one: 'Ontkoppelen van 1 media-item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Uitrusting bijgewerkt op $count media-items',
+      one: 'Uitrusting bijgewerkt op 1 media-item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Kan uitrusting niet bijwerken: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'Kan de uitrustingswijziging niet ongedaan maken.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Media met tag $tagName tonen';
   }

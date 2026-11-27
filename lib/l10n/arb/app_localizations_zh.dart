@@ -59147,6 +59147,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_gearSheet_empty => '装备清单中还没有装备';
 
   @override
+  String get media_library_linkToGear => '关联到装备';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个媒体项的装备',
+      one: '1 个媒体项的装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '关联到全部 $count 个媒体项',
+      one: '关联到 1 个媒体项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '从全部 $count 个媒体项取消关联',
+      one: '从 1 个媒体项取消关联',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已更新 $count 个媒体项的装备',
+      one: '已更新 1 个媒体项的装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return '无法更新装备：$error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed => '无法撤消装备更改。';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return '显示带有标签 $tagName 的媒体';
   }

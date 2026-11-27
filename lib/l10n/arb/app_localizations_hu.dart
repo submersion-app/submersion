@@ -62662,6 +62662,62 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_gearSheet_empty => 'Még nincs felszerelés a leltárban';
 
   @override
+  String get media_library_linkToGear => 'Felszereléshez kapcsolás';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Felszerelés $count médiaelemen',
+      one: 'Felszerelés 1 médiaelemen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kapcsolás mind a(z) $count médiaelemhez',
+      one: 'Kapcsolás 1 médiaelemhez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Leválasztás mind a(z) $count médiaelemről',
+      one: 'Leválasztás 1 médiaelemről',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Felszerelés frissítve $count médiaelemen',
+      one: 'Felszerelés frissítve 1 médiaelemen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Nem sikerült frissíteni a felszerelést: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'A felszerelés módosítását nem sikerült visszavonni.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return '$tagName címkéjű média megjelenítése';
   }

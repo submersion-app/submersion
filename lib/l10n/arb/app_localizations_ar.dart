@@ -64009,6 +64009,73 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_gearSheet_empty => 'لا توجد معدات في مخزونك بعد';
 
   @override
+  String get media_library_linkToGear => 'ربط بالمعدات';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'المعدات في $count عنصر وسائط',
+      many: 'المعدات في $count عنصر وسائط',
+      few: 'المعدات في $count عناصر وسائط',
+      two: 'المعدات في عنصري وسائط',
+      one: 'المعدات في عنصر وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ربط بكل العناصر الـ $count',
+      many: 'ربط بكل العناصر الـ $count',
+      few: 'ربط بكل العناصر الـ $count',
+      two: 'ربط بعنصري الوسائط',
+      one: 'ربط بعنصر وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إلغاء الربط من كل العناصر الـ $count',
+      many: 'إلغاء الربط من كل العناصر الـ $count',
+      few: 'إلغاء الربط من كل العناصر الـ $count',
+      two: 'إلغاء الربط من عنصري الوسائط',
+      one: 'إلغاء الربط من عنصر وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث المعدات في $count عنصر',
+      many: 'تم تحديث المعدات في $count عنصرًا',
+      few: 'تم تحديث المعدات في $count عناصر',
+      two: 'تم تحديث المعدات في عنصرين',
+      one: 'تم تحديث المعدات في عنصر وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'تعذر تحديث المعدات: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed => 'تعذر التراجع عن تغيير المعدات.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'عرض الوسائط الموسومة بـ $tagName';
   }

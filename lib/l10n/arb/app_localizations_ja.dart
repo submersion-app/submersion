@@ -60464,6 +60464,61 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_gearSheet_empty => '器材はまだ登録されていません';
 
   @override
+  String get media_library_linkToGear => '器材にリンク';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のメディアの器材',
+      one: '1件のメディアの器材',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のメディアすべてにリンク',
+      one: '1件のメディアにリンク',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のメディアすべてからリンク解除',
+      one: '1件のメディアからリンク解除',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のメディアの器材を更新しました',
+      one: '1件のメディアの器材を更新しました',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return '器材を更新できませんでした：$error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed => '器材の変更を元に戻せませんでした。';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'タグ「$tagName」のメディアを表示';
   }

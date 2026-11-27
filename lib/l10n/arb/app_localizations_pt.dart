@@ -63004,6 +63004,62 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_gearSheet_empty => 'Ainda sem equipamento no inventário';
 
   @override
+  String get media_library_linkToGear => 'Associar a equipamento';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Equipamento em $count itens de mídia',
+      one: 'Equipamento em $count item de mídia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Associando a todos os $count itens de mídia',
+      one: 'Associando a $count item de mídia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Desassociando de todos os $count itens de mídia',
+      one: 'Desassociando de $count item de mídia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Equipamento atualizado em $count itens de mídia',
+      one: 'Equipamento atualizado em $count item de mídia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Não foi possível atualizar o equipamento: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'Não foi possível desfazer a alteração do equipamento.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mostrar mídia com a etiqueta $tagName';
   }

@@ -61726,6 +61726,61 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_gearSheet_empty => 'עדיין אין ציוד במלאי';
 
   @override
+  String get media_library_linkToGear => 'קישור לציוד';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ציוד ב-$count פריטי מדיה',
+      one: 'ציוד בפריט מדיה אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'קישור לכל $count פריטי המדיה',
+      one: 'קישור לפריט מדיה אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ביטול קישור מכל $count פריטי המדיה',
+      one: 'ביטול קישור מפריט מדיה אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הציוד עודכן ב-$count פריטי מדיה',
+      one: 'הציוד עודכן בפריט מדיה אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'לא ניתן לעדכן את הציוד: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed => 'לא ניתן לבטל את שינוי הציוד.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'הצג מדיה עם התגית $tagName';
   }

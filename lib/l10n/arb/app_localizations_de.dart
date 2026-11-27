@@ -62902,6 +62902,62 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_gearSheet_empty => 'Noch keine Ausrüstung im Inventar';
 
   @override
+  String get media_library_linkToGear => 'Mit Ausrüstung verknüpfen';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ausrüstung auf $count Medien',
+      one: 'Ausrüstung auf 1 Medium',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wird mit allen $count Medien verknüpft',
+      one: 'Wird mit 1 Medium verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wird von allen $count Medien getrennt',
+      one: 'Wird von 1 Medium getrennt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ausrüstung auf $count Medien aktualisiert',
+      one: 'Ausrüstung auf 1 Medium aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Ausrüstung konnte nicht aktualisiert werden: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'Die Ausrüstungsänderung konnte nicht rückgängig gemacht werden.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mit $tagName getaggte Medien anzeigen';
   }

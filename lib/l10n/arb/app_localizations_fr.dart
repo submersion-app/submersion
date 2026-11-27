@@ -63158,6 +63158,62 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun équipement dans votre inventaire pour l\'instant';
 
   @override
+  String get media_library_linkToGear => 'Lier à un équipement';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Équipement sur $count médias',
+      one: 'Équipement sur $count média',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Liaison aux $count médias',
+      one: 'Liaison à $count média',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retrait des $count médias',
+      one: 'Retrait de $count média',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Équipement mis à jour sur $count médias',
+      one: 'Équipement mis à jour sur $count média',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Impossible de mettre à jour l\'équipement : $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'Impossible d\'annuler la modification de l\'équipement.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Afficher les médias avec l\'étiquette $tagName';
   }

@@ -62048,6 +62048,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_gearSheet_empty => 'No gear in your inventory yet';
 
   @override
+  String get media_library_linkToGear => 'Link to gear';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Gear on $count media items',
+      one: 'Gear on 1 media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linking to all $count media items',
+      one: 'Linking to 1 media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Unlinking from all $count media items',
+      one: 'Unlinking from 1 media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated gear on $count media items',
+      one: 'Updated gear on 1 media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Could not update gear: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed => 'Couldn\'t undo the gear change.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Show media tagged $tagName';
   }
