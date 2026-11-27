@@ -328,6 +328,7 @@ class DocumentRepository with _DocumentClearanceQueries {
         t.createdAt,
         t.updatedAt,
         t.hlc,
+        t.libraryFileId,
       ])
       ..where(t.documentId.equals(documentId))
       ..orderBy([OrderingTerm(expression: t.pageIndex)]);
@@ -345,6 +346,7 @@ class DocumentRepository with _DocumentClearanceQueries {
           createdAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.createdAt)!),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.updatedAt)!),
           hlc: r.read(t.hlc),
+          libraryFileId: r.read(t.libraryFileId),
         ),
     ];
   }
@@ -499,6 +501,8 @@ class DocumentRepository with _DocumentClearanceQueries {
                 bytes: Value(bytes),
                 createdAt: Value(old?.createdAt.millisecondsSinceEpoch ?? now),
                 updatedAt: Value(now),
+                // New bytes are a new library file (issue #4713).
+                libraryFileId: const Value(null),
               ),
             );
       }
