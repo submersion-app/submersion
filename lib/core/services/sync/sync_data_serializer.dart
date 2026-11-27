@@ -13182,9 +13182,6 @@ class SyncDataSerializer {
       'defaultShowAveloBuoyancy': false,
       'defaultShowAveloGasRemaining': false,
       'defaultShowComputerRmv': false,
-      // v387: seed it so payloads predating the column hydrate instead of
-      // throwing in DiverSetting.fromJson (issue #3793).
-      'ccrSetpointSwitchDepth': 10.0,
       // v177: GTR settings; seed them so payloads predating the columns
       // hydrate instead of throwing in DiverSetting.fromJson.
       'defaultShowGtr': false,

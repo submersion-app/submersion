@@ -701,8 +701,9 @@ void main() {
     final exported = await serializer.fetchRecord('diverSettings', 'ds-switch');
     expect(exported, isNotNull);
 
-    // A peer still on v383 exports no switch depth. The column is NOT NULL,
-    // so an unseeded import would throw in DiverSetting.fromJson (#3793).
+    // A peer still on v386 exports no switch depth. The column is NOT NULL;
+    // the serializer's schema-default fill supplies its 10 m default, so
+    // the import does not throw in DiverSetting.fromJson (#3793).
     final legacy = Map<String, dynamic>.from(exported!)
       ..remove('ccrSetpointSwitchDepth');
 
