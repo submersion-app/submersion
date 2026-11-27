@@ -59121,6 +59121,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_info_gear => '装备';
 
   @override
+  String get media_info_noGear => '未关联装备';
+
+  @override
+  String get media_info_editGear => '编辑装备';
+
+  @override
+  String media_info_openGear(String name) {
+    return '打开$name';
+  }
+
+  @override
+  String get media_gearSheet_title => '此照片中的装备';
+
+  @override
+  String get media_gearSheet_onThisDive => '本次潜水';
+
+  @override
+  String get media_gearSheet_yourGear => '你的装备';
+
+  @override
+  String get media_gearSheet_search => '搜索装备';
+
+  @override
+  String get media_gearSheet_empty => '装备清单中还没有装备';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return '显示带有标签 $tagName 的媒体';
   }

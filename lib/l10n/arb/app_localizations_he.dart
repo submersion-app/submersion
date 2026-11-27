@@ -61700,6 +61700,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_gear => 'ציוד';
 
   @override
+  String get media_info_noGear => 'אין ציוד מקושר';
+
+  @override
+  String get media_info_editGear => 'עריכת ציוד';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'פתיחת $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'ציוד בתמונה זו';
+
+  @override
+  String get media_gearSheet_onThisDive => 'בצלילה זו';
+
+  @override
+  String get media_gearSheet_yourGear => 'הציוד שלך';
+
+  @override
+  String get media_gearSheet_search => 'חיפוש ציוד';
+
+  @override
+  String get media_gearSheet_empty => 'עדיין אין ציוד במלאי';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'הצג מדיה עם התגית $tagName';
   }

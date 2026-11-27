@@ -98602,6 +98602,54 @@ abstract class AppLocalizations {
   /// **'Gear'**
   String get media_info_gear;
 
+  /// No description provided for @media_info_noGear.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear linked'**
+  String get media_info_noGear;
+
+  /// No description provided for @media_info_editGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit gear'**
+  String get media_info_editGear;
+
+  /// Tooltip on a gear chip in the photo info panel; opens that gear item's page.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {name}'**
+  String media_info_openGear(String name);
+
+  /// No description provided for @media_gearSheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear in this photo'**
+  String get media_gearSheet_title;
+
+  /// No description provided for @media_gearSheet_onThisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'On this dive'**
+  String get media_gearSheet_onThisDive;
+
+  /// No description provided for @media_gearSheet_yourGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Your gear'**
+  String get media_gearSheet_yourGear;
+
+  /// No description provided for @media_gearSheet_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search gear'**
+  String get media_gearSheet_search;
+
+  /// No description provided for @media_gearSheet_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear in your inventory yet'**
+  String get media_gearSheet_empty;
+
   /// No description provided for @media_info_showWithTag.
   ///
   /// In en, this message translates to:

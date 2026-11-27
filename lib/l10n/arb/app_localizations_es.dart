@@ -63050,6 +63050,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_info_gear => 'Equipo';
 
   @override
+  String get media_info_noGear => 'Sin equipo vinculado';
+
+  @override
+  String get media_info_editGear => 'Editar equipo';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'Abrir $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Equipo en esta foto';
+
+  @override
+  String get media_gearSheet_onThisDive => 'En esta inmersión';
+
+  @override
+  String get media_gearSheet_yourGear => 'Tu equipo';
+
+  @override
+  String get media_gearSheet_search => 'Buscar equipo';
+
+  @override
+  String get media_gearSheet_empty => 'Aún no hay equipo en tu inventario';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mostrar multimedia con la etiqueta $tagName';
   }

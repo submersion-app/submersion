@@ -62978,6 +62978,32 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_info_gear => 'Equipamento';
 
   @override
+  String get media_info_noGear => 'Nenhum equipamento associado';
+
+  @override
+  String get media_info_editGear => 'Editar equipamento';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'Abrir $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Equipamento nesta foto';
+
+  @override
+  String get media_gearSheet_onThisDive => 'Neste mergulho';
+
+  @override
+  String get media_gearSheet_yourGear => 'O seu equipamento';
+
+  @override
+  String get media_gearSheet_search => 'Pesquisar equipamento';
+
+  @override
+  String get media_gearSheet_empty => 'Ainda sem equipamento no inventário';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mostrar mídia com a etiqueta $tagName';
   }

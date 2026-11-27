@@ -26,6 +26,7 @@ import 'package:submersion/features/media/presentation/providers/media_serving_p
 import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
 import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
+import 'package:submersion/features/media/presentation/widgets/media_info_gear_section.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_tags_section.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media/presentation/widgets/share_password_flow.dart';
@@ -136,6 +137,17 @@ class MediaInfoPanel extends ConsumerWidget {
         const SizedBox(height: 16),
         MediaInfoTagsSection(item: live, readOnly: readOnly, sitting: sitting),
         const SizedBox(height: 12),
+        // Gear shown in the photo (issue #5046): photos and videos only; a
+        // document or signature shows no gear, and a gear photo already
+        // belongs to its item.
+        if (!live.isDocument && !live.isSignature && !live.isGearPhoto) ...[
+          MediaInfoGearSection(
+            item: live,
+            readOnly: readOnly,
+            sitting: sitting,
+          ),
+          const SizedBox(height: 12),
+        ],
         _FileSection(
           item: live,
           units: units,

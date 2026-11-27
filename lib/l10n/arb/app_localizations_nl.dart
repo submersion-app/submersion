@@ -62624,6 +62624,32 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_info_gear => 'Uitrusting';
 
   @override
+  String get media_info_noGear => 'Geen uitrusting gekoppeld';
+
+  @override
+  String get media_info_editGear => 'Uitrusting bewerken';
+
+  @override
+  String media_info_openGear(String name) {
+    return '$name openen';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Uitrusting op deze foto';
+
+  @override
+  String get media_gearSheet_onThisDive => 'Bij deze duik';
+
+  @override
+  String get media_gearSheet_yourGear => 'Jouw uitrusting';
+
+  @override
+  String get media_gearSheet_search => 'Uitrusting zoeken';
+
+  @override
+  String get media_gearSheet_empty => 'Nog geen uitrusting in je inventaris';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Media met tag $tagName tonen';
   }

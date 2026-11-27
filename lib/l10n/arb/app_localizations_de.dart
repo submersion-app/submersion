@@ -62876,6 +62876,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_info_gear => 'Ausrüstung';
 
   @override
+  String get media_info_noGear => 'Keine Ausrüstung verknüpft';
+
+  @override
+  String get media_info_editGear => 'Ausrüstung bearbeiten';
+
+  @override
+  String media_info_openGear(String name) {
+    return '$name öffnen';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Ausrüstung auf diesem Foto';
+
+  @override
+  String get media_gearSheet_onThisDive => 'Bei diesem Tauchgang';
+
+  @override
+  String get media_gearSheet_yourGear => 'Deine Ausrüstung';
+
+  @override
+  String get media_gearSheet_search => 'Ausrüstung suchen';
+
+  @override
+  String get media_gearSheet_empty => 'Noch keine Ausrüstung im Inventar';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mit $tagName getaggte Medien anzeigen';
   }

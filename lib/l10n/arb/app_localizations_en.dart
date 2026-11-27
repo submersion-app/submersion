@@ -62022,6 +62022,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_info_gear => 'Gear';
 
   @override
+  String get media_info_noGear => 'No gear linked';
+
+  @override
+  String get media_info_editGear => 'Edit gear';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'Open $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Gear in this photo';
+
+  @override
+  String get media_gearSheet_onThisDive => 'On this dive';
+
+  @override
+  String get media_gearSheet_yourGear => 'Your gear';
+
+  @override
+  String get media_gearSheet_search => 'Search gear';
+
+  @override
+  String get media_gearSheet_empty => 'No gear in your inventory yet';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Show media tagged $tagName';
   }

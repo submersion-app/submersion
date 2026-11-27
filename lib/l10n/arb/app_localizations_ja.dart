@@ -60438,6 +60438,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_info_gear => '器材';
 
   @override
+  String get media_info_noGear => 'リンクされた器材はありません';
+
+  @override
+  String get media_info_editGear => '器材を編集';
+
+  @override
+  String media_info_openGear(String name) {
+    return '$nameを開く';
+  }
+
+  @override
+  String get media_gearSheet_title => 'この写真の器材';
+
+  @override
+  String get media_gearSheet_onThisDive => 'このダイビング';
+
+  @override
+  String get media_gearSheet_yourGear => 'あなたの器材';
+
+  @override
+  String get media_gearSheet_search => '器材を検索';
+
+  @override
+  String get media_gearSheet_empty => '器材はまだ登録されていません';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'タグ「$tagName」のメディアを表示';
   }

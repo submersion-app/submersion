@@ -62636,6 +62636,32 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_gear => 'Felszerelés';
 
   @override
+  String get media_info_noGear => 'Nincs kapcsolt felszerelés';
+
+  @override
+  String get media_info_editGear => 'Felszerelés szerkesztése';
+
+  @override
+  String media_info_openGear(String name) {
+    return '$name megnyitása';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Felszerelés ezen a fotón';
+
+  @override
+  String get media_gearSheet_onThisDive => 'Ezen a merülésen';
+
+  @override
+  String get media_gearSheet_yourGear => 'Saját felszerelés';
+
+  @override
+  String get media_gearSheet_search => 'Felszerelés keresése';
+
+  @override
+  String get media_gearSheet_empty => 'Még nincs felszerelés a leltárban';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return '$tagName címkéjű média megjelenítése';
   }

@@ -48,3 +48,12 @@ void openMediaWithMe(BuildContext context, WidgetRef ref) =>
 /// tagged in (issue #1745), from the buddy page's photo card.
 void openMediaWithBuddy(BuildContext context, WidgetRef ref, String buddyId) =>
     openMediaWithFilter(context, ref, MediaLibraryFilter(buddyIds: {buddyId}));
+
+/// Opens gear item [equipmentId]'s page (issue #5046), from a gear chip over
+/// the viewer: the viewer closes first, as [openMediaWithFilter] explains,
+/// and nothing opens while it holds unsaved changes.
+void openGearItem(BuildContext context, String equipmentId) {
+  final router = GoRouter.of(context);
+  if (!closeRoutesAboveRouterPage(Navigator.of(context))) return;
+  router.push('/equipment/$equipmentId');
+}

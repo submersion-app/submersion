@@ -63983,6 +63983,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_gear => 'المعدات';
 
   @override
+  String get media_info_noGear => 'لا توجد معدات مرتبطة';
+
+  @override
+  String get media_info_editGear => 'تعديل المعدات';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'فتح $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'المعدات في هذه الصورة';
+
+  @override
+  String get media_gearSheet_onThisDive => 'في هذه الغطسة';
+
+  @override
+  String get media_gearSheet_yourGear => 'معداتك';
+
+  @override
+  String get media_gearSheet_search => 'البحث عن المعدات';
+
+  @override
+  String get media_gearSheet_empty => 'لا توجد معدات في مخزونك بعد';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'عرض الوسائط الموسومة بـ $tagName';
   }

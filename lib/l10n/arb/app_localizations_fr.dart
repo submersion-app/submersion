@@ -63131,6 +63131,33 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_info_gear => 'Équipement';
 
   @override
+  String get media_info_noGear => 'Aucun équipement lié';
+
+  @override
+  String get media_info_editGear => 'Modifier l\'équipement';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'Ouvrir $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Équipement sur cette photo';
+
+  @override
+  String get media_gearSheet_onThisDive => 'Sur cette plongée';
+
+  @override
+  String get media_gearSheet_yourGear => 'Votre équipement';
+
+  @override
+  String get media_gearSheet_search => 'Rechercher un équipement';
+
+  @override
+  String get media_gearSheet_empty =>
+      'Aucun équipement dans votre inventaire pour l\'instant';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Afficher les médias avec l\'étiquette $tagName';
   }
