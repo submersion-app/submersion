@@ -101,6 +101,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   _MockSettingsNotifier([AppSettings? initial])
     : super(initial ?? const AppSettings());
 
+  @override
+  Future<void> reload() async {}
+
   /// Already "loaded": the mock's state is supplied up front.
   @override
   Future<void> get initialLoad async {}
