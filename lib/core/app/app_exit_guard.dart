@@ -55,14 +55,18 @@ class AppExitGuard {
     Future<void> Function()? retryExit,
     Future<void> Function(bool prevent)? preventWindowClose,
     Future<void> Function()? revealWindow,
+    Future<void> Function(bool hold)? holdForOtherWindows,
   }) : _retryExit = retryExit ?? _exitThroughThePlatform,
        _revealWindow = revealWindow ?? revealDesktopWindow {
     _preventWindowClose = preventWindowClose ?? _platformPreventWindowClose();
+    _holdForOtherWindows =
+        holdForOtherWindows ?? _platformHoldForOtherWindows();
   }
 
   final Future<void> Function() _retryExit;
   final Future<void> Function() _revealWindow;
   late final Future<void> Function(bool prevent) _preventWindowClose;
+  late final Future<void> Function(bool hold) _holdForOtherWindows;
   final _blockers = <AppExitBlocker>[];
   bool _asking = false;
 
@@ -73,8 +77,42 @@ class AppExitGuard {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.macOS) {
       return (_) async {};
     }
-    return _MacWindowClose(closeWindowRequested).prevent;
+    return _WindowCloseHold(closeWindowRequested).prevent;
   }
+
+  /// Windows and Linux turn a window's close into a quit request only for
+  /// the app's last window. While another window is open (a desktop pop-out,
+  /// issue #5078), closing the main window would end the process without
+  /// asking about unsaved work or closing the databases, so the main window
+  /// is held and its close comes here as [otherWindowCloseRequested]. macOS
+  /// needs nothing: closing its main window closes the others first, and the
+  /// quit then reaches [answer] as usual.
+  Future<void> Function(bool hold) _platformHoldForOtherWindows() {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.windows &&
+            defaultTargetPlatform != TargetPlatform.linux)) {
+      return (_) async {};
+    }
+    return _WindowCloseHold(otherWindowCloseRequested).prevent;
+  }
+
+  /// Another of the app's windows opened ([open] true) or the last one
+  /// closed.
+  Future<void> otherWindowsOpen(bool open) async {
+    try {
+      await _holdForOtherWindows(open);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not change whether the main window may close',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// The main window was closed while another window is open: quit, through
+  /// [answer] like any other quit.
+  Future<void> otherWindowCloseRequested() => _exit();
 
   void hold(AppExitBlocker blocker) {
     _blockers.add(blocker);
@@ -201,8 +239,8 @@ class AppExitGuard {
 }
 
 /// The window's close button, through the plugin that owns its delegate.
-class _MacWindowClose with WindowListener {
-  _MacWindowClose(this._onCloseAttempt);
+class _WindowCloseHold with WindowListener {
+  _WindowCloseHold(this._onCloseAttempt);
 
   final Future<void> Function() _onCloseAttempt;
   bool _listening = false;

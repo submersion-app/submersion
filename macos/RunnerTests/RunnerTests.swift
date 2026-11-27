@@ -79,8 +79,27 @@ class RendererDartProjectTests: XCTestCase {
 class PopOutWindowTests: XCTestCase {
 
   func testPopOutWindowsUseTheRendererProject() {
-    MainFlutterWindow.configureMultiWindow()
+    MainFlutterWindow.configureMultiWindow(mainEngine: nil)
     let project = FlutterMultiWindowPlugin.projectFactory?()
     XCTAssertTrue(project is RendererDartProject)
+  }
+
+  /// Every engine claims the app's quit when it is made. A pop-out's engine
+  /// must hand it back, or Cmd-Q skips the main window's exit guard and its
+  /// database close.
+  func testQuitGoesBackToTheMainEngine() throws {
+    let delegate = try XCTUnwrap(NSApp.delegate as? NSObject)
+    let main = FlutterEngine(name: "main", project: nil)
+    let mainHandler = main.value(forKey: "terminationHandler") as AnyObject?
+    XCTAssertNotNil(mainHandler)
+    let popOut = FlutterEngine(name: "pop-out", project: nil)
+    XCTAssertTrue(
+      delegate.value(forKey: "terminationHandler") as AnyObject?
+        === popOut.value(forKey: "terminationHandler") as AnyObject?)
+
+    MainFlutterWindow.handQuitBack(to: main)
+
+    XCTAssertTrue(delegate.value(forKey: "terminationHandler") as AnyObject? === mainHandler)
+    withExtendedLifetime(popOut) {}
   }
 }

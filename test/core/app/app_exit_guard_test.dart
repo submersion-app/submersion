@@ -321,4 +321,36 @@ void main() {
       await pumpEventQueue();
     });
   });
+
+  // A desktop pop-out window (#5078). On Windows the engine turns a window's
+  // close into a quit request only for the last window, so with a pop-out
+  // open the main window's close would end the process unguarded.
+  group('another window open', () {
+    test('holds the main window while another window is open', () async {
+      final holds = <bool>[];
+      final guard = AppExitGuard(
+        retryExit: () async => calls.add('retry'),
+        preventWindowClose: (_) async {},
+        holdForOtherWindows: (hold) async => holds.add(hold),
+      );
+
+      await guard.otherWindowsOpen(true);
+      await guard.otherWindowsOpen(false);
+
+      expect(holds, [true, false]);
+    });
+
+    test('closing the main window then quits through the guard', () async {
+      final guard = AppExitGuard(
+        retryExit: () async => calls.add('retry'),
+        preventWindowClose: (_) async {},
+        holdForOtherWindows: (_) async {},
+      );
+      await guard.otherWindowsOpen(true);
+
+      await guard.otherWindowCloseRequested();
+
+      expect(calls, ['retry']);
+    });
+  });
 }
