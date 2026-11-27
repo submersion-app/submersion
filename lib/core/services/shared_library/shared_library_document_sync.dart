@@ -26,10 +26,29 @@ bool _documentEditedSince(
 }
 
 extension _DocumentSync on SharedLibraryService {
-  /// The page files the library's kept backups refer to; filled by the
-  /// backup service's index (issue #4713).
-  Future<Set<String>> _retainedPageFileIds(SharedLibraryTransport t) async =>
-      const {};
+  /// The page files the backups listed in storage refer to (issue #4713).
+  /// An unsigned index only keeps more files, never fewer, so its entries
+  /// count here without a signature check.
+  Future<Set<String>> _retainedPageFileIds(SharedLibraryTransport t) async {
+    final Map<String, dynamic>? json;
+    try {
+      json = await t.readBackupIndex();
+    } catch (e) {
+      if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
+      // Unreadable: it may name any file, so keep every one this time.
+      return {
+        for (final f in await t.listPageFiles())
+          SharedLibraryTransport.pageFileIdOf(f),
+      };
+    }
+    final entries = json?['entries'];
+    return {
+      for (final e in entries is List ? entries : const [])
+        if (e is Map && e['pageFileIds'] is List)
+          for (final f in e['pageFileIds'] as List)
+            if (f is String) f,
+    };
+  }
 
   /// Page files no document refers to are collected after this long: a
   /// member's concurrent edit may still name one about to be dropped.

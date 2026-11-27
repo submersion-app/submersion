@@ -255,6 +255,35 @@ class LibraryDocumentStamper {
     return copyId;
   }
 
+  /// Removes shared document [documentId] from its library: a tombstone
+  /// clocked under [actingDiverId]'s member goes up with the next sync, and
+  /// the local rows go now, with no personal tombstone.
+  Future<void> removeFromLibrary(
+    String documentId, {
+    String? actingDiverId,
+  }) async {
+    final row = await _row(documentId);
+    final libraryId = row?.sharedLibraryId;
+    if (row == null || libraryId == null) {
+      throw StateError('document $documentId is not shared');
+    }
+    final existing =
+        await _store.getDocumentState(documentId) ??
+        SharedDocumentState(
+          documentId: documentId,
+          libraryId: libraryId,
+          siteId: row.siteId ?? '',
+        );
+    await _stampState(
+      existing,
+      {LibraryDocumentRecord.deletedField},
+      await _sites.resolveMember(libraryId, actingDiverId),
+      deleted: true,
+    );
+    await removeLibraryRows(documentId);
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Saves [document]'s rows as [diverId]'s personal document [copyId],
   /// pages and tags included, for personal sync to carry.
   Future<void> _keepPrivateCopy(

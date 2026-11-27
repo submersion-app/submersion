@@ -129,6 +129,7 @@ class LibraryBackupService {
       note: sealed ? '' : note.trim(),
       siteCount: _count(files, SharedLibraryLayout.sitesDir),
       memberCount: _count(files, SharedLibraryLayout.membersDir),
+      documentCount: _count(files, SharedLibraryLayout.documentsDir),
     );
     final zip = await LibraryBackupArchive.build(
       files: files,
@@ -150,6 +151,7 @@ class LibraryBackupService {
       memberCount: header.memberCount,
       sizeBytes: zip.length,
       localPath: local,
+      pageFileIds: await _pageFileIdsOf(t),
     );
     var uploaded = false;
     try {
@@ -273,6 +275,21 @@ class LibraryBackupService {
         fromStorage: true,
       );
     }
+  }
+
+  /// The page files the library's shared documents name now: what a
+  /// backup of it needs kept in storage (issue #4713).
+  static Future<List<String>> _pageFileIdsOf(SharedLibraryTransport t) async {
+    final ids = <String>{};
+    for (final f in await t.listDocuments()) {
+      try {
+        final doc = await t.readDocument(f.id);
+        if (!doc.deleted) ids.addAll(doc.pageRefs.map((r) => r.fileId));
+      } catch (e) {
+        if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
+      }
+    }
+    return ids.toList()..sort();
   }
 
   static int _count(Map<String, Uint8List> files, String dir) =>
