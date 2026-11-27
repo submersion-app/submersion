@@ -41,6 +41,18 @@ final allDocumentsProvider = FutureProvider<List<DocumentListEntry>>((
   return repo.getAllForDiver(diverId);
 });
 
+/// The documents shared with the site libraries the active diver belongs
+/// to (issue #4713), for the Documents page's Shared libraries filter.
+final sharedLibraryDocumentsProvider = FutureProvider<List<DocumentListEntry>>((
+  ref,
+) async {
+  final repo = ref.watch(documentRepositoryProvider);
+  invalidateOnDocumentListChanges(ref);
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  if (diverId == null) return const [];
+  return repo.getSharedForDiver(diverId);
+});
+
 /// Rebuilds [ref]'s provider whenever [allDocumentsProvider] would refresh,
 /// for a read of some of the same entries (Global Search's rows, issue
 /// #4247): a document, its pages, or the record it is filed under.

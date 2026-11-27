@@ -165,7 +165,14 @@ class DocumentRepository with _DocumentClearanceQueries {
     return row == null ? null : documentFromRow(row);
   }
 
-  /// The documents [owner] holds, optionally only [diverId]'s.
+  /// SQL for "a shared site library [viewer] belongs to" (issue #4713);
+  /// [viewer] is a placeholder or a column.
+  static String _libraryOfMember(String viewer) =>
+      'shared_library_id IN (SELECT library_id FROM '
+      'shared_library_memberships WHERE diver_id = $viewer)';
+
+  /// The documents [owner] holds, optionally only those [diverId] sees: its
+  /// own, and the ones shared with a site library it belongs to.
   Future<List<Document>> getForOwner(
     DocumentOwner owner, {
     String? diverId,
@@ -176,13 +183,16 @@ class DocumentRepository with _DocumentClearanceQueries {
       return _db
           .customSelect(
             'SELECT * FROM documents WHERE $column = ? '
-            '${diverId == null ? '' : 'AND diver_id = ? '}'
+            '${diverId == null ? '' : 'AND (diver_id = ? OR ${_libraryOfMember('?')}) '}'
             'ORDER BY ${_documentOrder()}',
             variables: [
               Variable.withString(owner.id!),
-              if (diverId != null) Variable.withString(diverId),
+              if (diverId != null) ...[
+                Variable.withString(diverId),
+                Variable.withString(diverId),
+              ],
             ],
-            readsFrom: {_db.documents},
+            readsFrom: {_db.documents, _db.sharedLibraryMemberships},
           )
           .map((r) => documentFromRow(_db.documents.map(r.data)))
           .get();
@@ -217,6 +227,11 @@ class DocumentRepository with _DocumentClearanceQueries {
       [diverId, ...ids],
     );
   }
+
+  /// The documents shared with the site libraries [diverId] belongs to,
+  /// with their site's name as the owner label (issue #4713).
+  Future<List<DocumentListEntry>> getSharedForDiver(String diverId) =>
+      _entries('d.${_libraryOfMember('?')}', [diverId]);
 
   /// One document with its owner label, for the detail page.
   Future<DocumentListEntry?> getEntryById(String id) async =>
