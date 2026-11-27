@@ -27,7 +27,11 @@ import '../../helpers/global_test_defaults.dart';
 const _macOS = TargetPlatformVariant({TargetPlatform.macOS});
 
 /// One call the drop target made to its media importer.
-typedef _MediaDrop = ({MediaDropDestination destination, List<String> paths});
+typedef _MediaDrop = ({
+  MediaDropDestination destination,
+  List<String> paths,
+  bool fromFolder,
+});
 
 /// Build a test app that places [GlobalDropTarget] inside a GoRouter.
 ///
@@ -45,9 +49,20 @@ Widget _buildTestApp({
       ShellRoute(
         builder: (context, state, child) => Scaffold(
           body: GlobalDropTarget(
-            onMediaDrop: (context, ref, destination, paths) async {
-              mediaDrops?.add((destination: destination, paths: paths));
-            },
+            onMediaDrop:
+                (
+                  context,
+                  ref,
+                  destination,
+                  paths, {
+                  bool fromFolder = false,
+                }) async {
+                  mediaDrops?.add((
+                    destination: destination,
+                    paths: paths,
+                    fromFolder: fromFolder,
+                  ));
+                },
             child: child,
           ),
         ),
@@ -597,6 +612,8 @@ void main() {
           const MediaDropDestination(target: DiveAttachTarget('dive-1')),
         );
         expect(drops.single.paths, [photo.path, video.path]);
+        // Files dropped one by one are a choice of these files for the dive.
+        expect(drops.single.fromFolder, isFalse);
       },
     );
 
@@ -638,6 +655,9 @@ void main() {
         );
 
         expect(drops.single.paths, [photo.path]);
+        // Issue #5063: a dive takes the files of a folder only once the
+        // matcher or the user places them.
+        expect(drops.single.fromFolder, isTrue);
         expect(find.text('Import Wizard'), findsNothing);
       },
     );
