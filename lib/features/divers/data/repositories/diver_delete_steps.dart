@@ -243,6 +243,13 @@ const List<DiverDeleteStep> diverGearSteps = [
     entityType: 'equipmentTags',
     where: 'equipment_id IN ($_diverGear)',
   ),
+  // Photos linked to the diver's gear (issue #5046): a photo that survives
+  // the delete loses the link, tombstoned.
+  (
+    table: 'media_equipment',
+    entityType: 'mediaEquipment',
+    where: 'equipment_id IN ($_diverGear)',
+  ),
   // Shares of the diver's gear, and the diver's own shares of other
   // profiles' gear (issue #2046).
   (
