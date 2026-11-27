@@ -52,6 +52,7 @@ const _measureCalls = {
   'EdgeInsetsDirectional.only',
   'EdgeInsetsDirectional.fromSTEB',
   'BorderRadius.circular',
+  'BorderRadiusDirectional.circular',
   'Radius.circular',
   'Radius.elliptical',
 };
@@ -127,8 +128,10 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
   final LineInfo lineInfo;
   final found = <SpacingLiteral>[];
 
-  /// Depth of top-level variable and field declarations around the node. A
-  /// literal there is the value of a named constant, which is the exemption.
+  /// Depth of top-level variable and static field declarations around the
+  /// node. A literal there is the value of a named constant, which is the
+  /// exemption. An instance field is widget state, not a named constant, and
+  /// a closure's body is code, so neither is exempt.
   int _namedConstantDepth = 0;
 
   @override
@@ -140,9 +143,18 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (!node.isStatic) return super.visitFieldDeclaration(node);
     _namedConstantDepth++;
     super.visitFieldDeclaration(node);
     _namedConstantDepth--;
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    final outer = _namedConstantDepth;
+    _namedConstantDepth = 0;
+    super.visitFunctionExpression(node);
+    _namedConstantDepth = outer;
   }
 
   @override
@@ -189,7 +201,8 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
   }
 
   /// Records [expression] when it is a non-zero number, looking through
-  /// parentheses, both branches of a conditional and the fallback of `??`.
+  /// parentheses, both branches of a conditional, each arm of a switch
+  /// expression and the fallback of `??`.
   /// An operand of arithmetic is a multiplier or an offset, not a size.
   void _collect(Expression expression, String call) {
     switch (expression) {
@@ -198,6 +211,10 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
       case ConditionalExpression(:final thenExpression, :final elseExpression):
         _collect(thenExpression, call);
         _collect(elseExpression, call);
+      case SwitchExpression(:final cases):
+        for (final arm in cases) {
+          _collect(arm.expression, call);
+        }
       case BinaryExpression(:final operator, :final rightOperand)
           when operator.type == TokenType.QUESTION_QUESTION:
         _collect(rightOperand, call);

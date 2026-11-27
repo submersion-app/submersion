@@ -82,6 +82,38 @@ Widget build() {
       });
     });
 
+    test('a switch expression arm', () {
+      expect(values(scan('EdgeInsets.all(switch (x) { 1 => 8, _ => 16 })')), [
+        8,
+        16,
+      ]);
+    });
+
+    test('BorderRadiusDirectional.circular', () {
+      final found = scan('BorderRadiusDirectional.circular(8)');
+      expect(values(found), [8]);
+      expect(found.first.call, 'BorderRadiusDirectional.circular');
+    });
+
+    test('an instance field is widget state, not a named constant', () {
+      final found = scanSource('''
+class _State {
+  final pad = EdgeInsets.all(10);
+}
+''');
+      expect(values(found), [10]);
+    });
+
+    test('a closure inside a named constant is code, not its value', () {
+      final found = scanSource('''
+final kBuild = (c) => Padding(padding: EdgeInsets.all(8));
+abstract final class Style {
+  static final builder = (c) => const SizedBox(width: 12);
+}
+''');
+      expect(values(found), [8, 12]);
+    });
+
     test('a const local in a function body is not a named constant', () {
       final found = scanSource('''
 Widget build() {
@@ -114,6 +146,17 @@ Widget build() {
     test('a top-level named constant', () {
       expect(
         scanSource('const kPad = EdgeInsets.only(bottom: 88);\n'),
+        isEmpty,
+      );
+    });
+
+    test('a static final field named constant', () {
+      expect(
+        scanSource('''
+abstract final class Style {
+  static final padding = EdgeInsets.only(left: 10);
+}
+'''),
         isEmpty,
       );
     });

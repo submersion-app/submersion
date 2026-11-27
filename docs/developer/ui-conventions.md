@@ -78,9 +78,16 @@ writes a spacing or radius value as a bare number. It checks:
 - the `spacing:`, `runSpacing:`, `mainAxisSpacing:`, `crossAxisSpacing:`,
   `indent:` and `endIndent:` arguments of any call.
 
-It does not look at zero, at arithmetic on names (`Spacing.s8 * 2`), at a
-`SizedBox` that sizes a child, or inside a top-level or field declaration,
-which is how a named constant is exempt.
+It looks through parentheses, both branches of a conditional, each arm of a
+switch expression and the fallback of `??`. It does not look at zero, at any
+arithmetic (`Spacing.s8 * 2`, `16 + inset`), at a `SizedBox` that sizes a
+child, or inside a top-level or `static` declaration, which is how a named
+constant is exempt. An instance field and a closure's body are checked like
+any other code.
+
+A childless one-axis `SizedBox` that holds a place of a fixed size rather than
+a gap (a 300-tall chart placeholder) is still flagged: declare its size as a
+named constant, as for any off-scale value.
 
 `lib/shared/widgets/` is guarded today. Feature folders migrate one at a time,
 each in its own small PR, so the work does not collide with open feature

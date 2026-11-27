@@ -36,6 +36,12 @@ void main() {
     expect(found.length, greaterThan(1000));
   });
 
+  test('every guarded folder holds Dart files, so it is really scanned', () {
+    for (final root in guardedRoots) {
+      expect(dartFilesUnder(root), isNotEmpty, reason: root);
+    }
+  });
+
   test('guarded folders hold no spacing or radius literals', () {
     final found = scanForSpacingLiterals(
       files: [for (final root in guardedRoots) ...dartFilesUnder(root)],
