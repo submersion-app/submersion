@@ -558,7 +558,7 @@ int? _resolveTankGasIndex(
   if (first != null) {
     return first;
   }
-  // 4. Last resort: the dive's primary (first) mix -- never a hardcoded air
+  // 4. Last resort: the dive's primary (first) mix. Never a hardcoded air
   //    default, which would mislabel an EAN dive.
   return 0;
 }
