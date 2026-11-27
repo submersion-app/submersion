@@ -1,0 +1,49 @@
+name: Equipment category suggestion
+description: Suggest a new equipment type, or a new kind within an existing type, for gear that fits none of the current ones.
+title: "Equipment suggestion: "
+labels: ["equipment-suggestion", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. The app's gear editor fills this in from its "Suggest a category" link. This page is public, so please leave out personal details.
+  - type: input
+    id: kind
+    attributes:
+      label: Kind
+      description: "Category: a new entry in the type list. Subcategory: a new kind within an existing type, such as an SPG under Instrument / Gauge."
+      placeholder: Category or Subcategory
+    validations:
+      required: true
+  - type: input
+    id: name
+    attributes:
+      label: Name
+      description: What the new category or subcategory should be called.
+    validations:
+      required: true
+  - type: input
+    id: parent
+    attributes:
+      label: Parent type
+      description: The existing type it belongs under (a subcategory) or sits closest to (a category), or None.
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why it is needed
+      description: What sets it apart from the existing types.
+    validations:
+      required: true
+  - type: input
+    id: example
+    attributes:
+      label: Example item
+      description: Optional. A real item that would use it, such as a brand and model.
+  - type: input
+    id: app_version
+    attributes:
+      label: App version
+  - type: input
+    id: locale
+    attributes:
+      label: App language
