@@ -123,10 +123,14 @@ to one character.
 
 ### Shared launcher
 
-`launchSpeciesSuggestion` and `speciesSuggestionLaunchProvider` move to a
-shared helper used by both features: external browser, no `canLaunchUrl`
-guard, and a "Copy link" snackbar when the launch fails. Its strings become
-shared ones.
+The shared helper already exists: `openLinkOrOfferCopy`
+(`lib/shared/utils/link_open.dart`), which the gear web links and Settings'
+About links use. It opens the external browser with no `canLaunchUrl` guard
+and offers a "Copy link" snackbar when the launch fails. The gear suggestion
+uses it through `equipmentWebLinkLaunchProvider`, and `launchSpeciesSuggestion`
+becomes a thin call to it, so the species copy of that logic and its
+`marineLife_suggest_copyLink` string go away in favour of the shared
+`common_action_copyLink`.
 
 ### Labels
 
