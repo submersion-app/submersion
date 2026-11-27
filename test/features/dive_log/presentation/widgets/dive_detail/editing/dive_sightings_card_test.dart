@@ -160,4 +160,55 @@ void main() {
     expect(find.text('This card could not be loaded.'), findsNothing);
     expect(find.text('Green turtle'), findsOneWidget);
   });
+
+  testWidgets('each dive opens its long species list collapsed (issue '
+      '#5067)', (tester) async {
+    await db.customStatement(
+      'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+      "VALUES ('d2', 0, 0, 0)",
+    );
+    for (var i = 0; i < 11; i++) {
+      await db.customStatement(
+        "INSERT INTO species (id, common_name, category) VALUES ('sp$i', "
+        "'Fish $i', 'other')",
+      );
+      for (final id in ['d1', 'd2']) {
+        await SpeciesRepository().addSighting(diveId: id, speciesId: 'sp$i');
+      }
+    }
+    tester.view.physicalSize = const Size(400, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final shown = ValueNotifier(dive);
+    addTearDown(shown.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: await getBaseOverrides(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ValueListenableBuilder<Dive>(
+                valueListenable: shown,
+                builder: (context, d, _) =>
+                    DiveSightingsSection(dive: d, topGap: 0),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Show all (12)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Show fewer'), findsOneWidget);
+
+    shown.value = Dive(id: 'd2', dateTime: DateTime.utc(2026, 3, 10));
+    await tester.pumpAndSettle();
+    expect(find.text('Show all (11)'), findsOneWidget);
+    expect(find.text('Show fewer'), findsNothing);
+  });
 }

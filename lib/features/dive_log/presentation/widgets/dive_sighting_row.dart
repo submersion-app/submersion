@@ -97,7 +97,7 @@ class DiveSightingRow extends StatelessWidget {
                 ),
                 if (photoCount > 0 && onOpenPhotos != null)
                   Padding(
-                    padding: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsetsDirectional.only(start: 8),
                     child: ActionChip(
                       key: const ValueKey('sighting_photos'),
                       avatar: const Icon(Icons.photo_outlined, size: 16),

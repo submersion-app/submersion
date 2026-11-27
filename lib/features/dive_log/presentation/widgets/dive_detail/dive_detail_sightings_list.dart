@@ -49,6 +49,23 @@ class DiveSightingsList extends StatefulWidget {
 
 class _DiveSightingsListState extends State<DiveSightingsList> {
   var _expanded = false;
+  final _toggleKey = GlobalKey();
+
+  void _toggle() {
+    final collapsing = _expanded;
+    setState(() => _expanded = !_expanded);
+    if (!collapsing) return;
+    // Folding a long list removes the rows above the button, which leaves a
+    // reader who scrolled down to it far past the card. Bring it back.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final toggle = _toggleKey.currentContext;
+      if (toggle == null || !toggle.mounted) return;
+      Scrollable.ensureVisible(
+        toggle,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +84,10 @@ class _DiveSightingsListState extends State<DiveSightingsList> {
           builder: (context, constraints) {
             final twoColumns =
                 constraints.maxWidth >= kSightingsTwoColumnMinWidth;
+            // Floored, so two rows and the gap never round past the width
+            // and send the second row onto a run of its own.
             final rowWidth = twoColumns
-                ? (constraints.maxWidth - _columnGap) / 2
+                ? ((constraints.maxWidth - _columnGap) / 2).floorToDouble()
                 : constraints.maxWidth;
             return Wrap(
               spacing: _columnGap,
@@ -81,7 +100,8 @@ class _DiveSightingsListState extends State<DiveSightingsList> {
         ),
         if (collapsible)
           TextButton.icon(
-            onPressed: () => setState(() => _expanded = !_expanded),
+            key: _toggleKey,
+            onPressed: _toggle,
             icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
             label: Text(
               _expanded

@@ -24,9 +24,10 @@ Future<void> _pump(
   WidgetTester tester,
   List<Sighting> sightings, {
   double width = 400,
+  double height = 2400,
   void Function(Sighting)? onOpen,
 }) async {
-  tester.view.physicalSize = Size(width, 2400);
+  tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -35,11 +36,18 @@ Future<void> _pump(
       overrides: await getBaseOverrides(),
       child: Scaffold(
         body: SingleChildScrollView(
-          child: DiveSightingsList(
-            sightings: sightings,
-            photoCounts: const {},
-            onOpen: onOpen ?? (_) {},
-            onOpenPhotos: (_) {},
+          child: Column(
+            children: [
+              DiveSightingsList(
+                sightings: sightings,
+                photoCounts: const {},
+                onOpen: onOpen ?? (_) {},
+                onOpenPhotos: (_) {},
+              ),
+              // The cards below Marine life, so a fold cannot clamp the
+              // scroll offset back onto the list.
+              const SizedBox(height: 3000),
+            ],
           ),
         ),
       ),
@@ -109,6 +117,29 @@ void main() {
     expect(second.dx, greaterThan(first.dx));
     expect(third.dx, first.dx);
     expect(third.dy, greaterThan(first.dy));
+  });
+
+  testWidgets('a fractional width still fits two columns', (tester) async {
+    await _pump(tester, _sightings(2), width: 731.3);
+
+    final first = tester.getTopLeft(find.text('Species 0'));
+    final second = tester.getTopLeft(find.text('Species 1'));
+    expect(second.dy, first.dy);
+  });
+
+  testWidgets('Show fewer at the foot of a long list keeps the toggle in '
+      'view', (tester) async {
+    await _pump(tester, _sightings(40), height: 600);
+
+    await tester.tap(find.text('Show all (40)'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Show fewer'), 200);
+    await tester.tap(find.text('Show fewer'));
+    await tester.pumpAndSettle();
+
+    final toggle = tester.getRect(find.text('Show all (40)'));
+    expect(toggle.top, greaterThanOrEqualTo(0));
+    expect(toggle.bottom, lessThanOrEqualTo(600));
   });
 
   testWidgets('a phone-width card keeps one column', (tester) async {
