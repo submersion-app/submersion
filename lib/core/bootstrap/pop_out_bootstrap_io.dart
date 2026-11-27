@@ -171,8 +171,12 @@ class _PopOutWindowEvents with WindowListener {
     });
   }
 
+  /// The diver closed the window: tell the main window, then close.
+  /// A close the main window asked for has already dropped the hold, and
+  /// needs no report.
   @override
   Future<void> onWindowClose() async {
+    if (!await windowManager.isPreventClose()) return;
     _frameReport?.cancel();
     final bounds = await windowManager.getBounds();
     await _channel.send(
@@ -186,7 +190,9 @@ class _PopOutWindowEvents with WindowListener {
       ),
     );
     await _channel.send(const ClosedMessage());
-    await windowManager.destroy();
+    // Never windowManager.destroy(): on macOS it terminates the whole app.
+    await windowManager.setPreventClose(false);
+    await windowManager.close();
   }
 }
 

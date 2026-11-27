@@ -41,10 +41,15 @@ class _WindowManagerControl implements PopOutWindowControl {
   @override
   Future<void> focus() => windowManager.focus();
 
-  // Close is held back (setPreventClose) so the main window hears about it
-  // first; destroy is the close that is not intercepted.
+  // The window's own close is held back (setPreventClose) so the main
+  // window hears about it first. Dropping the hold before closing marks the
+  // close as asked for. Never windowManager.destroy(): on macOS it
+  // terminates the whole app.
   @override
-  Future<void> close() => windowManager.destroy();
+  Future<void> close() async {
+    await windowManager.setPreventClose(false);
+    await windowManager.close();
+  }
 
   @override
   Future<void> setTitle(String title) => windowManager.setTitle(title);
