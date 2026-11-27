@@ -110,6 +110,7 @@ Future<List<ServiceRecord>> loadUddfServiceRecords(
           currency: r.currency,
           nextServiceDue: r.nextServiceDue,
           notes: r.notes,
+          firmwareVersion: r.firmwareVersion,
         ),
   ];
 }

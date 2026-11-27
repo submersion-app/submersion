@@ -1186,6 +1186,10 @@ class UddfExportBuilders {
                         if (record.notes.isNotEmpty) {
                           builder.element('notes', nest: record.notes);
                         }
+                        // The version a firmware update installed (#5104).
+                        if (record.firmwareVersion case final version?) {
+                          builder.element('firmwareversion', nest: version);
+                        }
                       },
                     );
                   }

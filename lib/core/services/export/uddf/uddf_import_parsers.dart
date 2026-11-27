@@ -1352,6 +1352,10 @@ class UddfImportParsers {
     }
 
     record['notes'] = getElementText(recordElement, 'notes') ?? '';
+    record['firmwareVersion'] = getElementText(
+      recordElement,
+      'firmwareversion',
+    );
 
     return record;
   }

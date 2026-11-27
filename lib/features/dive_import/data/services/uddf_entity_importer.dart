@@ -1084,6 +1084,7 @@ class UddfEntityImporter {
         currency: recordData['currency'] as String? ?? 'USD',
         nextServiceDue: recordData['nextServiceDue'] as DateTime?,
         notes: recordData['notes'] as String? ?? '',
+        firmwareVersion: recordData['firmwareVersion'] as String?,
         createdAt: now,
         updatedAt: now,
       );
