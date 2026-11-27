@@ -149,7 +149,7 @@ class _FakeRestore extends LibraryRestoreService {
   final calls = <String>[];
 
   @override
-  Future<void> restore({
+  Future<int> restore({
     required String libraryId,
     required String diverId,
     required String backupId,
@@ -159,6 +159,7 @@ class _FakeRestore extends LibraryRestoreService {
       throw BackupNeedsOldKeyError(oldKeyId!);
     }
     calls.add('restore:$backupId:${oldSecret ?? ''}');
+    return 0;
   }
 }
 

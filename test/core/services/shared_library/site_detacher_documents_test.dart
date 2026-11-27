@@ -11,7 +11,6 @@ import 'package:submersion/core/services/shared_library/library_document_stamper
 import 'package:submersion/core/services/shared_library/shared_document_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
-import 'package:submersion/core/services/shared_library/shared_site_models.dart';
 import 'package:submersion/core/services/shared_library/site_detacher.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
