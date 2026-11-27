@@ -13,12 +13,10 @@ typedef VideoSpeciesKey = ({String mediaId, String speciesId});
 /// The viewer opened from a sighting row's photo chip starts each video at
 /// the first and marks them all on the scrub bar (issue #5084). Ticks on any
 /// identification write, so a scan that finishes while the viewer is open
-/// shows.
-final videoSpeciesSightingsProvider =
-    FutureProvider.family<List<VideoStretch>, VideoSpeciesKey>((
-      ref,
-      key,
-    ) async {
+/// shows. Released once no bar watches it, so a video paged past stops
+/// re-reading on every write.
+final videoSpeciesSightingsProvider = FutureProvider.autoDispose
+    .family<List<VideoStretch>, VideoSpeciesKey>((ref, key) async {
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final identifications = await repository.forMedia(key.mediaId);

@@ -119,4 +119,16 @@ void main() {
       (startMs: 2000, endMs: 3000),
     ]);
   });
+
+  test('is released once nothing watches it', () async {
+    final container = containerWith(_FakeIdentifications([]));
+    final sub = container.listen(videoSpeciesSightingsProvider(key), (_, _) {});
+    await container.read(videoSpeciesSightingsProvider(key).future);
+    expect(container.exists(videoSpeciesSightingsProvider(key)), isTrue);
+
+    sub.close();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(container.exists(videoSpeciesSightingsProvider(key)), isFalse);
+  });
 }

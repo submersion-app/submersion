@@ -13,13 +13,15 @@ extension _ViewerSightings on _MediaViewerPageState {
   ) async {
     final speciesId = widget.focusSpeciesId;
     if (speciesId == null) return;
+    final provider = videoSpeciesSightingsProvider((
+      mediaId: mediaId,
+      speciesId: speciesId,
+    ));
+    // Held while it resolves: nothing else may watch it yet, and an
+    // auto-disposed provider would be released mid-read.
+    final hold = ref.listenManual(provider, (_, _) {});
     try {
-      final stretches = await ref.read(
-        videoSpeciesSightingsProvider((
-          mediaId: mediaId,
-          speciesId: speciesId,
-        )).future,
-      );
+      final stretches = await ref.read(provider.future);
       if (!mounted || stretches.isEmpty) return;
       // Paged away (released) or replaced since.
       if (!identical(_videoControllers[mediaId], controller)) return;
@@ -34,6 +36,8 @@ extension _ViewerSightings on _MediaViewerPageState {
         error: e,
         stackTrace: stackTrace,
       );
+    } finally {
+      hold.close();
     }
   }
 }
