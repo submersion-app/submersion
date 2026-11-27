@@ -31764,7 +31764,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_updates_tryBetaWebSubtitle(String address) {
-    return 'Neue Funktionen früher, unter $address. Sie hat eine eigene Bibliothek; synchronisiere, um deine Tauchgänge dort zu sehen.';
+    return 'Neue Funktionen früher, unter $address. Die App hat eine eigene Bibliothek; synchronisiere, um deine Tauchgänge dort zu sehen.';
   }
 
   @override
@@ -31772,7 +31772,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_updates_useStableWebSubtitle(String address) {
-    return 'Unter $address. Sie hat eine eigene Bibliothek, getrennt von dieser.';
+    return 'Unter $address. Die App hat eine eigene Bibliothek, getrennt von dieser.';
   }
 
   @override
