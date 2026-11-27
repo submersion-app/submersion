@@ -21,9 +21,9 @@ void main() {
   });
 
   test('never ends on half of a surrogate pair', () {
-    final value = 'a${'🐠' * 10}';
+    final value = 'a${'\u{1F420}' * 10}';
     final kept = longestFittingPrefix(value, (v) => v.length <= 6);
-    expect(kept, 'a🐠🐠');
+    expect(kept, 'a\u{1F420}\u{1F420}');
     final last = kept.codeUnitAt(kept.length - 1);
     expect(last >= 0xD800 && last <= 0xDBFF, isFalse);
   });
@@ -34,6 +34,9 @@ void main() {
   });
 
   test('a floor inside a surrogate pair keeps the whole pair', () {
-    expect(longestFittingPrefix('🐠🐠', (v) => false, floor: 1), '🐠');
+    expect(
+      longestFittingPrefix('\u{1F420}\u{1F420}', (v) => false, floor: 1),
+      '\u{1F420}',
+    );
   });
 }

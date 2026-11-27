@@ -65,7 +65,7 @@ void main() {
   });
 
   test('free text with reserved characters and other scripts round-trips', () {
-    const reason = 'Fits A & B? #2790\nSecond line, 日本語, עברית, 🐠';
+    const reason = 'Fits A & B? #2790\nSecond line, 日本語, עברית, \u{1F420}';
     const name = 'Gauge & hose #1?';
     final uri = _build(_spg.copyWith(name: name, reason: reason));
 
@@ -116,7 +116,7 @@ void main() {
   });
 
   test('a trimmed emoji reason never ends on half a character', () {
-    final uri = _build(_spg.copyWith(reason: 'a${'🐠' * 1500}'));
+    final uri = _build(_spg.copyWith(reason: 'a${'\u{1F420}' * 1500}'));
 
     expect(uri.toString().length, lessThanOrEqualTo(8000));
     expect(uri.queryParameters['reason'], isNot(contains('\uFFFD')));

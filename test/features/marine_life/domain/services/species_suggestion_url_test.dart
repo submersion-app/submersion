@@ -175,7 +175,7 @@ void main() {
 
   test('a trimmed emoji description never ends on half a character', () {
     final uri = buildSpeciesSuggestionUrl(
-      species: _species.copyWith(description: 'a${'🐠' * 1500}'),
+      species: _species.copyWith(description: 'a${'\u{1F420}' * 1500}'),
       locale: 'en',
       appVersion: '1.0.0.1',
     );
