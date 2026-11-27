@@ -364,11 +364,13 @@ class DiveImportService {
     }
   }
 
-  /// Whether a cylinder end pressure derived from its pressure series is read
-  /// at surfacing (issue #5000). On when no loader is configured or the load
-  /// fails, the setting's own default: a download must never fail because a
-  /// setting could not be read.
-  Future<bool> _loadTrimTankPressureAtSurfacing(String? diverId) async {
+  /// Whether [diverId]'s cylinder end pressures are read at surfacing (the
+  /// "Tank pressure at surfacing" setting, issue #5000): a reported one the
+  /// setting decides, and one derived from a pressure series. On when no
+  /// loader is configured or the load fails, the setting's own default: a
+  /// download must never fail because a setting could not be read. Public
+  /// for the planned-dive fill, which writes its tanks itself.
+  Future<bool> loadTrimTankPressureAtSurfacing(String? diverId) async {
     final loader = _trimAtSurfacingForImports;
     if (loader == null) return true;
     try {
@@ -489,7 +491,7 @@ class DiveImportService {
     final defaultTankPreset = await _loadDefaultTankPreset(diverId);
     final transmitterMatcher = await _loadTransmitterMatcher(diverId);
     final omitUnusedOcGases = await _loadOmitUnusedOcGases(diverId);
-    final trimTankPressureAtSurfacing = await _loadTrimTankPressureAtSurfacing(
+    final trimTankPressureAtSurfacing = await loadTrimTankPressureAtSurfacing(
       diverId,
     );
     resetUnmatchedTransmitterSerials();
@@ -985,7 +987,7 @@ class DiveImportService {
       defaultTankPreset: await _loadDefaultTankPreset(diverId),
       transmitterMatcher: await _loadTransmitterMatcher(diverId),
       omitUnusedOcGases: await _loadOmitUnusedOcGases(diverId),
-      trimTankPressureAtSurfacing: await _loadTrimTankPressureAtSurfacing(
+      trimTankPressureAtSurfacing: await loadTrimTankPressureAtSurfacing(
         diverId,
       ),
       descriptorVendor: descriptorVendor,
@@ -1156,12 +1158,15 @@ class DiveImportService {
     String? descriptorProduct,
     int? descriptorModel,
     String? libdivecomputerVersion,
+    // The diver the planned dive belongs to, whose surfacing setting reads
+    // its end pressures (issue #5000); null for the active diver.
+    String? diverId,
   }) async {
     final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
     final gasSwitches = _parser.parseGasSwitches(dive);
-    final trimTankPressureAtSurfacing = await _loadTrimTankPressureAtSurfacing(
-      null,
+    final trimTankPressureAtSurfacing = await loadTrimTankPressureAtSurfacing(
+      diverId,
     );
     final tanks = _parser.parseTanks(
       dive,
@@ -1234,7 +1239,7 @@ class DiveImportService {
         // when the switch is on.
         final omitUnusedOcGases = await _loadOmitUnusedOcGases(diverId);
         final trimTankPressureAtSurfacing =
-            await _loadTrimTankPressureAtSurfacing(diverId);
+            await loadTrimTankPressureAtSurfacing(diverId);
         await _updateExistingDive(
           conflict.downloaded,
           conflict.existingDiveId,
@@ -1260,7 +1265,7 @@ class DiveImportService {
           defaultTankPreset: await _loadDefaultTankPreset(diverId),
           transmitterMatcher: await _loadTransmitterMatcher(diverId),
           omitUnusedOcGases: await _loadOmitUnusedOcGases(diverId),
-          trimTankPressureAtSurfacing: await _loadTrimTankPressureAtSurfacing(
+          trimTankPressureAtSurfacing: await loadTrimTankPressureAtSurfacing(
             diverId,
           ),
           descriptorVendor: descriptorVendor,
