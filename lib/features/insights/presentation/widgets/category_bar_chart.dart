@@ -62,6 +62,8 @@ class CategoryBarChart extends StatefulWidget {
   /// draw only every n-th one: the smallest step whose labels fit, counted
   /// back from the last bar so the most recent period always keeps its
   /// label. For long runs such as one bar per year over decades (#5074).
+  /// Such a chart also keeps each rod under 70 percent of its slot, so the
+  /// bars never touch.
   final bool thinXLabelsToFit;
 
   const CategoryBarChart({
@@ -292,12 +294,15 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
     final yAxisLabel = widget.yAxisLabel;
     final compactXLabelFormatter = widget.compactXLabelFormatter;
     final marked = _marked;
-    // A rod never fills its slot: 20 px, 12 px once crowded, and never
-    // wider than 70 percent of the slot, so decades of yearly bars at
-    // phone width keep a gap between them (issue #5074).
+    // Rods are 20 px, 12 px once crowded. A chart that opts into
+    // [thinXLabelsToFit] also keeps each rod under 70 percent of its slot,
+    // so decades of yearly bars at phone width keep a gap between them
+    // (issue #5074); every other chart draws exactly as before.
     final slot = _slotWidth(chartWidth);
     final rodCap = data.length > 12 ? 12.0 : 20.0;
-    final rodWidth = slot > 0 && slot * 0.7 < rodCap ? slot * 0.7 : rodCap;
+    final rodWidth = widget.thinXLabelsToFit && slot > 0 && slot * 0.7 < rodCap
+        ? slot * 0.7
+        : rodCap;
     // Whole-number steps shared by the grid and the labels: the left titles
     // render nothing for a fractional value, so a 2.5 step would otherwise
     // leave unlabelled lines (issue #219).

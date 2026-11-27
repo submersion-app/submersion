@@ -90,6 +90,20 @@ void main() {
     }
   });
 
+  testWidgets('without thinning the rods keep their fixed widths', (
+    tester,
+  ) async {
+    // Every chart that does not opt in draws exactly as before: 12 px rods
+    // once there are more than 12 bars, 20 px otherwise.
+    await _pump(tester, years, thin: false);
+    final crowded = tester.widget<BarChart>(find.byType(BarChart));
+    expect(crowded.data.barGroups.first.barRods.single.width, 12);
+
+    await _pump(tester, years.sublist(0, 12), thin: false);
+    final twelve = tester.widget<BarChart>(find.byType(BarChart));
+    expect(twelve.data.barGroups.first.barRods.single.width, 20);
+  });
+
   testWidgets('labels that fit are all drawn even with thinning on', (
     tester,
   ) async {
