@@ -161,6 +161,9 @@ tool does not generate, such as a body typed into a `gh` command.
 - High cohesion, low coupling
 - 200-400 lines typical, 800 max per file
 - Organize by feature/domain, not by type
+- Scripts live in scripts/<purpose>/ (Python, shell) and tool/ (Dart);
+  scripts/README.md indexes every one, and check_scripts_index.py fails CI on
+  a loose or unindexed script
 
 ### 2. Code Style
 
