@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -161,22 +163,99 @@ void main() {
     });
   });
 
-  // The dive page puts the header card's pencil here (issue #4527, plan 4).
-  testWidgets('titleTrailing is drawn at the end of the title row', (
-    tester,
-  ) async {
-    await pump(
-      tester,
-      DiveHeroHeader(
-        dive: dive,
-        units: const UnitFormatter(AppSettings()),
-        titleTrailing: const Icon(Icons.edit_outlined, key: Key('trailing')),
-      ),
+  // The dive page puts the header card's pencil here: at the far right of
+  // the card like every other card's pencil, not after the name (#4888).
+  group('trailing (issue #4888)', () {
+    const trailingKey = Key('trailing');
+    const trailingIcon = Icon(Icons.edit_outlined, key: trailingKey);
+
+    Dive rated(String name) => Dive(
+      id: 'd4',
+      diveNumber: 12,
+      name: name,
+      dateTime: DateTime.utc(2026, 5, 4, 9),
+      rating: 4,
+      diveMode: DiveMode.ccr,
+      diveTypeIds: const ['technical', 'wreck', 'deep'],
     );
 
-    final title = tester.getCenter(find.text('Shark Point'));
-    final trailing = tester.getCenter(find.byKey(const Key('trailing')));
-    expect(trailing.dx, greaterThan(title.dx));
-    expect((trailing.dy - title.dy).abs(), lessThan(12));
+    testWidgets('sits at the top right, right of the rating and mode badge', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        DiveHeroHeader(
+          dive: rated('Shark Point'),
+          units: units,
+          trailing: trailingIcon,
+        ),
+      );
+
+      final trailing = tester.getRect(find.byKey(trailingKey));
+      final badge = tester.getRect(find.byType(DiveModeBadge));
+      final star = tester.getRect(find.byIcon(Icons.star));
+      final title = tester.getRect(find.text('Shark Point'));
+      // The Card's own surface, inside its margin.
+      final card = tester.getRect(
+        find
+            .descendant(of: find.byType(Card), matching: find.byType(Material))
+            .first,
+      );
+
+      expect(trailing.left, greaterThanOrEqualTo(badge.right));
+      expect(trailing.left, greaterThan(star.right));
+      // At the card's right edge, inside its 16 px padding.
+      expect(card.right - trailing.right, closeTo(16, 0.5));
+      // On the title's line, not centred in the header.
+      expect(trailing.top, lessThanOrEqualTo(title.center.dy));
+    });
+
+    testWidgets("does not move with the name's length", (tester) async {
+      await pump(
+        tester,
+        DiveHeroHeader(
+          dive: rated('Bay'),
+          units: units,
+          trailing: trailingIcon,
+        ),
+      );
+      final short = tester.getRect(find.byKey(trailingKey));
+
+      await pump(
+        tester,
+        DiveHeroHeader(
+          dive: rated('The long drift along the outer reef wall'),
+          units: units,
+          trailing: trailingIcon,
+        ),
+      );
+      final long = tester.getRect(find.byKey(trailingKey));
+
+      expect(long.right, short.right);
+      expect(long.top, short.top);
+    });
+
+    testWidgets('fits a phone width with a long name and every badge', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await pump(
+        tester,
+        DiveHeroHeader(
+          dive: rated('The long drift along the outer reef wall'),
+          units: units,
+          trailing: trailingIcon,
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      final trailing = tester.getRect(find.byKey(trailingKey));
+      final badge = tester.getRect(find.byType(DiveModeBadge));
+      expect(trailing.left, greaterThanOrEqualTo(badge.right));
+      expect(trailing.right, lessThanOrEqualTo(360));
+    });
   });
 }

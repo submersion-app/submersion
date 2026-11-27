@@ -66,7 +66,7 @@ class DiveDetailHeroSection extends ConsumerWidget {
           ? DiveHeroHeader.formatBottomTime(dive)
           : _formatBottomTimeForSource(ref, activeSource),
       // Draws nothing unless the header is framed as a card and unlocked.
-      titleTrailing: RecordCardPencil(
+      trailing: RecordCardPencil(
         cardTitle: context.l10n.diveLog_detail_section_header,
       ),
       belowTitle: Consumer(

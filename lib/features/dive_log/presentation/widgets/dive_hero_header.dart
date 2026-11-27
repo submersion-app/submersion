@@ -48,9 +48,11 @@ class DiveHeroHeader extends ConsumerWidget {
   /// card is a button; when null the map is purely decorative.
   final VoidCallback? onSiteTap;
 
-  /// Drawn at the end of the title row, such as the header card's pencil
-  /// on a dive page that offers editing.
-  final Widget? titleTrailing;
+  /// Drawn at the top right of the card, after the rating and badges, such
+  /// as the header card's pencil on a dive page that offers editing. Every
+  /// other card's pencil sits at the far right of its title row, so this one
+  /// does too rather than following the name (issue #4888).
+  final Widget? trailing;
 
   const DiveHeroHeader({
     required this.dive,
@@ -61,7 +63,7 @@ class DiveHeroHeader extends ConsumerWidget {
     this.bottomTimeText,
     this.belowTitle,
     this.onSiteTap,
-    this.titleTrailing,
+    this.trailing,
     super.key,
   });
 
@@ -115,7 +117,7 @@ class DiveHeroHeader extends ConsumerWidget {
                 120.0,
                 280.0,
               );
-              return Row(
+              final header = Row(
                 children: [
                   CircleAvatar(
                     radius: 24,
@@ -156,7 +158,6 @@ class DiveHeroHeader extends ConsumerWidget {
                             // name it shows as (issue #2567).
                             if (dive.effectiveName == null && dive.site != null)
                               LibrarySiteBadge(site: dive.site!),
-                            ?titleTrailing,
                           ],
                         ),
                         ?belowTitle,
@@ -257,6 +258,18 @@ class DiveHeroHeader extends ConsumerWidget {
                       ],
                     ],
                   ),
+                ],
+              );
+              final trailing = this.trailing;
+              if (trailing == null) return header;
+              // A column of its own, pinned to the top like every other
+              // card's pencil: the badge column keeps its centring, and the
+              // two cannot overlap at any width.
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: header),
+                  trailing,
                 ],
               );
             },
