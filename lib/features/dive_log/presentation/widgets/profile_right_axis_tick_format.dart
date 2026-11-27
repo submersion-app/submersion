@@ -39,8 +39,10 @@ String formatRightAxisTick(
   final rounded = double.parse(display.toStringAsFixed(decimals));
   final label = formatFixedForDisplay(rounded == 0 ? 0 : display, decimals);
   // Net buoyancy reads by its sign: buoyant above 0, heavy below (#4593).
+  // So does ascent rate, like its bars: ascents above 0 (#5069).
   if ((metric == ProfileRightAxisMetric.buoyancy ||
-          metric == ProfileRightAxisMetric.aveloBuoyancy) &&
+          metric == ProfileRightAxisMetric.aveloBuoyancy ||
+          metric == ProfileRightAxisMetric.ascentRate) &&
       rounded > 0) {
     return '+$label';
   }

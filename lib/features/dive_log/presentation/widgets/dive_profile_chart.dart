@@ -50,6 +50,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_metric
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_bar_overlay.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_axis_scale.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_spread.dart';
@@ -4267,6 +4268,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // the band (issue #3892).
     final rightAxisIsDepthScale =
         effectiveRightAxisMetric == ProfileRightAxisMetric.meanDepth;
+    // Ascent rate labels its bars' own scale, fixed to the plot: zero at the
+    // middle, the saturation rate at the edges (issue #5069). Quarter-plot
+    // ticks put a label on the middle and on each edge.
+    final rightAxisIsAscentRate =
+        effectiveRightAxisMetric == ProfileRightAxisMetric.ascentRate;
+    final ascentRateMaxAbs = rightAxisIsAscentRate
+        ? _ascentRateAxisRange(widget.ascentRates)?.max
+        : null;
     // Axis values are negated display-unit depths (surface at 0).
     String depthTickLabel(double axisValue) => '${(-axisValue).toInt()}';
 
@@ -4770,7 +4779,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       effectiveRightAxisMetric != null &&
                       rightAxisRange != null,
                   reservedSize: DiveProfileChart.rightAxisSize(availableWidth),
-                  interval: rightAxisIsDepthScale ? depthInterval : null,
+                  interval: rightAxisIsDepthScale
+                      ? depthInterval
+                      : (ascentRateMaxAbs != null
+                            ? (visibleMaxDepth - visibleMinDepth) / 4
+                            : null),
                   getTitlesWidget: (value, meta) {
                     if (effectiveRightAxisMetric == null ||
                         rightAxisRange == null) {
@@ -4784,6 +4797,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     final String label;
                     if (rightAxisIsDepthScale) {
                       label = depthTickLabel(value);
+                    } else if (ascentRateMaxAbs != null) {
+                      double rateAt(double axisValue) => ascentRateAtAxisValue(
+                        axisValue,
+                        axisMin: meta.min,
+                        axisMax: meta.max,
+                        maxAbsRate: ascentRateMaxAbs,
+                      );
+                      final rate = rateAt(value);
+                      label = formatRightAxisTick(
+                        ProfileRightAxisMetric.ascentRate,
+                        rate,
+                        units,
+                        tickStep: rateAt(value + meta.appliedInterval) - rate,
+                      );
                     } else {
                       // Map from inverted depth axis to the metric value
                       final metricValue = metricBand.unmap(
@@ -5160,6 +5187,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   _updatePlot(
                     () => _hoveredAscentRateTimestamp =
                         hoveredAscentRateTimestamp,
+                  );
+                }
+                // The bars drive the axis while hovered, as a tagged line
+                // does (issue #5069), unless a line is nearer or the diver
+                // chose "None".
+                if (hoveredAscentRateTimestamp != null &&
+                    newHoverMetric == null &&
+                    !rightAxisExplicitlyHidden &&
+                    _hoverRightAxisMetric !=
+                        ProfileRightAxisMetric.ascentRate) {
+                  _updatePlot(
+                    () => _hoverRightAxisMetric =
+                        ProfileRightAxisMetric.ascentRate,
                   );
                 }
 
@@ -5684,11 +5724,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final availableMetrics = metricsInCategory
           .where(
             (m) =>
-                // Ascent rate is drawn by AscentRateBarOverlay (bars from the
-                // plot's centre, gated on its own legend toggle), not as a
-                // LineChartBarData against this axis's scale -- selecting it
-                // here would show a scale with no traceable line against it.
-                m != ProfileRightAxisMetric.ascentRate && _hasDataForMetric(m),
+                // Ascent rate is offered too: its axis labels the bars' own
+                // fixed scale (issue #5069), and picking it turns them on.
+                _hasDataForMetric(m),
           )
           .toList();
 
